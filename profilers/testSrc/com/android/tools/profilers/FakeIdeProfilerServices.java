@@ -261,6 +261,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     return myNativeProfilingConfigurationPreferred;
   }
 
+  @Override
+  public void showErrorBalloon(@NotNull String title, @NotNull String text) {}
+
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
   }

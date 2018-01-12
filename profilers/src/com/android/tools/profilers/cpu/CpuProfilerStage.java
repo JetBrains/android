@@ -122,8 +122,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     PARSING_FAILURE,
     // Waiting for the service to respond a start capturing call
     STARTING,
+    // An attempt to start capture has failed
+    START_FAILURE,
     // Waiting for the service to respond a stop capturing call
     STOPPING,
+    // An attempt to stop capture has failed
+    STOP_FAILURE,
   }
 
   @NotNull
@@ -375,6 +379,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
+      setCaptureState(CaptureState.START_FAILURE);
+      getStudioProfilers().getIdeServices().showErrorBalloon("Recording failed to start", "Try recording again, or report a bug by selecting Help > Submit Feedback.");
+      // START_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
       setCaptureState(CaptureState.IDLE);
     }
   }
@@ -402,6 +409,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
+      setCaptureState(CaptureState.STOP_FAILURE);
+      getStudioProfilers().getIdeServices().showErrorBalloon("Recording failed to stop", "Try recording another method trace, or report a bug by selecting Help > Submit Feedback.");
+      // STOP_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
       setCaptureState(CaptureState.IDLE);
       captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
@@ -448,6 +458,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       else {
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
         setCaptureState(CaptureState.PARSING_FAILURE);
+        getStudioProfilers().getIdeServices().showErrorBalloon("Trace data was not recorded", "The profiler was unable to parse the method trace data. Try recording another method trace, or report a bug by selecting Help > Submit Feedback.");
         // PARSING_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
         setCaptureState(CaptureState.IDLE);
         setCapture(null);

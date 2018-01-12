@@ -597,6 +597,12 @@ class CpuCaptureView {
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
       myChart = setUpChart(CaptureModel.Details.Type.FLAME_CHART, flameChart.getRange(), myMasterRange, myFlameChart.getNode(), stageView);
+      myObserver = new AspectObserver();
+
+      if (myFlameChart.getNode() == null) {
+        myPanel = getNoDataForThread();
+        return;
+      }
 
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
@@ -610,7 +616,6 @@ class CpuCaptureView {
       myPanel.add(contentPanel, CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
-      myObserver = new AspectObserver();
       myFlameChart.getAspect().addDependency(myObserver).onChange(CaptureModel.FlameChart.Aspect.NODE, this::nodeChanged);
       nodeChanged();
     }
