@@ -4,7 +4,7 @@
   <description>
     Supports development of Android applications with IntelliJ IDEA and Android Studio.
   </description>
-  <version>10.3.1 Canary 9</version>
+  <version>10.3.1 Beta 1</version>
   <vendor>JetBrains &amp; Google</vendor>
 
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
