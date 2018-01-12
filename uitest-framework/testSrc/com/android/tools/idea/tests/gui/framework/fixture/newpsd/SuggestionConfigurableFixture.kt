@@ -51,6 +51,7 @@ open class SuggestionConfigurableFixture(
     timeout
         .expecting("Analyses completed and no 'Loading...' message visible")
         .until { GuiQuery.get { !loadingLabel().target().isVisible }!! }
+    waitForIdle()
   }
 
   fun groups(): List<String> = suggestionGroups().map { it.title() }.filter { it != null }.map { it!! }
