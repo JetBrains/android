@@ -292,6 +292,16 @@ public class SceneComponent {
   }
 
   /**
+   * Returns true if the widget is parent(0,0) - 0x0
+   * @return true if no dimension
+   */
+  public boolean hasNoDimension() {
+    return myAnimatedDrawWidth.value == 0 && myAnimatedDrawHeight.value == 0
+           && (myAnimatedDrawX.value == myAnimatedDrawX.target)
+           && (myAnimatedDrawY.value == myAnimatedDrawY.target);
+  }
+
+  /**
    * Get the X coordinate of this {@link SceneComponent}. If an animation is running, returns
    * the value at the start of the animation.
    * <p>This is the equivalent of {@link SceneComponent#getDrawX(long 0)}</p>

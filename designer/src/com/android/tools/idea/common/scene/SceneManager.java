@@ -185,7 +185,7 @@ abstract public class SceneManager implements Disposable {
     }
     for (SceneComponent child : oldChildren) {
       if (child instanceof TemporarySceneComponent && child.getParent() == sceneComponent) {
-        // ignore TemporarySceneComponent since its associated NlComponent has not added to the hierarchy.
+        // ignore TemporarySceneComponent since its associated NlComponent has not been added to the hierarchy.
         continue;
       }
       if (child.getParent() == sceneComponent) {
