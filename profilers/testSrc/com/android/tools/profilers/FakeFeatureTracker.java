@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -224,6 +225,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackCreateCustomProfilingConfig() {
+
+  }
+
+  @Override
+  public void trackFilterMetadata(@NotNull FilterMetadata filterMetadata) {
 
   }
 }

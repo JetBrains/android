@@ -29,6 +29,8 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingS
 import com.android.tools.profiler.proto.Profiler.TimeRequest;
 import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -467,6 +469,32 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       selectClassSet(ClassSet.EMPTY_SET);
     }
     myAspect.changed(MemoryProfilerAspect.CURRENT_FILTER);
+  }
+
+  public void selectCaptureFilter(@Nullable Pattern filter, @NotNull FilterModel model) {
+    selectCaptureFilter(filter);
+    trackFilterUsage(filter, model);
+  }
+
+  private void trackFilterUsage(@Nullable Pattern filter, @NotNull FilterModel model) {
+    FilterMetadata filterMetadata = new FilterMetadata();
+    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
+    switch (getConfiguration().getClassGrouping()) {
+      case ARRANGE_BY_CLASS:
+        filterMetadata.setView(FilterMetadata.View.MEMORY_CLASS);
+        break;
+      case ARRANGE_BY_PACKAGE:
+        filterMetadata.setView(FilterMetadata.View.MEMORY_PACKAGE);
+        break;
+      case ARRANGE_BY_CALLSTACK:
+        filterMetadata.setView(FilterMetadata.View.MEMORY_CALLSTACK);
+        break;
+    }
+    filterMetadata.setFeaturesUsed(model.getIsMatchCase(), model.getIsRegex());
+    filterMetadata.setMatchedElementCount(getSelectedHeapSet().getFilteredObjectSetCount());
+    filterMetadata.setTotalElementCount(getSelectedHeapSet().getTotalObjectSetCount());
+    filterMetadata.setFilterTextLength(filter == null ? 0 : filter.pattern().length());
+    featureTracker.trackFilterMetadata(filterMetadata);
   }
 
   @Nullable

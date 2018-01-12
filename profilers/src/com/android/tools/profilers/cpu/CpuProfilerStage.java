@@ -29,6 +29,8 @@ import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -643,6 +645,36 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setCaptureFilter(@Nullable Pattern filter) {
     myCaptureModel.setFilter(filter);
+  }
+
+  public void setCaptureFilter(@Nullable Pattern filter, @NotNull FilterModel model) {
+    setCaptureFilter(filter);
+    trackFilterUsage(filter, model);
+  }
+
+  private void trackFilterUsage(@Nullable Pattern filter, @NotNull FilterModel model) {
+    FilterMetadata filterMetadata = new FilterMetadata();
+    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
+    CaptureModel.Details details = getCaptureDetails();
+    switch (details.getType()) {
+      case TOP_DOWN:
+        filterMetadata.setView(FilterMetadata.View.CPU_TOP_DOWN);
+        break;
+      case BOTTOM_UP:
+        filterMetadata.setView(FilterMetadata.View.CPU_BOTTOM_UP);
+        break;
+      case CALL_CHART:
+        filterMetadata.setView(FilterMetadata.View.CPU_CALL_CHART);
+        break;
+      case FLAME_CHART:
+        filterMetadata.setView(FilterMetadata.View.CPU_FLAME_CHART);
+        break;
+    }
+    filterMetadata.setFeaturesUsed(model.getIsMatchCase(), model.getIsRegex());
+    filterMetadata.setMatchedElementCount(myCaptureModel.getFilterNodeCount());
+    filterMetadata.setTotalElementCount(myCaptureModel.getNodeCount());
+    filterMetadata.setFilterTextLength(filter == null ? 0 : filter.pattern().length());
+    featureTracker.trackFilterMetadata(filterMetadata);
   }
 
   public void openProfilingConfigurationsDialog() {

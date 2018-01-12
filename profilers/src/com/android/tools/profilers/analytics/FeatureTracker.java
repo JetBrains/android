@@ -234,4 +234,9 @@ public interface FeatureTracker {
    * Track the user creating custom CPU profiling configurations.
    */
   void trackCreateCustomProfilingConfig();
+
+  /**
+   * Track when the user uses the filter component in the profilers.
+   */
+  void trackFilterMetadata(@NotNull FilterMetadata filterMetadata);
 }
