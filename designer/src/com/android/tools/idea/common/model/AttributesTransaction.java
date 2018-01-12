@@ -57,7 +57,6 @@ public class AttributesTransaction implements NlAttributesHolder {
    * After calling commit (this will indicate if the transaction was successful
    */
   private boolean isSuccessful = false;
-  @NotNull private WeakReference<View> myCachedView = new WeakReference<>(null);
   private boolean hasPendingRelayout;
 
   public AttributesTransaction(@NotNull NlComponent thisComponent) {
@@ -103,10 +102,9 @@ public class AttributesTransaction implements NlAttributesHolder {
    * @param viewInfo
    */
   private void applyAllPendingAttributesToView(@NotNull ViewInfo viewInfo) {
-    View cachedView = (View)viewInfo.getViewObject();
-    myCachedView = new WeakReference<>(cachedView);
+    View viewObject = (View)viewInfo.getViewObject();
 
-    if (cachedView != null) {
+    if (viewObject != null) {
       // If the value is null, means that the attribute was reset to the default value. In that case, since this is a new view object
       // we do not need to propagate that change.
       myPendingAttributes.values().stream()
