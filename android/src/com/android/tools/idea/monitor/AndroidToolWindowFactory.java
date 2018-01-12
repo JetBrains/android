@@ -133,7 +133,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     }
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
-    loadingPanel.add(new DeviceAndSearchPanel(devicePanel, logcatView, monitorsVisible), BorderLayout.NORTH);
+    loadingPanel.add(new DeviceAndSearchPanel(devicePanel, logcatView), BorderLayout.NORTH);
     loadingPanel.add(layoutUi.getComponent(), BorderLayout.CENTER);
 
     final ContentManager contentManager = toolWindow.getContentManager();
