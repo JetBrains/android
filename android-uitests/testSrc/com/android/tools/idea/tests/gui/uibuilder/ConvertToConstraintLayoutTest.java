@@ -88,6 +88,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:id=\"@+id/button\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginLeft=\"<test>\"\n" +
                  "        android:layout_marginStart=\"<test>\"\n" +
                  "        android:layout_marginTop=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
@@ -98,6 +99,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:id=\"@+id/button2\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginLeft=\"<test>\"\n" +
                  "        android:layout_marginStart=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/button\"\n" +
@@ -108,6 +110,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginEnd=\"<test>\"\n" +
+                 "        android:layout_marginRight=\"<test>\"\n" +
                  "        android:ems=\"10\"\n" +
                  "        android:inputType=\"textPersonName\"\n" +
                  "        android:text=\"Name\"\n" +
@@ -121,6 +124,8 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"<test>\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginEnd=\"<test>\"\n" +
+                 "        android:layout_marginLeft=\"<test>\"\n" +
+                 "        android:layout_marginRight=\"<test>\"\n" +
                  "        android:layout_marginStart=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
                  "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button5\"\n" +
@@ -133,6 +138,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginBottom=\"<test>\"\n" +
                  "        android:layout_marginEnd=\"<test>\"\n" +
+                 "        android:layout_marginRight=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
