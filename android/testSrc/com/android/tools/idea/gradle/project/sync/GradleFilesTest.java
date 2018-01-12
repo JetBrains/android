@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -40,6 +42,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -274,6 +277,23 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     assertFalse(myGradleFiles.hasHashForFile(getAppBuildFile()));
   }
 
+  public void testChangesAreNotDetectedWithNoListener() throws Exception {
+    loadSimpleApplication();
+    PsiFile psiFile = findPsiFile(getAppBuildFile());
+
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(getProject());
+
+    // If the listener was attached, this should count as a modification.
+    CommandProcessor.getInstance().executeCommand(getProject(), () ->
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        assertThat(psiFile.getChildren().length).isGreaterThan(0);
+        psiFile.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
+      }), "Fake Edit Test", null);
+
+    // But since we have no listener no files should be classed as modified.
+    assertFalse(myGradleFiles.areGradleFilesModified());
+  }
+
   @NotNull
   private VirtualFile getAppBuildFile() {
     Module appModule = myModules.getAppModule();
@@ -326,6 +346,10 @@ public class GradleFilesTest extends AndroidGradleTestCase {
                                        boolean preCheckEnabled,
                                        @NotNull VirtualFile file) throws Exception {
     PsiFile psiFile = findPsiFile(file);
+
+    FileEditorManager mockManager = mock(FileEditorManager.class);
+
+    myGradleFiles.getFileEditorListener().selectionChanged(new FileEditorManagerEvent(mockManager, null, null, file, null));
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(getProject());
 
