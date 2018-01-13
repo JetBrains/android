@@ -45,29 +45,31 @@ class LegendComponentTest {
     model.add(legend1)
     model.update(TimeUnit.SECONDS.toNanos(1))
 
-    assertText(legendComponent, listOf("Name1"))
-    assertThat(legendComponent.preferredSize.width).isGreaterThan(0)
-    assertThat(legendComponent.preferredSize.height).isGreaterThan(0)
+    assertText(legendComponent, listOf())
+    assertThat(legendComponent.preferredSize.width).isEqualTo(0)
+    assertThat(legendComponent.preferredSize.height).isEqualTo(0)
 
     model.add(legend2)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertText(legendComponent, listOf("Name1", "Name2"))
+    assertText(legendComponent, listOf())
 
     model.add(legend3)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertText(legendComponent, listOf("Name1", "Name2", "Name3: ", "Value3"))
+    assertThat(legendComponent.preferredSize.width).isGreaterThan(0)
+    assertThat(legendComponent.preferredSize.height).isGreaterThan(0)
+    assertText(legendComponent, listOf("Name3: ", "Value3"))
 
     legend1.setValue("Value1")
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertText(legendComponent, listOf("Name1: ", "Value1", "Name2", "Name3: ", "Value3"))
+    assertText(legendComponent, listOf("Name1: ", "Value1", "Name3: ", "Value3"))
 
     model.remove(legend1)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertText(legendComponent, listOf("Name2", "Name3: ", "Value3"))
+    assertText(legendComponent, listOf("Name3: ", "Value3"))
 
     model.remove(legend3)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertText(legendComponent, listOf("Name2"))
+    assertText(legendComponent, listOf())
 
     model.remove(legend2)
     model.update(TimeUnit.SECONDS.toNanos(1))
@@ -80,9 +82,9 @@ class LegendComponentTest {
   @Test
   fun addingLegendsWithIconsCreatesIconInstructions() {
     val model = LegendComponentModel(0)
-    val legend1 = FakeLegend("Test1")
-    val legend2 = FakeLegend("Test2")
-    val legend3 = FakeLegend("Test3")
+    val legend1 = FakeLegend("Test1", "Value1")
+    val legend2 = FakeLegend("Test2", "Value2")
+    val legend3 = FakeLegend("Test3", "Value3")
     val config2 = LegendConfig(LegendConfig.IconType.BOX, Color.GREEN)
     val config3 = LegendConfig(LegendConfig.IconType.LINE, Color.BLUE)
 
@@ -109,9 +111,9 @@ class LegendComponentTest {
   @Test
   fun verticalLegendsAddNewRowInstructions() {
     val model = LegendComponentModel(0)
-    val legend1 = FakeLegend("Test1")
-    val legend2 = FakeLegend("Test2")
-    val legend3 = FakeLegend("Test3")
+    val legend1 = FakeLegend("Test1", "Value1")
+    val legend2 = FakeLegend("Test2", "Value2")
+    val legend3 = FakeLegend("Test3", "Value3")
 
     val legendComponent = LegendComponent.Builder(model).setOrientation(LegendComponent.Orientation.VERTICAL).build()
 

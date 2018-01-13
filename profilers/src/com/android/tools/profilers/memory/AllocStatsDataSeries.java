@@ -15,36 +15,53 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class AllocStatsDataSeries implements DataSeries<Long> {
-  @NotNull private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+  @NotNull private final StudioProfilers myProfilers;
+  @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   @NotNull private final Common.Session mySession;
+  @SuppressWarnings("FieldCanBeLocal") @NotNull private final AspectObserver myObserver;
+  private boolean myIsAgentAttached = false;
 
   @NotNull
   private Function<MemoryProfiler.MemoryData.AllocStatsSample, Long> myFilter;
 
-  public AllocStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                              @NotNull Common.Session session,
+  public AllocStatsDataSeries(@NotNull StudioProfilers profilers,
+                              @NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                               @NotNull Function<MemoryProfiler.MemoryData.AllocStatsSample, Long> filter) {
+    myProfilers = profilers;
     myClient = client;
-    mySession = session;
+    mySession = myProfilers.getSession();
     myFilter = filter;
+
+    myObserver = new AspectObserver();
+    myProfilers.addDependency(myObserver).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
+    agentStatusChanged();
   }
 
   @Override
   public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    if (!myIsAgentAttached) {
+      return Collections.emptyList();
+    }
+
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
@@ -59,5 +76,9 @@ public final class AllocStatsDataSeries implements DataSeries<Long> {
       seriesData.add(new SeriesData<>(dataTimestamp, myFilter.apply(sample)));
     }
     return seriesData;
+  }
+
+  private void agentStatusChanged() {
+    myIsAgentAttached = myProfilers.isAgentAttached();
   }
 }

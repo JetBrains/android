@@ -97,7 +97,7 @@ public class LegendComponent extends AnimatedComponent {
     modelChanged();
   }
 
-  public void configure(Legend legend, LegendConfig config) {
+  public void configure(@NotNull Legend legend, @NotNull LegendConfig config) {
     myConfigs.put(legend, config);
   }
 
@@ -117,7 +117,7 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   @NotNull
-  private LegendConfig getConfig(Legend data) {
+  private LegendConfig getConfig(@NotNull Legend data) {
     LegendConfig config = myConfigs.get(data);
     if (config == null) {
       config = new LegendConfig(LegendConfig.IconType.NONE, Color.RED);
@@ -152,6 +152,14 @@ public class LegendComponent extends AnimatedComponent {
     myInstructions.clear();
 
     for (Legend legend : myModel.getLegends()) {
+      String name = legend.getName();
+      String value = legend.getValue();
+      LegendConfig config = getConfig(legend);
+      if (value == null) {
+        // We'll skip any legend that returns a null value.
+        continue;
+      }
+
       if (legend != myModel.getLegends().get(0)) {
         if (myOrientation == Orientation.HORIZONTAL) {
           myInstructions.add(new GapInstruction(LEGEND_HORIZ_MARGIN_PX));
@@ -161,17 +169,14 @@ public class LegendComponent extends AnimatedComponent {
         }
       }
 
-      LegendConfig config = getConfig(legend);
-      if (config.getIcon() != LegendConfig.IconType.NONE) {
-        IconInstruction iconInstruction = new IconInstruction(config.getIcon(), config.getColor());
+      if (config.getIconType() != LegendConfig.IconType.NONE) {
+        IconInstruction iconInstruction = new IconInstruction(config.getIconType(), config.getColor());
         myInstructions.add(iconInstruction);
         // For vertical legends, Components after icons need be aligned to left, so adjust the gap width after icon.
         int gapAdjust = myOrientation == Orientation.VERTICAL ? IconInstruction.ICON_MAX_WIDTH - iconInstruction.getSize().width : 0;
         myInstructions.add(new GapInstruction(ICON_MARGIN_PX + gapAdjust));
       }
 
-      String name = legend.getName();
-      String value = legend.getValue();
       if (!name.isEmpty() && StringUtil.isNotEmpty(value)) {
         name += ": ";
       }
@@ -197,6 +202,7 @@ public class LegendComponent extends AnimatedComponent {
 
     if (!getPreferredSize().equals(prevSize)) {
       revalidate();
+      repaint();
     }
   }
 

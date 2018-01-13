@@ -478,19 +478,36 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .build();
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
+
+    MemoryData memoryData = MemoryData.newBuilder()
+      .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS)
+      .addAllocStatsSamples(
+        MemoryData.AllocStatsSample.newBuilder().setTimestamp(FakeTimer.ONE_SECOND_IN_NS).setJavaAllocationCount(5).build()
+      ).build();
+    myService.setMemoryData(memoryData);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getLegends();
     DetailedMemoryUsage usage = myStage.getDetailedMemoryUsage();
     SeriesLegend objectLegend = legends.getObjectsLegend();
     RangedContinuousSeries objectSeries = usage.getObjectsSeries();
-    assertThat(legends.getLegends().stream().noneMatch(legend -> legend == objectLegend)).isTrue();
-    assertThat(usage.getSeries().stream().noneMatch(series -> series == objectSeries)).isTrue();
+    assertThat(legends.getLegends().stream().filter(legend -> legend == objectLegend).findFirst().get().getValue()).isNull();
+    assertThat(usage.getSeries().stream().anyMatch(series -> series == objectSeries)).isTrue();
+    assertThat(objectSeries.getDataSeries().getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(1))))
+      .isEmpty();
 
     myProfilerService.setAgentStatus(AgentStatusResponse.Status.ATTACHED);
+    memoryData = MemoryData.newBuilder()
+      .setEndTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS)
+      .addAllocStatsSamples(
+        MemoryData.AllocStatsSample.newBuilder().setTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS).setJavaAllocationCount(10).build()
+      ).build();
+    myService.setMemoryData(memoryData);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(legends.getLegends().stream().anyMatch(legend -> legend == objectLegend)).isTrue();
+    assertThat(legends.getLegends().stream().filter(legend -> legend == objectLegend).findFirst().get().getValue()).isNotNull();
     assertThat(usage.getSeries().stream().anyMatch(series -> series == objectSeries)).isTrue();
+    assertThat(objectSeries.getDataSeries().getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(2), TimeUnit.SECONDS.toMicros(2))))
+      .isNotEmpty();
   }
 
   @Test
@@ -548,7 +565,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     List<String> legendNames = legends.getLegends().stream()
       .map(legend -> legend.getName())
       .collect(Collectors.toList());
-    assertThat(legendNames).containsExactly("Total", "Others", "Code", "Stack", "Graphics", "Native", "Java").inOrder();
+    assertThat(legendNames).containsExactly("Total", "Others", "Code", "Stack", "Graphics", "Native", "Java", "Allocated", "GC Duration")
+      .inOrder();
   }
 
   @Test

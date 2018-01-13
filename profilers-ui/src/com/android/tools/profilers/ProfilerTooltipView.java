@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -37,7 +38,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   protected final JLabel myHeadingLabel;
 
   @Nullable
-  private JComponent myTooltipComponent;
+  private JComponent myTooltipContent;
 
   protected final Font myFont;
 
@@ -73,7 +74,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   protected final void updateMaximumLabelDimensions() {
     int oldMaxWidth = myMaximumWidth;
     myMaximumWidth = Math.max(myMaximumWidth, myHeadingLabel.getPreferredSize().width);
-    myMaximumWidth = Math.max(myMaximumWidth, myTooltipComponent == null ? 0 : myTooltipComponent.getPreferredSize().width);
+    myMaximumWidth = Math.max(myMaximumWidth, myTooltipContent == null ? 0 : myTooltipContent.getPreferredSize().width);
     if (oldMaxWidth != myMaximumWidth) {
       // Set the minimum size so that the tooltip width doesn't flap.
       myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
@@ -84,25 +85,51 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   protected abstract JComponent createTooltip();
 
   public final JComponent createComponent() {
-    myTooltipComponent = createTooltip();
+    myTooltipContent = createTooltip();
 
     // Reset label widths when the component changes.
     myMaximumWidth = 0;
     myHeadingLabel.setMinimumSize(new Dimension(myMaximumWidth, myMaximumLabelHeight));
     updateMaximumLabelDimensions();
 
-    JPanel panel = new JPanel(new TabularLayout("*", "Fit,10px,*"));
-    panel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));
-    panel.add(myTooltipComponent, new TabularLayout.Constraint(2, 0));
-    panel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    panel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-    panel.setBorder(new JBEmptyBorder(10, 10, 10, 10));
+    TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("*", "Fit,10px,*"));
+    tooltipPanel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));
+    tooltipPanel.add(myTooltipContent, new TabularLayout.Constraint(2, 0));
+    tooltipPanel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    tooltipPanel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    tooltipPanel.setBorder(new JBEmptyBorder(10, 10, 10, 10));
     timeChanged();
 
-    return panel;
+    return tooltipPanel;
   }
 
   public void dispose() {
     myTimeline.getTooltipRange().removeDependencies(this);
+  }
+
+  /**
+   * Special {@link JPanel} derived class to be able to synchronize its bounds with the tooltip renderer.
+   */
+  private static class TooltipPanel extends JPanel {
+    public TooltipPanel(LayoutManager layoutManager) {
+      super(layoutManager);
+    }
+
+    /**
+     * The bounds of this panel is getting set in {@link TooltipComponent#draw(Graphics2D, Dimension)}. This usually
+     * means when this component's children are updated, it is working with old bounds, which causes contents of this component to get
+     * clipped. In order to avoid this, separate the logic of what's needed within {@link TooltipComponent#draw(Graphics2D, Dimension)}
+     * (which is just to modify the (x, y) coordinates just prior to drawing, and update the width/height here (with the stale (x, y)
+     * coordinates).
+     */
+    @Override
+    public void doLayout() {
+      // Recompute the width/height, but leave (x, y) intact.
+      Rectangle oldBounds = getBounds();
+      Dimension preferredSize = getPreferredSize();
+      setBounds(oldBounds.x, oldBounds.y, preferredSize.width, preferredSize.height);
+
+      super.doLayout();
+    }
   }
 }
