@@ -276,6 +276,8 @@ abstract public class SceneManager implements Disposable {
 
   public abstract void requestRender();
 
+  public void requestLayoutAndRender(boolean animate) {}
+
   public abstract void layout(boolean animate);
 
   @NotNull
