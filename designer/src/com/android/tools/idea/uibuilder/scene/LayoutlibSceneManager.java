@@ -486,6 +486,7 @@ public class LayoutlibSceneManager extends SceneManager {
     requestRender(null, LayoutEditorRenderResult.Trigger.USER);
   }
 
+  @Override
   public void requestLayoutAndRender(boolean animate) {
     requestRender(() -> {
       getModel().notifyListenersModelLayoutComplete(animate);
