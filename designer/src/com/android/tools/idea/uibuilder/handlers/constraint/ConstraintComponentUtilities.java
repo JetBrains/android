@@ -1008,7 +1008,7 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
-    if (remove_left_right & false) {
+    if (remove_left_right) {
       boolean start = null != transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START);
       if (start) {
         boolean left = null != transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
