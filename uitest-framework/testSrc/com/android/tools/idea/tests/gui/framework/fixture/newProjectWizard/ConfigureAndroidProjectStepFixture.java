@@ -32,7 +32,7 @@ public class ConfigureAndroidProjectStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public ConfigureAndroidProjectStepFixture<W> enterApplicationName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Application name:");
+    JTextComponent textField = findTextFieldWithLabel("Application name");
     replaceText(textField, text);
     return this;
   }
