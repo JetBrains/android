@@ -28,21 +28,21 @@ public class LegendConfig {
   @NotNull
   private final Color mColor;
   @NotNull
-  private final IconType mIcon;
+  private final IconType mIconType;
 
   /**
    * Render data to be used when rendering the legend.
    *
    * @param icon  The icon type to be displayed
-   * @param color The color of the icon to be associated with the elements in the chart.
+   * @param color The color of the icon to be associated with the elements in the chart
    */
   public LegendConfig(@NotNull IconType icon, @NotNull Color color) {
     mColor = color;
-    mIcon = icon;
+    mIconType = icon;
   }
 
   public LegendConfig(@NotNull LineConfig config) {
-    this (config.getLegendIconType(), config.getColor());
+    this(config.getLegendIconType(), config.getColor());
   }
 
   @NotNull
@@ -51,8 +51,8 @@ public class LegendConfig {
   }
 
   @NotNull
-  public IconType getIcon() {
-    return mIcon;
+  public IconType getIconType() {
+    return mIconType;
   }
 
   public enum IconType {

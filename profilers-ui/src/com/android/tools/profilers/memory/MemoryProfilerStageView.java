@@ -307,10 +307,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.setFillEndGap(true);
 
     DurationDataRenderer<GcDurationData> gcRenderer =
-      new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
+      new DurationDataRenderer.Builder<>(memoryUsage.getGcDurations(), Color.BLACK)
         .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
         .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth() / 2f,
                          StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconHeight() / 2f)
+        .setHoverHandler(getStage().getTooltipLegends().getGcDurationLegend()::setPickData)
+        .setClickRegionPadding(0, 0)
         .build();
     lineChart.addCustomRenderer(gcRenderer);
 
@@ -486,7 +488,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       FlatToggleButton button = FilterComponent.createFilterToggleButton();
       buttonToolbar.add(new FlatSeparator());
       buttonToolbar.add(button);
-      FilterComponent filterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+      FilterComponent filterComponent =
+        new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
       filterComponent.addOnFilterChange((pattern, model) -> getStage().selectCaptureFilter(pattern, model));
       headingPanel.add(filterComponent, BorderLayout.SOUTH);
       filterComponent.setVisible(false);

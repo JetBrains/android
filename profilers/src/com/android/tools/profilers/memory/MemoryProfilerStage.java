@@ -20,6 +20,9 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.legend.EventLegend;
+import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -55,16 +58,19 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import static com.android.tools.adtui.model.Interpolatable.RoundedSegmentInterpolator;
+
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
+
+  static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
+  static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
+
+  private static final long INVALID_START_TIME = -1;
 
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStage.class);
   }
-
-  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
-  private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
-  private static final long INVALID_START_TIME = -1;
 
   private final DetailedMemoryUsage myDetailedMemoryUsage;
   private final AxisComponentModel myMemoryAxis;
@@ -75,7 +81,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   @NotNull
   private final Common.Session mySessionData;
-  private DurationDataModel<GcDurationData> myGcStats;
+  private DurationDataModel<GcDurationData> myGcStatsModel;
 
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
@@ -121,7 +127,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     mySelection = new MemoryProfilerSelection(this);
     myConfiguration = new MemoryProfilerConfiguration(this);
 
-    myDetailedMemoryUsage = new DetailedMemoryUsage(profilers);
+    myGcStatsModel = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, mySessionData)));
+
+    myDetailedMemoryUsage = new DetailedMemoryUsage(profilers, this);
+
+    myGcStatsModel.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
 
     myMemoryAxis = new AxisComponentModel(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
     myMemoryAxis.setClampToMajorTicks(true);
@@ -129,13 +139,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myObjectsAxis = new AxisComponentModel(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER);
     myObjectsAxis.setClampToMajorTicks(true);
 
-    myLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getDataRange(), false);
-    myTooltipLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange(), true);
+    myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange(), false);
+    myTooltipLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange(), true);
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
-
-    myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, mySessionData)));
-    myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
 
     myEventMonitor = new EventMonitor(profilers);
 
@@ -179,7 +186,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myObjectsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
-    getStudioProfilers().getUpdater().register(myGcStats);
+    getStudioProfilers().getUpdater().register(myGcStatsModel);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
@@ -213,7 +220,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myObjectsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
-    getStudioProfilers().getUpdater().unregister(myGcStats);
+    getStudioProfilers().getUpdater().unregister(myGcStatsModel);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
     selectCaptureDuration(null, null);
     myLoader.stop();
@@ -621,8 +628,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return myEventMonitor;
   }
 
-  public DurationDataModel<GcDurationData> getGcStats() {
-    return myGcStats;
+  @NotNull
+  public DurationDataModel<GcDurationData> getGcStatsModel() {
+    return myGcStatsModel;
   }
 
   public String getName() {
@@ -635,8 +643,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public static class MemoryStageLegends extends LegendComponentModel {
-
-    @NotNull private final StudioProfilers myProfilers;
     @NotNull private final SeriesLegend myJavaLegend;
     @NotNull private final SeriesLegend myNativeLegend;
     @NotNull private final SeriesLegend myGraphicsLegend;
@@ -645,9 +651,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull private final SeriesLegend myOtherLegend;
     @NotNull private final SeriesLegend myTotalLegend;
     @NotNull private final SeriesLegend myObjectsLegend;
+    @NotNull private final EventLegend<GcDurationData> myGcDurationLegend;
 
-    public MemoryStageLegends(@NotNull StudioProfilers profilers, @NotNull DetailedMemoryUsage usage, @NotNull Range range,
-                              boolean isTooltip) {
+    public MemoryStageLegends(@NotNull DetailedMemoryUsage usage, @NotNull Range range, boolean isTooltip) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myJavaLegend = new SeriesLegend(usage.getJavaSeries(), MEMORY_AXIS_FORMATTER, range);
       myNativeLegend = new SeriesLegend(usage.getNativeSeries(), MEMORY_AXIS_FORMATTER, range);
@@ -656,17 +662,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       myCodeLegend = new SeriesLegend(usage.getCodeSeries(), MEMORY_AXIS_FORMATTER, range);
       myOtherLegend = new SeriesLegend(usage.getOtherSeries(), MEMORY_AXIS_FORMATTER, range);
       myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
-      myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range,
-                                         Interpolatable.RoundedSegmentInterpolator);
+      myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range, RoundedSegmentInterpolator);
+      myGcDurationLegend =
+        new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT.getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDuration(), true));
 
-      List<SeriesLegend> legends = isTooltip ? Arrays.asList(myTotalLegend, myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
-                                                             myNativeLegend, myJavaLegend)
-                                             : Arrays.asList(myTotalLegend, myJavaLegend, myNativeLegend,
-                                                             myGraphicsLegend, myStackLegend, myCodeLegend, myOtherLegend);
+      List<Legend> legends = isTooltip ? Arrays.asList(myTotalLegend, myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
+                                                       myNativeLegend, myJavaLegend, myObjectsLegend, myGcDurationLegend)
+                                       : Arrays.asList(myTotalLegend, myJavaLegend, myNativeLegend,
+                                                       myGraphicsLegend, myStackLegend, myCodeLegend, myObjectsLegend, myOtherLegend);
       legends.forEach(this::add);
-      myProfilers = profilers;
-      myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
-      agentStatusChanged();
     }
 
     @NotNull
@@ -709,13 +713,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       return myObjectsLegend;
     }
 
-    private void agentStatusChanged() {
-      if (myProfilers.isAgentAttached()) {
-        add(myObjectsLegend);
-      }
-      else {
-        remove(myObjectsLegend);
-      }
+    @NotNull
+    public EventLegend<GcDurationData> getGcDurationLegend() {
+      return myGcDurationLegend;
     }
   }
 

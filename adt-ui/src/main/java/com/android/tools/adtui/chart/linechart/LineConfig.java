@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.chart.linechart;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.LegendConfig;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -177,12 +176,10 @@ public class LineConfig {
   /**
    * Sets the dash phase which should be used for the stroke. The adjusted stroke can be then retrieved via {@link #getAdjustedStroke()}
    */
-  @VisibleForTesting
   public void setAdjustedDashPhase(double dashPhase) {
     myAdjustedDashPhase = dashPhase;
   }
 
-  @VisibleForTesting
   public double getAdjustedDashPhase() {
     return myAdjustedDashPhase;
   }

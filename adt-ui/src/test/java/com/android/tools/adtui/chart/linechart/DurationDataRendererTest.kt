@@ -62,17 +62,15 @@ class DurationDataRendererTest {
     val mockIcon = mock(Icon::class.java)
     `when`(mockIcon.iconWidth).thenReturn(5)
     `when`(mockIcon.iconHeight).thenReturn(5)
-    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK)
-        .setIcon(mockIcon).build()
+    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(mockIcon).build()
     durationData.update(-1)  // value doesn't matter here.
 
-    val regions = durationDataRenderer.GetDurationDataRegions()
-    assertThat(regions.size).isEqualTo(5)
-    validateRegion(regions[0], 0f, 1f, 5f, 5f)       // attached series has no data before this point, y == 1.
-    validateRegion(regions[1], 0.2f, 1f, 5f, 5f)    // attached series has no data before this point, y == 1.
-    validateRegion(regions[2], 0.4f, 0.6f, 5f, 5f)
-    validateRegion(regions[3], 0.6f, 0.4f, 5f, 5f)
-    validateRegion(regions[4], 0.8f, 1f, 5f, 5f)   // attached series has no data after this point. y == 1.
+    assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(5)
+    validateRegion(durationDataRenderer.clickRegionCache[0], 0f, 1f, 5f, 5f)       // attached series has no data before this point, y == 1.
+    validateRegion(durationDataRenderer.clickRegionCache[1], 0.2f, 1f, 5f, 5f)    // attached series has no data before this point, y == 1.
+    validateRegion(durationDataRenderer.clickRegionCache[2], 0.4f, 0.6f, 5f, 5f)
+    validateRegion(durationDataRenderer.clickRegionCache[3], 0.6f, 0.4f, 5f, 5f)
+    validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 1f, 5f, 5f)   // attached series has no data after this point. y == 1.
   }
 
   @Test
@@ -83,7 +81,7 @@ class DurationDataRendererTest {
     val series2 = DefaultDataSeries<Long>()
     val rangeSeries1 = RangedContinuousSeries("test1", xRange, yRange, series1)
     val rangeSeries2 = RangedContinuousSeries("test2", xRange, yRange, series2)
-    var lineChart = LineChart(Arrays.asList(rangeSeries1, rangeSeries2))
+    val lineChart = LineChart(Arrays.asList(rangeSeries1, rangeSeries2))
     lineChart.configure(rangeSeries1, LineConfig(Color.ORANGE).setStroke(LineConfig.DEFAULT_DASH_STROKE))
     lineChart.configure(rangeSeries2, LineConfig(Color.PINK).setStroke(LineConfig.DEFAULT_DASH_STROKE))
 

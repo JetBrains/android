@@ -18,8 +18,8 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.*;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -32,10 +32,16 @@ public class AllocStatsDataSeriesTest {
 
   private final FakeMemoryService myService = new FakeMemoryService();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myService);
+  private final FakeProfilerService myProfilerService = new FakeProfilerService();
+
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myProfilerService, myService);
 
   @Test
-  public void testGetDataForXRange() throws Exception {
+  public void testGetDataForXRange() {
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    studioProfilers.update(TimeUnit.SECONDS.toNanos(1));
+
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(1)
       .addAllocStatsSamples(
@@ -48,7 +54,7 @@ public class AllocStatsDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     AllocStatsDataSeries series =
-      new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
+      new AllocStatsDataSeries(studioProfilers, myGrpcChannel.getClient().getMemoryClient(),
                                sample -> (long)sample.getJavaAllocationCount());
     List<SeriesData<Long>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
@@ -57,7 +63,7 @@ public class AllocStatsDataSeriesTest {
     assertEquals(14, dataList.get(1).x);
     assertEquals(1500, dataList.get(1).value.longValue());
 
-    series = new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
+    series = new AllocStatsDataSeries(studioProfilers, myGrpcChannel.getClient().getMemoryClient(),
                                       sample -> (long)sample.getJavaFreeCount());
     dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());

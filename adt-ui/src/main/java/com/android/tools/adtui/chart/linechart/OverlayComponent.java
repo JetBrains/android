@@ -51,12 +51,12 @@ public final class OverlayComponent extends AnimatedComponent {
 
       @Override
       public void mouseEntered(MouseEvent e) {
-        myDispatchComponent.dispatchEvent(e);
+        handleOrDispatchEvent(e);
       }
 
       @Override
       public void mouseExited(MouseEvent e) {
-        myDispatchComponent.dispatchEvent(e);
+        handleOrDispatchEvent(e);
       }
 
       @Override
