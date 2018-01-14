@@ -62,6 +62,7 @@ public class NlPropertyTableTest {
     myFrame.setIdeFrameSize(myOriginalFrameSize);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71956000
   @Test
   public void testScrollInViewDuringKeyboardNavigation() throws Exception {
     NlEditorFixture layout = myFrame.getEditor()
