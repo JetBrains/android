@@ -48,7 +48,6 @@ public class RelativeLayoutTest {
     StudioFlags.NELE_TARGET_RELATIVE.clearOverride();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testDragFragmentFromPalette() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
