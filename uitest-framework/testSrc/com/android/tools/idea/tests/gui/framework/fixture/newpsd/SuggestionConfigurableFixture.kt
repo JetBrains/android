@@ -63,6 +63,7 @@ open class SuggestionConfigurableFixture(
         .until {
           groups() == requiredGroupTitles.asList()
         }
+    waitForIdle()
   }
 
   fun findGroup(messageGroupTitle: String): SuggestionGroupFixture =
