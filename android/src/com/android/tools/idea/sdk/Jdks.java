@@ -204,6 +204,7 @@ public class Jdks {
 
   private static boolean hasMatchingLangLevel(@NotNull String jdkRoot, @NotNull LanguageLevel langLevel) {
     JavaSdkVersion version = getVersion(jdkRoot);
+    if (version == null) version = JavaSdkVersion.JDK_1_0;
     return hasMatchingLangLevel(version, langLevel);
   }
 
@@ -215,21 +216,13 @@ public class Jdks {
 
   @Nullable
   public JavaSdkVersion findVersion(@NotNull File jdkRoot) {
-    String version = JavaSdk.getInstance().getVersionString(jdkRoot.getPath());
-    if (isEmpty(version)) {
-      return null;
-    }
-    return JavaSdk.getInstance().getVersion(version);
+    return getVersion(jdkRoot.getPath());
   }
 
-  @NotNull
-  private static JavaSdkVersion getVersion(@NotNull String jdkRoot) {
+  @Nullable
+  private static JavaSdkVersion getVersion(String jdkRoot) {
     String version = JavaSdk.getInstance().getVersionString(jdkRoot);
-    if (version == null) {
-      return JavaSdkVersion.JDK_1_0;
-    }
-    JavaSdkVersion sdkVersion = JavaSdk.getInstance().getVersion(version);
-    return sdkVersion == null ? JavaSdkVersion.JDK_1_0 : sdkVersion;
+    return isEmpty(version) ? null : JavaSdkVersion.fromVersionString(version);
   }
 
   @Nullable
