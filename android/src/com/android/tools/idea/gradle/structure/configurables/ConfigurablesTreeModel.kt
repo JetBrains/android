@@ -32,7 +32,7 @@ abstract class ConfigurablesTreeModel protected constructor(
    * Creates a [MasterDetailsComponent.MyNode] for a given [configurable] and adds it to the tree under a node [under].
    */
   protected fun createNode(under: DefaultMutableTreeNode, configurable: NamedConfigurable<*>): DefaultMutableTreeNode {
-    val node = MasterDetailsComponent.MyNode(configurable)
+    val node = createConfigurablesTree(configurable)
     under.add(node)
     reload(under)
     return node

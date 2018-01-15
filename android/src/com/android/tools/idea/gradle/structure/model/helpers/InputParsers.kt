@@ -16,12 +16,19 @@
 package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import java.io.File
 
 fun parseString(text: String): ParsedValue<String> =
     if (text == "")
       ParsedValue.NotSet()
     else
       ParsedValue.Set.Parsed(value = text)
+
+fun parseFile(text: String): ParsedValue<File> =
+    if (text == "")
+      ParsedValue.NotSet()
+    else
+      ParsedValue.Set.Parsed(value = File(text))
 
 inline fun <reified T> parseEnum(text: String, parser: (String) -> T?): ParsedValue<T> =
     if (text == "")
