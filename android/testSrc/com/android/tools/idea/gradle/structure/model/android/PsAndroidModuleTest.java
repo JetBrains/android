@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -211,5 +212,33 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
 
     assertTrue(appModule.canDependOn(libModule));
     assertFalse(libModule.canDependOn(appModule));
+  }
+
+  public void testSigningConfigs() throws Throwable {
+    loadProject(BASIC);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
+    assertNotNull(appModule);
+
+    List<PsSigningConfig> signingConfigs = getSigningConfigs(appModule);
+    assertThat(signingConfigs).hasSize(2);
+
+    PsSigningConfig myConfig = appModule.findSigningConfig("myConfig");
+    assertNotNull(myConfig);
+    assertTrue(myConfig.isDeclared());
+
+    PsSigningConfig debugConfig = appModule.findSigningConfig("debug");
+    assertNotNull(debugConfig);
+    assertTrue(!debugConfig.isDeclared());
+  }
+
+  @NotNull
+  private static List<PsSigningConfig> getSigningConfigs(@NotNull PsAndroidModule module) {
+    List<PsSigningConfig> signingConfigs = Lists.newArrayList();
+    module.forEachSigningConfig(signingConfigs::add);
+    return signingConfigs;
   }
 }
