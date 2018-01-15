@@ -77,7 +77,6 @@ public class AndroidDxRunner {
       URLClassLoader loader = new URLClassLoader(new URL[]{url}, AndroidDxRunner.class.getClassLoader());
 
       Class<?> mainClass = loader.loadClass(DEX_MAIN);
-      Class<?> consoleClass = loader.loadClass(DEX_CONSOLE);
       Class<?> argClass = loader.loadClass(DEX_ARGS);
 
       myMethod = mainClass.getMethod(MAIN_RUN, argClass);
@@ -93,8 +92,7 @@ public class AndroidDxRunner {
       myCoreLibraryField = getFieldIfPossible(argClass, "coreLibrary");
       myOptimizeField = getFieldIfPossible(argClass, "optimize");
 
-      myConsoleOut = consoleClass.getField("out");
-      myConsoleErr = consoleClass.getField("err");
+      tryLoadDxConsole(loader);
 
       myMultiDex = getFieldIfPossible(argClass, "multiDex");
       myMainDexList = getFieldIfPossible(argClass, "mainDexListFile");
@@ -117,6 +115,21 @@ public class AndroidDxRunner {
     }
   }
 
+  /**
+   * {@linkplain #DEX_CONSOLE} was removed in build-tools 26.0.0
+   * <br/>
+   * <a href="https://android.googlesource.com/platform/dalvik/+/8f68769869e02895dc6474a5cd0bca20977e5ecd">Related commit in platform/dalvik</a>
+   */
+  private static void tryLoadDxConsole(ClassLoader loader) {
+    try {
+      Class<?> consoleClass = loader.loadClass(DEX_CONSOLE);
+      myConsoleOut = consoleClass.getField("out");
+      myConsoleErr = consoleClass.getField("err");
+    }
+    catch (ClassNotFoundException | NoSuchFieldException ignored) {
+    }
+  }
+
   @Nullable
   private static Field getFieldIfPossible(Class<?> argClass, String name) {
     try {
@@ -136,8 +149,8 @@ public class AndroidDxRunner {
     loadDex(dxPath);
 
     try {
-      myConsoleErr.set(null, System.err);
-      myConsoleOut.set(null, System.out);
+      if (myConsoleErr != null) myConsoleErr.set(null, System.err);
+      if (myConsoleOut != null) myConsoleOut.set(null, System.out);
 
       Object args = myConstructor.newInstance();
       myOutNameField.set(args, outFilePath);
