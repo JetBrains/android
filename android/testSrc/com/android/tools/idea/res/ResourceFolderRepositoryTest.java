@@ -3916,8 +3916,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
-    assertEquals(3, resources.getInitialScanState().numXml);
-    assertEquals(resources.getInitialScanState().numXml, resources.getInitialScanState().numXmlReparsed);
+    assertEquals(3, resources.myInitialScanState.numXml);
+    assertEquals(resources.myInitialScanState.numXml, resources.myInitialScanState.numXmlReparsed);
 
     resources.saveStateToFile();
 
@@ -3925,8 +3925,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resourcesReloaded = createRepository();
     assertNotSame(resources, resourcesReloaded);
     assertTrue(resourcesReloaded.hasFreshFileCache());
-    assertEquals(3, resourcesReloaded.getInitialScanState().numXml);
-    assertEquals(0, resourcesReloaded.getInitialScanState().numXmlReparsed);
+    assertEquals(3, resourcesReloaded.myInitialScanState.numXml);
+    assertEquals(0, resourcesReloaded.myInitialScanState.numXmlReparsed);
   }
 
   public void testSerialization() throws Exception {
@@ -3943,8 +3943,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
     // We don't count items that are never cached (so 7 total XML minus 1 data binding file)
-    assertEquals(6, resources.getInitialScanState().numXml);
-    assertEquals(resources.getInitialScanState().numXml, resources.getInitialScanState().numXmlReparsed);
+    assertEquals(6, resources.myInitialScanState.numXml);
+    assertEquals(resources.myInitialScanState.numXml, resources.myInitialScanState.numXmlReparsed);
     resources.saveStateToFile();
 
     ResourceFolderRegistry.reset();
@@ -3952,8 +3952,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(fromBlob);
     // Check that fromBlob really avoided reparsing some XML files, before checking equivalence of items.
     assertTrue(fromBlob.hasFreshFileCache());
-    assertEquals(6, fromBlob.getInitialScanState().numXml);
-    assertEquals(0, fromBlob.getInitialScanState().numXmlReparsed);
+    assertEquals(6, fromBlob.myInitialScanState.numXml);
+    assertEquals(0, fromBlob.myInitialScanState.numXmlReparsed);
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
@@ -3973,8 +3973,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resourcesReloaded = createRepository();
     resourcesReloaded.saveStateToFile();
 
-    assertNotSame(0, resourcesReloaded.getInitialScanState().numXmlReparsed);
-    assertEquals(resourcesReloaded.getInitialScanState().numXml, resourcesReloaded.getInitialScanState().numXmlReparsed);
+    assertNotSame(0, resourcesReloaded.myInitialScanState.numXmlReparsed);
+    assertEquals(resourcesReloaded.myInitialScanState.numXml, resourcesReloaded.myInitialScanState.numXmlReparsed);
   }
 
   public void testSerializationRemoveXmlFileAndLoad() throws Exception {
