@@ -32,20 +32,14 @@ public class ChooseOptionsForNewFileStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture<W> enterActivityName(@NotNull String name) {
-    JTextField textField = robot().finder().findByLabel(target(), "Activity Name", JTextField.class, true);
+    JTextField textField = robot().finder().findByLabel(target(), "Activity Name:", JTextField.class, true);
     replaceText(textField, name);
     return this;
   }
 
   @NotNull
-  public String getLayoutName() {
-    final JTextField textField = robot().finder().findByLabel("Layout Name", JTextField.class, true);
-    return GuiQuery.getNonNull(textField::getText);
-  }
-
-  @NotNull
   public String getInstantAppsHost() {
-    final JTextField textField = robot().finder().findByLabel("Instant App URL Host", JTextField.class, true);
+    final JTextField textField = robot().finder().findByLabel("Instant App URL Host:", JTextField.class, true);
     return GuiQuery.getNonNull(textField::getText);
   }
 
@@ -57,7 +51,7 @@ public class ChooseOptionsForNewFileStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public String getInstantAppsRoute() {
-    final JTextField textField = robot().finder().findByLabel("Instant App URL Route", JTextField.class, true);
+    final JTextField textField = robot().finder().findByLabel("Instant App URL Route:", JTextField.class, true);
     return GuiQuery.getNonNull(textField::getText);
   }
 }
