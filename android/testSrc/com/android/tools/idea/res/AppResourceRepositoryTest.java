@@ -84,7 +84,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
       myFacet, Collections.singletonList(projectResources), Collections.emptyList());
 
-    assertOrderedEquals(appResources.getItemsOfType(ResourceType.STRING), Arrays.asList("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom", "title_layout_changes", "title_template_step", "ellipsis"));
+    assertOrderedEquals(appResources.getItemsOfType(ResourceType.STRING),
+                        Arrays.asList("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
+                                      "title_layout_changes", "title_template_step", "ellipsis"));
   }
 
   public void testMerging() {
