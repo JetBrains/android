@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import org.junit.After;
@@ -73,7 +71,6 @@ public class RelativeLayoutTest {
                                  "        android:name=\"google.fragmentapplication.YourCustomFragment\"\n");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testDragImageViewFromPalette() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
@@ -88,7 +85,7 @@ public class RelativeLayoutTest {
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
     assertThat(dialog.getTitle()).isEqualTo("Resources");
     // This should jump to the project list and select the first one: ic_launcher
-    dialog.getSearchField().pressAndReleaseKeys(KeyEvent.VK_DOWN);
+    dialog.getSearchField().pressAndReleaseKeys(KeyEvent.VK_DOWN).enterText("ic_launcher");
     dialog.clickOK();
 
     editor.switchToTab("Text");
