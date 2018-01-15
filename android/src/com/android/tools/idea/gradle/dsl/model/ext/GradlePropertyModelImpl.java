@@ -15,6 +15,7 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.ImmutableList;
@@ -143,20 +144,35 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       throw new UnsupportedOperationException("Setting map and list values are not supported!");
     }
 
-    if (!(value instanceof Integer || value instanceof String || value instanceof Boolean)) {
+
+    boolean isReference = value instanceof ReferenceTo;
+
+    // Work out which element we need, either GradleDslLiteral or GradleDslReference.
+    if (!(value instanceof Integer || value instanceof Boolean || value instanceof String || isReference)) {
       throw new UnsupportedOperationException("Only setting basic types are currently supported");
     }
 
-    // If we are have no element create a new one.
-    if (myElement == null) {
-      // This is always the case unless myValueType == LIST.
-      assert myPropertyHolder instanceof GradlePropertiesDslElement;
-      myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewLiteral(myName, value);
-      myElement.setElementType(myPropertyType);
-    }
-    else {
+    // Check if we can reuse the element.
+    if (!isReference && myElement instanceof GradleDslLiteral ||
+        isReference && myElement instanceof GradleDslReference) {
       GradleDslExpression expression = (GradleDslExpression)myElement;
       expression.setValue(value);
+    } else {
+      // We can't reuse, need to delete and create a new one.
+      delete();
+
+      // This is always the case unless myValueType == LIST.
+      assert myPropertyHolder instanceof GradlePropertiesDslElement;
+
+      if (!isReference) {
+        myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewLiteral(myName, value);
+        myElement.setElementType(myPropertyType);
+      } else {
+        GradleDslReference newReference = new GradleDslReference(myPropertyHolder, myName);
+        newReference.setValue(value);
+        newReference.setElementType(myPropertyType);
+        myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewElement(myName, newReference);
+      }
     }
 
     // Set the value type for the new value.
