@@ -207,8 +207,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=76444
-  public void /*test*/WithEmptyGradleSettingsFileInSingleModuleProject() throws Exception {
-    // Ignored (passes locally!) Tracking bug: http://b/35788105
+  public void testWithEmptyGradleSettingsFileInSingleModuleProject() throws Exception {
     loadProject(BASIC);
     createEmptyGradleSettingsFile();
     // Sync should be successful for single-module projects with an empty settings.gradle file.
