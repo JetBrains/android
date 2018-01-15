@@ -90,7 +90,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myGradleProjectInfo, mySyncInvoker, mySyncState, myDependencySetupIssues,
                                        myProjectSetup, myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
-                                       myModuleValidatorFactory, myRunManager, myProvisionTasks);
+                                       myModuleValidatorFactory, myProvisionTasks);
   }
 
   @Override

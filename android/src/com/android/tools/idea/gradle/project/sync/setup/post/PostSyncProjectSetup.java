@@ -81,7 +81,6 @@ public class PostSyncProjectSetup {
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
-  @NotNull private final RunManagerImpl myRunManager;
   @NotNull private final ProvistionTasks myProvistionTasks;
 
   @NotNull
@@ -101,8 +100,8 @@ public class PostSyncProjectSetup {
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerImpl.getInstanceImpl(project), new ProvistionTasks());
+         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory()
+      , new ProvistionTasks());
   }
 
   @VisibleForTesting
@@ -118,7 +117,6 @@ public class PostSyncProjectSetup {
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
-                       @NotNull RunManagerImpl runManager,
                        @NotNull ProvistionTasks provistionTasks) {
     myProject = project;
     myIdeInfo = ideInfo;
@@ -132,7 +130,6 @@ public class PostSyncProjectSetup {
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
-    myRunManager = runManager;
     myProvistionTasks = provistionTasks;
   }
 
