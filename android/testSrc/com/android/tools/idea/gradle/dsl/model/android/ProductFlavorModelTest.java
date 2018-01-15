@@ -2172,4 +2172,25 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeOptionsModelImpl.class);
     checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildOptionsModelImpl.class);
   }
+
+  public void testFunctionCallWithParentheses() throws Exception {
+    String text =  "android {\n" +
+                     "defaultConfig {\n" +
+                        "applicationId \"com.example.psd.sample.app.default\"\n" +
+                        "testApplicationId \"com.example.psd.sample.app.default.test\"\n" +
+                        "maxSdkVersion 26\n" +
+                        "minSdkVersion 9\n" +
+                        "targetSdkVersion(19)\n" +
+                        "versionCode 1\n" +
+                       "versionName \"1.0\" \n" +
+                     "}\n" +
+                   "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorModel defaultConfig = android.defaultConfig();
+    assertEquals("targetSdkVersion", 19, defaultConfig.targetSdkVersion());
+  }
 }
