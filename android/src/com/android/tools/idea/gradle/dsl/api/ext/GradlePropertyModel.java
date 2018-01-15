@@ -27,6 +27,25 @@ import java.util.Map;
  * of the projects Gradle build. It allows access to the properties name, values and dependencies.
  */
 public interface GradlePropertyModel {
+  @NotNull
+  String DOUBLE_QUOTES = "\"";
+
+  /**
+   * Converts a string to one that can be used to set interpolated strings using {@link #setValue(Object)}
+   * This type of string will perform string injections, e.g For Gradle file:
+   *
+   * ext {
+   *   prop1 = 'Hello'
+   * }
+   *
+   * property.setValue(iStr("$prop1"))
+   * property.getValue(STRING_TYPE) // This will return the string "Hello".
+   */
+  @NotNull
+  static String iStr(@NotNull String in) {
+    return DOUBLE_QUOTES + in.replace("\"", "\\\"") + DOUBLE_QUOTES;
+  }
+
   // The following are TypeReferences used in calls to getValue and getRawValue.
   TypeReference<String> STRING_TYPE = new TypeReference<String>() {};
   TypeReference<Integer> INTEGER_TYPE = new TypeReference<Integer>() {};

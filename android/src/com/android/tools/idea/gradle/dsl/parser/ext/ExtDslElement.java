@@ -47,4 +47,12 @@ public final class ExtDslElement extends GradleDslBlockElement {
     element.setUseAssignment(true);
     return element;
   }
+
+  @Override
+  @NotNull
+  public GradleDslElement setNewElement(@NotNull String property, @NotNull GradleDslElement element) {
+    GradleDslElement newElement = super.setNewElement(property, element);
+    newElement.setUseAssignment(true);
+    return newElement;
+  }
 }

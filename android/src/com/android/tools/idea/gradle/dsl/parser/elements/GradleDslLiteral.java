@@ -31,8 +31,7 @@ import java.util.List;
 /**
  * Represents a literal element.
  */
-public final class GradleDslLiteral extends GradleDslExpression {
-  @Nullable private PsiElement myUnsavedValue;
+public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Nullable private PsiElement myUnsavedConfigBlock;
 
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull String name) {
@@ -57,14 +56,14 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
   @Nullable
   public String getRawText() {
-    PsiElement element = myUnsavedValue != null ? myUnsavedValue : myExpression;
+    PsiElement element = getCurrentElement();
     return element == null ? null : element.getText();
   }
 
   @Override
   @Nullable
   public Object getValue() {
-    PsiElement element = myUnsavedValue != null ? myUnsavedValue : myExpression;
+    PsiElement element = getCurrentElement();
     if (element == null) {
       return null;
     }
@@ -75,17 +74,12 @@ public final class GradleDslLiteral extends GradleDslExpression {
   @Override
   @Nullable
   public Object getUnresolvedValue() {
-    PsiElement element = myUnsavedValue != null ? myUnsavedValue : myExpression;
+    PsiElement element = getCurrentElement();
     if (element == null) {
       return null;
     }
     return ApplicationManager.getApplication()
       .runReadAction((Computable<Object>)() -> getDslFile().getParser().extractValue(this, element, false));
-  }
-
-  @Nullable
-  public PsiElement getUnsavedValue() {
-    return myUnsavedValue;
   }
 
   /**
@@ -94,7 +88,7 @@ public final class GradleDslLiteral extends GradleDslExpression {
   @Override
   @NotNull
   public List<GradleReferenceInjection> getResolvedVariables() {
-    PsiElement element = myUnsavedValue != null ? myUnsavedValue : myExpression;
+    PsiElement element = getCurrentElement();
     if (element == null) {
       return Collections.emptyList();
     }
@@ -128,8 +122,7 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
   @Override
   public void setValue(@NotNull Object value) {
-    myUnsavedValue = getDslFile().getParser().convertToPsiElement(value);
-    setModified(true);
+    setUnsavedValue(getDslFile().getParser().convertToPsiElement(value));
   }
 
   public void setConfigBlock(@NotNull PsiElement block) {
@@ -168,10 +161,5 @@ public final class GradleDslLiteral extends GradleDslExpression {
   @Override
   protected void apply() {
     getDslFile().getWriter().applyDslLiteral(this);
-  }
-
-  @Override
-  public void reset() {
-    myUnsavedValue = null;
   }
 }
