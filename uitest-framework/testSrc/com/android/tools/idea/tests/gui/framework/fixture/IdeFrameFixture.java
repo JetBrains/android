@@ -69,10 +69,8 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -192,7 +190,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     Wait.seconds(10)
       .expecting("Listeners to be notified of build-finished event")
-      .until(()->{return resultRef.get() != null;});
+      .until(()-> resultRef.get() != null);
     return resultRef.get();
   }
 
@@ -226,13 +224,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return findActionButtonByText("Apply Changes");
   }
 
-  public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) throws ClassNotFoundException {
+  public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) {
     selectApp(appName);
     findDebugApplicationButton().click();
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
-  public DeployTargetPickerDialogFixture runApp(@NotNull String appName) throws ClassNotFoundException {
+  public DeployTargetPickerDialogFixture runApp(@NotNull String appName) {
     selectApp(appName);
     findRunApplicationButton().click();
     return DeployTargetPickerDialogFixture.find(robot());
@@ -577,13 +575,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public IdeFrameFixture updateGradleWrapperVersion(@NotNull String version) throws IOException {
+  public IdeFrameFixture updateGradleWrapperVersion(@NotNull String version) {
     GradleWrapper.find(getProject()).updateDistributionUrlAndDisplayFailure(version);
     return this;
   }
 
   @NotNull
-  public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull String version) throws IOException {
+  public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull String version) {
     ApplicationManager.getApplication().invokeAndWait(
       () -> {
         AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(getProject());
@@ -600,7 +598,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Ref<GradleBuildModel> buildModelRef = new Ref<>();
     new ReadAction() {
       @Override
-      protected void run(@NotNull Result result) throws Throwable {
+      protected void run(@NotNull Result result) {
         buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
       }
     }.execute();
