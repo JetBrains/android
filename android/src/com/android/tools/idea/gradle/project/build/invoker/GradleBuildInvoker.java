@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -29,10 +30,7 @@ import com.intellij.build.BuildViewManager;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.impl.*;
-import com.intellij.build.output.BuildOutputInstantReaderImpl;
-import com.intellij.build.output.BuildOutputParser;
-import com.intellij.build.output.JavacOutputParser;
-import com.intellij.build.output.KotlincOutputParser;
+import com.intellij.build.output.*;
 import com.intellij.debugger.DebuggerManager;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.JavaDebugProcess;
@@ -305,8 +303,7 @@ public class GradleBuildInvoker {
         // 2. the user clicks the hyperlink
         // 3. the IDE re-runs the build, with the Gradle tasks that were executed when the build failed, and it adds "--stacktrace"
         //    to the command line arguments.
-        List<String> tasksFromLastBuild = new ArrayList<>();
-        tasksFromLastBuild.addAll(tasks);
+        List<String> tasksFromLastBuild = new ArrayList<>(tasks);
         executeTasks(buildFilePath, tasksFromLastBuild);
       }
     }
@@ -381,10 +378,14 @@ public class GradleBuildInvoker {
   @NotNull
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
-    List<BuildOutputParser> buildOutputParsers = Arrays.asList(new JavacOutputParser(), new KotlincOutputParser());
+    List<BuildOutputParser> buildOutputParsers = Arrays.asList(new JavacOutputParser(), new KotlincOutputParser(), new GradleBuildOutputParser());
 
-    try (BuildOutputInstantReaderImpl buildOutputInstantReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
-                                                                                                  buildOutputParsers)) {
+    // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
+    // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
+    //noinspection resource, IOResourceOpenedButNotSafelyClosed
+    BuildOutputInstantReaderImpl buildOutputInstantReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager,
+                                                                                                  buildOutputParsers);
+    try {
       return new ExternalSystemTaskNotificationListenerAdapter() {
         @Override
         public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
@@ -446,6 +447,10 @@ public class GradleBuildInvoker {
           buildViewManager.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
         }
       };
+    }
+    catch (Exception ignored){
+      buildOutputInstantReader.close();
+      throw ignored;
     }
   }
 
