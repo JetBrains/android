@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 
 final class MemoryClassSetView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
@@ -260,7 +261,7 @@ final class MemoryClassSetView extends AspectObserver {
     myTree = new JTree();
     int defaultFontHeight = myTree.getFontMetrics(myTree.getFont()).getHeight();
     myTree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
-    myTree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
+    myTree.setBorder(TABLE_ROW_BORDER);
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

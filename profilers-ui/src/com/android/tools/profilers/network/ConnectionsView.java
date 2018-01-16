@@ -24,7 +24,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
-import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
@@ -47,8 +46,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerColors.DEFAULT_HOVER_COLOR;
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.*;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -205,10 +203,10 @@ final class ConnectionsView {
   private void createTooltip() {
     JTextPane textPane = new JTextPane();
     textPane.setEditable(false);
-    textPane.setBorder(ProfilerLayout.TOOLTIP_BORDER);
+    textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    textPane.setFont(myConnectionsTable.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+    textPane.setFont(myConnectionsTable.getFont().deriveFont(TOOLTIP_FONT_SIZE));
     TooltipComponent tooltip = new TooltipComponent(textPane, myConnectionsTable, ProfilerLayeredPane.class);
     tooltip.registerListenersOn(myConnectionsTable);
     myConnectionsTable.addMouseMotionListener(new MouseAdapter() {

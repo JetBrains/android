@@ -783,10 +783,10 @@ class CpuCaptureView {
         append(value.toString());
       }
       if (myAlignment == SwingConstants.LEFT) {
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+        setIpad(TABLE_COLUMN_CELL_INSETS);
       }
       else {
-        setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
+        setIpad(TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
       }
     }
 
@@ -830,10 +830,10 @@ class CpuCaptureView {
       if (myPercentage > 0) {
         g.setColor(mySparklineColor);
         // The sparkline starts from the left side of the cell and is proportional to the value, occupying at most half of the cell.
-        g.fillRect(ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING,
-                   ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING,
-                   (int)(myPercentage * (getWidth() / 2 - ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
-                   getHeight() - ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING * 2);
+        g.fillRect(TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING,
+                   TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING,
+                   (int)(myPercentage * (getWidth() / 2 - TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
+                   getHeight() - TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING * 2);
       }
       super.paintComponent(g);
     }
