@@ -125,8 +125,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     removePropertyInternal(propertyToReset);
   }
 
-  protected void addAsParsedDslExpressionList(@NotNull String property, GradleDslExpression dslLiteral) {
-    PsiElement psiElement = dslLiteral.getPsiElement();
+  protected void addAsParsedDslExpressionList(@NotNull String property, GradleDslExpression expression) {
+    PsiElement psiElement = expression.getPsiElement();
     if (psiElement == null) {
       return;
     }
@@ -135,7 +135,15 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     // supported even when there is only one element in it. This does not work in many other places like proguardFile elements where
     // only one argument is supported and for this cases we use addToParsedExpressionList method.
     GradleDslExpressionList literalList = new GradleDslExpressionList(this, psiElement, property, true);
-    literalList.addParsedExpression(dslLiteral);
+    if (expression instanceof GradleDslMethodCall) {
+      for (GradleDslElement element : ((GradleDslMethodCall)expression).getArguments()) {
+        if (element instanceof GradleDslExpression) {
+          literalList.addParsedExpression((GradleDslExpression)element);
+        }
+      }
+    } else {
+      literalList.addParsedExpression(expression);
+    }
     addPropertyInternal(property, literalList);
   }
 

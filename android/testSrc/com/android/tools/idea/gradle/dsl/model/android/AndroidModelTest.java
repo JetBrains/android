@@ -57,6 +57,48 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
   }
 
+  public void testAndroidBlockWithApplicationStatementsWithParentheses() throws Exception {
+    String text = "android { \n" +
+                  "  buildToolsVersion(\"23.0.0\")\n" +
+                  "  compileSdkVersion(23)\n" +
+                  "  defaultPublishConfig(\"debug\")\n" +
+                  "  flavorDimensions(\"abi\", \"version\")\n" +
+                  "  generatePureSplits(true)\n" +
+                  "  publishNonDefault(false)\n" +
+                  "  resourcePrefix(\"abcd\")\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+
+    // Make sure adding to the list works.
+    android.addFlavorDimension("strawberry");
+
+    applyChangesAndReparse(buildModel);
+    // Check that we can get the new parsed value
+    android = buildModel.android();
+    assertNotNull(android);
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version", "strawberry"), android.flavorDimensions());
+    assertEquals("generatePureSplits", Boolean.TRUE, android.generatePureSplits());
+    assertEquals("publishNonDefault", Boolean.FALSE, android.publishNonDefault());
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix());
+  }
+
   public void testAndroidBlockWithAssignmentStatements() throws Exception {
     String text = "android { \n" +
                   "  buildToolsVersion = \"23.0.0\"\n" +
