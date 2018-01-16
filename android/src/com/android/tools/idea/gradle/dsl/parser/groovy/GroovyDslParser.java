@@ -581,7 +581,7 @@ public class GroovyDslParser implements GradleDslParser {
                                                    @NotNull GrMethodCallExpression psiElement,
                                                    @NotNull String propertyName,
                                                    @NotNull GrArgumentList argumentList) {
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(parentElement, psiElement, propertyName);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parentElement, psiElement.getArgumentList(), propertyName);
 
     for (GrExpression expression : argumentList.getExpressionArguments()) {
       if (expression instanceof GrListOrMap) {
