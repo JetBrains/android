@@ -27,8 +27,6 @@ public interface BuildTypeModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel applicationIdSuffix();
 
-  void removeApplicationIdSuffix();
-
   @Nullable
   List<GradleNotNullValue<BuildConfigField>> buildConfigFields();
 
@@ -43,57 +41,35 @@ public interface BuildTypeModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel debuggable();
 
-  void removeDebuggable();
-
   @NotNull
   ResolvedPropertyModel embedMicroApp();
-
-  void removeEmbedMicroApp();
 
   @NotNull
   ResolvedPropertyModel jniDebuggable();
 
-  void removeJniDebuggable();
-
   @NotNull
   ResolvedPropertyModel minifyEnabled();
-
-  void removeMinifyEnabled();
 
   @NotNull
   ResolvedPropertyModel pseudoLocalesEnabled();
 
-  void removePseudoLocalesEnabled();
-
   @NotNull
   ResolvedPropertyModel renderscriptDebuggable();
-
-  void removeRenderscriptDebuggable();
 
   @NotNull
   ResolvedPropertyModel renderscriptOptimLevel();
 
-  void removeRenderscriptOptimLevel();
-
   @NotNull
   ResolvedPropertyModel shrinkResources();
-
-  void removeShrinkResources();
 
   @NotNull
   ResolvedPropertyModel testCoverageEnabled();
 
-  void removeTestCoverageEnabled();
-
   @NotNull
   ResolvedPropertyModel versionNameSuffix();
 
-  void removeVersionNameSuffix();
-
   @NotNull
   ResolvedPropertyModel zipAlignEnabled();
-
-  void removeZipAlignEnabled();
 
   /**
    * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.

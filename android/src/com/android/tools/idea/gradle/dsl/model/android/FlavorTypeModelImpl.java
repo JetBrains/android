@@ -121,11 +121,6 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   }
 
   @Override
-  public void removeMultiDexEnabled() {
-    myDslElement.removeProperty(MULTI_DEX_ENABLED);
-  }
-
-  @Override
   @Nullable
   public List<GradleNotNullValue<String>> proguardFiles() {
     return myDslElement.getListProperty(PROGUARD_FILES, String.class);
@@ -260,11 +255,6 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   public ResolvedPropertyModel useJack() {
     return getModelForProperty(USE_JACK);
-  }
-
-  @Override
-  public void removeUseJack() {
-    myDslElement.removeProperty(USE_JACK);
   }
 
   /**

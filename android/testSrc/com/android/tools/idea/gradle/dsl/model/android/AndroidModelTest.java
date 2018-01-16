@@ -979,7 +979,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId());
     checkForValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
 
-    android.defaultConfig().removeApplicationId();
+    android.defaultConfig().applicationId().delete();
     assertMissingProperty(android.defaultConfig().applicationId());
     checkForValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
 
@@ -1165,7 +1165,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
 
-    defaultConfig.removeApplicationId();
+    defaultConfig.applicationId().delete();
     defaultConfig.removeAllProguardFiles();
 
     applyChangesAndReparse(buildModel);

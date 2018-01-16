@@ -62,19 +62,9 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  public void removeApplicationId() {
-    myDslElement.removeProperty(APPLICATION_ID);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel dimension() {
     return getModelForProperty(DIMENSION);
-  }
-
-  @Override
-  public void removeDimension() {
-    myDslElement.removeProperty(DIMENSION);
   }
 
   @Override
@@ -102,19 +92,9 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  public void removeMaxSdkVersion() {
-    myDslElement.removeProperty(MAX_SDK_VERSION);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel minSdkVersion() {
     return getModelForProperty(MIN_SDK_VERSION);
-  }
-
-  @Override
-  public void removeMinSdkVersion() {
-    myDslElement.removeProperty(MIN_SDK_VERSION);
   }
 
   @Override
@@ -166,19 +146,9 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  public void removeTargetSdkVersion() {
-    myDslElement.removeProperty(TARGET_SDK_VERSION);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel testApplicationId() {
     return getModelForProperty(TEST_APPLICATION_ID);
-  }
-
-  @Override
-  public void removeTestApplicationId() {
-    myDslElement.removeProperty(TEST_APPLICATION_ID);
   }
 
   @Override
@@ -188,30 +158,15 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  public void removeTestFunctionalTest() {
-    myDslElement.removeProperty(TEST_FUNCTIONAL_TEST);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel testHandleProfiling() {
     return getModelForProperty(TEST_HANDLE_PROFILING);
   }
 
   @Override
-  public void removeTestHandleProfiling() {
-    myDslElement.removeProperty(TEST_HANDLE_PROFILING);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel testInstrumentationRunner() {
     return getModelForProperty(TEST_INSTRUMENTATION_RUNNER);
-  }
-
-  @Override
-  public void removeTestInstrumentationRunner() {
-    myDslElement.removeProperty(TEST_INSTRUMENTATION_RUNNER);
   }
 
   @Override
@@ -242,18 +197,8 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  public void removeVersionCode() {
-    myDslElement.removeProperty(VERSION_CODE);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel versionName() {
     return getModelForProperty(VERSION_NAME);
-  }
-
-  @Override
-  public void removeVersionName() {
-    myDslElement.removeProperty(VERSION_NAME);
   }
 }
