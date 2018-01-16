@@ -42,11 +42,6 @@ public class BuildTypesConfigurable extends BaseNamedConfigurable<PsAndroidModul
   }
 
   @Override
-  public void queryPlace(@NotNull Place place) {
-
-  }
-
-  @Override
   @NotNull
   public String getId() {
     return "module.buildtypes" + getDisplayName();
@@ -59,10 +54,5 @@ public class BuildTypesConfigurable extends BaseNamedConfigurable<PsAndroidModul
 
   @Override
   public void apply() throws ConfigurationException {
-  }
-
-  @Override
-  public void disposeUIResources() {
-
   }
 }
