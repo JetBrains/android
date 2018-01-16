@@ -302,20 +302,19 @@ public class DependenciesTest {
    *      resolved successfully.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70633460
+  @RunIn(TestGroup.QA)
   @Test
   public void multiJavaLibraries() throws Exception {
     IdeFrameFixture ideFrame = createNewProject(APP_NAME, MIN_SDK);
 
     createJavaModule(ideFrame); // default name: lib
-    addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "IMPLEMENTATION");
+    addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "API");
     createJavaClassInModule(ideFrame, JAVA_MODULE_1, CLASS_NAME_1);
 
     createJavaModule(ideFrame); // default name: lib2
-    addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "IMPLEMENTATION");
+    addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "API");
     createJavaClassInModule(ideFrame, JAVA_MODULE_2, CLASS_NAME_2);
 
-    // Test will fail here because of bug: 69813406
     accessLibraryClassAndVerify(ideFrame, JAVA_MODULE_1, JAVA_MODULE_2);
   }
 
