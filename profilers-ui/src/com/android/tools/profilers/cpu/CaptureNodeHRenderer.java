@@ -31,9 +31,9 @@ import java.util.function.Predicate;
 
 /**
  * Specifies render characteristics (i.e. text and color) of {@link com.android.tools.adtui.chart.hchart.HTreeChart} nodes that represent
- * instances of {@link CaptureNodeModel}.
+ * instances of {@link CaptureNode}.
  */
-public class CaptureNodeModelHRenderer implements HRenderer<CaptureNode> {
+public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
 
   private static final int LEFT_MARGIN_PX = 3;
 
@@ -44,7 +44,7 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNode> {
   private TextFitsPredicate myTextFitsPredicate;
 
   @VisibleForTesting
-  CaptureNodeModelHRenderer(@NotNull CaptureModel.Details.Type type, @NotNull TextFitsPredicate textFitPredicate) {
+  CaptureNodeHRenderer(@NotNull CaptureModel.Details.Type type, @NotNull TextFitsPredicate textFitPredicate) {
     if (type != CaptureModel.Details.Type.CALL_CHART && type != CaptureModel.Details.Type.FLAME_CHART) {
       throw new IllegalStateException("Chart type not supported and can't be rendered.");
     }
@@ -53,11 +53,11 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNode> {
   }
 
   @VisibleForTesting
-  public CaptureNodeModelHRenderer() {
+  public CaptureNodeHRenderer() {
     this(CaptureModel.Details.Type.CALL_CHART);
   }
 
-  public CaptureNodeModelHRenderer(@NotNull CaptureModel.Details.Type type) {
+  public CaptureNodeHRenderer(@NotNull CaptureModel.Details.Type type) {
     this(type, (text, metrics, width) -> metrics.stringWidth(text) <= width);
   }
 
