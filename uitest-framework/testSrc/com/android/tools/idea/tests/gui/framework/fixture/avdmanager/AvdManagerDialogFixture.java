@@ -59,18 +59,16 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     JFrame frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame dialog) {
-        return "Android Virtual Device Manager".equals(dialog.getTitle());
+        // Waiting for the dialog to be active allows the "dialog grow animation" to end
+        return dialog.isActive() && "Android Virtual Device Manager".equals(dialog.getTitle());
       }
     });
     return new AvdManagerDialogFixture(robot, frame, ideFrame);
   }
 
   public AvdEditWizardFixture createNew() {
-    JButton newAvdButton = findButtonByText("Create Virtual Device...");
-    final JButtonFixture button = new JButtonFixture(robot(), newAvdButton);
-    button.requireEnabled();
-    button.requireVisible();
-    button.click();
+    JButton newAvdButton = GuiTests.waitUntilShowingAndEnabled(robot(), target(), JButtonMatcher.withText("Create Virtual Device..."));
+    new JButtonFixture(robot(), newAvdButton).click();
     return AvdEditWizardFixture.find(robot());
   }
 
@@ -112,11 +110,6 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
       new JTableLocation().pointAt(tableView, actionCell.row, actionCell.column));
 
     return (JPanel)actionCellFixture.editor();
-  }
-
-  @NotNull
-  private JButton findButtonByText(@NotNull String text) {
-    return robot().finder().find(target(), JButtonMatcher.withText(text).andShowing());
   }
 
   @NotNull
