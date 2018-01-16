@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;

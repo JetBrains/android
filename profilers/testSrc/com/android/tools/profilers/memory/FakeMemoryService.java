@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;

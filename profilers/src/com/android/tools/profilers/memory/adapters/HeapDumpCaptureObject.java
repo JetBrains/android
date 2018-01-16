@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Instance;
@@ -28,7 +27,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +37,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
