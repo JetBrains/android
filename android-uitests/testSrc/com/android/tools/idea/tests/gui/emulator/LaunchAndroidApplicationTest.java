@@ -161,7 +161,7 @@ public class LaunchAndroidApplicationTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testNdkHandlesDupeFilename() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("NdkDupeFilename");
