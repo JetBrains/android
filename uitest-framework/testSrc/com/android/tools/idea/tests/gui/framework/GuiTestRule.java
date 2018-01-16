@@ -20,6 +20,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.observable.BatchInvokerStrategyRule;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -64,6 +65,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.google.common.truth.Truth.assertAbout;
@@ -112,6 +114,12 @@ public class GuiTestRule implements TestRule {
       .around(myLeakCheck)
       .around(new IdeHandling())
       .around(new ScreenshotOnFailure())
+      // Test robots are faster than humans and try to click multiple UI elements in the same frame,
+      // while BatchInvoker's default settings allows the UI to take a couple frames to propagate its
+      // values. Resolving immediately means the system loses some efficiency (some expressions may
+      // get recalculated multiple times, for example) but should make tests easier to read without
+      // having to add what seems like arbitrary wait requests.
+      .around(new BatchInvokerStrategyRule(INVOKE_IMMEDIATELY_STRATEGY))
       .around(myTimeout);
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
