@@ -56,6 +56,5 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
 
     assertThat(storePassword.resolved.asTestValue(), equalTo("android"))
     assertThat(storePassword.parsedValue.asTestValue(), equalTo("android"))
-
   }
 }

@@ -39,18 +39,34 @@ android {
     }
     buildTypes {
         release {
+            applicationIdSuffix "suffix"
+            versionNameSuffix "vsuffix"
+            debuggable false
+            jniDebuggable false
             minifyEnabled false
+            renderscriptOptimLevel 2
             signingConfig signingConfigs.myConfig
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-    flavorDimensions 'foo'
+    flavorDimensions 'foo', 'bar'
     productFlavors {
         basic {
-          applicationId "com.example.psd.sample.app"
+            dimension "foo"
+            applicationId "com.example.psd.sample.app"
         }
         paid {
+            dimension "foo"
             applicationId "com.example.psd.sample.app.paid"
+            testApplicationId "com.example.psd.sample.app.paid.test"
+            maxSdkVersion 25
+            minSdkVersion 10
+            targetSdkVersion(20)
+            versionCode 2
+            versionName "2.0"
+        }
+        bar {
+            dimension "bar"
         }
     }
 }
