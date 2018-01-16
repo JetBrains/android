@@ -16,10 +16,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="gradle" scope="TEST" />
-    <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
-    <orderEntry type="module" module-name="java-impl" scope="TEST" />
     <orderEntry type="module" module-name="openapi" scope="TEST" />
-    <orderEntry type="module" module-name="testRunner" scope="TEST" />
     <orderEntry type="module" module-name="bootstrap" scope="TEST" />
     <orderEntry type="module" module-name="xdebugger-impl" scope="TEST" />
     <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
