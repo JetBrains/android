@@ -45,7 +45,6 @@ public class CaptureNodeModelHRenderer implements HRenderer<CaptureNode> {
 
   @VisibleForTesting
   CaptureNodeModelHRenderer(@NotNull CaptureModel.Details.Type type, @NotNull TextFitsPredicate textFitPredicate) {
-    super();
     if (type != CaptureModel.Details.Type.CALL_CHART && type != CaptureModel.Details.Type.FLAME_CHART) {
       throw new IllegalStateException("Chart type not supported and can't be rendered.");
     }
