@@ -60,6 +60,7 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
   // We are keeping it so long because sometimes (for cold-swap) it seems to take a while..
   private static final long TIMEOUT_MS = 10000;
 
+  // identifier for the running application, same as packageId unless android:process attribute is set
   @NotNull private final String myApplicationId;
   private final boolean myMonitoringRemoteProcess;
 
@@ -264,15 +265,26 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
       return;
     }
 
-    if (StringUtil.equals(myApplicationId, client.getClientData().getClientDescription())) {
+    if (isMatchingClient(client)) {
       addClient(client);
     }
 
-    String name = client.getClientData().getClientDescription();
-    if (name != null && myApplicationId.equals(name) && !client.isValid()) {
+    if (isMatchingClient(client) && !client.isValid()) {
       print("Process " + client.getClientData().getPid() + " is not valid anymore!");
       stopMonitoring(client.getDevice());
     }
+  }
+
+  /**
+   * Matches the client against the applicationId given in the constructor. Normally the client's description matches the applicationId.
+   * However if android:process attribute is applied to the default activity then:
+   *
+   * if it's a local process (starts with :) the description is: $packageId:$process => we match against client's packageName
+   * if it's a global process, the description is just: $process => TODO(b/71645350)
+   */
+  private boolean isMatchingClient(@NotNull Client client) {
+    return StringUtil.equals(myApplicationId, client.getClientData().getClientDescription()) ||
+           StringUtil.equals(myApplicationId, client.getClientData().getPackageName());
   }
 
   @NotNull
