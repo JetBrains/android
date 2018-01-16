@@ -45,7 +45,7 @@ public class ChooseOptionsForNewFileStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public String getInstantAppsRouteType() {
-    final JComboBox comboBox = robot().finder().findByLabel("Instant App URL Route Type", JComboBox.class, true);
+    final JComboBox comboBox = robot().finder().findByLabel("Instant App URL Route Type:", JComboBox.class, true);
     return ((ApiComboBoxItem)GuiQuery.getNonNull(comboBox::getSelectedItem)).getLabel();
   }
 
