@@ -398,7 +398,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.configure(legends.getJavaLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getJavaSeries())));
     legend.configure(legends.getNativeLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getNativeSeries())));
     legend.configure(legends.getGraphicsLegend(), new LegendConfig(lineChart.getLineConfig(memoryUsage.getGraphicsSeries())));

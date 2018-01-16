@@ -25,15 +25,13 @@ import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
 
-import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS;
 import static com.android.tools.profilers.network.NetworkRadioDataSeries.RadioState;
 
@@ -87,7 +85,7 @@ public class NetworkRadioView {
     legendModel.add(lowLegend);
 
     LegendComponent legend =
-      new LegendComponent.Builder(legendModel).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+      new LegendComponent.Builder(legendModel).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.configure(wifiLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.WIFI)));
     legend.configure(highLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.HIGH)));
     legend.configure(lowLegend, new LegendConfig(LegendConfig.IconType.LINE, RADIO_STATE_COLOR.get(RadioState.LOW)));

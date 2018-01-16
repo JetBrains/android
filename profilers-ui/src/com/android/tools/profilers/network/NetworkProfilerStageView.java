@@ -27,7 +27,6 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.network.details.ConnectionDetailsView;
 import com.intellij.ui.JBColor;
@@ -218,7 +217,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     NetworkProfilerStage.NetworkStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.configure(legends.getRxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getRxSeries())));
     legend.configure(legends.getTxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getTxSeries())));
     legend.configure(legends.getConnectionLegend(), new LegendConfig(lineChart.getLineConfig(usage.getConnectionSeries())));

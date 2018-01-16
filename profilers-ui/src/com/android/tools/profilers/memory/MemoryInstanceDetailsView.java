@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
 
 /**
@@ -348,7 +349,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     final JTree tree = new JTree(treeModel);
     int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
     tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
-    tree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
+    tree.setBorder(TABLE_ROW_BORDER);
     tree.setRootVisible(true);
     tree.setShowsRootHandles(true);
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
