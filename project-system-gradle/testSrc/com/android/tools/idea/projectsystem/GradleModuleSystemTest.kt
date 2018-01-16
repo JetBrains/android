@@ -37,7 +37,7 @@ class GradleModuleSystemTest : IdeaTestCase() {
   private lateinit var gradleModuleSystem: GradleModuleSystem
 
   private val mavenRepository = object : GoogleMavenRepository(File(AndroidTestBase.getTestDataPath(),
-      "../../project-system-gradle/testData/repoIndex")) {
+      "../../project-system-gradle/testData/repoIndex"), cacheExpiryHours = Int.MAX_VALUE) {
     override fun readUrlData(url: String, timeout: Int): ByteArray? = throw AssertionFailedError("shouldn't try to read!")
 
     override fun error(throwable: Throwable, message: String?) {}
@@ -68,8 +68,7 @@ class GradleModuleSystemTest : IdeaTestCase() {
         .addDependenciesWithoutSync(myModule, listOf(getLatestCoordinateForArtifactId(toAdd, false)!!))
   }
 
-  // fails; see http://b/72033729
-  fun ignore_testAddPreviewDependency() {
+  fun testAddPreviewDependency() {
     // In the test data, NAVIGATION only has a preview version
     val toAdd = GoogleMavenArtifactId.NAVIGATION
 
