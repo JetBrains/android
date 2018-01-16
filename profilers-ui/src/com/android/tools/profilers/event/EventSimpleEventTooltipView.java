@@ -15,17 +15,16 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.SimpleEventComponent;
-import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.event.ActivityAction;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.SimpleEventType;
-import com.android.tools.adtui.model.event.StackedEventType;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMonitorTooltipView;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.StageView;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

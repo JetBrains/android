@@ -31,8 +31,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.profilers.ProfilerColors.*;
-import static com.android.tools.profilers.ProfilerColors.NETWORK_WAITING_COLOR;
-import static com.android.tools.profilers.ProfilerColors.TRANSPARENT_COLOR;
 
 /**
  * Class responsible for rendering one or more sequential network requests, with each request appearing as a horizontal
