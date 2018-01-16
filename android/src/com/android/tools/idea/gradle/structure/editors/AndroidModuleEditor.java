@@ -32,7 +32,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -206,14 +205,6 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   @Nullable
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     return null;
-  }
-
-  @Override
-  public void queryPlace(@NotNull Place place) {
-  }
-
-  @Override
-  public void setHistory(final History history) {
   }
 
   public void openSigningConfiguration() {
