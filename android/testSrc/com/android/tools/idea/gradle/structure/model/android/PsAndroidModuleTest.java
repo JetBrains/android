@@ -34,6 +34,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Tests for {@link PsAndroidModule}.
@@ -51,6 +52,8 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     assertNotNull(appModule);
 
     List<PsProductFlavor> productFlavors = getProductFlavors(appModule);
+    assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("basic", "paid").inOrder();
     assertThat(productFlavors).hasSize(2);
 
     PsProductFlavor basic = appModule.findProductFlavor("basic");
@@ -62,11 +65,115 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     assertTrue(release.isDeclared());
   }
 
+  public void testAddProductFlavor() throws Throwable {
+    loadProject(PROJECT_WITH_APPAND_LIB);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    List<PsProductFlavor> productFlavors = getProductFlavors(appModule);
+    assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("basic", "paid").inOrder();
+
+    appModule.addNewProductFlavor("new_flavor");
+
+    productFlavors = getProductFlavors(appModule);
+    assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("basic", "paid", "new_flavor").inOrder();
+
+    PsProductFlavor newFlavor = appModule.findProductFlavor("new_flavor");
+    assertNotNull(newFlavor);
+    assertNull(newFlavor.getResolvedModel());
+
+    appModule.applyChanges();
+    requestSyncAndWait();
+    project = new PsProject(resolvedProject);
+    appModule = (PsAndroidModule)project.findModuleByName("app");
+
+    productFlavors = getProductFlavors(appModule);
+    assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("basic", "paid", "new_flavor").inOrder();
+
+    newFlavor = appModule.findProductFlavor("new_flavor");
+    assertNotNull(newFlavor);
+    assertNotNull(newFlavor.getResolvedModel());
+  }
+
   @NotNull
   private static List<PsProductFlavor> getProductFlavors(@NotNull PsAndroidModule module) {
     List<PsProductFlavor> productFlavors = Lists.newArrayList();
     module.forEachProductFlavor(productFlavors::add);
     return productFlavors;
+  }
+
+  public void testBuildTypes() throws Throwable {
+    loadProject(PROJECT_WITH_APPAND_LIB);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    List<PsBuildType> buildTypes = getBuildTypes(appModule);
+    assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("release", "debug").inOrder();
+    assertThat(buildTypes).hasSize(2);
+
+    PsBuildType release = appModule.findBuildType("release");
+    assertNotNull(release);
+    assertTrue(release.isDeclared());
+
+    PsBuildType debug = appModule.findBuildType("debug");
+    assertNotNull(debug);
+    assertTrue(!debug.isDeclared());
+  }
+
+  public void testAddBuildType() throws Throwable {
+    loadProject(PROJECT_WITH_APPAND_LIB);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    List<PsBuildType> buildTypes = getBuildTypes(appModule);
+    assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("release", "debug").inOrder();
+
+    appModule.addNewBuildType("new_build_type");
+
+    buildTypes = getBuildTypes(appModule);
+    assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("release", "debug", "new_build_type").inOrder();
+
+    PsBuildType newBuildType = appModule.findBuildType("new_build_type");
+    assertNotNull(newBuildType);
+    assertNull(newBuildType.getResolvedModel());
+
+    appModule.applyChanges();
+    requestSyncAndWait();
+    project = new PsProject(resolvedProject);
+    appModule = (PsAndroidModule)project.findModuleByName("app");
+
+    buildTypes = getBuildTypes(appModule);
+    assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("release", "new_build_type", "debug").inOrder();  // "debug" is not declared and goes last.
+
+    newBuildType = appModule.findBuildType("new_build_type");
+    assertNotNull(newBuildType);
+    assertNotNull(newBuildType.getResolvedModel());
+  }
+
+  @NotNull
+  private static List<PsBuildType> getBuildTypes(@NotNull PsAndroidModule module) {
+    List<PsBuildType> buildTypes = Lists.newArrayList();
+    module.forEachBuildType(buildTypes::add);
+    return buildTypes;
   }
 
   public void testVariants() throws Throwable {

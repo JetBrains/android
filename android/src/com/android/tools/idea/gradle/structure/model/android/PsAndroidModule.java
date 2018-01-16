@@ -227,6 +227,16 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   @NotNull
+  public PsBuildType addNewBuildType(@NotNull String name) {
+    return getOrCreateBuildTypeCollection().addNew(name);
+  }
+
+  @NotNull
+  public PsProductFlavor addNewProductFlavor(@NotNull String name) {
+    return getOrCreateProductFlavorCollection().addNew(name);
+  }
+
+  @NotNull
   public PsSigningConfig addNewSigningConfig(@NotNull String name) {
     return getOrCreateSigningConfigCollection().addNew(name);
   }
