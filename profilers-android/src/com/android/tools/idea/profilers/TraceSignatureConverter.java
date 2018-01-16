@@ -18,11 +18,9 @@ package com.android.tools.idea.profilers;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.*;
 import com.intellij.psi.util.TypeConversionUtil;
-import com.intellij.util.containers.BidirectionalMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class TraceSignatureConverter  {
