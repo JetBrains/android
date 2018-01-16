@@ -55,7 +55,7 @@ public class InstantAppActivityDefaultsTest {
     SdkReplacer.putBack();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71993667
+
   @Test
   public void testDefaultUrlParamsPopulated() {
     ChooseOptionsForNewFileStepFixture<NewProjectWizardFixture> templateSettingsFixture = guiTest.welcomeFrame()
