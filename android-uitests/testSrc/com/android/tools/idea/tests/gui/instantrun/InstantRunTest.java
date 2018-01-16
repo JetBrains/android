@@ -50,7 +50,6 @@ public class InstantRunTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
-  @Rule public final ScreenshotsDuringTest movie = new ScreenshotsDuringTest();
 
   private static final String APP_NAME = "app";
   private static final Pattern EMPTY_OUTPUT= Pattern.compile("^$", Pattern.DOTALL);
