@@ -143,7 +143,7 @@ public class ProjectWithKotlinTest {
       ideFrameFixture.requestProjectSync();
     }
 
-    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project").waitForGradleProjectSyncToFinish(Wait.seconds(30));
+    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project").waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 
