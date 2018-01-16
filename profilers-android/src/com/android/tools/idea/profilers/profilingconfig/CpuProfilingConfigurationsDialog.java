@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
