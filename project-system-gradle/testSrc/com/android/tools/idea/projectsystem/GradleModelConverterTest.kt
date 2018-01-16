@@ -15,6 +15,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeVariant
+import com.android.ide.common.repository.GradleVersion
 import com.android.projectmodel.AndroidPathType
 import com.android.projectmodel.AndroidProject
 import com.android.projectmodel.PathString
@@ -26,7 +27,6 @@ import com.android.tools.idea.projectsystem.gradle.toProjectModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 
 /**
  * Tests for [GradleModelConverter]. The setup time for these tests are quite slow since it needs to perform a Gradle sync.
@@ -45,10 +45,20 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
   }
 
   fun testConversion() {
+    // Gradle is allowed to return extra configs for locations that could exist on disk but that aren't actually there.
+    // The set of hypothetical configs could change over time. However, it is *required* to return configs for all
+    // the locations that actually exist on disk as part of the test case, so we only test for these. This makes the
+    // test less brittle if the Gradle plugin adds new source locations in the future.
+    assertHasConfigs(
+        "*/*/debug/main",
+        "*/*/release/main",
+        "free/x86/debug/main",
+        "*/*/*/main",
+        "pro/x86/*/main"
+    )
     checkProjectAttributes()
-//    TODO: The following disabled tests fail when run from the IDE, but work when run via Bazel
-//    checkBuildTypeConfigurations()
-//    checkFlavorConfigurations()
+    checkBuildTypeConfigurations()
+    checkFlavorConfigurations()
     checkVariants()
   }
 
@@ -57,56 +67,67 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
     assertThat(converted.type).isEqualTo(getProjectType(project.projectType))
   }
 
-//  TODO: This fails from the IDE, but works from Bazel
-//  fun checkBuildTypeConfigurations() {
-//    with(converted.configTable) {
-//      val debugPath = schema.pathFor("debug")
-//      val debugConfigs = filter { debugPath.contains(it.path) }.configs
-//
-//      assertThat(debugConfigs.size).isEqualTo(15)
-//
-//      with(debugConfigs[0]) {
-//        with(manifestValues) {
-//          assertThat(debuggable).isTrue()
-//          assertThat(compileSdkVersion).isNull()
-//          assertThat(applicationId).isNull()
-//        }
-//        assertThat(sources.get(AndroidPathType.ASSETS)[0].portablePath.endsWith("src/debug/assets")).isTrue()
-//      }
-//    }
-//  }
+  fun assertHasConfigs(vararg expectedPaths:String) {
+    for (path in expectedPaths) {
+      val configPath = matchArtifactsWith(path)
+      assertTrue("Config table should contain exactly 1 config for " + path, converted.configTable.filter { it.path == configPath }.configs.size == 1)
+    }
+  }
 
-//  TODO: Fails with: Not true that <17> is equal to <19> at assertThat(x86Configs.size).isEqualTo(19), when run from the IDE
-//  fun checkFlavorConfigurations() {
-//    with(converted.configTable) {
-//      val x86Path = schema.pathFor("x86")
-//      val x86Configs = filter { x86Path.contains(it.path) }.configs
-//
-//      assertThat(x86Configs.size).isEqualTo(19)
-//
-//      val mainArtifactPath = x86Path.intersect(schema.pathFor(MAIN_ARTIFACT_NAME))
-//      val mainArtifactX86Configs = filter { mainArtifactPath.contains(it.path) }.configs
-//
-//      assertThat(mainArtifactX86Configs.size).isEqualTo(7)
-//
-//      with(mainArtifactX86Configs[0]) {
-//        with(manifestValues) {
-//          assertThat(debuggable).isNull()
-//          assertThat(compileSdkVersion).isNull()
-//          assertThat(applicationId).isNull()
-//        }
-//        assertThat(sources.get(AndroidPathType.MANIFEST)[0].portablePath.endsWith("src/x86/AndroidManifest.xml")).isTrue()
-//      }
-//    }
-//  }
+  fun checkBuildTypeConfigurations() {
+    with(converted.configTable) {
+      val debugPath = schema.pathFor("debug")
+      val debugAssociations = filter { debugPath.contains(it.path) }
+      val debugConfigs = debugAssociations.configs
+
+      with(debugConfigs[0]) {
+        with(manifestValues) {
+          assertThat(debuggable).isTrue()
+          assertThat(compileSdkVersion).isNull()
+          assertThat(applicationId).isNull()
+        }
+        assertThat(sources.get(AndroidPathType.ASSETS)[0].portablePath.endsWith("src/debug/assets")).isTrue()
+      }
+    }
+  }
+
+  fun checkFlavorConfigurations() {
+    with(converted.configTable) {
+      val x86Path = schema.pathFor("x86")
+      val x86Configs = filter { x86Path.contains(it.path) }.configs
+
+      // We've created source folders for freeX86Debug and proX86, so there should be at least 2 x86 configs in the model.
+      // There will likely be more since the model may create additional model entries for potential source locations that
+      // don't actually exist on disk. These hypothetical locations differ between Gradle plugin versions.
+      assertThat(x86Configs.size).isGreaterThan(1)
+
+      val mainArtifactPath = x86Path.intersect(schema.pathFor(MAIN_ARTIFACT_NAME))
+      val mainArtifactX86Configs = filter { mainArtifactPath.contains(it.path) }.configs
+
+      // Two of the source folders were for the main config. We should be able to find them in the model.
+      assertThat(mainArtifactX86Configs.size).isGreaterThan(1)
+
+      with(mainArtifactX86Configs[0]) {
+        with(manifestValues) {
+          assertThat(debuggable).isNull()
+          assertThat(compileSdkVersion).isNull()
+          assertThat(applicationId).isNull()
+        }
+        assertThat(sources.get(AndroidPathType.MANIFEST)[0].portablePath.endsWith("src/x86/AndroidManifest.xml")).isTrue()
+      }
+    }
+  }
 
   fun checkVariants() {
     with(converted) {
+      // (release, debug) * (x86, arm) * (free, pro) = 2 * 2 * 2 = 8
       assertThat(variants.size).isEqualTo(8)
       val originalVariant = firstVariant()
       val originalTestArtifact = originalVariant.extraAndroidArtifacts.iterator().next()!!
       val originalArtifact = originalVariant.mainArtifact
-      val variant = variants[0]
+
+      val freeX86DebugPath = matchArtifactsWith("free/x86/debug")
+      val variant = variants.first { it.configPath == freeX86DebugPath }
       val mainArtifact = variant.mainArtifact
       val testArtifact = variant.androidTestArtifact
 
@@ -120,24 +141,23 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
           with(manifestValues) {
             assertThat(applicationId).isEqualTo(originalArtifact.applicationId)
           }
-          assertThat(sources[AndroidPathType.MANIFEST].size).isEqualTo(6)
+          // At minimum, it should contain the manifests that were created on disk for this test: main, debug, and freeX86Debug
+          assertThat(sources[AndroidPathType.MANIFEST].size).isGreaterThan(2)
         }
       }
 
-//      TODO: Fails with Not true that <4> is equal to <6> at assertThat(sources[AndroidPathType.MANIFEST].size).isEqualTo(6)
-//      with (testArtifact!!) {
-//        assertThat(name).isEqualTo(originalTestArtifact.name)
-//        assertThat(classFolders).isEqualTo(
-//            listOf(PathString(originalTestArtifact.classesFolder)) + filesToPathStrings(originalTestArtifact.additionalClassesFolders))
-//        // Note that we don't currently fill in the package name for test artifacts, since the gradle model doesn't return it
-//        with(resolved) {
-//          assertThat(usingSupportLibVectors).isFalse()
-//          with(manifestValues) {
-//            assertThat(applicationId).isEqualTo(originalTestArtifact.applicationId)
-//          }
-//          assertThat(sources[AndroidPathType.MANIFEST].size).isEqualTo(6)
-//        }
-//      }
+      with (testArtifact!!) {
+        assertThat(name).isEqualTo(originalTestArtifact.name)
+        assertThat(classFolders).isEqualTo(
+            listOf(PathString(originalTestArtifact.classesFolder)) + filesToPathStrings(originalTestArtifact.additionalClassesFolders))
+        // Note that we don't currently fill in the package name for test artifacts, since the gradle model doesn't return it
+        with(resolved) {
+          assertThat(usingSupportLibVectors).isFalse()
+          with(manifestValues) {
+            assertThat(applicationId).isEqualTo(originalTestArtifact.applicationId)
+          }
+        }
+      }
 
       assertThat(variant.mainArtifactConfigPath).isEqualTo(matchArtifactsWith("free/x86/debug/main"))
       assertThat(variant.configPath).isEqualTo(matchArtifactsWith("free/x86/debug"))
