@@ -1138,6 +1138,10 @@
     <refactoring.safeDeleteProcessor
         id="android_string_resource"
         implementation="com.android.tools.idea.editors.strings.StringResourceSafeDeleteProcessorDelegate"/>
+
+    <!-- Custom BuildOutputParsers -->
+    <externalSystemOutputParserProvider implementation="com.android.tools.idea.gradle.project.build.output.GradleOutputParserProvider"
+                                        id="gradle"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
