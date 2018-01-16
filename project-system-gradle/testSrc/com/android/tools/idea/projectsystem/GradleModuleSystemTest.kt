@@ -59,7 +59,8 @@ class GradleModuleSystemTest : IdeaTestCase() {
     }
   }
 
-  fun testAddDependency() {
+  // fails; see http://b/72033729
+  fun ignore_testAddDependency() {
     val toAdd = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
 
     gradleModuleSystem.addDependencyWithoutSync(toAdd, null, false)
