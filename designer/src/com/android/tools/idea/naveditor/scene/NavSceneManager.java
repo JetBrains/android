@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
@@ -51,6 +52,7 @@ import java.util.*;
 import java.util.List;
 
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.OTHER;
 
 /**
  * {@link SceneManager} for the navigation editor.
@@ -216,45 +218,61 @@ public class NavSceneManager extends SceneManager {
   @Override
   @Nullable
   protected SceneComponent createHierarchy(@NotNull NlComponent component) {
-    switch (NavComponentHelperKt.getActionType(component)) {
-      case GLOBAL:
-      case EXIT:
-        return super.createHierarchy(component);
-      default:
-        break;
+    boolean shouldCreateHierarchy = false;
+
+    if (NavComponentHelperKt.isAction(component)) {
+      shouldCreateHierarchy = shouldCreateActionHierarchy(component);
+    }
+    else {
+      NavigationSchema.DestinationType destinationType = NavComponentHelperKt.getDestinationType(component);
+
+      if (destinationType != null && destinationType != OTHER) {
+        // TODO: handle the OTHER case
+        shouldCreateHierarchy = shouldCreateDestinationHierarchy(component);
+      }
     }
 
-    NavigationSchema.DestinationType type = NavComponentHelperKt.getDestinationType(component);
-
-    if (type == null) {
+    if (!shouldCreateHierarchy) {
       return null;
     }
 
-    switch (type) {
-      case NAVIGATION:
-        if (component == getRoot()) {
-          return buildRoot(component);
-        }
+    SceneComponent hierarchy = super.createHierarchy(component);
 
-        SceneComponent sceneComponent = getScene().getSceneComponent(component);
-        if (sceneComponent == null) {
-          sceneComponent = new SceneComponent(getScene(), component);
-        }
-        return sceneComponent;
-      case FRAGMENT:
-      case ACTIVITY:
-        return super.createHierarchy(component);
+    if (hierarchy != null && component == getRoot()) {
+      moveGlobalActions(hierarchy);
+    }
+
+    return hierarchy;
+  }
+
+
+  private boolean shouldCreateDestinationHierarchy(@NotNull NlComponent component) {
+    // For destinations, the root navigation and its immediate children should have scene components
+    return component == getRoot() || component.getParent() == getRoot();
+  }
+
+  private boolean shouldCreateActionHierarchy(@NotNull NlComponent component) {
+    ActionType actionType = NavComponentHelperKt.getActionType(component);
+
+    switch (actionType) {
+      case GLOBAL:
+        // Create scene components for global actions under the root navigation
+        return component.getParent() == getRoot();
+      case EXIT:
+        // Create scene components for exit actions under children of the root navigation
+        NlComponent parent = component.getParent();
+        return parent != null && parent.getParent() == getRoot();
       default:
-        return null;
+        // Regular and self actions are handled as targets
+        return false;
     }
   }
 
-  private SceneComponent buildRoot(@NotNull NlComponent rootNlComponent) {
-    SceneComponent root = super.createHierarchy(rootNlComponent);
-    if (root == null) {
-      return null;
-    }
-
+  /**
+   * Global actions are children of the root navigation in the NlComponent tree, but we want their scene components to be children of
+   * the scene component of their destination. This method reparents the scene components of the global actions.
+   */
+  private void moveGlobalActions(@NotNull SceneComponent root) {
     Map<String, SceneComponent> destinationMap = new HashMap<>();
 
     for (SceneComponent component : root.getChildren()) {
@@ -283,8 +301,6 @@ public class NavSceneManager extends SceneManager {
         parent.addChild(globalAction);
       }
     }
-
-    return root;
   }
 
   @Override
@@ -342,7 +358,9 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
-  private static void getRegularActions(@NotNull SceneComponent root, @NotNull HashSet<String> sources, @NotNull HashSet<String> destinations) {
+  private static void getRegularActions(@NotNull SceneComponent root,
+                                        @NotNull HashSet<String> sources,
+                                        @NotNull HashSet<String> destinations) {
     for (SceneComponent component : root.getChildren()) {
       NlComponent nlComponent = component.getNlComponent();
       if (!NavComponentHelperKt.isDestination(nlComponent)) {
@@ -362,7 +380,9 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
-  private static void layoutGlobalActions(@NotNull SceneComponent destination, @NotNull ArrayList<SceneComponent> globalActions, Boolean skip) {
+  private static void layoutGlobalActions(@NotNull SceneComponent destination,
+                                          @NotNull ArrayList<SceneComponent> globalActions,
+                                          Boolean skip) {
     layoutActions(destination, globalActions, skip, destination.getDrawX() - GLOBAL_ACTION_WIDTH - GLOBAL_ACTION_HORIZONTAL_PADDING);
   }
 
