@@ -378,15 +378,6 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   @Override
-  protected void processRemovedItems() {
-  }
-
-  @Override
-  protected boolean wasObjectStored(Object editableObject) {
-    return false;
-  }
-
-  @Override
   @Nullable
   public Runnable enableSearch(String option) {
     return null;
