@@ -30,12 +30,8 @@ public interface ProductFlavorModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel applicationId();
 
-  void removeApplicationId();
-
   @NotNull
   ResolvedPropertyModel dimension();
-
-  void removeDimension();
 
   @NotNull
   ExternalNativeBuildOptionsModel externalNativeBuild();
@@ -45,12 +41,8 @@ public interface ProductFlavorModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel maxSdkVersion();
 
-  void removeMaxSdkVersion();
-
   @NotNull
   ResolvedPropertyModel minSdkVersion();
-
-  void removeMinSdkVersion();
 
   @NotNull
   NdkOptionsModel ndk();
@@ -71,27 +63,17 @@ public interface ProductFlavorModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel targetSdkVersion();
 
-  void removeTargetSdkVersion();
-
   @NotNull
   ResolvedPropertyModel testApplicationId();
-
-  void removeTestApplicationId();
 
   @NotNull
   ResolvedPropertyModel testFunctionalTest();
 
-  void removeTestFunctionalTest();
-
   @NotNull
   ResolvedPropertyModel testHandleProfiling();
 
-  void removeTestHandleProfiling();
-
   @NotNull
   ResolvedPropertyModel testInstrumentationRunner();
-
-  void removeTestInstrumentationRunner();
 
   @Nullable
   Map<String, GradleNotNullValue<String>> testInstrumentationRunnerArguments();
@@ -105,10 +87,6 @@ public interface ProductFlavorModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel versionCode();
 
-  void removeVersionCode();
-
   @NotNull
   ResolvedPropertyModel versionName();
-
-  void removeVersionName();
 }
