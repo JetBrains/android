@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -32,6 +33,7 @@ import java.util.List;
 
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static java.util.stream.Collectors.toList;
@@ -41,6 +43,49 @@ import static java.util.stream.Collectors.toList;
  */
 public class PsAndroidModuleTest extends AndroidGradleTestCase {
   @NotNull public static final String APPCOMPAT_V7_VERSION_26_1_0 = "26.1.0";
+
+  public void testFlavorDimensions() throws Throwable {
+    loadProject(PSD_SAMPLE);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    List<String> flavorDimensions = getFlavorDimensions(appModule);
+    assertThat(flavorDimensions)
+      .containsExactly("foo", "bar").inOrder();
+  }
+
+  public void testAddFlavorDimension() throws Throwable {
+    loadProject(PSD_SAMPLE);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    appModule.addNewFlavorDimension("new");
+    // A product flavor is required for successful sync.
+    PsProductFlavor newInNew = appModule.addNewProductFlavor("new_in_new");
+    newInNew.setDimension(new ParsedValue.Set.Parsed<String>("new", null));
+    appModule.applyChanges();
+
+    requestSyncAndWait();
+    project = new PsProject(resolvedProject);
+    appModule = (PsAndroidModule)project.findModuleByName("app");
+
+    List<String> flavorDimensions = getFlavorDimensions(appModule);
+    assertThat(flavorDimensions)
+      .containsExactly("foo", "bar", "new").inOrder();
+  }
+
+  @NotNull
+  private static List<String> getFlavorDimensions(@NotNull PsAndroidModule module) {
+    return Lists.newArrayList(module.getFlavorDimensions());
+  }
 
   public void testProductFlavors() throws Throwable {
     loadProject(PROJECT_WITH_APPAND_LIB);
