@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.DOUBLE;
 
 /**
  * A UI representation of a {@link ClassInstance}.

@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
