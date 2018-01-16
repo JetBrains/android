@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -26,13 +28,15 @@ import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDep
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon;
@@ -81,6 +85,19 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   @NotNull
   private PsBuildTypeCollection getOrCreateBuildTypeCollection() {
     return myBuildTypeCollection == null ? myBuildTypeCollection = new PsBuildTypeCollection(this) : myBuildTypeCollection;
+  }
+
+  public Collection<String> getFlavorDimensions() {
+    LinkedHashSet<String> result = Sets.newLinkedHashSet();
+    GradleBuildModel parsedModel = getParsedModel();
+    AndroidModel parsedAndroidModel = parsedModel != null ? parsedModel.android() : null;
+    result.addAll(getGradleModel().getAndroidProject().getFlavorDimensions());
+    List<GradleNotNullValue<String>> parsedFlavorDimensions = (parsedAndroidModel != null) ?
+                                                              parsedAndroidModel.flavorDimensions() : null;
+    if (parsedFlavorDimensions != null) {
+      result.addAll(parsedFlavorDimensions.stream().map(v -> v.value()).collect(Collectors.toList()));
+    }
+    return result;
   }
 
   public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
@@ -229,6 +246,14 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   @NotNull
   public PsBuildType addNewBuildType(@NotNull String name) {
     return getOrCreateBuildTypeCollection().addNew(name);
+  }
+
+  public void addNewFlavorDimension(@NotNull String newName) {
+    assert getParsedModel() != null;
+    AndroidModel androidModel = getParsedModel().android();
+    assert androidModel != null;
+    androidModel.addFlavorDimension(newName);
+    setModified(true);
   }
 
   @NotNull
