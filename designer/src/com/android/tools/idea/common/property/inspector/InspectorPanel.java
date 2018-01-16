@@ -508,7 +508,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
         if (getWidth() != myWidth) {
           myWidth = getWidth();
           int labelWidth = Math.min((int)((myWidth - 2 * HORIZONTAL_SPACING) * .4), MAX_LABEL_WIDTH);
-          int editorWidth = myWidth -2 - labelWidth;
+          int editorWidth = myWidth - 2 * HORIZONTAL_SPACING - labelWidth;
 
           for (Component component : getComponents()) {
             GridConstraints constraints = gridLayoutManager.getConstraintsForComponent(component);
