@@ -27,7 +27,7 @@ class ModulePanel(
 ) : AbstractTabbedMainPanel(context, placeName = "android.psd.module") {
 
   private val modulePropertiesConfigPanel = ModulePropertiesConfigPanel(module)
-  private val moduleDefaultConfigConfigPanel = ModuleDefaultConfigConfigPanel(module)
+  private val moduleDefaultConfigConfigPanel = ModuleDefaultConfigConfigPanel(module.defaultConfig)
   private val moduleSigningConfigsPanel = SigningConfigsPanel(signingConfigsTreeModel)
 
   init {

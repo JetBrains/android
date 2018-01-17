@@ -36,18 +36,19 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
+    val defaultConfig = appModule.defaultConfig
 
-    val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.getValue(appModule)
-    val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.getValue(appModule)
-    val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.getValue(appModule)
-    val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.getValue(appModule)
-    val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.getValue(appModule)
-    val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.getValue(appModule)
-    // TODO(b/70501607): Decide on val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.getValue(appModule)
-    // TODO(b/70501607): Decide on val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.getValue(appModule)
-    val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.getValue(appModule)
-    val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.getValue(appModule)
-    val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.getValue(appModule)
+    val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.getValue(defaultConfig)
+    val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.getValue(defaultConfig)
+    val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.getValue(defaultConfig)
+    val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.getValue(defaultConfig)
+    val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.getValue(defaultConfig)
+    val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.getValue(defaultConfig)
+    // TODO(b/70501607): Decide on val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.getValue(defaultConfig)
+    // TODO(b/70501607): Decide on val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.getValue(defaultConfig)
+    val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.getValue(defaultConfig)
+    val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.getValue(defaultConfig)
+    val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.getValue(defaultConfig)
 
     assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default"))
     assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default"))

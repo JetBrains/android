@@ -20,16 +20,18 @@ import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
 
-object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule, ProductFlavor, ProductFlavorModel> {
-  override fun getResolved(model: PsAndroidModule): ProductFlavor? = model.gradleModel.androidProject.defaultConfig.productFlavor
+object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModuleDefaultConfig, ProductFlavor, ProductFlavorModel> {
+  override fun getResolved(model: PsAndroidModuleDefaultConfig): ProductFlavor? =
+      model.module.gradleModel.androidProject.defaultConfig.productFlavor
 
-  override fun getParsed(model: PsAndroidModule): ProductFlavorModel? = model.parsedModel?.android()?.defaultConfig()
+  override fun getParsed(model: PsAndroidModuleDefaultConfig): ProductFlavorModel? =
+      model.module.parsedModel?.android()?.defaultConfig()
 
-  override fun setModified(model: PsAndroidModule) {
-    model.isModified = true
+  override fun setModified(model: PsAndroidModuleDefaultConfig) {
+    model.module.isModified = true
   }
 
-  val applicationId: ModelSimpleProperty<PsAndroidModule, String> = property(
+  val applicationId: ModelSimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
       "Application ID",
       getResolvedValue = { applicationId },
       getParsedValue = { applicationId().asString() },
@@ -39,7 +41,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       parse = { parseString(it) }
   )
 
-  val maxSdkVersion: ModelSimpleProperty<PsAndroidModule, Int> = property(
+  val maxSdkVersion: ModelSimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
       "Max SDK Version",
       getResolvedValue = { maxSdkVersion },
       getParsedValue = { maxSdkVersion().asInt() },
@@ -50,7 +52,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getKnownValues = { installedSdksAsInts() }
   )
 
-  val minSdkVersion: ModelSimpleProperty<PsAndroidModule, String> = property(
+  val minSdkVersion: ModelSimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
       "Min SDK Version",
       getResolvedValue = { minSdkVersion?.apiLevel?.toString() },
       getParsedValue = { minSdkVersion().asString() },
@@ -61,7 +63,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getKnownValues = { installedSdksAsStrings() }
   )
 
-  val multiDexEnabled: ModelSimpleProperty<PsAndroidModule, Boolean> = property(
+  val multiDexEnabled: ModelSimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
       "Multi Dex Enabled",
       getResolvedValue = { multiDexEnabled },
       getParsedValue = { multiDexEnabled().asBoolean() },
@@ -72,7 +74,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getKnownValues = { booleanValues() }
   )
 
-  val targetSdkVersion: ModelSimpleProperty<PsAndroidModule, String> = property(
+  val targetSdkVersion: ModelSimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
       "Target SDK Version",
       getResolvedValue = { targetSdkVersion?.apiLevel?.toString() },
       getParsedValue = { targetSdkVersion().asString() },
@@ -84,7 +86,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   )
 
-  val testApplicationId: ModelSimpleProperty<PsAndroidModule, String> = property(
+  val testApplicationId: ModelSimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
       "Test Application ID",
       getResolvedValue = { testApplicationId },
       getParsedValue = { testApplicationId().asString() },
@@ -94,7 +96,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       parse = { parseString(it) }
   )
 
-  val testFunctionalTest: ModelSimpleProperty<PsAndroidModule, Boolean> = property(
+  val testFunctionalTest: ModelSimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
       "Test Functional Test",
       getResolvedValue = { testFunctionalTest },
       getParsedValue = { testFunctionalTest().asBoolean() },
@@ -105,7 +107,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getKnownValues = { booleanValues() }
   )
 
-  val testHandleProfiling: ModelSimpleProperty<PsAndroidModule, Boolean> = property(
+  val testHandleProfiling: ModelSimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
       "Test Handle Profiling",
       getResolvedValue = { testHandleProfiling },
       getParsedValue = { testHandleProfiling().asBoolean() },
@@ -116,7 +118,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getKnownValues = { booleanValues() }
   )
 
-  val testInstrumentationRunner: ModelSimpleProperty<PsAndroidModule, String> = property(
+  val testInstrumentationRunner: ModelSimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
       "Test instrumentation runner class name",
       getResolvedValue = { testInstrumentationRunner },
       getParsedValue = { testInstrumentationRunner().asString() },
@@ -126,7 +128,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       parse = { parseString(it) }
   )
 
-  val versionCode: ModelSimpleProperty<PsAndroidModule, String> = property(
+  val versionCode: ModelSimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
       "Version Code",
       getResolvedValue = { versionCode?.toString() },
       getParsedValue = { versionCode().asString() },
@@ -136,7 +138,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       parse = { parseString(it) }
   )
 
-  val versionName: ModelSimpleProperty<PsAndroidModule, String> = property(
+  val versionName: ModelSimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
       "Version Name",
       getResolvedValue = { versionName },
       getParsedValue = { versionName().asString() },
