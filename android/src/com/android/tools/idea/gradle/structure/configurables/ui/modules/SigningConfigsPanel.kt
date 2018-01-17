@@ -33,7 +33,7 @@ class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
         treeModel
     ) {
   override fun getRemoveAction(): AnAction? {
-    return object : DumbAwareAction("Remove Signing Config", "Remove Signing Config", IconUtil.getRemoveIcon()) {
+    return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.getRemoveIcon()) {
       override fun actionPerformed(e: AnActionEvent?) {
         TODO("Implement remove signing config")
       }
