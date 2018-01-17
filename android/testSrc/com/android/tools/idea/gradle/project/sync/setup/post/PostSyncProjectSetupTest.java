@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
@@ -45,12 +47,15 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -217,12 +222,20 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   }
 
   public void testProvisionBeforeRunTaskIsAdded() {
+    // Set module as instant app project
+    AndroidFacet androidFacet = createAndAddAndroidFacet(myModule);
+    AndroidModuleModel moduleModel = mock(AndroidModuleModel.class);
+    androidFacet.setAndroidModel(moduleModel);
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
+    when(androidProject.getProjectType()).thenReturn(PROJECT_TYPE_INSTANTAPP);
+    when(moduleModel.getAndroidProject()).thenReturn(androidProject);
+
     // Create android run configurations
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     AndroidRunConfiguration androidRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
     androidRunConfiguration.setName("androidRunConfiguration");
     AndroidRunConfiguration androidRunConfiguration2 = new AndroidRunConfiguration(getProject(), configurationFactory);
-    androidRunConfiguration.setName("androidRunConfiguration2");
+    androidRunConfiguration2.setName("androidRunConfiguration2");
     myRunManager.addConfiguration(myRunManager.createConfiguration(androidRunConfiguration, configurationFactory), true);
     myRunManager.addConfiguration(myRunManager.createConfiguration(androidRunConfiguration2, configurationFactory), true);
 

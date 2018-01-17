@@ -23,14 +23,12 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.JavaRunConfigurationModule;
-import com.intellij.openapi.project.Project;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.io.StringReader;
@@ -78,22 +76,13 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
     assertNull(new ProvisionBeforeRunTaskProvider().createTask(myRunConfiguration));
   }
 
-  public void testTaskCreatedIfModuleNull() {
-    Project project = getProject();
-    when(myInstantAppSdks.isInstantAppSdkEnabled()).thenReturn(true);
-    JavaRunConfigurationModule runConfigurationModule = mock(JavaRunConfigurationModule.class);
-    when(runConfigurationModule.getModule()).thenReturn(null);
-    when(myRunConfiguration.getConfigurationModule()).thenReturn(runConfigurationModule);
-    assertNotNull(new ProvisionBeforeRunTaskProvider().createTask(myRunConfiguration));
-  }
-
   public void testProvisionSkippedWhenNotInstantApp() {
     assertTrue(new ProvisionBeforeRunTaskProvider() {
       @Override
-      boolean isInstantAppContext(AndroidRunConfigurationBase runConfiguration) {
+      boolean isInstantAppContext(@NotNull AndroidRunConfigurationBase runConfiguration) {
         return false;
       }
-    }.executeTask(null, myRunConfiguration, null, null));
+    }.executeTask(null, myRunConfiguration, mock(ExecutionEnvironment.class), mock(ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask.class)));
   }
 
   public void testTaskReadExternalXmlWithNoTimestamp() throws Exception {
