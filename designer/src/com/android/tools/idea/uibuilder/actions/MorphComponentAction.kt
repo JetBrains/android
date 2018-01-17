@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.actions
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.util.XmlTagUtil
+import com.android.tools.idea.uibuilder.model.NlDependencyManager
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.AnAction
@@ -32,6 +34,7 @@ import com.intellij.openapi.editor.ex.RangeHighlighterEx
 import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter
 import com.intellij.openapi.editor.markup.*
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.TextRange
@@ -137,19 +140,34 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
    * Apply the provided tag name to the component in the model
    */
   private fun applyTagEdit(newTagName: String) {
-    NlWriteCommandAction.run(myNlComponent, "Convert " + myNlComponent.tagName + " to $newTagName", {
-      myNlComponent.tag.name = newTagName
-      TransactionGuard.getInstance().submitTransactionAndWait {
-        myAttributes
-            .filter { !it.keep }
-            .map { it.name }
-            .forEach {
-              myNlComponent.tag.setAttribute(it, null)
-            }
-        myNlComponent.removeObsoleteAttributes()
-        myNlComponent.children.forEach(NlComponent::removeObsoleteAttributes)
+    val dependencyManager = NlDependencyManager.get()
+    val newTag = listOf(NlComponent(myNlComponent.model, XmlTagUtil.createTag(myNlComponent.model.project, "<$newTagName/>")))
+    if (dependencyManager.checkIfUserWantsToAddDependencies(newTag, myFacet)) {
+      dependencyManager.addDependencies(newTag, myFacet) {
+        editTagNameAndAttributes(newTagName)
       }
-    })
+    }
+  }
+
+  /**
+   * Edit the tag name and remove the attributes that are not needed anymore.
+   */
+  private fun editTagNameAndAttributes(newTagName: String) {
+    DumbService.getInstance(myProject).runWhenSmart {
+      NlWriteCommandAction.run(myNlComponent, "Convert " + myNlComponent.tagName + " to ${newTagName.split(".").last()}", {
+        myNlComponent.tag.name = newTagName
+        TransactionGuard.getInstance().submitTransactionAndWait {
+          myAttributes
+              .filter { !it.keep }
+              .map { it.name }
+              .forEach {
+                myNlComponent.tag.setAttribute(it, null)
+              }
+          myNlComponent.removeObsoleteAttributes()
+          myNlComponent.children.forEach(NlComponent::removeObsoleteAttributes)
+        }
+      })
+    }
   }
 
   private fun createMorphPopup(morphPanel: MorphPanel, editorEx: EditorEx): JBPopup {
