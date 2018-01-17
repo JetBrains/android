@@ -55,11 +55,6 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   }
 
   @Override
-  public void removeApplicationIdSuffix() {
-    myDslElement.removeProperty(APPLICATION_ID_SUFFIX);
-  }
-
-  @Override
   @Nullable
   public List<GradleNotNullValue<BuildConfigField>> buildConfigFields() {
     List<Pair<GradleDslExpressionList, TypeNameValueElement>> typeNameValueElements = getTypeNameValueElements(BUILD_CONFIG_FIELD);
@@ -107,19 +102,9 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   }
 
   @Override
-  public void removeDebuggable() {
-    myDslElement.removeProperty(DEBUGGABLE);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel embedMicroApp() {
     return getModelForProperty(EMBED_MICRO_APP);
-  }
-
-  @Override
-  public void removeEmbedMicroApp() {
-    myDslElement.removeProperty(EMBED_MICRO_APP);
   }
 
   @Override
@@ -129,19 +114,9 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   }
 
   @Override
-  public void removeJniDebuggable() {
-    myDslElement.removeProperty(JNI_DEBUGGABLE);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel minifyEnabled() {
     return getModelForProperty(MINIFY_ENABLED);
-  }
-
-  @Override
-  public void removeMinifyEnabled() {
-    myDslElement.removeProperty(MINIFY_ENABLED);
   }
 
   @Override
@@ -151,19 +126,9 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   }
 
   @Override
-  public void removePseudoLocalesEnabled() {
-    myDslElement.removeProperty(PSEUDO_LOCALES_ENABLED);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel renderscriptDebuggable() {
     return getModelForProperty(RENDERSCRIPT_DEBUGGABLE);
-  }
-
-  @Override
-  public void removeRenderscriptDebuggable() {
-    myDslElement.removeProperty(RENDERSCRIPT_DEBUGGABLE);
   }
 
   @Override
@@ -173,19 +138,9 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   }
 
   @Override
-  public void removeRenderscriptOptimLevel() {
-    myDslElement.removeProperty(RENDERSCRIPT_OPTIM_LEVEL);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel shrinkResources() {
     return getModelForProperty(SHRINK_RESOURCES);
-  }
-
-  @Override
-  public void removeShrinkResources() {
-    myDslElement.removeProperty(SHRINK_RESOURCES);
   }
 
   @Override
@@ -195,30 +150,15 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   }
 
   @Override
-  public void removeTestCoverageEnabled() {
-    myDslElement.removeProperty(TEST_COVERAGE_ENABLED);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel versionNameSuffix() {
     return getModelForProperty(VERSION_NAME_SUFFIX);
   }
 
   @Override
-  public void removeVersionNameSuffix() {
-    myDslElement.removeProperty(VERSION_NAME_SUFFIX);
-  }
-
-  @Override
   @NotNull
   public ResolvedPropertyModel zipAlignEnabled() {
     return getModelForProperty(ZIP_ALIGN_ENABLED);
-  }
-
-  @Override
-  public void removeZipAlignEnabled() {
-    myDslElement.removeProperty(ZIP_ALIGN_ENABLED);
   }
 
   /**

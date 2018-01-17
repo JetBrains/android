@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
+import com.google.common.collect.MoreCollectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,9 +31,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
-  @NotNull private final Map<String, PsBuildType> myBuildTypesByName = Maps.newHashMap();
+  @NotNull private final Map<String, PsBuildType> myBuildTypesByName = Maps.newLinkedHashMap();
+  @NotNull private final PsAndroidModule myParent;
 
   PsBuildTypeCollection(@NotNull PsAndroidModule parent) {
+    myParent = parent;
     Map<String, BuildType> buildTypesFromGradle = Maps.newHashMap();
     for (BuildTypeContainer container : parent.getGradleModel().getAndroidProject().getBuildTypes()) {
       BuildType buildType = container.getBuildType();
@@ -60,7 +63,6 @@ public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
         myBuildTypesByName.put(buildType.getName(), model);
       }
     }
-
   }
 
   @Override
@@ -75,5 +77,19 @@ public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
   @Override
   public void forEach(@NotNull Consumer<PsBuildType> consumer) {
     myBuildTypesByName.values().forEach(consumer);
+  }
+
+  @NotNull
+  public PsBuildType addNew(@NotNull String name) {
+    assert myParent.getParsedModel() != null;
+    AndroidModel androidModel = myParent.getParsedModel().android();
+    assert androidModel != null;
+    androidModel.addBuildType(name);
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    PsBuildType model =
+      new PsBuildType(myParent, null, buildTypes.stream().filter(it -> it.name().equals(name)).collect(MoreCollectors.onlyElement()));
+    myBuildTypesByName.put(name, model);
+    myParent.setModified(true);
+    return model;
   }
 }

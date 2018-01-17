@@ -98,6 +98,7 @@ public class NewKotlinModuleTest {
       .clickFinish();
 
     ideFrame
+      .waitForGradleImportProjectSync()
       .waitForGradleProjectSyncToFinish();
 
     assertModuleSupportsKotlin(NEW_KOTLIN_MDULE_NAME);

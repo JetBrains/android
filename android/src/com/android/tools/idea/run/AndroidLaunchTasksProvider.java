@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -137,7 +138,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     List<LaunchTask> tasks = new ArrayList<>();
-    if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
+    if (StudioFlags.UNINSTALL_LAUNCHER_APPS_ENABLED.get() &&
+        device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
       tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
     }
     if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {

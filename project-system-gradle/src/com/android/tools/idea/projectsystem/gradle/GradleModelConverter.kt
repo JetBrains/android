@@ -41,8 +41,8 @@ fun getProjectType(typeId: Int): ProjectType {
     3 -> ProjectType.ATOM
     4 -> ProjectType.INSTANT_APP
     5 -> ProjectType.FEATURE
-    else -> null
-  } ?: throw IllegalArgumentException("The value $typeId is not a valid project type ID")
+    else -> throw IllegalArgumentException("The value $typeId is not a valid project type ID")
+  }
 }
 
 /**
@@ -159,7 +159,7 @@ class GradleModelConverter(
 
           // Add the build types
           buildTypes.forEach {
-            configs.addAll(configsFor(matchBuildType(it.buildType.name), it))
+            configs.addAll(configsFor(it))
           }
 
           // Add the per-variant configs
@@ -273,9 +273,11 @@ class GradleModelConverter(
           // Compute the merged flavor configuration. This won't include any sources that came from source sets, so
           // we merge it with the merged sources we computed, above
           val flavorCombinationConfig = convert(FlavorContext(artifact.parent.variant.mergedFlavor))
+          // Attach the manually-computed source providers
           var mergedConfig = flavorCombinationConfig.copy(sources = mergedSource + flavorCombinationConfig.sources)
 
-          // Finally, merge the additional configurations with the merged flavor.
+          // Merge the additional configurations with the merged flavor. This will apply information about the build type and
+          // variant-specific overrides.
           for (config in associationsToProcess) {
             mergedConfig = mergedConfig.mergeWith(config.config)
           }
@@ -333,22 +335,33 @@ class GradleModelConverter(
   private fun matchArtifactsForVariant(variant: IdeVariant): ConfigPath =
       matchArtifactsWith(variant.productFlavors + variant.buildType)
 
-  private fun configsFor(variantPath: ConfigPath, flavor: ProductFlavorContainer): List<ConfigAssociation> {
+  /**
+   * Returns the list of [ConfigAssociation] for a [ProductFlavorContainer], given an [artifactFilter] that identifies
+   * which artifacts the [ProductFlavorContainer] should apply to. Note that Gradle uses the [ProductFlavorContainer]
+   * struct for more than just flavor-specific information. It is also used for the main config (which applies to
+   * all variants). For this reason, it is the responsibility of the caller to pass in an [artifactFilter] that
+   * tells this method what the given [flavor] is really describing.
+   */
+  private fun configsFor(artifactFilter: ConfigPath, flavor: ProductFlavorContainer): List<ConfigAssociation> {
     val result = ArrayList<ConfigAssociation>()
-    val configWithoutSources = convert(FlavorContext(flavor.productFlavor))
+
+    // This config stores the base metadata about the flavor, without the paths from the source providers.
+    val configWithoutSourceProvider = convert(FlavorContext(flavor.productFlavor))
 
     result.add(
         // The ConfigPath for the main configuration is a path that matches both the main artifact and the current variant (if any).
+        // The sources are the (probably empty) set of sources from the flavor metadata itself combined with the sources from
+        // the flavor's source provider.
         ConfigAssociation(
-            variantPath.intersect(schema.matchArtifact(MAIN_ARTIFACT_NAME)),
-            configWithoutSources.copy(sources = configWithoutSources.sources + convert(flavor.sourceProvider))
+            artifactFilter.intersect(schema.matchArtifact(MAIN_ARTIFACT_NAME)),
+            configWithoutSourceProvider.copy(sources = configWithoutSourceProvider.sources + convert(flavor.sourceProvider))
         )
     )
     for (next in flavor.extraSourceProviders) {
       result.add(
           ConfigAssociation(
-              variantPath.intersect(schema.matchArtifact(next.artifactName)),
-              configWithoutSources.copy(sources = configWithoutSources.sources + convert(next.sourceProvider))
+              artifactFilter.intersect(schema.matchArtifact(next.artifactName)),
+              configWithoutSourceProvider.copy(sources = configWithoutSourceProvider.sources + convert(next.sourceProvider))
           )
       )
     }
@@ -356,21 +369,25 @@ class GradleModelConverter(
     return result
   }
 
-  private fun configsFor(variantPath: ConfigPath, buildType: BuildTypeContainer): List<ConfigAssociation> {
+  /**
+   * Returns the list of [ConfigAssociation] for the given [BuildTypeContainer].
+   */
+  private fun configsFor(buildType: BuildTypeContainer): List<ConfigAssociation> {
+    val artifactFilter = matchBuildType(buildType.buildType.name)
     val result = ArrayList<ConfigAssociation>()
     val configWithoutSources = convert(BuildTypeContext(buildType.buildType))
 
     result.add(
         // The ConfigPath for the main configuration is a path that matches both the main artifact and the current variant (if any).
         ConfigAssociation(
-            variantPath.intersect(schema.matchArtifact(MAIN_ARTIFACT_NAME)),
+            artifactFilter.intersect(schema.matchArtifact(MAIN_ARTIFACT_NAME)),
             configWithoutSources.copy(sources = configWithoutSources.sources + convert(buildType.sourceProvider))
         )
     )
     for (next in buildType.extraSourceProviders) {
       result.add(
           ConfigAssociation(
-              variantPath.intersect(schema.matchArtifact(next.artifactName)),
+              artifactFilter.intersect(schema.matchArtifact(next.artifactName)),
               configWithoutSources.copy(sources = configWithoutSources.sources + convert(next.sourceProvider))
           )
       )

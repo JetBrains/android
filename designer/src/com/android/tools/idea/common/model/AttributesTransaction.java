@@ -57,7 +57,6 @@ public class AttributesTransaction implements NlAttributesHolder {
    * After calling commit (this will indicate if the transaction was successful
    */
   private boolean isSuccessful = false;
-  @NotNull private WeakReference<View> myCachedView = new WeakReference<>(null);
   private boolean hasPendingRelayout;
 
   public AttributesTransaction(@NotNull NlComponent thisComponent) {
@@ -103,10 +102,9 @@ public class AttributesTransaction implements NlAttributesHolder {
    * @param viewInfo
    */
   private void applyAllPendingAttributesToView(@NotNull ViewInfo viewInfo) {
-    View cachedView = (View)viewInfo.getViewObject();
-    myCachedView = new WeakReference<>(cachedView);
+    View viewObject = (View)viewInfo.getViewObject();
 
-    if (cachedView != null) {
+    if (viewObject != null) {
       // If the value is null, means that the attribute was reset to the default value. In that case, since this is a new view object
       // we do not need to propagate that change.
       myPendingAttributes.values().stream()
@@ -124,34 +122,14 @@ public class AttributesTransaction implements NlAttributesHolder {
 
       String key = attributeKey(namespace, name);
       PendingAttribute attribute = myPendingAttributes.get(key);
-      boolean modified = true;
       if (attribute != null) {
-        if (StringUtil.equals(attribute.value, value)) {
-          // No change. We do not need to propagate the attribute value to the view
-          modified = false;
-        }
-        else {
+        if (!StringUtil.equals(attribute.value, value)) {
           attribute.value = value;
         }
       }
       else {
         attribute = new PendingAttribute(namespace, name, value);
         myPendingAttributes.put(key, attribute);
-      }
-
-      ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
-      if (viewInfo != null) {
-        View cachedView = myCachedView.get();
-        if (cachedView == viewInfo.getViewObject()) {
-          // We still have the same view info so we can just apply the delta (the passed attribute)
-          if (modified && cachedView != null) {
-            applyAttributeToView(attribute, viewInfo, myModel);
-          }
-        }
-        else {
-          // The view object has changed so we need to re-apply all the attributes
-          applyAllPendingAttributesToView(viewInfo);
-        }
       }
     }
     finally {
@@ -201,13 +179,11 @@ public class AttributesTransaction implements NlAttributesHolder {
    */
   public void apply() {
     ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
-    if (hasPendingRelayout && viewInfo != null) {
-      View currentView = (View)viewInfo.getViewObject();
-      if (currentView != myCachedView.get()) {
-        // The view has changed since the last update so re-apply everything
-        applyAllPendingAttributesToView(viewInfo);
+    if (viewInfo != null) {
+      applyAllPendingAttributesToView(viewInfo);
+      if (hasPendingRelayout) {
+        triggerViewRelayout((View)viewInfo.getViewObject());
       }
-      triggerViewRelayout((View)viewInfo.getViewObject());
     }
   }
 
@@ -218,15 +194,7 @@ public class AttributesTransaction implements NlAttributesHolder {
    * @return true if the XML was changed as result of this call
    */
   public boolean commit() {
-    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
-    if (hasPendingRelayout && viewInfo != null) {
-      View currentView = (View)viewInfo.getViewObject();
-      if (currentView != myCachedView.get()) {
-        // The view has changed since the last update so re-apply everything
-        applyAllPendingAttributesToView(viewInfo);
-      }
-      triggerViewRelayout((View)viewInfo.getViewObject());
-    }
+    apply();
 
     myLock.writeLock().lock();
     try {

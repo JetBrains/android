@@ -436,19 +436,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return;
       }
 
-      boolean isValidRoot = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)newRoot::isValid);
-      if (!isValidRoot) {
-        myModel.myRootComponent = null;
-        return;
-      }
-
-      // Next find the snapshots corresponding to the missing components.
-      // We have to search among the view infos in the new components.
-      for (TagSnapshotTreeNode root : roots) {
-        gatherTagsAndSnapshots(root, myTagToSnapshot);
-      }
-
+      // Make sure the root is valid during these operation.
       myModel.myRootComponent = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
+        if (!newRoot.isValid()) {
+          return null;
+        }
+
+        // Next find the snapshots corresponding to the missing components.
+        // We have to search among the view infos in the new components.
+        for (TagSnapshotTreeNode root : roots) {
+          gatherTagsAndSnapshots(root, myTagToSnapshot);
+        }
+
         // Ensure that all XmlTags in the new XmlFile contents map to a corresponding component
         // form the old map
         mapOldToNew(newRoot);

@@ -70,6 +70,13 @@ abstract class RoomLightTestCase : LightCodeInsightFixtureTestCase() {
 
           public @interface ColumnInfo { String name() default ""; }
           """.trimIndent())
+
+    myFixture.addClass(
+        """
+          package android.arch.persistence.room;
+
+          public @interface Embedded { String prefix() default ""; }
+          """.trimIndent())
   }
 
   protected data class FieldDefinition(val name: String, val type: String, val columnName: String? = null)

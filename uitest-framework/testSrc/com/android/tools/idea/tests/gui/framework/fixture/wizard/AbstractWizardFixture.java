@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.wizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
@@ -23,6 +24,7 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.function.Predicate;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -76,8 +78,30 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
     return myself();
   }
 
-  public S assertStepIcon(Icon expectedIcon) {
+  @NotNull
+  public S assertStepIcon(@NotNull Icon expectedIcon) {
     assertThat(robot().finder().findByName("right_icon", JLabel.class).getIcon()).isEqualTo(expectedIcon);
+    return myself();
+  }
+
+  @NotNull
+  public S waitUntilStepErrorMessageIsGone() {
+    waitUntilGone(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel label) {
+        // Note: When there are no errors, the Validation Label is kept visible (for layout reasons) and the text is set to " "
+        return "ValidationLabel".equals(label.getName()) && label.isShowing() && !label.getText().trim().isEmpty();
+      }
+    });
+
+    return myself();
+  }
+
+
+  @NotNull
+  public S assertStepErrorMessage(@NotNull Predicate<String> predicate) {
+    JLabel errorLabel = waitUntilShowing(robot(), target(), JLabelMatcher.withName("ValidationLabel"));
+    assertThat(predicate.test(errorLabel.getText())).isTrue();
     return myself();
   }
 }

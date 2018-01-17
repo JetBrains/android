@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CompletionFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -60,6 +62,7 @@ public class NlPropertyTableTest {
     myFrame.setIdeFrameSize(myOriginalFrameSize);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71956000
   @Test
   public void testScrollInViewDuringKeyboardNavigation() throws Exception {
     NlEditorFixture layout = myFrame.getEditor()
@@ -142,7 +145,7 @@ public class NlPropertyTableTest {
 
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
     table.waitForMinimumRowCount(10);
-    table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
+    table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
     table.type('a');
     CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
@@ -175,7 +178,7 @@ public class NlPropertyTableTest {
     NlComponentFixture textView = layout.findView("TextView", 0).click();
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable()
       .waitForMinimumRowCount(10)
-      .selectRows(7)
+      .selectRows(6)
       .type('s');
 
     CompletionFixture completions = new CompletionFixture(myFrame);

@@ -311,7 +311,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testRestartedPreferredProcessNotSelected() throws Exception {
+  public void shouldSelectAlivePreferredProcessWhenRestarted() throws Exception {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     int nowInSeconds = 42;
@@ -347,14 +347,42 @@ public final class StudioProfilersTest {
       .build();
     myProfilerService.addProcess(device, process);
 
-    // The profiler should not automatically selects the alive, preferred process again.
+    // The profiler should select the alive preferred process.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getProcess().getPid()).isEqualTo(21);
+    assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
+  }
+
+  @Test
+  public void shouldNotSelectPreferredAfterUserSelectsOtherProcess() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    int nowInSeconds = 42;
+    myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds));
+
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
+    profilers.setPreferredProcessName(process.getName());
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, process);
+
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess().getPid()).isEqualTo(20);
-    assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.DEAD);
+    assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
 
-    // Resets the preferred process and profiler should pick up the new process.
-    profilers.setPreferredProcessName(process.getName());
+    Common.Process otherProcess = createProcess(device.getDeviceId(), 21, "OtherProcess", Common.Process.State.ALIVE);
+    myProfilerService.addProcess(device, otherProcess);
+
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.setProcess(otherProcess);
+    // The user selected the other process explicitly
+    assertThat(profilers.getProcess().getPid()).isEqualTo(21);
+    assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
+
+    // Should select the other process again
+    profilers.setProcess(null);
     assertThat(profilers.getProcess().getPid()).isEqualTo(21);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
   }

@@ -75,7 +75,6 @@ public class GoogleApiIntegrationTest {
     projectStructureDialog.selectNotificationsDeveloperService()
       .toggleCheckBox();
     projectStructureDialog.clickOk(Wait.seconds(30));
-    ideFrame.waitForGradleProjectSyncToFinish();
 
     EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
     String gradleFileContents = editor.getCurrentFileContents();
@@ -95,7 +94,6 @@ public class GoogleApiIntegrationTest {
       .toggleCheckBox();
     ConfirmUninstallServiceDialogFixture.find(ideFrame).clickYes();
     projectStructureDialog.clickOk();
-    ideFrame.waitForGradleProjectSyncToFinish();
 
     gradleFileContents = editor.getCurrentFileContents();
     assertThat(gradleFileContents).doesNotContainMatch(REG_EXP);

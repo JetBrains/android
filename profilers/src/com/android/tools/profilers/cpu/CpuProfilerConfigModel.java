@@ -24,7 +24,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;

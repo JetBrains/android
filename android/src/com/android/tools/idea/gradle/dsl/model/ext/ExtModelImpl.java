@@ -59,7 +59,7 @@ public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel 
       element = myDslElement.getVariableElement(name);
     }
 
-    return element == null ? new EmptyPropertyModel(myDslElement, REGULAR, name, false) : new GradlePropertyModelImpl(element);
+    return element == null ? new GradlePropertyModelImpl(myDslElement, REGULAR, name) : new GradlePropertyModelImpl(element);
   }
 
   @Override

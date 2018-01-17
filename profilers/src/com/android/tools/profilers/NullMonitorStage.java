@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
 import org.jetbrains.annotations.NotNull;
 
 /**

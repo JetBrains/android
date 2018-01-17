@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-import static com.android.tools.profilers.cpu.CaptureNodeModelHRenderer.toUnmatchColor;
+import static com.android.tools.profilers.cpu.CaptureNodeHRenderer.toUnmatchColor;
 
 /**
  *  Defines the colors (fill and border) of the rectangles used to represent {@link NativeNodeModel} nodes in a

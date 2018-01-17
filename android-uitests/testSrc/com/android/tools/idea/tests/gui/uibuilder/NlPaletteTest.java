@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -41,7 +39,6 @@ public class NlPaletteTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/66905952
   @Test
   public void testTypingKeepsCategorySelectionIfMatchesFound() throws Exception {
     myGuiTest.importSimpleLocalApplication();
@@ -142,7 +139,6 @@ public class NlPaletteTest {
     dependencyDialog.clickCancel();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddFragmentWithoutCustomFragmentsAvailable() throws Exception {
     myGuiTest.importSimpleLocalApplication();
@@ -160,7 +156,6 @@ public class NlPaletteTest {
     classesDialog.clickOk();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddFragmentWithCustomFragmentsAvailable() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");

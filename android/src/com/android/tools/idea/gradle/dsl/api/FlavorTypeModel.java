@@ -54,8 +54,6 @@ public interface FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel multiDexEnabled();
 
-  void removeMultiDexEnabled();
-
   @Nullable
   List<GradleNotNullValue<String>> proguardFiles();
 
@@ -80,8 +78,6 @@ public interface FlavorTypeModel {
 
   @NotNull
   ResolvedPropertyModel useJack();
-
-  void removeUseJack();
 
   /**
    * Represents a statement like {@code resValue} or {@code buildConfigField} which contains type, name and value parameters.

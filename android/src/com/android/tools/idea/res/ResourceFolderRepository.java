@@ -991,6 +991,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myPendingScans.add(psiFile);
     }
     ApplicationManager.getApplication().invokeLater(() -> {
+      if (!psiFile.isValid()) return;
 
       ApplicationManager.getApplication().runWriteAction(() -> {
         boolean rescan;

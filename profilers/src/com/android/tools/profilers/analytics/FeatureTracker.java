@@ -37,6 +37,12 @@ public interface FeatureTracker {
   void trackEnterStage(@NotNull Class<? extends Stage> stage);
 
   /**
+   * Track when the user clicks the Profile button. This can happen via the tool bar, or the run menu.
+   * This is in contrast to when the user attaches profilers to an app that was already running.
+   */
+  void trackRunWithProfiling();
+
+  /**
    * Track when we begin profiling a target process.
    */
   void trackProfilingStarted();
@@ -210,6 +216,16 @@ public interface FeatureTracker {
   void trackSelectNetworkDetailsError();
 
   /**
+   * Track the user selecting the "Connections View" tab.
+   */
+  void trackSelectNetworkConnectionsView();
+
+  /**
+   * Track the user selecting the "Threads View" tab.
+   */
+  void trackSelectNetworkThreadsView();
+
+  /**
    * Track the user opening up the CPU profiling configurations dialog.
    */
   void trackOpenProfilingConfigDialog();
@@ -218,4 +234,9 @@ public interface FeatureTracker {
    * Track the user creating custom CPU profiling configurations.
    */
   void trackCreateCustomProfilingConfig();
+
+  /**
+   * Track when the user uses the filter component in the profilers.
+   */
+  void trackFilterMetadata(@NotNull FilterMetadata filterMetadata);
 }

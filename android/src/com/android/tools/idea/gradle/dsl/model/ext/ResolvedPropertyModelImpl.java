@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,11 +38,15 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
  * reference changes in order to get a value.
  */
 public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
-  @NotNull
-  private final GradlePropertyModelImpl myRealModel;
+  @NotNull private final GradlePropertyModelImpl myRealModel;
 
   public ResolvedPropertyModelImpl(@NotNull GradleDslElement element) {
     myRealModel = new GradlePropertyModelImpl(element);
+  }
+
+  // Used to create an empty property with no backing element.
+  public ResolvedPropertyModelImpl(@NotNull GradlePropertiesDslElement element, @NotNull PropertyType type, @NotNull String name) {
+    myRealModel = new GradlePropertyModelImpl(element, type, name);
   }
 
   @NotNull
@@ -97,12 +102,9 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
     myRealModel.setValue(value);
   }
 
-  @NotNull
   @Override
-  public GradlePropertyModel delete() {
-    EmptyPropertyModel newModel = myRealModel.delete();
-    newModel.setShouldBecomeResolved(true);
-    return newModel;
+  public void delete() {
+    myRealModel.delete();
   }
 
   private GradlePropertyModel getResolvedModel() {

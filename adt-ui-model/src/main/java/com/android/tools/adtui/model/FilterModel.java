@@ -20,11 +20,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class FilterModel {
-  private final ArrayList<Consumer<Pattern>> myConsumers = new ArrayList<>();
+  private final ArrayList<BiConsumer<Pattern, FilterModel>> myConsumers = new ArrayList<>();
 
   private boolean myIsRegex;
   private boolean myIsMatchCase;
@@ -59,13 +60,13 @@ public class FilterModel {
     }
   }
 
-  public void addOnFilterChange(@NotNull Consumer<Pattern> callback) {
+  public void addOnFilterChange(@NotNull BiConsumer<Pattern, FilterModel> callback) {
     myConsumers.add(callback);
   }
 
   private void notifyFilterChange() {
-    for (Consumer<Pattern> consumer : myConsumers) {
-      consumer.consume(getFilterPattern(myFilterString, myIsMatchCase, myIsRegex));
+    for (BiConsumer<Pattern, FilterModel> consumer : myConsumers) {
+      consumer.accept(getFilterPattern(myFilterString, myIsMatchCase, myIsRegex), this);
     }
   }
 

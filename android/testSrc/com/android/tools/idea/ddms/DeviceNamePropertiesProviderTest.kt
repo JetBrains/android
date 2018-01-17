@@ -49,9 +49,10 @@ class DeviceNamePropertiesProviderTest {
   }
 
   private fun createDeviceNamePropertiesProvider(result: AtomicReference<ResultType>,
-                                                 successLatch: CountDownLatch,
-                                                 failureLatch: CountDownLatch = CountDownLatch(1)): DeviceNamePropertiesProvider {
+                                                 successLatch: List<CountDownLatch>,
+                                                 failureLatch: CountDownLatch = CountDownLatch(1)): DeviceNamePropertiesFetcher {
     return DeviceNamePropertiesFetcher(object : FutureCallback<DeviceNameProperties> {
+      var successCount = 0
       override fun onFailure(t: Throwable?) {
         result.set(ResultType.FAIL)
         failureLatch.countDown()
@@ -59,7 +60,7 @@ class DeviceNamePropertiesProviderTest {
 
       override fun onSuccess(properties: DeviceNameProperties?) {
         result.set(ResultType.SUCCESS)
-        successLatch.countDown()
+        successLatch[successCount++].countDown()
       }
     }, myDisposable)
   }
@@ -83,7 +84,7 @@ class DeviceNamePropertiesProviderTest {
         Futures.immediateFuture(model),
         Futures.immediateFuture(buildVersion),
         Futures.immediateFuture(apiLevel))
-    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(AtomicReference(), CountDownLatch(1))
+    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(AtomicReference(), listOf(CountDownLatch(1)))
     Truth.assertThat(deviceNamePropertiesProvider.get(d).model).isNull()
   }
 
@@ -96,7 +97,7 @@ class DeviceNamePropertiesProviderTest {
         Futures.immediateFuture(apiLevel))
     val result = AtomicReference<ResultType>()
     val countDownLatch = CountDownLatch(1)
-    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, countDownLatch)
+    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, listOf(countDownLatch))
     var deviceProperties = deviceNamePropertiesProvider.get(d)
     Truth.assertThat(deviceProperties.manufacturer).isNull()
     countDownLatch.await(1, TimeUnit.SECONDS)
@@ -118,7 +119,7 @@ class DeviceNamePropertiesProviderTest {
         virtualTimeScheduler.schedule(Callable<String> { apiLevel }, 5, TimeUnit.SECONDS))
     val result = AtomicReference<ResultType>()
     val countDownLatch = CountDownLatch(1)
-    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, countDownLatch)
+    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, listOf(countDownLatch))
     var deviceProperties = deviceNamePropertiesProvider.get(d)
     Truth.assertThat(deviceProperties.manufacturer).isNull()
     virtualTimeScheduler.advanceBy(5, TimeUnit.SECONDS)
@@ -139,12 +140,14 @@ class DeviceNamePropertiesProviderTest {
         Futures.immediateFailedFuture(Exception("Fail")),
         Futures.immediateFailedFuture(Exception("Fail")))
     val result = AtomicReference<ResultType>()
-    val countDownLatch = CountDownLatch(1)
-    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, countDownLatch)
+    val successLatch = CountDownLatch(1)
+    val failureLatch = CountDownLatch(1)
+    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, listOf(successLatch), failureLatch)
     var deviceProperties = deviceNamePropertiesProvider.get(d)
     Truth.assertThat(deviceProperties.manufacturer).isNull()
-    countDownLatch.await(1, TimeUnit.SECONDS)
+    successLatch.await(1, TimeUnit.SECONDS)
     deviceProperties = deviceNamePropertiesProvider.get(d)
+    failureLatch.await(1, TimeUnit.SECONDS)
     Truth.assertThat(deviceProperties.manufacturer).isNull()
     TestCase.assertEquals(ResultType.FAIL, result.get())
   }
@@ -158,13 +161,13 @@ class DeviceNamePropertiesProviderTest {
         Futures.immediateFuture(null))
     val result = AtomicReference<ResultType>()
     val countDownLatch = CountDownLatch(1)
-    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, countDownLatch)
+    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, listOf(countDownLatch))
     var deviceProperties = deviceNamePropertiesProvider.get(d)
     Truth.assertThat(deviceProperties.buildVersion).isNull()
     countDownLatch.await(1, TimeUnit.SECONDS)
     deviceProperties = deviceNamePropertiesProvider.get(d)
     Truth.assertThat(deviceProperties.buildVersion).isNull()
-    TestCase.assertEquals(ResultType.FAIL, result.get())
+    TestCase.assertEquals(ResultType.SUCCESS, result.get())
   }
 
   @Test
@@ -173,30 +176,44 @@ class DeviceNamePropertiesProviderTest {
     Mockito.`when`(
         d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER))
         .thenReturn(Futures.immediateFuture(null))
+        .thenReturn(Futures.immediateFuture(null))
         .thenReturn(Futures.immediateFuture(manufacturer))
     Mockito.`when`(
         d.getSystemProperty(IDevice.PROP_DEVICE_MODEL))
         .thenReturn(Futures.immediateFuture(null))
         .thenReturn(Futures.immediateFuture(model))
+        .thenReturn(Futures.immediateFuture(model))
     Mockito.`when`(
         d.getSystemProperty(IDevice.PROP_BUILD_VERSION))
+        .thenReturn(Futures.immediateFuture(null))
         .thenReturn(Futures.immediateFuture(null))
         .thenReturn(Futures.immediateFuture(buildVersion))
     Mockito.`when`(
         d.getSystemProperty(IDevice.PROP_BUILD_API_LEVEL))
         .thenReturn(Futures.immediateFuture(null))
+        .thenReturn(Futures.immediateFuture(null))
         .thenReturn(Futures.immediateFuture(apiLevel))
     val result = AtomicReference<ResultType>()
-    val successLatch = CountDownLatch(1)
-    val failureLatch = CountDownLatch(1)
-    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, successLatch, failureLatch)
+    val successLatch1 = CountDownLatch(1)
+    val successLatch2 = CountDownLatch(1)
+    val successLatch3 = CountDownLatch(1)
+    val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, listOf(successLatch1, successLatch2, successLatch3))
     var deviceProperties = deviceNamePropertiesProvider.get(d)
     Truth.assertThat(deviceProperties.buildVersion).isNull()
-    failureLatch.await(1, TimeUnit.SECONDS)
+    successLatch1.await(1, TimeUnit.SECONDS)
     deviceProperties = deviceNamePropertiesProvider.get(d)
     Truth.assertThat(deviceProperties.buildVersion).isNull()
-    TestCase.assertEquals(ResultType.FAIL, result.get())
-    successLatch.await(1, TimeUnit.SECONDS)
+    TestCase.assertEquals(ResultType.SUCCESS, result.get())
+
+    successLatch2.await(1, TimeUnit.SECONDS)
+    deviceProperties = deviceNamePropertiesProvider.get(d)
+    TestCase.assertEquals(model, deviceProperties.model)
+    Truth.assertThat(deviceProperties.manufacturer).isNull()
+    Truth.assertThat(deviceProperties.buildVersion).isNull()
+    Truth.assertThat(deviceProperties.apiLevel).isNull()
+    TestCase.assertEquals(ResultType.SUCCESS, result.get())
+
+    successLatch3.await(1, TimeUnit.SECONDS)
     deviceProperties = deviceNamePropertiesProvider.get(d)
     TestCase.assertEquals(manufacturer, deviceProperties.manufacturer)
     TestCase.assertEquals(model, deviceProperties.model)

@@ -31,7 +31,7 @@ public class WebpMetadata extends IIOMetadata {
   public static final String EXT_WEBP = WEBP_FORMAT_LOWER_CASE;
   public static final String[] WEBP_SUFFIXES = new String[] { EXT_WEBP};
   public static final String[] WEBP_MIME_TYPES = new String[] {"image/webp"};
-  public static final String WEBP_VENDOR = "Google Inc.";
+  public static final String WEBP_VENDOR = "Google LLC";
   public static final float DEFAULT_ENCODING_QUALITY = 0.75f;
   public static final boolean DEFAULT_LOSSLESS = true;
 

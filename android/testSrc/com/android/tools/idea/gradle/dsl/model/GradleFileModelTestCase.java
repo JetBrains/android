@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleValueImpl;
@@ -41,10 +43,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -275,10 +275,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertTrue(model + " and " + other + " are not equal", areModelsEqual(model, other));
   }
 
-  public static void assertNotEquals(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel other) {
-    assertFalse(model + " and " + other + " are equal", areModelsEqual(model, other));
-  }
-
   public static boolean areModelsEqual(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel other) {
     Object value = model.getValue(OBJECT_TYPE);
     Object otherValue = other.getValue(OBJECT_TYPE);
@@ -291,5 +287,53 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
            model.getPropertyType().equals(other.getPropertyType()) &&
            model.getGradleFile().equals(other.getGradleFile()) &&
            model.getFullyQualifiedName().equals(other.getFullyQualifiedName());
+  }
+
+
+  public static <T> void verifyPropertyModel(GradlePropertyModel model, TypeReference<T> type, T value,
+                                             ValueType valueType, PropertyType propertyType, int dependencies) {
+    assertEquals(valueType, model.getValueType());
+    assertEquals(value, model.getValue(type));
+    assertEquals(propertyType, model.getPropertyType());
+    assertEquals(dependencies, model.getDependencies().size());
+  }
+
+  // This method is not suitable for lists or maps in lists, these must be verified manually.
+  public static void verifyListProperty(GradlePropertyModel model, List<Object> expectedValues, PropertyType propertyType, int dependencies) {
+    List<GradlePropertyModel> actualValues = model.getValue(LIST_TYPE);
+    assertNotNull(actualValues);
+    assertEquals(expectedValues.size(), actualValues.size());
+    for (int i = 0; i < actualValues.size(); i++) {
+      GradlePropertyModel tempModel = actualValues.get(i);
+      switch (tempModel.getValueType()) {
+        case INTEGER:
+          assertEquals(expectedValues.get(i), tempModel.getValue(INTEGER_TYPE));
+          break;
+        case STRING:
+          assertEquals(expectedValues.get(i), tempModel.getValue(STRING_TYPE));
+          break;
+        case BOOLEAN:
+          assertEquals(expectedValues.get(i), tempModel.getValue(BOOLEAN_TYPE));
+          break;
+        default:
+          fail("Type for model: " + tempModel + " was unexpected");
+      }
+    }
+    assertEquals(LIST, model.getValueType());
+    assertEquals(propertyType, model.getPropertyType());
+    assertEquals(dependencies, model.getDependencies().size());
+  }
+
+  public static <T> void verifyPropertyModel(GradlePropertyModel model,
+                                             TypeReference<T> type,
+                                             T value,
+                                             ValueType valueType,
+                                             PropertyType propertyType,
+                                             int dependencies,
+                                             String name,
+                                             String fullName) {
+    verifyPropertyModel(model, type, value, valueType, propertyType, dependencies);
+    assertEquals(name, model.getName());
+    assertEquals(fullName, model.getFullyQualifiedName());
   }
 }

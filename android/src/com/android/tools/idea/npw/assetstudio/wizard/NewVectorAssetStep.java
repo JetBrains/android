@@ -46,7 +46,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -147,9 +146,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private JPanel myLeftPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myRightPanel;
-  private JPanel myErrorPanel;
-  private JBScrollPane myErrorsScrollPane;
-  private JTextArea myErrorsTextArea;
 
   public NewVectorAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Vector Asset");
@@ -405,11 +401,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
             myImagePreview.setIcon(null);
             myOriginalSize.clear();
           }
-
-          String message = myAssetValidityState.get().getMessage();
-          myErrorPanel.setVisible(!message.isEmpty());
-          myErrorsTextArea.setText(message);
-          ApplicationManager.getApplication().invokeLater(() -> myErrorsScrollPane.getVerticalScrollBar().setValue(0), ModalityState.any());
 
           myCurrentWorker = null;
           if (myEnqueuedWorker != null) {

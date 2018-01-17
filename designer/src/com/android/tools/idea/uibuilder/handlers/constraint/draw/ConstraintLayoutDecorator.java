@@ -205,7 +205,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (sceneContext.showOnlySelection()) {
           continue;
         }
-        if (showAllConstraints || selection.contains(child.getNlComponent())) {
+        if ((showAllConstraints && scene.getRoot() == component) || selection.contains(child.getNlComponent())) {
           buildListConnections(list, time, sceneContext, component, child); // draw child connections
         }
       }

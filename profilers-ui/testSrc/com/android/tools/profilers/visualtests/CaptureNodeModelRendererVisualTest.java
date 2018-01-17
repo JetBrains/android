@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CaptureNodeModelHRenderer;
+import com.android.tools.profilers.cpu.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
@@ -66,13 +66,13 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
     CaptureNode artNode = parseArtTraceAndGetHNode();
     myArtRange.set(artNode.getStart(), artNode.getEnd());
     myArtChart = new HTreeChart<>(null, myArtRange, HTreeChart.Orientation.TOP_DOWN);
-    myArtChart.setHRenderer(new CaptureNodeModelHRenderer());
+    myArtChart.setHRenderer(new CaptureNodeHRenderer());
     myArtChart.setHTree(artNode);
 
     CaptureNode simpleperfNode = parseSimpleperfTraceAndGetHNode();
     mySimpleperfRange.set(simpleperfNode.getStart(), simpleperfNode.getEnd());
     mySimpleperfChart = new HTreeChart<>(null,mySimpleperfRange, HTreeChart.Orientation.TOP_DOWN);
-    mySimpleperfChart.setHRenderer(new CaptureNodeModelHRenderer());
+    mySimpleperfChart.setHRenderer(new CaptureNodeHRenderer());
     mySimpleperfChart.setHTree(simpleperfNode);
 
     panel.setLayout(new GridLayout(2, 1));

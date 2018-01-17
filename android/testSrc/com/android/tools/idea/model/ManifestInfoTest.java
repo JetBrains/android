@@ -16,8 +16,15 @@
 package com.android.tools.idea.model;
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -36,5 +43,20 @@ public class ManifestInfoTest extends AndroidTestCase {
 
     // Syncing should have changed the timestamp, making a refresh necessary
     assertThat(manifestFile.refresh()).isTrue();
+  }
+
+  public void testGetLibManifests() throws Exception {
+    List<VirtualFile> libManifests = ManifestInfo.ManifestFile.getLibManifests(myFacet);
+    // TODO: add external library dependency to local library module and check to make sure libManifests lists the local one first.
+  }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    final String testName = getTestName(true);
+
+    if (testName.equals("getLibManifests")) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY);
+    }
   }
 }

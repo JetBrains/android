@@ -118,6 +118,7 @@ fun ResolvedPropertyModel.asString() =
     getValue(GradlePropertyModel.STRING_TYPE) ?:
         getValue(GradlePropertyModel.INTEGER_TYPE)?.toString()
 
-fun ResolvedPropertyModel.asInt() = getValue(GradlePropertyModel.INTEGER_TYPE)
-fun ResolvedPropertyModel.asBoolean() = getValue(GradlePropertyModel.BOOLEAN_TYPE)
-fun ResolvedPropertyModel.dslText() = getRawValue(GradlePropertyModel.STRING_TYPE)
+fun ResolvedPropertyModel.asInt(): Int? = getValue(GradlePropertyModel.INTEGER_TYPE)
+fun ResolvedPropertyModel.asBoolean(): Boolean? = getValue(GradlePropertyModel.BOOLEAN_TYPE)
+fun ResolvedPropertyModel.dslText(): String? = getRawValue(GradlePropertyModel.STRING_TYPE)
+fun ResolvedPropertyModel.clear() = unresolvedModel.delete()

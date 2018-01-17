@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.ext.EmptyPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
@@ -119,11 +118,6 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   public ResolvedPropertyModel multiDexEnabled() {
     return getModelForProperty(MULTI_DEX_ENABLED);
-  }
-
-  @Override
-  public void removeMultiDexEnabled() {
-    myDslElement.removeProperty(MULTI_DEX_ENABLED);
   }
 
   @Override
@@ -263,11 +257,6 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     return getModelForProperty(USE_JACK);
   }
 
-  @Override
-  public void removeUseJack() {
-    myDslElement.removeProperty(USE_JACK);
-  }
-
   /**
    * Represents a statement like {@code resValue} or {@code buildConfigField} which contains type, name and value parameters.
    */
@@ -357,7 +346,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
     GradleDslElement element = myDslElement.getPropertyElement(property);
-    return element == null ? new EmptyPropertyModel(myDslElement, REGULAR, property, true) : new ResolvedPropertyModelImpl(element);
+    return element == null ? new ResolvedPropertyModelImpl(myDslElement, REGULAR, property) : new ResolvedPropertyModelImpl(element);
   }
 
   /**

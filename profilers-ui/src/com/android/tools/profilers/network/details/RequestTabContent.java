@@ -43,6 +43,9 @@ import java.util.stream.Stream;
 final class RequestTabContent extends TabContent {
 
   private static final String ID_BODY_COMPONENT = "REQUEST_PAYLOAD_COMPONENT";
+  // Use Application Headers as title because the infrastructure added headers of HttpURLConnection
+  // may be missed if users do not set.
+  private static final String HEADERS_TITLE = "Application Headers";
 
   private final IdeProfilerComponents myComponents;
   private final NetworkConnectionsModel myModel;
@@ -77,7 +80,7 @@ final class RequestTabContent extends TabContent {
     HttpDataViewModel httpDataViewModel = new HttpDataViewModel(myModel, data);
 
     JComponent headersComponent = httpDataViewModel.createHeaderComponent(ConnectionType.REQUEST);
-    myPanel.add(TabUiUtils.createHideablePanel(TabUiUtils.SECTION_TITLE_HEADERS, headersComponent, null));
+    myPanel.add(TabUiUtils.createHideablePanel(HEADERS_TITLE, headersComponent, null));
 
     Payload requestPayload = Payload.newRequestPayload(myModel, data);
     JComponent bodyComponent = httpDataViewModel.createBodyComponent(myComponents, ConnectionType.REQUEST);

@@ -47,7 +47,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -90,6 +89,16 @@ public class NavDesignSurface extends DesignSurface {
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable);
     setBackground(JBColor.white);
+  }
+
+  @Override
+  public void dispose() {
+    Future<?> future = getScheduleRef().get();
+    if (future != null) {
+      future.cancel(false);
+    }
+    getScheduleRef().set(null);
+    super.dispose();
   }
 
   @Override

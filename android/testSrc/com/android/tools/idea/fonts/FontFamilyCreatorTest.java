@@ -23,6 +23,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -211,7 +212,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
   }
 
   @NotNull
-  private static FontDetail createFontDetail(@NotNull String fontName, int weight, int width, boolean italics) {
+  static FontDetail createFontDetail(@NotNull String fontName, int weight, int width, boolean italics) {
     String folderName = DownloadableFontCacheServiceImpl.convertNameToFilename(fontName);
     String urlStart = "http://dontcare/fonts/" + folderName + "/v6/";
     FontFamily family = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, fontName, urlStart + "some.ttf", "",
@@ -222,18 +223,18 @@ public class FontFamilyCreatorTest extends FontTestCase {
 
   @NotNull
   private String getFontFileContent(@NotNull String fontFileName) throws IOException {
-    return getResourceFileContent(ResourceFolderType.FONT, fontFileName);
+    return getResourceFileContent(myFacet, ResourceFolderType.FONT, fontFileName);
   }
 
   @NotNull
   private String getValuesFileContent(@NotNull String valuesFileName) throws IOException {
-    return getResourceFileContent(ResourceFolderType.VALUES, valuesFileName);
+    return getResourceFileContent(myFacet, ResourceFolderType.VALUES, valuesFileName);
   }
 
   @NotNull
-  private String getResourceFileContent(@NotNull ResourceFolderType type, @NotNull String fileName) throws IOException {
+  static String getResourceFileContent(@NotNull AndroidFacet facet, @NotNull ResourceFolderType type, @NotNull String fileName) throws IOException {
     @SuppressWarnings("deprecation")
-    VirtualFile resourceDirectory = checkNotNull(myFacet.getPrimaryResourceDir());
+    VirtualFile resourceDirectory = checkNotNull(facet.getPrimaryResourceDir());
     VirtualFile resourceFolder = checkNotNull(resourceDirectory.findChild(type.getName()));
     VirtualFile file = checkNotNull(resourceFolder.findChild(fileName));
     file.refresh(false, false);

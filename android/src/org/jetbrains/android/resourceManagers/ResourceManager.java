@@ -34,6 +34,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.containers.Predicate;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.android.AndroidIdIndex;
 import org.jetbrains.android.AndroidValueResourcesIndex;
@@ -42,6 +43,7 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -338,27 +340,54 @@ public abstract class ResourceManager {
       return Collections.emptyList();
     }
 
-    List<XmlAttributeValue> declarations = new ArrayList<>();
     Collection<VirtualFile> files =
       FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, "+" + id, GlobalSearchScope.allScope(myProject));
-    Set<VirtualFile> fileSet = new HashSet<>(files);
+
+    return findIdUsagesFromFiles(new HashSet<>(files), attributeValue -> {
+      if (AndroidResourceUtil.isIdDeclaration(attributeValue)) {
+        String idInAttr = AndroidResourceUtil.getResourceNameByReferenceText(attributeValue.getValue());
+        return id.equals(idInAttr);
+      }
+      return false;
+    });
+  }
+
+  // searches only usages of id such as app:constraint_referenced_ids="[id1],[id2],..."
+  @NotNull
+  public List<XmlAttributeValue> findConstraintReferencedIds(@NotNull String id) {
+    if (!isResourcePublic(ResourceType.ID.getName(), id)) {
+      return Collections.emptyList();
+    }
+
+    Collection<VirtualFile> files =
+      FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, "," + id, GlobalSearchScope.allScope(myProject));
+
+    return findIdUsagesFromFiles(new HashSet<>(files), attributeValue -> {
+      if (AndroidResourceUtil.isConstraintReferencedIds(attributeValue)) {
+        String ids = attributeValue.getValue();
+        if (ids != null) {
+          return Arrays.stream(ids.split(",")).anyMatch(s -> s.equals(id));
+        }
+      }
+      return false;
+    });
+  }
+
+  private List<XmlAttributeValue> findIdUsagesFromFiles(@NotNull Set<VirtualFile> fileSet, @NotNull Predicate<XmlAttributeValue> condition) {
+    List<XmlAttributeValue> usages = new ArrayList<>();
+
     PsiManager psiManager = PsiManager.getInstance(myProject);
 
     for (VirtualFile subdir : getResourceSubdirsToSearchIds()) {
       for (VirtualFile file : subdir.getChildren()) {
         if (fileSet.contains(file)) {
           PsiFile psiFile = psiManager.findFile(file);
-
           if (psiFile instanceof XmlFile) {
             psiFile.accept(new XmlRecursiveElementVisitor() {
               @Override
               public void visitXmlAttributeValue(XmlAttributeValue attributeValue) {
-                if (AndroidResourceUtil.isIdDeclaration(attributeValue)) {
-                  String idInAttr = AndroidResourceUtil.getResourceNameByReferenceText(attributeValue.getValue());
-
-                  if (id.equals(idInAttr)) {
-                    declarations.add(attributeValue);
-                  }
+                if (condition.apply(attributeValue)) {
+                  usages.add(attributeValue);
                 }
               }
             });
@@ -366,7 +395,7 @@ public abstract class ResourceManager {
         }
       }
     }
-    return declarations;
+    return usages;
   }
 
   @NotNull

@@ -31,6 +31,7 @@ import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -38,6 +39,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import icons.AndroidIcons;
@@ -118,7 +120,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
     // so we create the task anyway and later, when running it, we check if it's an instant app context to provision the device or not.
     // This method is also called when reading from persistent data (first an empty task is created and after it's configured).
     if (runConfiguration instanceof AndroidRunConfigurationBase && isInstantAppSdkEnabled()) {
-      ProvisionBeforeRunTask task = new ProvisionBeforeRunTask();
+      ProvisionBeforeRunTask task = new ProvisionBeforeRunTask(runConfiguration.getProject());
       task.setEnabled(true);
       return task;
     }
@@ -299,6 +301,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   }
 
   public static class ProvisionBeforeRunTask extends BeforeRunTask<ProvisionBeforeRunTask> {
+    @NotNull private static final String TIMESTAMP_PROPERTY_NAME = ProvisionBeforeRunTaskProvider.class.getName() + ".myTimeStamp";
     @NonNull private static final ImmutableList<String> INSTANT_APP_PACKAGES =
       ImmutableList.of("com.google.android.instantapps.supervisor", "com.google.android.instantapps.devman");
 
@@ -306,10 +309,12 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
     private boolean myClearProvisionedDevices;
     private long myTimestamp;
 
+    @NotNull private final Project myProject;
     @NotNull private final Set<String> myProvisionedDevices;
 
-    public ProvisionBeforeRunTask() {
+    public ProvisionBeforeRunTask(@NotNull Project project) {
       super(ID);
+      myProject = project;
       myClearCache = false;
       myTimestamp = 0;
       myClearProvisionedDevices = false;
@@ -403,7 +408,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
       for (String deviceId : myProvisionedDevices) {
         element.addContent(new Element("provisionedDevices").setAttribute("provisionedDevice", deviceId));
       }
-      element.setAttribute("myTimestamp", Long.toString(System.currentTimeMillis()));
+      PropertiesComponent.getInstance(myProject).setValue(TIMESTAMP_PROPERTY_NAME, Long.toString(System.currentTimeMillis()));
     }
 
     @Override
@@ -416,7 +421,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
         addProvisionedDevice(child.getAttributeValue("provisionedDevice"));
       }
       try {
-        myTimestamp = Long.parseLong(element.getAttributeValue("myTimestamp"));
+        myTimestamp = Long.parseLong(PropertiesComponent.getInstance(myProject).getValue(TIMESTAMP_PROPERTY_NAME));
       } catch (NumberFormatException e) {
         myTimestamp = 0;
       }

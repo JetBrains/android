@@ -413,25 +413,25 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
-    buildType.removeApplicationIdSuffix();
+    buildType.applicationIdSuffix().delete();
     buildType.removeAllBuildConfigFields();
     buildType.removeAllConsumerProguardFiles();
-    buildType.removeDebuggable();
-    buildType.removeEmbedMicroApp();
-    buildType.removeJniDebuggable();
+    buildType.debuggable().delete();
+    buildType.embedMicroApp().delete();
+    buildType.jniDebuggable().delete();
     buildType.removeAllManifestPlaceholders();
-    buildType.removeMinifyEnabled();
-    buildType.removeMultiDexEnabled();
+    buildType.minifyEnabled().delete();
+    buildType.multiDexEnabled().delete();
     buildType.removeAllProguardFiles();
-    buildType.removePseudoLocalesEnabled();
-    buildType.removeRenderscriptDebuggable();
-    buildType.removeRenderscriptOptimLevel();
+    buildType.pseudoLocalesEnabled().delete();
+    buildType.renderscriptDebuggable().delete();
+    buildType.renderscriptOptimLevel().delete();
     buildType.removeAllResValues();
-    buildType.removeShrinkResources();
-    buildType.removeTestCoverageEnabled();
-    buildType.removeUseJack();
-    buildType.removeVersionNameSuffix();
-    buildType.removeZipAlignEnabled();
+    buildType.shrinkResources().delete();
+    buildType.testCoverageEnabled().delete();
+    buildType.useJack().delete();
+    buildType.versionNameSuffix().delete();
+    buildType.zipAlignEnabled().delete();
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
     assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
@@ -947,22 +947,22 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     // Remove all the properties except the applicationIdSuffix.
     buildType.removeAllBuildConfigFields();
     buildType.removeAllConsumerProguardFiles();
-    buildType.removeDebuggable();
-    buildType.removeEmbedMicroApp();
-    buildType.removeJniDebuggable();
+    buildType.debuggable().delete();
+    buildType.embedMicroApp().delete();
+    buildType.jniDebuggable().delete();
     buildType.removeAllManifestPlaceholders();
-    buildType.removeMinifyEnabled();
-    buildType.removeMultiDexEnabled();
+    buildType.minifyEnabled().delete();
+    buildType.multiDexEnabled().delete();
     buildType.removeAllProguardFiles();
-    buildType.removePseudoLocalesEnabled();
-    buildType.removeRenderscriptDebuggable();
-    buildType.removeRenderscriptOptimLevel();
+    buildType.pseudoLocalesEnabled().delete();
+    buildType.renderscriptDebuggable().delete();
+    buildType.renderscriptOptimLevel().delete();
     buildType.removeAllResValues();
-    buildType.removeShrinkResources();
-    buildType.removeTestCoverageEnabled();
-    buildType.removeUseJack();
-    buildType.removeVersionNameSuffix();
-    buildType.removeZipAlignEnabled();
+    buildType.shrinkResources().delete();
+    buildType.testCoverageEnabled().delete();
+    buildType.useJack().delete();
+    buildType.versionNameSuffix().delete();
+    buildType.zipAlignEnabled().delete();
     assertThat(android).isInstanceOf(AndroidModelImpl.class);
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
@@ -1042,7 +1042,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     // Now remove the applicationIdSuffix also and see the whole android block is removed as it would be an empty block.
 
-    buildType.removeApplicationIdSuffix();
+    buildType.applicationIdSuffix().delete();
     assertThat(android).isInstanceOf(AndroidModelImpl.class);
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);

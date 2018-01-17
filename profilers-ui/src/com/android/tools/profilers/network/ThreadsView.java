@@ -25,7 +25,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
-import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableMap;
@@ -50,7 +49,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.*;
 
 /**
  * Displays network connection information of all threads.
@@ -345,7 +344,7 @@ final class ThreadsView {
 
       FontMetrics metrics = getFontMetrics(getFont());
       String text =
-        AdtUiUtils.shrinkToFit(HttpData.getUrlName(data.getUrl()), metrics, (float)(end - start - 2 * NAME_PADDING), 1);
+        AdtUiUtils.shrinkToFit(HttpData.getUrlName(data.getUrl()), metrics, (float)(end - start - 2 * NAME_PADDING));
 
       double availableSpace = (end - start - metrics.stringWidth(text));
       g2d.drawString(text, (float)(start + availableSpace / 2.0), (float)((getHeight() - metrics.getHeight()) * 0.5 + metrics.getAscent()));
@@ -380,9 +379,9 @@ final class ThreadsView {
       myStage = stage;
 
       myContent = new JPanel(new TabularLayout("*", "*"));
-      myContent.setBorder(ProfilerLayout.TOOLTIP_BORDER);
+      myContent.setBorder(TOOLTIP_BORDER);
       myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-      myContent.setFont(myContent.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+      myContent.setFont(myContent.getFont().deriveFont(TOOLTIP_FONT_SIZE));
 
       myTooltipComponent = new TooltipComponent(myContent, table, ProfilerLayeredPane.class);
       myTooltipComponent.registerListenersOn(table);
@@ -442,7 +441,7 @@ final class ThreadsView {
     private static JLabel newTooltipLabel(String text) {
       JLabel label = new JLabel(text);
       label.setForeground(ProfilerColors.TOOLTIP_TEXT);
-      label.setFont(label.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+      label.setFont(label.getFont().deriveFont(TOOLTIP_FONT_SIZE));
       return label;
     }
 

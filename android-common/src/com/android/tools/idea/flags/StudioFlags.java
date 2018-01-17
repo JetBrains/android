@@ -168,7 +168,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
     "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
-    true);
+    false);
 
   public static final Flag<Boolean> NELE_TARGET_RELATIVE = Flag.create(
     NELE, "target.relative", "Enable the target architecture in relative layout",
@@ -217,6 +217,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.appcompat.enabled", "Enable the Migrate to AppCompat refactoring feature",
     "If enabled, show the action in the refactoring menu", true);
+
+  private static final FlagGroup IOT = new FlagGroup(FLAGS, "iot", "IoT features");
+  public static final Flag<Boolean> UNINSTALL_LAUNCHER_APPS_ENABLED = Flag.create(
+    IOT, "iot.uninstalllauncherapps.enabled", "Enable the Uninstall of IoT launcher apps feature",
+    "If enabled, uninstall IoT launcher apps when installing a new one", false);
 
   private StudioFlags() {
   }

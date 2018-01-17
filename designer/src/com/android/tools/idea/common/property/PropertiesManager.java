@@ -76,7 +76,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   private boolean myFirstLoad = true;
   private int myUpdateCount;
   private JBSplitter mySplitter;
-
+  private Runnable myStopFilteringCallback;
 
   public PropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull PropertyEditors editors) {
     myProject = facet.getModule().getProject();
@@ -93,6 +93,11 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
       return;
     }
     setToolContextWithoutCheck(designSurface);
+  }
+
+  @Override
+  public void setStopFiltering(@NotNull Runnable callback) {
+    myStopFilteringCallback = callback;
   }
 
   @NotNull
@@ -242,6 +247,9 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
           return;
         }
         getPropertiesPanel().setItems(components, properties);
+        if (myStopFilteringCallback != null) {
+          myStopFilteringCallback.run();
+        }
         if (postUpdateRunnable != null) {
           myLoading = false;
           postUpdateRunnable.run();

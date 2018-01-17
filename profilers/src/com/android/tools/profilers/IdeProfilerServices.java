@@ -127,4 +127,12 @@ public interface IdeProfilerServices {
    * Native configurations can be preferred for native projects, for instance.
    */
   boolean isNativeProfilingConfigurationPreferred();
+
+  /**
+   * Displays a balloon message showing the user that an error has occurred.
+   *
+   * @param title title of the message
+   * @param text  body of the message
+   */
+  void showErrorBalloon(@NotNull String title, @NotNull String text);
 }

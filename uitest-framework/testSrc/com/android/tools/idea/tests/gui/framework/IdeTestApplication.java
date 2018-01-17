@@ -75,7 +75,7 @@ public class IdeTestApplication implements Disposable {
       ourInstance = new IdeTestApplication();
       recreateDirectory(configDirPath);
 
-      File newProjectsRootDirPath = getProjectCreationDirPath();
+      File newProjectsRootDirPath = getProjectCreationDirPath(null);
       recreateDirectory(newProjectsRootDirPath);
 
       ClassLoader ideClassLoader = ourInstance.getIdeClassLoader();

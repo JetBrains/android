@@ -65,6 +65,16 @@ public final class GradleDslExpressionList extends GradleDslElement {
     setModified(true);
   }
 
+  public void removeElement(@NotNull GradleDslElement element) {
+    for (GradleDslExpression expression : getExpressions()) {
+      if (expression == element) {
+        myToBeRemovedExpressions.add(expression);
+        setModified(true);
+        return;
+      }
+    }
+  }
+
   void addNewLiteral(@NotNull Object value) {
     GradleDslLiteral literal = new GradleDslLiteral(this, myName);
     literal.setValue(value);

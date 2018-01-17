@@ -24,7 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.Element;
+import javax.swing.text.View;
+import javax.swing.text.ViewFactory;
+import javax.swing.text.html.*;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -121,11 +124,28 @@ final class TabUiUtils {
    */
   @NotNull
   public static JComponent createStyledMapComponent(@NotNull Map<String, String> map) {
-    JComponent component = createMapComponent(map);
-    if (component instanceof JTextPane) {
-      ((HTMLDocument)((JTextPane)component).getDocument()).getStyleSheet().addRule("p { margin: 5 0 5 0; }");
+    if (map.isEmpty()) {
+      return new JLabel("No data available");
     }
-    return component;
+
+    JEditorPane htmlTextPane = new JEditorPane();
+    htmlTextPane.setContentType("text/html");
+    HTMLEditorKit editorKit = new BreakWordWrapHTMLEditorKit();
+    htmlTextPane.setEditorKit(editorKit);
+    StyleSheet styleSheet = editorKit.getStyleSheet();
+    Font labelFont = UIManager.getFont("Label.font");
+    styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: " + FIELD_FONT_SIZE + "pt; }");
+    styleSheet.addRule("p { margin: 4 0 4 0; }");
+
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append("<html>");
+    for (Map.Entry<String, String> entry : map.entrySet()) {
+      stringBuilder.append("<p><b>").append(entry.getKey()).append(":&nbsp&nbsp</b>");
+      stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
+    }
+    stringBuilder.append("</html>");
+    htmlTextPane.setText(stringBuilder.toString());
+    return htmlTextPane;
   }
 
   /**
@@ -247,6 +267,66 @@ final class TabUiUtils {
                                  e.getScrollType(),
                                  e.getScrollAmount(),
                                  e.getWheelRotation());
+    }
+  }
+
+  /**
+   * Customized HTML editor kit for {@link JEditorPane}, which make words content can be wrapped in the middle of word instead of space.
+   *
+   * See <a href="http://java-sl.com/tip_html_letter_wrap.html">this article</a> for more details.
+   */
+  private static class BreakWordWrapHTMLEditorKit extends HTMLEditorKit {
+
+    @Override
+    public ViewFactory getViewFactory() {
+      return new HTMLFactory() {
+
+        @Override
+        public View create(Element e) {
+          View v = super.create(e);
+          if (v instanceof InlineView) {
+            return new InlineView(e) {
+              @Override
+              public int getBreakWeight(int axis, float pos, float len) {
+                return GoodBreakWeight;
+              }
+
+              @Override
+              public View breakView(int axis, int p0, float pos, float len) {
+                if (axis == View.X_AXIS) {
+                  checkPainter();
+                  int p1 = getGlyphPainter().getBoundedPosition(this, p0, pos, len);
+                  if (p0 == getStartOffset() && p1 == getEndOffset()) {
+                    return this;
+                  }
+                  return createFragment(p0, p1);
+                }
+                return this;
+              }
+            };
+          }
+          else if (v instanceof ParagraphView) {
+            return new ParagraphView(e) {
+
+              @Override
+              protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
+                if (r == null) {
+                  r = new SizeRequirements();
+                }
+                float pref = layoutPool.getPreferredSpan(axis);
+                float min = layoutPool.getMinimumSpan(axis);
+                // Don't include insets, Box.getXXXSpan will include them.
+                r.minimum = (int)min;
+                r.preferred = Math.max(r.minimum, (int)pref);
+                r.maximum = Integer.MAX_VALUE;
+                r.alignment = 0.5f;
+                return r;
+              }
+            };
+          }
+          return v;
+        }
+      };
     }
   }
 }

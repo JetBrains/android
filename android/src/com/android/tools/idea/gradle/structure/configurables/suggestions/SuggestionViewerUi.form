@@ -37,7 +37,7 @@
           <size top="4" left="4" bottom="4" right="4"/>
         </border>
         <children>
-          <component id="861e6" class="com.android.tools.adtui.HtmlLabel" binding="myText">
+          <component id="861e6" class="com.android.tools.adtui.HtmlLabel" binding="myText" custom-create="true">
             <constraints border-constraint="Center"/>
             <properties>
               <contentType value="text/html"/>

@@ -45,7 +45,7 @@
                            implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"
                                    implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory"/>
-    <moduleService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomDefinedTableNameImpl"
                              implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomSelectedTableNameImpl"

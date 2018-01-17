@@ -299,10 +299,22 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
     }
     if (marginValue != -1 && marginValue == currentValue) {
       attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginString);
+      if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginString);
+      }
+      else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attribute)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, marginString);
+      }
     }
     else {
       String marginY = String.format(SdkConstants.VALUE_N_DP, currentValue);
       attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginY);
+      if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginY);
+      }
+      else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attribute)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, marginY);
+      }
     }
   }
 

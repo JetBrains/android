@@ -65,7 +65,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(AndroidVirtualDevice.class);
   private static final String DEFAULT_DEVICE_ID = "Nexus 5X";
   private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis", "Google APIs");
-  private static final IdDisplay ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google Inc.");
+  private static final IdDisplay ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google LLC");
   private static final Storage DEFAULT_RAM_SIZE = new Storage(1536, Storage.Unit.MiB);
   private static final Storage DEFAULT_HEAP_SIZE = new Storage(256, Storage.Unit.MiB);
 

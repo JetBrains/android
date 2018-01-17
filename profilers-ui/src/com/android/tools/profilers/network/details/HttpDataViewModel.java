@@ -67,21 +67,7 @@ final class HttpDataViewModel {
    */
   @NotNull
   public JComponent createHeaderComponent(@NotNull ConnectionType type) {
-    JComponent mapComponent = TabUiUtils.createStyledMapComponent(type.getHeader(myHttpData).getFields());
-    if (mapComponent instanceof JTextPane) {
-      // If here, we have one or more rows. Add padding to have some space between the last row
-      // and the horizontal scroll bar.
-      JTextPane headers = (JTextPane)mapComponent;
-      headers.setBorder(new JBEmptyBorder(0, 0, 8, 0));
-
-      // Disable line wrapping, since we know we're in a scroller
-      JPanel noWrapPanel = new JPanel(new BorderLayout());
-      noWrapPanel.add(headers);
-      return TabUiUtils.createNestedScrollPane(noWrapPanel);
-    }
-    else {
-      return mapComponent;
-    }
+    return TabUiUtils.createStyledMapComponent(type.getHeader(myHttpData).getFields());
   }
 
   /**

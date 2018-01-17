@@ -23,6 +23,7 @@ import com.android.tools.adtui.validation.Validator.Severity;
 import com.android.tools.idea.observable.core.*;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -171,8 +172,8 @@ public final class VectorAsset extends BaseAsset {
     BufferedImage image = null;
     int originalWidth = 0;
     int originalHeight = 0;
-    if (xmlFileContent != null) {
-      Document document = VdPreview.parseVdStringIntoDocument(xmlFileContent, errorBuffer);
+    if (!Strings.isNullOrEmpty(xmlFileContent)) {
+      Document document = VdPreview.parseVdStringIntoDocument(xmlFileContent, errorBuffer.length() == 0 ? errorBuffer : null);
       if (document != null) {
         VdPreview.SourceSize originalSize = VdPreview.getVdOriginalSize(document);
         originalWidth = originalSize.getWidth();
@@ -199,7 +200,9 @@ public final class VectorAsset extends BaseAsset {
     }
 
     if (image == null) {
-      errorBuffer.insert(0, ERROR_EMPTY_PREVIEW + (errorBuffer.length() != 0 ? "\n" : ""));
+      if (errorBuffer.length() == 0) {
+        errorBuffer.append(ERROR_EMPTY_PREVIEW);
+      }
       return new ParseResult(errorBuffer.toString());
     }
 

@@ -117,7 +117,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
       if (itemList.displayFittedTextIfNecessary(index)) {
         int leftMargin = icon.getIconWidth() + myIconTextGap + getIpad().right + getIpad().left;
         int rightMargin = StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD.getIconWidth();
-        text = AdtUiUtils.shrinkToFit(text, list.getFontMetrics(list.getFont()), list.getWidth() - leftMargin - rightMargin, 1);
+        text = AdtUiUtils.shrinkToFit(text, list.getFontMetrics(list.getFont()), list.getWidth() - leftMargin - rightMargin);
       }
 
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
