@@ -110,7 +110,7 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
         }
         value.parsedValue is ParsedValue.Set.Parsed -> {
           setColorAndTooltip(
-              toolTipText = value.parsedValue.dslText.orEmpty()
+              toolTipText = value.parsedValue.dslText?.text.orEmpty()
           )
 
         }

@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.ModelSimplePropertyImpl
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -54,7 +51,7 @@ class SimplePropertyEditorTest {
       defaultValueGetter = { "default" },
       getResolvedValue = { value },
       getParsedValue = { value },
-      getParsedRawValue = { value },
+      getParsedRawValue = { DslText(mode = DslMode.LITERAL, text = value.orEmpty()) },
       setParsedValue = { value = it },
       parser = {
         when {

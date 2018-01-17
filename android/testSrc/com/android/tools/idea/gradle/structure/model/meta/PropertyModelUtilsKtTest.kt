@@ -131,4 +131,48 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propOtherExpression1.asBoolean(), nullValue())
     assertThat(propOtherExpression2.asBoolean(), nullValue())
   }
+
+  fun testDslText() {
+    val text = """
+               ext {
+                 propValue = 'value'
+                 prop25 = 25
+                 propTrue = true
+                 propRef = propValue
+                 propInterpolated = "${'$'}{prop25}"
+                 propUnresolved = unresolvedReference
+                 propOtherExpression1 = z(1)
+                 propOtherExpression2 = 1 + 2
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    val propValue = extModel.findProperty("propValue").wrap()
+    val prop25 = extModel.findProperty("prop25").wrap()
+    val propTrue = extModel.findProperty("propTrue").wrap()
+    val propRef = extModel.findProperty("propRef").wrap()
+    val propInterpolated = extModel.findProperty("propInterpolated").wrap()
+    val propUnresolved = extModel.findProperty("propUnresolved").wrap()
+    val propOtherExpression1 = extModel.findProperty("propOtherExpression1").wrap()
+    val propOtherExpression2 = extModel.findProperty("propOtherExpression2").wrap()
+
+    assertThat(propValue.dslText()?.mode, equalTo(DslMode.LITERAL))
+    assertThat(prop25.dslText()?.mode, equalTo(DslMode.LITERAL))
+    assertThat(propTrue.dslText()?.mode, equalTo(DslMode.LITERAL))
+    assertThat(propRef.dslText()?.mode, equalTo(DslMode.REFERENCE))
+    assertThat(propInterpolated.dslText()?.mode, equalTo(DslMode.INTERPOLATED_STRING))
+    assertThat(propUnresolved.dslText()?.mode, equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT))
+    // TODO(b/72052622): assertThat(propOtherExpression1.dslText()?.mode, equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT))
+    // TODO(b/72052689): assertThat(propOtherExpression2.dslText()?.mode, equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT))
+
+    assertThat(propValue.dslText()?.text, equalTo("value"))
+    assertThat(prop25.dslText()?.text, equalTo("25"))
+    assertThat(propTrue.dslText()?.text, equalTo("true"))
+    assertThat(propRef.dslText()?.text, equalTo("propValue"))
+    assertThat(propInterpolated.dslText()?.text, equalTo("${'$'}{prop25}"))
+    assertThat(propUnresolved.dslText()?.text, equalTo("unresolvedReference"))
+    // TODO(b/72052622): assertThat(propOtherExpression1.dslText()?.text, equalTo("z(1)"))
+    // TODO(b/72052622): assertThat(propOtherExpression2.dslText()?.text, equalTo("1 + 2"))
+  }
 }

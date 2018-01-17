@@ -18,12 +18,13 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.dsl.api.values.GradleValue
 
 fun ResolvedPropertyModel.asString(): String? = when (valueType) {
   ValueType.STRING -> getValue(GradlePropertyModel.STRING_TYPE)
-  // Implicitly convert Integer values to String. Dual String/Integer properties are common
-  // and the only risk is accidental replacement of an Integer constant with the equivalent
-  // String constant where both are acceptable.
+// Implicitly convert Integer values to String. Dual String/Integer properties are common
+// and the only risk is accidental replacement of an Integer constant with the equivalent
+// String constant where both are acceptable.
   ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString()
   else -> null
 }
@@ -38,5 +39,25 @@ fun ResolvedPropertyModel.asBoolean(): Boolean? = when (valueType) {
   else -> null
 }
 
-fun ResolvedPropertyModel.dslText(): String? = getRawValue(GradlePropertyModel.STRING_TYPE)
 fun ResolvedPropertyModel.clear() = unresolvedModel.delete()
+fun ResolvedPropertyModel.dslText(): DslText? {
+  val text = getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()
+  return when {
+    text == null && unresolvedModel.valueType == GradlePropertyModel.ValueType.NONE -> null
+    else -> {
+      DslText(
+          mode = when {
+            unresolvedModel.valueType == ValueType.REFERENCE && dependencies.isEmpty() -> DslMode.OTHER_UNPARSED_DSL_TEXT
+            unresolvedModel.valueType == ValueType.UNKNOWN -> DslMode.OTHER_UNPARSED_DSL_TEXT
+            unresolvedModel.valueType == ValueType.REFERENCE -> DslMode.REFERENCE
+            dependencies.isEmpty() -> DslMode.LITERAL
+            unresolvedModel.valueType == ValueType.STRING -> DslMode.INTERPOLATED_STRING
+            else -> throw IllegalStateException("Property value of type ${unresolvedModel.valueType} with dependencies is not supported.")
+          },
+          text = text)
+    }
+  }
+}
+
+fun <T> GradleValue<T>.dsl(): DslText? =
+    dslText?.let { DslText(DslMode.LITERAL, it) }
