@@ -572,6 +572,9 @@ public class EditorFixture {
       selectEditorTab(Tab.DESIGN);
     }
 
+    // Wait for the editor to do any initializations
+    robot.waitForIdle();
+
     return GuiQuery.getNonNull(
       () -> {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();

@@ -181,6 +181,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
     myDragAndDrop
       .drop(target, new Point(sceneView.getX() + sceneView.getSize().width / 2, sceneView.getY() + sceneView.getSize().height / 2));
+
+    // Wait for the button to settle. It sometimes moves after being dropped onto the canvas.
+    robot().waitForIdle();
     return this;
   }
 
