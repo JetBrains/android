@@ -29,13 +29,9 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.stats.AnonymizerUtil;
-import com.android.tools.idea.structure.services.DeveloperService;
-import com.android.tools.idea.structure.services.DeveloperServices;
-import com.android.tools.idea.structure.services.ServiceCategory;
 import com.android.tools.idea.structure.services.view.ServiceCategoryConfigurable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
@@ -86,8 +82,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
@@ -206,9 +204,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     mySettingsFile = GradleSettingsFile.get(project);
-
-    myDisposable = () -> {
-    };
+    myDisposable = Disposer.newDisposable();
   }
 
   @Override
