@@ -21,6 +21,6 @@ import com.intellij.icons.AllIcons;
 
 public class PropertiesDefinition extends ToolWindowDefinition<LayoutInspectorContext> {
   public PropertiesDefinition(Side side, Split split, AutoHide autoHide) {
-    super("Properties Table", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", side, split, autoHide, PropertiesTablePanel::new);
+    super("Properties Table", AllIcons.Toolwindows.ToolWindowStructure, "LI_PROPERTIES", side, split, autoHide, PropertiesTablePanel::new);
   }
 }
