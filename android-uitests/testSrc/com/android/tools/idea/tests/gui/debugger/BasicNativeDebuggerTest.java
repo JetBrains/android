@@ -191,7 +191,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/37133277
+  @RunIn(TestGroup.SANITY)
   public void testDualDebuggerBreakpoints() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
