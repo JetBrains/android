@@ -45,14 +45,11 @@ iml_module(
     test_class = "com.android.tools.idea.projectsystem.ProjectSystemTestSuite",
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/platform/lvcs-impl",
         "//tools/idea/json",
         "//tools/idea/platform/tasks-platform-impl",
         "//tools/idea/platform/credential-store",
-        "//tools/idea/platform/configuration-store-impl",
-        "//tools/idea/java/execution/impl:execution-impl",
-        "//tools/idea/platform/external-system-impl",
         "//tools/idea/java/compiler/instrumentation-util-8",
+        "//tools/idea/plugins/maven:maven2-server-impl",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
