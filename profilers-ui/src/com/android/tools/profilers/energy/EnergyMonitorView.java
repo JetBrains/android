@@ -33,6 +33,11 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
 
+  /**
+   * Energy data buckets' interval time, data unit is same as x axis which is micro seconds.
+   */
+  public static final double CHART_INTERVAL_US = 200 * 1000;
+
   public EnergyMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EnergyMonitor monitor) {
     super(monitor);
   }
@@ -66,7 +71,10 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
     lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
     lineChart.setMaxLineMargin(40);
     lineChart.setFillEndGap(true);
-    LineConfig config = new LineConfig(ProfilerColors.ENERGY_USAGE).setFilled(true).setLegendIconType(LegendConfig.IconType.NONE);
+    LineConfig config = new LineConfig(ProfilerColors.ENERGY_USAGE)
+      .setFilled(true)
+      .setLegendIconType(LegendConfig.IconType.NONE)
+      .setDataBucketInterval(CHART_INTERVAL_US);
     lineChart.configure(getMonitor().getUsage().getUsageDataSeries(), config);
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);

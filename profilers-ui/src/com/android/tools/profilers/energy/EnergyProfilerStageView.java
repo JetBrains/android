@@ -70,11 +70,17 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
     final LineChart lineChart = new LineChart(usage);
 
-    LineConfig cpuConfig =
-      new LineConfig(ProfilerColors.ENERGY_CPU).setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX);
+    LineConfig cpuConfig = new LineConfig(ProfilerColors.ENERGY_CPU)
+      .setFilled(true)
+      .setStacked(true)
+      .setLegendIconType(LegendConfig.IconType.BOX)
+      .setDataBucketInterval(EnergyMonitorView.CHART_INTERVAL_US);
     lineChart.configure(usage.getCpuUsageSeries(), cpuConfig);
-    LineConfig networkConfig =
-      new LineConfig(ProfilerColors.ENERGY_NETWORK).setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX);
+    LineConfig networkConfig = new LineConfig(ProfilerColors.ENERGY_NETWORK)
+      .setFilled(true)
+      .setStacked(true)
+      .setLegendIconType(LegendConfig.IconType.BOX)
+      .setDataBucketInterval(EnergyMonitorView.CHART_INTERVAL_US);
     lineChart.configure(usage.getNetworkUsageSeries(), networkConfig);
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
