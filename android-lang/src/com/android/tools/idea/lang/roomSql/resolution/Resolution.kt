@@ -99,7 +99,7 @@ private fun pushNextElements(
     previous: PsiElement?,
     walkingDown: Boolean
 ) {
-  fun nextStep(next: PsiElement) = NextStep(next, previous = element)
+  fun nextStep(next: PsiElement, newPrevious: PsiElement? = element) = NextStep(next, previous = newPrevious)
 
   fun pushIfNotNull(next: PsiElement?) {
     if (next != null) stack.push(nextStep(next))
@@ -129,6 +129,12 @@ private fun pushNextElements(
     when (element) {
       is RoomSelectCoreSelect -> {
         if (previous != element.fromClause) pushIfNotNull(element.fromClause)
+      }
+      is RoomSelectStatement -> {
+        if (previous == element.orderClause) {
+          // Start walking down the from clause of the first (mose likely only) "core" select statement.
+          element.selectCoreList.firstOrNull()?.selectCoreSelect?.fromClause?.let { stack.push(nextStep(it, it.context)) }
+        }
       }
       is RoomDeleteStatement -> {
         pushIfNotNull(element.singleTableStatementTable)

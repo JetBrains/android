@@ -23,6 +23,7 @@ import javax.swing.JPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import org.junit.Ignore
+import java.util.function.BiConsumer
 import java.util.regex.Pattern
 
 class FilterComponentTest {
@@ -42,11 +43,7 @@ class FilterComponentTest {
     FilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, myFilterButton)
     myPattern = Pattern.compile("")
 
-    myFilterComponent.addOnFilterChange { p ->
-      run {
-        myPattern = p
-      }
-    }
+    myFilterComponent.addOnFilterChange (BiConsumer { p, _ -> myPattern = p })
   }
 
   @Test

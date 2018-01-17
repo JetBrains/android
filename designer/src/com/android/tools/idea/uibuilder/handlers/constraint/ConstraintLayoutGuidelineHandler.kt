@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.ViewHandler
+import com.google.common.collect.ImmutableList
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -47,5 +48,9 @@ class ConstraintLayoutGuidelineHandler : ViewHandler() {
     fun isVertical(component: NlComponent): Boolean {
       return ATTR_GUIDELINE_ORIENTATION_VERTICAL == component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)
     }
+  }
+
+  override fun getInspectorProperties(): List<String> {
+    return ImmutableList.of(LAYOUT_CONSTRAINT_GUIDE_BEGIN, LAYOUT_CONSTRAINT_GUIDE_END, LAYOUT_CONSTRAINT_GUIDE_PERCENT)
   }
 }

@@ -111,7 +111,6 @@ public class AddModuleTest {
       .selectDependenciesTab()
       .addModuleDependency(":mylibrary")
       .clickOk();
-    ideFrame.waitForGradleProjectSyncToFinish();
 
     ideFrame.getEditor()
       .open("mylibrary/build.gradle")

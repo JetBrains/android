@@ -74,8 +74,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
-  private static boolean ourDynamicTemplateMenuCreated;
-
   private AndroidModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
@@ -232,20 +230,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return null;
   }
 
-  private static void createDynamicTemplateMenu() {
-    if (ourDynamicTemplateMenuCreated) {
-      return;
-    }
-    ourDynamicTemplateMenuCreated = true;
-    DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
-    newGroup.addSeparator();
-    ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
-
-    if (menu != null) {
-      newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
-    }
-  }
-
   @Override
   public void initFacet() {
     ResourceRepositories.getOrCreateInstance(this);
@@ -258,8 +242,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
       addResourceFolderToSdkRootsIfNecessary();
     });
-
-    createDynamicTemplateMenu();
   }
 
   private void addResourceFolderToSdkRootsIfNecessary() {

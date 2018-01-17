@@ -425,25 +425,25 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("versionCode", 1, defaultConfig.versionCode());
     assertEquals("versionName", "1.0", defaultConfig.versionName());
 
-    defaultConfig.removeApplicationId();
+    defaultConfig.applicationId().delete();
     defaultConfig.removeAllConsumerProguardFiles();
-    defaultConfig.removeDimension();
+    defaultConfig.dimension().delete();
     defaultConfig.removeAllManifestPlaceholders();
-    defaultConfig.removeMaxSdkVersion();
-    defaultConfig.removeMinSdkVersion();
-    defaultConfig.removeMultiDexEnabled();
+    defaultConfig.maxSdkVersion().delete();
+    defaultConfig.minSdkVersion().delete();
+    defaultConfig.multiDexEnabled().delete();
     defaultConfig.removeAllProguardFiles();
     defaultConfig.removeAllResConfigs();
     defaultConfig.removeAllResValues();
-    defaultConfig.removeTargetSdkVersion();
-    defaultConfig.removeTestApplicationId();
-    defaultConfig.removeTestFunctionalTest();
-    defaultConfig.removeTestHandleProfiling();
-    defaultConfig.removeTestInstrumentationRunner();
+    defaultConfig.targetSdkVersion().delete();
+    defaultConfig.testApplicationId().delete();
+    defaultConfig.testFunctionalTest().delete();
+    defaultConfig.testHandleProfiling().delete();
+    defaultConfig.testInstrumentationRunner().delete();
     defaultConfig.removeAllTestInstrumentationRunnerArguments();
-    defaultConfig.removeUseJack();
-    defaultConfig.removeVersionCode();
-    defaultConfig.removeVersionName();
+    defaultConfig.useJack().delete();
+    defaultConfig.versionCode().delete();
+    defaultConfig.versionName().delete();
 
     assertMissingProperty("applicationId", defaultConfig.applicationId());
     assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
@@ -1012,25 +1012,25 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("versionCode", 1, defaultConfig.versionCode());
     assertEquals("versionName", "1.0", defaultConfig.versionName());
 
-    defaultConfig.removeApplicationId();
+    defaultConfig.applicationId().delete();
     defaultConfig.removeAllConsumerProguardFiles();
-    defaultConfig.removeDimension();
+    defaultConfig.dimension().delete();
     defaultConfig.removeAllManifestPlaceholders();
-    defaultConfig.removeMaxSdkVersion();
-    defaultConfig.removeMinSdkVersion();
-    defaultConfig.removeMultiDexEnabled();
+    defaultConfig.maxSdkVersion().delete();
+    defaultConfig.minSdkVersion().delete();
+    defaultConfig.multiDexEnabled().delete();
     defaultConfig.removeAllProguardFiles();
     defaultConfig.removeAllResConfigs();
     defaultConfig.removeAllResValues();
-    defaultConfig.removeTargetSdkVersion();
-    defaultConfig.removeTestApplicationId();
-    defaultConfig.removeTestFunctionalTest();
-    defaultConfig.removeTestHandleProfiling();
-    defaultConfig.removeTestInstrumentationRunner();
+    defaultConfig.targetSdkVersion().delete();
+    defaultConfig.testApplicationId().delete();
+    defaultConfig.testFunctionalTest().delete();
+    defaultConfig.testHandleProfiling().delete();
+    defaultConfig.testInstrumentationRunner().delete();
     defaultConfig.removeAllTestInstrumentationRunnerArguments();
-    defaultConfig.removeUseJack();
-    defaultConfig.removeVersionCode();
-    defaultConfig.removeVersionName();
+    defaultConfig.useJack().delete();
+    defaultConfig.versionCode().delete();
+    defaultConfig.versionName().delete();
 
     checkForValidPsiElement(android, AndroidModelImpl.class);
     checkForValidPsiElement(defaultConfig, ProductFlavorModelImpl.class);
@@ -2171,5 +2171,26 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     externalNativeBuild = android.defaultConfig().externalNativeBuild();
     checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeOptionsModelImpl.class);
     checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildOptionsModelImpl.class);
+  }
+
+  public void testFunctionCallWithParentheses() throws Exception {
+    String text =  "android {\n" +
+                     "defaultConfig {\n" +
+                        "applicationId \"com.example.psd.sample.app.default\"\n" +
+                        "testApplicationId \"com.example.psd.sample.app.default.test\"\n" +
+                        "maxSdkVersion 26\n" +
+                        "minSdkVersion 9\n" +
+                        "targetSdkVersion(19)\n" +
+                        "versionCode 1\n" +
+                       "versionName \"1.0\" \n" +
+                     "}\n" +
+                   "}";
+    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorModel defaultConfig = android.defaultConfig();
+    assertEquals("targetSdkVersion", 19, defaultConfig.targetSdkVersion());
   }
 }

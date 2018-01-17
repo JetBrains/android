@@ -49,7 +49,7 @@ public final class TestHttpData {
     return "http://example.com/" + id;
   }
 
-  public static int fakeContentLength(long id) {
+  public static int fakeContentSize(long id) {
     return (int)(id * 100);
   }
 
@@ -68,7 +68,7 @@ public final class TestHttpData {
   public static String fakeResponseFields(long id) {
     return String
       .format("status line = HTTP/1.1 %d %s\nContent-Type = %s;\nconnId = %d\n Content-Length = %d\n", FAKE_RESPONSE_CODE,
-              FAKE_RESPONSE_DESCRIPTION, FAKE_CONTENT_TYPE, id, fakeContentLength(id));
+              FAKE_RESPONSE_DESCRIPTION, FAKE_CONTENT_TYPE, id, fakeContentSize(id));
   }
 
   @NotNull

@@ -15,11 +15,13 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -47,6 +49,8 @@ import java.util.*;
  */
 public class AndroidProjectComponent extends AbstractProjectComponent {
   private Disposable myDisposable;
+
+  private static boolean ourDynamicTemplateMenuCreated;
 
   protected AndroidProjectComponent(Project project) {
     super(project);
@@ -90,8 +94,24 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
     final AndroidResourceFilesListener listener = new AndroidResourceFilesListener(myProject);
     Disposer.register(myDisposable, listener);
 
+    createDynamicTemplateMenu();
+
     // TODO: for external build systems, this alarm is unnecessary and should not be added
     createAlarmForAutogeneration();
+  }
+
+  private static void createDynamicTemplateMenu() {
+    if (ourDynamicTemplateMenuCreated) {
+      return;
+    }
+    ourDynamicTemplateMenuCreated = true;
+    DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
+    newGroup.addSeparator();
+    ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
+
+    if (menu != null) {
+      newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
+    }
   }
 
   private void createAlarmForAutogeneration() {

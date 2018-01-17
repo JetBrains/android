@@ -147,6 +147,12 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   @Override
   @Nullable
   public Object getValue() {
+    // If we only have one argument then just return its value. This allows us to correctly
+    // parse functions that are used to set properties.
+    if (myArguments.size() == 1 && myArguments.get(0) instanceof GradleDslExpression) {
+      return ((GradleDslExpression)myArguments.get(0)).getValue();
+    }
+
     PsiElement psiElement = getPsiElement();
     return psiElement != null ? psiElement.getText() : null;
   }

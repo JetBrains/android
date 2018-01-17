@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.repositories;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,4 +38,6 @@ public interface RepositoriesModel {
   boolean hasGoogleMavenRepository();
 
   void addGoogleMavenRepository(@NotNull Project project);
+
+  void addGoogleMavenRepository(@NotNull GradleVersion gradleVersion);
 }

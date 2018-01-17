@@ -29,6 +29,8 @@ import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -120,8 +122,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     PARSING_FAILURE,
     // Waiting for the service to respond a start capturing call
     STARTING,
+    // An attempt to start capture has failed
+    START_FAILURE,
     // Waiting for the service to respond a stop capturing call
     STOPPING,
+    // An attempt to stop capture has failed
+    STOP_FAILURE,
   }
 
   @NotNull
@@ -373,6 +379,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
+      setCaptureState(CaptureState.START_FAILURE);
+      getStudioProfilers().getIdeServices().showErrorBalloon("Recording failed to start", "Try recording again, or report a bug by selecting Help > Submit Feedback.");
+      // START_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
       setCaptureState(CaptureState.IDLE);
     }
   }
@@ -400,6 +409,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
+      setCaptureState(CaptureState.STOP_FAILURE);
+      getStudioProfilers().getIdeServices().showErrorBalloon("Recording failed to stop", "Try recording another method trace, or report a bug by selecting Help > Submit Feedback.");
+      // STOP_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
       setCaptureState(CaptureState.IDLE);
       captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
@@ -446,6 +458,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       else {
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
         setCaptureState(CaptureState.PARSING_FAILURE);
+        getStudioProfilers().getIdeServices().showErrorBalloon("Trace data was not recorded", "The profiler was unable to parse the method trace data. Try recording another method trace, or report a bug by selecting Help > Submit Feedback.");
         // PARSING_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
         setCaptureState(CaptureState.IDLE);
         setCapture(null);
@@ -643,6 +656,36 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setCaptureFilter(@Nullable Pattern filter) {
     myCaptureModel.setFilter(filter);
+  }
+
+  public void setCaptureFilter(@Nullable Pattern filter, @NotNull FilterModel model) {
+    setCaptureFilter(filter);
+    trackFilterUsage(filter, model);
+  }
+
+  private void trackFilterUsage(@Nullable Pattern filter, @NotNull FilterModel model) {
+    FilterMetadata filterMetadata = new FilterMetadata();
+    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
+    CaptureModel.Details details = getCaptureDetails();
+    switch (details.getType()) {
+      case TOP_DOWN:
+        filterMetadata.setView(FilterMetadata.View.CPU_TOP_DOWN);
+        break;
+      case BOTTOM_UP:
+        filterMetadata.setView(FilterMetadata.View.CPU_BOTTOM_UP);
+        break;
+      case CALL_CHART:
+        filterMetadata.setView(FilterMetadata.View.CPU_CALL_CHART);
+        break;
+      case FLAME_CHART:
+        filterMetadata.setView(FilterMetadata.View.CPU_FLAME_CHART);
+        break;
+    }
+    filterMetadata.setFeaturesUsed(model.getIsMatchCase(), model.getIsRegex());
+    filterMetadata.setMatchedElementCount(myCaptureModel.getFilterNodeCount());
+    filterMetadata.setTotalElementCount(myCaptureModel.getNodeCount());
+    filterMetadata.setFilterTextLength(filter == null ? 0 : filter.pattern().length());
+    featureTracker.trackFilterMetadata(filterMetadata);
   }
 
   public void openProfilingConfigurationsDialog() {

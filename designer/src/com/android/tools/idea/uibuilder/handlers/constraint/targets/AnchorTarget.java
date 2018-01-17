@@ -541,7 +541,14 @@ public class AnchorTarget extends BaseTarget {
         marginValue = Math.max(marginValue, 0);
       }
       String margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute), margin);
+      String attr = ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute);
+      attributes.setAttribute(SdkConstants.ANDROID_URI, attr, margin);
+      if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
+      }
+      else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attr)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, margin);
+      }
       scene.needsRebuildList();
       myConnectedX = myLastX;
       myConnectedY = myLastY;

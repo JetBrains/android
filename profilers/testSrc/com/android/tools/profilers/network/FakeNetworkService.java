@@ -142,6 +142,7 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
       case RESPONSE_BODY:
         HttpDetailsResponse.Body.Builder responseBodyBuilder = HttpDetailsResponse.Body.newBuilder();
         responseBodyBuilder.setPayloadId(data.getResponsePayloadId());
+        responseBodyBuilder.setPayloadSize(TestHttpData.fakeContentSize(data.getId()));
         response.setResponseBody(responseBodyBuilder.build());
         break;
       case ACCESSING_THREADS:

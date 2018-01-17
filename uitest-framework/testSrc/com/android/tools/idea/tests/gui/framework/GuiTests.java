@@ -244,10 +244,11 @@ public final class GuiTests {
     throw new AssumptionViolatedException(message);
   }
 
-  public static void setUpDefaultProjectCreationLocationPath() {
-    FileUtilRt.delete(getProjectCreationDirPath());
+  public static void setUpDefaultProjectCreationLocationPath(@Nullable String testDirectory) {
+    FileUtilRt.delete(getProjectCreationDirPath(null));
     refreshFiles();
-    RecentProjectsManager.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
+    String lastProjectLocation = getProjectCreationDirPath(testDirectory).getPath();
+    RecentProjectsManager.getInstance().setLastProjectCreationLocation(lastProjectLocation);
   }
 
   // Called by IdeTestApplication via reflection.
@@ -320,8 +321,8 @@ public final class GuiTests {
   }
 
   @NotNull
-  public static File getProjectCreationDirPath() {
-    return TMP_PROJECT_ROOT;
+  public static File getProjectCreationDirPath(@Nullable String testDirectory) {
+    return testDirectory != null ? new File(TMP_PROJECT_ROOT, testDirectory) : TMP_PROJECT_ROOT;
   }
 
   @NotNull

@@ -24,6 +24,8 @@ import com.intellij.concurrency.JobLauncher;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -68,6 +70,8 @@ public class GradleFiles {
 
   @NotNull private final SyncListener mySyncListener = new SyncListener();
 
+  @NotNull private final FileEditorManagerListener myFileEditorListener;
+
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleFiles.class);
@@ -75,7 +79,34 @@ public class GradleFiles {
 
   private GradleFiles(@NotNull Project project) {
     myProject = project;
-    PsiManager.getInstance(myProject).addPsiTreeChangeListener(new GradleFileChangeListener(this));
+
+    GradleFileChangeListener fileChangeListener = new GradleFileChangeListener(this);
+    myFileEditorListener = new FileEditorManagerListener() {
+      @Override
+      public void selectionChanged(@NotNull FileEditorManagerEvent event) {
+        if (event.getNewFile() == null) {
+          return;
+        }
+
+        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(event.getNewFile());
+        if (psiFile == null) {
+          return;
+        }
+
+        if (isGradleFile(psiFile) || isExternalBuildFile(psiFile)) {
+          PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener);
+        }
+        else {
+          PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
+        }
+      }
+    };
+
+
+    // Add a listener to see when gradle files are being edited.
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myFileEditorListener);
+
+
     GradleSyncState.subscribe(myProject, mySyncListener);
     // Populate build file hashes on creation.
     if (myProject.isInitialized()) {
@@ -86,11 +117,17 @@ public class GradleFiles {
     }
   }
 
-  @VisibleForTesting
   @NotNull
+  @VisibleForTesting
   GradleSyncListener getSyncListener() {
     //noinspection ReturnOfInnerClass
     return mySyncListener;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  FileEditorManagerListener getFileEditorListener() {
+    return myFileEditorListener;
   }
 
   @VisibleForTesting
@@ -454,6 +491,11 @@ public class GradleFiles {
       }
 
       if (myGradleFiles.containsChangedFile(psiFile.getVirtualFile())) {
+        return;
+      }
+
+      // This code may be run before the project is initialized, and we need the project to be initialized to get the PsiManager.
+      if (!myGradleFiles.myProject.isInitialized() || !PsiManager.getInstance(myGradleFiles.myProject).isInProject(psiFile)) {
         return;
       }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.openapi.project.Project;
@@ -30,10 +31,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaratio
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
@@ -239,10 +237,14 @@ public final class GroovyDslUtil {
   }
 
   @Nullable
-  static GrLiteral createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) {
+  static PsiElement extractUnsavedReference(@NotNull GradleDslReference reference) {
+    return ensureGroovyPsi(reference.getUnsavedValue());
+  }
+
+  @Nullable
+  static PsiElement createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
-      // If the string begins and ends with speech marks then make sure its correctly parsed as a non-raw string.
       String stringValue = (String)unsavedValue;
       if (stringValue.startsWith(GrStringUtil.DOUBLE_QUOTES) && stringValue.endsWith(GrStringUtil.DOUBLE_QUOTES)) {
         unsavedValueText = (String)unsavedValue;
@@ -252,6 +254,9 @@ public final class GroovyDslUtil {
     }
     else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean) {
       unsavedValueText = unsavedValue.toString();
+    }
+    else if (unsavedValue instanceof ReferenceTo) {
+      unsavedValueText = ((ReferenceTo)unsavedValue).getText();
     }
 
     if (unsavedValueText == null) {
@@ -263,12 +268,7 @@ public final class GroovyDslUtil {
       return null;
     }
 
-    GrExpression newExpression = factory.createExpressionFromText(unsavedValueText);
-
-    if (!(newExpression instanceof GrLiteral)) {
-      return null;
-    }
-    return (GrLiteral)newExpression;
+    return factory.createExpressionFromText(unsavedValueText);
   }
 
   @Nullable

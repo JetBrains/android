@@ -152,7 +152,7 @@ public class NavigationSchema implements Disposable {
 
   @Override
   public void dispose() {
-    ourSchemas.remove(myFacet);
+    ApplicationManager.getApplication().invokeLater(() -> ourSchemas.remove(myFacet));
   }
 
   @NotNull

@@ -20,6 +20,7 @@ import com.intellij.pom.java.LanguageLevel
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 class InputParsersTest {
 
@@ -33,6 +34,19 @@ class InputParsersTest {
   @Test
   fun string_empty() {
     val parsed = parseString("")
+    assertTrue(parsed is ParsedValue.NotSet)
+  }
+
+  @Test
+  fun file() {
+    val parsed = parseFile("/tmp/abc")
+    assertTrue(parsed is ParsedValue.Set.Parsed)
+    assertEquals(File("/tmp/abc"), (parsed as ParsedValue.Set.Parsed).value)
+  }
+
+  @Test
+  fun file_empty() {
+    val parsed = parseFile("")
     assertTrue(parsed is ParsedValue.NotSet)
   }
 

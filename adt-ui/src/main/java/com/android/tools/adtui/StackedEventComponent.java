@@ -39,7 +39,6 @@ public class StackedEventComponent extends AnimatedComponent {
 
   private static final Color DISABLED_ACTION = new JBColor(0xDBDFE2, 0X5E5F60);
   private static final Color ENABLED_ACTION = new JBColor(0x64D8B6, 0x12B0A1);
-  private static final int CHARACTERS_TO_SHRINK_BY = 1;
   private static final int SEGMENT_SPACING = 5;
 
   private static final float DEFAULT_LINE_THICKNESS = .3f;
@@ -161,7 +160,7 @@ public class StackedEventComponent extends AnimatedComponent {
         startPosition = FONT_PADDING;
       }
 
-      text = shrinkToFit(text, metrics, endPosition - startPosition, CHARACTERS_TO_SHRINK_BY);
+      text = shrinkToFit(text, metrics, endPosition - startPosition);
       if (text.isEmpty()) {
         continue;
       }

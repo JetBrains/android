@@ -85,7 +85,17 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       connectionsTab.addTab("Connection View", connectionScrollPane);
       connectionsTab.addTab("Thread View", threadsViewScrollPane);
       // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.
-      connectionsTab.addChangeListener(evt -> myConnectionsPanel.repaint());
+      connectionsTab.addChangeListener((evt) -> {
+        myConnectionsPanel.repaint();
+        int selectedIndex = connectionsTab.getSelectedIndex();
+        if (selectedIndex == 0) {
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkConnectionsView();
+        } else if (selectedIndex == 1) {
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkThreadsView();
+        } else {
+          throw new IllegalStateException("Missing tracking for tab " + connectionsTab.getTitleAt(selectedIndex));
+        }
+      });
       connectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
     }
     else {
@@ -207,7 +217,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     NetworkProfilerStage.NetworkStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.configure(legends.getRxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getRxSeries())));
     legend.configure(legends.getTxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getTxSeries())));
     legend.configure(legends.getConnectionLegend(), new LegendConfig(lineChart.getLineConfig(usage.getConnectionSeries())));

@@ -30,6 +30,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +48,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
   private JButton myShowDetailsButton;
   private JLabel myLabel;
   private JPanel myConsole;
+  private JLabel myLabel2;
   private ProgressIndicator myProgressIndicator;
   private double myFraction = 0;
 
@@ -203,8 +205,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
 
     @Override
     public void setText2(String text) {
-      print(text + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
-      super.setText2(text);
+      ApplicationManager.getApplication().invokeLater(() -> myLabel2.setText(StringUtil.shortenTextWithEllipsis(text, 80, 10)));
     }
 
     @Override

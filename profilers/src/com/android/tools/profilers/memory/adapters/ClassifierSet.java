@@ -43,6 +43,8 @@ public abstract class ClassifierSet implements MemoryObject {
   // Lazily create the Classifier, as it is configurable and isn't necessary until nodes under this node needs to be classified.
   @Nullable protected Classifier myClassifier = null;
 
+  private int myObjectSetCount = 0;
+  private int myFilteredObjectSetCount = 0;
   private int mySnapshotObjectCount = 0;
   private int myDeltaAllocations = 0;
   private int myDeltaDeallocations = 0;
@@ -83,6 +85,14 @@ public abstract class ClassifierSet implements MemoryObject {
 
   public int getTotalObjectCount() {
     return mySnapshotObjectCount + myDeltaAllocations - myDeltaDeallocations;
+  }
+
+  public int getTotalObjectSetCount() {
+    return myObjectSetCount;
+  }
+
+  public int getFilteredObjectSetCount() {
+    return myFilteredObjectSetCount;
   }
 
   public int getDeltaAllocationCount() {
@@ -264,6 +274,8 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalShallowSize = 0;
     myTotalRetainedSize = 0;
     myInstancesWithStackInfoCount = 0;
+    myObjectSetCount = 0;
+    myFilteredObjectSetCount = 0;
   }
 
   public int getInstancesCount() {
@@ -423,13 +435,15 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalNativeSize = 0;
     myTotalRetainedSize = 0;
     myInstancesWithStackInfoCount = 0;
+    myObjectSetCount = myClassifier.getAllClassifierSets().size();
+    myFilteredObjectSetCount = 0;
 
     myIsMatched = matches(filter);
 
     assert myClassifier != null;
     for (ClassifierSet classifierSet : myClassifier.getAllClassifierSets()) {
       classifierSet.applyFilter(filter, hasMatchedAncestor || myIsMatched, filterChanged);
-
+      myObjectSetCount += classifierSet.myObjectSetCount;
       if (!classifierSet.getIsFiltered()) {
         myIsFiltered = false;
         mySnapshotObjectCount += classifierSet.mySnapshotObjectCount;
@@ -439,6 +453,7 @@ public abstract class ClassifierSet implements MemoryObject {
         myTotalNativeSize += classifierSet.myTotalNativeSize;
         myTotalRetainedSize += classifierSet.myTotalRetainedSize;
         myInstancesWithStackInfoCount += classifierSet.myInstancesWithStackInfoCount;
+        myFilteredObjectSetCount++;
       }
     }
 

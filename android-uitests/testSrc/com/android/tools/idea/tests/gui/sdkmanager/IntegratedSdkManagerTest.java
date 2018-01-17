@@ -164,7 +164,7 @@ public class IntegratedSdkManagerTest {
   private static void setInvalidSdkPath() {
     ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(
       () -> {
-        File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath();
+        File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath(null);
         File androidSdkPlatformPath = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS);
         androidSdkPlatformPath.mkdirs();
         IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath, null);

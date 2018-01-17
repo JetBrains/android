@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.google.common.truth.Truth;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +24,8 @@ import org.junit.Test;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class BottomUpTreeModelTest {
   private BottomUpTreeModel myModel;

@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.util;
 
+import com.android.SdkConstants;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
@@ -459,6 +460,24 @@ public class AndroidResourceUtil {
 
   public static boolean isIdDeclaration(@NotNull XmlAttributeValue value) {
     return isIdDeclaration(value.getValue());
+  }
+
+  public static boolean isConstraintReferencedIds(@Nullable String nsURI, @Nullable String nsPrefix, @Nullable String key) {
+    return AUTO_URI.equals(nsURI) && APP_PREFIX.equals(nsPrefix) && CONSTRAINT_REFERENCED_IDS.equals(key);
+  }
+
+  public static boolean isConstraintReferencedIds(@NotNull XmlAttributeValue value) {
+    PsiElement parent = value.getParent();
+    if (parent != null && parent instanceof XmlAttribute) {
+      XmlAttribute xmlAttribute = (XmlAttribute) parent;
+
+      String nsURI = xmlAttribute.getNamespace();
+      String nsPrefix = xmlAttribute.getNamespacePrefix();
+      String key = xmlAttribute.getLocalName();
+
+      return isConstraintReferencedIds(nsURI, nsPrefix, key);
+    }
+    return false;
   }
 
   @NotNull

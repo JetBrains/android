@@ -18,7 +18,6 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;

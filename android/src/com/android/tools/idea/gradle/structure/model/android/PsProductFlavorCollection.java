@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
+import com.google.common.collect.MoreCollectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,9 +32,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
-  @NotNull private final Map<String, PsProductFlavor> myProductFlavorsByName = Maps.newHashMap();
+  @NotNull private final Map<String, PsProductFlavor> myProductFlavorsByName = Maps.newLinkedHashMap();
+  @NonNull private final PsAndroidModule myParent;
 
   PsProductFlavorCollection(@NonNull PsAndroidModule parent) {
+    myParent = parent;
     Map<String, ProductFlavor> productFlavorsFromGradle = Maps.newHashMap();
     for (ProductFlavorContainer container : parent.getGradleModel().getAndroidProject().getProductFlavors()) {
       ProductFlavor productFlavor = container.getProductFlavor();
@@ -75,5 +78,19 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
       return type.cast(myProductFlavorsByName.get(name));
     }
     return null;
+  }
+
+  @NotNull
+  public PsProductFlavor addNew(@NotNull String name) {
+    assert myParent.getParsedModel() != null;
+    AndroidModel androidModel = myParent.getParsedModel().android();
+    assert androidModel != null;
+    androidModel.addProductFlavor(name);
+    List<ProductFlavorModel> productFlavors = androidModel.productFlavors();
+    PsProductFlavor model =
+      new PsProductFlavor(myParent, null, productFlavors.stream().filter(it -> it.name().equals(name)).collect(MoreCollectors.onlyElement()));
+    myProductFlavorsByName.put(name, model);
+    myParent.setModified(true);
+    return model;
   }
 }

@@ -28,12 +28,16 @@ import java.util.List;
 /**
  * Represents a reference expression.
  */
-public final class GradleDslReference extends GradleDslExpression {
+public final class GradleDslReference extends GradleDslSettableExpression {
   public GradleDslReference(@NotNull GradleDslElement parent,
                             @NotNull PsiElement psiElement,
                             @NotNull String name,
                             @NotNull PsiElement reference) {
     super(parent, psiElement, name, reference);
+  }
+
+  public GradleDslReference(@NotNull GradleDslElement parent, @NotNull String name) {
+    super(parent, null, name, null);
   }
 
   @Override
@@ -44,7 +48,8 @@ public final class GradleDslReference extends GradleDslExpression {
 
   @Nullable
   public String getReferenceText() {
-    return myExpression != null ? myExpression.getText() : null;
+    PsiElement element = getCurrentElement();
+    return element != null ? element.getText() : null;
   }
 
   @Override
@@ -77,7 +82,8 @@ public final class GradleDslReference extends GradleDslExpression {
   @Nullable
   public GradleReferenceInjection getReferenceInjection() {
     String text = getReferenceText();
-    if (text == null || myExpression == null) {
+    PsiElement psiElement = getCurrentElement();
+    if (text == null || psiElement == null) {
       return null;
     }
 
@@ -87,7 +93,7 @@ public final class GradleDslReference extends GradleDslExpression {
       return null;
     }
 
-    return new GradleReferenceInjection(element, myExpression, text);
+    return new GradleReferenceInjection(element, psiElement, text);
   }
 
   /**
@@ -116,28 +122,22 @@ public final class GradleDslReference extends GradleDslExpression {
 
   @Override
   public void setValue(@NotNull Object value) {
-    // TODO: Add support to set a reference value.
+    setUnsavedValue(getDslFile().getParser().convertToPsiElement(value));
   }
 
   @Override
   protected void apply() {
-    // TODO: Add support to update a reference element.
-  }
-
-  @Override
-  protected void reset() {
-    // TODO: Add support to update a reference element.
+    getDslFile().getWriter().applyDslReference(this);
   }
 
   @Override
   @Nullable
   public PsiElement create() {
-    // TODO: Add support to create a new reference element.
-    return getPsiElement();
+    return getDslFile().getWriter().createDslReference(this);
   }
 
   @Override
   protected void delete() {
-    // TODO: Add support to delete a reference element.
+    getDslFile().getWriter().deleteDslReference(this);
   }
 }

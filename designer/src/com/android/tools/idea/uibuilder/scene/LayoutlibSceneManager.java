@@ -286,7 +286,8 @@ public class LayoutlibSceneManager extends SceneManager {
   protected void updateFromComponent(SceneComponent sceneComponent) {
     super.updateFromComponent(sceneComponent);
     NlComponent component = sceneComponent.getNlComponent();
-    if (getScene().isAnimated()) {
+    boolean animate = getScene().isAnimated() && !sceneComponent.hasNoDimension();
+    if (animate) {
       long time = System.currentTimeMillis();
       sceneComponent.setPositionTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
                                        Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)),
@@ -485,6 +486,7 @@ public class LayoutlibSceneManager extends SceneManager {
     requestRender(null, LayoutEditorRenderResult.Trigger.USER);
   }
 
+  @Override
   public void requestLayoutAndRender(boolean animate) {
     requestRender(() -> {
       getModel().notifyListenersModelLayoutComplete(animate);
@@ -939,10 +941,11 @@ public class LayoutlibSceneManager extends SceneManager {
       updateBounds(view, 0, 0, snapshotToComponent, tagToComponent);
     }
 
-    if (!rootViews.isEmpty()) {
+    ImmutableList<NlComponent> components = model.getComponents();
+    if (!rootViews.isEmpty() && !components.isEmpty()) {
       // Finally, fix up bounds: ensure that all components not found in the view
       // info hierarchy inherit position from parent
-      fixBounds(model.getComponents().get(0));
+      fixBounds(components.get(0));
     }
   }
 

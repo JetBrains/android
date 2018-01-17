@@ -36,11 +36,11 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
    * For example see: tools/base/templates/activities/BasicActivity/template.xml
    */
   public enum ActivityTextField {
-    NAME("Activity Name"),
-    LAYOUT("Layout Name"),
-    TITLE("Title"),
-    HIERARCHICAL_PARENT("Hierarchical Parent"),
-    PACKAGE_NAME("Package name");
+    NAME("Activity Name:"),
+    LAYOUT("Layout Name:"),
+    TITLE("Title:"),
+    HIERARCHICAL_PARENT("Hierarchical Parent:"),
+    PACKAGE_NAME("Package name:");
 
     private final String labelText;
 
@@ -104,14 +104,14 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
 
   @NotNull
   public ConfigureBasicActivityStepFixture<W> setTargetSourceSet(@NotNull String targetSourceSet) {
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Target Source Set", JComboBox.class, true))
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Target Source Set:", JComboBox.class, true))
       .selectItem(targetSourceSet);
     return this;
   }
 
   @NotNull
   public ConfigureBasicActivityStepFixture<W> setSourceLanguage(@NotNull String sourceLanguage) {
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Source Language", JComboBox.class, true))
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Source Language:", JComboBox.class, true))
       .selectItem(sourceLanguage);
     return this;
   }

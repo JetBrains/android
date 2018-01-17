@@ -51,13 +51,14 @@ public class LaunchAndroidApplicationTest {
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
-  private static final String APPLICATION_STARTED = ".*Application started.*";
   private static final String FATAL_SIGNAL_11_OR_6 = ".*SIGSEGV.*|.*SIGABRT.*";
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final String INSTRUMENTED_TEST_CONF_NAME = "instrumented_test";
   private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
+  private static final Pattern ADB_SHELL_AM_START = Pattern.compile(
+    ".*adb shell am start .*com\\.example\\.hellojni.*", Pattern.DOTALL);
   private static final Pattern INSTRUMENTED_TEST_OUTPUT = Pattern.compile(
     ".*adb shell am instrument .*AndroidJUnitRunner.*Tests ran to completion.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
@@ -170,7 +171,13 @@ public class LaunchAndroidApplicationTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
-    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(APPLICATION_STARTED, Pattern.DOTALL)), 120);
+
+    // Workaround:
+    // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(ADB_SHELL_AM_START), 120);
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess("com.example.hellojni");
+
     contentWindow.stop();
   }
 

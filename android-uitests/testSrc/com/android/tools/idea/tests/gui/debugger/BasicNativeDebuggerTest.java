@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.debugger;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
@@ -37,6 +38,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final ScreenshotsDuringTest movieMaker = new ScreenshotsDuringTest();
 
   /**
    * <p>TT ID: TODO this test case needs a TT ID.
@@ -189,7 +191,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/37133277
   public void testDualDebuggerBreakpoints() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());

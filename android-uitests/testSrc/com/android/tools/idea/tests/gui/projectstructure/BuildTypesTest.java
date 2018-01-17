@@ -61,7 +61,6 @@ public class BuildTypesTest {
       .setDebuggable("true")
       .setVersionNameSuffix("suffix")
       .clickOk()
-      .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("/app/build.gradle")
       .getCurrentFileContents();
@@ -94,7 +93,6 @@ public class BuildTypesTest {
       .setDebuggable("true")
       .setVersionNameSuffix("suffix")
       .clickOk()
-      .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("/app/build.gradle")
       .getCurrentFileContents();

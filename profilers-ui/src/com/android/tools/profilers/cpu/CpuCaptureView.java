@@ -138,7 +138,7 @@ class CpuCaptureView {
       toolbar.add(new FlatSeparator());
       toolbar.add(filterButton);
 
-      myFilterComponent.addOnFilterChange(pattern -> myView.getStage().setCaptureFilter(pattern));
+      myFilterComponent.addOnFilterChange((pattern, model) -> myView.getStage().setCaptureFilter(pattern));
       myFilterComponent.setVisible(false);
       myFilterComponent.setBorder(DEFAULT_BOTTOM_BORDER);
       myFilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, filterButton);
@@ -269,7 +269,7 @@ class CpuCaptureView {
       orientation = HTreeChart.Orientation.BOTTOM_UP;
     }
     HTreeChart<CaptureNode> chart = new HTreeChart<>(globalRange, range, orientation);
-    chart.setHRenderer(new CaptureNodeModelHRenderer(type));
+    chart.setHRenderer(new CaptureNodeHRenderer(type));
     chart.setRootVisible(false);
 
     chart.setHTree(node);
@@ -597,6 +597,12 @@ class CpuCaptureView {
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
       myChart = setUpChart(CaptureModel.Details.Type.FLAME_CHART, flameChart.getRange(), myMasterRange, myFlameChart.getNode(), stageView);
+      myObserver = new AspectObserver();
+
+      if (myFlameChart.getNode() == null) {
+        myPanel = getNoDataForThread();
+        return;
+      }
 
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(flameChart.getRange(), myMasterRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
@@ -610,7 +616,6 @@ class CpuCaptureView {
       myPanel.add(contentPanel, CARD_CONTENT);
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
-      myObserver = new AspectObserver();
       myFlameChart.getAspect().addDependency(myObserver).onChange(CaptureModel.FlameChart.Aspect.NODE, this::nodeChanged);
       nodeChanged();
     }
@@ -778,10 +783,10 @@ class CpuCaptureView {
         append(value.toString());
       }
       if (myAlignment == SwingConstants.LEFT) {
-        setIpad(ProfilerLayout.TABLE_COLUMN_CELL_INSETS);
+        setIpad(TABLE_COLUMN_CELL_INSETS);
       }
       else {
-        setIpad(ProfilerLayout.TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
+        setIpad(TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS);
       }
     }
 
@@ -825,10 +830,10 @@ class CpuCaptureView {
       if (myPercentage > 0) {
         g.setColor(mySparklineColor);
         // The sparkline starts from the left side of the cell and is proportional to the value, occupying at most half of the cell.
-        g.fillRect(ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING,
-                   ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING,
-                   (int)(myPercentage * (getWidth() / 2 - ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
-                   getHeight() - ProfilerLayout.TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING * 2);
+        g.fillRect(TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING,
+                   TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING,
+                   (int)(myPercentage * (getWidth() / 2 - TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
+                   getHeight() - TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING * 2);
       }
       super.paintComponent(g);
     }

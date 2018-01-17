@@ -137,7 +137,7 @@ public class AndroidPluginVersionUpdater {
   @NotNull
   public UpdateResult updatePluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
     UpdateResult result = new UpdateResult();
-    runWriteCommandAction(myProject, () -> updateAndroidPluginVersion(pluginVersion, result));
+    runWriteCommandAction(myProject, () -> updateAndroidPluginVersion(pluginVersion, gradleVersion, result));
 
     // Update Gradle version only if plugin is successful updated, to avoid leaving the project
     // in a inconsistent state.
@@ -151,9 +151,10 @@ public class AndroidPluginVersionUpdater {
    * Updates android plugin version.
    *
    * @param pluginVersion the plugin version to update to.
+   * @param gradleVersion the Gradle version that the project will use (or null if it will not change)
    * @param result        result of the update operation.
    */
-  private void updateAndroidPluginVersion(@NotNull GradleVersion pluginVersion, @NotNull UpdateResult result) {
+  private void updateAndroidPluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion, @NotNull UpdateResult result) {
     List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
 
     // Refresh the file system to avoid reading stale cached virtual files.
@@ -168,6 +169,14 @@ public class AndroidPluginVersionUpdater {
           String versionValue = dependency.version().value();
           if (isEmpty(versionValue) || pluginVersion.compareTo(versionValue) != 0) {
             dependency.setVersion(pluginVersion.toString());
+            // Add Google Maven repository to buildscript (b/69977310)
+            if (gradleVersion != null) {
+              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
+            }
+            else {
+              // Gradle version will *not* change, use project version
+              buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+            }
             modelsToUpdate.add(buildModel);
           }
           break;

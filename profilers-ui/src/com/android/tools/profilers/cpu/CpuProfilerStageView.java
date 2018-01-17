@@ -514,11 +514,17 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setToolTipText("");
         myProfilingConfigurationCombo.setEnabled(false);
         break;
+      case START_FAILURE:
+        mySplitter.setSecondComponent(null);
+        break;
       case STOPPING:
         myCaptureButton.setEnabled(false);
         myCaptureStatus.setText("Stopping record...");
         myCaptureButton.setToolTipText("");
         myProfilingConfigurationCombo.setEnabled(false);
+        break;
+      case STOP_FAILURE:
+        mySplitter.setSecondComponent(null);
         break;
     }
   }

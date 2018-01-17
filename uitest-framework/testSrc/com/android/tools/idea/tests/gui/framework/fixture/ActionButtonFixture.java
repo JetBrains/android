@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -88,7 +87,7 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public static ActionButtonFixture findByIcon(@NotNull final Icon icon, @NotNull Robot robot, @NotNull Container container) {
-    ActionButton button = robot.finder().find(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton button = GuiTests.waitUntilShowing(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         try {

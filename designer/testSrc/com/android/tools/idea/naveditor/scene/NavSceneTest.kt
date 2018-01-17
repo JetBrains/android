@@ -80,7 +80,7 @@ class NavSceneTest : NavTestCase() {
         "DrawFilledRectangle,580x400x70x19,fffafafa,6\n" +
         "DrawRectangle,579x399x72x21,ffa7a7a7,1,6\n" +
         "DrawTruncatedText,3,Nested Graph,580x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawAction,NORMAL,580x400x70x19,400x400x76x128,NORMAL\n" +
+        "DrawAction,EXIT,580x400x70x19,400x400x76x128,NORMAL\n" +
         "DrawArrow,2,RIGHT,390x461x5x6,b2a7a7a7\n" +
         "DrawTruncatedText,3,subnav,580x390x70x5,ff656565,Default:0:9,false\n" +
         "\n" +
@@ -362,7 +362,7 @@ class NavSceneTest : NavTestCase() {
         "DrawFilledRectangle,-100x-70x70x19,fffafafa,6\n" +
         "DrawRectangle,-101x-71x72x21,ffa7a7a7,1,6\n" +
         "DrawTruncatedText,3,Nested Graph,-100x-70x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawAction,NORMAL,-100x-70x70x19,-10x-100x76x128,NORMAL\n" +
+        "DrawAction,EXIT,-100x-70x70x19,-10x-100x76x128,NORMAL\n" +
         "DrawArrow,2,RIGHT,-20x-39x5x6,b2a7a7a7\n" +
         "DrawTruncatedText,3,subnav,-100x-80x70x5,ff656565,Default:0:9,false\n" +
         "\n" +

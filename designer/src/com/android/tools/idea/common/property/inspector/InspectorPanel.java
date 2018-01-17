@@ -40,6 +40,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBInsets;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +59,7 @@ import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>> extends AdtSecondaryPanel implements KeyEventDispatcher {
+  private static final int MAX_LABEL_WIDTH = JBUI.scale(200);
   private static final int HORIZONTAL_SPACING = 6;
   private static final int COLUMN_COUNT = 2;
 
@@ -505,23 +507,26 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
         GridLayoutManager gridLayoutManager = (GridLayoutManager)layoutManager;
         if (getWidth() != myWidth) {
           myWidth = getWidth();
+          int labelWidth = Math.min((int)((myWidth - 2 * HORIZONTAL_SPACING) * .4), MAX_LABEL_WIDTH);
+          int editorWidth = myWidth - 2 * HORIZONTAL_SPACING - labelWidth;
+
           for (Component component : getComponents()) {
             GridConstraints constraints = gridLayoutManager.getConstraintsForComponent(component);
             if (constraints != null) {
-              updateMinimumSize(constraints);
+              updateMinimumSize(constraints, labelWidth, editorWidth);
             }
           }
         }
       }
     }
 
-    private void updateMinimumSize(@NotNull GridConstraints constraints) {
+    private static void updateMinimumSize(@NotNull GridConstraints constraints, int labelWidth, int editorWidth) {
       if (constraints.getColSpan() == 1) {
         if (constraints.getColumn() == 0) {
-          constraints.myMinimumSize.setSize((myWidth - 2 * HORIZONTAL_SPACING) * .4, -1);
+          constraints.myMinimumSize.setSize(labelWidth, -1);
         }
         else if (constraints.getColumn() == 1) {
-          constraints.myMinimumSize.setSize((myWidth - 2 * HORIZONTAL_SPACING) * .6, -1);
+          constraints.myMinimumSize.setSize(editorWidth, -1);
         }
       }
     }

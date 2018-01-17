@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd;
 
 import com.android.ddmlib.IDevice;
+import com.android.flags.junit.RestoreFlagRule;
 import com.android.tools.ir.client.InstantRunArtifact;
 import com.android.tools.ir.client.InstantRunArtifactType;
 import com.android.tools.ir.client.InstantRunBuildInfo;
@@ -25,6 +26,7 @@ import com.android.tools.idea.run.tasks.*;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -32,13 +34,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.flags.StudioFlags.UNINSTALL_LAUNCHER_APPS_ENABLED;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class InstantRunBuildAnalyzerTest {
+  @Rule public final RestoreFlagRule<Boolean> myRestoreFlagRule = new RestoreFlagRule<>(UNINSTALL_LAUNCHER_APPS_ENABLED);
+
   private IDevice myDevice;
   private IDevice myEmbeddedDevice;
   private Project myProject;
@@ -96,8 +100,9 @@ public class InstantRunBuildAnalyzerTest {
   }
 
   @Test
-  public void testFullApkOnEmbeddedHardware() {
+  public void testFullApkOnEmbeddedHardwareWithUninstallDisabled() {
     // setup conditions
+    UNINSTALL_LAUNCHER_APPS_ENABLED.override(false);
     when(mySession.isProcessTerminated()).thenReturn(true);
     when(myBuildInfo.getArtifacts()).thenReturn(getExampleArtifact());
     when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(false);
@@ -107,7 +112,24 @@ public class InstantRunBuildAnalyzerTest {
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.FULLAPK, buildAnalyzer.getDeployType());
     List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myEmbeddedDevice, myLaunchOptions);
-    assertEquals(tasks.size(), 2);
+    assertEquals(1, tasks.size());
+    assertTrue(tasks.get(0) instanceof DeployApkTask);
+  }
+
+  @Test
+  public void testFullApkOnEmbeddedHardwareWithUninstallEnabled() {
+    // setup conditions
+    UNINSTALL_LAUNCHER_APPS_ENABLED.override(true);
+    when(mySession.isProcessTerminated()).thenReturn(true);
+    when(myBuildInfo.getArtifacts()).thenReturn(getExampleArtifact());
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(false);
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT_MAIN)).thenReturn(false);
+
+    // test
+    InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
+    assertEquals(DeployType.FULLAPK, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myEmbeddedDevice, myLaunchOptions);
+    assertEquals(2, tasks.size());
     assertTrue(tasks.get(0) instanceof UninstallIotLauncherAppsTask);
     assertTrue(tasks.get(1) instanceof DeployApkTask);
   }
@@ -129,8 +151,9 @@ public class InstantRunBuildAnalyzerTest {
   }
 
   @Test
-  public void testSplitApkOnEmbeddedHardware() {
+  public void testSplitApkOnEmbeddedHardwareWithUninstallDisabled() {
     // setup conditions
+    UNINSTALL_LAUNCHER_APPS_ENABLED.override(false);
     when(mySession.isProcessTerminated()).thenReturn(true);
     when(myBuildInfo.getArtifacts()).thenReturn(getExampleArtifact());
     when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(true);
@@ -139,7 +162,24 @@ public class InstantRunBuildAnalyzerTest {
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.SPLITAPK, buildAnalyzer.getDeployType());
     List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myEmbeddedDevice, myLaunchOptions);
-    assertEquals(tasks.size(), 3);
+    assertEquals(2, tasks.size());
+    assertTrue(tasks.get(0) instanceof SplitApkDeployTask);
+    assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
+  }
+
+  @Test
+  public void testSplitApkOnEmbeddedHardwareWithUninstallEnabled() {
+    // setup conditions
+    UNINSTALL_LAUNCHER_APPS_ENABLED.override(true);
+    when(mySession.isProcessTerminated()).thenReturn(true);
+    when(myBuildInfo.getArtifacts()).thenReturn(getExampleArtifact());
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(true);
+
+    // test
+    InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
+    assertEquals(DeployType.SPLITAPK, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myEmbeddedDevice, myLaunchOptions);
+    assertEquals(3, tasks.size());
     assertTrue(tasks.get(0) instanceof UninstallIotLauncherAppsTask);
     assertTrue(tasks.get(1) instanceof SplitApkDeployTask);
     assertTrue(tasks.get(2) instanceof UpdateInstantRunStateTask);

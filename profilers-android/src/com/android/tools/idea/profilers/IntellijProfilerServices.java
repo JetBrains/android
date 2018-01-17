@@ -20,6 +20,7 @@ import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
@@ -32,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -268,4 +270,10 @@ public class IntellijProfilerServices implements IdeProfilerServices {
         return extension != null && nativeExtensions.contains(extension.toLowerCase());
       });
   }
+
+  @Override
+  public void showErrorBalloon(@NotNull String title, @NotNull String text) {
+    AndroidNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR);
+  }
+
 }

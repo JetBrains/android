@@ -71,14 +71,14 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testCanBuildDefaultNewInstantAppFeatureModules() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
   public void testCanBuildEmptyNewInstantAppFeatureModules() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule("feature1", "Add No Activity");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
@@ -86,7 +86,7 @@ public class NewInstantAppModuleTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/71515856
   @Test
   public void testCanBuildProjectWithMultipleFeatureModules() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule(null, null);
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
@@ -111,7 +111,7 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testCanBuildProjectWithEmptySecondFeatureModule() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
     addNewFeatureModule("feature2", "Add No Activity");
@@ -121,7 +121,7 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     addNewFeatureModule("feature");
 
     Module module = guiTest.ideFrame().getModule("feature");

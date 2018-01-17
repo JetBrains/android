@@ -557,6 +557,18 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     assertThat(searchField.getText()).isEqualTo("b");
   }
 
+  public void testStopSearching() {
+    findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    searchField.setText("width");
+
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assert panel != null;
+    panel.stopFiltering();
+    assertThat(searchField.isVisible()).isFalse();
+    assertThat(searchField.getText()).isEqualTo("");
+  }
+
   public void testEscapeClosesSearchFieldIfTextIsEmpty() {
     findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
     SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());

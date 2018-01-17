@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.structure.editors;
 import com.android.SdkConstants;
 import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
@@ -58,6 +60,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Predicate;
 
 import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
 
@@ -237,8 +240,11 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
 
     RepositoryUrlManager manager = RepositoryUrlManager.get();
+    Predicate<GradleVersion> supportLibraryFilter = manager.findExistingSupportVersionFilter(module);
     for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
-      String artifactCoordinate = manager.getArtifactStringCoordinate(id, true);
+      // Note: Only the old style support library have version dependencies, so explicitly check the group ID:
+      Predicate<GradleVersion> filter = id.getMavenGroupId().equals(ImportModule.SUPPORT_GROUP_ID) ? supportLibraryFilter : null;
+      String artifactCoordinate = manager.getArtifactStringCoordinate(id, filter, true);
       if (artifactCoordinate != null) {
         Artifact artifact = Artifact.fromCoordinate(artifactCoordinate);
         if (artifact != null) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.ir.client.InstantRunArtifact;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
@@ -101,7 +102,8 @@ public class InstantRunBuildAnalyzer {
 
     DeployType deployType = getDeployType();
     List<LaunchTask> tasks = new ArrayList<>();
-    if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED) &&
+    if (StudioFlags.UNINSTALL_LAUNCHER_APPS_ENABLED.get() &&
+        device.supportsFeature(IDevice.HardwareFeature.EMBEDDED) &&
         (deployType == DeployType.SPLITAPK || deployType == DeployType.FULLAPK)) {
       tasks.add(new UninstallIotLauncherAppsTask(myProject, myContext.getApplicationId()));
     }

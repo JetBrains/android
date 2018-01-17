@@ -408,6 +408,16 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(R_JAVA_PATH, "R.java", true);
   }
 
+  public void testConstraintReferencedIds() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout_constraint_referenced_ids.xml", "res/layout/layout_constraint_referenced_ids.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    checkAndRename("@+id/anchor1");
+    myFixture.checkResultByFile(BASE_PATH + "layout_constraint_referenced_ids_after.xml");
+    myFixture.checkResultByFile(R_JAVA_PATH, "R.java", true);
+  }
+
   public void testJavaReferenceToId() throws Throwable {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR7.java", "src/p1/p2/RefR7.java");

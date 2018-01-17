@@ -20,6 +20,7 @@ import com.android.repository.api.ProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.progress.ProgressIndicator;
+import freemarker.log.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,17 +74,24 @@ public class SdkManagerProgressIndicatorIntegration extends ProgressIndicatorAda
   @Override
   public void logError(@NonNull String s, @Nullable Throwable e) {
     if (e != null) {
-      myErrors.append(String.format("%s: %s\n", e.getClass().getName(), e.getMessage()));
+      String message = String.format("%s: %s\n", e.getClass().getName(), e.getMessage());
+      myErrors.append(message);
+      myContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
     }
+    myContext.print(s, ConsoleViewContentType.ERROR_OUTPUT);
     myErrors.append(s);
   }
 
   @Override
   public void logWarning(@NonNull String s, @Nullable Throwable e) {
     if (e != null) {
-      myErrors.append(String.format("%s: %s\n", e.getClass().getName(), e.getMessage()));
+      String message = String.format("%s: %s\n", e.getClass().getName(), e.getMessage());
+      myContext.print(message, ConsoleViewContentType.LOG_WARNING_OUTPUT);
+      myErrors.append(message);
     }
-    myErrors.append(String.format("Warning: %s\n", s));
+    String message = String.format("Warning: %s\n", s);
+    myContext.print(message, ConsoleViewContentType.LOG_WARNING_OUTPUT);
+    myErrors.append(message);
   }
 
   public String getErrors() {

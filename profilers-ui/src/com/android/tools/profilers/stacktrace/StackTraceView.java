@@ -16,7 +16,6 @@
 package com.android.tools.profilers.stacktrace;
 
 import com.android.tools.profilers.ContextMenuInstaller;
-import com.android.tools.profilers.IdeProfilerComponents;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

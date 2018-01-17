@@ -115,8 +115,12 @@ public class UsageTrackerUtil {
     switch (groupName) {
       case "All":
         return ViewGroup.ALL_GROUPS;
+      case "All Results":
+        return ViewGroup.ALL_RESULTS;
+      case "Common":
+        return ViewGroup.COMMON;
       case "Buttons":
-        return ViewGroup.WIDGETS;  // TODO: Add Buttons ViewGroup to Logging type
+        return ViewGroup.BUTTONS;
       case "Widgets":
         return ViewGroup.WIDGETS;
       case "Text":
@@ -140,7 +144,7 @@ public class UsageTrackerUtil {
       case "AppCompat":
         return ViewGroup.APP_COMPAT;
       case "Legacy":
-        return ViewGroup.WIDGETS;  // TODO: Add Legacy ViewGroup to Logging type
+        return ViewGroup.LEGACY;
       default:
         return ViewGroup.CUSTOM;
     }

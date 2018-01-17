@@ -25,12 +25,12 @@ import java.awt.FontMetrics
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 
-class CaptureNodeModelHRendererTest {
+class CaptureNodeHRendererTest {
 
   @Test
   fun renderInvalidNodeShouldThrowException() {
     val unsupportedNode = CaptureNode(SingleNameModel("write"))
-    val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
     val fakeGraphics = TestGraphics2D()
     try {
@@ -45,7 +45,7 @@ class CaptureNodeModelHRendererTest {
   @Test
   fun invalidChartTypeShouldThrowException() {
     try {
-      CaptureNodeModelHRenderer(CaptureModel.Details.Type.BOTTOM_UP)
+      CaptureNodeHRenderer(CaptureModel.Details.Type.BOTTOM_UP)
       fail()
     }
     catch (e: IllegalStateException) {
@@ -56,7 +56,7 @@ class CaptureNodeModelHRendererTest {
   @Test
   fun testFilterRenderStyle() {
     val simpleNode = CaptureNode(SyscallModel("write"))
-    val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
 
     val fakeGraphics = TestGraphics2D()
     fakeGraphics.paint = Color.RED
@@ -68,16 +68,16 @@ class CaptureNodeModelHRendererTest {
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.UNMATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
-    assertThat(fakeGraphics.paint).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(Color.BLACK))
+    assertThat(fakeGraphics.paint).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(Color.BLACK))
     assertThat(fakeGraphics.font.isBold).isFalse()
 
     fakeGraphics.paint = Color.RED
     simpleNode.filterType = CaptureNode.FilterType.EXACT_MATCH
     renderer.render(fakeGraphics, simpleNode, Rectangle2D.Float(), false)
     assertThat(fakeGraphics.paint).isEqualTo(Color.BLACK)
-    // TODO: refactor CaptureNodeModelHRenderer#render to check font is Bold for EXACT_MATCHES
+    // TODO: refactor CaptureNodeHRenderer#render to check font is Bold for EXACT_MATCHES
 
-    // TODO: refactor CaptureNodeModelHRenderer#render to cover the case of null filter type
+    // TODO: refactor CaptureNodeHRenderer#render to cover the case of null filter type
   }
 
   @Test
@@ -154,7 +154,7 @@ class CaptureNodeModelHRendererTest {
   private fun checkFittingText(nodeModel: CaptureNodeModel, expectedTexts: List<String>) {
     val node = CaptureNode(nodeModel)
     val textFitPredicate = TestTextFitPredicate()
-    val renderer = CaptureNodeModelHRenderer(CaptureModel.Details.Type.CALL_CHART, textFitPredicate)
+    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART, textFitPredicate)
     val graphics = TestGraphics2D()
 
     var prevTextLength = expectedTexts[0].length + 1
@@ -178,9 +178,9 @@ class CaptureNodeModelHRendererTest {
     assertThat(color).isEqualTo(callChartBorder)
     // Call chart unmatched
     color = JavaMethodHChartColors.getFillColor(model, callChart, true)
-    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(callChartFill))
+    assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(callChartFill))
     color = JavaMethodHChartColors.getBorderColor(model, callChart, true)
-    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(callChartBorder))
+    assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(callChartBorder))
     // Flame chart not unmatched
     color = JavaMethodHChartColors.getFillColor(model, flameChart, false)
     assertThat(color).isEqualTo(flameChartFill)
@@ -188,9 +188,9 @@ class CaptureNodeModelHRendererTest {
     assertThat(color).isEqualTo(flameChartBorder)
     // Flame chart unmatched
     color = JavaMethodHChartColors.getFillColor(model, flameChart, true)
-    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartFill))
+    assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(flameChartFill))
     color = JavaMethodHChartColors.getBorderColor(model, flameChart, true)
-    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartBorder))
+    assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(flameChartBorder))
   }
 
   private fun doTestNativeColors(model: NativeNodeModel, callChartFill: Color, callChartBorder: Color, flameChartFill: Color,
@@ -205,9 +205,9 @@ class CaptureNodeModelHRendererTest {
     assertThat(color).isEqualTo(callChartBorder)
     // Call chart unmatched
     color = NativeModelHChartColors.getFillColor(model, callChart, true)
-    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(callChartFill))
+    assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(callChartFill))
     color = NativeModelHChartColors.getBorderColor(model, callChart, true)
-    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(callChartBorder))
+    assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(callChartBorder))
     // Flame chart not unmatched
     color = NativeModelHChartColors.getFillColor(model, flameChart, false)
     assertThat(color).isEqualTo(flameChartFill)
@@ -215,9 +215,9 @@ class CaptureNodeModelHRendererTest {
     assertThat(color).isEqualTo(flameChartBorder)
     // Flame chart unmatched
     color = NativeModelHChartColors.getFillColor(model, flameChart, true)
-    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartFill))
+    assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(flameChartFill))
     color = NativeModelHChartColors.getBorderColor(model, flameChart, true)
-    assertThat(color).isEqualTo(CaptureNodeModelHRenderer.toUnmatchColor(flameChartBorder))
+    assertThat(color).isEqualTo(CaptureNodeHRenderer.toUnmatchColor(flameChartBorder))
   }
 
   private class TestGraphics2D : Graphics2DDelegate(UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
@@ -228,7 +228,7 @@ class CaptureNodeModelHRendererTest {
     }
   }
 
-  private class TestTextFitPredicate: CaptureNodeModelHRenderer.TextFitsPredicate {
+  private class TestTextFitPredicate: CaptureNodeHRenderer.TextFitsPredicate {
     var fittingLength: Int = 0
     override fun test(text: String, metrics: FontMetrics, width: Float) = text.length <= fittingLength
   }

@@ -286,6 +286,7 @@ class AttachedToolWindow<T> implements Disposable {
       myContent.setCloseAutoHideWindow(this::closeAutoHideWindow);
       myContent.setRestoreToolWindow(this::restore);
       myContent.setStartFiltering(this::startFiltering);
+      myContent.setStopFiltering(this::stopFiltering);
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
@@ -348,6 +349,14 @@ class AttachedToolWindow<T> implements Disposable {
     }
     mySearchField.setText(String.valueOf(character));
     showSearchField(true);
+  }
+
+  private void stopFiltering() {
+    if (myContent == null || !myContent.supportsFiltering()) {
+      return;
+    }
+    mySearchField.setText("");
+    showSearchField(false);
   }
 
   @NotNull

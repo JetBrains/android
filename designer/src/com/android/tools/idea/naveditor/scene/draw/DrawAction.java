@@ -114,6 +114,7 @@ public class DrawAction extends NavBaseDrawCommand {
 
         break;
       case NORMAL:
+      case EXIT:
         ActionTarget.CurvePoints points = ActionTarget.getCurvePoints(source, dest, sceneContext);
         PATH.moveTo(points.p1.x, points.p1.y);
         PATH.curveTo(points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
@@ -123,7 +124,11 @@ public class DrawAction extends NavBaseDrawCommand {
         return;
     }
 
-    g.setStroke(ActionDecoratorKt.ACTION_STROKE); // TODO: Draw dashed stroke for nested actions
+    BasicStroke actionStroke = (connectionType == ActionTarget.ConnectionType.EXIT)
+                               ? ActionDecoratorKt.DASHED_ACTION_STROKE
+                               : ActionDecoratorKt.ACTION_STROKE;
+
+    g.setStroke(actionStroke);
     g.setColor(actionColor);
     g.draw(PATH);
   }

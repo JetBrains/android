@@ -106,6 +106,7 @@ public class ScoutChainTest08 extends SceneTest {
                  "        android:id=\"@+id/a\"\n" +
                  "        android:layout_width=\"0dp\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginLeft=\"4dp\"\n" +
                  "        android:layout_marginStart=\"4dp\"\n" +
                  "        android:layout_marginTop=\"4dp\"\n" +
                  "        app:layout_constraintEnd_toStartOf=\"@+id/b\"\n" +
@@ -117,6 +118,7 @@ public class ScoutChainTest08 extends SceneTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginEnd=\"1dp\"\n" +
+                 "        android:layout_marginRight=\"1dp\"\n" +
                  "        app:layout_constraintEnd_toStartOf=\"@+id/c\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/a\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"@+id/a\" />\n" +
@@ -134,6 +136,7 @@ public class ScoutChainTest08 extends SceneTest {
                  "        android:layout_width=\"0dp\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginEnd=\"3dp\"\n" +
+                 "        android:layout_marginRight=\"3dp\"\n" +
                  "        android:layout_marginTop=\"4dp\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/c\"\n" +

@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -269,7 +268,7 @@ final class MemoryClassifierView extends AspectObserver {
     myTree = new JTree();
     int defaultFontHeight = myTree.getFontMetrics(myTree.getFont()).getHeight();
     myTree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
-    myTree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
+    myTree.setBorder(TABLE_ROW_BORDER);
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(false);
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

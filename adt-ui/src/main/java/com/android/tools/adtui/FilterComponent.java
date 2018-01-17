@@ -18,12 +18,10 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.model.FilterModel;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.SearchTextField;
 import com.intellij.util.Alarm;
-import com.intellij.util.Consumer;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -33,6 +31,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
@@ -191,6 +190,11 @@ public class FilterComponent extends JPanel {
     myModel.setFilterString(getFilter());
   }
 
+  @NotNull
+  public FilterModel getModel() {
+    return myModel;
+  }
+
   @Override
   public boolean requestFocusInWindow() {
     return myFilter.requestFocusInWindow();
@@ -211,7 +215,7 @@ public class FilterComponent extends JPanel {
   }
 
 
-  public void addOnFilterChange(@NotNull Consumer<Pattern> callback) {
+  public void addOnFilterChange(@NotNull BiConsumer<Pattern, FilterModel> callback) {
     myModel.addOnFilterChange(callback);
   }
 

@@ -58,6 +58,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackRunWithProfiling() {
+    track(AndroidProfilerEvent.Type.RUN_WITH_PROFILING);
+  }
+
+  @Override
   public void trackProfilingStarted() {
     newTracker(AndroidProfilerEvent.Type.PROFILING_STARTED).setDevice(myActiveDevice).track();
   }
@@ -230,6 +235,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectNetworkConnectionsView() {
+    track(AndroidProfilerEvent.Type.SELECT_CONNECTIONS_CONNECTION_VIEW);
+  }
+
+  @Override
+  public void trackSelectNetworkThreadsView() {
+    track(AndroidProfilerEvent.Type.SELECT_CONNECTIONS_THREADS_VIEW);
+  }
+
+  @Override
   public void trackOpenProfilingConfigDialog() {
     track(AndroidProfilerEvent.Type.OPEN_CPU_CONFIG_DIALOG);
   }
@@ -237,6 +252,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackCreateCustomProfilingConfig() {
     track(AndroidProfilerEvent.Type.CREATE_CPU_CONFIG);
+  }
+
+  @Override
+  public void trackFilterMetadata(@NotNull com.android.tools.profilers.analytics.FilterMetadata filterMetadata) {
+    newTracker(AndroidProfilerEvent.Type.FILTER).setFilterMetadata(filterMetadata).track();
   }
 
   /**
@@ -261,6 +281,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull private final AndroidProfilerEvent.Stage myCurrStage;
     @Nullable private Common.Device myDevice;
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
+    @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
 
     public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
       myEventType = eventType;
@@ -273,13 +294,84 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
     public Tracker setCpuCaptureMetadata(@Nullable com.android.tools.profilers.cpu.CpuCaptureMetadata cpuCaptureMetadata) {
       myCpuCaptureMetadata = cpuCaptureMetadata;
       return this;
     }
 
+    @NotNull
+    public Tracker setFilterMetadata(@Nullable com.android.tools.profilers.analytics.FilterMetadata filterMetadata) {
+      myFeatureMetadata = filterMetadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
+      populateCpuCaptureMetadata(profilerEvent);
+      populateFilterMetadata(profilerEvent);
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+        .setAndroidProfilerEvent(profilerEvent);
+
+      if (myDevice != null) {
+        event.setDeviceInfo(
+          DeviceInfo.newBuilder()
+            .setManufacturer(myDevice.getManufacturer())
+            .setModel(myDevice.getModel())
+            .setBuildVersionRelease(myDevice.getVersion())
+            .setBuildApiLevelFull(new AndroidVersion(myDevice.getApiLevel(), myDevice.getCodename()).getApiString())
+            .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+            .build());
+      }
+
+      UsageTracker.getInstance().log(event);
+    }
+
+    private void populateFilterMetadata(AndroidProfilerEvent.Builder profilerEvent) {
+      if (myFeatureMetadata != null) {
+        FilterMetadata.Builder filterMetadata = FilterMetadata.newBuilder();
+        filterMetadata.setFeaturesUsed(myFeatureMetadata.getFeaturesUsed());
+        filterMetadata.setMatchedElements(myFeatureMetadata.getMatchedElementCount());
+        filterMetadata.setTotalElements(myFeatureMetadata.getTotalElementCount());
+        filterMetadata.setSearchLength(myFeatureMetadata.getFilterTextLength());
+        switch (myFeatureMetadata.getView()) {
+          case UNKNOWN_FILTER_VIEW:
+            filterMetadata.setActiveView(FilterMetadata.View.UNKNOWN_FILTER_VIEW);
+            break;
+          case CPU_TOP_DOWN:
+            filterMetadata.setActiveView(FilterMetadata.View.CPU_TOP_DOWN);
+            break;
+          case CPU_BOTTOM_UP:
+            filterMetadata.setActiveView(FilterMetadata.View.CPU_BOTTOM_UP);
+            break;
+          case CPU_FLAME_CHART:
+            filterMetadata.setActiveView(FilterMetadata.View.CPU_FLAME_CHART);
+            break;
+          case CPU_CALL_CHART:
+            filterMetadata.setActiveView(FilterMetadata.View.CPU_CALL_CHART);
+            break;
+          case MEMORY_CALLSTACK:
+            filterMetadata.setActiveView(FilterMetadata.View.MEMORY_CALLSTACK);
+            break;
+          case MEMORY_PACKAGE:
+            filterMetadata.setActiveView(FilterMetadata.View.MEMORY_PACKAGE);
+            break;
+          case MEMORY_CLASS:
+            filterMetadata.setActiveView(FilterMetadata.View.MEMORY_CLASS);
+            break;
+          case NETWORK_CONNECTIONS:
+            filterMetadata.setActiveView(FilterMetadata.View.NETWORK_CONNECTIONS);
+            break;
+          case NETWORK_THREADS:
+            filterMetadata.setActiveView(FilterMetadata.View.NETWORK_THREADS);
+            break;
+        }
+        profilerEvent.setFilterMetadata(filterMetadata);
+      }
+    }
+
+    private void populateCpuCaptureMetadata(AndroidProfilerEvent.Builder profilerEvent) {
       if (myCpuCaptureMetadata != null) {
         CpuCaptureMetadata.Builder captureMetadata = CpuCaptureMetadata.newBuilder()
           .setCaptureDurationMs(myCpuCaptureMetadata.getCaptureDurationMs())
@@ -338,23 +430,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
         profilerEvent.setCpuCaptureMetadata(captureMetadata);
       }
-
-      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-        .setAndroidProfilerEvent(profilerEvent);
-
-      if (myDevice != null) {
-        event.setDeviceInfo(
-          DeviceInfo.newBuilder()
-            .setManufacturer(myDevice.getManufacturer())
-            .setModel(myDevice.getModel())
-            .setBuildVersionRelease(myDevice.getVersion())
-            .setBuildApiLevelFull(new AndroidVersion(myDevice.getApiLevel(), myDevice.getCodename()).getApiString())
-            .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
-            .build());
-      }
-
-      UsageTracker.getInstance().log(event);
     }
   }
 }

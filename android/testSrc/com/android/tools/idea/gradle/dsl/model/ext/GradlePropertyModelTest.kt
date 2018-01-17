@@ -18,9 +18,10 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
-import com.android.tools.idea.gradle.dsl.api.util.TypeReference
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.openapi.vfs.VfsUtil
+import org.apache.commons.io.FileUtils
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testProperties() {
@@ -833,6 +834,231 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     runSetPropertyTest(text, VARIABLE)
   }
 
+  fun testSetBothStringTypes() {
+    val text = """
+               ext {
+                 lamb = 'Lamb'
+                 seven = 'sêvĕn'
+                 def prop1 = 'Value1'
+                 prop2 = 'Value2'
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      // Set the literal string
+      val literalProperty = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(literalProperty, STRING_TYPE, "Value1", STRING, VARIABLE, 0)
+      literalProperty.setValue("I watched as the ${'$'}{lamb}")
+      verifyPropertyModel(literalProperty, STRING_TYPE, "I watched as the ${'$'}{lamb}", STRING, VARIABLE, 0)
+
+      // Set the interpolated string
+      val interpolatedProperty = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(interpolatedProperty, STRING_TYPE, "Value2", STRING, REGULAR, 0)
+      interpolatedProperty.setValue(iStr("opened the first of the ${'$'}{seven} seals"))
+      verifyPropertyModel(interpolatedProperty, STRING_TYPE, "opened the first of the sêvĕn seals", STRING, REGULAR, 1)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check the properties after a reparse.
+    run {
+      val literalProperty = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(literalProperty, STRING_TYPE, "I watched as the ${'$'}{lamb}", STRING, VARIABLE, 0)
+
+      val interpolatedProperty = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(interpolatedProperty, STRING_TYPE, "opened the first of the sêvĕn seals", STRING, REGULAR, 1)
+
+      // Check the dependency is correct.
+      val dependencyModel = interpolatedProperty.dependencies[0]
+      verifyPropertyModel(dependencyModel, STRING_TYPE, "sêvĕn", STRING, REGULAR, 0)
+    }
+  }
+
+  fun testSetGarbageReference() {
+    val text = """
+               ext {
+                 prop1 = 'Then I heard one of the four living creatures say'
+                 prop2 = prop1
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+
+      propertyModel.setValue(ReferenceTo("in a voice like thunder"))
+      // Not: Since this doesn't actually make any sense, the word "in" gets removed as it is a keyword in Groovy.
+      verifyPropertyModel(propertyModel, STRING_TYPE, "a voice like thunder", REFERENCE, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      // TODO: Fix this, it should still parse the value.
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+  }
+
+  fun testSetReferenceWithModel() {
+    val text = """
+               ext {
+                 prop1 = '“Come and see!” I looked'
+                 prop2 = 'and there before me was a white horse!'
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "and there before me was a white horse!", STRING, REGULAR, 0)
+
+      val otherModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(otherModel, STRING_TYPE, "“Come and see!” I looked", STRING, REGULAR, 0)
+
+      // Set prop2 to refer to prop1
+      propertyModel.setValue(ReferenceTo(otherModel))
+      verifyPropertyModel(propertyModel, STRING_TYPE, "ext.prop1", REFERENCE, REGULAR, 1)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check the value
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "ext.prop1", REFERENCE, REGULAR, 1)
+    }
+  }
+
+  fun testQuotesWithinQuotes() {
+    val text = """
+               ext {
+                 prop2 = "\"\"\"Hello \"\"\""
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    // Check we read the string correctly
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "\"\"\"Hello \"\"\"", STRING, REGULAR, 0)
+    }
+
+    // Check we can set strings with quotes
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.setValue(iStr("\"Come and see!\" I looked"))
+      verifyPropertyModel(propertyModel, STRING_TYPE, "\"Come and see!\" I looked", STRING, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    println(FileUtils.readFileToString(myBuildFile))
+
+    // Check its correct after a reparse.
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "\"Come and see!\" I looked", STRING, REGULAR, 0)
+    }
+  }
+
+  fun testSetReferenceValue() {
+    val text = """
+               ext {
+                 prop1 = "Good"
+                 prop2 = "Evil"
+                 prop3 = prop2
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop3")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "prop2", REFERENCE, REGULAR, 1)
+
+      propertyModel.setValue(ReferenceTo("prop1"))
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check the the reference has changed.
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop3")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+    }
+  }
+
+  fun testChangePropertyTypeToReference() {
+    val text = """
+               ext {
+                 prop1 = "25"
+                 prop2 = true
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      // Check the unused property as well
+      val unusedModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(unusedModel, STRING_TYPE, "25", STRING, REGULAR, 0)
+
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0)
+
+      // Set to a reference.
+
+      propertyModel.setValue(ReferenceTo("prop1"))
+      verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+
+      val unusedModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(unusedModel, STRING_TYPE, "25", STRING, REGULAR, 0)
+    }
+  }
+
+  fun testChangePropertyTypeToLiteral() {
+    val text = """
+               ext {
+                 prop1 = 25
+                 prop2 = prop1
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      // Check referred to value.
+      val intModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(intModel, INTEGER_TYPE, 25, INTEGER, REGULAR, 0)
+
+      // Check the reference
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+
+      // Set the value, and check again
+      propertyModel.setValue(iStr("${'$'}{prop1}"))
+      verifyPropertyModel(propertyModel, STRING_TYPE, "25", STRING, REGULAR, 1)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "25", STRING, REGULAR, 1)
+
+      // Ensure the referred value is still correct.
+      val intModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(intModel, INTEGER_TYPE, 25, INTEGER, REGULAR, 0)
+    }
+  }
+
   fun testDependencyChangedUpdatesValue() {
     val text = """
                ext {
@@ -933,7 +1159,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     // Delete and reset the property
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      propertyModel.delete().setValue("New Value")
+      propertyModel.delete()
+      propertyModel.setValue("New Value")
     }
 
     // Check prop2 hasn't been affected
@@ -1008,7 +1235,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
-  fun testCheckSettingInvalidModel() {
+  fun testCheckSettingDeletedModel() {
     val text = """
                ext {
                  prop1 = "Value"
@@ -1017,23 +1244,21 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
 
-    // Delete property and attempt to set it again using the invalid model.
+    // Delete the property and attempt to set it again.
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       propertyModel.delete()
-      try {
-        propertyModel.setValue("Invalid Value")
-        fail()
-      } catch (e : IllegalStateException) {
-        assertTrue(e.message!!.startsWith("Attempted to change an invalid GradlePropertyModel"))
-      }
+      propertyModel.setValue("New Value")
+
+      verifyPropertyModel(propertyModel, STRING_TYPE, "New Value", STRING, REGULAR, 0)
     }
 
     applyChangesAndReparse(buildModel)
 
+    // Check this is still the case after a reparse.
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "New Value", STRING, REGULAR, 0)
     }
 
     // Check prop2
@@ -1041,6 +1266,77 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = buildModel.ext().findProperty("prop2")
       verifyPropertyModel(propertyModel, STRING_TYPE, "Other Value", STRING, REGULAR, 0)
     }
+  }
+
+  fun testEmptyProperty() {
+    val text = ""
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    val model = extModel.findProperty("prop")
+    assertEquals(NONE, model.valueType)
+    assertEquals(REGULAR, model.propertyType)
+    assertEquals(null, model.getValue(STRING_TYPE))
+    assertEquals(null, model.getValue(BOOLEAN_TYPE))
+    assertEquals(null, model.getValue(INTEGER_TYPE))
+    assertEquals(null, model.getValue(MAP_TYPE))
+    assertEquals(null, model.getValue(LIST_TYPE))
+    assertEquals("prop", model.name)
+    assertEquals("ext.prop", model.fullyQualifiedName)
+    assertEquals(buildModel.virtualFile, model.gradleFile)
+
+    assertEquals(null, model.getRawValue(STRING_TYPE))
+    assertSize(0, model.dependencies)
+  }
+
+  fun testDeletePropertyInList() {
+    val text = """
+               ext {
+                 prop1 = [1, 2, 3, 4]
+                 prop2 = "${'$'}{prop1[0]}"
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    // Values that should be obtained from the build file.
+    val one = 1
+    val two = 2
+
+    run {
+      val propertyModel = extModel.findProperty("prop1")
+      verifyListProperty(propertyModel, listOf<Any>(1, 2, 3, 4) , REGULAR, 0)
+    }
+
+    run {
+      val propertyModel = extModel.findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, one.toString(), STRING, REGULAR, 1, "prop2", "ext.prop2")
+      // Check the dependency
+      val dependencyModel = propertyModel.dependencies[0]
+      verifyPropertyModel(dependencyModel, INTEGER_TYPE, one, INTEGER, DERIVED, 0 /*, "0", "ext.prop1.0" TODO: FIX THIS */)
+      // Delete this property.
+      dependencyModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check that the value of prop2 has changed
+    run {
+      val propertyModel = gradleBuildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, two.toString(), STRING, REGULAR, 1, "prop2", "ext.prop2")
+      val dependencyModel = propertyModel.dependencies[0]
+      verifyPropertyModel(dependencyModel, INTEGER_TYPE, two, INTEGER, DERIVED, 0 /*, "0", "ext.prop1.0" TODO: FIX THIS */)
+    }
+  }
+
+  fun testiStr() {
+    assertEquals("\"Its rider held a bow, and he was given a crown, and he rode out as a conqueror bent on conquest.\"",
+            iStr("Its rider held a bow, and he was given a crown, and he rode out as a conqueror bent on conquest."))
+    assertEquals("\"When the Lamb opened the second seal, I heard the second living creature say, \\\"Come and see!\\\" \"",
+            iStr("When the Lamb opened the second seal, I heard the second living creature say, \"Come and see!\" "))
   }
 
   private fun runSetPropertyTest(text: String, type: PropertyType) {
@@ -1094,21 +1390,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(newRefModel, STRING_TYPE, "ref", STRING, type, 1)
       assertEquals("${'$'}{prop2}", newRefModel.getRawValue(STRING_TYPE))
     }
-  }
-
-  private fun <T> verifyPropertyModel(model: GradlePropertyModel, type: TypeReference<T>, value: T,
-                                      valueType: ValueType, propertyType: PropertyType, dependencies: Int) {
-    assertEquals(value, model.getValue(type))
-    assertEquals(valueType, model.valueType)
-    assertEquals(propertyType, model.propertyType)
-    assertEquals(dependencies, model.dependencies.size)
-  }
-
-  private fun <T> verifyPropertyModel(model: GradlePropertyModel, type: TypeReference<T>, value: T,
-                                      valueType: ValueType, propertyType: PropertyType, dependencies: Int, name : String, fullName : String) {
-    verifyPropertyModel(model, type, value, valueType, propertyType, dependencies)
-    assertEquals(name, model.name)
-    assertEquals(fullName, model.fullyQualifiedName)
   }
 
   private fun checkContainsValue(models: Collection<GradlePropertyModel>, model: GradlePropertyModel) {

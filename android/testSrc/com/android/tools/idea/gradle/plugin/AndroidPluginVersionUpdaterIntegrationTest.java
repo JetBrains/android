@@ -55,7 +55,10 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
     assertTrue(result.isPluginVersionUpdated());
     assertFalse(result.isGradleVersionUpdated());
 
-    verifyAndroidPluginVersion("20.0.0");
+    GradleBuildModel buildModel = verifyAndroidPluginVersion("20.0.0");
+
+    // Make sure Google Maven Repository is on buildscript after updating plugin (b/69977310)
+    assertTrue(buildModel.buildscript().repositories().hasGoogleMavenRepository());
   }
 
   public void testUpdatePluginVersionWhenPluginHasAlreadyUpdatedVersion() throws Throwable {
@@ -78,9 +81,10 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
     runWriteCommandAction(getProject(), buildModel::applyChanges);
   }
 
-  private void verifyAndroidPluginVersion(@NotNull String expectedVersion) {
+  private GradleBuildModel verifyAndroidPluginVersion(@NotNull String expectedVersion) {
     GradleBuildModel buildModel = getTopLevelBuildModel(getProject());
     assertEquals(expectedVersion, findAndroidPlugin(buildModel).version().value());
+    return buildModel;
   }
 
   @NotNull
