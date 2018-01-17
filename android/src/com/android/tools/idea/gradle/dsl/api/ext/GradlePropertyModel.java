@@ -151,6 +151,20 @@ public interface GradlePropertyModel {
   void setValue(@NotNull Object value);
 
   /**
+   * Converts this property to an empty map. Any values stored inside the property will be removed.
+   * This can be called on a property with any {@link ValueType} but will always result in a {@link ValueType} of {@link ValueType#MAP}.
+   * This method returns itself for in order to chain operations e.g propertyModel.convertToEmptyMap().addMapValue()
+   */
+  GradlePropertyModel convertToEmptyMap();
+
+  /**
+   * Sets the value, in the map represented by this property, that corresponds to the given key. The model representing the
+   * new value is returned by this method.
+   * This should only be used for properties for which {@link #getValueType()} returns {@link ValueType#MAP}.
+   */
+  GradlePropertyModel addMapValue(@NotNull String key);
+
+  /**
    * Marks this property for deletion, which when {@link GradleBuildModel#applyChanges()} is called, removes it and its value
    * from the file. Any call to {@link #setValue(Object)} will recreate the property and add it back to the file.
    */

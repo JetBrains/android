@@ -140,43 +140,55 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   public void setValue(@NotNull Object value) {
-    if (myValueType == MAP || myValueType == LIST) {
-      throw new UnsupportedOperationException("Setting map and list values are not supported!");
-    }
-
-
     boolean isReference = value instanceof ReferenceTo;
-
-    // Work out which element we need, either GradleDslLiteral or GradleDslReference.
-    if (!(value instanceof Integer || value instanceof Boolean || value instanceof String || isReference)) {
-      throw new UnsupportedOperationException("Only setting basic types are currently supported");
-    }
 
     // Check if we can reuse the element.
     if (!isReference && myElement instanceof GradleDslLiteral ||
         isReference && myElement instanceof GradleDslReference) {
       GradleDslExpression expression = (GradleDslExpression)myElement;
       expression.setValue(value);
+      // Set the value type for the new value.
+      myValueType = extractAndGetValueType(myElement);
     } else {
       // We can't reuse, need to delete and create a new one.
       delete();
 
-      // This is always the case unless myValueType == LIST.
-      assert myPropertyHolder instanceof GradlePropertiesDslElement;
+      if (myPropertyHolder instanceof GradlePropertiesDslElement) {
+        GradleDslExpression newElement;
+        if (!isReference) {
+          newElement = new GradleDslLiteral(myPropertyHolder, myName);
+        }
+        else {
+          newElement = new GradleDslReference(myPropertyHolder, myName);
+        }
+        newElement.setValue(value);
+        bindToNewElement(newElement);
+      }
+      else {
+        assert myPropertyHolder instanceof GradleDslExpressionList;
 
-      if (!isReference) {
-        myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewLiteral(myName, value);
-        myElement.setElementType(myPropertyType);
-      } else {
-        GradleDslReference newReference = new GradleDslReference(myPropertyHolder, myName);
-        newReference.setValue(value);
-        newReference.setElementType(myPropertyType);
-        myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewElement(myName, newReference);
+        // TODO: Handle lists.
       }
     }
+  }
 
-    // Set the value type for the new value.
-    myValueType = extractAndGetValueType(myElement);
+  @Override
+  @NotNull
+  public GradlePropertyModel convertToEmptyMap() {
+    makeEmptyMap();
+    return this;
+  }
+
+  @Override
+  public GradlePropertyModel addMapValue(@NotNull String key) {
+    if (myValueType != MAP) {
+      throw new IllegalStateException("Please call GradlePropertyModel#convertToMap before trying to add values");
+    }
+
+    assert myElement instanceof GradleDslExpressionMap;
+
+    GradleDslExpressionMap map = (GradleDslExpressionMap) myElement;
+    return new GradlePropertyModelImpl(map, PropertyType.DERIVED, key);
   }
 
   @Override
@@ -267,5 +279,23 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     return typeReference.castTo(value);
+  }
+
+  private void makeEmptyMap() {
+    // Makes this property a map, first remove the old property.
+    delete();
+
+    bindToNewElement(new GradleDslExpressionMap(myPropertyHolder, myName));
+  }
+
+  private void bindToNewElement(@NotNull GradleDslElement element) {
+    if (myPropertyHolder instanceof GradlePropertiesDslElement) {
+      element.setElementType(myPropertyType);
+      myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewElement(myName, element);
+      myValueType = extractAndGetValueType(myElement);
+    }
+    else if (myPropertyHolder instanceof GradleDslExpressionList) {
+      // TODO: Implement for lists.
+    }
   }
 }
