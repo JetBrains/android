@@ -59,7 +59,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   private boolean myCaptureDetailsCalled;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     myServices = new FakeIdeProfilerServices();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
@@ -69,7 +69,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testDefaultValues() throws IOException {
+  public void testDefaultValues() {
     assertThat(myStage.getCpuTraceDataSeries()).isNotNull();
     assertThat(myStage.getThreadStates()).isNotNull();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
@@ -79,7 +79,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testStartCapturing() throws InterruptedException {
+  public void testStartCapturing() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Start a successful capture
@@ -92,7 +92,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void startCapturingInstrumented() throws InterruptedException {
+  public void startCapturingInstrumented() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
     myServices.setPrePoolExecutor(() -> assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.STARTING));
@@ -106,7 +106,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testStopCapturingInvalidTrace() throws InterruptedException {
+  public void testStopCapturingInvalidTrace() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Start a successful capture
@@ -131,7 +131,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testStopCapturingInvalidTraceFailureStatus() throws InterruptedException {
+  public void testStopCapturingInvalidTraceFailureStatus() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Start a successful capture
@@ -148,7 +148,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testStopCapturingValidTraceFailureStatus() throws InterruptedException {
+  public void testStopCapturingValidTraceFailureStatus() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Start a successful capture
@@ -376,7 +376,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void setAndSelectCaptureDifferentClockType() throws IOException, InterruptedException {
+  public void setAndSelectCaptureDifferentClockType() throws InterruptedException {
     captureSuccessfully();
     CpuCapture capture = myStage.getCapture();
     CaptureNode captureNode = capture.getCaptureNode(capture.getMainThreadId());
@@ -556,7 +556,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testElapsedTime() throws InterruptedException {
+  public void testElapsedTime() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     // When there is no capture in progress, elapsed time is set to Long.MAX_VALUE.
     // As a result CpuProfilerStage#getCaptureElapsedTimeUs should return a negative value.
@@ -646,7 +646,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException, InterruptedException {
+  public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
                                                                 CpuProfiler.CpuProfilerType.SIMPLEPERF,
@@ -690,7 +690,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testInProgressDuration() throws InterruptedException {
+  public void testInProgressDuration() {
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(0);
     startCapturingSuccess();
     // Starting capturing should display in progress duration, it will be displayed when
@@ -703,7 +703,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testInProgressDurationAfterExitAndEnter() throws InterruptedException {
+  public void testInProgressDurationAfterExitAndEnter() {
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(0);
     startCapturingSuccess();
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(1);
@@ -756,7 +756,7 @@ public class CpuProfilerStageTest extends AspectObserver {
    * Simulate the scenario of calling {@link CpuProfilerStage#stopCapturing()} before calling {@link CpuProfilerStage#getCapture(int)}.
    */
   @Test
-  public void captureShouldBeParsedOnlyOnceStopCapturingBefore() throws InterruptedException, IOException, ExecutionException {
+  public void captureShouldBeParsedOnlyOnceStopCapturingBefore() throws InterruptedException, ExecutionException {
     assertThat(myStage.getCapture()).isNull();
     // stopCapturing() should create a capture with FAKE_TRACE_ID
     captureSuccessfully();
@@ -780,7 +780,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void cpuMetadataSuccessfulCapture() throws InterruptedException, IOException {
+  public void cpuMetadataSuccessfulCapture() throws InterruptedException {
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
                                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
@@ -802,7 +802,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void cpuMetadataFailureStopCapture() throws InterruptedException {
+  public void cpuMetadataFailureStopCapture() {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
@@ -830,7 +830,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void cpuMetadataFailureParsing() throws InterruptedException, IOException {
+  public void cpuMetadataFailureParsing() throws IOException {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
@@ -863,7 +863,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void cpuMetadataFailureUserAbort() throws InterruptedException, IOException {
+  public void cpuMetadataFailureUserAbort() {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
@@ -896,7 +896,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void parsingFailureIsNotifiedToUi() throws InterruptedException, IOException {
+  public void parsingFailureIsNotifiedToUi() throws IOException {
     // Start an ART capturing successfully
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
@@ -927,7 +927,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void startCapturingJumpsToLiveData() throws InterruptedException, IOException {
+  public void startCapturingJumpsToLiveData() {
     ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
     timeline.setStreaming(false);
     assertThat(timeline.isStreaming()).isFalse();
@@ -974,7 +974,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.getStudioProfilers().setStage(myStage);
   }
 
-  private void captureSuccessfully() throws InterruptedException {
+  private void captureSuccessfully() {
     // Start a successful capture
     startCapturingSuccess();
 
@@ -1000,7 +1000,7 @@ public class CpuProfilerStageTest extends AspectObserver {
    * This is a convenience method to start a capture successfully.
    * It sets all the necessary states in the service and call {@link CpuProfilerStage#startCapturing}.
    */
-  private void startCapturingSuccess() throws InterruptedException {
+  private void startCapturingSuccess() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
     startCapturing();
