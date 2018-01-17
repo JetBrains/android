@@ -105,6 +105,15 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @NotNull private final ProfilerPreferences myTemporaryPreferences;
 
+  /**
+   * Title of the error balloon displayed when {@link #showErrorBalloon(String, String)} is called.
+   */
+  private String myErrorBalloonTitle;
+  /**
+   * Text of the error balloon displayed when {@link #showErrorBalloon(String, String)} is called.
+   */
+  private String myErrorBalloonText;
+
   public FakeIdeProfilerServices() {
     myTemporaryPreferences = new FakeProfilerPreferences();
   }
@@ -254,7 +263,18 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String text) {}
+  public void showErrorBalloon(@NotNull String title, @NotNull String text) {
+    myErrorBalloonTitle = title;
+    myErrorBalloonText = text;
+  }
+
+  public String getErrorBalloonTitle() {
+    return myErrorBalloonTitle;
+  }
+
+  public String getErrorBalloonText() {
+    return myErrorBalloonText;
+  }
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
