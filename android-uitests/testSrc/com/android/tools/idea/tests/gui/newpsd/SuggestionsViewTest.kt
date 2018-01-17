@@ -22,12 +22,12 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForIdle
 import com.google.common.truth.Truth.assertThat
 import org.fest.swing.timing.Wait
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -91,6 +91,7 @@ class SuggestionsViewTest {
         .seconds(3)
         .expecting("No message matching: support-compat:26.0.0 \\\\(app\\\\) : Newer version available:\")")
         .until { updatesGroup.findMessageMatching("support-compat:26.0.0 \\(app\\) : Newer version available:") == null }
+    waitForIdle()
 
     message = updatesGroup.findMessageMatching("appcompat-v7:26.0.1 \\(app\\) : Newer version available:")
     assertNotNull(message)
