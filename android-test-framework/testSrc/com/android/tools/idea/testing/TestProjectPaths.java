@@ -41,11 +41,11 @@ public final class TestProjectPaths {
   public static final String NESTED_MODULE = "projects/nestedModule";
   public static final String NESTED_MULTI_FEATURE = "projects/nestedMultiFeature";
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
+  public static final String PROJECT_MODEL_MULTIFLAVOR = "projects/projectModel/multiflavor";
   public static final String PROJECT_WITH1_DOT5 = "projects/projectWith1Dot5";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_DATA_BINDING = "projects/projectWithDataBinding";
   public static final String PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB = "projects/projectWithDataBindingAndSimpleLib";
-  public static final String PROJECTMODEL_MULTIFLAVOR = "projects/projectModel/multiflavor";
   public static final String PSD_SAMPLE = "projects/psdSample";
   public static final String PURE_JAVA_PROJECT = "projects/pureJavaProject";
   public static final String RESOLVE = "projects/resolve";
@@ -63,7 +63,7 @@ public final class TestProjectPaths {
   public static final String SIGNAPK_MULTIFLAVOR = "projects/signapk/multiflavor";
   public static final String SIGNAPK_NO_FLAVORS = "projects/signapk/no_flavors";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
-  public static final String SIMPLE_APPLICATION_PRE_3DOT0 = "projects/simpleApplication_pre3.0";
+  public static final String SIMPLE_APPLICATION_PRE30 = "projects/simpleApplication_pre30";
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
@@ -75,7 +75,7 @@ public final class TestProjectPaths {
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
   public static final String TEST_RESOURCES = "projects/testResources";
   public static final String TRANSITIVE_DEPENDENCIES = "projects/transitiveDependencies";
-  public static final String TRANSITIVE_DEPENDENCIES_PRE3DOT0 = "projects/transitiveDependencies_pre3.0";
+  public static final String TRANSITIVE_DEPENDENCIES_PRE30 = "projects/transitiveDependencies_pre30";
   public static final String UIBUILDER_PROPERTY = "projects/uibuilder/property";
   public static final String UNIT_TESTING = "projects/unitTesting";
   public static final String UNUSED_RESOURCES = "projects/unusedResources";

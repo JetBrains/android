@@ -36,7 +36,7 @@ import static com.android.tools.idea.testing.AndroidGradleTests.*;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateTargetSdkVersion;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
-import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES_PRE3DOT0;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES_PRE30;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
@@ -139,7 +139,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testWithInterAndroidModuleDependencies() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module appModule = myModules.getAppModule();
     // 'app' -> 'library2'
     // Verify app module has library2 as module dependency and exporting it to consumer modules.
@@ -147,7 +147,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testWithInterJavaModuleDependencies() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module appModule = myModules.getAppModule();
     // 'app' -> 'lib'
     // dependency should be set on the module not the compiled jar.
@@ -156,7 +156,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module javaLibModule = myModules.getModule("lib");
     // 'app' -> 'lib' -> 'guava'
     // For older versions of plugin, app might not direclty contain guava as library dependency.
@@ -165,7 +165,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testLocalJarDependenciesFromAndroidModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'fakelib.jar'
     // Make sure library2 has fakelib as library dependency, and exported is set to true, so that app has access to fakelib.
@@ -173,7 +173,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testJavaLibraryDependenciesFromAndroidModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'gson'
     // Make sure library2 has gson as library dependency, and exported is set to true, so that app has access to gson.
@@ -181,14 +181,14 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testAndroidModuleDependenciesFromAndroidModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'library1'
     assertAbout(moduleDependencies()).that(androidLibModule).hasDependency("library1", COMPILE, true);
   }
 
   public void testAndroidLibraryDependenciesFromAndroidModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = myModules.getModule("library1");
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*commons-io.*", COMPILE);
