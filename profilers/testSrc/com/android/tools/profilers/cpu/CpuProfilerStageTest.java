@@ -33,10 +33,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -1032,15 +1030,5 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   private void stopCapturing() {
     stopCapturing(myStage);
-  }
-
-  /**
-   * Some configs are used as placeholders and never actually meant to be selected by users. Strip
-   * those out to test against the configurations that matter.
-   */
-  private List<ProfilingConfiguration> filterFakeConfigs(List<ProfilingConfiguration> configs) {
-    return configs.stream()
-      .filter(pc -> pc != CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY && pc != CpuProfilerStage.CONFIG_SEPARATOR_ENTRY)
-      .collect(Collectors.toList());
   }
 }
