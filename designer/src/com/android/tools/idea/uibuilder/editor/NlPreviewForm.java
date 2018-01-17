@@ -359,14 +359,14 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
 
     boolean animationsBarEnabled = StudioFlags.NELE_ANIMATIONS_PREVIEW.get() ||
-                                   StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get();
+                                   StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.get();
 
     if (!animationsBarEnabled || myModel == null) {
       myAnimationToolbar = null;
       return;
     }
 
-    if (StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get()) {
+    if (StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.get()) {
       // Find if there is a transtion layout
       NlComponent transitionLayout = myModel.flattenComponents()
         .filter(component -> NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT))

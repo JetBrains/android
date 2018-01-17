@@ -214,7 +214,7 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler {
   @Nullable
   @Override
   public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    if (!StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get() || !SdkConstants.MOTION_LAYOUT.equals(component.getTagName())) {
+    if (!StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.get() || !SdkConstants.MOTION_LAYOUT.equals(component.getTagName())) {
       return null;
     }
 
