@@ -590,6 +590,9 @@ public final class GuiTests {
                                                        long secondsToWait) {
     AtomicReference<T> reference = new AtomicReference<>();
     String typeName = matcher.supportedType().getSimpleName();
+    // Since the condition may have been already satisfied in the middle of processing before the UI reaches its
+    // final state we need to for an idle queue before probing the UI state.
+    robot.waitForIdle();
     Wait.seconds(secondsToWait).expecting("matching " + typeName)
       .until(() -> {
         ComponentFinder finder = robot.finder();
