@@ -316,7 +316,7 @@ public class GuiTestRule implements TestRule {
           Document document = saxBuilder.build(modulesXmlFilePath);
           XPath xpath = XPath.newInstance("//*[@fileurl]");
           //noinspection unchecked
-          List<Element> modules = xpath.selectNodes(document);
+          List<Element> modules = (List<Element>)xpath.selectNodes(document);
           int urlPrefixSize = "file://$PROJECT_DIR$/".length();
           for (Element module : modules) {
             String fileUrl = module.getAttributeValue("fileurl");
