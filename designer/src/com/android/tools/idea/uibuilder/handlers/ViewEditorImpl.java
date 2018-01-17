@@ -270,7 +270,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @NotNull
   @Override
-  public NlDependencyManager getDependencyManger() {
+  public NlDependencyManager getDependencyManager() {
     return myDependencyManager;
   }
 

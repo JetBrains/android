@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
@@ -52,6 +53,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     NlComponent item = LayoutTestUtilities.createMockComponent();
 
 
+    Mockito.when(item.getTag()).thenReturn(XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>"));
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
     Mockito.when(item.getModel()).thenReturn(model);
 
@@ -79,7 +81,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     NlComponent menuComponent = model.getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
 
-
+    Mockito.when(item.getTag()).thenReturn(XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>"));
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
     Mockito.when(item.getModel()).thenReturn(model);
 
@@ -152,7 +154,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     Mockito.when(editor.canInsertChildren(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.anyInt())).thenReturn(true);
     Mockito.when(editor.getModel()).thenReturn(model);
-    Mockito.when(editor.getDependencyManger()).thenReturn(NlDependencyManager.Companion.get());
+    Mockito.when(editor.getDependencyManager()).thenReturn(NlDependencyManager.Companion.get());
 
     return editor;
   }

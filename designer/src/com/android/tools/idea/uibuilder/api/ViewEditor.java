@@ -200,5 +200,5 @@ public abstract class ViewEditor {
    * check current dependencies
    */
   @NotNull
-  public abstract NlDependencyManager getDependencyManger();
+  public abstract NlDependencyManager getDependencyManager();
 }
