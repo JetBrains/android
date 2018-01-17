@@ -27,7 +27,6 @@ import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import org.junit.Before;
 import org.junit.Rule;
@@ -907,14 +906,14 @@ public class CpuProfilerStageTest extends AspectObserver {
     startCapturingSuccess();
 
     // Sequence of states that should happen after stopping a capture that failures to parse the trace
-    ImmutableList<CpuProfilerStage.CaptureState> captureStates = ImmutableList.of(CpuProfilerStage.CaptureState.STOPPING,
-                                                                                  CpuProfilerStage.CaptureState.PARSING,
-                                                                                  CpuProfilerStage.CaptureState.PARSING_FAILURE,
-                                                                                  CpuProfilerStage.CaptureState.IDLE);
+    Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
+                                                                               CpuProfilerStage.CaptureState.PARSING,
+                                                                               CpuProfilerStage.CaptureState.PARSING_FAILURE,
+                                                                               CpuProfilerStage.CaptureState.IDLE);
     // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
     AspectObserver observer = new AspectObserver();
     myStage.getAspect().addDependency(observer).onChange(
-      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.iterator().next()));
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
 
     // Force the return of a simpleperf. As we started an ART capture, the capture parsing should fail.
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
@@ -924,6 +923,8 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // As parsing has failed, capture should be null.
     assertThat(myStage.getCapture()).isNull();
+    // Sanity check to see if we reached the final capture state
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
   }
 
   @Test
