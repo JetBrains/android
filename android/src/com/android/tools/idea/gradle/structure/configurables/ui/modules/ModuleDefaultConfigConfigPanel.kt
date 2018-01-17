@@ -19,14 +19,15 @@ import com.android.tools.idea.gradle.structure.configurables.android.modules.def
 import com.android.tools.idea.gradle.structure.configurables.ui.ModelPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfig
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import javax.swing.JComponent
 
 class ModuleDefaultConfigConfigPanel(
-    val module: PsAndroidModule
-) : ConfigPanel<PsAndroidModule>(defaultConfigPropertiesModel()), ModelPanel<PsAndroidModule> {
+    val module: PsAndroidModuleDefaultConfig
+) : ConfigPanel<PsAndroidModuleDefaultConfig>(defaultConfigPropertiesModel()), ModelPanel<PsAndroidModule> {
 
   init {
     bind(module)

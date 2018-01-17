@@ -265,4 +265,11 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   public PsSigningConfig addNewSigningConfig(@NotNull String name) {
     return getOrCreateSigningConfigCollection().addNew(name);
   }
+
+  private final PsAndroidModuleDefaultConfig myDefaultConfig = new PsAndroidModuleDefaultConfig(this);
+
+  @NotNull
+  public PsAndroidModuleDefaultConfig getDefaultConfig() {
+    return myDefaultConfig;
+  }
 }
