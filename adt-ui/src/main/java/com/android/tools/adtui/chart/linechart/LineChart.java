@@ -47,6 +47,12 @@ public class LineChart extends AnimatedComponent {
     Path2D myPreviousDashPath;
   }
 
+  /**
+   * If data series are shown as bucket bar and given LineConfig#myDataBucketInterval,
+   * how much percent the bar width and how much percent the gap, i.e. (bar + gap) = interval.
+   */
+  private static final double BUCKET_BAR_PERCENTAGE = 0.7;
+
   @NotNull final LineChartModel myModel;
 
   /**
@@ -208,6 +214,8 @@ public class LineChart extends AnimatedComponent {
       // Actual value of first point
       double firstX = 0;
       seriesList = myReducer.reduceData(seriesList, config);
+      double xBucketInterval = config.getDataBucketInterval() / xLength;
+      double xBucketBarWidth = xBucketInterval * BUCKET_BAR_PERCENTAGE;
       for (SeriesData<Long> data : seriesList) {
         // TODO: refactor to allow different types (e.g. double)
         double xd = (data.x - xMin) / xLength;
@@ -215,11 +223,13 @@ public class LineChart extends AnimatedComponent {
         double yd = 1 - (data.value - yMin) / yLength;
 
         if (path.getCurrentPoint() == null) {
-          path.moveTo(xd, yd);
           firstXd = xd;
           firstX = data.x;
-        }
-        else {
+          // If for bucket data, because the previous ending x value is next data point's starting
+          // x value, i.e. (xd + interval, 1), move the path start point to (xd, 1).
+          // Otherwise, move the path start point to (xd, yd).
+          path.moveTo(xd, xBucketInterval != 0 ? 1 : yd);
+        } else if (xBucketInterval == 0) {
           // If the chart is stepped, a horizontal line should be drawn from the current
           // point (e.g. (x0, y0)) to the destination's X value (e.g. (x1, y0)) before
           // drawing a line to the destination point itself (e.g. (x1, y1)).
@@ -228,6 +238,15 @@ public class LineChart extends AnimatedComponent {
             path.lineTo(xd, y);
           }
           path.lineTo(xd, yd);
+        }
+
+        if (xBucketInterval != 0) {
+          // Each bucket data point is drawn according to the interval amount instead of xd.
+          double x = path.getCurrentPoint().getX();
+          path.lineTo(x, yd);
+          path.lineTo(x + xBucketBarWidth, yd);
+          path.lineTo(x + xBucketBarWidth, 1);
+          path.lineTo(x + xBucketInterval, 1);
         }
       }
 

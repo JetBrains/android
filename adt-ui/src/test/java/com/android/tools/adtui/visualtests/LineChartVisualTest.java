@@ -224,6 +224,19 @@ public class LineChartVisualTest extends VisualTest {
         return firstLineStroke instanceof BasicStroke ? (int)((BasicStroke)firstLineStroke).getLineWidth() : 1;
       }
     }));
+    controls.add(VisualTest.createVariableSlider("Bucket interval", 0, 1000, new VisualTests.Value() {
+      @Override
+      public void set(int v) {
+        for (int i = 0; i < mRangedData.size(); i+=2) {
+          mLineChart.getLineConfig(mRangedData.get(i)).setDataBucketInterval(v * 1000);
+        }
+      }
+
+      @Override
+      public int get() {
+        return (int) mLineChart.getLineConfig(mRangedData.get(0)).getDataBucketInterval();
+      }
+    }));
     controls.add(VisualTest.createCheckbox("Shift xRange Min", itemEvent ->
       mAnimatedTimeRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED)));
     controls.add(VisualTest.createCheckbox("Stepped chart", itemEvent -> {
