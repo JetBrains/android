@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
@@ -79,7 +80,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
   @Override
   public void replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile,
-                                                     @NotNull String newConsumerProguardFile) {
+                                          @NotNull String newConsumerProguardFile) {
     myDslElement.replaceInExpressionList(CONSUMER_PROGUARD_FILES, oldConsumerProguardFile, newConsumerProguardFile);
   }
 
@@ -227,7 +228,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   }
 
   protected void replaceTypeNameValueElement(@NotNull TypeNameValueElement oldElement,
-                                                        @NotNull TypeNameValueElement newElement) {
+                                             @NotNull TypeNameValueElement newElement) {
     if (oldElement.elementName().equals(newElement.elementName())) {
       GradleDslElementList elementList = myDslElement.getPropertyElement(oldElement.elementName(), GradleDslElementList.class);
       if (elementList != null) {
@@ -346,7 +347,9 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
     GradleDslElement element = myDslElement.getPropertyElement(property);
-    return element == null ? new ResolvedPropertyModelImpl(myDslElement, REGULAR, property) : new ResolvedPropertyModelImpl(element);
+    return new ResolvedPropertyModelImpl(element == null
+                                         ? new GradlePropertyModelImpl(myDslElement, REGULAR, property)
+                                         : new GradlePropertyModelImpl(element));
   }
 
   /**
