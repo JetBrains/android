@@ -28,11 +28,13 @@ import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -947,6 +949,80 @@ public class CpuProfilerStageTest extends AspectObserver {
     startCapturing();
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedCpuCapture()).isTrue();
+  }
+
+  @Test
+  public void startCapturingFailureShowsErrorBalloon() {
+    // Start a failing capture
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.FAILURE);
+    // Sequence of states that should happen after starting a capture and failing to do so
+    Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STARTING,
+                                                                               CpuProfilerStage.CaptureState.START_FAILURE,
+                                                                               CpuProfilerStage.CaptureState.IDLE);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
+    startCapturing();
+    // Sanity check to see if we reached the final capture state
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+
+    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TITLE);
+    assertThat(myServices.getErrorBalloonText()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TEXT);
+  }
+
+  @Test
+  public void stopCapturingFailureShowsErrorBalloon() throws InterruptedException {
+    // Try to parse a simpleperf trace with ART config. Parsing should fail.
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myStage.setProfilingConfiguration(config);
+
+    startCapturingSuccess();
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.FAILURE);
+
+    // Sequence of states that should happen after stopping a capture and failing to do so
+    Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
+                                                                               CpuProfilerStage.CaptureState.STOP_FAILURE,
+                                                                               CpuProfilerStage.CaptureState.IDLE);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
+    stopCapturing();
+    // Sanity check to see if we reached the final capture state
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TITLE);
+    assertThat(myServices.getErrorBalloonText()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TEXT);
+  }
+
+  @Test
+  public void captureParsingFailureShowsErrorBalloon() throws InterruptedException, IOException {
+    // Try to parse a simpleperf trace with ART config. Parsing should fail.
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    myCpuService.setValidTrace(true);
+    myStage.setProfilingConfiguration(config);
+    startCapturingSuccess();
+
+    // Sequence of states that should happen after stopping a capture that fails to be parsed
+    Iterator<CpuProfilerStage.CaptureState> captureStates = Iterators.forArray(CpuProfilerStage.CaptureState.STOPPING,
+                                                                               CpuProfilerStage.CaptureState.PARSING,
+                                                                               CpuProfilerStage.CaptureState.PARSING_FAILURE,
+                                                                               CpuProfilerStage.CaptureState.IDLE);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.next()));
+    stopCapturing();
+    // Sanity check to see if we reached the final capture state
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TITLE);
+    assertThat(myServices.getErrorBalloonText()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TEXT);
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {
