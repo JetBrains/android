@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.RepositorySourceProvider;
@@ -34,13 +35,14 @@ import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.passwordSafe.PasswordSafe;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.EditableModel;
 import com.intellij.util.ui.ListTableModel;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.table.IconTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +56,7 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Table model representing an {@link SdkSources}. Sources can be added, deleted, enabled, and disabled.
+ * Table model representing the currently available {@link RepositorySource}s. Sources can be added, deleted, enabled, and disabled.
  */
 class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements EditableModel {
   /**
@@ -87,8 +89,11 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
    */
   private SdkUpdaterConfigurable myConfigurable;
 
-  SourcesTableModel(@NotNull Runnable startLoading, @NotNull Runnable finishLoading) {
+  private final ModalityState myModalityState;
+
+  SourcesTableModel(@NotNull Runnable startLoading, @NotNull Runnable finishLoading, @NotNull ModalityState modalityState) {
     super();
+    myModalityState = modalityState;
     setColumnInfos(new ColumnInfo[]{new ColumnInfo<Row, Boolean>("Enabled") {
       @Nullable
       @Override
@@ -108,7 +113,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
 
       @Override
       public boolean isCellEditable(Row row) {
-        return isEditable() && Strings.isNullOrEmpty(row.mySource.getFetchError());
+        return isEditable(indexOf(row)) && Strings.isNullOrEmpty(row.mySource.getFetchError());
       }
 
       @Override
@@ -177,47 +182,39 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
 
   /**
    * Sets the {@link SdkUpdaterConfigurable} that we're part of. Note that this must be a separate method since the model may be created in
-   * initializeUiComponents(), which runs before the constructor and thus before the manager might be available to pass in.
+   * initializeUiComponents(), which runs before the constructor and thus before the Configurable might be available to pass in.
    */
   public void setConfigurable(SdkUpdaterConfigurable configurable) {
     myConfigurable = configurable;
   }
 
   /**
-   * Reinitializes the UI from the sources provided by {@link #myRepoManager}. Does not force the repo manager to refresh its cache of
+   * Reinitializes the UI from the sources provided by our {@link RepoManager}. Does not force the repo manager to refresh its cache of
    * sources.
+   *
+   * @param force Forces the {@link RepoManager} to reload any cached sources.
    */
-  private void refreshUi() {
+  private void refreshUi(boolean force) {
     myLoadingStartedCallback.run();
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final ArrayList<Row> items = Lists.newArrayList();
-        final Set<RepositorySource> initial = Sets.newHashSet();
-        for (RepositorySource source : myConfigurable.getRepoManager().getSources(new StudioDownloader(), myLogger, false)) {
-          items.add(new Row(source));
-          initial.add(source);
+    Application application = ApplicationManager.getApplication();
+    application.executeOnPooledThread(() -> {
+      final ArrayList<Row> items = Lists.newArrayList();
+      final Set<RepositorySource> initial = Sets.newHashSet();
+      for (RepositorySource source : myConfigurable.getRepoManager().getSources(new StudioDownloader(), myLogger, force)) {
+        items.add(new Row(source));
+        initial.add(source);
+      }
+      Collections.sort(items);
+      application.invokeAndWait(() -> {
+        // only want to do it the first time
+        if (myInitialItems == null) {
+          myInitialItems = initial;
         }
-        Collections.sort(items);
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            // only want to do it the first time
-            if (myInitialItems == null) {
-              myInitialItems = initial;
-            }
-            setItems(items);
-          }
-        });
+        setItems(items);
         myLoadingFinishedCallback.run();
-      }
-    });
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
         myRefreshCallback.run();
-      }
-    }, ModalityState.any());
+      }, myModalityState);
+    });
   }
 
   /**
@@ -262,7 +259,8 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   /**
    * Creates a new source with the given URL and display name.
    */
-  private void createSource(@NotNull String url, @Nullable String uiName, @Nullable Credentials credentials) {
+  @VisibleForTesting
+  void createSource(@NotNull String url, @Nullable String uiName, @Nullable Credentials credentials) {
     RepositorySourceProvider userSourceProvider = getUserSourceProvider();
     // we know it won't be null since otherwise we shouldn't have been editable
     assert userSourceProvider != null;
@@ -279,7 +277,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
       // shouldn't happen: validation is done in the dialog
       throw new AssertionError(e);
     }
-    refreshUi();
+    refreshUi(false);
   }
 
   /**
@@ -291,7 +289,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     // we know it won't be null since otherwise we shouldn't have been editable
     assert userSourceProvider != null;
     userSourceProvider.removeSource(getRowValue(idx).mySource);
-    refreshUi();
+    refreshUi(false);
   }
 
   @Override
@@ -317,14 +315,13 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     if (!isSourcesModified()) {
       // We don't have any changes, but if we haven't initialized at all, do it now.
       if (myInitialItems == null) {
-        refreshUi();
+        refreshUi(false);
       }
       return;
     }
     // Force refresh so the file is reloaded.
-    myConfigurable.getRepoManager().getSources(new StudioDownloader(), myLogger, true);
     myInitialItems = null;
-    refreshUi();
+    refreshUi(true);
   }
 
   /**
@@ -385,7 +382,8 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
   /**
    * A row in our table.
    */
-  protected class Row implements SdkUpdaterConfigPanel.MultiStateRow, Comparable<Row> {
+  @VisibleForTesting
+  class Row implements SdkUpdaterConfigPanel.MultiStateRow, Comparable<Row> {
     RepositorySource mySource;
     boolean myOriginalEnabled;
     String myOriginalName;
