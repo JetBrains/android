@@ -39,7 +39,7 @@ class GradleModelConverterTest : AndroidGradleTestCase() {
 
   override fun setUp() {
     super.setUp()
-    loadProject(TestProjectPaths.PROJECTMODEL_MULTIFLAVOR)
+    loadProject(TestProjectPaths.PROJECT_MODEL_MULTIFLAVOR)
     project = model.androidProject
     converted = project.toProjectModel()
   }

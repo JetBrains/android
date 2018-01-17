@@ -39,7 +39,8 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
  */
 public class TestProjectPathsGenerator {
   private static final List<String> TEST_SUB_FOLDERS =
-    Arrays.asList("apk", "manifestConflict", "moduleInfo", "navigationEditor", "runConfig", "signapk", "sync", "testArtifacts", "uibuilder");
+    Arrays.asList("apk", "manifestConflict", "moduleInfo", "navigationEditor", "projectModel", "runConfig", "signapk", "sync",
+                  "testArtifacts", "uibuilder");
 
   public static void main(@NotNull String... args) throws IOException {
     TestProjectPathsInfo info = generateTestProjectPathsFile();
