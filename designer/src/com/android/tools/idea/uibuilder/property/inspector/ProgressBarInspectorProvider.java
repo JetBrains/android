@@ -136,9 +136,12 @@ public class ProgressBarInspectorProvider implements InspectorProvider<NlPropert
         .setLabel(inspector.addComponent(ATTR_PROGRESS_DRAWABLE, myProgressDrawable.getTooltipText(), myDrawableEditor.getComponent()));
       myIndeterminateDrawableEditor.setLabel(inspector.addComponent(ATTR_INDETERMINATE_DRAWABLE, myIndeterminateDrawable.getTooltipText(),
                                                                     myIndeterminateDrawableEditor.getComponent()));
-      myTintEditor.setLabel(inspector.addComponent(ATTR_PROGRESS_TINT, myProgressTint.getTooltipText(), myTintEditor.getComponent()));
-      myIndeterminateTintEditor.setLabel(
-        inspector.addComponent(ATTR_INDETERMINATE_TINT, myIndeterminateTint.getTooltipText(), myIndeterminateTintEditor.getComponent()));
+      myTintEditor.setLabel(inspector.addComponent(ATTR_PROGRESS_TINT,
+                                                   myProgressTint != null ? myProgressTint.getTooltipText() : null,
+                                                   myTintEditor.getComponent()));
+      myIndeterminateTintEditor.setLabel(inspector.addComponent(ATTR_INDETERMINATE_TINT,
+                                                                myIndeterminateTint != null ? myIndeterminateTint.getTooltipText() : null,
+                                                                myIndeterminateTintEditor.getComponent()));
       myMaxEditor.setLabel(inspector.addComponent(ATTR_MAXIMUM, myMax.getTooltipText(), myMaxEditor.getComponent()));
       myProgressEditor.setLabel(inspector.addComponent(ATTR_PROGRESS, myProgress.getTooltipText(), myProgressEditor.getComponent()));
       inspector.addComponent(ATTR_VISIBILITY,
@@ -156,8 +159,12 @@ public class ProgressBarInspectorProvider implements InspectorProvider<NlPropert
       myStyleEditor.setProperty(myStyle);
       myDrawableEditor.setProperty(myProgressDrawable);
       myIndeterminateDrawableEditor.setProperty(myIndeterminateDrawable);
-      myTintEditor.setProperty(myProgressTint);
-      myIndeterminateTintEditor.setProperty(myIndeterminateTint);
+      if (myProgressTint != null) {
+        myTintEditor.setProperty(myProgressTint);
+      }
+      if (myIndeterminateTint != null) {
+        myIndeterminateTintEditor.setProperty(myIndeterminateTint);
+      }
       myMaxEditor.setProperty(myMax);
       myProgressEditor.setProperty(myProgress);
       if (myVisibility != null) {
@@ -193,8 +200,8 @@ public class ProgressBarInspectorProvider implements InspectorProvider<NlPropert
       }
       boolean indeterminate = VALUE_TRUE.equalsIgnoreCase(myIndeterminate.getResolvedValue());
       myDrawableEditor.setVisible(!indeterminate);
-      myTintEditor.setVisible(!indeterminate);
-      myIndeterminateDrawableEditor.setVisible(indeterminate);
+      myTintEditor.setVisible(myProgressTint != null && !indeterminate);
+      myIndeterminateDrawableEditor.setVisible(myIndeterminateTint != null && indeterminate);
       myIndeterminateTintEditor.setVisible(indeterminate);
       myMaxEditor.setVisible(!indeterminate);
       myProgressEditor.setVisible(!indeterminate);
