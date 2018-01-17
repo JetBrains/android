@@ -36,7 +36,7 @@ import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandlerKt;
-import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
@@ -267,8 +267,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new CollapsingToolbarLayoutHandler();
       case CONSTRAINT_LAYOUT:
         return new ConstraintLayoutHandler();
-      case TRANSITION_LAYOUT:
-        return new TransitionLayoutHandler();
+      case MOTION_LAYOUT:
+        return new MotionLayoutHandler();
       case COORDINATOR_LAYOUT:
         return new CoordinatorLayoutHandler();
       case DETAILS_FRAGMENT:

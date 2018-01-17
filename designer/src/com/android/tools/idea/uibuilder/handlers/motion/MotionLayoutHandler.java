@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.transition;
+package com.android.tools.idea.uibuilder.handlers.motion;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -38,15 +38,15 @@ import java.util.List;
 
 import static com.android.SdkConstants.ATTR_TRANSITION_POSITION;
 
-public class TransitionLayoutHandler extends ConstraintLayoutHandler {
+public class MotionLayoutHandler extends ConstraintLayoutHandler {
 
-  public static class TransitionLayoutComponentHelper {
+  public static class MotionLayoutComponentHelper {
     private NlComponent myTransitionLayoutComponent;
     private Method myCallSetTransitionPosition;
     private Method myCallEvaluate;
     private Method myGetMaxTimeMethod;
 
-    public TransitionLayoutComponentHelper(@NotNull NlComponent component) {
+    public MotionLayoutComponentHelper(@NotNull NlComponent component) {
       myTransitionLayoutComponent = component;
     }
 
@@ -157,22 +157,22 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
   static class AnimationPositionPanel extends CustomPanel {
 
     private NlComponent myComponent;
-    private TransitionLayoutComponentHelper myTransitionHandler;
+    private MotionLayoutComponentHelper myTransitionHandler;
 
     @Override
     public void useComponent(@NotNull NlComponent component) {
       myComponent = component;
       NlComponent transitionLayoutComponent = null;
-      if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.TRANSITION_LAYOUT)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
         transitionLayoutComponent = component;
       } else {
         NlComponent parent = myComponent.getParent();
-        if (parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.TRANSITION_LAYOUT)) {
+        if (parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.MOTION_LAYOUT)) {
           transitionLayoutComponent = parent;
         }
       }
 
-      myTransitionHandler = transitionLayoutComponent != null ? new TransitionLayoutComponentHelper(transitionLayoutComponent) : null;
+      myTransitionHandler = transitionLayoutComponent != null ? new MotionLayoutComponentHelper(transitionLayoutComponent) : null;
     }
 
     public AnimationPositionPanel() {
@@ -214,7 +214,7 @@ public class TransitionLayoutHandler extends ConstraintLayoutHandler {
   @Nullable
   @Override
   public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    if (!StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get() || !SdkConstants.TRANSITION_LAYOUT.equals(component.getTagName())) {
+    if (!StudioFlags.NELE_TRANSITION_LAYOUT_ANIMATIONS.get() || !SdkConstants.MOTION_LAYOUT.equals(component.getTagName())) {
       return null;
     }
 
