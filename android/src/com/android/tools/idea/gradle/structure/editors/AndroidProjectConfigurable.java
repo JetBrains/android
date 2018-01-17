@@ -62,10 +62,12 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
     }
     myKeyValuePane = new KeyValuePane(project, this);
     myProject = project;
-    VirtualFile vf = project.getBaseDir().findChild(SdkConstants.FN_BUILD_GRADLE);
+    VirtualFile projectBaseDir = project.getBaseDir();
+    VirtualFile vf = projectBaseDir == null ? null :projectBaseDir.findChild(SdkConstants.FN_BUILD_GRADLE);
     if (vf != null) {
       myGradleBuildFile = new GradleBuildFile(vf, project);
-    } else {
+    }
+    else {
       myGradleBuildFile = null;
     }
   }
