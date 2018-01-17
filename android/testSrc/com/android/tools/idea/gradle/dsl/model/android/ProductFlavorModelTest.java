@@ -1625,10 +1625,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     android = buildModel.android();
     assertNotNull(android);
 
-    checkForInValidPsiElement(android, AndroidModelImpl.class);
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
     assertNull(android.defaultConfig().consumerProguardFiles());
-    assertNull(android.defaultConfig().proguardFiles());
+    assertSize(0, android.defaultConfig().proguardFiles());
   }
 
   public void testSetAndApplyMapElements() throws Exception {

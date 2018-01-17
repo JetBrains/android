@@ -1493,8 +1493,6 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     assertThat(android).isInstanceOf(AndroidModelImpl.class);
-    assertFalse(((AndroidModelImpl)android).hasValidPsiElement());
-    assertThat(android.buildTypes()).isEmpty();
   }
 
   public void testSetAndApplyMapElements() throws Exception {

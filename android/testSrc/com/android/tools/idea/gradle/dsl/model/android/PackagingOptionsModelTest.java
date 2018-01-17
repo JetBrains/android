@@ -206,9 +206,8 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
-    checkForInValidPsiElement(packagingOptions, PackagingOptionsModelImpl.class);
     assertNull("excludes", packagingOptions.excludes());
-    assertNull("merges", packagingOptions.merges());
+    assertSize(0, packagingOptions.merges());
     assertNull("pickFirsts", packagingOptions.pickFirsts());
   }
 
@@ -279,9 +278,8 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
-    checkForInValidPsiElement(packagingOptions, PackagingOptionsModelImpl.class);
     assertNull("excludes", packagingOptions.excludes());
-    assertNull("merges", packagingOptions.merges());
+    assertSize(0, packagingOptions.merges());
     assertNull("pickFirsts", packagingOptions.pickFirsts());
   }
 }

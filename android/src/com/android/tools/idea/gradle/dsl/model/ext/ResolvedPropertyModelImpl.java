@@ -96,6 +96,17 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  public ResolvedPropertyModel convertToEmptyMap() {
+    myRealModel.convertToEmptyMap();
+    return this;
+  }
+
+  @Override
+  public GradlePropertyModel addMapValue(@NotNull String key) {
+    return myRealModel.addMapValue(key);
+  }
+
+  @Override
   public void delete() {
     myRealModel.delete();
   }

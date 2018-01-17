@@ -1339,6 +1339,454 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
             iStr("When the Lamb opened the second seal, I heard the second living creature say, \"Come and see!\" "))
   }
 
+  fun testCreateNewEmptyMapValue() {
+    val text = ""
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+
+      // Make it an empty map.
+      propertyModel.convertToEmptyMap()
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
+    }
+  }
+
+  fun testAddMapValueToString() {
+    val text = """
+               ext {
+                 prop1 = "hello"
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      try {
+        propertyModel.addMapValue("key")
+        fail("Exception should have been thrown!")
+      } catch (e : IllegalStateException) {
+        // Expected.
+      }
+    }
+  }
+
+  fun testSetNewValueInMap() {
+    val text = """
+               ext {
+                 prop1 = ['key1' : 'value1', 'key2' : 'value2']
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(2, map.entries)
+        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
+        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+
+        // Attempt to set a new value.
+        val newValue = propertyModel.addMapValue("key3")
+        verifyPropertyModel(newValue, OBJECT_TYPE, null, NONE, DERIVED, 0)
+        newValue.setValue(true)
+        verifyPropertyModel(newValue, BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+      }
+
+      run {
+        // Check map now has three values.
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(3, map.entries)
+        verifyPropertyModel(map["key3"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
+        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+      }
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(3, map.entries)
+      verifyPropertyModel(map["key3"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+      verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
+      verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+    }
+  }
+
+  fun testSetNewValueInEmptyMap() {
+    val text = """
+               ext {
+                 def val = "value"
+                 prop1 = [:]
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+
+      // Check every thing is in order
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(0, map.entries)
+      }
+
+      // Set the new value.
+      propertyModel.addMapValue("key1").setValue(ReferenceTo("val"))
+
+      // Check the correct values are shown in the property.
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(1, map.entries)
+        verifyPropertyModel(map["key1"], STRING_TYPE, "val", REFERENCE, DERIVED, 1)
+        verifyPropertyModel(map["key1"]!!.dependencies[0], STRING_TYPE, "value", STRING, VARIABLE, 0)
+      }
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key1"], STRING_TYPE, "val", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(map["key1"]!!.dependencies[0], STRING_TYPE, "value", STRING, VARIABLE, 0)
+    }
+  }
+
+  fun testDeletePropertyInMap() {
+    val text = """
+               ext {
+                 prop1 = ['key1' : 'value1', 'key2' : 'value2']
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(2, map.entries)
+        verifyPropertyModel(map["key1"], STRING_TYPE, "value1", STRING, DERIVED, 0)
+        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+        map["key1"]?.delete()
+      }
+
+      run {
+        val map = propertyModel.getValue(MAP_TYPE)!!
+        assertSize(1, map.entries)
+        verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+      }
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+    }
+  }
+
+  fun testDeleteMapItemToAndSetFromEmpty() {
+    val text = """
+               ext {
+                 prop1 = ['key1' : 25]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    // Delete the item in the map.
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key1"], INTEGER_TYPE, 25, INTEGER, DERIVED, 0)
+
+      map["key1"]?.delete()
+
+      val newMap = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(0, newMap.entries)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    println(FileUtils.readFileToString(myBuildFile))
+
+    // Check that a reparse still has a missing model
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
+
+      // Attempt to set a new value
+      propertyModel.addMapValue("Conquest").setValue("Famine")
+      // Check the model again
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      verifyPropertyModel(map["Conquest"], STRING_TYPE, "Famine", STRING, DERIVED, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      verifyPropertyModel(map["Conquest"], STRING_TYPE, "Famine", STRING, DERIVED, 0)
+    }
+  }
+
+  fun testSetMapValueToLiteral() {
+    val text = """
+               ext {
+                 prop1 = ['key1' : 25]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+
+      // Set the property to a new value.
+      propertyModel.setValue(77)
+      verifyPropertyModel(propertyModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteMapProperty() {
+    val text = """
+               ext {
+                 prop1 = ['key':"value"]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(1, propertyModel.getValue(MAP_TYPE)!!.entries)
+
+      // Delete the map
+      propertyModel.delete()
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteMapVariable() {
+    val text = """
+               ext {
+                 def map = [key : "value"]
+                 prop = map
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "map", REFERENCE, REGULAR, 1)
+
+      val mapModel = propertyModel.dependencies[0]!!
+      assertEquals(MAP, mapModel.valueType)
+      assertEquals(VARIABLE, mapModel.propertyType)
+      assertSize(1, mapModel.getValue(MAP_TYPE)!!.entries)
+
+      // Delete the map model.
+      mapModel.delete()
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "map", REFERENCE, REGULAR, 0)
+    }
+  }
+
+  fun testDeleteEmptyMap() {
+    val text = """
+               ext {
+                 prop = [:]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      assertEquals(MAP, propertyModel.valueType)
+      assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
+
+      propertyModel.delete()
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+    }
+  }
+
+  // Test currently fails due to b/72144740
+  fun /*test*/SetLiteralToMapValue() {
+    val text = """
+               ext {
+                 def val = 'value'
+                 prop1 = val
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "val", REFERENCE, REGULAR, 1)
+      val deps = propertyModel.dependencies
+      assertSize(1, deps)
+      val mapPropertyModel = deps[0]
+      // Check it is not a map yet
+      verifyPropertyModel(mapPropertyModel, STRING_TYPE, "value", STRING, VARIABLE, 0)
+
+      mapPropertyModel.addMapValue("key").setValue("Hello")
+
+      assertEquals(MAP, mapPropertyModel.valueType)
+      val map = mapPropertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key"], STRING_TYPE, "Hello", STRING, DERIVED, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    /* This is what is written to file, it is very wrong, the property are the wrong way round.
+       This would not work in Gradle.
+            ext {
+                prop1 = val
+                def val = [key: 'Hello']
+            }
+    */
+    fail()
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "val", REFERENCE, REGULAR, 1)
+      val deps = propertyModel.dependencies
+      assertSize(1, deps)
+      val mapPropertyModel = deps[0]
+      assertEquals(MAP, mapPropertyModel.valueType)
+      val map = mapPropertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      verifyPropertyModel(map["key"], STRING_TYPE, "Hello", STRING, DERIVED, 0)
+    }
+  }
+
+  fun testParseMapInMap() {
+    val text = """
+               ext {
+                 prop1 = [key1 : 25, key2 : [key: "value"]]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(2, map.entries)
+      verifyPropertyModel(map["key1"], INTEGER_TYPE, 25, INTEGER, DERIVED, 0)
+
+      val mapPropertyModel = map["key2"]!!
+      assertEquals(MAP, mapPropertyModel.valueType)
+      val innerMap = mapPropertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, innerMap.entries)
+      verifyPropertyModel(innerMap["key"], STRING_TYPE, "value", STRING, DERIVED, 0)
+    }
+  }
+
+  // TODO: Fix this b/72099838
+  fun /*test*/SetMapInMap() {
+    val text = """
+               ext {
+                 prop1 = ['key1' : 25]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      // Try to set a new map value.
+      propertyModel.getValue(MAP_TYPE)!!["key1"]?.addMapValue("War")?.setValue("Death")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(1, map.entries)
+      val innerProperty = map["key1"]!!
+      assertEquals(MAP, innerProperty.valueType)
+      val innerMap = innerProperty.getValue(MAP_TYPE)!!
+      assertSize(1, innerMap.entries)
+      verifyPropertyModel(innerMap["War"], STRING_TYPE, "Death", STRING, DERIVED, 0)
+    }
+  }
+
   private fun runSetPropertyTest(text: String, type: PropertyType) {
     writeToBuildFile(text)
 
