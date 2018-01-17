@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import kotlin.reflect.KProperty
 
 /**
@@ -40,7 +38,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     defaultValueGetter: (ModelT) -> PropertyT? = { default },
     getResolvedValue: ResolvedT.() -> PropertyT?,
     getParsedValue: ParsedT.() -> PropertyT?,
-    getParsedRawValue: ParsedT.() -> String?,
+    getParsedRawValue: ParsedT.() -> DslText?,
     setParsedValue: ParsedT.(PropertyT) -> Unit,
     clearParsedValue: ParsedT.() -> Unit,
     parse: (String) -> ParsedValue<PropertyT>,
@@ -64,7 +62,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     private val defaultValueGetter: (ModelT) -> PropertyT?,
     private val getResolvedValue: ResolvedT.() -> PropertyT?,
     private val getParsedValue: ParsedT.() -> PropertyT?,
-    private val getParsedRawValue: ParsedT.() -> String?,
+    private val getParsedRawValue: ParsedT.() -> DslText?,
     private val setParsedValue: (ParsedT.(PropertyT?) -> Unit),
     private val parser: (String) -> ParsedValue<PropertyT>,
     private val knownValuesGetter: (ModelT) -> List<ValueDescriptor<PropertyT>>?
@@ -78,13 +76,15 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     val resolved: PropertyT? = resolvedModel?.getResolvedValue()
     val parsedModel = modelDescriptor.getParsed(model)
     val parsed: PropertyT? = parsedModel?.getParsedValue()
-    val dslText: String? = parsedModel?.getParsedRawValue()
+    val dslText: DslText? = parsedModel?.getParsedRawValue()
     val parsedValue = when {
       (parsed == null && dslText == null) -> ParsedValue.NotSet<PropertyT>()
-      parsed == null -> ParsedValue.Set.Invalid(dslText.orEmpty(), "Unknown")
-      else -> ParsedValue.Set.Parsed(
-          value = parsed,
-          dslText = dslText)
+      parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
+      else -> {
+        ParsedValue.Set.Parsed(
+            value = parsed,
+            dslText = dslText)
+      }
     }
     val resolvedValue = when (resolvedModel) {
       null -> ResolvedValue.NotResolved<PropertyT>()

@@ -48,7 +48,7 @@ sealed class ParsedValue<out T> {
         /**
          * The text of the DSL expression (if not trivial)
          */
-        val dslText: String? = null
+        val dslText: DslText? = null
     ) : Set<T>()
 
     /**
@@ -67,3 +67,31 @@ sealed class ParsedValue<out T> {
     ) : Set<T>()
   }
 }
+
+/**
+ * Defines kinds of DSL expressions supported in PSD.
+ */
+enum class DslMode {
+  /**
+   * An expression which explicitly represents a parsed value.
+   */
+  LITERAL,
+  /**
+   * An expression which is a direct reference to another property or variable.
+   */
+  REFERENCE,
+  /**
+   * An expression of type [String] containing other DSL expressions in a form of ${expression}.
+   */
+  INTERPOLATED_STRING,
+  /**
+   * Any other DSL expression which does not fall into any of the cases above.
+   */
+  OTHER_UNPARSED_DSL_TEXT
+}
+
+/**
+ * The text of a DSL expression together with its intended or parsed usage mode.
+ */
+data class DslText(val mode: DslMode, val text: String?)
+

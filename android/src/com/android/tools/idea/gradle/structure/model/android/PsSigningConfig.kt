@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseFile
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.dsl
 import com.android.tools.idea.gradle.structure.model.meta.property
 import java.io.File
 
@@ -63,7 +64,7 @@ class PsSigningConfig(
         "Store File",
         getResolvedValue = { storeFile },
         getParsedValue = { File(storeFile().value()) },
-        getParsedRawValue = { storeFile().dslText },
+        getParsedRawValue = { storeFile().dsl() },
         // TODO: Store project relative path if possible.
         setParsedValue = { setStoreFile(it.absolutePath) },
         clearParsedValue = { removeStoreFile() },
@@ -74,7 +75,7 @@ class PsSigningConfig(
         getResolvedValue = { storePassword },
         // TODO: Properly handle other password types.
         getParsedValue = { storePassword().value()?.passwordText },
-        getParsedRawValue = { storePassword().dslText },
+        getParsedRawValue = { storePassword().dsl() },
         setParsedValue = { setStorePassword(SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT, it) },
         clearParsedValue = { removeStorePassword() },
         parse = { parseString(it) }
@@ -84,7 +85,7 @@ class PsSigningConfig(
         getResolvedValue = { storeType },
         // TODO: Properly handle other password types.
         getParsedValue = { storeType().value() },
-        getParsedRawValue = { storeType().dslText },
+        getParsedRawValue = { storeType().dsl() },
         setParsedValue = { setStoreType(it) },
         clearParsedValue = { removeStoreType() },
         parse = { parseString(it) }
@@ -93,7 +94,7 @@ class PsSigningConfig(
         "Key Alias",
         getResolvedValue = { keyAlias },
         getParsedValue = { keyAlias().value() },
-        getParsedRawValue = { keyAlias().dslText },
+        getParsedRawValue = { keyAlias().dsl() },
         setParsedValue = { setKeyAlias(it) },
         clearParsedValue = { removeKeyAlias() },
         parse = { parseString(it) }
@@ -103,7 +104,7 @@ class PsSigningConfig(
         getResolvedValue = { keyPassword },
         // TODO: Properly handle other password types.
         getParsedValue = { keyPassword().value()?.passwordText },
-        getParsedRawValue = { keyPassword().dslText },
+        getParsedRawValue = { keyPassword().dsl() },
         setParsedValue = { setKeyPassword(SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT, it) },
         clearParsedValue = { removeKeyPassword() },
         parse = { parseString(it) }

@@ -20,8 +20,8 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.dsl
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.intellij.pom.java.LanguageLevel
 
@@ -38,7 +38,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
       "Compile Sdk Version",
       getResolvedValue = { AndroidTargetHash.getPlatformVersion(compileTarget)?.featureLevel?.toString() ?: compileTarget },
       getParsedValue = { compileSdkVersion().value() },
-      getParsedRawValue = { compileSdkVersion().dslText },
+      getParsedRawValue = { compileSdkVersion().dsl() },
       setParsedValue = {
         val itInt = it.toIntOrNull()
         if (itInt != null) {
@@ -57,7 +57,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
       "Build Tools Version",
       getResolvedValue = { buildToolsVersion },
       getParsedValue = { buildToolsVersion().value() },
-      getParsedRawValue = { buildToolsVersion().dslText },
+      getParsedRawValue = { buildToolsVersion().dsl() },
       setParsedValue = { setBuildToolsVersion(it) },
       clearParsedValue = { removeBuildToolsVersion() },
       parse = { parseString(it) },
@@ -68,7 +68,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
       "Source Compatibility",
       getResolvedValue = { LanguageLevel.parse(javaCompileOptions.sourceCompatibility) },
       getParsedValue = { compileOptions().sourceCompatibility().value() },
-      getParsedRawValue = { compileOptions().sourceCompatibility().dslText },
+      getParsedRawValue = { compileOptions().sourceCompatibility().dsl()  },
       setParsedValue = { compileOptions().setSourceCompatibility(it) },
       clearParsedValue = { compileOptions().removeSourceCompatibility() },
       parse = { parseEnum(it, LanguageLevel::parse) },
@@ -79,7 +79,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
       "Target Compatibility",
       getResolvedValue = { LanguageLevel.parse(javaCompileOptions.targetCompatibility) },
       getParsedValue = { compileOptions().targetCompatibility().value() },
-      getParsedRawValue = { compileOptions().targetCompatibility().dslText },
+      getParsedRawValue = { compileOptions().targetCompatibility().dsl() },
       setParsedValue = { compileOptions().setTargetCompatibility(it) },
       clearParsedValue = { compileOptions().removeTargetCompatibility() },
       parse = { parseEnum(it, LanguageLevel::parse) },
