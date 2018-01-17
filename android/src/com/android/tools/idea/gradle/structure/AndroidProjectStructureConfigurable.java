@@ -206,9 +206,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     mySettingsFile = GradleSettingsFile.get(project);
-
-    myDisposable = () -> {
-    };
+    myDisposable = Disposer.newDisposable();
   }
 
   @Override
