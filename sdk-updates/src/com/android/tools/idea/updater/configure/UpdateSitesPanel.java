@@ -20,6 +20,7 @@ import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
@@ -27,7 +28,6 @@ import com.intellij.ui.AnActionButtonUpdater;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.AsyncProcessIcon;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -56,28 +56,9 @@ public class UpdateSitesPanel {
 
   private void createUIComponents() {
     mySourcesLoadingIcon = new AsyncProcessIcon("Loading...");
-    mySourcesTableModel = new SourcesTableModel(new Runnable() {
-      @Override
-      public void run() {
-        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            mySourcesLoadingPanel.setVisible(true);
-          }
-        });
-      }
-    }, new Runnable() {
-      @Override
-      public void run() {
-        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            mySourcesLoadingPanel.setVisible(false);
-          }
-        });
-      }
-    });
-    myUpdateSitesTable = new TableView<SourcesTableModel.Row>(mySourcesTableModel);
+    mySourcesTableModel = new SourcesTableModel(() -> mySourcesLoadingPanel.setVisible(true),
+                                                () -> mySourcesLoadingPanel.setVisible(false), ModalityState.current());
+    myUpdateSitesTable = new TableView<>(mySourcesTableModel);
     ToolbarDecorator userDefinedDecorator = ToolbarDecorator.createDecorator(myUpdateSitesTable);
     mySourcesPanel = addExtraActions(userDefinedDecorator).createPanel();
     SdkUpdaterConfigPanel.setTableProperties(myUpdateSitesTable, null);
