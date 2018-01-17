@@ -23,10 +23,9 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.google.common.collect.ImmutableMap
-import java.awt.Color
-import java.awt.Font
-import java.awt.Graphics2D
-import java.awt.RenderingHints
+import java.awt.*
+import java.awt.BasicStroke.CAP_BUTT
+import java.awt.BasicStroke.JOIN_ROUND
 
 private const val DEFAULT_FONT_NAME = "Default"
 private const val DEFAULT_FONT_SIZE = 12
@@ -46,6 +45,15 @@ private val HQ_RENDERING_HITS = ImmutableMap.of(
     RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
     RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
 )
+
+@SwingCoordinate private const val ACTION_STROKE_WIDTH = 3f
+@SwingCoordinate private const val DASHED_STROKE_CYCLE = 5f
+
+@JvmField
+val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND)
+@JvmField
+val DASHED_ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND, DASHED_STROKE_CYCLE,
+    floatArrayOf(DASHED_STROKE_CYCLE), DASHED_STROKE_CYCLE)
 
 fun frameColor(context: SceneContext, component: SceneComponent): Color {
   val colorSet = context.colorSet

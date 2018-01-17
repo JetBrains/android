@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import com.android.tools.idea.naveditor.scene.NavColorSet;
-import com.android.tools.idea.naveditor.scene.decorator.ActionDecoratorKt;
+import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -125,8 +125,8 @@ public class DrawAction extends NavBaseDrawCommand {
     }
 
     BasicStroke actionStroke = (connectionType == ActionTarget.ConnectionType.EXIT)
-                               ? ActionDecoratorKt.DASHED_ACTION_STROKE
-                               : ActionDecoratorKt.ACTION_STROKE;
+                               ? NavDrawHelperKt.DASHED_ACTION_STROKE
+                               : NavDrawHelperKt.ACTION_STROKE;
 
     g.setStroke(actionStroke);
     g.setColor(actionColor);
