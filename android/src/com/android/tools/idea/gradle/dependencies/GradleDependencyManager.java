@@ -191,7 +191,7 @@ public class GradleDependencyManager {
     return true;
   }
 
-  public static boolean userWantToAddDependencies(@NotNull Module module, @NotNull Collection<GradleCoordinate> missing) {
+  public boolean userWantToAddDependencies(@NotNull Module module, @NotNull Collection<GradleCoordinate> missing) {
     String libraryNames = join(missing, GradleCoordinate::getArtifactId, ", ");
     String message = String.format("This operation requires the %1$s %2$s. \n\nWould you like to add %3$s %1$s now?",
                                    pluralize("library", missing.size()), libraryNames, pluralize("this", missing.size()));
