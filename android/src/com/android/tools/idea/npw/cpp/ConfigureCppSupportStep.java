@@ -41,8 +41,6 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -69,8 +67,7 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
     myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
     myDocumentationLink.setHyperlinkTarget("https://developer.android.com/ndk/guides/cpp-support.html");
 
-    myRoot = new JBScrollPane(new StudioWizardStepPanel(myRootPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    myRoot.setBorder(null);
+    myRoot = StudioWizardStepPanel.wrappedWithVScroll(myRootPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRoot);
   }
 

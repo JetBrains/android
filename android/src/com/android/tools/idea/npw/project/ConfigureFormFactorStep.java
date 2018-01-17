@@ -64,11 +64,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_NUM_ENABLED_FORM_FACTORS;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -99,8 +95,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
-    myRootPanel = new JBScrollPane(new StudioWizardStepPanel(myValidatorPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    myRootPanel.setBorder(null);
+    myRootPanel = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
