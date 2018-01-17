@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.profilers.actions.NavigateToCodeAction;
 import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class IntellijContextMenuInstaller implements ContextMenuInstaller {
@@ -34,7 +36,12 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
   @Override
   public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
     DefaultActionGroup popupGroup = createOrGetActionGroup(component);
-    popupGroup.add(new AnAction(null, null, contextMenuItem.getIcon()) {
+    if (contextMenuItem.equals(ContextMenuItem.SEPARATOR)) {
+      popupGroup.addSeparator();
+      return;
+    }
+
+    AnAction action = new AnAction(null, null, contextMenuItem.getIcon()) {
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
@@ -48,7 +55,17 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
       public void actionPerformed(AnActionEvent e) {
         contextMenuItem.run();
       }
-    });
+    };
+
+    action.registerCustomShortcutSet(new ShortcutSet() {
+      @NotNull
+      @Override
+      public Shortcut[] getShortcuts() {
+        return Arrays.stream(contextMenuItem.getKeyStrokes()).filter(keyStroke -> keyStroke != null)
+          .map(keyStroke -> new KeyboardShortcut(keyStroke, null)).toArray(size -> new Shortcut[size]);
+      }
+    }, component);
+    popupGroup.add(action);
   }
 
   @Override

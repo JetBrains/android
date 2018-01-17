@@ -34,6 +34,7 @@ import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -107,7 +108,9 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       component.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseReleased(MouseEvent e) {
-          expandMonitor(monitor);
+          if (SwingUtilities.isLeftMouseButton(e)) {
+            expandMonitor(monitor);
+          }
         }
       });
       component.addKeyListener(new KeyAdapter() {
@@ -116,13 +119,31 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
           // On Windows we don't get a KeyCode so checking the getKeyCode doesn't work. Instead we get the code from the char
           // we are given.
           int keyCode = KeyEvent.getExtendedKeyCodeForChar(e.getKeyChar());
-          if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
+          if (keyCode == KeyEvent.VK_ENTER) {
             if (monitor.isFocused()) {
               expandMonitor(monitor);
             }
           }
         }
       });
+
+      // Configure Context Menu
+      ProfilerContextMenu contextMenu = ProfilerContextMenu.createIfAbsent(getProfilersView().getComponent());
+      IdeProfilerComponents ideProfilerComponents = getIdeComponents();
+      ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
+
+      ProfilerAction.Builder builder = new ProfilerAction.Builder("Open " + monitor.getName());
+      ProfilerAction action =
+        builder.setActionRunnable(() -> expandMonitor(monitor))
+          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))
+          .setContainerComponent(component).build();
+      ProfilerContextMenu.createIfAbsent(component).add(action);
+      contextMenuInstaller.installGenericContextMenu(component, action);
+      contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
+      for (ContextMenuItem item : contextMenu.getContextMenuItems()) {
+        contextMenuInstaller.installGenericContextMenu(component, item);
+      }
+
       int weight = (int)(view.getVerticalWeight() * 100f);
       layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit");
       monitors.add(component, new TabularLayout.Constraint(rowIndex, 0));
