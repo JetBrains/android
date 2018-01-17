@@ -81,7 +81,7 @@ public class AndroidRunConfigurations {
     if (targetSelectionMode != null) {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
-    runManager.addConfiguration(settings, false);
+    runManager.addConfiguration(settings);
     ApplicationManager.getApplication().runReadAction(() -> runManager.setSelectedConfiguration(settings));
   }
 }
