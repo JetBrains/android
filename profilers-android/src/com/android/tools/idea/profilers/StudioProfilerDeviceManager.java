@@ -402,7 +402,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         .setSocketType(socketType)
         .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
         // Using "@" to indicate an abstract socket in unix.
-        .setServiceSocketName("@" + DEVICE_SOCKET_NAME).build();
+        .setServiceSocketName("@" + DEVICE_SOCKET_NAME)
+        .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
+        .build();
 
       File configFile = FileUtil.createTempFile(fileName, null, true);
       OutputStream oStream = new FileOutputStream(configFile);
