@@ -38,6 +38,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { applicationId().dslText() },
       setParsedValue = { applicationId().setValue(it) },
       clearParsedValue = { applicationId().clear() },
+      setParsedRawValue = { applicationId().setDslText(it) },
       parse = { parseString(it) }
   )
 
@@ -48,6 +49,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { maxSdkVersion().dslText() },
       setParsedValue = { maxSdkVersion().setValue(it) },
       clearParsedValue = { maxSdkVersion().clear() },
+      setParsedRawValue = { maxSdkVersion().setDslText(it) },
       parse = { parseInt(it) },
       getKnownValues = { installedSdksAsInts() }
   )
@@ -59,6 +61,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { minSdkVersion().dslText() },
       setParsedValue = { minSdkVersion().setValue(it) },
       clearParsedValue = { minSdkVersion().clear() },
+      setParsedRawValue = { minSdkVersion().setDslText(it) },
       parse = { parseString(it) },
       getKnownValues = { installedSdksAsStrings() }
   )
@@ -70,6 +73,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { multiDexEnabled().dslText() },
       setParsedValue = { multiDexEnabled().setValue(it) },
       clearParsedValue = { multiDexEnabled().clear() },
+      setParsedRawValue = { multiDexEnabled().setDslText(it) },
       parse = { parseBoolean(it) },
       getKnownValues = { booleanValues() }
   )
@@ -81,6 +85,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { targetSdkVersion().dslText() },
       setParsedValue = { targetSdkVersion().setValue(it) },
       clearParsedValue = { targetSdkVersion().clear() },
+      setParsedRawValue = { targetSdkVersion().setDslText(it) },
       parse = { parseString(it) },
       getKnownValues = { installedSdksAsStrings() }
 
@@ -93,6 +98,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { testApplicationId().dslText() },
       setParsedValue = { testApplicationId().setValue(it) },
       clearParsedValue = { testApplicationId().clear() },
+      setParsedRawValue = { testApplicationId().setDslText(it) },
       parse = { parseString(it) }
   )
 
@@ -103,6 +109,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { testFunctionalTest().dslText() },
       setParsedValue = { testFunctionalTest().setValue(it) },
       clearParsedValue = { testFunctionalTest().clear() },
+      setParsedRawValue = { testFunctionalTest().setDslText(it) },
       parse = { parseBoolean(it) },
       getKnownValues = { booleanValues() }
   )
@@ -114,6 +121,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { testHandleProfiling().dslText() },
       setParsedValue = { testHandleProfiling().setValue(it) },
       clearParsedValue = { testHandleProfiling().clear() },
+      setParsedRawValue = { testHandleProfiling().setDslText(it) },
       parse = { parseBoolean(it) },
       getKnownValues = { booleanValues() }
   )
@@ -125,6 +133,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { testInstrumentationRunner().dslText() },
       setParsedValue = { testInstrumentationRunner().setValue(it) },
       clearParsedValue = { testInstrumentationRunner().clear() },
+      setParsedRawValue = { testInstrumentationRunner().setDslText(it) },
       parse = { parseString(it) }
   )
 
@@ -135,6 +144,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { versionCode().dslText() },
       setParsedValue = { versionCode().setValue(it) },
       clearParsedValue = { versionCode().clear() },
+      setParsedRawValue = { versionCode().setDslText(it) },
       parse = { parseString(it) }
   )
 
@@ -145,8 +155,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
       getParsedRawValue = { versionName().dslText() },
       setParsedValue = { versionName().setValue(it) },
       clearParsedValue = { versionName().clear() },
+      setParsedRawValue = { versionName().setDslText(it) },
       parse = { parseString(it) }
   )
 }
-
-

@@ -67,6 +67,7 @@ open class PsProductFlavor(
         getParsedRawValue = { applicationId().dslText() },
         setParsedValue = { applicationId().setValue(it) },
         clearParsedValue = { applicationId().clear() },
+        setParsedRawValue = { applicationId().setDslText(it) },
         parse = { parseString(it) }
     )
 
@@ -77,6 +78,7 @@ open class PsProductFlavor(
         getParsedRawValue = { dimension().dslText() },
         setParsedValue = { dimension().setValue(it) },
         clearParsedValue = { dimension().clear() },
+        setParsedRawValue = { dimension().setDslText(it) },
         parse = { parseString(it) }
     )
 
@@ -87,6 +89,7 @@ open class PsProductFlavor(
         getParsedRawValue = { maxSdkVersion().dslText() },
         setParsedValue = { maxSdkVersion().setValue(it) },
         clearParsedValue = { maxSdkVersion().clear() },
+        setParsedRawValue = { maxSdkVersion().setDslText(it) },
         parse = { parseInt(it) },
         getKnownValues = { installedSdksAsInts() }
     )
@@ -98,6 +101,7 @@ open class PsProductFlavor(
         getParsedRawValue = { minSdkVersion().dslText() },
         setParsedValue = { minSdkVersion().setValue(it) },
         clearParsedValue = { minSdkVersion().clear() },
+        setParsedRawValue = { minSdkVersion().setDslText(it) },
         parse = { parseString(it) },
         getKnownValues = { installedSdksAsStrings() }
     )
@@ -109,6 +113,7 @@ open class PsProductFlavor(
         getParsedRawValue = { multiDexEnabled().dslText() },
         setParsedValue = { multiDexEnabled().setValue(it) },
         clearParsedValue = { multiDexEnabled().clear() },
+        setParsedRawValue = { multiDexEnabled().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -120,6 +125,7 @@ open class PsProductFlavor(
         getParsedRawValue = { targetSdkVersion().dslText() },
         setParsedValue = { targetSdkVersion().setValue(it) },
         clearParsedValue = { targetSdkVersion().clear() },
+        setParsedRawValue = { targetSdkVersion().setDslText(it) },
         parse = { parseString(it) },
         getKnownValues = { installedSdksAsStrings() }
 
@@ -132,6 +138,7 @@ open class PsProductFlavor(
         getParsedRawValue = { testApplicationId().dslText() },
         setParsedValue = { testApplicationId().setValue(it) },
         clearParsedValue = { testApplicationId().clear() },
+        setParsedRawValue = { testApplicationId().setDslText(it) },
         parse = { parseString(it) }
     )
 
@@ -142,6 +149,7 @@ open class PsProductFlavor(
         getParsedRawValue = { testFunctionalTest().dslText() },
         setParsedValue = { testFunctionalTest().setValue(it) },
         clearParsedValue = { testFunctionalTest().clear() },
+        setParsedRawValue = { testFunctionalTest().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -153,6 +161,7 @@ open class PsProductFlavor(
         getParsedRawValue = { testHandleProfiling().dslText() },
         setParsedValue = { testHandleProfiling().setValue(it) },
         clearParsedValue = { testHandleProfiling().clear() },
+        setParsedRawValue = { testHandleProfiling().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -164,6 +173,7 @@ open class PsProductFlavor(
         getParsedRawValue = { testInstrumentationRunner().dslText() },
         setParsedValue = { testInstrumentationRunner().setValue(it) },
         clearParsedValue = { testInstrumentationRunner().clear() },
+        setParsedRawValue = { testInstrumentationRunner().setDslText(it) },
         parse = { parseString(it) }
     )
 
@@ -174,6 +184,7 @@ open class PsProductFlavor(
         getParsedRawValue = { versionCode().dslText() },
         setParsedValue = { versionCode().setValue(it) },
         clearParsedValue = { versionCode().clear() },
+        setParsedRawValue = { versionCode().setDslText(it) },
         parse = { parseString(it) }
     )
 
@@ -184,6 +195,7 @@ open class PsProductFlavor(
         getParsedRawValue = { versionName().dslText() },
         setParsedValue = { versionName().setValue(it) },
         clearParsedValue = { versionName().clear() },
+        setParsedRawValue = { versionName().setDslText(it) },
         parse = { parseString(it) }
     )
   }
