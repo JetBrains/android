@@ -56,7 +56,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
     })
     panel.add(ToolbarDecorator.createDecorator(table)
         .setAddAction {}
-        .setRemoveAction {}
+        .setRemoveAction { table.deleteSelectedVariables() }
         .setEditAction {}
         .createPanel(), BorderLayout.CENTER)
     return panel

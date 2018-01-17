@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.google.common.base.Joiner
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -43,7 +44,8 @@ private const val RESOLVED_VALUE = 2
 /**
  * Main table for the Variables view in the Project Structure Dialog
  */
-class VariablesTable(private val project: Project, private val context: PsContext) : TreeTable(VariablesTableModel(DefaultMutableTreeNode())) {
+class VariablesTable(private val project: Project, private val context: PsContext) :
+    TreeTable(VariablesTableModel(DefaultMutableTreeNode())) {
   val variableNames = ArrayList<String>()
 
   init {
@@ -60,12 +62,21 @@ class VariablesTable(private val project: Project, private val context: PsContex
         val moduleRoot = ModuleNode(module)
         (tableModel.root as DefaultMutableTreeNode).add(moduleRoot)
         for (property in properties) {
-          moduleRoot.add(VariableNode(property))
+          moduleRoot.add(VariableNode(PsVariable(property, module)))
         }
       }
     }
     tree.expandRow(0)
     tree.isRootVisible = false
+  }
+
+  fun deleteSelectedVariables() {
+    removeEditor()
+    val selectedNodes = tree.getSelectedNodes(VariableNode::class.java, null)
+    for (node in selectedNodes) {
+      node.variable.delete()
+      (tableModel as DefaultTreeModel).removeNodeFromParent(node)
+    }
   }
 
   override fun getCellEditor(row: Int, column: Int): TableCellEditor {
@@ -130,26 +141,26 @@ class VariablesTable(private val project: Project, private val context: PsContex
       when (column) {
         NAME -> return node.toString()
         UNRESOLVED_VALUE -> {
-          val type = node.property.valueType
+          val type = node.variable.valueType
           return when (type) {
             GradlePropertyModel.ValueType.MAP -> {
-              val unresolvedMapValue = node.property.getRawValue(MAP_TYPE) ?: return null
+              val unresolvedMapValue = node.variable.getUnresolvedValue(MAP_TYPE) ?: return null
               "[" + Joiner.on(", ").join(unresolvedMapValue.keys) + "]"
             }
             GradlePropertyModel.ValueType.LIST -> {
-              val unresolvedListValue = node.property.getRawValue(LIST_TYPE) ?: return null
+              val unresolvedListValue = node.variable.getUnresolvedValue(LIST_TYPE) ?: return null
               "[" + Joiner.on(", ").join(unresolvedListValue) + "]"
             }
             GradlePropertyModel.ValueType.STRING -> {
-              val unresolvedValue = node.property.getRawValue(STRING_TYPE) ?: return null
+              val unresolvedValue = node.variable.getUnresolvedValue(STRING_TYPE) ?: return null
               StringUtil.wrapWithDoubleQuote(unresolvedValue)
             }
-            else -> node.property.getRawValue(STRING_TYPE)
+            else -> node.variable.getUnresolvedValue(STRING_TYPE)
           }
         }
         RESOLVED_VALUE -> {
-          val resolvedValue = node.property.getValue(STRING_TYPE) ?: return null
-          if (node.property.valueType != ValueType.STRING) {
+          val resolvedValue = node.variable.getResolvedValue(STRING_TYPE) ?: return null
+          if (node.variable.valueType != ValueType.STRING) {
             return resolvedValue
           }
           return StringUtil.wrapWithDoubleQuote(resolvedValue)
@@ -165,7 +176,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       if (column == NAME) {
         return true
       }
-      val type = node.property.valueType
+      val type = node.variable.valueType
       return type != ValueType.MAP && type != ValueType.LIST
     }
 
@@ -174,8 +185,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
         return
       }
       if (column == UNRESOLVED_VALUE) {
-        node.property.setValue(aValue)
-        node.setModuleModified(true)
+        node.variable.setValue(aValue)
         nodeChanged(node)
       }
     }
@@ -183,15 +193,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     override fun setTree(tree: JTree?) {}
   }
 
-  class VariableNode(val property: GradlePropertyModel) : DefaultMutableTreeNode(property.name) {
-    fun setModuleModified(isModified: Boolean) {
-      var parent: TreeNode = this.parent
-      while (parent !is ModuleNode) {
-        parent = parent.parent
-      }
-      parent.module.isModified = isModified
-    }
-  }
+  class VariableNode(val variable: PsVariable) : DefaultMutableTreeNode(variable.name)
 
   class ModuleNode(val module: PsModule) : DefaultMutableTreeNode(module.name)
 }
