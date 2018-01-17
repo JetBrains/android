@@ -23,7 +23,6 @@ import java.util.Map;
 
 /**
  * per-studio session caching of key-value pairs.
- * To persist preferences across studio instances, use {@link IntellijProfilerPreferences} instead.
  */
 public final class TemporaryProfilerPreferences implements ProfilerPreferences {
   @NotNull private static final Map<String, String> ourPreferenceMap = new HashMap<>();
