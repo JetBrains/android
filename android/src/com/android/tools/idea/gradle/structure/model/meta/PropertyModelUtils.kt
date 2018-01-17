@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue
 
@@ -61,3 +62,10 @@ fun ResolvedPropertyModel.dslText(): DslText? {
 
 fun <T> GradleValue<T>.dsl(): DslText? =
     dslText?.let { DslText(DslMode.LITERAL, it) }
+
+fun ResolvedPropertyModel.setDslText(value: DslText) = when (value.mode) {
+  DslMode.REFERENCE -> unresolvedModel.setValue(ReferenceTo(value.text!!))  // null text is invalid here.
+  DslMode.LITERAL -> throw IllegalArgumentException("Literal values should not be set via DslText.")
+  DslMode.INTERPOLATED_STRING -> unresolvedModel.setValue(GradlePropertyModel.iStr(value.text!!))  // null text is invalid here.
+  DslMode.OTHER_UNPARSED_DSL_TEXT -> TODO("Setting unparsed dsl text is not yet supported.")
+}
