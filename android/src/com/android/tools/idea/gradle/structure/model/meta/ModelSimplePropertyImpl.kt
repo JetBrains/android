@@ -40,6 +40,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
     getParsedValue: ParsedT.() -> PropertyT?,
     getParsedRawValue: ParsedT.() -> DslText?,
     setParsedValue: ParsedT.(PropertyT) -> Unit,
+    setParsedRawValue: (ParsedT.(DslText) -> Unit)? = null,
     clearParsedValue: ParsedT.() -> Unit,
     parse: (String) -> ParsedValue<PropertyT>,
     getKnownValues: ((ModelT) -> List<ValueDescriptor<PropertyT>>)? = null
@@ -52,6 +53,15 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
         getParsedValue,
         getParsedRawValue,
         { if (it != null) setParsedValue(it) else clearParsedValue() },
+        {
+          when {
+            setParsedRawValue == null -> throw UnsupportedOperationException("setParsedRawValue is undefined for property '$description'")
+            it.mode == DslMode.REFERENCE -> setParsedRawValue(it)
+            it.mode == DslMode.INTERPOLATED_STRING -> setParsedRawValue(it)
+            it.mode == DslMode.OTHER_UNPARSED_DSL_TEXT -> setParsedRawValue(it)
+            else -> throw UnsupportedOperationException("Unknown DslMode: ${it.mode}")
+          }
+        },
         { if (it.isBlank()) ParsedValue.NotSet() else parse(it.trim()) },
         { if (getKnownValues != null) getKnownValues(it) else null }
     )
@@ -64,6 +74,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     private val getParsedValue: ParsedT.() -> PropertyT?,
     private val getParsedRawValue: ParsedT.() -> DslText?,
     private val setParsedValue: (ParsedT.(PropertyT?) -> Unit),
+    private val setParsedRawValue: (ParsedT.(DslText) -> Unit),
     private val parser: (String) -> ParsedValue<PropertyT>,
     private val knownValuesGetter: (ModelT) -> List<ValueDescriptor<PropertyT>>?
 ) : ModelSimpleProperty<ModelT, PropertyT> {
@@ -80,11 +91,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     val parsedValue = when {
       (parsed == null && dslText == null) -> ParsedValue.NotSet<PropertyT>()
       parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
-      else -> {
-        ParsedValue.Set.Parsed(
-            value = parsed,
-            dslText = dslText)
-      }
+      else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText)
     }
     val resolvedValue = when (resolvedModel) {
       null -> ResolvedValue.NotResolved<PropertyT>()
@@ -94,14 +101,24 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   }
 
   override fun setValue(model: ModelT, value: ParsedValue<PropertyT>) {
-    val valueToSet: PropertyT? = when (value) {
-      is ParsedValue.NotSet -> null
-      is ParsedValue.Set.Parsed -> value.value
+    val parsedModel = modelDescriptor.getParsed(model) ?: throw IllegalStateException()
+    when (value) {
+      is ParsedValue.NotSet -> parsedModel.setParsedValue(null)
+      is ParsedValue.Set.Parsed -> {
+        val dsl = value.dslText
+        when (dsl?.mode) {
+          // Dsl modes.
+          DslMode.REFERENCE -> parsedModel.setParsedRawValue(dsl)
+          DslMode.INTERPOLATED_STRING -> parsedModel.setParsedRawValue(dsl)
+          DslMode.OTHER_UNPARSED_DSL_TEXT -> parsedModel.setParsedRawValue(dsl)
+          // Literal modes.
+          DslMode.LITERAL -> parsedModel.setParsedValue(value.value)
+          null -> parsedModel.setParsedValue(value.value)
+        }
+      }
       is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
     }
     // TODO: handle the case of "debug" which is always present and thus might not have a parsed model.
-    val parsedModel = modelDescriptor.getParsed(model) ?: throw IllegalStateException()
-    parsedModel.setParsedValue(valueToSet)
     model.setModified()
   }
 

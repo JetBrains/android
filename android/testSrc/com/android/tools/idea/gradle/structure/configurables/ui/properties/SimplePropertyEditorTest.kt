@@ -53,6 +53,7 @@ class SimplePropertyEditorTest {
       getParsedValue = { value },
       getParsedRawValue = { DslText(mode = DslMode.LITERAL, text = value.orEmpty()) },
       setParsedValue = { value = it },
+      setParsedRawValue = { throw UnsupportedOperationException() },
       parser = {
         when {
           it.isEmpty() -> ParsedValue.NotSet()
