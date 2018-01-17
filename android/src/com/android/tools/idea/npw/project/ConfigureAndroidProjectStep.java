@@ -45,9 +45,6 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
-
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
  * parameters.
@@ -114,8 +111,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myValidatorPanel.registerValidator(model.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    myRootPanel = new JBScrollPane(new StudioWizardStepPanel(myValidatorPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    myRootPanel.setBorder(BorderFactory.createEmptyBorder());
+    myRootPanel = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 

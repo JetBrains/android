@@ -93,13 +93,13 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private final StringProperty myThumbPath = new StringValueProperty();
 
-  private final StudioWizardStepPanel myStudioPanel;
+  private final JBScrollPane myRoot;
 
   @Nullable private final AndroidFacet myFacet;
 
   /**
    * All parameters are calculated for validity every time any of them changes, and the first error
-   * found is set here. This is then registered as its own validator with {@link #myStudioPanel}.
+   * found is set here. This is then registered as its own validator with {@link #myRoot}.
    * This vastly simplifies validation, as we no longer have to worry about implicit relationships
    * between parameters (where changing one, like the package name, makes another valid/invalid).
    */
@@ -111,7 +111,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   private JPanel myParametersPanel;
   private JSeparator myFooterSeparator;
   private TooltipLabel myParameterDescriptionLabel;
-  private JBScrollPane myParametersScrollPane;
   private JLabel myTemplateDescriptionLabel;
 
   private EvaluationState myEvaluationState = EvaluationState.NOT_EVALUATING;
@@ -132,10 +131,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     myTemplates = templates;
     myPackageName = model.packageName();
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
-    myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
+    myRoot = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
 
     myParameterDescriptionLabel.setScope(myParametersPanel);
-    myParametersScrollPane.setBorder(JBUI.Borders.empty());
 
     // Add an extra blank line under the template description to separate it from the main body
     myTemplateDescriptionLabel.setBorder(JBUI.Borders.emptyBottom(myTemplateDescriptionLabel.getFont().getSize()));
@@ -502,7 +500,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myStudioPanel;
+    return myRoot;
   }
 
   @Nullable
