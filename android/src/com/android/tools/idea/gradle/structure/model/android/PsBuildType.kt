@@ -74,6 +74,7 @@ open class PsBuildType(
         getParsedRawValue = { applicationIdSuffix().dslText() },
         setParsedValue = { applicationIdSuffix().setValue(it) },
         clearParsedValue = { applicationIdSuffix().clear() },
+        setParsedRawValue = { applicationIdSuffix().setDslText(it) },
         parse = { parseString(it) }
     )
     val debuggable: ModelSimpleProperty<PsBuildType, Boolean> = property(
@@ -85,6 +86,7 @@ open class PsBuildType(
         getParsedRawValue = { debuggable().dslText() },
         setParsedValue = { debuggable().setValue(it) },
         clearParsedValue = { debuggable().clear() },
+        setParsedRawValue = { debuggable().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -97,6 +99,7 @@ open class PsBuildType(
         getParsedRawValue = { embedMicroApp().dslText() },
         setParsedValue = { embedMicroApp().setValue(it) },
         clearParsedValue = { embedMicroApp().clear() },
+        setParsedRawValue = { embedMicroApp().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -108,6 +111,7 @@ open class PsBuildType(
         getParsedRawValue = { jniDebuggable().dslText() },
         setParsedValue = { jniDebuggable().setValue(it) },
         clearParsedValue = { jniDebuggable().clear() },
+        setParsedRawValue = { jniDebuggable().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -119,6 +123,7 @@ open class PsBuildType(
         getParsedRawValue = { minifyEnabled().dslText() },
         setParsedValue = { minifyEnabled().setValue(it) },
         clearParsedValue = { minifyEnabled().clear() },
+        setParsedRawValue = { minifyEnabled().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -129,6 +134,7 @@ open class PsBuildType(
         getParsedRawValue = { multiDexEnabled().dslText() },
         setParsedValue = { multiDexEnabled().setValue(it) },
         clearParsedValue = { minifyEnabled().clear() },
+        setParsedRawValue = { multiDexEnabled().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -140,6 +146,7 @@ open class PsBuildType(
         getParsedRawValue = { pseudoLocalesEnabled().dslText() },
         setParsedValue = { pseudoLocalesEnabled().setValue(it) },
         clearParsedValue = { pseudoLocalesEnabled().clear() },
+        setParsedRawValue = { pseudoLocalesEnabled().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -151,6 +158,7 @@ open class PsBuildType(
         getParsedRawValue = { renderscriptDebuggable().dslText() },
         setParsedValue = { renderscriptDebuggable().setValue(it) },
         clearParsedValue = { renderscriptDebuggable().clear() },
+        setParsedRawValue = { renderscriptDebuggable().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -162,6 +170,7 @@ open class PsBuildType(
         getParsedRawValue = { renderscriptOptimLevel().dslText() },
         setParsedValue = { renderscriptOptimLevel().setValue(it) },
         clearParsedValue = { renderscriptOptimLevel().clear() },
+        setParsedRawValue = { renderscriptOptimLevel().setDslText(it) },
         parse = { parseInt(it) }
     )
     val testCoverageEnabled: ModelSimpleProperty<PsBuildType, Boolean> = property(
@@ -172,6 +181,7 @@ open class PsBuildType(
         getParsedRawValue = { testCoverageEnabled().dslText() },
         setParsedValue = { testCoverageEnabled().setValue(it) },
         clearParsedValue = { testCoverageEnabled().clear() },
+        setParsedRawValue = { testCoverageEnabled().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
@@ -182,6 +192,7 @@ open class PsBuildType(
         getParsedRawValue = { versionNameSuffix().dslText() },
         setParsedValue = { versionNameSuffix().setValue(it) },
         clearParsedValue = { versionNameSuffix().clear() },
+        setParsedRawValue = { versionNameSuffix().setDslText(it) },
         parse = { parseString(it) }
     )
     val zipAlignEnabled: ModelSimpleProperty<PsBuildType, Boolean> = property(
@@ -192,6 +203,7 @@ open class PsBuildType(
         getParsedRawValue = { zipAlignEnabled().dslText() },
         setParsedValue = { zipAlignEnabled().setValue(it) },
         clearParsedValue = { zipAlignEnabled().clear() },
+        setParsedRawValue = { zipAlignEnabled().setDslText(it) },
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
