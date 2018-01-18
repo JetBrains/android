@@ -34,14 +34,12 @@ import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -64,9 +62,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private JButton myRemoveQualifierButton;
   private JPanel myQualifierOptionsPanel;
 
-  private final Map<String, MyQualifierEditor> myEditors = new HashMap<String, MyQualifierEditor>();
+  private final Map<String, MyQualifierEditor> myEditors = new HashMap<>();
 
-  private final FolderConfiguration myAvailableQualifiersConfig = new FolderConfiguration();
+  private final FolderConfiguration myAvailableQualifiersConfig = FolderConfiguration.createDefault();
   private final FolderConfiguration myChosenQualifiersConfig = new FolderConfiguration();
   private FolderConfiguration myActualQualifiersConfig = new FolderConfiguration();
   private JBList myChosenQualifiersList;
@@ -89,8 +87,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     super(new BorderLayout());
 
     createUIComponents();
-
-    createDefaultConfig(myAvailableQualifiersConfig);
 
     myChosenQualifiersConfig.reset();
 
@@ -290,10 +286,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         editor.reset(qualifier);
       }
     }
-  }
-
-  protected void createDefaultConfig(FolderConfiguration config) {
-    config.createDefault();
   }
 
   public abstract void applyEditors();
