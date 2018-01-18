@@ -91,7 +91,7 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
           deviceData.processes.remove(process);
 
           AgentStatusRequest agentStatusRequest =
-            AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setDeviceId(deviceId.get()).build();
+            AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(deviceId.get()).build();
           AgentStatusResponse agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
           myTable.updateAgentStatus(deviceId, process, agentStatusResponse);
         }

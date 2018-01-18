@@ -49,12 +49,12 @@
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusRequest">
         <Message>device_id: 1234
-process_id: 1234
+pid: 1234
 </Message>
         <clazz>class com.android.tools.profiler.proto.Profiler$AgentStatusRequest</clazz>
         <functionCalled>profiler.proto.ProfilerService/GetAgentStatus</functionCalled>
         <message>device_id: 1234
-process_id: 1234
+pid: 1234
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Profiler$AgentStatusResponse">

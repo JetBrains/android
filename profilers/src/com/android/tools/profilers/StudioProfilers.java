@@ -326,7 +326,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     List<Common.Process> processes = myProcesses.get(myDevice);
     if (process == null || processes == null || !processes.contains(process)) {
       process = getPreferredProcess(processes);
-    } else {
+    }
+    else {
       // The user wants to select a different process explicitly.
       // If the user intentionally selects something else, the profiler should not switch
       // back to the preferred process in any cases.
@@ -352,17 +353,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         // Starts a new session.
         beginSession();
         myTimeline.reset(mySessionData.getStartTimestamp());
-
-        // Attach agent for advanced profiling if JVMTI is enabled and not yet attached.
-        if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
-            myIdeServices.getFeatureConfig().isJvmtiAgentEnabled()) {
-          // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
-          // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
-          myClient.getProfilerClient()
-            .attachAgent(AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid())
-                           .setAgentLibFileName(String.format("libperfa_%s.so", myProcess.getAbiCpuArch())).build());
-        }
-
         myIdeServices.getFeatureTracker().trackProfilingStarted();
         if (myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
           getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
@@ -400,11 +390,20 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private void beginSession() {
     assert myDevice != null && myProcess != null;
-    BeginSessionResponse response =
-      myClient.getProfilerClient().beginSession(BeginSessionRequest.newBuilder()
-                                                  .setDeviceId(myDevice.getDeviceId())
-                                                  .setProcessId(myProcess.getPid())
-                                                  .build());
+
+    BeginSessionRequest.Builder requestBuilder =
+      BeginSessionRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).setPid(myProcess.getPid());
+    // Attach agent for advanced profiling if JVMTI is enabled
+    if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O && myIdeServices.getFeatureConfig().isJvmtiAgentEnabled()) {
+      // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
+      // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
+      requestBuilder.setJvmtiConfig(BeginSessionRequest.JvmtiConfig.newBuilder()
+                                      .setAttachAgent(true)
+                                      .setAgentLibFileName(String.format("libperfa_%s.so", myProcess.getAbiCpuArch()))
+                                      .build());
+    }
+
+    BeginSessionResponse response = myClient.getProfilerClient().beginSession(requestBuilder.build());
     mySessionData = response.getSession();
     myProfilers.forEach(profiler -> profiler.startProfiling(mySessionData, myProcess));
   }
@@ -455,7 +454,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     AgentStatusRequest statusRequest =
-      AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setDeviceId(myDevice.getDeviceId()).build();
+      AgentStatusRequest.newBuilder().setPid(myProcess.getPid()).setDeviceId(myDevice.getDeviceId()).build();
     return myClient.getProfilerClient().getAgentStatus(statusRequest).getStatus();
   }
 

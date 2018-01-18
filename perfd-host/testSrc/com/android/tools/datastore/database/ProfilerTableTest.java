@@ -102,7 +102,7 @@ public class ProfilerTableTest {
     myTable.updateAgentStatus(FAKE_DEVICE_ID, process, status);
 
     AgentStatusRequest request =
-      AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
+      AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
     assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.DETACHED);
 
     // Upgrading status to attach should work
@@ -132,7 +132,7 @@ public class ProfilerTableTest {
 
     // Double-check status has been set.
     AgentStatusRequest request =
-      AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
+      AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
     assertThat(myTable.getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
 
     // Update the process entry and verify that the agent status remains the same.
