@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd.gradle;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
@@ -41,9 +42,18 @@ import java.io.IOException;
 public class InstantRunGradleUtils {
   private static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.3.0-beta1";
   public static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+  @Nullable
+  private static InstantRunGradleSupport ourInstantRunGradleSupportOverride = null;
+
+  @VisibleForTesting
+  public static void setInstantRunGradleSupportOverride(@Nullable InstantRunGradleSupport supportOverride) {
+    ourInstantRunGradleSupportOverride = supportOverride;
+  }
 
   @NotNull
   public static InstantRunGradleSupport getIrSupportStatus(@Nullable AndroidModuleModel model, @Nullable AndroidVersion deviceVersion) {
+    if (ourInstantRunGradleSupportOverride != null) return ourInstantRunGradleSupportOverride;
+
     if (model == null) {
       return InstantRunGradleSupport.NO_GRADLE_MODEL;
     }
