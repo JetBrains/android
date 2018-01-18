@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
@@ -110,8 +111,9 @@ public class GuiTestSuiteRunner extends Suite {
 
     String runWithClassName = runWith.value().getSimpleName();
 
-    // True if running with GuiTestRunner
-    if (runWithClassName.equals(GuiTestRunner.class.getSimpleName())) {
+    // True if running with GuiTestRunner or GuiTestRemoteRunner
+    if (runWithClassName.equals(GuiTestRunner.class.getSimpleName()) ||
+      runWithClassName.equals(GuiTestRemoteRunner.class.getSimpleName())) {
       return true;
     }
 

@@ -28,6 +28,7 @@ import com.intellij.diagnostic.MessagePool;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
@@ -38,11 +39,13 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
@@ -139,6 +142,7 @@ public final class GuiTests {
     ideSettings.PROXY_HOST = "";
     ideSettings.PROXY_PORT = 80;
 
+    GuiTestingService.getInstance().setGuiTestingMode(true);
     GuiTestingService.GuiTestSuiteState state = GuiTestingService.getInstance().getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
 
@@ -146,7 +150,13 @@ public final class GuiTests {
     PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", false); // New Project "Include Kotlin Support"
     PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", "Java"); // New Activity "Source Language"
 
-    FrequentEventDetector.disableUntil(() -> {/* pigs fly */});
+    Disposable project = ProjectManager.getInstance().getDefaultProject();
+    Disposable pigsFly = new Disposable() {
+      @Override
+      public void dispose() {}
+    };
+    Disposer.register(project, pigsFly);
+    FrequentEventDetector.disableUntil(pigsFly);  // i.e., never re-enable it
 
     // TODO: setUpDefaultGeneralSettings();
   }
@@ -346,9 +356,12 @@ public final class GuiTests {
 
   @NotNull
   public static File getTestProjectsRootDirPath() {
-    String testDataPath = PathManager.getHomePath() + "/../adt/idea/android-uitests";
-    if (!new File(testDataPath).exists()) {
-      testDataPath = PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
+    String testDataPath;
+    // The release build directory structure is different; testData is in a different location.
+    if (GuiTestOptions.INSTANCE.isRunningOnRelease()) {
+      testDataPath = PathManagerEx.findFileUnderCommunityHome("plugins/uitest-framework").getPath();
+    } else {
+      testDataPath = PathManager.getHomePath() + "/../adt/idea/android-uitests";
     }
     testDataPath = toCanonicalPath(toSystemDependentName(testDataPath));
     return new File(testDataPath, "testData");

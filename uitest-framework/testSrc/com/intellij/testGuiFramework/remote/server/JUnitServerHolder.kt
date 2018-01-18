@@ -15,14 +15,19 @@
  */
 package com.intellij.testGuiFramework.remote.server
 
+import org.junit.runner.notification.RunNotifier
+
 object JUnitServerHolder {
 
-  private val myServer: JUnitServer by lazy {
-    JUnitServerImpl()
+  private var myServer: JUnitServer? = null
+
+  fun getServer(notifier: RunNotifier): JUnitServer {
+    if (myServer == null) {
+      myServer = JUnitServerImpl(notifier)
+    }
+    return myServer!!
   }
 
-  fun getServer(): JUnitServer {
-    return myServer
-  }
+  fun getServerIfInitialized(): JUnitServer? = myServer
 
 }

@@ -15,45 +15,35 @@
  */
 package com.intellij.testGuiFramework.launcher
 
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.intellij.openapi.application.PathManager
 
 object GuiTestOptions {
 
-  val RESUME_LABEL = "idea.gui.test.resume.label"
-  val RESUME_TEST = "idea.gui.test.resume.testname"
+  const val RESUME_LABEL = "idea.gui.test.resume.label"
+  const val NUM_TEST_SEGMENTS_KEY = "idea.gui.test.segments"
+  const val REMOTE_IDE_PATH_KEY = "idea.gui.test.remote.ide.path"
+  const val FIRST_RUN_RESUME_LABEL = "0"
 
-  fun getConfigPath(): String = getSystemProperty("idea.config.path", getConfigDefaultPath())
-  fun getSystemPath(): String = getSystemProperty("idea.system.path", getSystemDefaultPath())
+  var buildSystem = TargetBuildSystem.BuildSystem.GRADLE
+
+  fun getConfigPath(): String = PathManager.getConfigPath()
+  fun getSystemPath(): String = PathManager.getSystemPath()
+  fun getPluginPath(): String = getSystemProperty("plugin.path", "")
   fun isDebug(): Boolean = getSystemProperty("idea.debug.mode", false)
   fun suspendDebug(): String = if (isDebug()) "y" else "n"
   fun isInternal(): Boolean = getSystemProperty("idea.is.internal", true)
   fun useAppleScreenMenuBar(): Boolean = getSystemProperty("apple.laf.useScreenMenuBar", false)
 
-  fun getDebugPort(): Int = getSystemProperty("idea.gui.test.debug.port", 5009)
-  fun getBootClasspath(): String = getSystemProperty("idea.gui.test.bootclasspath", "../out/classes/production/boot")
+  fun getDebugPort(): Int = getSystemProperty("idea.gui.test.debug.port", 5005)
+  fun getBootClasspath(): String = getSystemProperty("idea.gui.test.bootclasspath", "../out/production/boot")
   fun getEncoding(): String = getSystemProperty("idea.gui.test.encoding", "UTF-8")
   fun getXmxSize(): Int = getSystemProperty("idea.gui.test.xmx", 512)
   //used for restarted and resumed test to qualify from what point to start
-  fun getResumeInfo(): String = getSystemProperty(RESUME_LABEL, "DEFAULT")
-  fun getResumeTestName(): String = getSystemProperty(RESUME_TEST, "undefined")
-
-  fun getConfigDefaultPath(): String {
-    try {
-      return "${PathManager.getHomePath()}/config"
-    }
-    catch(e: RuntimeException) {
-      return "../config"
-    }
-  }
-
-  fun getSystemDefaultPath(): String {
-    try {
-      return "${PathManager.getHomePath()}/system"
-    }
-    catch(e: RuntimeException) {
-      return "../system"
-    }
-  }
+  fun getResumeInfo(): String = getSystemProperty(RESUME_LABEL, FIRST_RUN_RESUME_LABEL)
+  fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
+  fun getRemoteIdePath(): String = getSystemProperty(REMOTE_IDE_PATH_KEY, "undefined")
+  fun isRunningOnRelease(): Boolean = getRemoteIdePath() != "undefined"
 
   inline fun <reified ReturnType> getSystemProperty(key: String, defaultValue: ReturnType): ReturnType {
     val value = System.getProperty(key) ?: return defaultValue

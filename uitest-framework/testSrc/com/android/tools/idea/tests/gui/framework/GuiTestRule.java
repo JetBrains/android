@@ -28,6 +28,8 @@ import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestPr
 import com.android.tools.idea.tests.gui.framework.guitestsystem.CurrentGuiTestProjectSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.GeneralSettings;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -61,6 +63,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
 import static com.google.common.truth.Truth.assertAbout;
@@ -105,6 +108,7 @@ public class GuiTestRule implements TestRule {
   public Statement apply(final Statement base, final Description description) {
     RuleChain chain = RuleChain.emptyRuleChain()
       .around(new LogStartAndStop())
+      .around(new IdeControl())
       .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
       .around(myCurrentProjectSystem)
@@ -170,6 +174,8 @@ public class GuiTestRule implements TestRule {
 
   private void setUp(@Nullable String methodName) {
     myTestDirectory = methodName != null ? sanitizeFileName(methodName) : null;
+    GeneralSettings.getInstance().setReopenLastProject(false);
+    GeneralSettings.getInstance().setShowTipsOnStartup(false);
     GuiTests.setUpDefaultProjectCreationLocationPath(myTestDirectory);
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
@@ -347,6 +353,9 @@ public class GuiTestRule implements TestRule {
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion);
+    /* TODO(b/74197807) This doesn't work when running tests on the release. The old approach does:
+     *  File path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
+     */
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);

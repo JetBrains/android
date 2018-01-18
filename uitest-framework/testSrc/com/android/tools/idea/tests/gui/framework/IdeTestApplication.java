@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.BootstrapClassLoaderUtil;
@@ -63,7 +62,6 @@ public class IdeTestApplication implements Disposable {
   private static IdeTestApplication ourInstance;
 
   @NotNull private final ClassLoader myIdeClassLoader;
-  @Nullable private TargetBuildSystem.BuildSystem myTargetBuildSystem;
 
   @NotNull
   public static synchronized IdeTestApplication getInstance() throws Exception {
@@ -260,12 +258,4 @@ public class IdeTestApplication implements Disposable {
     return ourInstance != null;
   }
 
-  public void setTargetBuildSystem(@NotNull TargetBuildSystem.BuildSystem targetBuildSystem) {
-    myTargetBuildSystem = targetBuildSystem;
-  }
-
-  @Nullable
-  public TargetBuildSystem.BuildSystem getTargetBuildSystem() {
-    return myTargetBuildSystem;
-  }
 }

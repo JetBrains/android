@@ -16,6 +16,8 @@
 package com.intellij.testGuiFramework.remote
 
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.testGuiFramework.framework.isFirstRun
+import com.intellij.testGuiFramework.framework.isLastRun
 import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import com.intellij.testGuiFramework.remote.transport.JUnitInfo
 import com.intellij.testGuiFramework.remote.transport.Type
@@ -25,6 +27,9 @@ import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunListener
 
 /**
+ * [JUnitClientListener] is responsible for listening to test events generated from the client and relaying that information back to the
+ * server by sending a [TransportMessage] with a [JUnitInfo] object in its content field.
+ *
  * @author Sergey Karashevich
  */
 class JUnitClientListener(val sendObjectFun: (JUnitInfo) -> Unit) : RunListener() {
@@ -34,8 +39,7 @@ class JUnitClientListener(val sendObjectFun: (JUnitInfo) -> Unit) : RunListener(
   override fun testStarted(description: Description?) {
     description ?: throw Exception("Unable to send notification to JUnitServer that test is starter due to null description!")
     //don't send start state to server if it is a resumed test
-    if (GuiTestOptions.getResumeTestName() != JUnitInfo.getClassAndMethodName(description))
-      sendObjectFun(JUnitInfo(Type.STARTED, description, JUnitInfo.getClassAndMethodName(description)))
+    if (isFirstRun()) sendObjectFun(JUnitInfo(Type.STARTED, description, JUnitInfo.getClassAndMethodName(description)))
   }
 
   override fun testAssumptionFailure(failure: Failure?) {
@@ -48,13 +52,12 @@ class JUnitClientListener(val sendObjectFun: (JUnitInfo) -> Unit) : RunListener(
   }
 
   override fun testFinished(description: Description?) {
-    sendObjectFun(JUnitInfo(Type.FINISHED, description, JUnitInfo.getClassAndMethodName(description!!)))
+    if (isLastRun()) sendObjectFun(JUnitInfo(Type.FINISHED, description, JUnitInfo.getClassAndMethodName(description!!)))
   }
 
   override fun testIgnored(description: Description?) {
     sendObjectFun(JUnitInfo(Type.IGNORED, description, JUnitInfo.getClassAndMethodName(description!!)))
   }
-
 
   private fun Failure?.friendlySerializable(): Failure? {
     if (this == null) return null

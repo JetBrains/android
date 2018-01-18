@@ -15,8 +15,14 @@
  */
 package com.intellij.testGuiFramework.remote.server
 
+import com.intellij.testGuiFramework.remote.transport.JUnitTestContainer
+import com.intellij.testGuiFramework.remote.transport.MessageType
 import com.intellij.testGuiFramework.remote.transport.TransportMessage
+import org.apache.log4j.Level
 import org.apache.log4j.Logger
+import org.junit.runner.Result
+import org.junit.runner.notification.RunListener
+import org.junit.runner.notification.RunNotifier
 import java.io.InvalidClassException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -33,7 +39,7 @@ import java.util.concurrent.TimeUnit
  * @author Sergey Karashevich
  */
 
-class JUnitServerImpl : JUnitServer {
+class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
 
   private val SEND_THREAD = "JUnit Server Send Thread"
   private val RECEIVE_THREAD = "JUnit Server Receive Thread"
@@ -58,7 +64,15 @@ class JUnitServerImpl : JUnitServer {
 
   init {
     port = serverSocket.localPort
+    LOG.level = Level.INFO
+    LOG.info("Server running on port $port")
     serverSocket.soTimeout = IDE_STARTUP_TIMEOUT
+    notifier.addListener(object : RunListener() {
+      override fun testRunFinished(result: Result?) {
+        send(TransportMessage(MessageType.CLOSE_IDE))
+        super.testRunFinished(result)
+      }
+    })
   }
 
   override fun start() {
@@ -142,15 +156,7 @@ class JUnitServerImpl : JUnitServer {
     serverReceiveThread.interrupt()
     LOG.info("Server Receive Thread joined")
     connection.close()
-  }
-
-
-  private fun execOnParallelThread(body: () -> Unit) {
-    (object : Thread("JUnitServer: Exec On Parallel Thread") {
-      override fun run() {
-        body(); Thread.currentThread().join()
-      }
-    }).start()
+    isStarted = false
   }
 
   private fun createCallbackServerHandler(handler: (TransportMessage) -> Unit, id: Long)
@@ -193,7 +199,7 @@ class JUnitServerImpl : JUnitServer {
         LOG.info("Server Receive Thread started")
         while (connection.isConnected) {
           val obj = objectInputStream.readObject()
-          LOG.debug("Receiving message: $obj")
+          LOG.info("Receiving message: $obj")
           assert(obj is TransportMessage)
           val message = obj as TransportMessage
           receivingMessages.put(message)

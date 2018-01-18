@@ -20,6 +20,13 @@ import com.intellij.openapi.application.ApplicationStarter
 import com.intellij.openapi.diagnostic.Logger
 
 /**
+ * [GuiTestStarter] is an extension of the appStarter extension point. When the IDE launches, it finds all of the appStarter extensions and
+ * checks to see if the result of invoking getCommandName() on any of them matches the first command-line argument. If so, it is used
+ * instead of the default [IdeaApplication.IdeStarter] (see [IdeaApplication.getStarter]).
+ *
+ * This implementation starts a [GuiTestThread], strips the "guitest" and port arguments, and then delegates to the default
+ * [IdeaApplication.IdeStarter] implementation.
+ *
  * @author Sergey Karashevich
  */
 class GuiTestStarter : IdeaApplication.IdeStarter(), ApplicationStarter {
@@ -29,7 +36,6 @@ class GuiTestStarter : IdeaApplication.IdeStarter(), ApplicationStarter {
 
     val GUI_TEST_PORT = "idea.gui.test.port"
     val GUI_TEST_HOST = "idea.gui.test.host"
-    val GUI_TEST_LIST = "idea.gui.test.list"
 
     fun isGuiTestThread(): Boolean = Thread.currentThread().name == GuiTestThread.GUI_TEST_THREAD_NAME
   }
@@ -50,16 +56,10 @@ class GuiTestStarter : IdeaApplication.IdeStarter(), ApplicationStarter {
   }
 
   override fun main(args: Array<String>) {
-    val myArgs = removeGuiTestArgs(args)
-    super.main(myArgs)
+    super.main(removeGuiTestArgs(args))
   }
 
-  /**
-   * We assume next argument string model: main.app guitest testName1,testName2,testName3 host="localhost" port=5009
-   */
   private fun processArgs(args: Array<String>) {
-    val guiTestList = args[1].removeSurrounding("\"")
-    System.setProperty(GUI_TEST_LIST, guiTestList)
     val hostArg: String? = args.find { arg -> arg.toLowerCase().startsWith("host") }?.substringAfter("host=") ?: HOST_LOCALHOST
     System.setProperty(GUI_TEST_HOST, hostArg!!.removeSurrounding("\""))
     val portArg: String? = args.find { arg -> arg.toLowerCase().startsWith("port") }?.substringAfter("port=") ?: PORT_UNDEFINED
@@ -68,13 +68,12 @@ class GuiTestStarter : IdeaApplication.IdeStarter(), ApplicationStarter {
     else
       System.setProperty(GUI_TEST_PORT, PORT_UNDEFINED)
 
-    LOG.info("Set GUI tests list: $guiTestList")
     LOG.info("Set GUI tests host: $hostArg")
     LOG.info("Set GUI tests port: $portArg")
   }
 
   private fun removeGuiTestArgs(args: Array<String>): Array<out String>? {
-    return args.sliceArray(2..args.lastIndex)  //lets remove guitest keyword and list of guitests
+    return args.sliceArray(1..args.lastIndex)  //remove guitest keyword
       .filterNot { arg -> arg.startsWith("port") || arg.startsWith("host") }//lets remove host and port from args
       .toTypedArray()
   }

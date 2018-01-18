@@ -16,8 +16,21 @@
 package com.android.tools.idea.tests.gui;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestSuiteRunner;
+import com.intellij.testGuiFramework.remote.server.JUnitServer;
+import com.intellij.testGuiFramework.remote.server.JUnitServerHolder;
+import com.intellij.testGuiFramework.remote.transport.MessageType;
+import com.intellij.testGuiFramework.remote.transport.TransportMessage;
+import org.junit.AfterClass;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestSuiteRunner.class)
 public class GuiTestSuite {
+  @AfterClass
+  public static void closeIdeFromRemoteRunner() {
+    JUnitServer server = JUnitServerHolder.INSTANCE.getServerIfInitialized();
+    if (server != null && server.isConnected()) {
+      server.send(new TransportMessage(MessageType.CLOSE_IDE, null, 0));
+    }
+  }
+
 }

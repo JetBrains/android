@@ -15,9 +15,12 @@
  */
 package com.intellij.testGuiFramework.remote.client
 
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.testGuiFramework.impl.GuiTestThread
 import com.intellij.testGuiFramework.remote.transport.MessageType
 import com.intellij.testGuiFramework.remote.transport.TransportMessage
+import org.apache.log4j.Level
+import org.apache.log4j.Logger
+import java.io.NotSerializableException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.net.*
@@ -32,7 +35,7 @@ import java.util.concurrent.TimeUnit
  */
 class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<ClientHandler>? = null) : JUnitClient {
 
-  private val LOG = Logger.getInstance("#com.intellij.testGuiFramework.remote.client.JUnitClientImpl")
+  private val LOG = Logger.getLogger("#com.intellij.testGuiFramework.remote.client.JUnitClientImpl")
   private val RECEIVE_THREAD = "JUnit Client Receive Thread"
   private val SEND_THREAD = "JUnit Client Send Thread"
   private val KEEP_ALIVE_THREAD = "JUnit Keep Alive Thread"
@@ -51,7 +54,6 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
 
   init {
     if (initHandlers != null) handlers.addAll(initHandlers)
-
     LOG.info("Client connecting to Server($host, $port) ...")
     connection = Socket()
     connection.connect(InetSocketAddress(InetAddress.getByName(host), port), clientConnectionTimeout)
@@ -109,7 +111,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
             .forEach { it.handle(obj) }
         }
       } catch (e: Exception) {
-        LOG.info("Transport receiving message exception", e)
+        LOG.warn("Transport receiving message exception", e)
       } finally {
         objectInputStream.close()
       }
@@ -117,14 +119,17 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
   }
 
   inner class ClientSendThread(val connection: Socket, val objectOutputStream: ObjectOutputStream) : Thread(SEND_THREAD) {
-
     override fun run() {
       try {
         LOG.info("Starting Client Send Thread")
         while (connection.isConnected) {
           val transportMessage = poolOfMessages.take()
           LOG.info("Sending message: $transportMessage")
-          objectOutputStream.writeObject(transportMessage)
+          try {
+            objectOutputStream.writeObject(transportMessage)
+          } catch (e: NotSerializableException) {
+            objectOutputStream.writeObject(TransportMessage(transportMessage.type, e, transportMessage.id))
+          }
         }
       }
       catch(e: InterruptedException) {
@@ -152,6 +157,7 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     fun cancel() {
       myExecutor.shutdownNow()
       objectOutputStream.close()
+      GuiTestThread.closeIde()
     }
   }
 
