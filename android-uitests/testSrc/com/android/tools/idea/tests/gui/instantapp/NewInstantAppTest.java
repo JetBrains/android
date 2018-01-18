@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -176,6 +177,7 @@ public class NewInstantAppTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
+  @Ignore("b/72126655")
   @Test
   public void newInstantAppProjectWithFullScreenActivity() throws Exception {
     createAndOpenDefaultAIAProject("BuildApp", null, "Fullscreen Activity");
@@ -191,6 +193,7 @@ public class NewInstantAppTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
+  @Ignore("b/72126655")
   @RunIn(TestGroup.UNRELIABLE)
   @Test // b/68122671
   public void addMapActivityToExistingIappModule() throws Exception {
@@ -206,7 +209,7 @@ public class NewInstantAppTest {
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "base/src/release/res/values/google_maps_api.xml")).isFile();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72126655
+  @Ignore("b/72126655")
   @Test // b/68478730
   public void addMasterDetailActivityToExistingIappModule() throws Exception {
     createAndOpenDefaultAIAProject("BuildApp", "feature", null);
@@ -224,6 +227,7 @@ public class NewInstantAppTest {
     assertThat(baseStrings).contains("title_item_list");
   }
 
+  @Ignore("b/72126655")
   @RunIn(TestGroup.UNRELIABLE)  // b/69171895
   @Test // b/68684401
   public void addFullscreenActivityToExistingIappModule() throws Exception {
