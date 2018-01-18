@@ -200,7 +200,6 @@ iml_module(
         "//tools/analytics-library/protos:analytics-protos[module, test]",
         "//tools/idea/.idea/libraries:freemarker-2.3.20[test]",
         "//tools/idea/platform/external-system-impl[module, test]",
-        "//tools/idea/plugins/gradle/lib:gradle-wrapper-4.0[test]",
         "//tools/adt/idea/observable[module, test]",
         "//tools/idea/java/compiler/openapi:compiler-openapi[module, test]",
         "//tools/base/common:studio.common[module, test]",
