@@ -556,13 +556,19 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myViewAxis;
   }
 
+  /**
+   * Return the list of stages that target a specific profiler, which a user might want to jump
+   * between. This should exclude things like the top-level profiler stage, null stage, etc.
+   */
   public List<Class<? extends Stage>> getDirectStages() {
-    return ImmutableList.of(
-      CpuProfilerStage.class,
-      MemoryProfilerStage.class,
-      NetworkProfilerStage.class,
-      EnergyProfilerStage.class
-    );
+    ImmutableList.Builder<Class<? extends Stage>> listBuilder = ImmutableList.builder();
+    listBuilder.add(CpuProfilerStage.class);
+    listBuilder.add(MemoryProfilerStage.class);
+    listBuilder.add(NetworkProfilerStage.class);
+    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled()) {
+      listBuilder.add(EnergyProfilerStage.class);
+    }
+    return listBuilder.build();
   }
 
   @NotNull
