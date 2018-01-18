@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.module.Module;
@@ -23,7 +26,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -92,10 +94,71 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
     assertFalse(result.couldHaveHotswapped);
   }
 
+  public void testPrepareInstantRunSession_Cold_Kill() {
+    // Prepare
+    info = mock(AndroidSessionInfo.class, RETURNS_DEEP_STUBS);
+    AndroidProcessHandler handler = mock(AndroidProcessHandler.class);
+    when(info.getProcessHandler()).thenReturn(handler);
+    when(info.getExecutorId()).thenReturn(ID);
+    when(executor.getId()).thenReturn(ID);
+
+    List<IDevice> devices = new ArrayList(1);
+    IDevice mockDevice = mock(IDevice.class);
+    when(mockDevice.getVersion()).thenReturn(AndroidVersion.ART_RUNTIME);
+    when(mockDevice.getSerialNumber()).thenReturn("abc123");
+    devices.add(mockDevice);
+    when(info.getDevices()).thenReturn(devices);
+    DeviceFutures deviceFutures = DeviceFutures.forDevices(devices);
+
+    InstantRunGradleUtils.setInstantRunGradleSupportOverride(InstantRunGradleSupport.SUPPORTED);
+
+    // Act
+    AndroidRunConfigurationBase.PrepareSessionResult result =
+      myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), deviceFutures, true);
+
+    // Verify
+    assertNotNull(result);
+    assertTrue(deviceFutures.allMatch(result.futures));
+    assertTrue(result.couldHaveHotswapped);
+    verify(handler, times(1)).destroyProcess();
+  }
+
+  public void testPrepareInstantRunSession_Cold_NotKill() {
+    // Prepare
+    info = mock(AndroidSessionInfo.class, RETURNS_DEEP_STUBS);
+    AndroidProcessHandler handler = mock(AndroidProcessHandler.class);
+    when(info.getProcessHandler()).thenReturn(handler);
+    when(info.getExecutorId()).thenReturn(ID);
+    when(executor.getId()).thenReturn(ID);
+
+    List<IDevice> devices = new ArrayList(2);
+    IDevice mockDevice = mock(IDevice.class);
+    when(mockDevice.getVersion()).thenReturn(AndroidVersion.ART_RUNTIME);
+    when(mockDevice.getSerialNumber()).thenReturn("abc123");
+    devices.add(mockDevice);
+    when(info.getDevices()).thenReturn(devices);
+
+    devices.add(mock(IDevice.class));
+    DeviceFutures deviceFutures = DeviceFutures.forDevices(devices);
+
+    InstantRunGradleUtils.setInstantRunGradleSupportOverride(InstantRunGradleSupport.SUPPORTED);
+
+    // Act
+    AndroidRunConfigurationBase.PrepareSessionResult result =
+      myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), deviceFutures, true);
+
+    // Verify
+    assertNotNull(result);
+    assertFalse(deviceFutures.allMatch(result.futures));
+    assertFalse(result.couldHaveHotswapped);
+    verify(handler, never()).destroyProcess();
+  }
+
   @Override
   protected void tearDown() throws Exception {
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
+      InstantRunGradleUtils.setInstantRunGradleSupportOverride(null);
     }
     finally {
       super.tearDown();
