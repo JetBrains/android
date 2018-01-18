@@ -20,18 +20,13 @@ import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.android.tools.idea.avdmanager.*;
-import com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.AdbAssistantStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,6 +52,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.*;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable,
                                      ActionListener, ListSelectionListener {
@@ -474,8 +470,13 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
         return;
       }
 
-      JList list = (JList)e.getSource();
-      int startIndex = list.getSelectedIndex();
+      @SuppressWarnings("unchecked")
+      JList<DevicePickerEntry> list = (JList<DevicePickerEntry>)e.getSource();
+      if (allListElementsMatch(list, x -> x.isMarker())) {
+        // If all elements are markers (e.g. when list is not populated yet, see bug 72018351),
+        // we don't want to process up/down keys, as there is no appropriate entry to select.
+        return;
+      }
 
       int keyCode = e.getKeyCode();
       switch (keyCode) {
@@ -496,19 +497,28 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
           return;
       }
 
-      // move up or down if the current selection is a marker
-      DevicePickerEntry entry = (DevicePickerEntry)list.getSelectedValue();
-      while (entry.isMarker() && list.getSelectedIndex() != startIndex) {
+      // move up or down further as long as the current selection is a marker
+      for (DevicePickerEntry entry = list.getSelectedValue(); entry.isMarker(); entry = list.getSelectedValue()) {
         if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_PAGE_UP) {
           ScrollingUtil.moveUp(list, e.getModifiersEx());
         }
         else {
           ScrollingUtil.moveDown(list, e.getModifiersEx());
         }
-        entry = (DevicePickerEntry)list.getSelectedValue();
       }
 
       e.consume();
+    }
+
+    private static <E> boolean allListElementsMatch(@NotNull JList<E> list, @NotNull Predicate<E> predicate) {
+      for (int i = 0; i < list.getModel().getSize(); i++){
+        if (!predicate.test(list.getModel().getElementAt(i))) {
+          return false;
+        }
+      }
+
+      // See https://stackoverflow.com/a/30223378
+      return true;
     }
   }
 
