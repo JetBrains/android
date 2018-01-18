@@ -53,19 +53,17 @@ class VariablesTable(private val project: Project, private val context: PsContex
   }
 
   private fun fillTable() {
+    val moduleNodes = mutableListOf<ModuleNode>()
     context.project.forEachModule { module ->
-      val gradleModel = module.parsedModel ?: return@forEachModule
-      val extModel = gradleModel.ext()
-      val properties = extModel.properties
-      if (!properties.isEmpty()) {
-        variableNames.addAll(properties.map { property -> property.name })
+      val moduleVariables = module.variables
+      if (!moduleVariables.isEmpty()) {
+        variableNames.addAll(moduleVariables.map { it.name })
         val moduleRoot = ModuleNode(module)
-        (tableModel.root as DefaultMutableTreeNode).add(moduleRoot)
-        for (property in properties) {
-          moduleRoot.add(VariableNode(PsVariable(property, module)))
-        }
+        moduleNodes.add(moduleRoot)
+        moduleVariables.map( { VariableNode(it) } ).sortedBy { it.variable.name }.forEach { moduleRoot.add(it) }
       }
     }
+    moduleNodes.sortedBy { it.module.name }.forEach { (tableModel.root as DefaultMutableTreeNode).add(it) }
     tree.expandRow(0)
     tree.isRootVisible = false
   }
