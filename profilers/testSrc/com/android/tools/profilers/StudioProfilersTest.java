@@ -24,6 +24,9 @@ import com.android.tools.profiler.proto.Profiler.VersionRequest;
 import com.android.tools.profiler.proto.Profiler.VersionResponse;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
+import com.android.tools.profilers.energy.EnergyProfilerStage;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -888,6 +891,26 @@ public final class StudioProfilersTest {
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
     assertThat(profilers.getStage()).isInstanceOf(StudioMonitorStage.class);
+  }
+
+  @Test
+  public void testGetDirectStagesReturnsOnlyExpectedStages() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    FakeIdeProfilerServices fakeServices = new FakeIdeProfilerServices();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeServices, timer);
+
+    assertThat(profilers.getDirectStages()).containsExactly(
+      CpuProfilerStage.class,
+      MemoryProfilerStage.class,
+      NetworkProfilerStage.class).inOrder();
+
+    fakeServices.enableEnergyProfiler(true);
+
+    assertThat(profilers.getDirectStages()).containsExactly(
+      CpuProfilerStage.class,
+      MemoryProfilerStage.class,
+      NetworkProfilerStage.class,
+      EnergyProfilerStage.class).inOrder();
   }
 
   private StudioProfilers getProfilersWithDeviceAndProcess() {
