@@ -38,6 +38,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.EventListener;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
@@ -197,6 +198,13 @@ public abstract class PsModule extends PsChildModel {
       }
     }
     return null;
+  }
+
+  @NotNull
+  public List<PsVariable> getVariables() {
+    return myParsedModel.ext().getProperties().stream()
+      .map(property -> new PsVariable(property, this))
+      .collect(Collectors.toList());
   }
 
   public interface DependenciesChangeListener extends EventListener {
