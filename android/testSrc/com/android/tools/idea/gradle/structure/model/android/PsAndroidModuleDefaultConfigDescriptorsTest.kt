@@ -27,6 +27,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
   private fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
   private fun <T> ParsedValue<T>.asTestValue(): T? = (this as? ParsedValue.Set.Parsed<T>)?.value
+  private fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(value = this)
 
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
@@ -76,5 +77,74 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(versionName.resolved.asTestValue(), equalTo("1.0"))
     assertThat(versionName.parsedValue.asTestValue(), equalTo("1.0"))
+  }
+
+  fun testSetProperties() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProject(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val defaultConfig = appModule.defaultConfig
+    assertThat(defaultConfig, notNullValue()); defaultConfig!!
+
+    defaultConfig.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
+    defaultConfig.maxSdkVersion = 26.asParsed()
+    defaultConfig.minSdkVersion = "11".asParsed()
+    defaultConfig.multiDexEnabled = true.asParsed()
+    defaultConfig.targetSdkVersion = "21".asParsed()
+    defaultConfig.testApplicationId = "com.example.psd.sample.app.unpaid.failed_test".asParsed()
+    defaultConfig.testInstrumentationRunner = "com.runner".asParsed()
+    defaultConfig.versionCode = "3".asParsed()
+    defaultConfig.versionName = "3.0".asParsed()
+
+    fun verifyValues(defaultConfig: PsAndroidModuleDefaultConfig, afterSync: Boolean = false) {
+      val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.getValue(defaultConfig)
+      val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.getValue(defaultConfig)
+      val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.getValue(defaultConfig)
+      val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.getValue(defaultConfig)
+      val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.getValue(defaultConfig)
+      val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.getValue(defaultConfig)
+      // TODO(b/70501607): Decide on val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.getValue(defaultConfig)
+      // TODO(b/70501607): Decide on val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.getValue(defaultConfig)
+      val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.getValue(defaultConfig)
+      val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.getValue(defaultConfig)
+      val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.getValue(defaultConfig)
+
+      assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid"))
+      assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
+      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("11"))
+      assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(true))
+      // TODO(b/71988818)
+      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
+      assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
+      assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
+      assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
+      assertThat(versionName.parsedValue.asTestValue(), equalTo("3.0"))
+
+      if (afterSync) {
+        assertThat(applicationId.parsedValue.asTestValue(), equalTo(applicationId.resolved.asTestValue()))
+        assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(maxSdkVersion.resolved.asTestValue()))
+        assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
+        assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
+        // TODO(b/71988818)
+        assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
+        assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
+        assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo(testInstrumentationRunner.resolved.asTestValue()))
+        assertThat(versionCode.parsedValue.asTestValue(), equalTo(versionCode.resolved.asTestValue()))
+        assertThat(versionName.parsedValue.asTestValue(), equalTo(versionName.resolved.asTestValue()))
+      }
+      verifyValues(defaultConfig)
+
+      appModule.applyChanges()
+      requestSyncAndWait()
+      project = PsProject(resolvedProject)
+      appModule = project.findModuleByName("app") as PsAndroidModule
+      // Verify nothing bad happened to the values after the re-parsing.
+      verifyValues(appModule.defaultConfig, afterSync = true)
+    }
   }
 }

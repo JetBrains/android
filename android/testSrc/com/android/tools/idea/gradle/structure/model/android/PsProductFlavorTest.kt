@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -28,6 +27,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
   private fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
   private fun <T> ParsedValue<T>.asTestValue(): T? = (this as? ParsedValue.Set.Parsed<T>)?.value
+  private fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(value = this)
 
   fun testProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
@@ -84,5 +84,78 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(versionName.resolved.asTestValue(), equalTo("2.0"))
     assertThat(versionName.parsedValue.asTestValue(), equalTo("2.0"))
 
+  }
+
+  fun testSetProperties() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProject(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val productFlavor = appModule.findProductFlavor("paid")
+    assertThat(productFlavor, notNullValue()); productFlavor!!
+
+    productFlavor.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
+    productFlavor.dimension = "bar".asParsed()
+    productFlavor.maxSdkVersion = 26.asParsed()
+    productFlavor.minSdkVersion = "11".asParsed()
+    productFlavor.multiDexEnabled = true.asParsed()
+    productFlavor.targetSdkVersion = "21".asParsed()
+    productFlavor.testApplicationId = "com.example.psd.sample.app.unpaid.failed_test".asParsed()
+    productFlavor.testInstrumentationRunner = "com.runner".asParsed()
+    productFlavor.versionCode = "3".asParsed()
+    productFlavor.versionName = "3.0".asParsed()
+
+    fun verifyValues(productFlavor: PsProductFlavor, afterSync: Boolean = false) {
+      val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.getValue(productFlavor)
+      val dimension = PsProductFlavor.ProductFlavorDescriptors.dimension.getValue(productFlavor)
+      val maxSdkVersion = PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion.getValue(productFlavor)
+      val minSdkVersion = PsProductFlavor.ProductFlavorDescriptors.minSdkVersion.getValue(productFlavor)
+      val multiDexEnabled = PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled.getValue(productFlavor)
+      val targetSdkVersion = PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion.getValue(productFlavor)
+      val testApplicationId = PsProductFlavor.ProductFlavorDescriptors.testApplicationId.getValue(productFlavor)
+      // TODO(b/70501607): Decide on val testFunctionalTest = PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest.getValue(productFlavor)
+      // TODO(b/70501607): Decide on val testHandleProfiling = PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling.getValue(productFlavor)
+      val testInstrumentationRunner = PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner.getValue(productFlavor)
+      val versionCode = PsProductFlavor.ProductFlavorDescriptors.versionCode.getValue(productFlavor)
+      val versionName = PsProductFlavor.ProductFlavorDescriptors.versionName.getValue(productFlavor)
+
+      assertThat(dimension.parsedValue.asTestValue(), equalTo("bar"))
+      assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid"))
+      assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
+      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("11"))
+      assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(true))
+      // TODO(b/71988818)
+      assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
+      assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
+      assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
+      assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
+      assertThat(versionName.parsedValue.asTestValue(), equalTo("3.0"))
+
+      if (afterSync) {
+        assertThat(dimension.parsedValue.asTestValue(), equalTo(dimension.resolved.asTestValue()))
+        assertThat(applicationId.parsedValue.asTestValue(), equalTo(applicationId.resolved.asTestValue()))
+        assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(maxSdkVersion.resolved.asTestValue()))
+        assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo(minSdkVersion.resolved.asTestValue()))
+        assertThat(multiDexEnabled.parsedValue.asTestValue(), equalTo(multiDexEnabled.resolved.asTestValue()))
+        // TODO(b/71988818)
+        assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo(targetSdkVersion.resolved.asTestValue()))
+        assertThat(testApplicationId.parsedValue.asTestValue(), equalTo(testApplicationId.resolved.asTestValue()))
+        assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo(testInstrumentationRunner.resolved.asTestValue()))
+        assertThat(versionCode.parsedValue.asTestValue(), equalTo(versionCode.resolved.asTestValue()))
+        assertThat(versionName.parsedValue.asTestValue(), equalTo(versionName.resolved.asTestValue()))
+      }
+      verifyValues(productFlavor)
+
+      appModule.applyChanges()
+      requestSyncAndWait()
+      project = PsProject(resolvedProject)
+      appModule = project.findModuleByName("app") as PsAndroidModule
+      // Verify nothing bad happened to the values after the re-parsing.
+      verifyValues(appModule.findProductFlavor("paid")!!, afterSync = true)
+    }
   }
 }
