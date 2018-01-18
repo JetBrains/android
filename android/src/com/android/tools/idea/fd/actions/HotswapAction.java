@@ -73,7 +73,7 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
     }
 
     AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
-    if (session == null) {
+    if (session == null || session.getDevices().isEmpty()) {
       presentation.setText(String.format("Apply Changes: No active '%1$s' launch", settings.getName()));
       return;
     }
