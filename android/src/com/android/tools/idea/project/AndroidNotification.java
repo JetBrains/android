@@ -68,13 +68,24 @@ public class AndroidNotification {
                           @NotNull NotificationType type,
                           @NotNull NotificationGroup group,
                           @NotNull NotificationHyperlink... hyperlinks) {
+    showBalloon(title, text, type, group, true, hyperlinks);
+  }
+
+  public void showBalloon(@NotNull String title,
+                          @NotNull String text,
+                          @NotNull NotificationType type,
+                          @NotNull NotificationGroup group,
+                          boolean newLineForLinkText,
+                          @NotNull NotificationHyperlink... hyperlinks) {
     NotificationListener notificationListener = new CustomNotificationListener(myProject, hyperlinks);
-    String newText = addHyperlinksToText(text, hyperlinks);
+    String newText = addHyperlinksToText(text, newLineForLinkText, hyperlinks);
     showNotification(title, newText, type, group, notificationListener);
   }
 
   @NotNull
-  private static String addHyperlinksToText(@NotNull String text, @NotNull NotificationHyperlink... hyperlinks) {
+  private static String addHyperlinksToText(@NotNull String text,
+                                            boolean newLineForLinkText,
+                                            @NotNull NotificationHyperlink... hyperlinks) {
     // We need both "<br>" and "\n" to separate lines. IDEA will show this message in a balloon (which respects "<br>", and in the
     // 'Event Log' tool window, which respects "\n".)
     if (hyperlinks.length == 0) {
@@ -84,7 +95,10 @@ public class AndroidNotification {
     b.append(text);
 
     for (NotificationHyperlink hyperlink : hyperlinks) {
-      b.append("<br>\n").append(hyperlink.toHtml());
+      if (newLineForLinkText) {
+        b.append("<br>\n");
+      }
+      b.append(hyperlink.toHtml());
     }
 
     return b.toString();

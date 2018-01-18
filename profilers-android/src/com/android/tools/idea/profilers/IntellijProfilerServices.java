@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
@@ -280,8 +281,10 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String text) {
-    AndroidNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR);
+  public void showErrorBalloon(@NotNull String title, @NotNull String body, @NotNull String url, @NotNull String urlText) {
+    OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(url, urlText);
+    AndroidNotification.getInstance(myProject)
+      .showBalloon(title, body, NotificationType.ERROR, AndroidNotification.BALLOON_GROUP, false, hyperlink);
   }
 
 }

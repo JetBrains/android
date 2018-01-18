@@ -67,18 +67,21 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   static final String PARSING_FAILURE_BALLOON_TITLE = "Trace data was not recorded";
   @VisibleForTesting
   static final String PARSING_FAILURE_BALLOON_TEXT = "The profiler was unable to parse the method trace data. Try recording another " +
-                                                     "method trace, or report a bug by selecting Help > Submit Feedback.";
+                                                     "method trace, or ";
 
   @VisibleForTesting
   static final String CAPTURE_START_FAILURE_BALLOON_TITLE = "Recording failed to start";
   @VisibleForTesting
-  static final String CAPTURE_START_FAILURE_BALLOON_TEXT = "Try recording again, or report a bug by selecting Help > Submit Feedback.";
+  static final String CAPTURE_START_FAILURE_BALLOON_TEXT = "Try recording again, or ";
 
   @VisibleForTesting
   static final String CAPTURE_STOP_FAILURE_BALLOON_TITLE = "Recording failed to stop";
   @VisibleForTesting
-  static final String CAPTURE_STOP_FAILURE_BALLOON_TEXT = "Try recording another method trace, or report a bug by selecting " +
-                                                          "Help > Submit Feedback.";
+  static final String CAPTURE_STOP_FAILURE_BALLOON_TEXT = "Try recording another method trace, or ";
+  @VisibleForTesting
+  static final String CPU_BUG_TEMPLATE_URL = "https://issuetracker.google.com/issues/new?component=192754";
+  @VisibleForTesting
+  static final String REPORT_A_BUG_TEXT = "report a bug";
 
   /**
    * Default capture details to be set after stopping a capture.
@@ -396,7 +399,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
       setCaptureState(CaptureState.START_FAILURE);
-      getStudioProfilers().getIdeServices().showErrorBalloon(CAPTURE_START_FAILURE_BALLOON_TITLE, CAPTURE_START_FAILURE_BALLOON_TEXT);
+      getStudioProfilers().getIdeServices()
+        .showErrorBalloon(CAPTURE_START_FAILURE_BALLOON_TITLE, CAPTURE_START_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL, REPORT_A_BUG_TEXT);
       // START_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
       setCaptureState(CaptureState.IDLE);
     }
@@ -426,7 +430,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
       setCaptureState(CaptureState.STOP_FAILURE);
-      getStudioProfilers().getIdeServices().showErrorBalloon(CAPTURE_STOP_FAILURE_BALLOON_TITLE, CAPTURE_STOP_FAILURE_BALLOON_TEXT);
+      getStudioProfilers().getIdeServices()
+        .showErrorBalloon(CAPTURE_STOP_FAILURE_BALLOON_TITLE, CAPTURE_STOP_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL, REPORT_A_BUG_TEXT);
       // STOP_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
       setCaptureState(CaptureState.IDLE);
       captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
@@ -474,7 +479,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       else {
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
         setCaptureState(CaptureState.PARSING_FAILURE);
-        getStudioProfilers().getIdeServices().showErrorBalloon(PARSING_FAILURE_BALLOON_TITLE, PARSING_FAILURE_BALLOON_TEXT);
+        getStudioProfilers().getIdeServices()
+          .showErrorBalloon(PARSING_FAILURE_BALLOON_TITLE, PARSING_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL, REPORT_A_BUG_TEXT);
         // PARSING_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
         setCaptureState(CaptureState.IDLE);
         setCapture(null);

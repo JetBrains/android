@@ -106,13 +106,21 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull private final ProfilerPreferences myTemporaryPreferences;
 
   /**
-   * Title of the error balloon displayed when {@link #showErrorBalloon(String, String)} is called.
+   * Title of the error balloon displayed when {@link #showErrorBalloon(String, String, String, String)} is called.
    */
   private String myErrorBalloonTitle;
   /**
-   * Text of the error balloon displayed when {@link #showErrorBalloon(String, String)} is called.
+   * Body of the error balloon displayed when {@link #showErrorBalloon(String, String, String, String)} is called.
    */
-  private String myErrorBalloonText;
+  private String myErrorBalloonBody;
+  /**
+   * Url of the error balloon displayed when {@link #showErrorBalloon(String, String, String, String)} is called.
+   */
+  private String myErrorBalloonUrl;
+  /**
+   * Linked text of the error balloon displayed when {@link #showErrorBalloon(String, String, String, String)} is called.
+   */
+  private String myErrorBalloonUrlText;
 
   public FakeIdeProfilerServices() {
     myTemporaryPreferences = new FakeProfilerPreferences();
@@ -269,17 +277,27 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String text) {
+  public void showErrorBalloon(@NotNull String title, @NotNull String body, String url, String urlText) {
     myErrorBalloonTitle = title;
-    myErrorBalloonText = text;
+    myErrorBalloonBody = body;
+    myErrorBalloonUrl = url;
+    myErrorBalloonUrlText = urlText;
   }
 
   public String getErrorBalloonTitle() {
     return myErrorBalloonTitle;
   }
 
-  public String getErrorBalloonText() {
-    return myErrorBalloonText;
+  public String getErrorBalloonBody() {
+    return myErrorBalloonBody;
+  }
+
+  public String getErrorBalloonUrl() {
+    return myErrorBalloonUrl;
+  }
+
+  public String getErrorBalloonUrlText() {
+    return myErrorBalloonUrlText;
   }
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
