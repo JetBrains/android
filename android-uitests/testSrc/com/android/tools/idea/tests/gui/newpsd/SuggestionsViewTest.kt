@@ -25,11 +25,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestio
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForIdle
 import com.google.common.truth.Truth.assertThat
 import org.fest.swing.timing.Wait
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertNotNull
 
@@ -52,7 +49,7 @@ class SuggestionsViewTest {
   }
 
   // TODO(b/71720545): Remove ignore if refreshFiles() helps avoid disk and memory file content conflicts.
-  // @Ignore("b/71720545")
+  @Ignore("b/71720545")
   @Test
   fun showsAndProcessesMessages() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
