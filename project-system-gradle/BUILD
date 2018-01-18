@@ -15,6 +15,7 @@ iml_module(
         "//tools/idea/xml/relaxng",
         "//tools/idea/java/compiler/instrumentation-util-8",
         "//tools/idea/plugins/maven:maven2-server-impl",
+        "//tools/adt/idea/adt-branding",
     ],
     # do not sort: must match IML order
     deps = [
