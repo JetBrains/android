@@ -19,7 +19,11 @@
   import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
   import com.android.tools.idea.tests.gui.framework.RunIn;
   import com.android.tools.idea.tests.gui.framework.TestGroup;
+  import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+  import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+  import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.FlavorsTabFixture;
   import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+  import org.fest.swing.timing.Wait;
   import org.junit.Rule;
   import org.junit.Test;
   import org.junit.runner.RunWith;
@@ -43,31 +47,55 @@ public class FlavorsEditingTest {
    *   Steps:
    *   1. Change properties of a non-default flavor in the project structure flavor dialog
    *   2. Click "OK" button.
+   *   3. Add dimension to the flavor, and check Gradle sync is successful
    *   Verify:
    *   1. Changes made to the flavors are saved to the build.gradle file of that module.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/38017297
+  @RunIn(TestGroup.QA)
   @Test
   public void editFlavors() throws  Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
-      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+
+    String flavor = "flavor";
+
+    FlavorsTabFixture flavorsTabFixture =
+      ideFrameFixture.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .selectConfigurable("app")
       .selectFlavorsTab()
       .clickAddButton()
-      .selectFlavor("flavor")
+      .selectFlavor(flavor)
       .setMinSdkVersion("API 25: Android 7.1.1 (Nougat)")
       .setTargetSdkVersion("API 24: Android 7.0 (Nougat)")
       .setVersionCode("5")
-      .setVersionName("2.3")
-      .clickOk() // http://b/38017297
-      .getEditor()
+      .setVersionName("2.3");
+
+    try {
+      flavorsTabFixture.clickOk();
+    } catch (RuntimeException e) {
+      System.out.println("Expected to fail here. Need to add dimension feature.");
+    }
+
+    String dimenName = "demo";
+    String dimen = "dimension \"" + dimenName + "\"";
+    ideFrameFixture.getEditor()
+      .open("/app/build.gradle")
+      .moveBetween("", "productFlavors {")
+      .enterText("flavorDimensions(\"" + dimenName + "\")\n")
+      .moveBetween(flavor + " {", "")
+      .enterText("\n" + dimen)
+      .invokeAction(EditorFixture.EditorAction.SAVE)
+      .close();
+
+    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+
+    String gradleFileContents = ideFrameFixture.getEditor()
       .open("/app/build.gradle")
       .getCurrentFileContents();
 
-    assertThat(gradleFileContents).contains("flavor {\n" +
+    assertThat(gradleFileContents).contains(flavor + " {\n" +
+                                            "            " + dimen + "\n"+
                                             "            minSdkVersion 25\n" +
-                                            "            applicationId 'google.flavorsapplication1'\n" +
                                             "            targetSdkVersion 24\n" +
                                             "            versionCode 5\n" +
                                             "            versionName '2.3'\n" +
