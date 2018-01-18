@@ -50,7 +50,12 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
 
   private fun getParsedValue(): ParsedValue<PropertyT> {
     val text = editor.item.toString()
-    return textToValue[text]?.let { ParsedValue.Set.Parsed(value = it) } ?: property.parse(text)
+    return when {
+      text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.REFERENCE, text.substring(1)))
+      text.startsWith("\"") && text.endsWith("\"") ->
+        ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.INTERPOLATED_STRING, text.substring(1, text.length - 1)))
+      else -> textToValue[text]?.let { ParsedValue.Set.Parsed(value = it) } ?: property.parse(text)
+    }
   }
 
   private fun setText(text: String) {
@@ -77,7 +82,17 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
           setText("")
         }
         is ParsedValue.Set.Parsed -> {
-          setValue(value.parsedValue.value)
+          val dsl = value.parsedValue.dslText
+          if (dsl != null)
+            when (dsl.mode) {
+              DslMode.LITERAL -> setValue(value.parsedValue.value)
+              DslMode.REFERENCE -> setText("\$${dsl.text}")
+              // TODO(b/72088462) Decide on how to handle unparsed DSL text.
+              DslMode.OTHER_UNPARSED_DSL_TEXT -> setText("\$\$${dsl.text}")
+              DslMode.INTERPOLATED_STRING -> setText("\"${dsl.text}\"")
+            }
+          else
+            setValue(null)
         }
         is ParsedValue.Set.Invalid -> {
           setText(value.parsedValue.dslText)
@@ -94,11 +109,11 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
         value.resolved is ResolvedValue.Set &&
             (value.parsedValue is ParsedValue.Set.Parsed &&
                 value.resolved.resolved != value.parsedValue.value ||
-            value.parsedValue is ParsedValue.NotSet &&
-                value.resolved.resolved != defaultValue)
+                value.parsedValue is ParsedValue.NotSet &&
+                    value.resolved.resolved != defaultValue)
         -> {
           setColorAndTooltip(
-              toolTipText = "[Set does not match resolved?]",
+              toolTipText = "[Set does not match resolved? - '${value.resolved.resolved.toString()}']",
               background = Color.YELLOW
           )
         }
@@ -110,9 +125,8 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
         }
         value.parsedValue is ParsedValue.Set.Parsed -> {
           setColorAndTooltip(
-              toolTipText = value.parsedValue.dslText?.text.orEmpty()
+              toolTipText = " = ${value.parsedValue.value.toString()}"
           )
-
         }
       }
     }
@@ -142,6 +156,7 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
     addActionListener {
       if (!beingLoaded) {
         applyChanges(getParsedValue())
+        loadValue(property.getValue(model))
       }
     }
   }

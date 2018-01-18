@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 import com.android.tools.idea.gradle.structure.model.meta.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Ignore
 import org.junit.Test
 
 class SimplePropertyEditorTest {
@@ -32,6 +33,7 @@ class SimplePropertyEditorTest {
 
   class ParsedModel {
     var value: String? = "parsed"
+    var dsl: DslText? = null
   }
 
   private val model = Model()
@@ -51,9 +53,9 @@ class SimplePropertyEditorTest {
       defaultValueGetter = { "default" },
       getResolvedValue = { value },
       getParsedValue = { value },
-      getParsedRawValue = { DslText(mode = DslMode.LITERAL, text = value.orEmpty()) },
-      setParsedValue = { value = it },
-      setParsedRawValue = { throw UnsupportedOperationException() },
+      getParsedRawValue = { dsl ?: DslText(mode = DslMode.LITERAL, text = value.orEmpty()) },
+      setParsedValue = { value = it; dsl = null },
+      setParsedRawValue = { value = null; dsl = it; },
       parser = {
         when {
           it.isEmpty() -> ParsedValue.NotSet()
@@ -77,6 +79,35 @@ class SimplePropertyEditorTest {
   }
 
   @Test
+  fun loadsReference() {
+    parsedModel.dsl = DslText(DslMode.REFERENCE, "some_reference")
+    val editor = SimplePropertyEditor(model, property)
+    assertEquals("\$some_reference", editor.selectedItem)
+  }
+
+  @Test
+  fun loadsReferenceResolvedIntoKnownValue() {
+    parsedModel.dsl = DslText(DslMode.REFERENCE, "some_reference")
+    parsedModel.value = "1"
+    val editor = SimplePropertyEditor(model, property)
+    assertEquals("\$some_reference", editor.selectedItem)
+  }
+
+  @Test
+  fun loadsInterpolatedString() {
+    parsedModel.dsl = DslText(DslMode.INTERPOLATED_STRING, "some \${reference}")
+    val editor = SimplePropertyEditor(model, property)
+    assertEquals("\"some \${reference}\"", editor.selectedItem)
+  }
+
+  @Test
+  fun loadsOtherUnparsedDslText() {
+    parsedModel.dsl = DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, "1 + z(x)")
+    val editor = SimplePropertyEditor(model, property)
+    assertEquals("\$\$1 + z(x)", editor.selectedItem)
+  }
+
+  @Test
   fun updatesValue() {
     val editor = SimplePropertyEditor(model, property)
     editor.selectedItem = "abc"
@@ -91,6 +122,25 @@ class SimplePropertyEditorTest {
   }
 
   @Test
+  fun updatesToReference() {
+    val editor = SimplePropertyEditor(model, property)
+    editor.selectedItem = "\$other.reference"
+    assertNull(parsedModel.value)
+    assertEquals(DslMode.REFERENCE, parsedModel.dsl?.mode)
+    assertEquals("other.reference", parsedModel.dsl?.text)
+  }
+
+  @Test
+  fun updatesToInterpolatedString() {
+    val editor = SimplePropertyEditor(model, property)
+    // TODO(b/72088238): Decide on the exact format.
+    editor.selectedItem = "\"\$a and \$b\""
+    assertNull(parsedModel.value)
+    assertEquals(DslMode.INTERPOLATED_STRING, parsedModel.dsl?.mode)
+    assertEquals("\$a and \$b", parsedModel.dsl?.text)
+  }
+
+  @Test
   fun updatesFromWellKnownValueDescription() {
     val editor = SimplePropertyEditor(model, property)
     editor.selectedItem = "two"
@@ -98,9 +148,15 @@ class SimplePropertyEditorTest {
   }
 
   @Test
+  @Ignore("b/72088462")
+  fun updatesToOtherUnresolvedDslText() {
+    // TODO(b/72088462): Decide what the expectations are.
+  }
+
+  @Test
   fun handlesInvalidInput() {
     val editor = SimplePropertyEditor(model, property)
-    editor.selectedItem = "invalid"  // "invalid" is recognised as an invalid input by the test parser. 
+    editor.selectedItem = "invalid"  // "invalid" is recognised as an invalid input by the test parser.
     // Right now invalid input is ignored.
     assertEquals("parsed", parsedModel.value)
   }
