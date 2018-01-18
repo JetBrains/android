@@ -245,9 +245,4 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     assert state != null;
     return state;
   }
-
-  @NotNull
-  private Project getProject() {
-    return getModule().getProject();
-  }
 }
