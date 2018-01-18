@@ -24,6 +24,7 @@ public enum TestGroup {
   PROJECT_WIZARD,
   THEME,
   EDITING,
+  TEST_FRAMEWORK,
   QA,
   QA_UNRELIABLE(/* per-test forked execution */ true),
   SANITY(true),

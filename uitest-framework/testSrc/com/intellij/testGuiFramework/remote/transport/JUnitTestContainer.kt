@@ -15,9 +15,15 @@
  */
 package com.intellij.testGuiFramework.remote.transport
 
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import java.io.Serializable
 
 /**
+ * [JUnitTestContainer] holds a description of a test to run for transmission between the server and client. The [resumeLabel] field is
+ * only used in the case of a RESUME_TEST message, in which case it holds a string describing where to restart the test. While the test
+ * could handle inspecting and interpreting this value, restartIdeBetween() in RestartUtils.kt provides a more convenient interface.
+ *
  * @author Sergey Karashevich
  */
-data class JUnitTestContainer(val testClass: Class<*>, val methodName: String, val additionalInfo: String = "") : Serializable
+data class JUnitTestContainer(val testClass: Class<*>, val methodName: String, val resumeLabel: String = "",
+                              val buildSystem: TargetBuildSystem.BuildSystem = TargetBuildSystem.BuildSystem.GRADLE) : Serializable

@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
+import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.AssumptionViolatedException;
 import org.junit.internal.runners.statements.Fail;
@@ -75,13 +76,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
    */
   @Override
   protected Object createTest() throws Exception {
-    try {
-      IdeTestApplication.getInstance().setTargetBuildSystem(myBuildSystem);
-    }
-    catch (Exception e) {
-      return new Fail(e);
-    }
-
+    GuiTestOptions.INSTANCE.setBuildSystem(myBuildSystem);
     return myTestClass.getOnlyConstructor().newInstance();
   }
 }

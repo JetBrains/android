@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.testGuiFramework.framework.RestartUtilsKt;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -34,12 +35,16 @@ class LogStartAndStop extends TestWatcher {
 
   @Override
   protected void starting(Description description) {
-    log(" START ", description);
+    if (RestartUtilsKt.isFirstRun()) {
+      log(" START ", description);
+    }
   }
 
   @Override
   protected void succeeded(Description description) {
-    log(" PASS ", description);
+    if (RestartUtilsKt.isLastRun()) {
+      log(" PASS ", description);
+    }
   }
 
   @Override

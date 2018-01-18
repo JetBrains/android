@@ -17,6 +17,8 @@
   <name>Android Gradle UI Test System</name>
   <id>com.android.tools.idea.uitest.framework.gradle</id>
 
+  <depends>com.android.tools.idea.uitest.framework</depends>
+
   <extensions defaultExtensionNs="com.android.project">
     <guitestprojectsystem implementation="com.android.tools.idea.tests.gui.framework.gradle.GradleGuiTestProjectSystem"/>
   </extensions>

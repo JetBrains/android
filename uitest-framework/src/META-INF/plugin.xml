@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2017 The Android Open Source Project
+  ~ Copyright (C) 2018 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,8 +17,14 @@
   <name>Android UI Test Framework</name>
   <id>com.android.tools.idea.uitest.framework</id>
 
+  <depends>com.intellij.modules.lang</depends>
+  <depends>org.jetbrains.android</depends>
+
   <extensions defaultExtensionNs="com.android.tools.idea.ui">
     <guiTestingStatusProvider implementation="com.android.tools.idea.tests.gui.StatusProvider" />
+  </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <appStarter implementation="com.intellij.testGuiFramework.impl.GuiTestStarter"/>
   </extensions>
 
   <xi:include href="/META-INF/uitest-framework-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>

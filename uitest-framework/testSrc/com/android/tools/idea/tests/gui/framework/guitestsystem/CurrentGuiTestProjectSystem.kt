@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.guitestsystem
 
-import com.android.tools.idea.tests.gui.framework.IdeTestApplication
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem
+import com.intellij.testGuiFramework.launcher.GuiTestOptions
 import org.junit.rules.ExternalResource
 
 /**
- * Caches the ui test project system to use based on the build system specified by [IdeTestApplication]'s
+ * Caches the ui test project system to use based on the build system specified by [GuiTestOptions]'s
  * target build system. This allows the test runner to compute and cache this information just once per test.
  */
 class CurrentGuiTestProjectSystem : ExternalResource() {
@@ -28,8 +28,7 @@ class CurrentGuiTestProjectSystem : ExternalResource() {
     private set
 
   override fun before() {
-    val buildSystem = IdeTestApplication.getInstance().targetBuildSystem ?:
-        throw IllegalStateException("TargetBuildSystem has not been set.")
+    val buildSystem = GuiTestOptions.buildSystem
     testProjectSystem = GuiTestProjectSystem.forBuildSystem(buildSystem) ?:
         throw IllegalStateException("No build system delegate found for $buildSystem.")
     testProjectSystem.validateSetup()

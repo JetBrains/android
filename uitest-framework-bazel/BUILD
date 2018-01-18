@@ -2,6 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
     name = "uitest-framework-bazel",
+    srcs = ["src"],
     iml_files = ["uitest-framework-bazel.iml"],
     tags = ["managed"],
     # do not sort: must match IML order
