@@ -969,7 +969,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonText()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_START_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
+    assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
   }
 
   @Test
@@ -995,7 +997,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonText()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.CAPTURE_STOP_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
+    assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
   }
 
   @Test
@@ -1023,7 +1027,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Sanity check to see if we reached the final capture state
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(myServices.getErrorBalloonTitle()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TITLE);
-    assertThat(myServices.getErrorBalloonText()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonBody()).isEqualTo(CpuProfilerStage.PARSING_FAILURE_BALLOON_TEXT);
+    assertThat(myServices.getErrorBalloonUrl()).isEqualTo(CpuProfilerStage.CPU_BUG_TEMPLATE_URL);
+    assertThat(myServices.getErrorBalloonUrlText()).isEqualTo(CpuProfilerStage.REPORT_A_BUG_TEXT);
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {

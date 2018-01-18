@@ -131,8 +131,10 @@ public interface IdeProfilerServices {
   /**
    * Displays a balloon message showing the user that an error has occurred.
    *
-   * @param title title of the message
-   * @param text  body of the message
+   * @param title   title of the message
+   * @param body    body of the message, followed by a hyperlink as specified by next two parameters
+   * @param url     destination of the hyperlink that follows the body, if neither url or urlText is null
+   * @param urlText shown text of the hyperlink that follows the body, if neither url or urlText is null
    */
-  void showErrorBalloon(@NotNull String title, @NotNull String text);
+  void showErrorBalloon(@NotNull String title, @NotNull String body, String url, String urlText);
 }
