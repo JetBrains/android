@@ -248,7 +248,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       AgentStatusResponse.Builder responseBuilder = AgentStatusResponse.newBuilder();
       try {
         ResultSet results =
-          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getDeviceId(), request.getProcessId(), 0L);
+          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getDeviceId(), request.getPid(), 0L);
         if (results.next()) {
           responseBuilder.setStatusValue(results.getInt(1));
           responseBuilder.setLastTimestamp(results.getLong(2));

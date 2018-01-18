@@ -166,15 +166,16 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void beginSession(BeginSessionRequest request, StreamObserver<BeginSessionResponse> responseObserver) {
     BeginSessionResponse.Builder builder = BeginSessionResponse.newBuilder();
-    long sessionId = request.getDeviceId() ^ request.getProcessId();
+    long sessionId = request.getDeviceId() ^ request.getPid();
     Common.Session session = Common.Session.newBuilder()
       .setSessionId(sessionId)
       .setDeviceId(request.getDeviceId())
-      .setPid(request.getProcessId())
+      .setPid(request.getPid())
       .setStartTimestamp(myTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
     mySessions.put(sessionId, session);
+    myAttachAgentCalled = request.getJvmtiConfig().getAttachAgent();
     builder.setSession(session);
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
@@ -208,13 +209,6 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       builder.setStatus(myAgentStatus);
     }
     responseObserver.onNext(builder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void attachAgent(AgentAttachRequest request, StreamObserver<AgentAttachResponse> responseObserver) {
-    myAttachAgentCalled = true;
-    responseObserver.onNext(AgentAttachResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 

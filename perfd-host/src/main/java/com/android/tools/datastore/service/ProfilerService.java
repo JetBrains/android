@@ -98,14 +98,6 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void attachAgent(AgentAttachRequest request, StreamObserver<AgentAttachResponse> responseObserver) {
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
-      myService.getProfilerClient(DeviceId.fromSession(request.getSession()));
-    responseObserver.onNext(client == null ? AgentAttachResponse.getDefaultInstance() : client.attachAgent(request));
-    responseObserver.onCompleted();
-  }
-
-  @Override
   public void beginSession(BeginSessionRequest request, StreamObserver<BeginSessionResponse> responseObserver) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
     if (client == null) {
