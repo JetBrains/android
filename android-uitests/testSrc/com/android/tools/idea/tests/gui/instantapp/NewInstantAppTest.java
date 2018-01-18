@@ -206,6 +206,7 @@ public class NewInstantAppTest {
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "base/src/release/res/values/google_maps_api.xml")).isFile();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/72126655
   @Test // b/68478730
   public void addMasterDetailActivityToExistingIappModule() throws Exception {
     createAndOpenDefaultAIAProject("BuildApp", "feature", null);
