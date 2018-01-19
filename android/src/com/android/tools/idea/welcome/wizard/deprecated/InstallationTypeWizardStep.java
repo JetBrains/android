@@ -24,7 +24,9 @@ import javax.swing.*;
 
 /**
  * Wizard step for selecting installation types
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.InstallationTypeWizardStep}
  */
+@Deprecated
 public class InstallationTypeWizardStep extends FirstRunWizardStep {
   @NotNull private final ScopedStateStore.Key<Boolean> myDataKey;
   private JBScrollPane myContents;
