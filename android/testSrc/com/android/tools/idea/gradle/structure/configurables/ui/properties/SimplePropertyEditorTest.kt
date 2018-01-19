@@ -67,21 +67,21 @@ class SimplePropertyEditorTest {
 
   @Test
   fun loadsValue() {
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     assertEquals("parsed", editor.selectedItem)
   }
 
   @Test
   fun loadsWellKnownValue() {
     parsedModel.value = "1"
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     assertEquals("one", editor.selectedItem)
   }
 
   @Test
   fun loadsReference() {
     parsedModel.dsl = DslText(DslMode.REFERENCE, "some_reference")
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     assertEquals("\$some_reference", editor.selectedItem)
   }
 
@@ -89,41 +89,41 @@ class SimplePropertyEditorTest {
   fun loadsReferenceResolvedIntoKnownValue() {
     parsedModel.dsl = DslText(DslMode.REFERENCE, "some_reference")
     parsedModel.value = "1"
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     assertEquals("\$some_reference", editor.selectedItem)
   }
 
   @Test
   fun loadsInterpolatedString() {
     parsedModel.dsl = DslText(DslMode.INTERPOLATED_STRING, "some \${reference}")
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     assertEquals("\"some \${reference}\"", editor.selectedItem)
   }
 
   @Test
   fun loadsOtherUnparsedDslText() {
     parsedModel.dsl = DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, "1 + z(x)")
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     assertEquals("\$\$1 + z(x)", editor.selectedItem)
   }
 
   @Test
   fun updatesValue() {
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     editor.selectedItem = "abc"
     assertEquals("abc", parsedModel.value)
   }
 
   @Test
   fun updatesToNullValue() {
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     editor.selectedItem = ""
     assertNull(parsedModel.value)
   }
 
   @Test
   fun updatesToReference() {
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     editor.selectedItem = "\$other.reference"
     assertNull(parsedModel.value)
     assertEquals(DslMode.REFERENCE, parsedModel.dsl?.mode)
@@ -132,7 +132,7 @@ class SimplePropertyEditorTest {
 
   @Test
   fun updatesToInterpolatedString() {
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     // TODO(b/72088238): Decide on the exact format.
     editor.selectedItem = "\"\$a and \$b\""
     assertNull(parsedModel.value)
@@ -142,7 +142,7 @@ class SimplePropertyEditorTest {
 
   @Test
   fun updatesFromWellKnownValueDescription() {
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     editor.selectedItem = "two"
     assertEquals("2", parsedModel.value)
   }
@@ -155,7 +155,7 @@ class SimplePropertyEditorTest {
 
   @Test
   fun handlesInvalidInput() {
-    val editor = SimplePropertyEditor(model, property)
+    val editor = simplePropertyEditor(model, property)
     editor.selectedItem = "invalid"  // "invalid" is recognised as an invalid input by the test parser.
     // Right now invalid input is ignored.
     assertEquals("parsed", parsedModel.value)

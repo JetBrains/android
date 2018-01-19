@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanel
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
@@ -36,23 +36,23 @@ class AndroidModuleRootConfigurable(context: PsContext, module: PsAndroidModule)
 fun androidModulePropertiesModel() =
     PropertiesUiModel(
         listOf(
-            uiProperty(AndroidModuleDescriptors.compileSdkVersion, ::SimplePropertyEditor),
-            uiProperty(AndroidModuleDescriptors.buildToolsVersion, ::SimplePropertyEditor),
-            uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::SimplePropertyEditor),
-            uiProperty(AndroidModuleDescriptors.targetCompatibility, ::SimplePropertyEditor)))
+            uiProperty(AndroidModuleDescriptors.compileSdkVersion, ::simplePropertyEditor),
+            uiProperty(AndroidModuleDescriptors.buildToolsVersion, ::simplePropertyEditor),
+            uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor),
+            uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor)))
 
 fun defaultConfigPropertiesModel() =
     PropertiesUiModel(
         listOf(
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::SimplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::SimplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::SimplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::SimplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::SimplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest,
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling,
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner, ::SimplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::SimplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::SimplePropertyEditor),
-            uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::SimplePropertyEditor)))
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor)))
 

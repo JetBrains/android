@@ -30,7 +30,7 @@ class ModuleDefaultConfigConfigPanel(
 ) : ConfigPanel<PsAndroidModuleDefaultConfig>(defaultConfigPropertiesModel()), ModelPanel<PsAndroidModule> {
 
   init {
-    bind(module)
+    bind(module.module, module)
   }
 
   override val title = "Default Config"

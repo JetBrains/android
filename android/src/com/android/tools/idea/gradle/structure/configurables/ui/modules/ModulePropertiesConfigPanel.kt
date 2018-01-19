@@ -29,7 +29,7 @@ class ModulePropertiesConfigPanel(
 ) : ConfigPanel<PsAndroidModule>(androidModulePropertiesModel()), ModelPanel<PsAndroidModule> {
 
   init {
-    bind(module)
+    bind(module, module)
   }
 
   override val title = "Properties"

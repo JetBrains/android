@@ -16,7 +16,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.buildvaria
 import com.android.tools.idea.gradle.structure.configurables.ContainerConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorConfigPanel
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -60,16 +60,16 @@ class FlavorDimensionConfigurable(
 fun productFlavorPropertiesModel() =
     PropertiesUiModel(
         listOf(
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.dimension, ::SimplePropertyEditor),
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.minSdkVersion, ::SimplePropertyEditor),
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationId, ::SimplePropertyEditor),
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion, ::SimplePropertyEditor),
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion, ::SimplePropertyEditor),
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled, ::SimplePropertyEditor),
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner, ::SimplePropertyEditor),
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.testApplicationId, ::SimplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.dimension, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.minSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.applicationId, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.testApplicationId, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest,
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling,
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionCode, ::SimplePropertyEditor),
-            uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionName, ::SimplePropertyEditor)))
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionCode, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.versionName, ::simplePropertyEditor)))
 
