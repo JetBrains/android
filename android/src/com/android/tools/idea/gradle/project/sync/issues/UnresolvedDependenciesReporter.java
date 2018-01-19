@@ -46,6 +46,7 @@ import java.util.List;
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
 import static com.android.ide.common.repository.SdkMavenRepository.findBestPackageMatching;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
 import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
@@ -144,6 +145,10 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
       }
     }
 
+    // Offer to turn on embedded offline repo if the missing dependency can be found there.
+    if (shouldEnableEmbeddedRepo(dependency)) {
+      quickFixes.add(new EnableEmbeddedRepoHyperlink());
+    }
     message.add(quickFixes);
     getSyncMessages(module).report(message);
   }

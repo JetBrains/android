@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
@@ -27,8 +28,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
+import static com.android.tools.idea.gradle.project.sync.errors.MissingDependencyErrorHandler.MISSING_DEPENDENCY_PATTERN;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
@@ -71,6 +75,14 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
         hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
       }
       hyperlinks.add(new OpenFileHyperlink(toSystemDependentName(buildFile.getPath())));
+    }
+
+    // Offer to turn on embedded offline repo if the missing Android plugin can be found there.
+    Matcher matcher = MISSING_DEPENDENCY_PATTERN.matcher(getFirstLineMessage(text));
+    if (matcher.matches()) {
+      if (shouldEnableEmbeddedRepo(matcher.group(1))) {
+        hyperlinks.add(new EnableEmbeddedRepoHyperlink());
+      }
     }
     return hyperlinks;
   }
