@@ -153,7 +153,7 @@ public class IdeaGradleSync implements GradleSync {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, false);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
-                     executionMode, true /* always report import errors */);
+                     executionMode, true /* always report import errors */, false /* do not seal the "Build View" */);
     }
   }
 
