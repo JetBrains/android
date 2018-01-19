@@ -124,6 +124,17 @@ public class EmbeddedDistributionPaths {
     return rootDirPath.isDirectory() ? rootDirPath : null;
   }
 
+  @Nullable
+  public File tryToGetEmbeddedJdkPath() {
+    try {
+      return getEmbeddedJdkPath();
+    }
+    catch (Throwable t) {
+      Logger.getInstance(EmbeddedDistributionPaths.class).warn("Failed to find a valid embedded JDK", t);
+      return null;
+    }
+  }
+
   @NotNull
   public File getEmbeddedJdkPath() {
     String ideHomePath = getIdeHomePath();

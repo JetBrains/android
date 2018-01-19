@@ -81,11 +81,13 @@ public class Jdks {
       langLevel = DEFAULT_LANG_LEVEL;
     }
     if (myIdeInfo.isAndroidStudio() && !IdeSdks.getInstance().isUsingEmbeddedJdk()) {
-      File embeddedJdkPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
-      if (embeddedJdkPath == null)
-        //set JRE that this process started with if no embeddedJdkPath has been found
-        embeddedJdkPath = new File(System.getProperty("java.home"));
-      Sdk jdk = createJdk(embeddedJdkPath.getPath());
+      File viableJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+      if (viableJdkPath == null) {
+        // Set JRE that this process started with if no embedded JDK has been found.
+        viableJdkPath = new File(System.getProperty("java.home"));
+      }
+
+      Sdk jdk = createJdk(viableJdkPath.getPath());
       assert jdk != null && isApplicableJdk(jdk, langLevel);
       return jdk;
     }
@@ -243,8 +245,10 @@ public class Jdks {
   @Nullable
   public Sdk createEmbeddedJdk() {
     if (myIdeInfo.isAndroidStudio()) {
-      File path = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
-      if (path == null) return null;
+      File path = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+      if (path == null) {
+        return null;
+      }
       Sdk jdk = createJdk(path.getPath());
       assert jdk != null;
       return jdk;
