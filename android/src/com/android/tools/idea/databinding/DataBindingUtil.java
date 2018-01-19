@@ -344,21 +344,8 @@ public class DataBindingUtil {
     return MergedManifest.get(facet).getPackage();
   }
 
-  /**
-   * Called by the {@linkplain AndroidFacet} to refresh its data binding status.
-   *
-   * @param facet the {@linkplain AndroidFacet} whose IdeaProject is just set.
-   */
-  public static void refreshDataBindingStatus(@NotNull AndroidFacet facet) {
-    AndroidModel androidModel = facet.getAndroidModel();
-    if (androidModel != null) {
-      boolean wasEnabled = ModuleDataBinding.getInstance(facet).isEnabled();
-      boolean enabled = androidModel.getDataBindingEnabled();
-      if (enabled != wasEnabled) {
-        ModuleDataBinding.getInstance(facet).setEnabled(enabled);
-        ourDataBindingEnabledModificationCount.incrementAndGet();
-      }
-    }
+  public static void incrementModificationCount() {
+    ourDataBindingEnabledModificationCount.incrementAndGet();
   }
 
   @Nullable

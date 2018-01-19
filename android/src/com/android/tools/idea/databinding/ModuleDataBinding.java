@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.android.tools.idea.model.AndroidModel;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetManagerAdapter;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 public class ModuleDataBinding {
   @Nullable private LightBrClass myLightBrClass;
   private boolean myEnabled;
+  private Module myModule;
 
   @NotNull
   public static ModuleDataBinding getInstance(@NotNull AndroidFacet facet) {
@@ -33,12 +41,36 @@ public class ModuleDataBinding {
     return dataBinding;
   }
 
-  private ModuleDataBinding() {
-    setEnabled(false);
+  private ModuleDataBinding(Module module) {
+    myModule = module;
+    final MessageBusConnection connection = module.getMessageBus().connect(module);
+
+    connection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
+      @Override
+      public void facetConfigurationChanged(@NotNull Facet facet) {
+        if (facet.getModule() == myModule) {
+          syncWithConfiguration();
+        }
+      }
+    });
+    syncWithConfiguration();
+  }
+
+  private void syncWithConfiguration() {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet != null) {
+      AndroidModel androidModel = facet.getAndroidModel();
+      if (androidModel != null) {
+        setEnabled(androidModel.getDataBindingEnabled());
+      }
+    }
   }
 
   public void setEnabled(boolean enabled) {
-    myEnabled = enabled;
+    if (enabled != myEnabled) {
+      myEnabled = enabled;
+      DataBindingUtil.incrementModificationCount();
+    }
   }
 
   public boolean isEnabled() {
