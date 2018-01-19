@@ -33,6 +33,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaration;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
@@ -52,15 +53,11 @@ public class GroovyDslWriter implements GradleDslWriter {
       return psiElement;
     }
 
-    GradleDslElement parent = element.getParent();
-    if (parent == null) {
-      return null;
-    }
-
-    GroovyPsiElement parentPsiElement = ensureGroovyPsi(parent.create());
+    PsiElement parentPsiElement = getParentPsi(element);
     if (parentPsiElement == null) {
       return null;
     }
+
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
@@ -377,12 +374,17 @@ public class GroovyDslWriter implements GradleDslWriter {
       return expressionMap.getPsiElement();
     }
 
-    PsiElement psiElement = createDslElement(expressionMap);
+    PsiElement psiElement;
+    if (expressionMap.getElementType() == PropertyType.DERIVED && expressionMap.isLiteralMap()) {
+      psiElement = createDerivedMap(expressionMap);
+    } else {
+      psiElement = createDslElement(expressionMap);
+    }
     if (psiElement == null) {
       return null;
     }
 
-    if (psiElement instanceof GrListOrMap || psiElement instanceof GrArgumentList) {
+    if (psiElement instanceof GrListOrMap || psiElement instanceof GrArgumentList || psiElement instanceof GrNamedArgument) {
       return psiElement;
     }
 

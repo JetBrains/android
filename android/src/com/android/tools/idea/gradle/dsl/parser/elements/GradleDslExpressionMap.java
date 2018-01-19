@@ -28,14 +28,26 @@ import java.util.Map;
  * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslExpression}.
  */
 public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
+  // Is this GradleDslExpressionMap being used as an actual map. This is used when creating the element to
+  // work out whether we need to wrap this map in brackets. For example expression maps are used for literals maps
+  // like "prop = [key: 'value']" but can also be used for things such as apply statements like "apply plugin: 'value'".
+  private boolean myIsLiteralMap;
+
   public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
   }
 
+  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull String name, boolean isLiteralMap) {
+    super(parent, null, name);
+    myIsLiteralMap = isLiteralMap;
+  }
+
   public GradleDslExpressionMap(@Nullable GradleDslElement parent,
                                 @NotNull PsiElement psiElement,
-                                @NotNull String name) {
+                                @NotNull String name,
+                                boolean isLiteralMap) {
     super(parent, psiElement, name);
+    myIsLiteralMap = isLiteralMap;
   }
 
   public void addNewLiteral(String key, Object value) {
@@ -73,5 +85,9 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
   @Nullable
   public PsiElement create() {
     return getDslFile().getWriter().createDslExpressionMap(this);
+  }
+
+  public boolean isLiteralMap() {
+    return myIsLiteralMap;
   }
 }

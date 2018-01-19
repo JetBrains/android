@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.openapi.vfs.VfsUtil
-import org.apache.commons.io.FileUtils
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testProperties() {
@@ -955,8 +954,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    println(FileUtils.readFileToString(myBuildFile))
-
     // Check its correct after a reparse.
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -1617,8 +1614,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(buildModel)
 
-    println(FileUtils.readFileToString(myBuildFile))
-
     // Check that a reparse still has a missing model
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -1831,8 +1826,84 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
-  // TODO: Fix this b/72099838
-  fun /*test*/SetMapInMap() {
+  fun testMapsInMap() {
+    val text = """
+               ext {
+                 def var = "hellO"
+                 prop1 = [key1 : [key2 : 'value'], key3 : [key4: 'value2', key5: 43], key6 : [key7: 'value3']]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(3, map.entries)
+
+      val firstInnerMapModel = map["key1"]!!
+      assertEquals(MAP, firstInnerMapModel.valueType)
+      val firstInnerMap = firstInnerMapModel.getValue(MAP_TYPE)!!
+      assertSize(1, firstInnerMap.entries)
+      // Delete the first inner map
+      firstInnerMapModel.delete()
+
+      // Check is has been deleted.
+      verifyPropertyModel(firstInnerMapModel, OBJECT_TYPE, null, NONE, DERIVED, 0)
+
+      val secondInnerMapModel = map["key3"]!!
+      assertEquals(MAP, secondInnerMapModel.valueType)
+      val secondInnerMap = secondInnerMapModel.getValue(MAP_TYPE)!!
+      assertSize(2, secondInnerMap.entries)
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "value2", STRING, DERIVED, 0)
+      verifyPropertyModel(secondInnerMap["key5"], INTEGER_TYPE, 43, INTEGER, DERIVED, 0)
+      // Delete one of these values, and change the other.
+      secondInnerMap["key4"]!!.setValue(ReferenceTo("var"))
+      secondInnerMap["key5"]!!.delete()
+
+      // Check the values are correct.
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(secondInnerMap["key5"], OBJECT_TYPE, null, NONE, DERIVED, 0)
+
+      val thirdInnerMapModel = map["key6"]!!
+      assertEquals(MAP, thirdInnerMapModel.valueType)
+      val thirdInnerMap = thirdInnerMapModel.getValue(MAP_TYPE)!!
+      assertSize(1, thirdInnerMap.entries)
+      verifyPropertyModel(thirdInnerMap["key7"], STRING_TYPE, "value3", STRING, DERIVED, 0)
+
+      // Set this third map model to be another basic value.
+      thirdInnerMapModel.setValue(77)
+
+      // Check it has been deleted.
+      verifyPropertyModel(thirdInnerMapModel, INTEGER_TYPE, 77, INTEGER, DERIVED, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    // Check everything is in order after a reparse.
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(2, map.entries)
+
+      val firstInnerMapModel = map["key1"]
+      assertNull(firstInnerMapModel)
+
+      val secondInnerMapModel = map["key3"]!!
+      assertEquals(MAP, secondInnerMapModel.valueType)
+      val secondInnerMap = secondInnerMapModel.getValue(MAP_TYPE)!!
+      assertSize(1, secondInnerMap.entries)
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var", REFERENCE, DERIVED, 1)
+      assertNull(secondInnerMap["key5"])
+
+      val thirdInnerMapModel = map["key6"]!!
+      verifyPropertyModel(thirdInnerMapModel, INTEGER_TYPE, 77, INTEGER, DERIVED, 0)
+    }
+  }
+
+  fun testSetMapInMap() {
     val text = """
                ext {
                  prop1 = ['key1' : 25]
@@ -1847,7 +1918,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val map = propertyModel.getValue(MAP_TYPE)!!
       assertSize(1, map.entries)
       // Try to set a new map value.
-      propertyModel.getValue(MAP_TYPE)!!["key1"]?.addMapValue("War")?.setValue("Death")
+      propertyModel.getValue(MAP_TYPE)!!["key1"]!!.convertToEmptyMap().addMapValue("War")?.setValue("Death")
     }
 
     applyChangesAndReparse(buildModel)
