@@ -79,7 +79,7 @@ public class IntegratedSdkManagerTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/72110376
+  @RunIn(TestGroup.SANITY)
   @Test
   public void installPackage() throws Exception {
     guiTest.importSimpleApplication();
