@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -130,5 +131,12 @@ public class ResourceRepositories implements Disposable {
   public void dispose() {
     // There's nothing to dispose in this object, but the actual resource repositories may need to do clean-up and they are children
     // of this object in the Disposer hierarchy.
+  }
+
+  public void resetAllCaches() {
+    refreshResources();
+    ConfigurationManager.getOrCreateInstance(myFacet.getModule()).getResolverCache().reset();
+    ResourceFolderRegistry.reset();
+    FileResourceRepository.reset();
   }
 }

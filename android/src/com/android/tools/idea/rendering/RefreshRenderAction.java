@@ -19,6 +19,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceRepositories;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -68,7 +69,7 @@ public class RefreshRenderAction extends AnAction {
 
       AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
       if (facet != null) {
-        facet.refreshResources();
+        ResourceRepositories.getOrCreateInstance(facet).resetAllCaches();
       }
 
       configuration.updated(ConfigurationListener.MASK_RENDERING);
