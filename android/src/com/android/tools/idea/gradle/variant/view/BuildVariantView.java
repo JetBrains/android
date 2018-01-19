@@ -211,7 +211,7 @@ public class BuildVariantView {
     List<Module> gradleModules = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getAndroidModel() != null) {
+      if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getConfiguration().getModel() != null) {
         gradleModules.add(module);
         continue;
       }

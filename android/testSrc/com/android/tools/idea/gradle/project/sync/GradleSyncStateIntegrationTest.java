@@ -58,19 +58,19 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     Module appModule = myModules.getAppModule();
     AndroidFacet appAndroidFacet = AndroidFacet.getInstance(appModule);
     assertNotNull(appAndroidFacet);
-    assertNotNull(appAndroidFacet.getAndroidModel());
+    assertNotNull(appAndroidFacet.getConfiguration().getModel());
 
     Module libModule = myModules.getModule("lib");
     AndroidFacet libAndroidFacet = AndroidFacet.getInstance(libModule);
     assertNotNull(libAndroidFacet);
-    assertNotNull(libAndroidFacet.getAndroidModel());
+    assertNotNull(libAndroidFacet.getConfiguration().getModel());
 
     mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
     mySyncState.invalidateLastSync("Error");
     assertTrue(mySyncState.lastSyncFailed());
 
-    assertNull(appAndroidFacet.getAndroidModel());
-    assertNull(libAndroidFacet.getAndroidModel());
+    assertNull(appAndroidFacet.getConfiguration().getModel());
+    assertNull(libAndroidFacet.getConfiguration().getModel());
 
     verify(myGradleSyncListener).syncFailed(getProject(), "Error");
   }

@@ -86,7 +86,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
   @VisibleForTesting
   void cleanUpSdk(@NotNull Module module, @NotNull Set<Sdk> fixedSdks, @NotNull Set<Sdk> invalidSdks) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null || androidFacet.getAndroidModel() == null) {
+    if (androidFacet == null || androidFacet.getConfiguration().getModel() == null) {
       return;
     }
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();

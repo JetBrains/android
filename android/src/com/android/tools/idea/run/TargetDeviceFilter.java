@@ -62,9 +62,9 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         return false;
       } else {
         AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
-        Set<String> supportedAbis = myFacet.getAndroidModel() instanceof AndroidModuleModel ?
-                                 ((AndroidModuleModel)myFacet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
-                                 null;
+        Set<String> supportedAbis = myFacet.getConfiguration().getModel() instanceof AndroidModuleModel ?
+                                    ((AndroidModuleModel)myFacet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+                                    null;
 
         LaunchCompatibility compatibility = connectedDevice.canRun(AndroidModuleInfo.getInstance(myFacet).getRuntimeMinSdkVersion(),
                                                                    androidPlatform.getTarget(),

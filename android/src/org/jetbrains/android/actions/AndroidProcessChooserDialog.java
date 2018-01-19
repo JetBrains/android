@@ -37,7 +37,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
@@ -418,7 +417,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           collectProcessNames(xmlElement, result);
         }
       }
-      final AndroidModel androidModel = facet.getAndroidModel();
+      final AndroidModel androidModel = facet.getConfiguration().getModel();
       if (androidModel != null) {
         result.addAll(androidModel.getAllApplicationIds());
       }

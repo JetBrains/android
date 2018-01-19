@@ -263,7 +263,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (classFile == null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && facet.requiresAndroidModel()) {
-        AndroidModel androidModel = facet.getAndroidModel();
+        AndroidModel androidModel = facet.getConfiguration().getModel();
         if (androidModel != null) {
           classFile = androidModel.getClassJarProvider().findModuleClassFile(name, module);
         }
@@ -308,13 +308,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return false;
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getAndroidModel() == null) {
+    if (facet == null || facet.getConfiguration().getModel() == null) {
       return false;
     }
     // Allow file system access for timestamps.
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      return facet.getAndroidModel().isClassFileOutOfDate(module, fqcn, classFile);
+      return facet.getConfiguration().getModel().isClassFileOutOfDate(module, fqcn, classFile);
     } finally {
       RenderSecurityManager.exitSafeRegion(token);
     }
@@ -352,7 +352,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.requiresAndroidModel()) {
-      AndroidModel model = facet.getAndroidModel();
+      AndroidModel model = facet.getConfiguration().getModel();
       if (model != null) {
         return model.getClassJarProvider().getModuleExternalLibraries(module).stream();
       }

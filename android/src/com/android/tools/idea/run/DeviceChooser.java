@@ -102,8 +102,8 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
-    mySupportedAbis = facet.getAndroidModel() instanceof AndroidModuleModel ?
-                      ((AndroidModuleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+    mySupportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
+                      ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
                       null;
 
     // Currently, we only look at whether the device supports the watch feature.

@@ -97,7 +97,7 @@ public class ResourceFolderManager implements ModificationTracker {
   private List<VirtualFile> computeFolders() {
     if (myFacet.requiresAndroidModel()) {
       JpsAndroidModuleProperties state = myFacet.getConfiguration().getState();
-      AndroidModel androidModel = myFacet.getAndroidModel();
+      AndroidModel androidModel = myFacet.getConfiguration().getModel();
       List<VirtualFile> resDirectories = new ArrayList<>();
       if (androidModel == null) {
         // Read string property

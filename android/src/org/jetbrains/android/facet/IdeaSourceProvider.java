@@ -16,8 +16,6 @@
 package org.jetbrains.android.facet;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -364,7 +362,7 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel()) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
-    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
       return createAll(androidModel.getActiveSourceProviders());
     }
@@ -376,7 +374,7 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel()) {
       return Collections.emptyList();
     }
-    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
       return createAll(androidModel.getTestSourceProviders());
     }
@@ -516,11 +514,11 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<SourceProvider> getAllSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.requiresAndroidModel() || facet.getAndroidModel() == null) {
+    if (!facet.requiresAndroidModel() || facet.getConfiguration().getModel() == null) {
       return Collections.singletonList(facet.getMainSourceProvider());
     }
 
-    return facet.getAndroidModel().getAllSourceProviders();
+    return facet.getConfiguration().getModel().getAllSourceProviders();
   }
 
   /**
@@ -536,7 +534,7 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<IdeaSourceProvider> getAllIdeaSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.requiresAndroidModel() || facet.getAndroidModel() == null) {
+    if (!facet.requiresAndroidModel() || facet.getConfiguration().getModel() == null) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
     return createAll(getAllSourceProviders(facet));

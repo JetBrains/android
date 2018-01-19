@@ -79,7 +79,7 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
 
-    assertNotNull(myAppFacet.getAndroidModel());
+    assertNotNull(myAppFacet.getConfiguration().getModel());
     // TODO: b/23032990
     ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);

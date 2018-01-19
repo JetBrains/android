@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -99,7 +98,7 @@ public final class GradleProjects {
   @Nullable
   public static AndroidModel getAndroidModel(@NotNull Module module) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    return androidFacet != null ? androidFacet.getAndroidModel() : null;
+    return androidFacet != null ? androidFacet.getConfiguration().getModel() : null;
   }
 
   /**

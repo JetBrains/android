@@ -42,7 +42,7 @@ public final class CreateClassActionTest extends AndroidTestCase {
   }
 
   public void testGetDestinationDirectoryIdeDoesntHaveOneDirectory() throws IOException {
-    AndroidModel oldModel = myFacet.getAndroidModel();
+    AndroidModel oldModel = myFacet.getConfiguration().getModel();
 
     Path path = FileSystems.getDefault().getPath(myModule.getProject().getBasePath(), "app", "src", "main", "java");
     TestFileUtils.createDirectoriesAndRefreshVfs(path);

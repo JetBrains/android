@@ -90,7 +90,7 @@ final class ManifestInfo {
     ILogger logger = NullLogger.getLogger();
     ManifestMerger2.MergeType mergeType = facet.isAppProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
-    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
     AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);

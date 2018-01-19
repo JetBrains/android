@@ -157,7 +157,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, true);
 
     assertEquals(PROJECT_TYPE_TEST, myAndroidFacet.getProjectType());
-    AndroidModel androidModel = myAndroidFacet.getAndroidModel();
+    AndroidModel androidModel = myAndroidFacet.getConfiguration().getModel();
     assertInstanceOf(androidModel, AndroidModuleModel.class);
     for (TestedTargetVariant testedTargetVariant : ((AndroidModuleModel)androidModel).getSelectedVariant().getTestedTargetVariants()) {
       Module targetModule = findModuleByGradlePath(getProject(), testedTargetVariant.getTargetProjectPath());

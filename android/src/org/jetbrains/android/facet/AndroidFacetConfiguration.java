@@ -161,6 +161,9 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     }
   }
 
+  /**
+   * @return the Android model associated to this facet.
+   */
   @Nullable
   public AndroidModel getModel() {
     return myAndroidModel;

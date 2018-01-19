@@ -100,14 +100,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
   }
 
-  /**
-   * @return the Android model associated to this facet.
-   */
-  @Nullable
-  public AndroidModel getAndroidModel() {
-    return getConfiguration().getModel();
-  }
-
   public boolean isAppProject() {
     int projectType = getProjectType();
     return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;

@@ -457,7 +457,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Nullable
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     if (myResourceVisibilityProvider == null) {
-      if (!myFacet.requiresAndroidModel() || myFacet.getAndroidModel() == null) {
+      if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
         return null;
       }
       myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();

@@ -22,10 +22,8 @@ import com.intellij.facet.FacetManagerAdapter;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
-import com.intellij.openapi.util.Key;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +57,7 @@ public class ModuleDataBinding {
   private void syncWithConfiguration() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     if (facet != null) {
-      AndroidModel androidModel = facet.getAndroidModel();
+      AndroidModel androidModel = facet.getConfiguration().getModel();
       if (androidModel != null) {
         setEnabled(androidModel.getDataBindingEnabled());
       }
