@@ -18,17 +18,15 @@ package com.android.tools.idea.uibuilder.structure;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.google.common.collect.Sets;
+import com.intellij.ide.DeleteProvider;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -60,7 +58,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -218,9 +215,15 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           }
           mySelectionIsUpdating.set(true);
 
-          Collection<NlComponent> components = getCollapsedComponents();
+          List<TreePath> expandedPaths = TreeUtil.collectExpandedPaths(NlComponentTree.this);
+          Object oldRoot = treeModel.getRoot();
           setModel(new NlComponentTreeModel(myModel));
-          collapseComponents(components);
+          if (oldRoot == treeModel.getRoot()) {
+            TreeUtil.restoreExpandedPaths(NlComponentTree.this, expandedPaths);
+          }
+          else {
+            TreeUtil.expandAll(NlComponentTree.this);
+          }
 
           invalidateUI();
         }
@@ -234,50 +237,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     if (mySkipWait) {
       mySkipWait = false;
       myUpdateQueue.flush();
-    }
-  }
-
-  @NotNull
-  private Collection<NlComponent> getCollapsedComponents() {
-    int rowCount = getRowCount();
-    Collection<NlComponent> components = Sets.newHashSetWithExpectedSize(rowCount);
-
-    for (int row = 0; row < rowCount; row++) {
-      if (isCollapsed(row)) {
-        Object last = getPathForRow(row).getLastPathComponent();
-        if (!(last instanceof NlComponent)) {
-          continue;
-        }
-        NlComponent component = (NlComponent)last;
-
-        if (component.getChildCount() != 0) {
-          components.add(component);
-        }
-      }
-    }
-
-    return components;
-  }
-
-  private void collapseComponents(@NotNull Collection<NlComponent> components) {
-    NlComponent root = (NlComponent)getModel().getRoot();
-
-    if (root == null) {
-      return;
-    }
-
-    expandAll(root);
-    components.forEach(component -> collapsePath(newTreePath(component)));
-  }
-
-  private void expandAll(@NotNull NlComponent parent) {
-    // If all the children are leaves
-    if (parent.getChildren().stream().allMatch(child -> child.getChildCount() == 0)) {
-      expandPath(newTreePath(parent));
-    }
-    else {
-      // Recurse
-      parent.getChildren().forEach(this::expandAll);
     }
   }
 
@@ -508,6 +467,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
             // TODO: Ensure the node is selected first
             mySurface.getActionManager().showPopup(e, (NlComponent)component);
           }
+          else {
+            ActionManager actionManager = ActionManager.getInstance();
+            actionManager.createActionPopupMenu(
+              ActionPlaces.EDITOR_POPUP,
+              new DefaultActionGroup(actionManager.getAction(IdeActions.ACTION_DELETE)))
+              .getComponent().show(e.getComponent(), e.getX(), e.getY());
+          }
         }
       }
     }
@@ -570,7 +536,28 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implements DataProvider ----
   @Override
   public Object getData(@NonNls String dataId) {
+    TreePath path = getSelectionPath();
+    if (path != null && !(path.getLastPathComponent() instanceof NlComponent)) {
+      if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
+        return createNonNlComponentDeleteProvider();
+      }
+    }
     return mySurface == null ? null : mySurface.getData(dataId);
+  }
+
+  @NotNull
+  private DeleteProvider createNonNlComponentDeleteProvider() {
+    return new DeleteProvider() {
+      @Override
+      public void deleteElement(@NotNull DataContext dataContext) {
+        deleteNonNlComponent(getSelectionPaths());
+      }
+
+      @Override
+      public boolean canDeleteElement(@NotNull DataContext dataContext) {
+        return true;
+      }
+    };
   }
 
   /**
