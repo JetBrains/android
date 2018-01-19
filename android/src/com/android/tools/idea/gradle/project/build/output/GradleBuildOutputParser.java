@@ -40,6 +40,7 @@ import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser
  */
 public class GradleBuildOutputParser implements BuildOutputParser {
   private static final String MESSAGES_GROUP = "Android errors";
+  private static final String END_DETAIL = "* Try:";
 
   @Override
   public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<MessageEvent> messageConsumer) {
@@ -53,17 +54,18 @@ public class GradleBuildOutputParser implements BuildOutputParser {
       Gson gson = gsonBuilder.create();
       try {
         Message msg = gson.fromJson(jsonString, Message.class);
+        String detailMessage = reader.readUntil(END_DETAIL);
         boolean validPosition = false;
         for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
           FilePosition filePosition = convertToFilePosition(sourceFilePosition);
           if (filePosition != null) {
             validPosition = true;
             messageConsumer.accept(
-              new FileMessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), filePosition));
+              new FileMessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage, filePosition));
           }
         }
         if (!validPosition) {
-          messageConsumer.accept(new MessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText()));
+          messageConsumer.accept(new MessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage));
         }
         return true;
       }
