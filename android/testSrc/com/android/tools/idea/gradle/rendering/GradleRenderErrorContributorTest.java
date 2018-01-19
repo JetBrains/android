@@ -118,7 +118,7 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
 
     AndroidModuleModel model =
       new AndroidModuleModel(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
-    facet.setAndroidModel(model);
+    facet.getConfiguration().setModel(model);
     model = AndroidModuleModel.get(myModule);
 
     assertThat(model).isNotNull();

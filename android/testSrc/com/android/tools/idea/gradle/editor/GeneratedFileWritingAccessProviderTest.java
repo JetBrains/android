@@ -103,7 +103,7 @@ public class GeneratedFileWritingAccessProviderTest extends IdeaTestCase {
 
   private void simulateIsAndroidModule() {
     AndroidFacet androidFacet = createAndAddAndroidFacet(getModule());
-    androidFacet.setAndroidModel(myAndroidModel);
+    androidFacet.getConfiguration().setModel(myAndroidModel);
     when(myProjectInfo.findAndroidModelInModule(any(), eq(false))).thenReturn(myAndroidModel);
   }
 

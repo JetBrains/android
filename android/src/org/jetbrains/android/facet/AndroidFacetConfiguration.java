@@ -149,6 +149,11 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     myProperties = properties;
   }
 
+  /**
+   * Associates the given Android model to this facet.
+   *
+   * @param androidModel the new Android model.
+   */
   public void setModel(@Nullable AndroidModel model) {
     myAndroidModel = model;
     if (myFacet != null) {

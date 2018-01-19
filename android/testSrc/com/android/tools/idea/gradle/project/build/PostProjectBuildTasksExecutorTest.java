@@ -139,6 +139,6 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
   private static void addAndroidModelToFacet(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    facet.setAndroidModel(androidModel);
+    facet.getConfiguration().setModel(androidModel);
   }
 }

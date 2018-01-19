@@ -103,6 +103,6 @@ public class PluginVersionUpgradeTest extends IdeaTestCase {
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
 
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.setAndroidModel(androidModel);
+    facet.getConfiguration().setModel(androidModel);
   }
 }

@@ -253,7 +253,7 @@ public class GradleSyncState {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        facet.setAndroidModel(null);
+        facet.getConfiguration().setModel(null);
       }
     }
   }

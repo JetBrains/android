@@ -79,7 +79,7 @@ public class AndroidModuleProcessorTest extends IdeaTestCase {
     module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
 
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.setAndroidModel(androidModel);
+    facet.getConfiguration().setModel(androidModel);
 
     return module;
   }

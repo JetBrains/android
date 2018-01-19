@@ -502,7 +502,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   private void setMinimumSdkVersion(int version) {
     if (myMockAndroidModel == null) {
       myMockAndroidModel = Mockito.mock(AndroidModel.class);
-      myFacet.setAndroidModel(myMockAndroidModel);
+      myFacet.getConfiguration().setModel(myMockAndroidModel);
     }
     //noinspection ConstantConditions
     Mockito.when(myMockAndroidModel.getMinSdkVersion()).thenReturn(new AndroidVersion(version));
@@ -511,7 +511,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   private void setTargetSdkVersion(int version) {
     if (myMockAndroidModel == null) {
       myMockAndroidModel = Mockito.mock(AndroidModel.class);
-      myFacet.setAndroidModel(myMockAndroidModel);
+      myFacet.getConfiguration().setModel(myMockAndroidModel);
     }
     //noinspection ConstantConditions
     Mockito.when(myMockAndroidModel.getTargetSdkVersion()).thenReturn(new AndroidVersion(version));

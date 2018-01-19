@@ -60,7 +60,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     initMocks(this);
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(getModule());
-    androidFacet.setAndroidModel(myAndroidModel);
+    androidFacet.getConfiguration().setModel(myAndroidModel);
 
     Project project = getProject();
     when(myModifiableModelsProviderFactory.create(project)).thenReturn(myModifiableModelsProvider);
