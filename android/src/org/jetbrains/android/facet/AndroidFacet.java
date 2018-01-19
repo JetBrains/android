@@ -50,8 +50,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
-  private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
-
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
 
@@ -160,7 +158,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public ResourceFolderManager getResourceFolderManager() {
-    return myFolderManager;
+    return ResourceFolderManager.getInstance(this);
   }
 
   /**

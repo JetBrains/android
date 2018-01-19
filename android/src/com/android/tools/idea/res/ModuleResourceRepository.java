@@ -40,6 +40,7 @@ import java.util.*;
 public final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
   private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener = (facet, folders, added, removed) -> updateRoots();
+  private final ResourceFolderManager myResourceFolderManager;
 
   /**
    * Returns the Android resources specific to this module, not including resources in any
@@ -112,11 +113,12 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
     myFacet = facet;
 
     // Subscribe to update the roots when the resource folders change
-    myFacet.getResourceFolderManager().addListener(myResourceFolderListener);
+    myResourceFolderManager = myFacet.getResourceFolderManager();
+    myResourceFolderManager.addListener(myResourceFolderListener);
   }
 
   private void updateRoots() {
-    updateRoots(myFacet.getResourceFolderManager().getFolders());
+    updateRoots(myResourceFolderManager.getFolders());
   }
 
   @VisibleForTesting
@@ -177,7 +179,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
   public void dispose() {
     super.dispose();
 
-    myFacet.getResourceFolderManager().removeListener(myResourceFolderListener);
+    myResourceFolderManager.removeListener(myResourceFolderListener);
   }
 
   /**
