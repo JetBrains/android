@@ -24,6 +24,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -44,6 +45,7 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.convertToGradleString;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
+import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
 
 public class GroovyDslWriter implements GradleDslWriter {
   @Override
@@ -184,10 +186,16 @@ public class GroovyDslWriter implements GradleDslWriter {
       if (psiElement instanceof GrListOrMap || // Entries in [].
           (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList))) { // Method call arguments in ().
         added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before ) or ]
+
+      }
+      else if (shouldAddToListInternal(literal)) {
+        emplaceElementIntoList(psiElement, psiElement.getParent(), newLiteral);
+        added = newLiteral;
       }
       else {
         added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
       }
+
       if (added instanceof GrLiteral) {
         literal.setExpression(added);
       }
@@ -243,7 +251,13 @@ public class GroovyDslWriter implements GradleDslWriter {
     }
     else {
       PsiElement added;
-      added = psiElement.addAfter(newReference, psiElement.getLastChild());
+
+      if (shouldAddToListInternal(reference)) {
+        emplaceElementIntoList(psiElement, psiElement.getParent(), newReference);
+        added = newReference;
+      } else {
+        added = psiElement.addAfter(newReference, psiElement.getLastChild());
+      }
       reference.setExpression(added);
     }
 
@@ -329,6 +343,8 @@ public class GroovyDslWriter implements GradleDslWriter {
         return createNamedArgumentList(expressionList);
       }
       psiElement = createDslElement(expressionList);
+    } else {
+      return psiElement;
     }
 
     if (psiElement == null) {
@@ -339,8 +355,18 @@ public class GroovyDslWriter implements GradleDslWriter {
       return psiElement;
     }
 
+    // We are assigning a list to a property.
+    if (psiElement instanceof GrAssignmentExpression || psiElement instanceof GrVariableDeclaration) {
+      GrExpression emptyMap = GroovyPsiElementFactory.getInstance(psiElement.getProject()).createExpressionFromText("[]");
+      PsiElement element = psiElement.addAfter(emptyMap, psiElement.getLastChild());
+      // Overwrite the PsiElement set by createDslElement() to cause the elements of the map to be put into the correct place.
+      // e.g within the brackets. For example this will replace the PsiElement "prop1 = " with "[]".
+      expressionList.setPsiElement(element);
+      return expressionList.getPsiElement();
+    }
+
     if (psiElement instanceof GrArgumentList) {
-      if (!expressionList.getToBeAddedExpressions().isEmpty() &&
+      if (expressionList.getExpressions().size() == 1 &&
           ((GrArgumentList)psiElement).getAllArguments().length == 1 &&
           !expressionList.isAppendToArgumentListWithOneElement()) {
         // Sometimes it's not possible to append to the arguments list with one item. eg. proguardFile "xyz".

@@ -155,7 +155,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
     GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList == null) {
-      gradleDslExpressionList = new GradleDslExpressionList(this, psiElement, property);
+      gradleDslExpressionList = new GradleDslExpressionList(this, psiElement, property, false);
       addPropertyInternal(property, gradleDslExpressionList);
     }
     else {
@@ -313,7 +313,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   private GradlePropertiesDslElement addToNewLiteralListImpl(@NotNull String property, @NotNull Object value) {
     GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList == null) {
-      gradleDslExpressionList = new GradleDslExpressionList(this, property);
+      gradleDslExpressionList = new GradleDslExpressionList(this, property, false);
       myAdjustedProperties.put(property, gradleDslExpressionList);
     }
     gradleDslExpressionList.addNewLiteral(value);

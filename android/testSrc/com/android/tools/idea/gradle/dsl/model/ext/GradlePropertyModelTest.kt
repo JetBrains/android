@@ -1936,6 +1936,447 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testCreateNewEmptyList() {
+    val text = ""
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+
+      propertyModel.convertToEmptyList()
+      assertEquals(LIST, propertyModel.valueType)
+      val list = propertyModel.getValue(LIST_TYPE)
+      assertSize(0, list)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(LIST, propertyModel.valueType)
+      val list = propertyModel.getValue(LIST_TYPE)
+      assertSize(0, list)
+    }
+  }
+
+  fun testConvertToEmptyList() {
+    val text = """
+               ext {
+                 prop1 = 25
+                 prop2 = prop1
+                 prop3 = [key:'value', key1:'value']
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val firstModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(firstModel, INTEGER_TYPE, 25, INTEGER, REGULAR, 0)
+      firstModel.convertToEmptyList()
+      assertEquals(LIST, firstModel.valueType)
+      val firstList = firstModel.getValue(LIST_TYPE)
+      assertSize(0, firstList)
+
+      val secondModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(secondModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
+      secondModel.convertToEmptyList()
+      assertEquals(LIST, secondModel.valueType)
+      val secondList = secondModel.getValue(LIST_TYPE)
+      assertSize(0, secondList)
+
+      val thirdModel = buildModel.ext().findProperty("prop3")
+      thirdModel.convertToEmptyList()
+      assertEquals(LIST, thirdModel.valueType)
+      val thirdList = thirdModel.getValue(LIST_TYPE)
+      assertSize(0, thirdList)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstModel = buildModel.ext().findProperty("prop1")
+      assertEquals(LIST, firstModel.valueType)
+      val firstList = firstModel.getValue(LIST_TYPE)
+      assertSize(0, firstList)
+
+      val secondModel = buildModel.ext().findProperty("prop2")
+      assertEquals(LIST, secondModel.valueType)
+      val secondList = secondModel.getValue(LIST_TYPE)
+      assertSize(0, secondList)
+
+      val thirdModel = buildModel.ext().findProperty("prop3")
+      assertEquals(LIST, thirdModel.valueType)
+      val thirdList = thirdModel.getValue(LIST_TYPE)
+      assertSize(0, thirdList)
+    }
+  }
+
+  fun testAddToNoneList() {
+    val text = """
+               ext {
+                 prop1 = true
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0)
+
+      try {
+        propertyModel.addListValue().setValue("True")
+        fail()
+      } catch (e : IllegalStateException) {
+        // Expected
+      }
+
+      try {
+        propertyModel.addListValueAt(23).setValue(72)
+        fail()
+      } catch (e : IllegalStateException) {{
+        // Expected
+      }}
+    }
+  }
+
+  fun testAddOutOfBounds() {
+    val text = """
+               ext {
+                 prop1 = [1, 2, 3, 4, 5, 6, "hello"]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(propertyModel, listOf(1,2,3,4,5,6,"hello"), REGULAR, 0)
+
+      try {
+        propertyModel.addListValueAt(82).setValue(true)
+        fail()
+      } catch (e : IndexOutOfBoundsException) {
+        // Expected
+      }
+    }
+  }
+
+  fun testSetListInMap() {
+    val text = """
+               ext {
+                 prop1 = [key: 'val', key1: 'val', key2: 'val']
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(3, map.entries)
+      verifyPropertyModel(map["key"], STRING_TYPE, "val", STRING, DERIVED, 0)
+      verifyPropertyModel(map["key1"], STRING_TYPE, "val", STRING, DERIVED, 0)
+      verifyPropertyModel(map["key2"], STRING_TYPE, "val", STRING, DERIVED, 0)
+      map["key1"]!!.convertToEmptyList().addListValue().setValue(true)
+      verifyListProperty(map["key1"], listOf(true), DERIVED, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(3, map.entries)
+      verifyPropertyModel(map["key"], STRING_TYPE, "val", STRING, DERIVED, 0)
+      verifyListProperty(map["key1"], listOf(true), DERIVED, 0)
+      verifyPropertyModel(map["key2"], STRING_TYPE, "val", STRING, DERIVED, 0)
+    }
+  }
+
+  fun testSetToListValues() {
+    val text = """
+               ext {
+                 def var = "hello"
+                 prop1 = 5
+                 prop2 = var
+                 prop3 = "${'$'}{prop2}"
+                 prop4 = [key: 'val', key1: true]
+                 prop5 = ['val']
+                 prop6 = [key: 'val']
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val firstModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(firstModel, INTEGER_TYPE, 5, INTEGER, REGULAR, 0)
+      firstModel.convertToEmptyList().addListValue().setValue("5")
+      verifyListProperty(firstModel, listOf("5"), REGULAR, 0)
+
+      val secondModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(secondModel, STRING_TYPE, "var", REFERENCE, REGULAR, 1)
+      val varModel = secondModel.dependencies[0]!!
+      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0)
+      varModel.convertToEmptyList().addListValue().setValue("goodbye")
+      secondModel.setValue(ReferenceTo("var[0]"))
+      verifyPropertyModel(secondModel, STRING_TYPE, "var[0]", REFERENCE, REGULAR, 1)
+      val depModel = secondModel.dependencies[0]!!
+      verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)
+
+      val thirdModel = buildModel.ext().findProperty("prop3")
+      verifyPropertyModel(thirdModel, STRING_TYPE, "goodbye", STRING, REGULAR, 1)
+      thirdModel.convertToEmptyList().addListValue().setValue(ReferenceTo("prop2"))
+      assertEquals(LIST, thirdModel.valueType)
+      val thirdList = thirdModel.getValue(LIST_TYPE)!!
+      assertSize(1, thirdList)
+      verifyPropertyModel(thirdList[0], STRING_TYPE, "prop2", REFERENCE, DERIVED, 1)
+
+      val fourthModel = buildModel.ext().findProperty("prop4")
+      assertEquals(MAP, fourthModel.valueType)
+      val map = fourthModel.getValue(MAP_TYPE)!!
+      assertSize(2, map.entries)
+      verifyPropertyModel(map["key"], STRING_TYPE, "val", STRING, DERIVED, 0)
+      verifyPropertyModel(map["key1"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+      map["key"]!!.convertToEmptyList().addListValue().setValue("we are in")
+      verifyListProperty(map["key"], listOf("we are in"), DERIVED, 0)
+
+      val fifthModel = buildModel.ext().findProperty("prop5")
+      verifyListProperty(fifthModel, listOf("val"), REGULAR, 0)
+      fifthModel.convertToEmptyList().addListValue().setValue("good")
+      verifyListProperty(fifthModel, listOf("good"), REGULAR, 0)
+
+      val sixthModel = buildModel.ext().findProperty("prop6")
+      assertEquals(MAP, sixthModel.valueType)
+      sixthModel.convertToEmptyList().addListValue().setValue(true)
+      verifyListProperty(sixthModel, listOf(true), REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(firstModel, listOf("5"), REGULAR, 0)
+
+      // TODO: Order of statements is wrong so this model does not get correctly parsed.
+      /*val secondModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(secondModel, STRING_TYPE, "var[0]", REFERENCE, REGULAR, 1)
+      val depModel = secondModel.dependencies[0]!!
+      verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
+
+      val thirdModel = buildModel.ext().findProperty("prop3")
+      assertEquals(LIST, thirdModel.valueType)
+      val thirdList = thirdModel.getValue(LIST_TYPE)!!
+      assertSize(1, thirdList)
+      verifyPropertyModel(thirdList[0], STRING_TYPE, "prop2", REFERENCE, DERIVED, 0 /* 1 TODO: Statement order */)
+
+      val fourthModel = buildModel.ext().findProperty("prop4")
+      assertEquals(MAP, fourthModel.valueType)
+      val map = fourthModel.getValue(MAP_TYPE)!!
+      verifyListProperty(map["key"], listOf("we are in"), DERIVED, 0)
+      verifyPropertyModel(map["key1"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+
+      val fifthModel = buildModel.ext().findProperty("prop5")
+      verifyListProperty(fifthModel, listOf("good"), REGULAR, 0)
+
+      val sixthModel = buildModel.ext().findProperty("prop6")
+      verifyListProperty(sixthModel, listOf(true), REGULAR, 0)
+    }
+  }
+
+  fun testAddSingleElementToEmpty() {
+    val text = """
+               ext {
+                 prop1 = true
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0)
+      propertyModel.convertToEmptyList().addListValue().setValue("Good")
+
+      verifyListProperty(propertyModel, listOf("Good"), REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(propertyModel, listOf("Good"), REGULAR, 0)
+    }
+  }
+
+  fun testAddToAndDeleteListFromEmpty() {
+    val text = """
+               ext {
+                 def six = 6
+                 prop1 = []
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(LIST, propertyModel.valueType)
+      verifyListProperty(propertyModel, listOf(), REGULAR, 0)
+
+      propertyModel.addListValue().setValue("3")
+      propertyModel.addListValue().setValue("4")
+      propertyModel.addListValueAt(0).setValue("1")
+      propertyModel.addListValueAt(1).setValue("2")
+      propertyModel.addListValueAt(4).setValue(5)
+      propertyModel.addListValueAt(5).setValue(ReferenceTo("six"))
+
+      val list = propertyModel.getValue(LIST_TYPE)!!
+      assertSize(6, list)
+      verifyPropertyModel(list[0], STRING_TYPE, "1", STRING, DERIVED, 0, "0", "ext.prop1[0]")
+      verifyPropertyModel(list[1], STRING_TYPE, "2", STRING, DERIVED, 0, "1", "ext.prop1[1]")
+      verifyPropertyModel(list[2], STRING_TYPE, "3", STRING, DERIVED, 0, "2", "ext.prop1[2]")
+      verifyPropertyModel(list[3], STRING_TYPE, "4", STRING, DERIVED, 0, "3", "ext.prop1[3]")
+      verifyPropertyModel(list[4], INTEGER_TYPE, 5, INTEGER, DERIVED, 0, "4", "ext.prop1[4]")
+      verifyPropertyModel(list[5], STRING_TYPE, "six", REFERENCE, DERIVED, 1, "5", "ext.prop1[5]")
+      verifyPropertyModel(list[5].dependencies[0], INTEGER_TYPE, 6, INTEGER, VARIABLE, 0, "six", "ext.six")
+
+      // Delete some elements
+      list[1].delete()
+      list[3].delete()
+      list[5].delete()
+
+      val newList = propertyModel.getValue(LIST_TYPE)!!
+      assertSize(3, newList)
+      verifyPropertyModel(newList[0], STRING_TYPE, "1", STRING, DERIVED, 0, "0", "ext.prop1[0]")
+      verifyPropertyModel(newList[1], STRING_TYPE, "3", STRING, DERIVED, 0, "1", "ext.prop1[1]")
+      verifyPropertyModel(newList[2], INTEGER_TYPE, 5, INTEGER, DERIVED, 0, "2", "ext.prop1[2]")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(LIST, propertyModel.valueType)
+      val newList = propertyModel.getValue(LIST_TYPE)!!
+      assertSize(3, newList)
+      verifyPropertyModel(newList[0], STRING_TYPE, "1", STRING, DERIVED, 0, "0", "ext.prop1[0]")
+      verifyPropertyModel(newList[1], STRING_TYPE, "3", STRING, DERIVED, 0, "1", "ext.prop1[1]")
+      verifyPropertyModel(newList[2], INTEGER_TYPE, 5, INTEGER, DERIVED, 0, "2", "ext.prop1[2]")
+    }
+  }
+
+  fun testSetList() {
+    val text = """
+               ext {
+                 prop1 = [1, 2, 3]
+                 prop2 = ["hellO"]
+                 prop3 = [54]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(propertyModel, listOf(1,2,3), REGULAR, 0)
+      // Set middle value
+      propertyModel.getValue(LIST_TYPE)!![1].setValue(true)
+      verifyListProperty(propertyModel, listOf(1, true, 3), REGULAR, 0)
+
+      val secondModel = buildModel.ext().findProperty("prop2")
+      verifyListProperty(secondModel, listOf("hellO"), REGULAR, 0)
+      secondModel.setValue(77)
+      verifyPropertyModel(secondModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
+
+      val thirdModel = buildModel.ext().findProperty("prop3")
+      verifyListProperty(thirdModel, listOf(54), REGULAR, 0)
+      thirdModel.setValue(ReferenceTo("prop1[1]"))
+      verifyPropertyModel(thirdModel, STRING_TYPE, "prop1[1]", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(thirdModel.dependencies[0], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(propertyModel, listOf(1, true, 3), REGULAR, 0)
+
+      val secondModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(secondModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
+
+      // TODO: This is not currently parsed.
+      /*val thirdModel = buildModel.ext().findProperty("prop3")
+      verifyPropertyModel(thirdModel, STRING_TYPE, "prop1[1]", STRING, REGULAR, 1)
+      verifyPropertyModel(thirdModel.dependencies[0], STRING_TYPE, "true", STRING, DERIVED, 0)*/
+    }
+  }
+
+  fun testAddMiddleOfList() {
+    val text = """
+               ext {
+                 def var = "2"
+                 prop1 = [1, 4]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(propertyModel, listOf(1, 4), REGULAR, 0)
+
+      propertyModel.addListValueAt(1).setValue(ReferenceTo("var"))
+      propertyModel.addListValueAt(2).setValue(3)
+
+      verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+    }
+  }
+
+  fun testSetInMiddleOfList() {
+    val text = """
+               ext {
+                 def var = "2"
+                 prop1 = [1, 2, var, 4]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(propertyModel, listOf(1, 2, "var", 4), REGULAR, 1)
+
+      propertyModel.getValue(LIST_TYPE)!![1].setValue(ReferenceTo("var"))
+      propertyModel.getValue(LIST_TYPE)!![2].setValue(3)
+
+      verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+    }
+  }
+
   private fun runSetPropertyTest(text: String, type: PropertyType) {
     writeToBuildFile(text)
 

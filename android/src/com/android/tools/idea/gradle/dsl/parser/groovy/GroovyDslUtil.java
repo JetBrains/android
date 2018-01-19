@@ -49,6 +49,7 @@ import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOLON;
+import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
 
 public final class GroovyDslUtil {
 
@@ -409,6 +410,15 @@ public final class GroovyDslUtil {
     if (parentPsiElement instanceof GrArgumentList) {
       added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
     }
+    else if (parentPsiElement instanceof GrListOrMap) {
+      GrListOrMap listOrMap = (GrListOrMap)parentPsiElement;
+      // For list and maps we need to add the element delimiter "," after the added element if there is more than one.
+      if (!listOrMap.isEmpty()) {
+        final ASTNode node = listOrMap.getNode();
+        node.addLeaf(mCOMMA, ",", listOrMap.getLBrack().getNextSibling().getNode());
+      }
+      added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    }
     else {
       added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
     }
@@ -475,4 +485,31 @@ public final class GroovyDslUtil {
     }
     return parentPsiElement;
   }
+
+  /**
+   * This method is required to work out whether a GradleDslReference or GradleDslLiteral is an internal value in a map.
+   * This allows us to add the PsiElement into the correct position, note: due to the PsiElements Api we have to add the
+   * ASTNodes directly in {@link #emplaceElementIntoList(PsiElement, PsiElement, PsiElement)}. This method checks the specific
+   * conditions where we need to add an element to the inside of a literal list. The reason we have to do it this way
+   * is that when we are applying a GradleDslReference or GradleDslLiteral we don't know whether (1) we are actually in a list and (2)
+   * whether the list actually needs us to add a comma. Ideally we would have the apply/create/delete methods of GradleDslExpressionList
+   * position the arguments. This is a workaround for now.
+   *
+   * Note: In order to get the position of where to insert the item, we set the PsiElement of the literal/reference to be the previous
+   * item in the list (this is done in GradleDslExpressionList) and then set it back once we have called apply.
+   */
+  static boolean shouldAddToListInternal(@NotNull GradleDslElement element) {
+    return element.getParent() instanceof GradleDslExpressionList &&
+           ((GradleDslExpressionList)element.getParent()).isLiteralList() &&
+           element.getParent().getPsiElement() instanceof GrListOrMap &&
+           ((GrListOrMap)element.getParent().getPsiElement()).getInitializers().length > 0;
+  }
+
+  static void emplaceElementIntoList(@NotNull PsiElement anchorBefore, @NotNull PsiElement list, @NotNull PsiElement newElement) {
+    final ASTNode node = list.getNode();
+    final ASTNode anchor = anchorBefore.getNode().getTreeNext();
+    node.addChild(newElement.getNode(), anchor);
+    node.addLeaf(mCOMMA, ",", newElement.getNode());
+  }
+
 }
