@@ -110,14 +110,19 @@ public class CommandLineArgs {
     args.add(createProjectProperty("android.builder.sdkDownload", false));
 
     Application application = ApplicationManager.getApplication();
-    if (GuiTestingService.getInstance().isGuiTestingMode() || application.isUnitTestMode()) {
+    boolean isTestingMode = isInTestingMode();
+    if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    if (myIdeSettings.isEmbeddedMavenRepoEnabled()) {
+    if (myIdeSettings.isEmbeddedMavenRepoEnabled() || isTestingMode) {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;
+  }
+
+  private static boolean isInTestingMode() {
+    return GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
   }
 }
