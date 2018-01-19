@@ -46,7 +46,6 @@ private const val RESOLVED_VALUE = 2
  */
 class VariablesTable(private val project: Project, private val context: PsContext) :
     TreeTable(VariablesTableModel(DefaultMutableTreeNode())) {
-  val variableNames = ArrayList<String>()
 
   init {
     fillTable()
@@ -57,7 +56,6 @@ class VariablesTable(private val project: Project, private val context: PsContex
     context.project.forEachModule { module ->
       val moduleVariables = module.variables.getModuleVariables()
       if (!moduleVariables.isEmpty()) {
-        variableNames.addAll(moduleVariables.map { it.name })
         val moduleRoot = ModuleNode(module)
         moduleNodes.add(moduleRoot)
         moduleVariables.map( { VariableNode(it) } ).sortedBy { it.variable.name }.forEach { moduleRoot.add(it) }
@@ -88,7 +86,6 @@ class VariablesTable(private val project: Project, private val context: PsContex
     private val textBox = VariableAwareTextBox(project)
 
     init {
-      textBox.setVariants(variableNames)
       textBox.addTextListener(ActionListener { stopCellEditing() })
       textBox.addFocusListener(object : FocusAdapter() {
         override fun focusLost(e: FocusEvent?) {
@@ -102,6 +99,8 @@ class VariablesTable(private val project: Project, private val context: PsContex
       if (value !is String) {
         return null
       }
+      val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent as VariableNode
+      textBox.setVariants(nodeBeingEdited.variable.module.variables.getModuleVariables().map { it.name })
       textBox.text = value
       return textBox
     }
