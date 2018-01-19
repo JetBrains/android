@@ -85,7 +85,7 @@ public class ProjectWithKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/72164080
   public void linkNoKotlinSupportProjectWithKotlin() throws Exception {
     createKotlinFileAndClassAndVerify(PROJECT_DIR_NAME, PACKAGE_NAME, false);
   }
