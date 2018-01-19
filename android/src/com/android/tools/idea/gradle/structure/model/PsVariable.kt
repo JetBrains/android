@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 /**
  * Model for handling Gradle properties in the Project Structure Dialog
  */
-class PsVariable(private val property: GradlePropertyModel, private val module: PsModule) {
+class PsVariable(private val property: GradlePropertyModel, val module: PsModule) {
   val name = property.name
   val valueType = property.valueType
 
