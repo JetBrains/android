@@ -107,6 +107,21 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  public GradlePropertyModel convertToEmptyList() {
+    return myRealModel.convertToEmptyList();
+  }
+
+  @Override
+  public GradlePropertyModel addListValue() {
+    return myRealModel.addListValue();
+  }
+
+  @Override
+  public GradlePropertyModel addListValueAt(int index) {
+    return myRealModel.addListValueAt(index);
+  }
+
+  @Override
   public void delete() {
     myRealModel.delete();
   }

@@ -386,7 +386,7 @@ public class GroovyDslParser implements GradleDslParser {
         propertyElement = getExpressionElement(blockElement, argumentList, propertyName, expressions.get(0));
       }
       else {
-        propertyElement = getExpressionList(blockElement, argumentList, propertyName, expressions);
+        propertyElement = getExpressionList(blockElement, argumentList, propertyName, expressions, false);
       }
     }
     else if (arguments[0] instanceof GrNamedArgument) {
@@ -430,7 +430,7 @@ public class GroovyDslParser implements GradleDslParser {
         propertyElement = getExpressionMap(parent, listOrMap, name, Arrays.asList(listOrMap.getNamedArguments()), true);
       }
       else { // ex: proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
-        propertyElement = getExpressionList(parent, listOrMap, name, Arrays.asList(listOrMap.getInitializers()));
+        propertyElement = getExpressionList(parent, listOrMap, name, Arrays.asList(listOrMap.getInitializers()), true);
       }
     }
     else {
@@ -628,8 +628,9 @@ public class GroovyDslParser implements GradleDslParser {
   private static GradleDslExpressionList getExpressionList(@NotNull GradleDslElement parentElement,
                                                            @NotNull GroovyPsiElement listPsiElement, // GrArgumentList or GrListOrMap
                                                            @NotNull String propertyName,
-                                                           @NotNull List<GrExpression> propertyExpressions) {
-    GradleDslExpressionList expressionList = new GradleDslExpressionList(parentElement, listPsiElement, propertyName);
+                                                           @NotNull List<GrExpression> propertyExpressions,
+                                                           boolean isLiteral) {
+    GradleDslExpressionList expressionList = new GradleDslExpressionList(parentElement, listPsiElement, isLiteral, propertyName);
     for (GrExpression expression : propertyExpressions) {
       GradleDslExpression expressionElement = getExpressionElement(expressionList, listPsiElement, propertyName, expression);
       if (expressionElement != null) {
@@ -662,7 +663,7 @@ public class GroovyDslParser implements GradleDslParser {
           valueElement = getExpressionMap(expressionMap, listOrMap, argName, Arrays.asList(listOrMap.getNamedArguments()), true);
         }
         else { // ex: flatDir name: "libs", dirs: ["libs1", "libs2"]
-          valueElement = getExpressionList(expressionMap, listOrMap, argName, Arrays.asList(listOrMap.getInitializers()));
+          valueElement = getExpressionList(expressionMap, listOrMap, argName, Arrays.asList(listOrMap.getInitializers()), true);
         }
       }
       if (valueElement != null) {

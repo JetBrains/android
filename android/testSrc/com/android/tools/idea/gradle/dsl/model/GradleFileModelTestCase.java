@@ -315,6 +315,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
         case BOOLEAN:
           assertEquals(expectedValues.get(i), tempModel.getValue(BOOLEAN_TYPE));
           break;
+        case REFERENCE:
+          assertEquals(expectedValues.get(i), tempModel.getValue(STRING_TYPE));
+          break;
         default:
           fail("Type for model: " + tempModel + " was unexpected");
       }

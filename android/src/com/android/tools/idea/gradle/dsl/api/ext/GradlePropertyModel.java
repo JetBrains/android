@@ -152,17 +152,38 @@ public interface GradlePropertyModel {
 
   /**
    * Converts this property to an empty map. Any values stored inside the property will be removed.
-   * This can be called on a property with any {@link ValueType} but will always result in a {@link ValueType} of {@link ValueType#MAP}.
+   * This can be called on a property with any {@link ValueType} but will always result in {@link ValueType#MAP}.
    * This method returns itself for in order to chain operations e.g propertyModel.convertToEmptyMap().addMapValue()
    */
   GradlePropertyModel convertToEmptyMap();
 
   /**
    * Sets the value, in the map represented by this property, that corresponds to the given key. The model representing the
-   * new value is returned by this method.
+   * new value is returned by this method. Unless this resulting model has its value set, nothing will be created.
    * This should only be used for properties for which {@link #getValueType()} returns {@link ValueType#MAP}.
    */
   GradlePropertyModel addMapValue(@NotNull String key);
+
+  /**
+   * Converts this property to an empty list. Any values stored inside the property will be removed.
+   * This can be called on a property with any {@link ValueType} but will always result in {@link ValueType#LIST}
+   * This method returns itself for in order to chain operations e.g propertyModel.convertToEmptyList().addListValue()
+   */
+  GradlePropertyModel convertToEmptyList();
+
+  /**
+   * Create a new value at the end of this list property. The model representing the new value is returned by this method.
+   * Unless the resulting value is set, nothing will be added.
+   * Note: The returned {@link GradlePropertyModel} should not be set to a map or list. Setting these inside lists will throw an exception.
+   * This should only be used for properties for which {@link #getValueType()} return {@link ValueType#LIST}
+   */
+  GradlePropertyModel addListValue();
+
+  /**
+   * Same as {@link #addListValue()} but instead of the value being added at the end, it will be added at the given index.
+   * @throw {@link IndexOutOfBoundsException} if the index is outside the range of the list. Indexing starts from 0.
+   */
+  GradlePropertyModel addListValueAt(int index);
 
   /**
    * Marks this property for deletion, which when {@link GradleBuildModel#applyChanges()} is called, removes it and its value

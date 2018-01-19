@@ -336,7 +336,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
       GradleDslLiteral valueElement = new GradleDslLiteral(parent, element.elementName());
       valueElement.setValue(element.value());
 
-      GradleDslExpressionList gradleDslExpressionList = new GradleDslExpressionList(parent, element.elementName());
+      GradleDslExpressionList gradleDslExpressionList = new GradleDslExpressionList(parent, element.elementName(), false);
       gradleDslExpressionList.addNewExpression(typeElement);
       gradleDslExpressionList.addNewExpression(nameElement);
       gradleDslExpressionList.addNewExpression(valueElement);
