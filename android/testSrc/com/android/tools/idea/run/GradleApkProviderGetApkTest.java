@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.google.common.collect.Lists;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -45,7 +46,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Test methods of {@link GradleApkProvider}.
  */
 public class GradleApkProviderGetApkTest extends IdeaTestCase {
-  @Mock private AndroidFacet myAndroidFacet;
+  private AndroidFacet myAndroidFacet;
   @Mock private AndroidModelFeatures myModelFeatures;
   @Mock private IdeVariant myVariant;
   @Mock private PostBuildModelProvider myOutputModelProvider;
@@ -55,6 +56,7 @@ public class GradleApkProviderGetApkTest extends IdeaTestCase {
   @Mock private File myTestApkFile;
 
   private GradleApkProvider myApkProvider;
+  private AndroidFacetConfiguration myConfiguration;
 
   @Override
   protected void setUp() throws Exception {
@@ -77,7 +79,10 @@ public class GradleApkProviderGetApkTest extends IdeaTestCase {
     List<OutputFile> testBestFoundOutput = Arrays.asList(testOutputFile1, testOutputFile2);
 
     when(androidModel.getFeatures()).thenReturn(myModelFeatures);
-    when(myAndroidFacet.getAndroidModel()).thenReturn(androidModel);
+
+    myConfiguration = new AndroidFacetConfiguration();
+    myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, myConfiguration);
+    myConfiguration.setModel(androidModel);
 
     List<AndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
     List<AndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));

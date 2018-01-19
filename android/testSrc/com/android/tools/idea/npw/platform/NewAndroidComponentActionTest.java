@@ -146,11 +146,16 @@ public final class NewAndroidComponentActionTest {
   }
 
 
+  private static AndroidFacetConfiguration mockConfiguration = mock(AndroidFacetConfiguration.class);
+  private static AndroidModel mockModel = mock(AndroidModel.class);
+
   private static class MockAndroidFacet extends AndroidFacet {
     private int myProjectType = PROJECT_TYPE_APP;
 
     protected MockAndroidFacet(Project project) {
-      super(mock(Module.class), AndroidFacet.NAME, mock(AndroidFacetConfiguration.class));
+      super(mock(Module.class), AndroidFacet.NAME, mockConfiguration);
+
+      when(mockConfiguration.getModel()).thenReturn(mockModel);
 
       FacetManager facetManager = mock(FacetManager.class);
 
@@ -169,12 +174,6 @@ public final class NewAndroidComponentActionTest {
 
       //noinspection unchecked
       return (T)androidModuleInfo;
-    }
-
-    @Nullable
-    @Override
-    public AndroidModel getAndroidModel() {
-      return mock(AndroidModel.class);
     }
 
     @Override

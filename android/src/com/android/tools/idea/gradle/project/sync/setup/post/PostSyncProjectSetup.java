@@ -228,7 +228,7 @@ public class PostSyncProjectSetup {
       StringBuilder buffer = new StringBuilder();
       buffer.append("Sync issues found!").append('\n');
       myGradleProjectInfo.forEachAndroidModule(facet -> {
-        AndroidModel androidModel = facet.getAndroidModel();
+        AndroidModel androidModel = facet.getConfiguration().getModel();
         if (androidModel instanceof AndroidModuleModel) {
           Collection<SyncIssue> issues = ((AndroidModuleModel)androidModel).getSyncIssues();
           if (issues != null && !issues.isEmpty()) {

@@ -464,7 +464,7 @@ public class TemplateManager {
     final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
     final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
     Presentation presentation = event.getPresentation();
-    boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
+    boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null;
     presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
     presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
     presentation.setEnabled(disableIfNotReady ? isProjectReady : true);
@@ -496,7 +496,7 @@ public class TemplateManager {
           }
 
           AndroidFacet facet = AndroidFacet.getInstance(module);
-          assert facet != null && facet.getAndroidModel() != null;
+          assert facet != null && facet.getConfiguration().getModel() != null;
 
           List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
           assert (!moduleTemplates.isEmpty());
