@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsProject
 
 /**
  * A model of the UI for editing the properties of a model of type [ModelT].
@@ -36,8 +38,11 @@ interface PropertyUiModel<in ModelT> {
   /**
    * Creates a property editor bound to a property of [model] which described by this model.
    */
-  fun createEditor(model: ModelT): ModelPropertyEditor<ModelT>
+  fun createEditor(project: PsProject, module: PsModule, model: ModelT): ModelPropertyEditor<ModelT>
 }
+
+typealias
+    PropertyEditorFactory<ModelT, ModelPropertyT> = (ModelT, ModelPropertyT) -> ModelPropertyEditor<ModelT>
 
 /**
  * Creates a UI property model describing how to represent [property] for editing.
@@ -46,14 +51,14 @@ interface PropertyUiModel<in ModelT> {
  */
 fun <ModelT, PropertyT, ModelPropertyT : ModelProperty<ModelT, PropertyT>> uiProperty(
     property: ModelPropertyT,
-    editorFactory: (ModelT, ModelPropertyT) -> ModelPropertyEditor<ModelT>
+    editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT>
 ): PropertyUiModel<ModelT> =
     PropertyUiModelImpl<ModelT, ModelPropertyT>(property, editorFactory)
 
 internal class PropertyUiModelImpl<in ModelT, out ModelPropertyT : ModelProperty<ModelT, *>>(
     private val property: ModelPropertyT,
-    private val editorFactory: (ModelT, ModelPropertyT) -> ModelPropertyEditor<ModelT>
+    private val editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT>
 ) : PropertyUiModel<ModelT> {
   override val propertyDescription: String = property.description
-  override fun createEditor(model: ModelT): ModelPropertyEditor<ModelT> = editorFactory(model, property)
+  override fun createEditor(project: PsProject, module: PsModule, model: ModelT): ModelPropertyEditor<ModelT> = editorFactory(model, property)
 }

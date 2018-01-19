@@ -29,9 +29,9 @@ import javax.swing.JTextField
  * This is a [ComboBox] based editor allowing manual text entry as well as entry by selecting an item from the list of values provided by
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
-class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimpleProperty<ModelT, PropertyT>>(
-    val model: ModelT,
-    val property: ModelPropertyT
+class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSimpleProperty<ModelT, PropertyT>>(
+  val model: ModelT,
+  val property: ModelPropertyT
 ) : ComboBox<String>(), ModelPropertyEditor<ModelT> {
 
   private val textToValue: Map<String, PropertyT>
@@ -44,8 +44,7 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
     val dimensions = super.getPreferredSize()
     return if (dimensions.width < 200) {
       Dimension(200, dimensions.height)
-    }
-    else dimensions
+    } else dimensions
   }
 
   private fun getParsedValue(): ParsedValue<PropertyT> {
@@ -102,35 +101,34 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
       when {
         value.resolved is ResolvedValue.NotResolved && value.parsedValue is ParsedValue.Set -> {
           setColorAndTooltip(
-              toolTipText = "[Set but not resolved - not yet synced?]",
-              background = Color.GREEN
+            toolTipText = "[Set but not resolved - not yet synced?]",
+            background = Color.GREEN
           )
         }
         value.resolved is ResolvedValue.Set &&
             (value.parsedValue is ParsedValue.Set.Parsed &&
                 value.resolved.resolved != value.parsedValue.value ||
                 value.parsedValue is ParsedValue.NotSet &&
-                    value.resolved.resolved != defaultValue)
+                value.resolved.resolved != defaultValue)
         -> {
           setColorAndTooltip(
-              toolTipText = "[Set does not match resolved? - '${value.resolved.resolved.toString()}']",
-              background = Color.YELLOW
+            toolTipText = "[Set does not match resolved? - '${value.resolved.resolved.toString()}']",
+            background = Color.YELLOW
           )
         }
         value.parsedValue is ParsedValue.Set.Invalid -> {
           setColorAndTooltip(
-              toolTipText = "[Invalid?]",
-              background = Color.RED
+            toolTipText = "[Invalid?]",
+            background = Color.RED
           )
         }
         value.parsedValue is ParsedValue.Set.Parsed -> {
           setColorAndTooltip(
-              toolTipText = " = ${value.parsedValue.value.toString()}"
+            toolTipText = " = ${value.parsedValue.value.toString()}"
           )
         }
       }
-    }
-    finally {
+    } finally {
       beingLoaded = false
     }
   }
@@ -161,3 +159,9 @@ class SimplePropertyEditor<ModelT, PropertyT: Any, out ModelPropertyT: ModelSimp
     }
   }
 }
+
+fun <ModelT, PropertyT : Any, ModelPropertyT : ModelSimpleProperty<ModelT, PropertyT>> simplePropertyEditor(
+  model: ModelT,
+  property: ModelPropertyT
+): SimplePropertyEditor<ModelT, PropertyT, ModelPropertyT> =
+  SimplePropertyEditor(model, property)

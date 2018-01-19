@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
 
 /**
@@ -31,11 +32,11 @@ open class ConfigPanel<in ModelT>(
   /**
    * Configures the panel for editing of the [model] and binds the editors.
    */
-  fun bind(model: ModelT) {
+  fun bind(module: PsModule, model: ModelT) {
     this.model = model
     setNumberOfProperties(propertiesModel.properties.size)
     for (property in propertiesModel.properties) {
-      val editor = property.createEditor(model)
+      val editor = property.createEditor(module.parent, module, model)
       addPropertyComponents(property.propertyDescription, editor.component)
     }
   }
