@@ -306,6 +306,26 @@ public final class GroovyDslUtil {
     return factory.createExpressionFromText(unsavedValueText);
   }
 
+  /**
+   * Creates a literal expression map enclosed with brackets "[]" from the given {@link GradleDslExpressionMap}.
+   */
+  static PsiElement createDerivedMap(@NotNull GradleDslExpressionMap expressionMap) {
+    PsiElement parentPsiElement = getParentPsi(expressionMap);
+    if (parentPsiElement == null) {
+      return null;
+    }
+
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
+    GrExpression emptyMap = factory.createExpressionFromText("[:]");
+    GrNamedArgument namedArgument = factory.createNamedArgument(expressionMap.getName(), emptyMap);
+    PsiElement addedElement = addToMap((GrListOrMap)parentPsiElement, namedArgument);
+    assert addedElement instanceof GrNamedArgument;
+
+    PsiElement added = ((GrNamedArgument)addedElement).getExpression();
+    expressionMap.setPsiElement(added);
+    return added;
+  }
+
   static PsiElement addToMap(@NotNull GrListOrMap map, @NotNull GrNamedArgument newValue) {
     if (map.getNamedArguments().length != 0) {
       map.addAfter(GroovyPsiElementFactory.getInstance(map.getProject()).createWhiteSpace(), map.getLBrack());
@@ -440,5 +460,19 @@ public final class GroovyDslUtil {
       str = unquoteString(str);
     }
     return str;
+  }
+
+  @Nullable
+  static PsiElement getParentPsi(@NotNull GradleDslElement element) {
+    GradleDslElement parent = element.getParent();
+    if (parent == null) {
+      return null;
+    }
+
+    GroovyPsiElement parentPsiElement = ensureGroovyPsi(parent.create());
+    if (parentPsiElement == null) {
+      return null;
+    }
+    return parentPsiElement;
   }
 }

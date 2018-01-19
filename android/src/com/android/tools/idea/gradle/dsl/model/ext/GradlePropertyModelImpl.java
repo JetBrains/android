@@ -285,7 +285,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     // Makes this property a map, first remove the old property.
     delete();
 
-    bindToNewElement(new GradleDslExpressionMap(myPropertyHolder, myName));
+    bindToNewElement(new GradleDslExpressionMap(myPropertyHolder, myName, true));
   }
 
   private void bindToNewElement(@NotNull GradleDslElement element) {
