@@ -212,11 +212,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @Override
-  public void initFacet() {
-    ResourceRepositories.getOrCreateInstance(this);
-  }
-
-  @Override
   public void disposeFacet() {
     myAndroidModel = null;
   }
