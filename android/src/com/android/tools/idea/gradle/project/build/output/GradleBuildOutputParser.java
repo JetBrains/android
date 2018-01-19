@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
-import com.android.ide.common.blame.Message;
+import com.android.ide.common.blame.*;
 import com.android.ide.common.blame.Message.Kind;
-import com.android.ide.common.blame.MessageJsonSerializer;
-import com.android.ide.common.blame.SourceFilePosition;
-import com.android.ide.common.blame.SourcePosition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
@@ -31,6 +28,7 @@ import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -55,14 +53,17 @@ public class GradleBuildOutputParser implements BuildOutputParser {
       Gson gson = gsonBuilder.create();
       try {
         Message msg = gson.fromJson(jsonString, Message.class);
-        if (msg.getSourceFilePositions().isEmpty()) {
-          messageConsumer.accept(new MessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText()));
-        }
-        else {
-          for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
-            messageConsumer.accept(new FileMessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(),
-                                                            convertToFilePosition(sourceFilePosition)));
+        boolean validPosition = false;
+        for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
+          FilePosition filePosition = convertToFilePosition(sourceFilePosition);
+          if (filePosition != null) {
+            validPosition = true;
+            messageConsumer.accept(
+              new FileMessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), filePosition));
           }
+        }
+        if (!validPosition) {
+          messageConsumer.accept(new MessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText()));
         }
         return true;
       }
@@ -101,11 +102,14 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   /**
    * Convert from {@link SourceFilePosition} to {@link FilePosition}
    * @param sourceFilePosition
-   * @return converted FilePosition
+   * @return converted FilePosition or null if the position is empty
    */
-  @NotNull
+  @Nullable
   private static FilePosition convertToFilePosition(@NotNull SourceFilePosition sourceFilePosition) {
     File sourceFile = sourceFilePosition.getFile().getSourceFile();
+    if (sourceFile == null) {
+      return null;
+    }
     SourcePosition position = sourceFilePosition.getPosition();
     int startLine = position.getStartLine();
     int endLine = position.getEndLine();
