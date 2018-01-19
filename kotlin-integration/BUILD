@@ -32,6 +32,7 @@ iml_module(
         "//tools/vendor/intellij/cidr:doxygen",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
