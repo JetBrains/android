@@ -26,7 +26,6 @@
     <androidStudioInitializer id="Startup.AndroidSdkInitializer" order="last" implementation="com.android.tools.idea.startup.AndroidSdkInitializer" />
 
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
-    <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
   </extensions>
 
   <actions>
