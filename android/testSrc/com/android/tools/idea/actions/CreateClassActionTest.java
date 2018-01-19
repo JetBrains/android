@@ -50,7 +50,7 @@ public final class CreateClassActionTest extends AndroidTestCase {
     IdeView ide = mockIdeView(Arrays.asList(Mockito.mock(PsiDirectory.class), Mockito.mock(PsiDirectory.class)));
 
     try {
-      myFacet.setAndroidModel(mockAndroidModel(Collections.singletonList(path.toFile())));
+      myFacet.getConfiguration().setModel(mockAndroidModel(Collections.singletonList(path.toFile())));
 
       PsiFileSystemItem directory = CreateClassAction.getDestinationDirectory(ide, myModule);
       assert directory != null;
@@ -58,7 +58,7 @@ public final class CreateClassActionTest extends AndroidTestCase {
       assertEquals(toSystemIndependentPath(path.toString()), directory.getVirtualFile().getPath());
     }
     finally {
-      myFacet.setAndroidModel(oldModel);
+      myFacet.getConfiguration().setModel(oldModel);
     }
   }
 

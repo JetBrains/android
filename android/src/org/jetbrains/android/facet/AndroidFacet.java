@@ -112,15 +112,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return getConfiguration().getModel();
   }
 
-  /**
-   * Associates the given Android model to this facet.
-   *
-   * @param androidModel the new Android model.
-   */
-  public void setAndroidModel(@Nullable AndroidModel androidModel) {
-    getConfiguration().setModel(androidModel);
-  }
-
   public boolean isAppProject() {
     int projectType = getProjectType();
     return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;

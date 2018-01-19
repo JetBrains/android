@@ -139,7 +139,7 @@ public class ProjectStructureTest extends IdeaTestCase {
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    androidFacet.setAndroidModel(androidModel);
+    androidFacet.getConfiguration().setModel(androidModel);
 
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(androidProject.getProjectType()).thenReturn(projectType);

@@ -239,7 +239,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     File rootDir = androidProject.getRootDir();
     AndroidModuleModel androidModel =
       new AndroidModuleModel(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
-    myFacet.setAndroidModel(androidModel);
+    myFacet.getConfiguration().setModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");

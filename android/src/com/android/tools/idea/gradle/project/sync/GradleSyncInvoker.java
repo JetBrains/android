@@ -263,7 +263,7 @@ public class GradleSyncInvoker {
     for (Module module : moduleManager.getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        facet.setAndroidModel(null);
+        facet.getConfiguration().setModel(null);
       }
     }
   }

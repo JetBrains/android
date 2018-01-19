@@ -214,7 +214,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2");
     state.COMPILE_JAVA_TASK_NAME = "compileTask2";
 
-    androidFacet.setAndroidModel(myAndroidModel);
+    androidFacet.getConfiguration().setModel(myAndroidModel);
   }
 
   public void testFindTasksToExecuteForAssemblingJavaModule() {

@@ -225,7 +225,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     // Set module as instant app project
     AndroidFacet androidFacet = createAndAddAndroidFacet(myModule);
     AndroidModuleModel moduleModel = mock(AndroidModuleModel.class);
-    androidFacet.setAndroidModel(moduleModel);
+    androidFacet.getConfiguration().setModel(moduleModel);
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(androidProject.getProjectType()).thenReturn(PROJECT_TYPE_INSTANTAPP);
     when(moduleModel.getAndroidProject()).thenReturn(androidProject);
