@@ -40,8 +40,6 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.databinding.DataBindingUtil.refreshDataBindingStatus;
-
 /**
  * @author Eugene.Kudelevsky
  */
@@ -154,7 +152,6 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public void setModel(@Nullable AndroidModel model) {
     myAndroidModel = model;
     if (myFacet != null) {
-      refreshDataBindingStatus(myFacet);
       myFacet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(myFacet);
     }
   }
