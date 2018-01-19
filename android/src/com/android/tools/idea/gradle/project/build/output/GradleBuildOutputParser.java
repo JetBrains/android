@@ -29,6 +29,7 @@ import com.intellij.build.events.impl.FileMessageEventImpl;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +42,7 @@ import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser
  * Parser got errors returned by the Android Gradle Plugin in AGPBI json format.
  */
 public class GradleBuildOutputParser implements BuildOutputParser {
+  private static final Logger LOG = Logger.getInstance(GradleBuildOutputParser.class);
   private static final String MESSAGES_GROUP = "Android errors";
 
   @Override
@@ -106,6 +108,9 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   @NotNull
   private static FilePosition convertToFilePosition(@NotNull SourceFilePosition sourceFilePosition) {
     File sourceFile = sourceFilePosition.getFile().getSourceFile();
+    if (sourceFile == null) {
+      LOG.error("sourceFile is set to null. This will lead to a NullPointerException.");
+    }
     SourcePosition position = sourceFilePosition.getPosition();
     int startLine = position.getStartLine();
     int endLine = position.getEndLine();
