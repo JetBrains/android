@@ -65,8 +65,8 @@ class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBa
 
 /** Reference to a column within a known table, e.g. `SELECT user.name FROM user`. */
 class QualifiedColumnPsiReference(
-    columnName: RoomColumnName,
-    private val tableName: RoomSelectedTableName
+  columnName: RoomColumnName,
+  private val tableName: RoomSelectedTableName
 ) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
   private fun resolveTable() = RoomSelectedTablePsiReference(tableName).resolveSqlTable()
 
@@ -89,18 +89,18 @@ class QualifiedColumnPsiReference(
 
 private fun buildVariants(result: Collection<SqlColumn>): Array<Any> {
   return result
-      .map { column ->
-        LookupElementBuilder.create(column.definingElement, RoomNameElementManipulator.getValidName(column.name!!))
-            .withTypeText(column.type?.typeName)
-            // Columns that come from Java fields will most likely use camelCase, starting with a lower-case letter. By default code
-            // completion is configured to only check the case of first letter (see Settings), so if the user types `isv` we will
-            // suggest e.g. `isValid`. Keeping this flag set to true means that the inserted string is exactly the same as the field
-            // name (`isValid`) which seems a good UX. See the below for why table name completion is configured differently.
-            //
-            // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
-            .withCaseSensitivity(true)
-      }
-      .toTypedArray()
+    .map { column ->
+      LookupElementBuilder.create(column.definingElement, RoomNameElementManipulator.getValidName(column.name!!))
+        .withTypeText(column.type?.typeName)
+        // Columns that come from Java fields will most likely use camelCase, starting with a lower-case letter. By default code
+        // completion is configured to only check the case of first letter (see Settings), so if the user types `isv` we will
+        // suggest e.g. `isValid`. Keeping this flag set to true means that the inserted string is exactly the same as the field
+        // name (`isValid`) which seems a good UX. See the below for why table name completion is configured differently.
+        //
+        // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
+        .withCaseSensitivity(true)
+    }
+    .toTypedArray()
 }
 
 /**
@@ -109,7 +109,7 @@ private fun buildVariants(result: Collection<SqlColumn>): Array<Any> {
  * @see Entity.nameElement
  */
 class RoomSelectedTablePsiReference(
-    tableName: RoomSelectedTableName
+  tableName: RoomSelectedTableName
 ) : PsiReferenceBase<RoomSelectedTableName>(tableName) {
 
   override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
@@ -128,8 +128,8 @@ class RoomSelectedTablePsiReference(
 }
 
 class RoomDefinedTablePsiReference(
-    tableName: RoomDefinedTableName,
-    private val acceptViews: Boolean = true
+  tableName: RoomDefinedTableName,
+  private val acceptViews: Boolean = true
 ) : PsiReferenceBase<RoomDefinedTableName>(tableName) {
   override fun resolve(): PsiElement? = resolveSqlTable()?.resolveTo
 
@@ -149,16 +149,16 @@ class RoomDefinedTablePsiReference(
 private fun lookupElementForTable(table: SqlTable): LookupElement {
   val element = table.definingElement
   return LookupElementBuilder.create(element, RoomNameElementManipulator.getValidName(table.name!!))
-      .withTypeText((element as? PsiClass)?.qualifiedName, true)
-      // Tables that come from Java classes will have the first letter in upper case and by default the IDE has code completion
-      // configured to be case sensitive on the first letter (see Settings), so if the user types `b` we won't offer them neither
-      // `Books` nor `books`. This is consistent with the Java editor, but probably not what most users want. Our own samples
-      // use lower-case table names and it seems a better UX is to insert `books` if the user types `b`. Setting this flag to
-      // false means that although we show `Books` in the UI, the actual inserted text is `books`, interpolating case from what
-      // the user has typed.
-      //
-      // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
-      .withCaseSensitivity(false)
+    .withTypeText((element as? PsiClass)?.qualifiedName, true)
+    // Tables that come from Java classes will have the first letter in upper case and by default the IDE has code completion
+    // configured to be case sensitive on the first letter (see Settings), so if the user types `b` we won't offer them neither
+    // `Books` nor `books`. This is consistent with the Java editor, but probably not what most users want. Our own samples
+    // use lower-case table names and it seems a better UX is to insert `books` if the user types `b`. Setting this flag to
+    // false means that although we show `Books` in the UI, the actual inserted text is `books`, interpolating case from what
+    // the user has typed.
+    //
+    // The interactions between this flag and the user-level setting are non-obvious, so consider all cases before changing.
+    .withCaseSensitivity(false)
 }
 
 /**
@@ -171,18 +171,18 @@ private fun lookupElementForTable(table: SqlTable): LookupElement {
  * List<User> getById(int id);
  * ```
  */
-class RoomParameterReference(parameter: RoomBindParameter): PsiReferenceBase<RoomBindParameter>(parameter) {
+class RoomParameterReference(parameter: RoomBindParameter) : PsiReferenceBase<RoomBindParameter>(parameter) {
   override fun resolve(): PsiElement? {
     val parameterName = element.parameterNameAsString ?: return null
     return findQueryMethod()?.uastParameters?.find { it.name == parameterName }?.psi
   }
 
   override fun getVariants(): Array<Any> =
-      findQueryMethod()
-          ?.uastParameters
-          ?.map { LookupElementBuilder.create(it.psi) }
-          ?.toTypedArray<Any>()
-          ?: EMPTY_OBJECT_ARRAY
+    findQueryMethod()
+      ?.uastParameters
+      ?.map { LookupElementBuilder.create(it.psi) }
+      ?.toTypedArray<Any>()
+        ?: EMPTY_OBJECT_ARRAY
 
   private fun findQueryMethod(): UMethod? = (element.containingFile as? RoomSqlFile)?.queryMethod
 }

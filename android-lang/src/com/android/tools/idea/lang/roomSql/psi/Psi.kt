@@ -49,19 +49,20 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, Ro
   override fun getFileType(): FileType = ROOM_SQL_FILE_TYPE
   override fun getIcon(flags: Int): Icon? = ROOM_ICON
 
-  val queryAnnotation: UAnnotation? get() {
-    val injectionHost = InjectedLanguageManager.getInstance(project).getInjectionHost(this)
-    val annotation = injectionHost?.getUastParentOfType<UAnnotation>() ?: return null
+  val queryAnnotation: UAnnotation?
+    get() {
+      val injectionHost = InjectedLanguageManager.getInstance(project).getInjectionHost(this)
+      val annotation = injectionHost?.getUastParentOfType<UAnnotation>() ?: return null
 
-    return if (annotation.qualifiedName == QUERY_ANNOTATION_NAME) annotation else null
-  }
+      return if (annotation.qualifiedName == QUERY_ANNOTATION_NAME) annotation else null
+    }
 
   val queryMethod: UMethod? get() = queryAnnotation?.getParentOfType<UAnnotated>() as? UMethod
 
   fun processTables(processor: Processor<SqlTable>): Boolean {
     if (queryAnnotation != null) {
       // We are inside a Room @Query annotation, let's use the Room schema.
-      val tables = RoomSchemaManager.getInstance(project)?.getSchema(this)?.entities?: emptySet<SqlTable>()
+      val tables = RoomSchemaManager.getInstance(project)?.getSchema(this)?.entities ?: emptySet<SqlTable>()
       return ContainerUtil.process(tables, processor)
     }
 

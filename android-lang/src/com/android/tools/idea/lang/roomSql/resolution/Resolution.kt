@@ -39,7 +39,7 @@ fun processDefinedSqlTables(start: PsiElement, processor: Processor<SqlTable>): 
         // TODO: support for forward references like this: WITH t1 AS (SELECT * FROM t2), t2 AS (SELECT 1) SELECT * from t1;
         val withClause = current.withClause
         val startSubtree =
-            if (previous != withClause) null else PsiTreeUtil.findPrevParent(withClause, start) as? RoomWithClauseTable
+          if (previous != withClause) null else PsiTreeUtil.findPrevParent(withClause, start) as? RoomWithClauseTable
 
         val tables = withClause?.withClauseTableList
         if (tables != null) {
@@ -58,6 +58,7 @@ fun processDefinedSqlTables(start: PsiElement, processor: Processor<SqlTable>): 
 
   return true
 }
+
 /**
  * Processes all [SqlTable]s whose columns (as well as the table themselves) are in scope for a given [start] [PsiElement].
  *
@@ -94,10 +95,10 @@ private data class NextStep(val next: PsiElement, val previous: PsiElement?)
  * @see processSelectedSqlTables
  */
 private fun pushNextElements(
-    stack: Stack<NextStep>,
-    element: PsiElement,
-    previous: PsiElement?,
-    walkingDown: Boolean
+  stack: Stack<NextStep>,
+  element: PsiElement,
+  previous: PsiElement?,
+  walkingDown: Boolean
 ) {
   fun nextStep(next: PsiElement, newPrevious: PsiElement? = element) = NextStep(next, previous = newPrevious)
 
