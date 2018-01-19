@@ -45,6 +45,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -134,7 +135,8 @@ public class AvdWizardUtils {
   public static final File NO_SKIN = new File("_no_skin");
 
   // The AVD wizard needs a bit of extra width as its options panel is pretty dense
-  private static final Dimension AVD_WIZARD_SIZE = new Dimension(1000, 650);
+  private static final Dimension AVD_WIZARD_MIN_SIZE = JBUI.size(600, 400);
+  private static final Dimension AVD_WIZARD_SIZE = JBUI.size(1000, 650);
 
   private static final String AVD_WIZARD_HELP_URL = "https://developer.android.com/r/studio-ui/avd-manager.html";
 
@@ -475,7 +477,7 @@ public class AvdWizardUtils {
     wizardBuilder.addStep(new ConfigureAvdOptionsStep(project, model));
     ModelWizard wizard = wizardBuilder.build();
     StudioWizardDialogBuilder builder = new StudioWizardDialogBuilder(wizard, "Virtual Device Configuration", parent);
-    builder.setMinimumSize(AVD_WIZARD_SIZE);
+    builder.setMinimumSize(AVD_WIZARD_MIN_SIZE);
     builder.setPreferredSize(AVD_WIZARD_SIZE);
     return builder.setHelpUrl(WizardUtils.toUrl(AVD_WIZARD_HELP_URL)).build();
   }
