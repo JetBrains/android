@@ -28,7 +28,7 @@ import static com.intellij.util.xmlb.XmlSerializerUtil.copyBean;
   storages = @Storage(file = StoragePathMacros.APP_CONFIG + "/android.gradle.studio.xml")
 )
 public class AndroidStudioGradleIdeSettings implements PersistentStateComponent<AndroidStudioGradleIdeSettings> {
-  public boolean ENABLE_EMBEDDED_MAVEN_REPO = true;
+  public boolean ENABLE_EMBEDDED_MAVEN_REPO;
 
   @NotNull
   public static AndroidStudioGradleIdeSettings getInstance() {
