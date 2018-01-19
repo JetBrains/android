@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -590,6 +591,22 @@ public class NlComponentTreeTest extends LayoutTestCase {
     pathForRow5 = myTree.getPathForRow(5);
     assertThat(pathForRow4.getLastPathComponent()).isEqualTo("button3");
     assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button2");
+  }
+
+  public void testDeleteBarrier() {
+    assertNull(myTree.getSelectionPaths());
+    myModel = createModelWithBarriers();
+    mySurface.setModel(myModel);
+    myTree = new NlComponentTree(getProject(), mySurface);
+
+    // Check initial state
+    myTree.expandRow(3);
+    TreePath pathForRow4 = myTree.getPathForRow(4);
+    myTree.setSelectionPath(pathForRow4);
+
+    ((DeleteProvider)myTree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())).deleteElement(DataContext.EMPTY_CONTEXT);
+    String constraintReferences = myModel.find("barrier").getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
+    assertThat(constraintReferences).isEqualTo("button3");
   }
 
   @NotNull
