@@ -225,13 +225,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return (AndroidFacetType)FacetTypeRegistry.getInstance().findFacetType(ID);
   }
 
-  public void refreshResources() {
-    ResourceRepositories.getOrCreateInstance(this).refreshResources();
-    ConfigurationManager.getOrCreateInstance(getModule()).getResolverCache().reset();
-    ResourceFolderRegistry.reset();
-    FileResourceRepository.reset();
-  }
-
   @NotNull
   public JpsAndroidModuleProperties getProperties() {
     JpsAndroidModuleProperties state = getConfiguration().getState();
