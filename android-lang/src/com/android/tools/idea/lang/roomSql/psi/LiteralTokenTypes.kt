@@ -17,7 +17,11 @@
 
 package com.android.tools.idea.lang.roomSql.psi
 
-@JvmField val UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL = RoomTokenType("unterminated single quote string literal")
-@JvmField val UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL = RoomTokenType("unterminated double quote string literal")
-@JvmField val UNTERMINATED_BRACKET_LITERAL = RoomTokenType("unterminated bracket literal")
-@JvmField val UNTERMINATED_BACKTICK_LITERAL = RoomTokenType("unterminated backtick literal")
+@JvmField
+val UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL = RoomTokenType("unterminated single quote string literal")
+@JvmField
+val UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL = RoomTokenType("unterminated double quote string literal")
+@JvmField
+val UNTERMINATED_BRACKET_LITERAL = RoomTokenType("unterminated bracket literal")
+@JvmField
+val UNTERMINATED_BACKTICK_LITERAL = RoomTokenType("unterminated backtick literal")

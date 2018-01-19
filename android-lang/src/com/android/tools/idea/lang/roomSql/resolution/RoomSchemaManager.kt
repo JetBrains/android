@@ -43,7 +43,7 @@ class RoomSchemaManager(val project: Project) {
    * @see PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT
    */
   fun getSchema(psiFile: PsiFile): RoomSchema? = CachedValuesManager.getManager(project).getCachedValue(
-      psiFile, { CachedValueProvider.Result(buildSchema(psiFile), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT) })
+    psiFile, { CachedValueProvider.Result(buildSchema(psiFile), PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT) })
 
   private val constantEvaluationHelper = JavaPsiFacade.getInstance(project).constantEvaluationHelper
   private val pointerManager = SmartPointerManager.getInstance(project)
@@ -59,58 +59,64 @@ class RoomSchemaManager(val project: Project) {
     val daoAnnotation = psiFacade.findClass(DAO_ANNOTATION_NAME, scope) ?: return annotationNotFound("Dao", psiFile)
 
     val entities = AnnotatedElementsSearch.searchPsiClasses(entityAnnotation, scope)
-        .mapNotNullTo(HashSet()) { this.createEntity(it) }
+      .mapNotNullTo(HashSet()) { this.createEntity(it) }
     val databases = AnnotatedElementsSearch.searchPsiClasses(databaseAnnotation, scope)
-        .mapNotNullTo(HashSet()) { this.createDatabase(it, pointerManager) }
+      .mapNotNullTo(HashSet()) { this.createDatabase(it, pointerManager) }
     val daos = AnnotatedElementsSearch.searchPsiClasses(daoAnnotation, scope)
-        .mapTo(HashSet()) { Dao(pointerManager.createSmartPsiElementPointer(it)) }
+      .mapTo(HashSet()) { Dao(pointerManager.createSmartPsiElementPointer(it)) }
 
     return RoomSchema(databases, entities, daos)
   }
 
   private fun createEntity(psiClass: PsiClass): Entity? {
     val (tableName, tableNameElement) = getNameAndNameElement(
-        psiClass, annotationName = ENTITY_ANNOTATION_NAME, annotationAttributeName = "tableName") ?: return null
+      psiClass, annotationName = ENTITY_ANNOTATION_NAME, annotationAttributeName = "tableName"
+    ) ?: return null
 
     return Entity(
-        pointerManager.createSmartPsiElementPointer(psiClass),
-        tableName,
-        pointerManager.createSmartPsiElementPointer(tableNameElement),
-        findColumns(psiClass).toSet()
+      pointerManager.createSmartPsiElementPointer(psiClass),
+      tableName,
+      pointerManager.createSmartPsiElementPointer(tableNameElement),
+      findColumns(psiClass).toSet()
     )
   }
 
   private fun findColumns(psiClass: PsiClass, namePrefix: String = ""): Sequence<EntityColumn> {
     return psiClass.allFields
-        .asSequence()
-        .filterNot { it.modifierList?.hasModifierProperty(PsiModifier.STATIC) == true }
-        .filterNot { it.modifierList?.findAnnotation(IGNORE_ANNOTATION_NAME) != null }
-        .flatMap{ psiField ->
-          val embeddedAnnotation = psiField.modifierList?.findAnnotation(EMBEDDED_ANNOTATION_NAME)
-          if (embeddedAnnotation != null) {
-            findEmbeddedFields(psiField, embeddedAnnotation, namePrefix)
-          } else {
-            val thisField = getNameAndNameElement(
-                psiField,
-                annotationName = COLUMN_INFO_ANNOTATION_NAME,
-                annotationAttributeName = "name")
-                ?.let { (columnName, columnNameElement) ->
-                  EntityColumn(
-                      pointerManager.createSmartPsiElementPointer(psiField),
-                      namePrefix + columnName,
-                      pointerManager.createSmartPsiElementPointer(columnNameElement)
-                  )
-                }
+      .asSequence()
+      .filterNot { it.modifierList?.hasModifierProperty(PsiModifier.STATIC) == true }
+      .filterNot { it.modifierList?.findAnnotation(IGNORE_ANNOTATION_NAME) != null }
+      .flatMap { psiField ->
+        val embeddedAnnotation = psiField.modifierList?.findAnnotation(EMBEDDED_ANNOTATION_NAME)
+        if (embeddedAnnotation != null) {
+          findEmbeddedFields(psiField, embeddedAnnotation, namePrefix)
+        } else {
+          val thisField = getNameAndNameElement(
+            psiField,
+            annotationName = COLUMN_INFO_ANNOTATION_NAME,
+            annotationAttributeName = "name"
+          )
+            ?.let { (columnName, columnNameElement) ->
+              EntityColumn(
+                pointerManager.createSmartPsiElementPointer(psiField),
+                namePrefix + columnName,
+                pointerManager.createSmartPsiElementPointer(columnNameElement)
+              )
+            }
 
-            if (thisField != null) sequenceOf(thisField) else emptySequence()
-          }
+          if (thisField != null) sequenceOf(thisField) else emptySequence()
         }
+      }
   }
 
-  private fun findEmbeddedFields(embeddedField: PsiField, embeddedAnnotation: PsiAnnotation, currentPrefix: String): Sequence<EntityColumn> {
+  private fun findEmbeddedFields(
+    embeddedField: PsiField,
+    embeddedAnnotation: PsiAnnotation,
+    currentPrefix: String
+  ): Sequence<EntityColumn> {
     val newPrefix = embeddedAnnotation.findAttributeValue("prefix")
-        ?.let { constantEvaluationHelper.computeConstantExpression(it) }
-        ?.toString()
+      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
+      ?.toString()
         ?: ""
 
     val embeddedClass = PsiUtil.resolveClassInClassTypeOnly(embeddedField.type) ?: return emptySequence()
@@ -120,16 +126,16 @@ class RoomSchemaManager(val project: Project) {
 
   private fun createDatabase(psiClass: PsiClass, pointerManager: SmartPointerManager): RoomDatabase? {
     val entitiesElementValue: HashSet<PsiClassPointer>? =
-        psiClass.modifierList
-            ?.findAnnotation(DATABASE_ANNOTATION_NAME)
-            ?.findDeclaredAttributeValue("entities")
-            ?.let { it as? PsiArrayInitializerMemberValue }
-            ?.initializers
-            ?.mapNotNullTo(HashSet()) {
-              val classObjectAccessExpression = it as? PsiClassObjectAccessExpression ?: return@mapNotNullTo null
-              PsiUtil.resolveClassInClassTypeOnly(classObjectAccessExpression.operand.type)
-                  ?.let(pointerManager::createSmartPsiElementPointer)
-            }
+      psiClass.modifierList
+        ?.findAnnotation(DATABASE_ANNOTATION_NAME)
+        ?.findDeclaredAttributeValue("entities")
+        ?.let { it as? PsiArrayInitializerMemberValue }
+        ?.initializers
+        ?.mapNotNullTo(HashSet()) {
+          val classObjectAccessExpression = it as? PsiClassObjectAccessExpression ?: return@mapNotNullTo null
+          PsiUtil.resolveClassInClassTypeOnly(classObjectAccessExpression.operand.type)
+            ?.let(pointerManager::createSmartPsiElementPointer)
+        }
 
     return RoomDatabase(pointerManager.createSmartPsiElementPointer(psiClass), entitiesElementValue ?: emptySet())
   }
@@ -143,12 +149,12 @@ class RoomSchemaManager(val project: Project) {
       where T : PsiModifierListOwner,
             T : PsiNamedElement {
     val nameAttribute = element.modifierList
-        ?.findAnnotation(annotationName)
-        ?.findDeclaredAttributeValue(annotationAttributeName)
+      ?.findAnnotation(annotationName)
+      ?.findDeclaredAttributeValue(annotationAttributeName)
 
     val name = nameAttribute
-        ?.let { constantEvaluationHelper.computeConstantExpression(it) }
-        ?.toString()
+      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
+      ?.toString()
         ?: element.name
         ?: return null
 

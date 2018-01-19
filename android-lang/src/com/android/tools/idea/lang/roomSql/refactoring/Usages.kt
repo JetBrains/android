@@ -99,9 +99,9 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     return when (element) {
       is PsiClass -> getSchema(element)?.findEntity(element) ?: return null
       is PsiField -> getSchema(element)
-          ?.findEntity(element.containingClass ?: return null)
-          ?.columns
-          ?.find { it.psiField.element == element }
+        ?.findEntity(element.containingClass ?: return null)
+        ?.columns
+        ?.find { it.psiField.element == element }
           ?: return null
       else -> return null
     }
