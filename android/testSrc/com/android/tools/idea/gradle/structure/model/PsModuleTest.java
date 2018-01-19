@@ -76,16 +76,6 @@ public class PsModuleTest extends AndroidGradleTestCase {
     assertThat(mavenRepositories, hasItem(anyOf(localRepositoryMatchers)));
   }
 
-  public void testGetVariables() throws Exception {
-    loadProject(TestProjectPaths.PSD_SAMPLE);
-    PsProject psProject = new PsProject(getProject());
-    PsAndroidModule psAppModule = (PsAndroidModule)psProject.findModuleByName("app");
-    List<PsVariable> variables = psAppModule.getVariables();
-    assertThat(variables.size(), is(4));
-    assertThat(variables.stream().map(PsVariable::getName).collect(toList()),
-               hasItems("myVariable", "variable1", "anotherVariable", "moreVariable"));
-  }
-
   private Document getDocument() {
     VirtualFile buildFile = myFixture.getProject().getBaseDir().findFileByRelativePath("app/build.gradle");
     return FileDocumentManager.getInstance().getDocument(buildFile);

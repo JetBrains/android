@@ -55,7 +55,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
   private fun fillTable() {
     val moduleNodes = mutableListOf<ModuleNode>()
     context.project.forEachModule { module ->
-      val moduleVariables = module.variables
+      val moduleVariables = module.variables.getModuleVariables()
       if (!moduleVariables.isEmpty()) {
         variableNames.addAll(moduleVariables.map { it.name })
         val moduleRoot = ModuleNode(module)

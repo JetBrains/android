@@ -54,6 +54,8 @@ public abstract class PsModule extends PsChildModel {
 
   private final EventDispatcher<DependenciesChangeListener> myDependenciesChangeEventDispatcher =
     EventDispatcher.create(DependenciesChangeListener.class);
+  private final PsVariables myVariables = new PsVariables(this);
+
 
   protected PsModule(@NotNull PsProject parent,
                      @NotNull Module resolvedModel,
@@ -201,10 +203,8 @@ public abstract class PsModule extends PsChildModel {
   }
 
   @NotNull
-  public List<PsVariable> getVariables() {
-    return myParsedModel.ext().getProperties().stream()
-      .map(property -> new PsVariable(property, this))
-      .collect(Collectors.toList());
+  public PsVariables getVariables() {
+    return myVariables;
   }
 
   public interface DependenciesChangeListener extends EventListener {
