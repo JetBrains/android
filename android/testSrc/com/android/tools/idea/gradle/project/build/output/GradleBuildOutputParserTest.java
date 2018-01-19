@@ -30,6 +30,7 @@ import java.util.function.Consumer;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -51,12 +52,16 @@ public class GradleBuildOutputParserTest {
     when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
 
     ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
+    String detailMessage = "This is a detailed message";
+    when(myReader.readUntil(any())).thenReturn(detailMessage);
     assertTrue(myParser.parse(line, myReader, myConsumer));
     verify(myConsumer).accept(messageCaptor.capture());
 
     List<MessageEvent> generatedMessages = messageCaptor.getAllValues();
     assertThat(generatedMessages).hasSize(1);
     assertThat(generatedMessages.get(0)).isInstanceOf(FileMessageEvent.class);
+    FileMessageEvent fileMessageEvent = (FileMessageEvent)generatedMessages.get(0);
+    assertThat(fileMessageEvent.getResult().getDetails()).isEqualTo(detailMessage);
   }
 
   @Test
