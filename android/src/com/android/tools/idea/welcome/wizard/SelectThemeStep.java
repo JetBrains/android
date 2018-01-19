@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.welcome.wizard.deprecated;
+package com.android.tools.idea.welcome.wizard;
 
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.customize.CustomizeUIThemeStepPanel;
 import com.intellij.ide.ui.laf.darcula.DarculaInstaller;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 /**
  * Step for FirstRunWizard for selecting a color scheme.
- * @deprecated use {@link com.android.tools.idea.welcome.wizard.SelectThemeStep}
  */
-@Deprecated
-public class SelectThemeStep extends FirstRunWizardStep {
-  private final CustomizeUIThemeStepPanel themePanel;
+public class SelectThemeStep extends ModelWizardStep.WithoutModel {
+  @NotNull
+  private final CustomizeUIThemeStepPanel myThemePanel;
+  @NotNull
+  private final JBScrollPane myRoot;
 
   public SelectThemeStep() {
     super("Select UI Theme");
-    themePanel = new CustomizeUIThemeStepPanel();
-    setComponent(themePanel);
+    myThemePanel = new CustomizeUIThemeStepPanel();
+    myRoot = StudioWizardStepPanel.wrappedWithVScroll(myThemePanel);
   }
 
   @Override
-  public void init() {
-  }
-
-  @Override
-  public boolean commitStep() {
+  protected void onProceeding() {
     // This code is duplicated from LafManager.initComponent(). But our Welcome Wizard is started
     // AFTER that call so we repeat it here.
     if (UIUtil.isUnderDarcula()) {
@@ -50,19 +51,17 @@ public class SelectThemeStep extends FirstRunWizardStep {
     else {
       DarculaInstaller.uninstall();
     }
-
-    return super.commitStep();
   }
 
   @Nullable
   @Override
-  public JLabel getMessageLabel() {
-    return null;
+  protected JComponent getPreferredFocusComponent() {
+    return myThemePanel;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public JComponent getPreferredFocusedComponent() {
-    return null;
+  protected JComponent getComponent() {
+    return myRoot;
   }
 }

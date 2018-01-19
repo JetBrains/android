@@ -36,6 +36,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 
+import static com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.CUSTOM;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -51,8 +52,9 @@ public class StudioFirstRunWelcomeScreen implements WelcomeScreen {
   public StudioFirstRunWelcomeScreen(FirstRunWizardMode mode) {
     myMode = mode;
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    ConfigureInstallationModel model = new ConfigureInstallationModel();
 
-    // TODO: Add more steps and check wich steps to add for each different FirstRunWizardMode
+    // TODO: Add more steps and check witch steps to add for each different FirstRunWizardMode
     boolean sdkExists = false;
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(mode);
     if (initialSdkLocation.isDirectory()) {
@@ -61,9 +63,17 @@ public class StudioFirstRunWelcomeScreen implements WelcomeScreen {
       sdkExists = sdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
     }
 
-    myModelWizard = new ModelWizard.Builder()
-      .addStep(new FirstRunWelcomeStep(sdkExists))
-      .build();
+    wizardBuilder.addStep(new FirstRunWelcomeStep(sdkExists));
+    if (initialSdkLocation.getPath().isEmpty()) {
+      // We don't have a default path specified, have to do custom install.
+      model.installationType().set(CUSTOM);
+    }
+    else {
+      wizardBuilder.addStep(new InstallationTypeWizardStep(model));
+    }
+    wizardBuilder.addStep(new SelectThemeStep());
+
+    myModelWizard = wizardBuilder.build();
 
     // Note: We create a ModelWizardDialog, but we are only interested in its Content Panel
     // This is a bit of a hack, but it's the simplest way to reuse logic from ModelWizardDialog

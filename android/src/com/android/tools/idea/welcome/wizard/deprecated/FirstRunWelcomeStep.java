@@ -23,7 +23,9 @@ import javax.swing.*;
 
 /**
  * Welcome page for the first run wizard
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.FirstRunWelcomeStep}
  */
+@Deprecated
 public final class FirstRunWelcomeStep extends FirstRunWizardStep {
   private JBScrollPane myRoot;
   private JLabel myIcons;
