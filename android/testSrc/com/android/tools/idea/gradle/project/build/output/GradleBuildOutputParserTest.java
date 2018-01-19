@@ -60,6 +60,20 @@ public class GradleBuildOutputParserTest {
   }
 
   @Test
+  public void parseWithErrorNoSource() {
+    String line = "AGPBI: {\"kind\":\"error\",\"text\":\"Warning message.\",\"sources\":[{}],\"original\":\"\",\"tool\":\"AAPT\"}";
+    when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
+
+    ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
+    assertTrue(myParser.parse(line, myReader, myConsumer));
+    verify(myConsumer).accept(messageCaptor.capture());
+
+    List<MessageEvent> generatedMessages = messageCaptor.getAllValues();
+    assertThat(generatedMessages).hasSize(1);
+    assertThat(generatedMessages.get(0)).isNotInstanceOf(FileMessageEvent.class);
+  }
+
+  @Test
   public void parseWithoutError() {
     String line = "Non AGBPI error";
     assertFalse(myParser.parse(line, myReader, myConsumer));
