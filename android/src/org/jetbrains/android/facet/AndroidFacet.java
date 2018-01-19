@@ -45,7 +45,6 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
-import static com.android.tools.idea.databinding.DataBindingUtil.refreshDataBindingStatus;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 /**
@@ -55,7 +54,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
-  private AndroidModel myAndroidModel;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
   private SourceProvider myMainSourceSet;
@@ -111,7 +109,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   @Nullable
   public AndroidModel getAndroidModel() {
-    return myAndroidModel;
+    return getConfiguration().getModel();
   }
 
   /**
@@ -120,8 +118,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @param androidModel the new Android model.
    */
   public void setAndroidModel(@Nullable AndroidModel androidModel) {
-    myAndroidModel = androidModel;
-    refreshDataBindingStatus(this);
+    getConfiguration().setModel(androidModel);
   }
 
   public boolean isAppProject() {
@@ -152,9 +149,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   @NotNull
   public SourceProvider getMainSourceProvider() {
-    if (myAndroidModel != null) {
+    AndroidModel model = getConfiguration().getModel();
+    if (model != null) {
       //noinspection deprecation
-      return myAndroidModel.getDefaultSourceProvider();
+      return model.getDefaultSourceProvider();
     }
     else {
       if (myMainSourceSet == null) {
@@ -213,7 +211,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Override
   public void disposeFacet() {
-    myAndroidModel = null;
+    getConfiguration().disposeFacet();
   }
 
   @Nullable
