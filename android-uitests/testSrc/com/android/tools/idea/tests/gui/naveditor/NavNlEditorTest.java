@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.naveditor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -61,6 +63,7 @@ public class NavNlEditorTest {
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/72238573
   @Test
   public void testCreateAndDelete() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
