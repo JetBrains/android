@@ -81,7 +81,7 @@ public class AndroidSessionInfo {
     return myInstantRun;
   }
 
-  @Nullable
+  @NotNull
   public List<IDevice> getDevices() {
     if (myProcessHandler instanceof AndroidProcessHandler) {
       return ((AndroidProcessHandler)myProcessHandler).getDevices();
@@ -93,7 +93,7 @@ public class AndroidSessionInfo {
       }
     }
 
-    return null;
+    return Collections.emptyList();
   }
 
   public int getRunConfigurationId() {
