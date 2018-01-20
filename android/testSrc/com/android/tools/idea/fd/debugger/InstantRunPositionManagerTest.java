@@ -85,6 +85,6 @@ public class InstantRunPositionManagerTest extends AndroidTestCase {
   private void checkSourceForApiVersion(Project project, PsiFile file, int version) {
     PsiFile sourceFile = myPositionManager.getApiSpecificPsi(project, file, new AndroidVersion(version, null));
     assertNotNull(sourceFile);
-    assertTrue(sourceFile.getVirtualFile().getPath().endsWith(String.format("sources/android-%0$d/android/view/View.java", version)));
+    assertTrue(sourceFile.getVirtualFile().getPath().endsWith(String.format("sources/android-%1$d/android/view/View.java", version)));
   }
 }
