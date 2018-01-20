@@ -179,6 +179,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       if ("AidlFile".equals(templateName)) return true;
     }
     if ("WatchFaceService".equals(templateName)) return true; // See https://b.corp.google.com/issues/65062154
+    if ("GoogleAdMobAdsActivity".equals(templateName)) return true;  // b/72260139
+    if ("GoogleMapsActivity".equals(templateName)) return true;  // b/72260139
     return false;
   }
 
@@ -406,7 +408,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewProjectWithTabbedActivityWithKotlin() throws Exception {
+  // b/72260139
+  public void ignore_testNewProjectWithTabbedActivityWithKotlin() throws Exception {
     checkCreateTemplate("activities", "TabbedActivity", true, withKotlin);
   }
 
@@ -555,22 +558,26 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testGoogleAdMobAdsActivity() throws Exception {
+  // b/72260139
+  public void ignore_testGoogleAdMobAdsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", false);
   }
 
   @TemplateCheck
-  public void testNewProjectWithGoogleAdMobAdsActivity() throws Exception {
+  // b/72260139
+  public void ignore_testNewProjectWithGoogleAdMobAdsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", true);
   }
 
   @TemplateCheck
-  public void testGoogleMapsActivity() throws Exception {
+  // b/72260139
+  public void ignore_testGoogleMapsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleMapsActivity", false);
   }
 
   @TemplateCheck
-  public void testNewProjectWithGoogleMapsActivity() throws Exception {
+  // b/72260139
+  public void ignore_testNewProjectWithGoogleMapsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleMapsActivity", true);
   }
 
