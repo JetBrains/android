@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
@@ -46,8 +47,8 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     assertThat(buildToolsVersion.resolved.asTestValue(), equalTo("27.0.3"))
     assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo("27.0.3"))
 
-    assertThat(compileSdkVersion.resolved.asTestValue(), equalTo("26"))
-    assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("26"))
+    assertThat(compileSdkVersion.resolved.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
+    assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
 
     assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_7))
     assertThat(sourceCompatibility.parsedValue.asTestValue(), nullValue())
