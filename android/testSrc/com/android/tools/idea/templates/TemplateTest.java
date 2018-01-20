@@ -173,14 +173,13 @@ public class TemplateTest extends AndroidGradleTestCase {
    * The following templates are known to be broken! We need to work through these and fix them such that tests
    * on them can be re-enabled.
    */
-  private static final Set<String> KNOWN_BROKEN = new HashSet<>();
-
-  static {
+  private static boolean isBroken(@NotNull String templateName) {
     // See http://b.android.com/253296
     if (SystemInfo.isWindows) {
-      KNOWN_BROKEN.add("AidlFile");
+      if ("AidlFile".equals(templateName)) return true;
     }
-    KNOWN_BROKEN.add("WatchFaceService"); // See https://b.corp.google.com/issues/65062154
+    if ("WatchFaceService".equals(templateName)) return true; // See https://b.corp.google.com/issues/65062154
+    return false;
   }
 
   /**
@@ -965,7 +964,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
     File templateFile = findTemplate(category, name);
     assertNotNull(templateFile);
-    if (KNOWN_BROKEN.contains(templateFile.getName())) {
+    if (isBroken(templateFile.getName())) {
       return;
     }
     Stopwatch stopwatch = Stopwatch.createStarted();
@@ -1024,7 +1023,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                              boolean createWithProject,
                              @Nullable Map<String, Object> overrides,
                              @Nullable Map<String, Object> projectOverrides) throws Exception {
-    if (KNOWN_BROKEN.contains(templateFile.getName())) {
+    if (isBroken(templateFile.getName())) {
       return;
     }
 
@@ -1726,7 +1725,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     private void gatherMissedTests(File templateFile, boolean createWithProject, ArrayList<String> failures) {
       String category = templateFile.getParentFile().getName();
       String name = templateFile.getName();
-      if (!KNOWN_BROKEN.contains(name) && !myTemplatesChecked.contains(getCheckKey(category, name, createWithProject))) {
+      if (!isBroken(name) && !myTemplatesChecked.contains(getCheckKey(category, name, createWithProject))) {
         failures.add("\nCategory: \"" + category + "\" Name: \"" + name + "\" createWithProject: " + createWithProject);
       }
     }
