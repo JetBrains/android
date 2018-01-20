@@ -509,7 +509,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     List<IDevice> devices = info.getDevices();
-    if (devices == null || devices.isEmpty()) {
+    if (devices.isEmpty()) {
       InstantRunManager.LOG.info("Cannot Instant Run since we could not locate the devices from the existing launch session");
       return null;
     }
