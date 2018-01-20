@@ -23,7 +23,7 @@ android {
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
-    api 'com.android.support:appcompat-v7:26.1.0'
+    api 'com.android.support:appcompat-v7:+'
     api 'com.google.code.gson:gson:2.2.4'
     testImplementation 'junit:junit:4.12'
     api project(':library1')

@@ -42,7 +42,6 @@ import static java.util.stream.Collectors.toList;
  * Tests for {@link PsAndroidModule}.
  */
 public class PsAndroidModuleTest extends AndroidGradleTestCase {
-  @NotNull public static final String APPCOMPAT_V7_VERSION_26_1_0 = "26.1.0";
 
   public void testFlavorDimensions() throws Throwable {
     loadProject(PSD_SAMPLE);
@@ -273,7 +272,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     assertNotNull(buildModel);
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts("compile")) {
       if ("com.android.support".equals(dependency.group().value()) && "appcompat-v7".equals(dependency.name().value())) {
-        dependency.setVersion(APPCOMPAT_V7_VERSION_26_1_0); // Current one should be 26.0.2
+        dependency.setVersion("+");
         break;
       }
     }
@@ -298,7 +297,6 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
     assertEquals("com.android.support", resolvedSpec.getGroup());
     assertEquals("appcompat-v7", resolvedSpec.getName());
-    assertEquals(APPCOMPAT_V7_VERSION_26_1_0, resolvedSpec.getVersion());
 
     // Verify that the variants where appcompat is are properly registered.
     Collection<String> variants = appCompatV7.getVariants();
@@ -327,7 +325,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
 
     PsArtifactDependencySpec declaredSpec = appCompatV7.getDeclaredSpec();
     assertNotNull(declaredSpec);
-    assertEquals("com.android.support:appcompat-v7:26.1.0", declaredSpec.toString());
+    assertEquals("com.android.support:appcompat-v7:+", declaredSpec.toString());
 
     PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
     assertEquals("com.android.support", resolvedSpec.getGroup());
