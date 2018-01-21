@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.kotlin;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -40,7 +38,6 @@ public class NewKotlinModuleTest {
   private static final String APP_NAME = "app";
   private static final String NEW_KOTLIN_MDULE_NAME = "KotlinModule";
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71823499
   @Test
   public void addNewKotlinModuleToNonKotlinProject() throws Exception {
     createNewBasicProject(false);

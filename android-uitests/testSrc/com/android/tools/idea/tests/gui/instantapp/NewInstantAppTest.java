@@ -161,7 +161,6 @@ public class NewInstantAppTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/69171895
   @Test
   public void testCanBuildNewInstantAppProjectsWithLoginActivity() throws IOException {
     createAndOpenDefaultAIAProject("BuildApp", null, "Login Activity");
@@ -223,7 +222,6 @@ public class NewInstantAppTest {
     assertThat(baseStrings).contains("title_item_list");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/69171895
   @Test // b/68684401
   public void addFullscreenActivityToExistingIappModule() throws Exception {
     createAndOpenDefaultAIAProject("BuildApp", "feature", null);
