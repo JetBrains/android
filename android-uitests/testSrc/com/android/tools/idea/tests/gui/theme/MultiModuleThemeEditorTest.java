@@ -22,6 +22,7 @@ import com.intellij.notification.LogModel;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +68,7 @@ public class MultiModuleThemeEditorTest {
     assertThat(library3Themes).containsNoneOf("AppTheme", "Library1DependentTheme", "Library1Theme", "Library2Theme");
   }
 
+  @Ignore("b/69001321")
   @Test
   public void testModuleWithoutThemes() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
