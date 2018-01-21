@@ -47,7 +47,7 @@ public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // Has not failed in 50 consecutive runs. Leave in Unreliable until dahlstrom@ wants it in reliable.
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -274,7 +274,7 @@ public class NlPreviewTest {
       .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
