@@ -92,7 +92,6 @@ public class NlPreviewTest {
     preview.getConfigToolbar().requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71427797
   @Test
   public void editCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
@@ -158,7 +157,6 @@ public class NlPreviewTest {
     assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722 (failed 2 times in last 50 test runs)
   @Test
   public void testRenderingDynamicResources() throws Exception {
     // Opens a layout which contains dynamic resources (defined only in build.gradle)

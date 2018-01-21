@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.SdkConstants;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -34,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * UI test for the layout preview window
  */
-@RunIn(TestGroup.UNRELIABLE)  // b/62646766
 @RunWith(GuiTestRunner.class)
 public class OpenIncludedLayoutTest {
 

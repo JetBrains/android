@@ -119,7 +119,6 @@ public class IssuePanelTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)
   public void testFixMissingFragmentNameWithCustomFragmentsAvailable() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
 
