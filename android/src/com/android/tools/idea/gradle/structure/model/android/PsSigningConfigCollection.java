@@ -93,4 +93,13 @@ public class PsSigningConfigCollection implements PsModelCollection<PsSigningCon
     myParent.setModified(true);
     return model;
   }
+
+  public void remove(@NotNull String name) {
+    assert myParent.getParsedModel() != null;
+    AndroidModel androidModel = myParent.getParsedModel().android();
+    assert androidModel != null;
+    androidModel.removeSigningConfig(name);
+    mySigningConfigsByName.remove(name);
+    myParent.setModified(true);
+  }
 }

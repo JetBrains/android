@@ -92,4 +92,13 @@ public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
     myParent.setModified(true);
     return model;
   }
+
+  public void remove(@NotNull String name) {
+    assert myParent.getParsedModel() != null;
+    AndroidModel androidModel = myParent.getParsedModel().android();
+    assert androidModel != null;
+    androidModel.removeBuildType(name);
+    myBuildTypesByName.remove(name);
+    myParent.setModified(true);
+  }
 }

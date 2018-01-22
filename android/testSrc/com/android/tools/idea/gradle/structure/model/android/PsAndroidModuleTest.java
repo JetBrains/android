@@ -81,6 +81,30 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
       .containsExactly("foo", "bar", "new").inOrder();
   }
 
+  public void testRemoveFlavorDimension() throws Throwable {
+    loadProject(PSD_SAMPLE);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    appModule.removeFlavorDimension("bar");
+    // A product flavor must be removed for successful sync.
+    appModule.removeProductFlavor(appModule.findProductFlavor("bar"));
+    List<String> flavorDimensions = getFlavorDimensions(appModule);
+    assertThat(flavorDimensions).containsExactly("foo", "bar").inOrder();
+    appModule.applyChanges();
+
+    requestSyncAndWait();
+    project = new PsProject(resolvedProject);
+    appModule = (PsAndroidModule)project.findModuleByName("app");
+
+    flavorDimensions = getFlavorDimensions(appModule);
+    assertThat(flavorDimensions).containsExactly("foo");
+  }
+
   @NotNull
   private static List<String> getFlavorDimensions(@NotNull PsAndroidModule module) {
     return Lists.newArrayList(module.getFlavorDimensions());
@@ -144,6 +168,35 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     newFlavor = appModule.findProductFlavor("new_flavor");
     assertNotNull(newFlavor);
     assertNotNull(newFlavor.getResolvedModel());
+  }
+
+  public void testRemoveProductFlavor() throws Throwable {
+    loadProject(PSD_SAMPLE);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    List<PsProductFlavor> productFlavors = getProductFlavors(appModule);
+    assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("basic", "paid", "bar").inOrder();
+
+    appModule.removeProductFlavor(appModule.findProductFlavor("paid"));
+
+    productFlavors = getProductFlavors(appModule);
+    assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("basic", "bar").inOrder();
+
+    appModule.applyChanges();
+    requestSyncAndWait();
+    project = new PsProject(resolvedProject);
+    appModule = (PsAndroidModule)project.findModuleByName("app");
+
+    productFlavors = getProductFlavors(appModule);
+    assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("basic", "bar").inOrder();
   }
 
   @NotNull
@@ -211,6 +264,39 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     newBuildType = appModule.findBuildType("new_build_type");
     assertNotNull(newBuildType);
     assertNotNull(newBuildType.getResolvedModel());
+  }
+
+  public void testRemoveBuildType() throws Throwable {
+    loadProject(PSD_SAMPLE);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    List<PsBuildType> buildTypes = getBuildTypes(appModule);
+    assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("release", "debug").inOrder();
+
+    appModule.removeBuildType(appModule.findBuildType("release"));
+
+    buildTypes = getBuildTypes(appModule);
+    assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("debug");
+
+    appModule.applyChanges();
+    requestSyncAndWait();
+    project = new PsProject(resolvedProject);
+    appModule = (PsAndroidModule)project.findModuleByName("app");
+
+    buildTypes = getBuildTypes(appModule);
+    assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
+      .containsExactly("debug", "release").inOrder();  // "release" is not declared and goes last.
+
+    PsBuildType release = appModule.findBuildType("release");
+    assertNotNull(release);
+    assertFalse(release.isDeclared());
   }
 
   @NotNull
@@ -413,6 +499,33 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
 
     signingConfigs = getSigningConfigs(appModule);
     assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "config2", "debug").inOrder();
+  }
+
+  public void testRemoveSigningConfig() throws Throwable {
+    loadProject(BASIC);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
+    assertNotNull(appModule);
+
+    List<PsSigningConfig> signingConfigs = getSigningConfigs(appModule);
+    assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "debug").inOrder();
+
+    appModule.removeSigningConfig(appModule.findSigningConfig("myConfig"));
+    appModule.removeBuildType(appModule.findBuildType("debug"));  // Remove (clean) the build type that refers to the signing config.
+
+    signingConfigs = getSigningConfigs(appModule);
+    assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("debug");
+
+    appModule.applyChanges();
+    requestSyncAndWait();
+    project = new PsProject(resolvedProject);
+    appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
+
+    signingConfigs = getSigningConfigs(appModule);
+    assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("debug");
   }
 
   @NotNull
