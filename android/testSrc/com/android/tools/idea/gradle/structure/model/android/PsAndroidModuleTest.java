@@ -385,6 +385,36 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     assertTrue(!debugConfig.isDeclared());
   }
 
+  public void testAddSigningConfig() throws Throwable {
+    loadProject(BASIC);
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
+    assertNotNull(appModule);
+
+    List<PsSigningConfig> signingConfigs = getSigningConfigs(appModule);
+    assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "debug").inOrder();
+
+    PsSigningConfig myConfig = appModule.addNewSigningConfig("config2");
+    myConfig.setStoreFile(new ParsedValue.Set.Parsed<File>(new File("/tmp/1"), null));
+
+    assertNotNull(myConfig);
+    assertTrue(myConfig.isDeclared());
+
+    signingConfigs = getSigningConfigs(appModule);
+    assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "debug", "config2").inOrder();
+
+    appModule.applyChanges();
+    requestSyncAndWait();
+    project = new PsProject(resolvedProject);
+    appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
+
+    signingConfigs = getSigningConfigs(appModule);
+    assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "config2", "debug").inOrder();
+  }
+
   @NotNull
   private static List<PsSigningConfig> getSigningConfigs(@NotNull PsAndroidModule module) {
     List<PsSigningConfig> signingConfigs = Lists.newArrayList();
