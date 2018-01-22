@@ -17,9 +17,14 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.ComboBox
 import java.awt.Color
 import java.awt.Dimension
+import java.awt.Event
+import java.awt.event.FocusEvent
+import java.awt.event.FocusEvent.FOCUS_GAINED
+import java.awt.event.FocusListener
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JTextField
@@ -37,8 +42,8 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   private val variablesProvider: VariablesProvider?
 ) : ComboBox<String>(), ModelPropertyEditor<ModelT> {
 
-  private val textToParsedValue: Map<String, ParsedValue<PropertyT>>
-  private val valueToText: Map<PropertyT, String>
+  private var textToParsedValue: Map<String, ParsedValue<PropertyT>> = mapOf()
+  private var valueToText: Map<PropertyT, String> = mapOf()
   private var beingLoaded = false
 
   override val component: JComponent = this
@@ -74,6 +79,19 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
       if (toolTipText != null) jTextField.toolTipText = toolTipText
       if (background != null) jTextField.background = background
     }
+  }
+
+  @VisibleForTesting
+  fun loadKnownValues() {
+    val availableVariables = getAvailableVariables()
+    val possibleValues = property.getKnownValues(model) ?: listOf()
+    textToParsedValue =
+        (possibleValues.map { it.description to ParsedValue.Set.Parsed(value = it.value) } + (availableVariables ?: listOf())).toMap()
+    valueToText = possibleValues.associate { it.value to it.description }
+    val comboBoxModel = DefaultComboBoxModel<String>(textToParsedValue.keys.toTypedArray()).apply {
+      selectedItem = super.getSelectedItem()
+    }
+    super.setModel(comboBoxModel)
   }
 
   private fun loadValue(value: PropertyValue<PropertyT>) {
@@ -136,6 +154,11 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     }
   }
 
+  @VisibleForTesting
+  fun reloadValue() {
+    loadValue(property.getValue(model))
+  }
+
   private fun applyChanges(value: ParsedValue<PropertyT>) {
     when (value) {
       is ParsedValue.Set.Invalid -> Unit
@@ -152,25 +175,33 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
       )
     }
 
+  private fun addFocusGainedListener(listener: () -> Unit) {
+    val focusListener = object : FocusListener {
+      override fun focusLost(e: FocusEvent?) = Unit
+      override fun focusGained(e: FocusEvent?) = listener()
+    }
+    editor.editorComponent.addFocusListener(focusListener)
+    addFocusListener(focusListener)
+  }
+
   init {
     minLength = 60
     setEditable(true)
 
-    val availableVariables = getAvailableVariables()
+    super.setModel(DefaultComboBoxModel<String>())
 
-    val possibleValues = property.getKnownValues(model) ?: listOf()
-    textToParsedValue =
-        (possibleValues.map { it.description to ParsedValue.Set.Parsed(value = it.value) } + (availableVariables ?: listOf())).toMap()
-    valueToText = possibleValues.associate { it.value to it.description }
-    super.setModel(DefaultComboBoxModel<String>(textToParsedValue.keys.toTypedArray()))
-
-    loadValue(property.getValue(model))
+    loadKnownValues()
+    reloadValue()
 
     addActionListener {
       if (!beingLoaded) {
         applyChanges(getParsedValue())
-        loadValue(property.getValue(model))
+        reloadValue()
       }
+    }
+    addFocusGainedListener {
+      loadKnownValues()
+      reloadValue()
     }
   }
 }
