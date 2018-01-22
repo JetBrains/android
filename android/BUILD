@@ -112,6 +112,8 @@ iml_module(
         "//tools/adt/idea/apkanalyzer[module]",
         "//tools/adt/idea/android-lang[module]",
         "//tools/adt/idea/android-adb[module]",
+        "//tools/idea/.idea/libraries:batik",
+        "//tools/idea/.idea/libraries:xml-apis-ext",
     ],
 )
 

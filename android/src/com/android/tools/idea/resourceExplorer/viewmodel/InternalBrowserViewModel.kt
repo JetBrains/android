@@ -24,21 +24,22 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationListener
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
+import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
 import com.android.tools.idea.resourceExplorer.view.DesignAssetExplorer
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.intellij.images.fileTypes.ImageFileTypeManager
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Dimension
 import java.awt.Image
-import javax.imageio.ImageIO
 
 /**
  * ViewModel for [InternalBrowserViewModel] to manage resources in the
  * provided [facet].
  */
 class InternalBrowserViewModel(
-    val facet: AndroidFacet,
-    synchronizationManager: SynchronizationManager
+  val facet: AndroidFacet,
+  synchronizationManager: SynchronizationManager
 ) : DesignAssetExplorer {
 
   override val designAssetListModel = DesignAssetListModel()
@@ -65,17 +66,17 @@ class InternalBrowserViewModel(
     val repository = ModuleResourceRepository.getOrCreateInstance(facet)
     val type = ResourceType.DRAWABLE
     return repository.getItemsOfType(type)
-        .flatMap { repository.getResourceItem(type, it) ?: emptyList() }
-        .mapNotNull(this::resourceItemToDesignAsset)
-        .groupBy { it.name }
-        .map { (name, assets) -> DesignAssetSet(name, assets) }
+      .flatMap { repository.getResourceItem(type, it) ?: emptyList() }
+      .mapNotNull(this::resourceItemToDesignAsset)
+      .groupBy { it.name }
+      .map { (name, assets) -> DesignAssetSet(name, assets) }
   }
 
   /**
    * Creates a [DesignAsset] from a [ResourceItem]
    */
   private fun resourceItemToDesignAsset(resourceItem: ResourceItem): DesignAsset? {
-    val virtualFile = VfsUtil.findFileByIoFile(resourceItem.file, false) ?: return null
+    val virtualFile = resourceItem.file?.let { VfsUtil.findFileByIoFile(it, false) } ?: return null
     val qualifiers = resourceItem.configuration.qualifiers.asList()
     return DesignAsset(virtualFile, qualifiers, ResourceFolderType.DRAWABLE)
   }
@@ -83,12 +84,9 @@ class InternalBrowserViewModel(
   /**
    * Return a preview of the [DesignAsset]
    */
-  override fun getPreview(asset: DesignAsset): Image {
-    // TODO use a plugin to display the preview
-    if(ImageFileTypeManager.getInstance().isImage(asset.file)) {
-      return ImageIO.read(asset.file.inputStream)
-    }
-    return EMPTY_IMAGE
+  override fun getPreview(asset: DesignAsset, dimension: Dimension): ListenableFuture<out Image?> {
+    return DesignAssetRendererManager.getInstance().getViewer(asset.file)
+      .getImage(asset.file, facet.module, dimension)
   }
 
   override fun getStatusLabel(assetSet: DesignAssetSet) = ""

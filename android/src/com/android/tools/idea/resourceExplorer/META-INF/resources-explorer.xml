@@ -16,10 +16,22 @@
     <extensionPoint
         qualifiedName="com.android.resourceImporter"
         interface="com.android.tools.idea.resourceExplorer.plugin.ResourceImporter"/>
+    <extensionPoint
+        qualifiedName="com.android.resourceViewer"
+        interface="com.android.tools.idea.resourceExplorer.plugin.DesignAssetRenderer"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
     <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.RasterResourceImporter"/>
+    <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.SVGImporter"/>
+    <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.VectorDrawableImporter"/>
+    <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.SVGAssetRenderer"/>
+    <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.RasterAssetRenderer"/>
+    <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.VectorDrawableAssetRenderer"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

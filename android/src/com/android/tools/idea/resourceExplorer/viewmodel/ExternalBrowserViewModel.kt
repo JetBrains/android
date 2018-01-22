@@ -17,31 +17,32 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
-import com.android.tools.idea.resourceExplorer.model.getAssetSets
+import com.android.tools.idea.resourceExplorer.importer.SynchronizationListener
+import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.importer.SynchronizationListener
-import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
+import com.android.tools.idea.resourceExplorer.model.getAssetSets
 import com.android.tools.idea.resourceExplorer.view.DesignAssetExplorer
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Dimension
 import java.awt.Image
-import java.awt.image.BufferedImage
 
 private val LOGGER = Logger.getInstance(ExternalBrowserViewModel::class.java)
-internal val EMPTY_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY)
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser]
  * to manage design resources outside the project
  */
 class ExternalBrowserViewModel(
-    val facet: AndroidFacet,
-    private val fileHelper: ResourceFileHelper,
-    private val importersProvider: ImportersProvider,
-    private val synchronizationManager: SynchronizationManager
+  val facet: AndroidFacet,
+  private val fileHelper: ResourceFileHelper,
+  private val importersProvider: ImportersProvider,
+  private val synchronizationManager: SynchronizationManager
 ) : DesignAssetExplorer {
 
   override val designAssetListModel = DesignAssetListModel()
@@ -73,10 +74,9 @@ class ExternalBrowserViewModel(
     if (directory.isValid && directory.isDirectory) {
       this.directory = directory
       designAssetListModel.setAssets(
-          getAssetSets(directory, importersProvider.supportedFileTypes, _matcher)
-              .sortedBy { (name, _) -> name })
-    }
-    else {
+        getAssetSets(directory, importersProvider.supportedFileTypes, _matcher)
+          .sortedBy { (name, _) -> name })
+    } else {
       LOGGER.error("${directory.path} is not a valid directory")
       return
     }
@@ -93,19 +93,18 @@ class ExternalBrowserViewModel(
     }
   }
 
-  override fun getPreview(asset: DesignAsset): Image {
-    val extension = asset.file.extension
-    return if (!extension.isNullOrEmpty()) {
-      importersProvider.getImportersForExtension(extension!!).firstOrNull()?.getSourcePreview(asset)
-          ?: EMPTY_IMAGE
-    }
-    else {
-      EMPTY_IMAGE
-    }
+  override fun getPreview(asset: DesignAsset, dimension: Dimension): ListenableFuture<out Image?> {
+    val extension = asset.file.extension ?: return Futures.immediateFuture(null)
+    return importersProvider.getImportersForExtension(extension)
+      .firstOrNull()
+      ?.getSourcePreview(asset)
+      ?.getImage(asset.file, facet.module, dimension)
+        ?: Futures.immediateFuture(null)
   }
 
+
   fun getSynchronizationStatus(assetSet: DesignAssetSet) =
-      synchronizationManager.getSynchronizationStatus(assetSet)
+    synchronizationManager.getSynchronizationStatus(assetSet)
 
   override fun getStatusLabel(assetSet: DesignAssetSet) = getSynchronizationStatus(assetSet).name
 

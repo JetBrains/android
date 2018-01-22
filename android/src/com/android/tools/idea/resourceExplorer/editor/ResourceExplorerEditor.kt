@@ -22,10 +22,7 @@ import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
 import com.android.tools.idea.resourceExplorer.view.InternalResourceBrowser
 import com.android.tools.idea.resourceExplorer.view.QualifierMatcherPanel
-import com.android.tools.idea.resourceExplorer.viewmodel.ExternalBrowserViewModel
-import com.android.tools.idea.resourceExplorer.viewmodel.InternalBrowserViewModel
-import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
-import com.android.tools.idea.resourceExplorer.viewmodel.ResourceFileHelper
+import com.android.tools.idea.resourceExplorer.viewmodel.*
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.fileEditor.FileEditor
@@ -58,7 +55,7 @@ class ResourceExplorerEditor(facet: AndroidFacet) : UserDataHolderBase(), FileEd
     val externalResourceBrowser = ExternalResourceBrowser(facet, externalResourceBrowserViewModel, qualifierParserPanel)
 
     val internalResourceBrowser = InternalResourceBrowser(InternalBrowserViewModel(facet, synchronizationManager))
-    val designAssetDetailView = DesignAssetDetailView()
+    val designAssetDetailView = DesignAssetDetailView(DesignAssetDetailViewModel(facet.module))
     internalResourceBrowser.addSelectionListener(designAssetDetailView)
 
     val centerContainer = Box.createVerticalBox()
@@ -98,3 +95,4 @@ class ResourceExplorerEditor(facet: AndroidFacet) : UserDataHolderBase(), FileEd
   override fun dispose() {
   }
 }
+

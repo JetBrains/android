@@ -16,23 +16,22 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.viewmodel.DesignAssetDetailViewModel
 import com.intellij.util.ui.JBUI
-import java.awt.BasicStroke
-import java.awt.BorderLayout
 import java.awt.FlowLayout
-import javax.swing.BorderFactory
-import javax.swing.ImageIcon
-import javax.swing.JLabel
-import javax.swing.JPanel
+import javax.swing.*
 
 /**
  * View to show and edit the details of a [DesignAssetSet]
  */
-class DesignAssetDetailView :
-    JPanel(FlowLayout(FlowLayout.CENTER, 40, 40)),
-    InternalResourceBrowser.SelectionListener {
+class DesignAssetDetailView(
+  private val designAssetDetailViewModel: DesignAssetDetailViewModel
+) :
+  JPanel(FlowLayout(FlowLayout.CENTER, 40, 40)),
+  InternalResourceBrowser.SelectionListener {
 
   private var designAssetSet: DesignAssetSet? = null
     set(value) {
@@ -53,26 +52,28 @@ class DesignAssetDetailView :
       return
     }
     currentAssets.designAssets
-        .sortedBy { designAsset ->
-          designAsset.qualifiers
-              .filterIsInstance<DensityQualifier>()
-              .firstOrNull()
-              ?.value?.dpiValue ?: 0
-        }
-        .map { createSingleAssetView(it) }
-        .forEach { add(it) }
+      .sortedBy { designAsset ->
+        designAsset.qualifiers
+          .filterIsInstance<DensityQualifier>()
+          .firstOrNull()
+          ?.value?.dpiValue ?: 0
+      }
+      .map { createSingleAssetView(it) }
+      .forEach { add(it) }
     revalidate()
     repaint()
   }
 
-  private fun createSingleAssetView(asset: DesignAsset): JPanel {
-    val root = JPanel(BorderLayout())
-    root.border = BorderFactory.createStrokeBorder(BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER, 1f, floatArrayOf(5f, 0f), 0f))
-    root.preferredSize = JBUI.size(50)
-    // TODO Use a plugin to get the preview
-    val jLabel = JLabel(ImageIcon(asset.file.contentsToByteArray()))
-    jLabel.preferredSize = JBUI.size(30)
-    root.add(jLabel)
-    return root
+  private fun createSingleAssetView(asset: DesignAsset) = JLabel().apply {
+    border = BorderFactory.createEmptyBorder(16, 16, 16, 16)
+    preferredSize = JBUI.size(64)
+    horizontalAlignment = JLabel.CENTER
+    val fetchAssetImageFuture = designAssetDetailViewModel.fetchAssetImage(asset, preferredSize)
+    fetchAssetImageFuture.addListener(Runnable {
+      val image = fetchAssetImageFuture.get()
+      if (image != null) {
+        icon = ImageIcon(image)
+      }
+    }, EdtExecutor.INSTANCE)
   }
 }

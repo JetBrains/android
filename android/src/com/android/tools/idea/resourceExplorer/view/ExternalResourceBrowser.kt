@@ -39,7 +39,6 @@ class ExternalResourceBrowser(
   qualifierMatcherPanel: QualifierMatcherPanel
 ) : JPanel(BorderLayout()) {
 
-
   private val listItemSize = 120
   private val listColumn = 4
   private val designAssetsList: DesignAssetsList
@@ -78,10 +77,11 @@ class ExternalResourceBrowser(
     browseButton.textField.columns = 10
     browseButton.addActionListener {
       FileChooser.chooseFile(
-          FileChooserDescriptorFactory.createSingleFolderDescriptor(),
-          facet.module.project,
-          lastOpenedFile,
-          updateDirectory)
+        FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+        facet.module.project,
+        lastOpenedFile,
+        updateDirectory
+      )
     }
     browser.add(browseButton)
     browser.add(scrollPane)
@@ -101,7 +101,7 @@ class ExternalResourceBrowser(
     return JButton("Import").apply {
       addActionListener {
         designAssetsList.selectedValue
-            ?.apply(resourceBrowserViewModel::importDesignAssetSet)
+          ?.apply(resourceBrowserViewModel::importDesignAssetSet)
       }
     }
   }
@@ -111,10 +111,10 @@ class ExternalResourceBrowser(
   private fun updatePreview(preview: JPanel) {
     preview.removeAll()
     designAssetsList.selectedValue
-        .designAssets
-        .map(DesignAsset::file)
-        .map { file -> JLabel(file.name, ImageIcon(file.path), JLabel.LEFT) }
-        .forEach { preview.add(it) }
+      .designAssets
+      .map(DesignAsset::file)
+      .map { file -> JLabel(file.name, ImageIcon(file.path), JLabel.LEFT) }
+      .forEach { preview.add(it) }
     preview.revalidate()
     preview.repaint()
   }

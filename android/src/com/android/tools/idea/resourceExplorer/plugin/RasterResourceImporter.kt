@@ -15,8 +15,6 @@ package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.intellij.openapi.diagnostic.Logger
-import java.awt.image.BufferedImage
-import java.io.IOException
 import javax.imageio.ImageIO
 import javax.swing.JPanel
 
@@ -45,17 +43,8 @@ class RasterResourceImporter : ResourceImporter {
 
   override fun userCanEditQualifiers(): Boolean = true
 
-  override fun getImportPreview(asset: DesignAsset) = readImage(asset)
+  override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
+    DesignAssetRendererManager.getInstance().getViewer(RasterAssetRenderer::class.java)
 
-  override fun getSourcePreview(asset: DesignAsset) = readImage(asset)
-
-  private fun readImage(asset: DesignAsset): BufferedImage? {
-    return try {
-      ImageIO.read(asset.file.inputStream)
-    }
-    catch (ex: IOException) {
-      logger.error("Can't read image from ${asset.file.path}", ex)
-      null
-    }
-  }
+  override fun getImportPreview(asset: DesignAsset): DesignAssetRenderer? = getSourcePreview(asset)
 }
