@@ -105,6 +105,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     registerKeyboardActions();
     addFocusListener(createFocusListener());
     setMinimized(true);
+    setMinimumSize(JBUI.size(200));
     UIManager.addPropertyChangeListener(this);
   }
 
@@ -447,10 +448,8 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     if (issue != null) {
       IssueView issueView = myDisplayedError.get(issue);
       if (issueView != null) {
-        setMinimized(false);
         setSelectedIssue(issueView);
         issueView.setExpanded(true);
-        myScrollPane.getViewport().setViewPosition(issueView.getLocation());
 
         // Collapse all other issue
         if (collapseOthers) {
@@ -461,6 +460,12 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
           }
         }
       }
+      setMinimized(false);
+      if (issueView != null) {
+        JViewport viewport = myScrollPane.getViewport();
+        viewport.validate();
+        viewport.setViewPosition(issueView.getLocation());
+      }
     }
   }
 
@@ -469,14 +474,15 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    * or the full list of collapsed issues
    */
   public int getSuggestedHeight() {
-    int suggestedHeight = myTitleLabel.getHeight();
+    validate();
+    int suggestedHeight = myTitleLabel.getHeight() + myColumnHeaderView.getHeight();
     if (mySelectedIssueView != null) {
       suggestedHeight += mySelectedIssueView.getHeight();
     }
     else {
-      suggestedHeight += myDisplayedError.size() * 30;
+      suggestedHeight += myDisplayedError.size();
     }
-    return Math.max(getHeight(), suggestedHeight);
+    return Math.max(getMinimumSize().height, suggestedHeight);
   }
 
   @NotNull
