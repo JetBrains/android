@@ -16,18 +16,17 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.viewmodel.InternalDesignAssetExplorer
+import com.android.tools.idea.resourceExplorer.viewmodel.InternalBrowserViewModel
 import java.awt.BorderLayout
-import javax.swing.DefaultListCellRenderer
 import javax.swing.JPanel
 
 /**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
  * in the project.
- * It uses an [InternalDesignAssetExplorer] to populates the views
+ * It uses an [InternalBrowserViewModel] to populates the views
  */
 class InternalResourceBrowser(
-    resourceBrowserViewModel: InternalDesignAssetExplorer
+    resourceBrowserViewModel: InternalBrowserViewModel
 ) : JPanel(BorderLayout()) {
 
   private val listeners = mutableListOf<SelectionListener>()

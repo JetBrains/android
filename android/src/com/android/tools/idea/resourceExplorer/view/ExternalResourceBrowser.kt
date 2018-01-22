@@ -16,7 +16,7 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
-import com.android.tools.idea.resourceExplorer.viewmodel.ExternalDesignAssetExplorer
+import com.android.tools.idea.resourceExplorer.viewmodel.ExternalBrowserViewModel
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.impl.FileChooserUtil
@@ -34,9 +34,9 @@ import javax.swing.*
  * File browser to display Design assets outside the project.
  */
 class ExternalResourceBrowser(
-    facet: AndroidFacet,
-    private val resourceBrowserViewModel: ExternalDesignAssetExplorer,
-    qualifierParserPanel: QualifierParserPanel
+  facet: AndroidFacet,
+  private val resourceBrowserViewModel: ExternalBrowserViewModel,
+  qualifierMatcherPanel: QualifierMatcherPanel
 ) : JPanel(BorderLayout()) {
 
 
@@ -49,7 +49,7 @@ class ExternalResourceBrowser(
     val centerPanel = JPanel(BorderLayout())
     val preview = createPreviewPane()
     centerPanel.add(preview, BorderLayout.NORTH)
-    centerPanel.add(qualifierParserPanel)
+    centerPanel.add(qualifierMatcherPanel)
     designAssetsList = DesignAssetsList(resourceBrowserViewModel)
     designAssetsList.addListSelectionListener {
       updatePreview(preview)

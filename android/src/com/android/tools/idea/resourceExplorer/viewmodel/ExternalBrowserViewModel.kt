@@ -17,12 +17,12 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
-import com.android.tools.idea.resourceExplorer.importer.getAssetSets
+import com.android.tools.idea.resourceExplorer.model.getAssetSets
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetListModel
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationListener
-import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationManager
+import com.android.tools.idea.resourceExplorer.importer.SynchronizationListener
+import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.view.DesignAssetExplorer
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
@@ -30,14 +30,14 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Image
 import java.awt.image.BufferedImage
 
-private val LOGGER = Logger.getInstance(ExternalDesignAssetExplorer::class.java)
+private val LOGGER = Logger.getInstance(ExternalBrowserViewModel::class.java)
 internal val EMPTY_IMAGE = BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY)
 
 /**
  * ViewModel for [com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser]
  * to manage design resources outside the project
  */
-class ExternalDesignAssetExplorer(
+class ExternalBrowserViewModel(
     val facet: AndroidFacet,
     private val fileHelper: ResourceFileHelper,
     private val importersProvider: ImportersProvider,

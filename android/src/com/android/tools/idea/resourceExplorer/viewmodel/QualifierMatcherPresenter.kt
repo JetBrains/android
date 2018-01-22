@@ -25,7 +25,7 @@ import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
  *
  * @param matcherConsumer function that will be called with new [QualifierMatcher] when it will been created.
  */
-class QualifierLexerPresenter(private val matcherConsumer: (QualifierMatcher) -> Unit) {
+class QualifierMatcherPresenter(private val matcherConsumer: (QualifierMatcher) -> Unit) {
 
   private val supportedQualifiers = mapOf<ResourceQualifier, Array<out ResourceEnum>>(
       qualifierToParameters<DensityQualifier, Density>(),

@@ -18,6 +18,8 @@ package com.android.tools.idea.resourceExplorer.model
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -54,4 +56,46 @@ data class DesignAssetSet(
           .singleOrNull() ?: 0
     } ?: designAssets[0]
   }
+}
+
+/**
+ * Find all the [DesignAssetSet] in the given directory
+ *
+ * @param supportedTypes The file types supported for importation
+ */
+fun getAssetSets(directory: VirtualFile,
+                 supportedTypes: Set<String>,
+                 qualifierMatcher: QualifierMatcher
+): List<DesignAssetSet> {
+  return getDesignAssets(directory, supportedTypes, directory, qualifierMatcher)
+      .groupBy(
+          { (drawableName, _) -> drawableName },
+          { (_, designAsset) -> designAsset }
+      )
+      .map { (drawableName, designAssets) -> DesignAssetSet(drawableName, designAssets) }
+      .toList()
+}
+
+private fun getDesignAssets(
+  directory: VirtualFile,
+  supportedTypes: Set<String>,
+  root: VirtualFile,
+  qualifierMatcher: QualifierMatcher
+): List<Pair<String, DesignAsset>> {
+  return directory.children
+      .filter { it.isDirectory || supportedTypes.contains(it.extension) }
+      .flatMap {
+        if (it.isDirectory) getDesignAssets(it, supportedTypes, root, qualifierMatcher)
+        else listOf(createAsset(it, root, qualifierMatcher))
+      }
+}
+
+private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: QualifierMatcher): Pair<String, DesignAsset> {
+  val relativePath = VfsUtil.getRelativePath(child, root) ?: child.path
+  val (resourceName, qualifiers1) = matcher.parsePath(relativePath)
+  return resourceName to DesignAsset(
+    child,
+    qualifiers1.toList(),
+    ResourceFolderType.DRAWABLE
+  )
 }

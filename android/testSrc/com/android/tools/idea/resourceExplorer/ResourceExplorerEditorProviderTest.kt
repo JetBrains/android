@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.resourceExplorer
 
+import com.android.tools.idea.resourceExplorer.editor.ResourceExplorerEditor
+import com.android.tools.idea.resourceExplorer.editor.ResourceExplorerEditorProvider
+import com.android.tools.idea.resourceExplorer.editor.ResourceExplorerFile
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.LeakHunter
-import org.gradle.api.Project
 import org.junit.Assert
 
 class ResourceExplorerEditorProviderTest : ResourceExplorerTestCase() {

@@ -22,6 +22,7 @@ import com.android.resources.Density
 import com.android.resources.NightMode
 import com.android.tools.idea.resourceExplorer.densityMapper
 import com.android.tools.idea.resourceExplorer.getExternalResourceDirectory
+import com.android.tools.idea.resourceExplorer.model.getAssetSets
 import com.android.tools.idea.resourceExplorer.nightModeMapper
 import com.intellij.ide.IdeEventQueue
 import com.intellij.mock.MockApplication
@@ -66,7 +67,11 @@ class ImporterTest {
         "image@4x_dark.jpg"
     )
 
-    val assetSets = getAssetSets(directory, supportedTypes, QualifierMatcher(densityMapper, nightModeMapper))
+    val assetSets = getAssetSets(
+      directory,
+      supportedTypes,
+      QualifierMatcher(densityMapper, nightModeMapper)
+    )
     assertEquals(2, assetSets.size)
     val iconAssetSets = assetSets[0]
     assertEquals(iconAssetSets.name, "icon")
@@ -113,10 +118,12 @@ class ImporterTest {
 //    val localeMapper = object : BaseMapper<LocaleQualifier>("en|fr", suffix = "/") {
 //      override fun getQualifier(value: String?) = if (value != null) LocaleQualifier(value) else null
     }
-    val assetSets = getAssetSets(directory, supportedTypes, QualifierMatcher(
+    val assetSets = getAssetSets(
+      directory, supportedTypes, QualifierMatcher(
         localeMapper,
         densityMapper
-    ))
+      )
+    )
     assertEquals(assetSets.toString(), 2, assetSets.size)
     val iconAssetSets = assetSets[0]
     assertEquals(iconAssetSets.name, "icon")
