@@ -21,6 +21,7 @@ import com.android.java.model.SourceSet;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Iterables;
+import com.intellij.pom.java.LanguageLevel;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.junit.Before;
@@ -43,7 +44,7 @@ public class NewJavaModuleModelFactoryTest {
   @Mock private JavaProject myJavaProject;
   @Mock private GradleProject myGradleProject;
   private NewJavaModuleModelFactory myNewJavaModuleModelFactory;
-  private static final String javaLanguageLevel = "1.7";
+  private static final LanguageLevel javaLanguageLevel = LanguageLevel.JDK_1_7;
   private static final File buildDir = new File("/mock/project/build");
   private static final File projectDir = new File("/mock/project");
   private static final String moduleName = "javaLib";
@@ -52,7 +53,7 @@ public class NewJavaModuleModelFactoryTest {
   public void setUpMethod() {
     initMocks(this);
     when(myJavaProject.getName()).thenReturn(moduleName);
-    when(myJavaProject.getJavaLanguageLevel()).thenReturn(javaLanguageLevel);
+    when(myJavaProject.getJavaLanguageLevel()).thenReturn(javaLanguageLevel.toJavaVersion().toString());
 
     when(myGradleProject.getBuildDirectory()).thenReturn(buildDir);
     when(myGradleProject.getProjectDirectory()).thenReturn(projectDir);
@@ -68,7 +69,7 @@ public class NewJavaModuleModelFactoryTest {
     assertThat(javaModuleModel.isAndroidModuleWithoutVariants()).isFalse();
     assertThat(javaModuleModel.getBuildFolderPath()).isEqualTo(buildDir);
     assertThat(javaModuleModel.getJavaLanguageLevel()).isNotNull();
-    assertThat(javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption()).isEqualTo(javaLanguageLevel);
+    assertThat(javaModuleModel.getJavaLanguageLevel()).isEqualTo(javaLanguageLevel);
     assertThat(javaModuleModel.getContentRoots()).hasSize(1);
   }
 

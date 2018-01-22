@@ -56,6 +56,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JpsJavaSdkType;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -194,7 +195,7 @@ public final class TemplateValueInjector {
       return minResult == null ? LanguageLevelProjectExtension.getInstance(project).getLanguageLevel() : minResult;
     });
 
-    myTemplateValues.put(ATTR_JAVA_VERSION, min.getCompilerComplianceDefaultOption());
+    myTemplateValues.put(ATTR_JAVA_VERSION, JpsJavaSdkType.complianceOption(min.toJavaVersion()));
 
     return this;
   }
