@@ -63,6 +63,7 @@ class UsageTrackerTestRunListener @JvmOverloads constructor(
       category = AndroidStudioEvent.EventCategory.TESTS
       kind = AndroidStudioEvent.EventKind.TEST_RUN
       deviceInfo = AndroidStudioUsageTracker.deviceToDeviceInfo(device)
+      productDetails = AndroidStudioUsageTracker.getProductDetails()
       testRun = this@UsageTrackerTestRunListener.testRun.build()
     }
 
