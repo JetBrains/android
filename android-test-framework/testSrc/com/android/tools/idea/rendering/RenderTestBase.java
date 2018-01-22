@@ -25,7 +25,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -126,14 +125,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     BufferedImage image = result.getRenderedImage().getCopy();
     assertNotNull(image);
     double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
-    if (UIUtil.isAppleRetina()) {
-      scale *= 2;
-      image = ImageUtils.convertToRetina(ImageUtils.scale(image, scale, scale));
-    }
-    else {
-      image = ImageUtils.scale(image, scale, scale);
-    }
-
+    image = ImageUtils.scale(image, scale, scale);
     image = ShadowPainter.createRectangularDropShadow(image);
     checkRenderedImage(image, "render" + separator + "thumbnails" + separator + thumbnailPath.replace('/', separatorChar));
   }
