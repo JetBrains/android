@@ -385,7 +385,7 @@ public class AndroidPrecompileTask implements CompileTask {
     }
   }
 
-  private static class MyCompilationStatusListener extends CompilationStatusAdapter {
+  private static class MyCompilationStatusListener implements CompilationStatusListener {
     private final Project myProject;
     private final Set<ExcludeEntryDescription> myEntriesToRemove;
 
