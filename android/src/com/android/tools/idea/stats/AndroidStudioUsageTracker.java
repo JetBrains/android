@@ -61,21 +61,26 @@ public class AndroidStudioUsageTracker {
   }
 
   private static void runDailyReports() {
-    ApplicationInfo application = ApplicationInfo.getInstance();
 
     UsageTracker.getInstance().log(
       AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PING)
         .setKind(AndroidStudioEvent.EventKind.STUDIO_PING)
-        .setProductDetails(
-          ProductDetails.newBuilder()
-            .setProduct(ProductDetails.ProductKind.STUDIO)
-            .setBuild(application.getBuild().asString())
-            .setVersion(application.getStrictVersion())
-            .setOsArchitecture(CommonMetricsData.getOsArchitecture())
-          .setChannel(lifecycleChannelFromUpdateSettings()))
+        .setProductDetails(getProductDetails())
         .setMachineDetails(CommonMetricsData.getMachineDetails(new File(PathManager.getHomePath())))
         .setJvmDetails(CommonMetricsData.getJvmDetails()));
+  }
+
+  public static ProductDetails getProductDetails() {
+    ApplicationInfo application = ApplicationInfo.getInstance();
+
+    return ProductDetails.newBuilder()
+      .setProduct(ProductDetails.ProductKind.STUDIO)
+      .setBuild(application.getBuild().asString())
+      .setVersion(application.getStrictVersion())
+      .setOsArchitecture(CommonMetricsData.getOsArchitecture())
+      .setChannel(lifecycleChannelFromUpdateSettings())
+      .build();
   }
 
   private static void runHourlyReports() {
