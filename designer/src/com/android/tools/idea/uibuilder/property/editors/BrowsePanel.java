@@ -184,13 +184,18 @@ public class BrowsePanel extends AdtSecondaryPanel {
   private static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property) {
     Module module = property.getModel().getModule();
     EnumSet<ResourceType> types = getResourceTypes(property);
-    ResourceType defaultResourceType = getDefaultResourceType(property.getName());
+    String propertyName = property.getName();
+    ResourceType defaultResourceType = getDefaultResourceType(propertyName);
+    boolean isImageViewDrawable = IMAGE_VIEW.equals(property.getTagName()) &&
+                                  (ATTR_SRC_COMPAT.equals(propertyName) ||
+                                  ATTR_SRC.equals(propertyName));
     return ChooseResourceDialog.builder()
       .setModule(module)
       .setTypes(types)
       .setCurrentValue(property.getValue())
       .setTag(property.getTag())
       .setDefaultType(defaultResourceType)
+      .setFilterColorStateLists(isImageViewDrawable)
       .build();
   }
 

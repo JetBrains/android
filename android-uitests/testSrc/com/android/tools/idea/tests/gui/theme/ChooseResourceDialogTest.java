@@ -335,6 +335,44 @@ public class ChooseResourceDialogTest {
   }
 
   /**
+   * Checks that, when assigning the src for an ImageView we do not allow color state lists (since they crash at runtime).
+   * http://b/70650615
+   */
+  @Test
+  public void testDrawableDoesNotAllowColorStateLists() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture imageView = layout.findView("ImageView", 0);
+    imageView.click();
+    assertThat(layout.getSelection()).containsExactly(imageView.getComponent());
+
+    // Get property sheet, find srcCompat property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+
+    NlPropertyFixture property = fixture.findProperty("srcCompat");
+
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
+    JTabbedPaneFixture tabs = dialog.getTabs();
+    tabs.requireTabTitles("Drawable", "Color", "Array", "ID", "String", "Style");
+    dialog.clickOnTab("Color");
+
+    dialog.getSearchField().enterText("actionMenuTextColor");
+    JListFixture themeAttrList = dialog.getList("Theme attributes", 1);
+
+    assertTrue(listToString(themeAttrList).isEmpty());
+
+    dialog.clickCancel();
+  }
+
+  /**
    * Test if the color tab is selected by default when selecting a resource for backgroundTint
    */
   @Test

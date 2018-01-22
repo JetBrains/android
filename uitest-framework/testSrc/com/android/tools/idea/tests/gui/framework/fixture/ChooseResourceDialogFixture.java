@@ -22,6 +22,7 @@ import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.StateListPicker;
+import com.google.common.collect.Iterables;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -29,6 +30,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.TypeMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.*;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -36,6 +38,8 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
@@ -105,6 +109,22 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
   @NotNull
   public EditReferenceFixture getEditReferencePanel() {
     return new EditReferenceFixture(robot(), waitUntilFound(robot(), target(), Matchers.byName(Box.class, "ReferenceEditor")));
+  }
+
+  @NotNull
+  public JListFixture getList(@NotNull String appNamespaceLabel, int index) {
+    AtomicReference<JListFixture> list = new AtomicReference<>();
+    Wait.seconds(10).expecting("Find list " + appNamespaceLabel + "@" + index).until(() -> {
+      Collection<JList> lists = robot().finder().findAll(target(), Matchers.byName(JList.class, appNamespaceLabel));
+      if (index >= lists.size()) {
+        return false;
+      }
+
+      list.set(new JListFixture(robot(), Iterables.get(lists, index)));
+      return true;
+    });
+
+    return list.get();
   }
 
   @NotNull
