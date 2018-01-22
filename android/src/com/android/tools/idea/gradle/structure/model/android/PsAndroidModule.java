@@ -248,6 +248,10 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return getOrCreateBuildTypeCollection().addNew(name);
   }
 
+  public void removeBuildType(@NotNull PsBuildType buildType) {
+    getOrCreateBuildTypeCollection().remove(buildType.getName());
+  }
+
   public void addNewFlavorDimension(@NotNull String newName) {
     assert getParsedModel() != null;
     AndroidModel androidModel = getParsedModel().android();
@@ -256,14 +260,30 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     setModified(true);
   }
 
+  public void removeFlavorDimension(@NotNull String flavorDimension) {
+    assert getParsedModel() != null;
+    AndroidModel androidModel = getParsedModel().android();
+    assert androidModel != null;
+    androidModel.removeFlavorDimension(flavorDimension);
+    setModified(true);
+  }
+
   @NotNull
   public PsProductFlavor addNewProductFlavor(@NotNull String name) {
     return getOrCreateProductFlavorCollection().addNew(name);
   }
 
+  public void removeProductFlavor(@NotNull PsProductFlavor productFlavor) {
+    getOrCreateProductFlavorCollection().remove(productFlavor.getName());
+  }
+
   @NotNull
   public PsSigningConfig addNewSigningConfig(@NotNull String name) {
     return getOrCreateSigningConfigCollection().addNew(name);
+  }
+
+  public void removeSigningConfig(@NotNull PsSigningConfig signingConfig) {
+    getOrCreateSigningConfigCollection().remove(signingConfig.getName());
   }
 
   private final PsAndroidModuleDefaultConfig myDefaultConfig = new PsAndroidModuleDefaultConfig(this);

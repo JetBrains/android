@@ -93,4 +93,13 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
     myParent.setModified(true);
     return model;
   }
+
+  public void remove(@NotNull String name) {
+    assert myParent.getParsedModel() != null;
+    AndroidModel androidModel = myParent.getParsedModel().android();
+    assert androidModel != null;
+    androidModel.removeProductFlavor(name);
+    myProductFlavorsByName.remove(name);
+    myParent.setModified(true);
+  }
 }
