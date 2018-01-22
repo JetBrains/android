@@ -90,8 +90,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     runConfiguration.checkConfiguration();
   }
 
-  // b/72260139
-  public void ignore_testRunConfigurationFailsIfWrongURL() throws Throwable {
+  public void testRunConfigurationFailsIfWrongURL() throws Throwable {
     loadProject(INSTANT_APP, "instant-app");
 
     // Create one run configuration
