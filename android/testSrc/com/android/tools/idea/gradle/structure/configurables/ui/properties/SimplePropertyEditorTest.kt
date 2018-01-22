@@ -51,6 +51,8 @@ class SimplePropertyEditorTest {
       model.modified = true
     }
   }
+  private var wellKnownValues = listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two"))
+
   private val property = ModelSimplePropertyImpl(
     modelDescriptor,
     "Description",
@@ -67,7 +69,7 @@ class SimplePropertyEditorTest {
         else -> ParsedValue.Set.Parsed(value = it)
       }
     },
-    knownValuesGetter = { listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")) })
+    knownValuesGetter = { wellKnownValues })
 
   @Test
   fun loadsValue() {
@@ -125,6 +127,34 @@ class SimplePropertyEditorTest {
   }
 
   @Test
+  fun reloadsDropDownList() {
+    val variablesProvider = mock(VariablesProvider::class.java)
+    `when`(variablesProvider.getAvailableVariablesForType(String::class.java)).thenReturn(
+      listOf(
+        "var1" to "val1",
+        "var2" to "val2"
+      )
+    )
+    val editor = simplePropertyEditor(model, property, variablesProvider)
+    assertThat(editor.getModel().getItems(), CoreMatchers.hasItems("one", "two", "\$var1", "\$var2"))
+
+    wellKnownValues = listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two"), ValueDescriptor("3", "three"))
+    editor.selectedItem = "two"
+    editor.simulateEditorGotFocus()
+
+    assertThat(editor.getModel().getItems(), CoreMatchers.hasItems("one", "two", "three", "\$var1", "\$var2"))
+    assertEquals("2", parsedModel.value)
+    assertEquals("two", editor.selectedItem as String)
+
+    wellKnownValues = listOf(ValueDescriptor("1", "one"), ValueDescriptor("3", "three"))
+    editor.simulateEditorGotFocus()
+
+    assertThat(editor.getModel().getItems(), CoreMatchers.hasItems("one", "three", "\$var1", "\$var2"))
+    assertEquals("2", parsedModel.value)
+    assertEquals("2", editor.selectedItem as String)
+  }
+
+  @Test
   fun updatesValue() {
     val editor = simplePropertyEditor(model, property)
     editor.selectedItem = "abc"
@@ -177,6 +207,12 @@ class SimplePropertyEditorTest {
     // Right now invalid input is ignored.
     assertEquals("parsed", parsedModel.value)
   }
+}
+
+private fun SimplePropertyEditor<*, *, *>.simulateEditorGotFocus() {
+  // Directly invoke the action the editor performs on receiving the focus since the detached component cannot be focused.
+  loadKnownValues()
+  reloadValue()
 }
 
 private fun <T> ListModel<T>.getItems(): List<T> {
