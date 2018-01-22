@@ -19,6 +19,7 @@ package com.android.tools.idea.logcat;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Persistent storage for the state of the logcat view UI.
@@ -52,7 +53,7 @@ public final class AndroidLogcatPreferences implements PersistentStateComponent<
   }
 
   @Override
-  public void loadState(AndroidLogcatPreferences object) {
+  public void loadState(@NotNull AndroidLogcatPreferences object) {
     XmlSerializerUtil.copyBean(object, this);
   }
 }

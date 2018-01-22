@@ -4,6 +4,7 @@ import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.annotations.XCollection;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
     return state;
   }
 
-  public void loadState(State state) {
+  public void loadState(@NotNull State state) {
     myDataSources.clear();
     for (AndroidDataSource.State dataSourceState : state.myDataSources) {
       AndroidDataSource o = new AndroidDataSource();
