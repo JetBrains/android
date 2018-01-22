@@ -35,7 +35,6 @@ import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
-
 public class CaptureModelTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService();
 
@@ -46,8 +45,6 @@ public class CaptureModelTest {
     new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
                         new FakeMemoryService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
-  private CpuProfilerStage myStage;
-
   private CaptureModel myModel;
   @Before
   public void setUp() {
@@ -55,9 +52,9 @@ public class CaptureModelTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myStage = new CpuProfilerStage(profilers);
-    myStage.getStudioProfilers().setStage(myStage);
-    myModel = new CaptureModel(myStage);
+    CpuProfilerStage stage = new CpuProfilerStage(profilers);
+    stage.getStudioProfilers().setStage(stage);
+    myModel = new CaptureModel(stage);
   }
 
   /**
@@ -78,7 +75,7 @@ public class CaptureModelTest {
    *        -> otherPackage.method3 [800..850]
    *        -> otherPackage.method4 [860..900]
    */
-  private CaptureNode createFilterTestTree() {
+  private static CaptureNode createFilterTestTree() {
     CaptureNode root = createNode("mainPackage.main", 0, 1000);
     root.addChild(createNode("otherPackage.method1", 0, 500));
     root.addChild(createNode("myPackage.method1", 600, 700));
@@ -137,13 +134,6 @@ public class CaptureModelTest {
     checkChildrenFilterType(node.getChildAt(2), CaptureNode.FilterType.UNMATCH, CaptureNode.FilterType.UNMATCH);
   }
 
-  private static void checkChildren(CaptureNode node, String... childrenId) {
-    assertThat(node.getChildCount()).isEqualTo(childrenId.length);
-    for (int i = 0; i < node.getChildCount(); ++i) {
-      assertThat(node.getChildAt(i).getData().getId()).isEqualTo(childrenId[i]);
-    }
-  }
-
   private static void checkChildrenFilterType(CaptureNode node, CaptureNode.FilterType... filterTypes) {
     assertThat(node.getChildren().size()).isEqualTo(filterTypes.length);
     for (int i = 0; i < filterTypes.length; ++i) {
@@ -151,7 +141,7 @@ public class CaptureModelTest {
     }
   }
 
-  private CaptureNode createNode(String fullMethodName, long start, long end) {
+  private static CaptureNode createNode(String fullMethodName, long start, long end) {
     int index = fullMethodName.lastIndexOf('.');
     assert index != -1;
     String className = fullMethodName.substring(0, index);
