@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.hamcrest.CoreMatchers
+import org.junit.Assert.*
 import org.junit.Ignore
 import org.junit.Test
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import javax.swing.ListModel
 
 class SimplePropertyEditorTest {
 
@@ -48,22 +52,22 @@ class SimplePropertyEditorTest {
     }
   }
   private val property = ModelSimplePropertyImpl(
-      modelDescriptor,
-      "Description",
-      defaultValueGetter = { "default" },
-      getResolvedValue = { value },
-      getParsedValue = { value },
-      getParsedRawValue = { dsl ?: DslText(mode = DslMode.LITERAL, text = value.orEmpty()) },
-      setParsedValue = { value = it; dsl = null },
-      setParsedRawValue = { value = null; dsl = it; },
-      parser = {
-        when {
-          it.isEmpty() -> ParsedValue.NotSet()
-          it == "invalid" -> ParsedValue.Set.Invalid("invalid", "invalid text message")
-          else -> ParsedValue.Set.Parsed(value = it)
-        }
-      },
-      knownValuesGetter = { listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")) })
+    modelDescriptor,
+    "Description",
+    defaultValueGetter = { "default" },
+    getResolvedValue = { value },
+    getParsedValue = { value },
+    getParsedRawValue = { dsl ?: DslText(mode = DslMode.LITERAL, text = value.orEmpty()) },
+    setParsedValue = { value = it; dsl = null },
+    setParsedRawValue = { value = null; dsl = it; },
+    parser = {
+      when {
+        it.isEmpty() -> ParsedValue.NotSet()
+        it == "invalid" -> ParsedValue.Set.Invalid("invalid", "invalid text message")
+        else -> ParsedValue.Set.Parsed(value = it)
+      }
+    },
+    knownValuesGetter = { listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two")) })
 
   @Test
   fun loadsValue() {
@@ -105,6 +109,19 @@ class SimplePropertyEditorTest {
     parsedModel.dsl = DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, "1 + z(x)")
     val editor = simplePropertyEditor(model, property)
     assertEquals("\$\$1 + z(x)", editor.selectedItem)
+  }
+
+  @Test
+  fun loadsDropDownList() {
+    val variablesProvider = mock(VariablesProvider::class.java)
+    `when`(variablesProvider.getAvailableVariablesForType(String::class.java)).thenReturn(
+      listOf(
+        "var1" to "val1",
+        "var2" to "val2"
+      )
+    )
+    val editor = simplePropertyEditor(model, property, variablesProvider)
+    assertThat(editor.getModel().getItems(), CoreMatchers.hasItems("one", "two", "\$var1", "\$var2"))
   }
 
   @Test
@@ -161,3 +178,12 @@ class SimplePropertyEditorTest {
     assertEquals("parsed", parsedModel.value)
   }
 }
+
+private fun <T> ListModel<T>.getItems(): List<T> {
+  val result = mutableListOf<T>()
+  for (i in 0 until size) {
+    result.add(getElementAt(i))
+  }
+  return result.toList()
+}
+

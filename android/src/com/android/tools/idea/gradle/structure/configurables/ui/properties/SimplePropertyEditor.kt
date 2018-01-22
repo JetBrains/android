@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.openapi.ui.ComboBox
 import java.awt.Color
@@ -30,11 +31,13 @@ import javax.swing.JTextField
  * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
  */
 class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSimpleProperty<ModelT, PropertyT>>(
+  val elementType: Class<PropertyT>,
   val model: ModelT,
-  val property: ModelPropertyT
+  val property: ModelPropertyT,
+  private val variablesProvider: VariablesProvider?
 ) : ComboBox<String>(), ModelPropertyEditor<ModelT> {
 
-  private val textToValue: Map<String, PropertyT>
+  private val textToParsedValue: Map<String, ParsedValue<PropertyT>>
   private val valueToText: Map<PropertyT, String>
   private var beingLoaded = false
 
@@ -53,7 +56,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
       text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.REFERENCE, text.substring(1)))
       text.startsWith("\"") && text.endsWith("\"") ->
         ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.INTERPOLATED_STRING, text.substring(1, text.length - 1)))
-      else -> textToValue[text]?.let { ParsedValue.Set.Parsed(value = it) } ?: property.parse(text)
+      else -> textToParsedValue[text] ?: property.parse(text)
     }
   }
 
@@ -91,7 +94,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
               DslMode.INTERPOLATED_STRING -> setText("\"${dsl.text}\"")
             }
           else
-            setValue(null)
+            setValue(value.parsedValue.value)
         }
         is ParsedValue.Set.Invalid -> {
           setText(value.parsedValue.dslText)
@@ -140,14 +143,26 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     }
   }
 
+  private fun getAvailableVariables(): List<Pair<String, ParsedValue.Set.Parsed<PropertyT>>>? =
+    variablesProvider?.getAvailableVariablesForType(elementType)?.map {
+      val referenceText = "\$${it.first}"
+      referenceText to ParsedValue.Set.Parsed(
+        value = it.second,
+        dslText = DslText(mode = DslMode.REFERENCE, text = referenceText)
+      )
+    }
+
   init {
     minLength = 60
     setEditable(true)
 
+    val availableVariables = getAvailableVariables()
+
     val possibleValues = property.getKnownValues(model) ?: listOf()
-    textToValue = possibleValues.associate { it.description to it.value }
+    textToParsedValue =
+        (possibleValues.map { it.description to ParsedValue.Set.Parsed(value = it.value) } + (availableVariables ?: listOf())).toMap()
     valueToText = possibleValues.associate { it.value to it.description }
-    super.setModel(DefaultComboBoxModel<String>(textToValue.keys.toTypedArray()))
+    super.setModel(DefaultComboBoxModel<String>(textToParsedValue.keys.toTypedArray()))
 
     loadValue(property.getValue(model))
 
@@ -160,8 +175,10 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   }
 }
 
-fun <ModelT, PropertyT : Any, ModelPropertyT : ModelSimpleProperty<ModelT, PropertyT>> simplePropertyEditor(
+inline fun <ModelT, reified PropertyT : Any, ModelPropertyT : ModelSimpleProperty<ModelT, PropertyT>> simplePropertyEditor(
   model: ModelT,
-  property: ModelPropertyT
+  property: ModelPropertyT,
+  variablesProvider: VariablesProvider? = null
 ): SimplePropertyEditor<ModelT, PropertyT, ModelPropertyT> =
-  SimplePropertyEditor(model, property)
+  SimplePropertyEditor(PropertyT::class.java, model, property, variablesProvider)
+
