@@ -72,14 +72,15 @@ open class PsProductFlavor(
     )
 
     val dimension: ModelSimpleProperty<PsProductFlavor, String> = property(
-        "Dimension",
-        getResolvedValue = { dimension },
-        getParsedValue = { dimension().asString() },
-        getParsedRawValue = { dimension().dslText() },
-        setParsedValue = { dimension().setValue(it) },
-        clearParsedValue = { dimension().clear() },
-        setParsedRawValue = { dimension().setDslText(it) },
-        parse = { parseString(it) }
+      "Dimension",
+      getResolvedValue = { dimension },
+      getParsedValue = { dimension().asString() },
+      getParsedRawValue = { dimension().dslText() },
+      setParsedValue = { dimension().setValue(it) },
+      clearParsedValue = { dimension().clear() },
+      setParsedRawValue = { dimension().setDslText(it) },
+      parse = { parseString(it) },
+      getKnownValues = { it.parent.flavorDimensions.map { ValueDescriptor(it, it) } }
     )
 
     val maxSdkVersion: ModelSimpleProperty<PsProductFlavor, Int> = property(
