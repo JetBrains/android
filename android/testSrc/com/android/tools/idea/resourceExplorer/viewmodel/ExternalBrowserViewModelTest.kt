@@ -22,10 +22,10 @@ import com.android.tools.idea.resourceExplorer.densityMapper
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
-import com.android.tools.idea.resourceExplorer.importer.getAssetSets
+import com.android.tools.idea.resourceExplorer.model.getAssetSets
 import com.android.tools.idea.resourceExplorer.nightModeMapper
-import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationManager
-import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationStatus
+import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
+import com.android.tools.idea.resourceExplorer.importer.SynchronizationStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.collect.testing.Helpers
 import com.intellij.ide.BrowserUtil
@@ -40,7 +40,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
 import org.junit.*
 
-class ExternalDesignAssetExplorerTest {
+class ExternalBrowserViewModelTest {
 
   private val projectRule = AndroidProjectRule.onDisk()
 
@@ -48,7 +48,7 @@ class ExternalDesignAssetExplorerTest {
   @Rule
   fun getChain() = chain
 
-  private val disposable = Disposer.newDisposable("ExternalDesignAssetExplorerTest")
+  private val disposable = Disposer.newDisposable("ExternalBrowserViewModelTest")
 
   @Before
   fun setUp() {
@@ -83,7 +83,11 @@ class ExternalDesignAssetExplorerTest {
 
     val resourceBrowserViewModel = createViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())
-    val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"), QualifierMatcher(densityMapper, nightModeMapper))
+    val designAssetSet = getAssetSets(
+      virtualFile,
+      setOf("png", "jpg"),
+      QualifierMatcher(densityMapper, nightModeMapper)
+    )
     resourceBrowserViewModel.importDesignAssetSet(designAssetSet[0])
     val resourceSubdirs = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.DRAWABLE, repository.resourceDirs)
     Helpers.assertContentsAnyOrder(resourceSubdirs.map { it.name }, "drawable-night-mdpi", "drawable-xhdpi", "drawable-night-xhdpi")
@@ -108,18 +112,26 @@ class ExternalDesignAssetExplorerTest {
 
     val resourceBrowserViewModel = createViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())
-    val designAssetSet = getAssetSets(virtualFile, setOf("png", "jpg"), QualifierMatcher(densityMapper, nightModeMapper))[0]
+    val designAssetSet = getAssetSets(
+      virtualFile,
+      setOf("png", "jpg"),
+      QualifierMatcher(densityMapper, nightModeMapper)
+    )[0]
     assertEquals(SynchronizationStatus.SYNCED, resourceBrowserViewModel.getSynchronizationStatus(designAssetSet))
 
     val otherFile = pathToVirtualFile(getAlternateAssetDir())
-    val otherAssertSet = getAssetSets(otherFile, setOf("png", "jpg"), QualifierMatcher(densityMapper, nightModeMapper))[0]
+    val otherAssertSet = getAssetSets(
+      otherFile,
+      setOf("png", "jpg"),
+      QualifierMatcher(densityMapper, nightModeMapper)
+    )[0]
     assertEquals(SynchronizationStatus.NOT_SYNCED, resourceBrowserViewModel.getSynchronizationStatus(otherAssertSet))
   }
 
-  private fun createViewModel(facet: AndroidFacet): ExternalDesignAssetExplorer {
+  private fun createViewModel(facet: AndroidFacet): ExternalBrowserViewModel {
     val synchronizationManager = SynchronizationManager(facet)
     Disposer.register(disposable, synchronizationManager)
-    return ExternalDesignAssetExplorer(facet, ResourceFileHelper.ResourceFileHelperImpl(), ImportersProvider(), synchronizationManager)
+    return ExternalBrowserViewModel(facet, ResourceFileHelper.ResourceFileHelperImpl(), ImportersProvider(), synchronizationManager)
   }
 
   private fun pathToVirtualFile(path: String) = BrowserUtil.getURL(path)!!.let(VfsUtil::findFileByURL)!!

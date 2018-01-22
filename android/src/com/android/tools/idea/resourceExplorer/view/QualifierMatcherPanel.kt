@@ -17,8 +17,8 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceEnum
+import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.resourceExplorer.viewmodel.QualifierLexerPresenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -35,8 +35,9 @@ import javax.swing.*
  * Panel to configure the qualifier parser.
  * This is mostly for test now and not a supposed to be a final version.
  */
-class QualifierParserPanel(
-    private val presenter: QualifierLexerPresenter)
+class QualifierMatcherPanel(
+    private val presenter: QualifierMatcherPresenter
+)
   : JPanel(BorderLayout()) {
 
   private val qualifierEntries = JPanel(VerticalFlowLayout())
@@ -75,7 +76,7 @@ class QualifierParserPanel(
   /**
    * Representation of a [com.android.tools.idea.resourceExplorer.importer.Mapper]
    */
-  private class MapperEntry(val presenter: QualifierLexerPresenter) : JPanel(VerticalFlowLayout()) {
+  private class MapperEntry(val presenter: QualifierMatcherPresenter) : JPanel(VerticalFlowLayout()) {
 
     private val matchers = JPanel(VerticalFlowLayout())
     private val qualifierCombo = createQualifierCombo()
@@ -134,7 +135,7 @@ class QualifierParserPanel(
 
   }
 
-  private class MatcherEntry(private val presenter: QualifierLexerPresenter, qualifierCombo: JComboBox<ResourceQualifier>) : JPanel(null) {
+  private class MatcherEntry(private val presenter: QualifierMatcherPresenter, qualifierCombo: JComboBox<ResourceQualifier>) : JPanel(null) {
 
     private val matchString = JTextField()
     private val matchParameterCombo = createParameterCombo(qualifierCombo)

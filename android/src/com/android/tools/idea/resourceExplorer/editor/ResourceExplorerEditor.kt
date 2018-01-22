@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.resourceExplorer
+package com.android.tools.idea.resourceExplorer.editor
 
+import com.android.tools.idea.resourceExplorer.view.DesignAssetDetailView
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
-import com.android.tools.idea.resourceExplorer.synchronisation.SynchronizationManager
+import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
 import com.android.tools.idea.resourceExplorer.view.InternalResourceBrowser
-import com.android.tools.idea.resourceExplorer.view.QualifierParserPanel
-import com.android.tools.idea.resourceExplorer.viewmodel.ExternalDesignAssetExplorer
-import com.android.tools.idea.resourceExplorer.viewmodel.InternalDesignAssetExplorer
-import com.android.tools.idea.resourceExplorer.viewmodel.QualifierLexerPresenter
+import com.android.tools.idea.resourceExplorer.view.QualifierMatcherPanel
+import com.android.tools.idea.resourceExplorer.viewmodel.ExternalBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.InternalBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceFileHelper
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.openapi.fileEditor.FileEditor
@@ -48,12 +49,12 @@ class ResourceExplorerEditor(facet: AndroidFacet) : UserDataHolderBase(), FileEd
     val fileHelper = ResourceFileHelper.ResourceFileHelperImpl()
     val importersProvider = ImportersProvider()
 
-    val externalResourceBrowserViewModel = ExternalDesignAssetExplorer(facet, fileHelper, importersProvider, synchronizationManager)
-    val qualifierPanelPresenter = QualifierLexerPresenter(externalResourceBrowserViewModel::consumeMatcher)
-    val qualifierParserPanel = QualifierParserPanel(qualifierPanelPresenter)
+    val externalResourceBrowserViewModel = ExternalBrowserViewModel(facet, fileHelper, importersProvider, synchronizationManager)
+    val qualifierPanelPresenter = QualifierMatcherPresenter(externalResourceBrowserViewModel::consumeMatcher)
+    val qualifierParserPanel = QualifierMatcherPanel(qualifierPanelPresenter)
     val externalResourceBrowser = ExternalResourceBrowser(facet, externalResourceBrowserViewModel, qualifierParserPanel)
 
-    val internalResourceBrowser = InternalResourceBrowser(InternalDesignAssetExplorer(facet, synchronizationManager))
+    val internalResourceBrowser = InternalResourceBrowser(InternalBrowserViewModel(facet, synchronizationManager))
     val designAssetDetailView = DesignAssetDetailView()
     internalResourceBrowser.addSelectionListener(designAssetDetailView)
 

@@ -479,7 +479,7 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.apk.viewer.ApkEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.fonts.FontEditorProvider" />
-    <fileEditorProvider implementation="com.android.tools.idea.resourceExplorer.ResourceExplorerEditorProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.resourceExplorer.editor.ResourceExplorerEditorProvider"/>
 
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducer" order="first"/>
