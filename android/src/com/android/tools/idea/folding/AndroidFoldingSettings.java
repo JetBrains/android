@@ -20,6 +20,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.NotNull;
 
 @State(name = "AndroidFoldingSettings", storages = @Storage("editor.codeinsight.xml"))
 public class AndroidFoldingSettings implements PersistentStateComponent<AndroidFoldingSettings> {
@@ -43,7 +44,7 @@ public class AndroidFoldingSettings implements PersistentStateComponent<AndroidF
   }
 
   @Override
-  public void loadState(final AndroidFoldingSettings state) {
+  public void loadState(@NotNull final AndroidFoldingSettings state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 }

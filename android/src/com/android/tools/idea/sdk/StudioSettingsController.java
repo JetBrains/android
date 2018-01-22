@@ -82,7 +82,7 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
   }
 
   @Override
-  public void loadState(PersistentState state) {
+  public void loadState(@NotNull PersistentState state) {
     myState = state;
   }
 

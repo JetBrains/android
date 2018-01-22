@@ -21,6 +21,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.annotations.Tag;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -59,7 +60,7 @@ public class AndroidFirstRunPersistentData implements PersistentStateComponent<A
   }
 
   @Override
-  public void loadState(FirstRunData state) {
+  public void loadState(@NotNull FirstRunData state) {
     myData = state;
   }
 

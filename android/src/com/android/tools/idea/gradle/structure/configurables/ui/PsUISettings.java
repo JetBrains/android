@@ -62,7 +62,7 @@ public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   }
 
   @Override
-  public void loadState(PsUISettings state) {
+  public void loadState(@NotNull PsUISettings state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 

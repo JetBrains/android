@@ -44,7 +44,7 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
   }
 
   @Override
-  public void loadState(GradleExperimentalSettings state) {
+  public void loadState(@NotNull GradleExperimentalSettings state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 }

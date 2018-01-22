@@ -21,6 +21,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
@@ -43,7 +44,7 @@ public class AndroidDexCompilerConfiguration implements PersistentStateComponent
   }
 
   @Override
-  public void loadState(AndroidDexCompilerConfiguration state) {
+  public void loadState(@NotNull AndroidDexCompilerConfiguration state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 
