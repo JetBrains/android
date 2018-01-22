@@ -41,7 +41,7 @@ public class GradleBuildTreeViewConfiguration implements PersistentStateComponen
   }
 
   @Override
-  public void loadState(GradleBuildTreeViewConfiguration state) {
+  public void loadState(@NotNull GradleBuildTreeViewConfiguration state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 

@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +28,7 @@ import java.util.EventListener;
 
 @State(
   name = "PsdUISettings",
-  storages = @Storage(file = StoragePathMacros.APP_CONFIG + "/android.gradle.psd.xml")
+  storages = @Storage(file = "android.gradle.psd.xml")
 )
 public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
@@ -55,7 +58,7 @@ public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   }
 
   @Override
-  public void loadState(PsUISettings state) {
+  public void loadState(@NotNull PsUISettings state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 

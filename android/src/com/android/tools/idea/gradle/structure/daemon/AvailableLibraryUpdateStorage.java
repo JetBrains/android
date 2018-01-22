@@ -56,7 +56,7 @@ public class AvailableLibraryUpdateStorage implements PersistentStateComponent<A
   }
 
   @Override
-  public void loadState(AvailableLibraryUpdates state) {
+  public void loadState(@NotNull AvailableLibraryUpdates state) {
     this.state = state;
     this.state.index();
   }

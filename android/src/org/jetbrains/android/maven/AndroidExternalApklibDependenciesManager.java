@@ -49,7 +49,7 @@ public class AndroidExternalApklibDependenciesManager implements PersistentState
   }
 
   @Override
-  public void loadState(AndroidExternalApklibDependenciesManager.State state) {
+  public void loadState(@NotNull AndroidExternalApklibDependenciesManager.State state) {
     myState = state;
   }
 

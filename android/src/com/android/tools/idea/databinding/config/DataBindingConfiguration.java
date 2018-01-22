@@ -18,6 +18,7 @@ package com.android.tools.idea.databinding.config;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @State(
@@ -40,11 +41,11 @@ public class DataBindingConfiguration implements PersistentStateComponent<DataBi
   }
 
   @Override
-  public void loadState(DataBindingConfiguration state) {
+  public void loadState(@NotNull DataBindingConfiguration state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 
-  public static enum  CodeNavigationMode {
+  public enum  CodeNavigationMode {
     // don't generate in memory classes
     CODE,
     // don't allow going to the generated code

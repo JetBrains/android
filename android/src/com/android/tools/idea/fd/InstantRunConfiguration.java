@@ -18,6 +18,7 @@ package com.android.tools.idea.fd;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @State(
@@ -46,7 +47,7 @@ public class InstantRunConfiguration implements PersistentStateComponent<Instant
   }
 
   @Override
-  public void loadState(InstantRunConfiguration state) {
+  public void loadState(@NotNull InstantRunConfiguration state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 }

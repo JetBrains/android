@@ -245,7 +245,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
     }
 
     @Override
-    public void loadState(WhatsNewData state) {
+    public void loadState(@NotNull WhatsNewData state) {
       myData = state;
     }
   }

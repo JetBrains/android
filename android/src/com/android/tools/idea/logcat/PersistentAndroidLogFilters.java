@@ -46,7 +46,7 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
   }
 
   @Override
-  public void loadState(PersistentAndroidLogFilters state) {
+  public void loadState(@NotNull PersistentAndroidLogFilters state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 

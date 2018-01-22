@@ -113,7 +113,7 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
   }
 
   @Override
-  public void loadState(AndroidFinalPackageElementState state) {
+  public void loadState(@NotNull AndroidFinalPackageElementState state) {
     myFacetPointer = state.myFacetPointer != null
                      ? FacetPointersManager.getInstance(myProject).<AndroidFacet>create(state.myFacetPointer)
                      : null;
