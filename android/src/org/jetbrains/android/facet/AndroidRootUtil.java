@@ -108,7 +108,7 @@ public class AndroidRootUtil {
   }
 
   /**
-   * @deprecated You must use {@link AndroidFacet#getAllResourceDirectories()} instead
+   * @deprecated You must use {@link ResourceFolderManager#getFolders()} instead
    */
   @Deprecated
   @Nullable

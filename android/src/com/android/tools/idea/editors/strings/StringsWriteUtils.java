@@ -65,7 +65,7 @@ public class StringsWriteUtils {
         // That way, the Undo is always available from the translation editor
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
 
-        facet.getAllResourceDirectories().stream()
+        facet.getResourceFolderManager().getFolders().stream()
           .map(directory -> directory.findChild(name))
           .filter(Objects::nonNull)
           .forEach(directory -> delete(directory, requestor));

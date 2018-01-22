@@ -76,7 +76,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   }
 
   private VirtualFile getResourceDir() {
-    List<VirtualFile> resourceDirectories = myFacet.getAllResourceDirectories();
+    List<VirtualFile> resourceDirectories = myFacet.getResourceFolderManager().getFolders();
     assertNotNull(resourceDirectories);
     assertSize(1, resourceDirectories);
     return resourceDirectories.get(0);

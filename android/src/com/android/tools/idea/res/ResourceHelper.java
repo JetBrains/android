@@ -556,7 +556,7 @@ public class ResourceHelper {
     }
 
     // Pick among actual files in the project
-    for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
+    for (VirtualFile resourceDir : facet.getResourceFolderManager().getFolders()) {
       for (VirtualFile folder : resourceDir.getChildren()) {
         if (folder.getName().startsWith(FD_RES_LAYOUT) && folder.isDirectory()) {
           for (VirtualFile file : folder.getChildren()) {
@@ -665,6 +665,7 @@ public class ResourceHelper {
      * @param complex A complex data value.
      * @return A floating point value corresponding to the complex data.
      */
+    @SuppressWarnings("NumericOverflow")
     static float complexToFloat(int complex) {
       return (complex&(COMPLEX_MANTISSA_MASK << COMPLEX_MANTISSA_SHIFT))
              * RADIX_MULTS[(complex>>COMPLEX_RADIX_SHIFT) & COMPLEX_RADIX_MASK];

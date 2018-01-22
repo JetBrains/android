@@ -83,7 +83,7 @@ interface ResourceFileHelper {
 
     private fun createResSubDir(folderName: String, facet: AndroidFacet) =
         WriteAction.compute<VirtualFile, IOException> {
-          facet.allResourceDirectories[0].createChildDirectory(this, folderName)
+          facet.resourceFolderManager.folders[0].createChildDirectory(this, folderName)
         }
 
     private fun findResourceSubdir(resourceSubdirs: List<VirtualFile>, folderName: String) =

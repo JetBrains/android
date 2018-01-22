@@ -283,7 +283,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
       if (resolvedStyleNameElement != null &&
           resolvedStyleNameElement.equals(styleNameAttrValue)) {
-        resDirs.addAll(f.getAllResourceDirectories());
+        resDirs.addAll(f.getResourceFolderManager().getFolders());
       }
     }
   }

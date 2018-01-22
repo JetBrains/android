@@ -120,7 +120,7 @@ public class ResourceFolderRegistry {
   static Map<VirtualFile, AndroidFacet> getResourceDirectoriesForFacets(@NotNull List<AndroidFacet> facets) {
     Map<VirtualFile, AndroidFacet> resDirectories = Maps.newHashMap();
     for (AndroidFacet facet : facets) {
-      for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
+      for (VirtualFile resourceDir : facet.getResourceFolderManager().getFolders()) {
         if (!resDirectories.containsKey(resourceDir)) {
           resDirectories.put(resourceDir, facet);
         }

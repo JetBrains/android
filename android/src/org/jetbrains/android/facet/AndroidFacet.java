@@ -18,13 +18,9 @@ package org.jetbrains.android.facet;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.res.FileResourceRepository;
-import com.android.tools.idea.res.ResourceFolderRegistry;
-import com.android.tools.idea.res.ResourceRepositories;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -177,10 +173,12 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   /**
    * @return all resource directories, in the overlay order.
+   * @deprecated use getResourceFolderManager().getFolders() instead
    */
   @NotNull
+  @Deprecated
   public List<VirtualFile> getAllResourceDirectories() {
-    return myFolderManager.getFolders();
+    return getResourceFolderManager().getFolders();
   }
 
   /**
@@ -193,7 +191,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Deprecated
   @Nullable
   public VirtualFile getPrimaryResourceDir() {
-    List<VirtualFile> dirs = getAllResourceDirectories();
+    List<VirtualFile> dirs = getResourceFolderManager().getFolders();
     if (!dirs.isEmpty()) {
       return dirs.get(0);
     }
