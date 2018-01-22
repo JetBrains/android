@@ -231,7 +231,7 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
     }
     VirtualFile javaTargetDir = javaSourceFolders.get(0);
 
-    VirtualFile resDir = facet.getAllResourceDirectories().get(0);
+    VirtualFile resDir = facet.getResourceFolderManager().getFolders().get(0);
     ResourceFolderRepository repo = ResourceFolderRegistry.get(facet, resDir);
 
     Set<XmlFile> touchedXmlFiles = new HashSet<>();

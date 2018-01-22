@@ -114,7 +114,7 @@ final class AddLocaleAction extends AnAction {
     StringResourceData data = myPanel.getTable().getData();
     assert data != null;
 
-    StringResourceKey key = new StringResourceKey("app_name", myPanel.getFacet().getAllResourceDirectories().get(0));
+    StringResourceKey key = new StringResourceKey("app_name", myPanel.getFacet().getResourceFolderManager().getFolders().get(0));
 
     if (data.containsKey(key)) {
       return data.getStringResource(key);

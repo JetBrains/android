@@ -27,8 +27,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
@@ -88,7 +86,7 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   public List<VirtualFile> getResourceDirs() {
-    return myFacet.getAllResourceDirectories();
+    return myFacet.getResourceFolderManager().getFolders();
   }
 
   @NotNull

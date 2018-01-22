@@ -130,7 +130,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   private VirtualFile getResourceDirectory() {
-    List<VirtualFile> resourceDirectories = myFacet.getAllResourceDirectories();
+    List<VirtualFile> resourceDirectories = myFacet.getResourceFolderManager().getFolders();
     assertNotNull(resourceDirectories);
     assertSize(1, resourceDirectories);
     return resourceDirectories.get(0);

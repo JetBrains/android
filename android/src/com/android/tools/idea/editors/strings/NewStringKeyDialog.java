@@ -74,7 +74,7 @@ public class NewStringKeyDialog extends DialogWrapper {
   }
 
   private void createUIComponents() {
-    myResourceFolderComboBox = new ComboBox<>(myFacet.getAllResourceDirectories().toArray(VirtualFile.EMPTY_ARRAY));
+    myResourceFolderComboBox = new ComboBox<>(myFacet.getResourceFolderManager().getFolders().toArray(VirtualFile.EMPTY_ARRAY));
     myResourceFolderComboBox.setName("resourceFolderComboBox");
 
     myResourceFolderComboBox.setRenderer(new ListCellRendererWrapper<VirtualFile>() {
