@@ -39,11 +39,11 @@ class PsSigningConfig(
     else -> ""
   }
 
-  val storeFile by SigningConfigDescriptors.storeFile
-  val storePassword by SigningConfigDescriptors.storePassword
-  val storeType by SigningConfigDescriptors.storeType
-  val keyAlias by SigningConfigDescriptors.keyAlias
-  val keyPassword by SigningConfigDescriptors.keyPassword
+  var storeFile by SigningConfigDescriptors.storeFile
+  var storePassword by SigningConfigDescriptors.storePassword
+  var storeType by SigningConfigDescriptors.storeType
+  var keyAlias by SigningConfigDescriptors.keyAlias
+  var keyPassword by SigningConfigDescriptors.keyPassword
 
   override fun getName(): String = name
   override fun getParent(): PsAndroidModule = super.getParent() as PsAndroidModule
