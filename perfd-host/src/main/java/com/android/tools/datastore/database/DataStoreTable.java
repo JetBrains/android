@@ -139,8 +139,10 @@ public abstract class DataStoreTable<T extends Enum> {
   }
 
   protected ResultSet executeQuery(@NotNull T statement, Object... params) throws SQLException {
-    // TODO: Handle when the database conneciton is closed and a query is made.
     PreparedStatement stmt = getStatementMap().get(statement);
+    if (isClosed() || stmt.isClosed()) {
+      return new EmptyResultSet();
+    }
     applyParams(stmt, params);
     return stmt.executeQuery();
   }
