@@ -168,7 +168,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
     "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_TARGET_RELATIVE = Flag.create(
     NELE, "target.relative", "Enable the target architecture in relative layout",
