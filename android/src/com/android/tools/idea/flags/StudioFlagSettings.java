@@ -54,7 +54,7 @@ public final class StudioFlagSettings implements FlagOverrides, PersistentStateC
   }
 
   @Override
-  public void loadState(StudioFlagSettings settings) {
+  public void loadState(@NotNull StudioFlagSettings settings) {
     XmlSerializerUtil.copyBean(settings, this);
   }
 

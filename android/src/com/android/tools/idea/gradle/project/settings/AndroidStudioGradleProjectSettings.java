@@ -44,7 +44,7 @@ public class AndroidStudioGradleProjectSettings implements PersistentStateCompon
   }
 
   @Override
-  public void loadState(AndroidStudioGradleProjectSettings state) {
+  public void loadState(@NotNull AndroidStudioGradleProjectSettings state) {
     copyBean(state, this);
   }
 }

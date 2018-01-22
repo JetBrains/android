@@ -99,7 +99,7 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
   }
 
   @Override
-  public void loadState(AndroidApplicationArtifactProperties state) {
+  public void loadState(@NotNull AndroidApplicationArtifactProperties state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 

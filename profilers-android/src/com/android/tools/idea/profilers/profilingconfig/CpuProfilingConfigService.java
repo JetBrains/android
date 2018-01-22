@@ -22,6 +22,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class CpuProfilingConfigService implements PersistentStateComponent<CpuPr
   }
 
   @Override
-  public void loadState(CpuProfilingConfigService state) {
+  public void loadState(@NotNull CpuProfilingConfigService state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 }

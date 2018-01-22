@@ -3,6 +3,7 @@ package org.jetbrains.android.exportSignedPackage;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
@@ -24,7 +25,7 @@ public class GenerateSignedApkSettings implements PersistentStateComponent<Gener
   }
 
   @Override
-  public void loadState(GenerateSignedApkSettings state) {
+  public void loadState(@NotNull GenerateSignedApkSettings state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 

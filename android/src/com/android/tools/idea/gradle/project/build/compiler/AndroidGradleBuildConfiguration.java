@@ -44,7 +44,7 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
   }
 
   @Override
-  public void loadState(AndroidGradleBuildConfiguration state) {
+  public void loadState(@NotNull AndroidGradleBuildConfiguration state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 

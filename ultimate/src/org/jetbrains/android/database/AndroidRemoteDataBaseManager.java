@@ -5,8 +5,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.xmlb.annotations.MapAnnotation;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.android.util.AndroidUtils;
@@ -49,7 +47,7 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
   }
 
   public synchronized void processRemovedProjects() {
-    final List<MyDbKey> keysToRemove = new ArrayList<MyDbKey>();
+    final List<MyDbKey> keysToRemove = new ArrayList<>();
 
     for (Map.Entry<MyDbKey, MyDatabaseInfo> entry : myState.databases.entrySet()) {
       final MyDbKey key = entry.getKey();
@@ -68,7 +66,7 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
   }
 
   public synchronized void updateDbUsagesForProject(@NotNull String projectBasePath, @NotNull Set<AndroidRemoteDbInfo> usedDatabases) {
-    final List<MyDbKey> keysToRemove = new ArrayList<MyDbKey>();
+    final List<MyDbKey> keysToRemove = new ArrayList<>();
 
     for (Map.Entry<MyDbKey, MyDatabaseInfo> entry : myState.databases.entrySet()) {
       final MyDbKey key = entry.getKey();
@@ -124,14 +122,14 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
   }
 
   @Override
-  public synchronized void loadState(State state) {
+  public synchronized void loadState(@NotNull State state) {
     myState = state;
   }
 
   public static class State {
     @Tag("databases")
     @MapAnnotation(surroundWithTag = false)
-    public Map<MyDbKey, MyDatabaseInfo> databases = new HashMap<MyDbKey, MyDatabaseInfo>();
+    public Map<MyDbKey, MyDatabaseInfo> databases = new HashMap<>();
   }
 
   @Tag("db-key")
@@ -179,6 +177,6 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
   @Tag("db-info")
   public static class MyDatabaseInfo {
     public long modificationTime = 0;
-    public Set<String> referringProjects = new HashSet<String>();
+    public Set<String> referringProjects = new HashSet<>();
   }
 }

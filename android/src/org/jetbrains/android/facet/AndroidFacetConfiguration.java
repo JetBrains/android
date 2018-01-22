@@ -141,7 +141,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   }
 
   @Override
-  public void loadState(JpsAndroidModuleProperties properties) {
+  public void loadState(@NotNull JpsAndroidModuleProperties properties) {
     myProperties = properties;
   }
 }

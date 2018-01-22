@@ -42,7 +42,7 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
   }
 
   @Override
-  public void loadState(MyState state) {
+  public void loadState(@NotNull MyState state) {
     myGlobalState = state.getState();
   }
 
