@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.resourceExplorer.plugin
+
+import com.android.tools.idea.resourceExplorer.getPluginsResourcesDirectory
+import com.android.tools.idea.resourceExplorer.pathToVirtualFile
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.registerServiceInstance
+import org.junit.Assert.assertNotNull
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+class VectorDrawableRendererTest {
+
+  @Suppress("MemberVisibilityCanBePrivate")
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().registerServiceInstance(VectorDrawableAssetRenderer::class.java, VectorDrawableAssetRenderer())
+  }
+
+  @Test
+  fun isFileSupported() {
+    val viewer = vectorDrawableResourceViewer()
+    val path = getPluginsResourcesDirectory() + "/vector_drawable.xml"
+    val file = pathToVirtualFile(path)
+    val otherFile = projectRule.fixture.tempDirFixture.createFile("png.png")
+    assertTrue { viewer.isFileSupported(file) }
+    assertFalse { viewer.isFileSupported(otherFile) }
+  }
+
+  private fun vectorDrawableResourceViewer(): VectorDrawableAssetRenderer {
+    val viewer = DesignAssetRendererManager.getInstance().getViewer(VectorDrawableAssetRenderer::class.java)
+    assertNotNull(viewer)
+    return viewer!!
+  }
+}

@@ -15,7 +15,6 @@ package com.android.tools.idea.resourceExplorer.plugin
 
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.intellij.openapi.extensions.ExtensionPointName
-import java.awt.Image
 import javax.swing.JPanel
 
 /**
@@ -30,7 +29,7 @@ interface ResourceImporter {
   /**
    * The name of the plugin as it should be shown to the user
    */
-  fun getPresentableName() : String
+  fun getPresentableName(): String
 
   /**
    * Returns a list of the file extensions supported by this plugin.
@@ -54,14 +53,14 @@ interface ResourceImporter {
   fun userCanEditQualifiers(): Boolean
 
   /**
-   * Return a preview of the result of the importation.
+   * Return the [DesignAssetRenderer] needed to preview the source file of the provided [asset]
    */
-  fun getSourcePreview(asset: DesignAsset): Image?
+  fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer?
 
   /**
-   * Return a preview of the result of the importation.
+   * Return [DesignAssetRenderer] needed to preview the result of the importation.
    */
-  fun getImportPreview(asset: DesignAsset): Image?
+  fun getImportPreview(asset: DesignAsset): DesignAssetRenderer?
 }
 
 /**

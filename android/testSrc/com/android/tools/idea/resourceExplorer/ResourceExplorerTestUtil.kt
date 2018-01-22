@@ -19,6 +19,8 @@ import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
+import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
@@ -39,7 +41,13 @@ fun getExternalResourceDirectory(vararg files: String): VirtualFile {
   return root
 }
 
+val pluginTestFilesDirectoryName = "/plugins-resources"
+
 fun getTestDataDirectory() = AndroidTestBase.getTestDataPath() + "/resourceExplorer"
+
+fun getPluginsResourcesDirectory(): String {
+  return getTestDataDirectory() + pluginTestFilesDirectoryName
+}
 
 val densityMapper = StaticStringMapper(
   mapOf(
@@ -52,3 +60,5 @@ val densityMapper = StaticStringMapper(
 val nightModeMapper = StaticStringMapper(
   mapOf("_dark" to NightModeQualifier(NightMode.NIGHT))
 )
+
+fun pathToVirtualFile(path: String) = BrowserUtil.getURL(path)!!.let(VfsUtil::findFileByURL)!!

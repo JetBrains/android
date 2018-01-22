@@ -52,9 +52,8 @@ class DesignAssetListModel : ListModel<DesignAssetSet> {
     val listeners = dataListeners.listenerList
     // Process the listeners last to first, notifying
     // those that are interested in this event
-    listeners.
-        filterIsInstance(ListDataListener::class.java)
-        .forEach { listener: ListDataListener? -> listener?.contentsChanged(dataEvent) }
+    listeners.filterIsInstance(ListDataListener::class.java)
+      .forEach { listener: ListDataListener -> listener.contentsChanged(dataEvent) }
   }
 
   fun refresh() {

@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Renders XML drawables to raster images.
  */
-class DrawableRenderer implements Disposable {
+public class DrawableRenderer implements Disposable {
   @NotNull private final ListenableFuture<RenderTask> myRenderTaskFuture;
   @NotNull private final Object myRenderLock = new Object();
   @NotNull private final MyLayoutPullParserFactory myParserFactory;

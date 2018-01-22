@@ -18,19 +18,15 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.resourceExplorer.densityMapper
-import com.android.tools.idea.resourceExplorer.getTestDataDirectory
+import com.android.tools.idea.resourceExplorer.*
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.android.tools.idea.resourceExplorer.model.getAssetSets
-import com.android.tools.idea.resourceExplorer.nightModeMapper
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.collect.testing.Helpers
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -128,13 +124,28 @@ class ExternalBrowserViewModelTest {
     assertEquals(SynchronizationStatus.NOT_SYNCED, resourceBrowserViewModel.getSynchronizationStatus(otherAssertSet))
   }
 
+  @Test
+  fun checkPluginsFilesDetected() {
+    projectRule.fixture.copyDirectoryToProject(pluginTestFilesDirectoryName, "res/drawable")
+    val androidFacet = AndroidFacet.getInstance(projectRule.module)!!
+    val viewModel = createViewModel(androidFacet)
+    viewModel.setDirectory(pathToVirtualFile(getPluginsResourcesDirectory()))
+    val designAssetListModel = viewModel.designAssetListModel
+    val files = MutableList(designAssetListModel.size, { i -> designAssetListModel.getElementAt(i)!!.designAssets[0].file.name })
+    Helpers.assertContentsAnyOrder(
+      files,
+      "png.png",
+      "svg-sample.svg",
+      "svg-sample-50.png",
+      "vector_drawable.xml"
+    )
+  }
+
   private fun createViewModel(facet: AndroidFacet): ExternalBrowserViewModel {
     val synchronizationManager = SynchronizationManager(facet)
     Disposer.register(disposable, synchronizationManager)
     return ExternalBrowserViewModel(facet, ResourceFileHelper.ResourceFileHelperImpl(), ImportersProvider(), synchronizationManager)
   }
-
-  private fun pathToVirtualFile(path: String) = BrowserUtil.getURL(path)!!.let(VfsUtil::findFileByURL)!!
 
   private fun getAssetDir() = getTestDataDirectory() + "/designAssets"
 
