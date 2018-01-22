@@ -96,7 +96,6 @@ import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.LintUtils.editDistance;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
-import static com.intellij.openapi.util.SystemInfo.JAVA_VERSION;
 
 /**
  * Class that finds {@link RenderErrorModel.Issue}s in a {@link RenderResult}.
@@ -538,17 +537,6 @@ public class RenderErrorContributor {
         .add("java.runtime.version: ").add(SystemInfo.JAVA_RUNTIME_VERSION);
     }
 
-    if (throwable.getMessage().equals("Unable to create temporary file")) {
-      if (JAVA_VERSION.startsWith("1.7.0_")) {
-        int version = Integer.parseInt(JAVA_VERSION.substring(JAVA_VERSION.indexOf('_') + 1));
-        if (version > 0 && version < 45) {
-          builder.newline()
-            .addIcon(HtmlBuilderHelper.getTipIconPath())
-            .add("Tip: This may be caused by using an older version of JDK 1.7.0; try using at least 1.7.0_45 " +
-                 "(you are using " + JAVA_VERSION + ")");
-        }
-      }
-    }
     if (newlineAfter) {
       builder.newline().newline();
     }
