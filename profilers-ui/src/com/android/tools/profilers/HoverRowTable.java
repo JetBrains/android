@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.network;
+package com.android.tools.profilers;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
@@ -33,11 +33,11 @@ import java.util.List;
 /**
  * A JTable which can highlight the hovered row.
  */
-final class HoverRowTable extends JBTable {
+public final class HoverRowTable extends JBTable {
   private int myHoveredRow = -1;
   private final Color myHoverColor;
 
-  HoverRowTable(@NotNull TableModel model, @NotNull Color hoverColor) {
+  public HoverRowTable(@NotNull TableModel model, @NotNull Color hoverColor) {
     super(model);
     myHoverColor = hoverColor;
     MouseAdapter mouseAdapter = new MouseAdapter() {
@@ -129,7 +129,7 @@ final class HoverRowTable extends JBTable {
    * This should only be called after a table's columns are initialized.
    */
   // TODO: Move this to adtui, and share this code with ColumnTreeBuilder.
-  void setTableHeaderBorder(@NotNull Border border) {
+  public void setTableHeaderBorder(@NotNull Border border) {
     TableCellRenderer headerRenderer = this.getTableHeader().getDefaultRenderer();
     for (int i = 0; i < getColumnModel().getColumnCount(); i++) {
       TableColumn column = getColumnModel().getColumn(i);

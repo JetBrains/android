@@ -17,16 +17,18 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventsResponse;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
+import com.intellij.openapi.util.Pair;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -39,6 +41,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   private static final long FAKE_TIME_PERIOD_MS = 200;
   private static final RandomData FAKE_CPU_DATA = new RandomData(20);
   private static final RandomData FAKE_NETWORK_DATA = new RandomData(30);
+  private static final RandomData FAKE_WAKE_LOCK_DURATION = new RandomData(200);
 
   @NotNull private final DataStoreService myService;
   private final Consumer<Runnable> myExecutor;
@@ -52,21 +55,8 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   public void getData(EnergyRequest request, StreamObserver<EnergyDataResponse> responseObserver) {
     EnergyDataResponse.Builder responseBuilder = EnergyDataResponse.newBuilder();
 
-    // TODO: Get real energy data from device and delete check session range, this adds fake sample within request range.
-    long sessionStartTime = request.getSession().getStartTimestamp();
-    long sessionEndTime = request.getSession().getEndTimestamp();
-    long startTime = Math.max(request.getStartTimestamp() + 1, sessionStartTime > 0 ? sessionStartTime : Long.MAX_VALUE);
-    long endTime = Math.min(request.getEndTimestamp(), sessionEndTime > 0 ? sessionEndTime : Long.MAX_VALUE);
-
-    long startTimeMs = TimeUnit.NANOSECONDS.toMillis(startTime);
-    long endTimeMs = TimeUnit.NANOSECONDS.toMillis(endTime);
-
-    // Ground the first sample in a consistent way, so the samples returned given a query range
-    // will always be the same. For example, with a heartbeat of 20ms...
-    // (87 to 123) -> [100, 120]
-    // (98 to 135) -> [100, 120]
-    long firstSampleMs = (startTimeMs + (FAKE_TIME_PERIOD_MS - startTimeMs % FAKE_TIME_PERIOD_MS));
-    for (long timeMs = firstSampleMs; timeMs <= endTimeMs; timeMs += FAKE_TIME_PERIOD_MS) {
+    Pair<Long, Long> timeRange = getRangeMs(request);
+    for (long timeMs = timeRange.getFirst(); timeMs <= timeRange.getSecond(); timeMs += FAKE_TIME_PERIOD_MS) {
       responseBuilder.addSampleData(
         EnergyDataResponse.EnergySample.newBuilder().
           setTimestamp(TimeUnit.MILLISECONDS.toNanos(timeMs)).
@@ -74,6 +64,29 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
           setNetworkUsage(FAKE_NETWORK_DATA.getValue(timeMs)).
           build());
     }
+    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getEvents(EnergyRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
+    EnergyEventsResponse.Builder responseBuilder = EnergyEventsResponse.newBuilder();
+
+    Pair<Long, Long> timeRange = getRangeMs(request);
+    EnergyProfiler.WakeLockAcquired.Builder wakeLockAcquiredBuilder = EnergyProfiler.WakeLockAcquired.newBuilder().setLevelAndFlags(1);
+    for (long timeMs = timeRange.getFirst(); timeMs < timeRange.getSecond(); timeMs += 200) {
+      // Uses the acquire time milliseconds as fake ID.
+      responseBuilder.addEvent(EnergyEvent.newBuilder()
+                                 .setTimestamp(TimeUnit.MILLISECONDS.toNanos(timeMs))
+                                 .setEventId((int) timeMs)
+                                 .setWakeLockAcquired(wakeLockAcquiredBuilder.setTag(String.valueOf(timeMs)).build()).build());
+      long releaseTimeMs = FAKE_WAKE_LOCK_DURATION.getValue(timeMs) + 1 + timeMs;
+      responseBuilder.addEvent(EnergyEvent.newBuilder()
+                                 .setTimestamp(TimeUnit.MILLISECONDS.toNanos(releaseTimeMs))
+                                 .setEventId((int) timeMs)
+                                 .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance()).build());
+    }
+
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
@@ -87,6 +100,27 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   @Override
   public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
+  }
+
+  /**
+   * Help function to get fake data time range, delete when get real energy data from device.
+   */
+  private static Pair<Long, Long> getRangeMs(EnergyRequest request) {
+    // TODO: Get real energy data from device and delete check session range, this adds fake sample within request range.
+    long sessionStartTime = request.getSession().getStartTimestamp();
+    long sessionEndTime = request.getSession().getEndTimestamp();
+    long startTime = Math.max(request.getStartTimestamp(), sessionStartTime > 0 ? sessionStartTime : Long.MAX_VALUE);
+    long endTime = Math.min(request.getEndTimestamp(), sessionEndTime > 0 ? sessionEndTime : Long.MAX_VALUE);
+
+    long startTimeMs = TimeUnit.NANOSECONDS.toMillis(startTime);
+    long endTimeMs = TimeUnit.NANOSECONDS.toMillis(endTime);
+
+    // Ground the first sample in a consistent way, so the samples returned given a query range
+    // will always be the same. For example, with a heartbeat of 20ms...
+    // (87 to 123) -> [100, 120]
+    // (98 to 135) -> [100, 120]
+    long firstSampleMs = (startTimeMs + (FAKE_TIME_PERIOD_MS - startTimeMs % FAKE_TIME_PERIOD_MS));
+    return Pair.create(firstSampleMs, endTimeMs);
   }
 
   // TODO: Delete after we get real data from the target device

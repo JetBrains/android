@@ -13,14 +13,10 @@
 // limitations under the License.
 package com.android.tools.profilers.energy;
 
-import com.android.tools.adtui.model.AxisComponentModel;
-import com.android.tools.adtui.model.Interpolatable;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +31,11 @@ public class EnergyProfilerStage extends Stage {
   @NotNull private final EventMonitor myEventMonitor;
   @NotNull private final EnergyLegends myLegends;
   @NotNull private final EnergyLegends myTooltipLegends;
+  @NotNull private final SelectionModel mySelectionModel;
+  @NotNull private final EnergyEventsFetcher myFetcher;
+
+  // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
+  @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
 
   public EnergyProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -43,6 +44,22 @@ public class EnergyProfilerStage extends Stage {
     myEventMonitor = new EventMonitor(profilers);
     myLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getDataRange(), false);
     myTooltipLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange(), true);
+    mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
+    mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
+    profilers.addDependency(myAspectObserver)
+      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+    mySelectionModel.addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        setProfilerMode(ProfilerMode.EXPANDED);
+      }
+
+      @Override
+      public void selectionCleared() {
+        setProfilerMode(ProfilerMode.NORMAL);
+      }
+    });
+    myFetcher = new EnergyEventsFetcher(profilers.getClient().getEnergyClient(), profilers.getSession(), profilers.getTimeline().getSelectionRange());
   }
 
   @Override
@@ -59,6 +76,16 @@ public class EnergyProfilerStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myDetailedUsage);
     getStudioProfilers().getUpdater().unregister(myAxis);
+  }
+
+  @NotNull
+  public EnergyEventsFetcher getEnergyEventsFetcher() {
+    return myFetcher;
+  }
+
+  @NotNull
+  public SelectionModel getSelectionModel() {
+    return mySelectionModel;
   }
 
   @NotNull

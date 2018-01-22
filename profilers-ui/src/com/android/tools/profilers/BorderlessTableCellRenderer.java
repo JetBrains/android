@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.android.tools.profilers.network;
+package com.android.tools.profilers;
 
 import com.android.tools.profilers.ProfilerLayout;
 
@@ -19,7 +19,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 
-class BorderlessTableCellRenderer extends DefaultTableCellRenderer {
+public class BorderlessTableCellRenderer extends DefaultTableCellRenderer {
   @Override
   public void setBorder(Border border) {
     super.setBorder(new EmptyBorder(ProfilerLayout.TABLE_COLUMN_CELL_INSETS));

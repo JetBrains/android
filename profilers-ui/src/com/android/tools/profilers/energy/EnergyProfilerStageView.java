@@ -16,23 +16,38 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
   @NotNull private final EnergyStageTooltipView myTooltipView = new EnergyStageTooltipView(getStage());
+  @NotNull private final JBScrollPane myEventsComponent;
 
   public EnergyProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull EnergyProfilerStage energyProfilerStage) {
     super(profilersView, energyProfilerStage);
-    getComponent().add(buildMonitorUi(), BorderLayout.CENTER);
+
+    JBSplitter verticalSplitter = new JBSplitter(true);
+    verticalSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    verticalSplitter.setFirstComponent(buildMonitorUi());
+    EnergyEventsView eventsView = new EnergyEventsView(this);
+    myEventsComponent = new JBScrollPane(eventsView.getComponent());
+    myEventsComponent.setVisible(false);
+    verticalSplitter.setSecondComponent(myEventsComponent);
+
+    getComponent().add(verticalSplitter, BorderLayout.CENTER);
   }
 
   @NotNull
@@ -115,7 +130,27 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
+    selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    getStage().getSelectionModel().addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        myEventsComponent.setVisible(true);
+      }
+
+      @Override
+      public void selectionCleared() {
+        myEventsComponent.setVisible(false);
+      }
+
+      @Override
+      public void selectionCreationFailure() {
+        myEventsComponent.setVisible(false);
+      }
+    });
+
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
