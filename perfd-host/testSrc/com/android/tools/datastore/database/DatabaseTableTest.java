@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -62,6 +63,13 @@ public class DatabaseTableTest {
   public void testConnectionClosed() throws Exception {
     myDatabase.disconnect();
     assertTrue(myTable.isClosed());
+  }
+
+  @Test
+  public void testEmptyResultSetOnClosedConnection() throws Exception {
+    myDatabase.getConnection().close();
+    ResultSet resultSet = myTable.readDataRaw();
+    assertThat(resultSet).isInstanceOf(EmptyResultSet.class);
   }
 
   @Test
