@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.*
@@ -83,7 +84,23 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
     assertThat(versionName.resolved.asTestValue(), equalTo("2.0"))
     assertThat(versionName.parsedValue.asTestValue(), equalTo("2.0"))
+  }
 
+  fun testDimensions() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProject(resolvedProject)
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val productFlavor = appModule.findProductFlavor("paid")
+    assertThat(productFlavor, notNullValue()); productFlavor!!
+
+    assertThat(
+      PsProductFlavor.ProductFlavorDescriptors.dimension.getKnownValues(productFlavor),
+      hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
   }
 
   fun testSetProperties() {
