@@ -1340,8 +1340,11 @@ public class ChooseResourceDialog extends DialogWrapper {
 
         myComponent.setFirstComponent(firstComponent);
         Disposer.dispose(animationDisposable);
-      }, PooledThreadExecutor.INSTANCE)
-        .thenRunAsync(() -> select(mySelectedValue), EdtExecutorService.getInstance());
+        }, PooledThreadExecutor.INSTANCE)
+        .thenRunAsync(() -> {
+          select(mySelectedValue);
+          updateFilter();
+        }, EdtExecutorService.getInstance());
 
       myPreviewPanel = new JPanel(new CardLayout());
       myPreviewPanel.setPreferredSize(JBUI.size(400,600));
