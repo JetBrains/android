@@ -88,7 +88,6 @@ public class DebuggerTestBase {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
 
-    contentFixture.clickDebuggerTreeRoot();
     Wait.seconds(5).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
 
     // Get the debugger tree and print it.
