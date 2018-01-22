@@ -193,5 +193,11 @@ public class FakeGrpcServer extends FakeGrpcChannel {
       response.onNext(EnergyProfiler.EnergyDataResponse.getDefaultInstance());
       response.onCompleted();
     }
+
+    @Override
+    public void getEvents(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergyEventsResponse> response) {
+      response.onNext(EnergyProfiler.EnergyEventsResponse.getDefaultInstance());
+      response.onCompleted();
+    }
   }
 }

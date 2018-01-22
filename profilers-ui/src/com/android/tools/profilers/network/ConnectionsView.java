@@ -22,6 +22,8 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.profilers.BorderlessTableCellRenderer;
+import com.android.tools.profilers.HoverRowTable;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.network.httpdata.HttpData;
