@@ -155,6 +155,12 @@ public class ChooseResourceDialog extends DialogWrapper {
   private final String myInitialValue;
   private final boolean myInitialValueIsFramework;
   private final ResourceNameVisibility myResourceNameVisibility;
+  /**
+   * If true, we will display only colors but not color state lists.
+   * This is useful when the resource picker
+   * is being used to select a drawable since colors are valid but color state lists are not.
+   */
+  private final boolean myFilterColorStateLists;
   private boolean myGridMode = PropertiesComponent.getInstance().getBoolean(GRID_MODE_KEY, false);
 
   // if we are picking a resource that can't be a color, then all these are null
@@ -175,6 +181,10 @@ public class ChooseResourceDialog extends DialogWrapper {
   private RenderTask myRenderTask;
   private final MultiMap<ResourceType, String> myThemAttributes;
 
+  /** Condition used to filter elements based on the search text */
+  private final Condition<ResourceChooserItem> myFilterCondition;
+
+
   /** Creates a builder for a new resource chooser dialog */
   @NotNull
   public static Builder builder() {
@@ -194,6 +204,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     private String myResourceNameSuggestion;
     private boolean myHideLeftSideActions;
     @Nullable private ResourceType myDefaultType;
+    private boolean myFilterColorStateLists;
 
     public Builder() {
     }
@@ -258,6 +269,18 @@ public class ChooseResourceDialog extends DialogWrapper {
       return this;
     }
 
+    /**
+     * Configures the dialog to not display color state lists. Please not that this only means state lists
+     * contained within the color resource type folder.
+     * This setting is useful to filter those lists when we are selecting a drawable resource (for example ImageView src).
+     * In those cases, we can filter the color state lists since they are not supported.
+     */
+    @NotNull
+    public Builder setFilterColorStateLists(boolean shouldFilterColorStateLists) {
+      myFilterColorStateLists = shouldFilterColorStateLists;
+      return this;
+    }
+
     public ChooseResourceDialog build() {
       Configuration configuration = myConfiguration;
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
@@ -275,7 +298,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       }
 
       return new ChooseResourceDialog(facet, configuration, myTag, myTypes, myDefaultType, myCurrentValue, myIsFrameworkValue,
-                                      myResourceNameVisibility, myResourceNameSuggestion, myHideLeftSideActions);
+                                      myResourceNameVisibility, myResourceNameSuggestion, myHideLeftSideActions,
+                                      myFilterColorStateLists);
     }
 
     @NotNull
@@ -298,7 +322,8 @@ public class ChooseResourceDialog extends DialogWrapper {
                                boolean isFrameworkValue,
                                @NotNull ResourceNameVisibility resourceNameVisibility,
                                @Nullable String resourceNameSuggestion,
-                               boolean hideLeftSideActions) {
+                               boolean hideLeftSideActions,
+                               boolean filterColorStateLists) {
     super(facet.getModule().getProject());
     myModule = facet.getModule();
     myFacet = facet;
@@ -347,12 +372,59 @@ public class ChooseResourceDialog extends DialogWrapper {
     myContentPanel.add(myTabbedPane != null ? myTabbedPane : myAltPane);
     mySearchField = createSearchField();
     myContentPanel.add(createToolbar(), BorderLayout.NORTH);
+    myFilterColorStateLists = filterColorStateLists;
+
+    myFilterCondition = item -> {
+      ResourcePanel panel = getSelectedPanel();
+      final String text = mySearchField.getText();
+      // If we need to do a color resolution, avoid doing it multiple times by caching the first result in the method
+      List<Color> cachedColorResolution = null;
+
+      if (myFilterColorStateLists && panel.getType() == ResourceType.COLOR) {
+        cachedColorResolution = ResourceHelper.resolveMultipleColors(getResourceResolver(), item.getResourceValue(), myModule.getProject());
+        if (cachedColorResolution.size() > 1) {
+          // Filter color state lists
+          return false;
+        }
+      }
+
+      if (text.isEmpty()) {
+        return true;
+      }
+
+      if (panel.getType() == ResourceType.COLOR && text.startsWith("#")) {
+        assert item.getType() == ResourceType.COLOR;
+
+        // For colors, we allow to search the exact value if the search starts with #
+        // This allow to search all the project colors that match a give value.
+        final Color color = ResourceHelper.parseColor(text);
+        return (cachedColorResolution == null ?
+                ResourceHelper.resolveMultipleColors(getResourceResolver(), item.getResourceValue(), myModule.getProject()) :
+                cachedColorResolution).contains(color);
+      }
+
+      if (item.getType() == ResourceType.STRING) {
+        // For string items, we check the search string against the string value
+        // TODO: Cache on item!
+        String string = ResourceHelper.resolveStringValue(getResourceResolver(), item.getResourceUrl());
+        if (StringUtil.containsIgnoreCase(string, text)) {
+          return true;
+        }
+      }
+
+      // If the search ends with a space, use the exact text value
+      if (text.endsWith(" ")) {
+        return StringUtil.equalsIgnoreCase(item.getName(), text.trim()); // Text needs to be trimmed to match the item name
+      }
+      return StringUtil.containsIgnoreCase(item.getName(), text);
+    };
 
     setTitle("Resources");
     setupViewOptions();
     init();
 
     selectResourceValue(resValue);
+    updateFilter();
 
     // we need to trigger this once before the window is made visible to update any extra labels
     doValidate();
@@ -674,50 +746,17 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   private void updateFilter() {
-    ResourcePanel panel = getSelectedPanel();
     final String text = mySearchField.getText();
-    if (text.isEmpty()) {
-      if (!panel.isFiltered()) {
-        return;
-      }
-      panel.setFilter(null);
-      return;
-    }
-    if (panel.getType() == ResourceType.COLOR) {
-      Condition<ResourceChooserItem> colorCondition = null;
-      if (text.startsWith("#")) {
-        final Color color = ResourceHelper.parseColor(text);
-        if (color != null) {
-          colorCondition = item -> {
-            assert item.getType() == ResourceType.COLOR; // we don't want to search non-colors
-            return ResourceHelper.resolveMultipleColors(getResourceResolver(), item.getResourceValue(), myModule.getProject())
-              .contains(color);
-          };
-        }
-      }
-      if (colorCondition != null) {
-        panel.setFilter(colorCondition);
-        return;
+    ResourcePanel panel = getSelectedPanel();
+
+    if (text.isEmpty() && !myFilterColorStateLists) {
+      // Optimization to just remove the filter when we do not needed at all
+      if (panel.isFiltered()) {
+        panel.setFilter(null);
       }
     }
 
-    Condition<ResourceChooserItem> condition = item -> {
-      if (item.getType() == ResourceType.STRING) {
-        // TODO: Cache on item!
-        String string = ResourceHelper.resolveStringValue(getResourceResolver(), item.getResourceUrl());
-        if (StringUtil.containsIgnoreCase(string, text)) {
-          return true;
-        }
-      }
-
-      // If the search ends with a space, use the exact text value
-      if (text.endsWith(" ")) {
-        return StringUtil.equalsIgnoreCase(item.getName(), text.trim()); // Text needs to be trimmed to match the item name
-      }
-      return StringUtil.containsIgnoreCase(item.getName(), text);
-    };
-
-    panel.setFilter(condition);
+    panel.setFilter(myFilterCondition);
   }
 
   private void initializeColorPicker(@Nullable String value,
