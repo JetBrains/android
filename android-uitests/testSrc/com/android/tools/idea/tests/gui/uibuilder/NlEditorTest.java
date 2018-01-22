@@ -27,8 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
-import com.android.tools.idea.tests.gui.framework.guitestsystem.RunWithBuildSystem;
-import com.android.tools.idea.tests.gui.framework.guitestsystem.RunWithBuildSystem.BuildSystem;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -86,7 +84,6 @@ public class NlEditorTest {
    * </pre>
    */
   @RunIn(TestGroup.SANITY)
-  @RunWithBuildSystem({BuildSystem.GRADLE, BuildSystem.BAZEL})
   @Test
   public void basicLayoutEdit() throws Exception {
     guiTest.importSimpleLocalApplication()
