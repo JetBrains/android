@@ -179,13 +179,7 @@ public class RenderTestUtil {
     BufferedImage image = result.getRenderedImage().getCopy();
     assertNotNull(image);
     double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
-    if (UIUtil.isAppleRetina()) {
-      scale *= 2;
-      image = ImageUtils.convertToRetina(ImageUtils.scale(image, scale, scale));
-    }
-    else {
-      image = ImageUtils.scale(image, scale, scale);
-    }
+    image = ImageUtils.scale(image, scale, scale);
 
     image = ShadowPainter.createRectangularDropShadow(image);
     checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));

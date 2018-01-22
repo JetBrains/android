@@ -70,11 +70,6 @@ public class ShadowPainter {
     int width = source.getWidth();
     int height = source.getHeight();
     boolean isRetina = ImageUtils.isRetinaImage(source);
-    if (isRetina && UIUtil.isAppleRetina()) {
-      // This shadow painting code doesn't work right with the Apple JDK 6 Retina support.
-      // Since this code isn't used very frequently, just skip the drop shadows for now
-      return source;
-    }
     if (isRetina) {
       image = ImageUtils.createDipImage(width + SHADOW_SIZE, height + SHADOW_SIZE, BufferedImage.TYPE_INT_ARGB);
     } else {
