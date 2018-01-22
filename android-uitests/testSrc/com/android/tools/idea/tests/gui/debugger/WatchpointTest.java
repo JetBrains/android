@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.ui.JBPopupMenu;
 import org.junit.Rule;
@@ -58,6 +59,11 @@ public class WatchpointTest extends DebuggerTestBase {
     guiTest.importProjectAndWaitForProjectSyncToFinish("WatchpointTestAppForUI");
 
     final IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Native")
+      .clickOk();
 
     emulator.createDefaultAVD(ideFrame.invokeAvdManager());
 
