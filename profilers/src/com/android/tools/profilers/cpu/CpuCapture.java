@@ -136,7 +136,6 @@ public class CpuCapture implements ConfigurableDurationData {
     }
     node.setClockType(clockType);
     for (CaptureNode child : node.getChildren()) {
-      // CpuTraceArt should parse the capture into CaptureNode objects
       updateClockType(child, clockType);
     }
   }
