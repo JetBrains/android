@@ -36,10 +36,6 @@ public class IoTable extends DataStoreTable<IoTable.IoStatements> {
     QUERY_SPEED_DATA,
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(IoTable.class);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
@@ -53,7 +49,7 @@ public class IoTable extends DataStoreTable<IoTable.IoStatements> {
       createUniqueIndex("Io_Speed_Data", "Session", "EndTime", "Type");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -71,7 +67,7 @@ public class IoTable extends DataStoreTable<IoTable.IoStatements> {
                       "SELECT EndTime, Speed FROM Io_Speed_Data WHERE Session = ? AND Type = ? AND EndTime > ? AND EndTime <= ?");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -100,7 +96,7 @@ public class IoTable extends DataStoreTable<IoTable.IoStatements> {
       return fileData;
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }
@@ -125,7 +121,7 @@ public class IoTable extends DataStoreTable<IoTable.IoStatements> {
       return speedData;
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }

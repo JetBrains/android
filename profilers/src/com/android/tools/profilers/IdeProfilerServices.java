@@ -137,4 +137,13 @@ public interface IdeProfilerServices {
    * @param urlText shown text of the hyperlink that follows the body, if neither url or urlText is null
    */
   void showErrorBalloon(@NotNull String title, @NotNull String body, String url, String urlText);
+
+  /**
+   * Wraps the supplied expection in a NoPiiException that is then sent to the crash report.
+   * This function should only be called when we are sure there is no PII within the exception message.
+   * The NoPiiException uploads the full exception message to the crash report site. This can then be
+   * to diagnose and root cause issues.
+   * @param t throwable to be wrapped. The exception should not contain PII within the message.
+   */
+  void reportNoPiiException(@NotNull Throwable t);
 }

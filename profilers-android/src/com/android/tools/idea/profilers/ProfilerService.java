@@ -41,12 +41,14 @@ public class ProfilerService implements Disposable {
   private final StudioProfilerDeviceManager myManager;
   @NotNull
   private final ProfilerClient myClient;
+  @NotNull
+  private final DataStoreService myDataStoreService;
 
   private ProfilerService() {
     String datastoreDirectory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
-    DataStoreService dataStoreService =
+    myDataStoreService =
       new DataStoreService(DATASTORE_NAME, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread);
-    myManager = new StudioProfilerDeviceManager(dataStoreService);
+    myManager = new StudioProfilerDeviceManager(myDataStoreService);
     myClient = new ProfilerClient(DATASTORE_NAME);
     IdeSdks.subscribe(myManager, this);
   }
@@ -59,5 +61,10 @@ public class ProfilerService implements Disposable {
   @NotNull
   public ProfilerClient getProfilerClient() {
     return myClient;
+  }
+
+  @NotNull
+  public DataStoreService getDataStoreService() {
+    return myDataStoreService;
   }
 }

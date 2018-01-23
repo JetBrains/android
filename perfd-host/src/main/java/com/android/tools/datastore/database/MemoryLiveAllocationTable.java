@@ -156,7 +156,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       createIndex("Memory_JniGlobalReferences", 1, "Session", "FreeTime");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -173,7 +173,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -196,7 +196,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       sampleBuilder.setTimestamp(timestamp);
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
 
     return sampleBuilder.build();
@@ -237,7 +237,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       sampleBuilder.setTimestamp(timestamp);
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return sampleBuilder.build();
   }
@@ -258,7 +258,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       builder.setTimestamp(latest);
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return builder.build();
   }
@@ -313,7 +313,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       resultBuilder.setTimestamp(timestamp);
     }
     catch (SQLException | InvalidProtocolBufferException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
 
     return resultBuilder.build();
@@ -337,7 +337,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         event.setBacktrace(NativeBacktrace.parseFrom(backtrace));
       }
       catch (InvalidProtocolBufferException ex) {
-        getLogger().error(ex);
+        onError(ex);
       }
     }
     return event.build();
@@ -356,7 +356,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       resultBuilder.setTimestamp(timestamp);
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return resultBuilder.build();
   }
@@ -382,7 +382,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       resultBuilder.setTimestamp(timestamp);
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return resultBuilder.build();
   }
@@ -441,7 +441,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -507,7 +507,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -522,7 +522,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       statement.executeBatch();
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -536,7 +536,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
 
     return methodBuilder.build();
@@ -553,7 +553,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       statement.executeBatch();
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -568,7 +568,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       statement.executeBatch();
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -588,7 +588,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     catch (SQLException e) {
-      getLogger().error(e);
+      onError(e);
     }
   }
 
@@ -606,7 +606,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     catch (SQLException e) {
-      getLogger().error(e);
+      onError(e);
     }
   }
 

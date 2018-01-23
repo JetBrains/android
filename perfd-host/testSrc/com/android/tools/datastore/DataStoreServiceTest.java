@@ -16,6 +16,7 @@
 package com.android.tools.datastore;
 
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
+import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.Profiler.*;
@@ -32,13 +33,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runners.model.MultipleFailureException;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.function.Consumer;
 
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.PERFORMANT;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -123,6 +128,35 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   public void testRegisterDb() {
     FakeDataStoreService dataStoreService = new FakeDataStoreService("DataStoreServiceTestFake", SERVICE_PATH, getPollTicker()::run);
     dataStoreService.assertCorrectness();
+    dataStoreService.shutdown();
+  }
+
+  @Test
+  public void testSQLFailureCallsbackToExceptionHandler() throws Exception {
+    // Teardown datastore created in startup to unregister callbacks.
+    myDataStore.shutdown();
+    FakeDataStoreService dataStoreService = new FakeDataStoreService("testSQLFailureCallsbackToExceptionHandler", SERVICE_PATH, getPollTicker()::run);
+
+    // Use an array making this object mutable by the lambda.
+    final Throwable[] expectedException = new Throwable[1];
+    dataStoreService.setNoPiiExceptionHanlder((t) -> expectedException[0] = t );
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
+      ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName("testSQLFailureCallsbackToExceptionHandler").usePlaintext(true).build());
+
+    // Test that a normal RPC call does not trigger an exception
+    stub.getAgentStatus(AgentStatusRequest.getDefaultInstance());
+    assertThat(expectedException[0]).isNull();
+
+    // Close the connection then test that we get the expected SQLException
+    dataStoreService.getPassthrough().dropProfilerTable();
+    stub.getAgentStatus(AgentStatusRequest.getDefaultInstance());
+    assertThat(expectedException[0]).isInstanceOf(SQLException.class);
+
+    // Because we throw an error connection closes in the middle of the test, trying to call shutdown on the service will log an exception.
+    // The exception is thrown when the connections attempts to commit the database but the connection is closed,
+    // then we close the connection.
+    myExpectedException.expect(AssertionError.class);
+    dataStoreService.shutdown();
   }
 
   private static class MemoryServiceStub extends MemoryServiceGrpc.MemoryServiceImplBase {
@@ -178,7 +212,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
     @NotNull
     @Override
-    DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic) {
+    DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic, @NotNull Consumer<Throwable> noPiiExceptionHandler) {
       if (myCreatedDbPaths == null) {
         // This method is being called from the parent class's constructor, so we need to lazily create it.
         // Also, calling an overridden method in the parent constructor is super bad form. But we're lucky we can get away with it here.
@@ -189,7 +223,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       }
       myCreatedDbPaths.add(dbPath);
       myCreatedCharacteristics.add(characteristic);
-      return super.createDatabase(dbPath, characteristic);
+      return super.createDatabase(dbPath, characteristic, noPiiExceptionHandler);
     }
 
     public void assertCorrectness() {
@@ -200,18 +234,26 @@ public class DataStoreServiceTest extends DataStorePollerTest {
         assertEquals(myPassthrough.getBackingNamespaces().get(i).myCharacteristic, myCreatedCharacteristics.get(i));
       }
     }
+
+    public FakeServicePassthrough getPassthrough() {
+      return myPassthrough;
+    }
   }
 
-  private static class FakeServicePassthrough implements ServicePassThrough {
+  private static class FakeServicePassthrough extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
     @NotNull private final List<BackingNamespace> myNamespaces = Arrays.asList(
       new BackingNamespace("durable", DURABLE), new BackingNamespace("inmemory", PERFORMANT));
 
     @NotNull private final Map<BackingNamespace, Connection> myReceivedBackingStores = new HashMap<>();
 
+    @NotNull private final ProfilerTable myProfilerTable = new ProfilerTable();
+
+    private Connection myConnection;
+
     @NotNull
     @Override
     public ServerServiceDefinition bindService() {
-      return ServerServiceDefinition.builder("FakeServicePassthrough").build();
+      return super.bindService();
     }
 
     @NotNull
@@ -225,6 +267,21 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       assert myNamespaces.contains(namespace) && !myReceivedBackingStores.containsKey(namespace) && !myReceivedBackingStores
         .containsValue(connection);
       myReceivedBackingStores.put(namespace, connection);
+      myProfilerTable.initialize(connection);
+      myConnection = connection;
+    }
+
+    @Override
+    public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
+      responseObserver.onNext(myProfilerTable.getAgentStatus(request));
+      responseObserver.onCompleted();
+    }
+
+    public void dropProfilerTable(){
+      try (Statement stmt = myConnection.createStatement()) {
+        stmt.execute("DROP TABLE Profiler_Processes");
+      } catch (SQLException ex) {
+      }
     }
 
     public void assertCorrectness() {

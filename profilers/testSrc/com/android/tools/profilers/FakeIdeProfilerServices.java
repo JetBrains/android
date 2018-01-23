@@ -284,6 +284,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myErrorBalloonUrlText = urlText;
   }
 
+  @Override
+  public void reportNoPiiException(@NotNull Throwable t) {
+    t.printStackTrace();
+  }
+
   public String getErrorBalloonTitle() {
     return myErrorBalloonTitle;
   }

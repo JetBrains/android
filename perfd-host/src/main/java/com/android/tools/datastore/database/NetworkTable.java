@@ -52,10 +52,6 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
                                   NetworkProfiler.NetworkDataRequest.Type.CONNECTIVITY.getNumber());
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(NetworkTable.class);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
@@ -71,7 +67,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       createUniqueIndex("Network_Connection", "Session", "Id");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -93,7 +89,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
                       "INSERT OR REPLACE INTO Network_Connection (Session, Id, StartTime, EndTime, ConnectionData, RequestData, ResponseData, RequestBodyData, ResponseBodyData, ThreadsData) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -111,7 +107,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return datas;
   }
@@ -137,7 +133,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return datas;
   }
@@ -165,7 +161,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }
