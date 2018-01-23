@@ -45,7 +45,6 @@ import java.util.*;
 
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
-import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 
 /**
  * Theme selection dialog.
@@ -61,10 +60,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   private static final String MATERIAL_LIGHT_PREFIX = PREFIX_ANDROID + "Theme.Material.Light";
   private static final String MATERIAL_PREFIX = PREFIX_ANDROID + "Theme.Material";
   private static final String LIGHT_PREFIX = PREFIX_ANDROID + "Theme.Light";
-  private static final String ANDROID_THEME = PREFIX_ANDROID + "Theme";
-  private static final String ANDROID_THEME_PREFIX = PREFIX_ANDROID + "Theme.";
-  private static final String PROJECT_THEME = "Theme";
-  private static final String PROJECT_THEME_PREFIX = "Theme.";
   private static final String DIALOG_SUFFIX = ".Dialog";
   private static final String DIALOG_PART = ".Dialog.";
   private static final SimpleTextAttributes SEARCH_HIGHLIGHT_ATTRIBUTES =
@@ -121,18 +116,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
         String style = (String)value;
         String filter = myFilter.getFilter();
-        if (style.startsWith(ANDROID_THEME_PREFIX)) {
-          style = style.substring(ANDROID_THEME_PREFIX.length());
-        }
-        else if (style.startsWith(PROJECT_THEME_PREFIX)) {
-          style = style.substring(PROJECT_THEME_PREFIX.length());
-        }
-        else if (style.startsWith(STYLE_RESOURCE_PREFIX)) {
-          style = style.substring(STYLE_RESOURCE_PREFIX.length());
-        }
-        else if (style.equals(ANDROID_THEME) || style.equals(PROJECT_THEME)) {
-          style = THEME_NAME;
-        }
+        style = ThemeUtils.getPreferredThemeName(style);
 
         if (!filter.isEmpty()) {
           int matchIndex = StringUtil.indexOfIgnoreCase(style, filter, index + 1);

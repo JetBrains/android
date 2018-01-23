@@ -31,10 +31,7 @@ import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.actions.OverrideResourceAction;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.configurations.ResourceResolverCache;
-import com.android.tools.idea.configurations.ThemeSelectionPanel;
+import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -43,6 +40,7 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.res.*;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.utils.ImmutableCollectors;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.*;
@@ -71,6 +69,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
+import kotlin.text.StringsKt;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.resources.Style;
@@ -89,7 +88,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.android.ide.common.res2.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
 
@@ -102,9 +101,9 @@ public class ThemeEditorUtils {
   private static final Cache<String, String> ourTooltipCache =
     CacheBuilder.newBuilder().weakValues().maximumSize(30) // To be able to cache roughly one screen of attributes
       .build();
-  private static final Set<String> DEFAULT_THEMES = ImmutableSet.of("Theme.AppCompat.NoActionBar", "Theme.AppCompat.Light.NoActionBar");
-  private static final Set<String> DEFAULT_THEMES_FALLBACK =
-    ImmutableSet.of("Theme.Material.NoActionBar", "Theme.Material.Light.NoActionBar");
+  private static final ImmutableList<String> DEFAULT_THEMES =
+    ThemeUtils.RECOMMENDED_THEMES.stream().map(theme -> StringsKt.removePrefix(theme, "android:"))
+      .collect(ImmutableCollectors.toImmutableList());
 
   private static final String[] CUSTOM_WIDGETS_JAR_PATHS = {
     // Bundled path
@@ -216,10 +215,9 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  private static ImmutableCollection<ConfiguredThemeEditorStyle> findThemes(@NotNull Collection<ConfiguredThemeEditorStyle> themes,
-                                                                            final @NotNull Set<String> names) {
-    return ImmutableSet.copyOf(
-      themes.stream().filter(theme -> theme != null && names.contains(theme.getName())).collect(Collectors.toList()));
+  private static ImmutableList<ConfiguredThemeEditorStyle> findThemes(@NotNull Collection<ConfiguredThemeEditorStyle> themes,
+                                                                      @NotNull Collection<String> names) {
+    return themes.stream().filter(theme -> theme != null && names.contains(theme.getName())).collect(ImmutableCollectors.toImmutableList());
   }
 
   @NotNull
@@ -239,26 +237,23 @@ public class ThemeEditorUtils {
 
   @NotNull
   public static ImmutableList<String> getDefaultThemeNames(@NotNull ThemeResolver themeResolver) {
-    Collection<ConfiguredThemeEditorStyle> readOnlyLibThemes = themeResolver.getExternalLibraryThemes();
+    ImmutableList<ConfiguredThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
+    ImmutableList<ConfiguredThemeEditorStyle> readOnlyLibThemes = themeResolver.getExternalLibraryThemes();
 
-    Collection<ConfiguredThemeEditorStyle> foundThemes = new HashSet<>();
-    foundThemes.addAll(findThemes(readOnlyLibThemes, DEFAULT_THEMES));
+    ImmutableList<ConfiguredThemeEditorStyle> readOnlyLibAndFrameworkThemes =
+      Stream.concat(readOnlyFrameworkThemes.stream(), readOnlyLibThemes.stream()).collect(ImmutableCollectors.toImmutableList());
 
-    if (foundThemes.isEmpty()) {
-      Collection<ConfiguredThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
-      foundThemes = new HashSet<>();
-      foundThemes.addAll(findThemes(readOnlyFrameworkThemes, DEFAULT_THEMES_FALLBACK));
-
-      if (foundThemes.isEmpty()) {
-        foundThemes.addAll(readOnlyLibThemes);
-        foundThemes.addAll(readOnlyFrameworkThemes);
-      }
+    ImmutableList<ConfiguredThemeEditorStyle> foundThemes = findThemes(readOnlyLibAndFrameworkThemes, DEFAULT_THEMES);
+    if (!foundThemes.isEmpty()) {
+      return foundThemes.stream().map(ConfiguredThemeEditorStyle::getQualifiedName).collect(ImmutableCollectors.toImmutableList());
     }
-    Set<String> temporarySet = Sets.newTreeSet(String.CASE_INSENSITIVE_ORDER);
-    for (ConfiguredThemeEditorStyle theme : foundThemes) {
-      temporarySet.add(theme.getQualifiedName());
+    else {
+      // If cannot find default theme, display all themes with alpha-bet order.
+      return readOnlyLibAndFrameworkThemes.stream()
+        .map(ConfiguredThemeEditorStyle::getQualifiedName)
+        .sorted(String.CASE_INSENSITIVE_ORDER)
+        .collect(ImmutableCollectors.toImmutableList());
     }
-    return ImmutableList.copyOf(temporarySet);
   }
 
   public static int getMinApiLevel(@NotNull Module module) {
