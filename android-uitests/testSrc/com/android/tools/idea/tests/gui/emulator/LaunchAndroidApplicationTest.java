@@ -23,8 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.Brows
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
-import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
@@ -36,13 +34,7 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
-import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
-import static org.fest.swing.core.matcher.JButtonMatcher.withText;
-import static org.fest.swing.finder.WindowFinder.findDialog;
 
 @RunWith(GuiTestRunner.class)
 public class LaunchAndroidApplicationTest {
@@ -323,28 +315,21 @@ public class LaunchAndroidApplicationTest {
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    // Currently, Build Tools 26.0.1 is required for this sample project.
-    // However, in prebuild, Build Tools 26.0.1 is not installed.
-    // Here, we expect a Gradle sync failure.
-    ideFrameFixture.waitForGradleProjectSyncToFail();
+    ideFrameFixture
+      .waitForGradleProjectSyncToFail()
+      .getEditor()
+      .open("Application/build.gradle")
+      .select("buildToolsVersion \"(.*)\"")
+      .enterText("27.0.3")
+      .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    MessagesToolWindowFixture messagesToolWindow = ideFrameFixture.getMessagesToolWindow();
-    MessagesToolWindowFixture.MessageFixture message = messagesToolWindow.getGradleSyncContent()
-      .findMessage(ERROR, firstLineStartingWith("Failed to find Build Tools revision"));
-    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlinkByContainedText("Install Build Tools");
-    hyperlink.clickAndContinue();
-
-    DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
-      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
-    JButtonFixture finish = downloadDialog.button(withText("Finish"));
-    Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
-    finish.click();
+    ideFrameFixture.requestProjectSync();
 
     GuiTests.findAndClickButtonWhenEnabled(
       ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
       "Update");
 
-    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 
