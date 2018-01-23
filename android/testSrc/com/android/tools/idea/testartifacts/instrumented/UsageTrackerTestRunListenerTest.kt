@@ -27,11 +27,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
-import org.junit.Test
+import com.intellij.testFramework.PlatformTestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
-class UsageTrackerTestRunListenerTest {
+class UsageTrackerTestRunListenerTest : PlatformTestCase() {
   private val serial = "my serial"
 
   private fun checkLoggedEvent(instrumentationOutput: String, block: (AndroidStudioEvent) -> Unit) {
@@ -52,8 +52,7 @@ class UsageTrackerTestRunListenerTest {
     block.invoke(tracker.usages.single().studioEvent)
   }
 
-  @Test
-  fun normalRun() {
+  fun testNormalRun() {
     checkLoggedEvent("""
         INSTRUMENTATION_STATUS: numtests=2
         INSTRUMENTATION_STATUS: stream=
@@ -96,6 +95,7 @@ class UsageTrackerTestRunListenerTest {
     ) { event ->
       assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
       assertThat(event.deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(serial))
+      assertThat(event.hasProductDetails()).isTrue()
       assertThat(event.testRun).isEqualTo(TestRun.newBuilder().run {
         numberOfTestsExecuted = 2
         testExecution = TestRun.TestExecution.HOST
@@ -107,8 +107,7 @@ class UsageTrackerTestRunListenerTest {
     }
   }
 
-  @Test
-  fun instrumentationFailed() {
+  fun testInstrumentationFailed() {
     checkLoggedEvent("""
         android.util.AndroidException: INSTRUMENTATION_FAILED: com.example.bendowski.androidplayground.test/android.support.test.runner.AndroidJUnitRunner
                 at com.android.commands.am.Instrument.run(Instrument.java:410)
