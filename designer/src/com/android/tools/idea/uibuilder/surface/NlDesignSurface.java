@@ -478,7 +478,7 @@ public class NlDesignSurface extends DesignSurface {
 
         Project project = getProject();
 
-        if (project.isDisposed()) {
+        if (!project.isOpen()) {
           return;
         }
 
