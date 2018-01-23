@@ -22,6 +22,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.function.Consumer;
 
 public class DataStoreDatabase {
   public enum Characteristic {
@@ -41,6 +42,12 @@ public class DataStoreDatabase {
    */
   @SuppressWarnings("JDBCResourceOpenedButNotSafelyClosed")
   public DataStoreDatabase(@NotNull String dbPath, @NotNull Characteristic characteristic) {
+    this(dbPath, characteristic, (t) -> {});
+  }
+
+  public DataStoreDatabase(@NotNull String dbPath,
+                           @NotNull Characteristic characteristic,
+                           @NotNull Consumer<Throwable> noPiiExceptionHandler) {
     Connection connection = null;
     try {
       // For older versions of the JDBC we need to force load the sqlite.JDBC driver to trigger static initializer's and register
@@ -76,8 +83,14 @@ public class DataStoreDatabase {
       // TODO: Create a timer and commit the database transaction every X seconds.
       connection.setAutoCommit(false);
     }
-    catch (ClassNotFoundException | SQLException e) {
+    catch (ClassNotFoundException e) {
       getLogger().error(e);
+    }
+    catch (SQLException e) {
+      // Report if there was an error opening the database file.
+      // The exception handler converts SQLExceptions to NoPiiExceptions as a result of
+      // b/72102095.
+      noPiiExceptionHandler.accept(e);
     }
     myConnection = connection;
   }

@@ -87,10 +87,6 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     GC_STATS
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(MemoryStatsTable.class);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
@@ -108,7 +104,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
                   "EndTime INTEGER", "Status INTEGER", "InfoData BLOB", "DumpData BLOB", "PRIMARY KEY(Session, StartTime)");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -120,7 +116,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -188,7 +184,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return DumpDataResponse.Status.NOT_FOUND;
   }
@@ -218,7 +214,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }
@@ -258,7 +254,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
 
     return null;
@@ -281,7 +277,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }
@@ -299,7 +295,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }
@@ -338,7 +334,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return builder.build();
   }
@@ -360,7 +356,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       }
     }
     catch (ClassCastException | InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return datas;
   }
