@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.fixture.DialogFixture;
@@ -357,13 +358,25 @@ public class LaunchAndroidApplicationTest {
 
     MessagesToolWindowFixture messagesToolWindow = ideFrameFixture.getMessagesToolWindow();
     MessagesToolWindowFixture.MessageFixture message = messagesToolWindow.getGradleSyncContent()
-      .findMessage(ERROR, firstLineStartingWith("Failed to find Build Tools revision"));
-    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlinkByContainedText("Install Build Tools");
+      .findMessage(ERROR, firstLineStartingWith("Failed to find"));
+    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlinkByContainedText("Install");
     hyperlink.clickAndContinue();
 
     DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
+    Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
+    finish.click();
+
+    ideFrameFixture.waitForGradleProjectSyncToFail();
+
+    BuildToolWindowFixture buildToolWindow = ideFrameFixture.getBuildToolWindow();
+    ConsoleViewImpl consoleView = buildToolWindow.getGradleSyncConsoleView();
+    buildToolWindow.findHyperlinkByTextAndClick(consoleView, "Install Build Tools");
+
+    downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
+      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
+    finish = downloadDialog.button(withText("Finish"));
     Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
 
