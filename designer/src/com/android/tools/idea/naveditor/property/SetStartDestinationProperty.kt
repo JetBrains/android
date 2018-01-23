@@ -19,6 +19,7 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.model.isStartDestination
+import com.android.tools.idea.naveditor.model.startDestination
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -33,7 +34,7 @@ class SetStartDestinationProperty(components: List<NlComponent>) : SimplePropert
 
   override fun setValue(value: Any?) {
     WriteCommandAction.runWriteCommandAction(components[0].model.project) {
-      components[0].parent?.setAttribute(AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/" + components[0].id)
+      components[0].parent?.startDestination = components[0].id
     }
     components[0].model.notifyModified(NlModel.ChangeType.EDIT)
   }

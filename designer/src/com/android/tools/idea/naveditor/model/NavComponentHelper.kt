@@ -105,7 +105,7 @@ val NlComponent.includeFileName: String?
 
 val NlComponent.isStartDestination: Boolean
   get() {
-    val actualStart = NlComponent.stripId(parent?.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
+    val actualStart = parent?.startDestination
     return actualStart != null && actualStart == id
   }
 
@@ -157,6 +157,8 @@ var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSch
 var NlComponent.document: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_DOCUMENT)
 var NlComponent.clearTask: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_CLEAR_TASK)
 
+var NlComponent.startDestination: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_START_DESTINATION)
+
 val NlComponent.actionDestination: NlComponent?
   get() {
     assert(isAction)
@@ -171,13 +173,32 @@ val NlComponent.actionDestination: NlComponent?
   }
 
 fun NlComponent.createAction(destinationId: String? = null): NlComponent {
-  val newTag = tag.createChildTag(NavigationSchema.TAG_ACTION, null, null, false)
-  val newAction = model.createComponent(newTag, this, null)
-  newAction.ensureId()
+  val newAction = createChild(NavigationSchema.TAG_ACTION)
   newAction.actionDestinationId = destinationId
   return newAction
 }
 
+fun NlComponent.createSelfAction(): NlComponent {
+  return createAction(id)
+}
+
+fun NlComponent.createReturnToSourceAction(): NlComponent {
+  val newAction = createAction()
+  newAction.popUpTo = id
+  newAction.inclusive = true
+  return newAction
+}
+
+fun NlComponent.setAsStartDestination() {
+  parent?.startDestination = id
+}
+
+private fun NlComponent.createChild(tagName: String): NlComponent {
+  val newTag = tag.createChildTag(tagName, null, null, false)
+  val child = model.createComponent(newTag, this, null)
+  child.ensureId()
+  return child
+}
 
 /**
  * If the action has a destination attribute set, return it.
