@@ -146,7 +146,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   }
 
   @Override
-  public void prepareRenaming(PsiElement element, String newName, Map<PsiElement, String> allRenames) {
+  public void prepareRenaming(@NotNull PsiElement element, @NotNull String newName, @NotNull Map<PsiElement, String> allRenames) {
     final PsiElement element1 = LazyValueResourceElementWrapper.computeLazyElement(element);
     if (element1 == null) {
       return;
@@ -477,7 +477,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   }
 
   @Override
-  public void renameElement(PsiElement element, final String newName, UsageInfo[] usages, @Nullable RefactoringElementListener listener)
+  public void renameElement(@NotNull PsiElement element, @NotNull final String newName, @NotNull UsageInfo[] usages, @Nullable RefactoringElementListener listener)
     throws IncorrectOperationException {
     if (element instanceof PsiField) {
       new RenameJavaVariableProcessor().renameElement(element, newName, usages, listener);
@@ -501,7 +501,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   }
 
   @Override
-  public void findExistingNameConflicts(final PsiElement originalElement, String newName, final MultiMap<PsiElement,String> conflicts) {
+  public void findExistingNameConflicts(@NotNull final PsiElement originalElement, @NotNull String newName, @NotNull final MultiMap<PsiElement,String> conflicts) {
     ResourceType type = getResourceType(originalElement);
     if (type == null) {
       return;
