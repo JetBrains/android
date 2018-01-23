@@ -283,7 +283,6 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           }
         });
       }
-      assertThat(tabLabel.isShowing()).isTrue();
       myRobot.click(tabLabel);
       return waitUntilShowing(myRobot, Matchers.byType(tabContentType));
     }

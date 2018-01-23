@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.Robot;
@@ -25,7 +26,6 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.TreeNode;
 import java.util.List;
@@ -88,15 +88,18 @@ public class DebuggerTestBase {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
 
-    Wait.seconds(5).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
+    Ref<XDebuggerTreeNode> debuggerTreeRoot = new Ref<>();
+    Wait.seconds(5).expecting("debugger tree to appear").until(() -> {
+      XDebuggerTreeNode root = contentFixture.getDebuggerTreeRoot();
+      if (root != null) {
+        debuggerTreeRoot.set(root);
+        return true;
+      } else {
+        return false;
+      }
+    });
 
-    // Get the debugger tree and print it.
-    XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();
-    if (debuggerTreeRoot == null) {
-      return false;
-    }
-
-    List<String> unmatchedPatterns = getUnmatchedTerminalVariableValues(expectedVariablePatterns, debuggerTreeRoot);
+    List<String> unmatchedPatterns = getUnmatchedTerminalVariableValues(expectedVariablePatterns, debuggerTreeRoot.get());
     return unmatchedPatterns.isEmpty();
   }
 
