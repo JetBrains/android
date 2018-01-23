@@ -17,6 +17,7 @@ package com.android.tools.datastore;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
@@ -40,7 +41,7 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
 /**
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
-public class DataStoreService {
+public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallback {
   /**
    * DB report timings are set to occur relatively infrequently, as they include a fair amount of
    * data (~100 bytes). Ideally, we would just send a single reporting event, when the user stopped
@@ -88,6 +89,9 @@ public class DataStoreService {
   private final Server myServer;
   private final List<ServicePassThrough> myServices = new ArrayList<>();
   private final Consumer<Runnable> myFetchExecutor;
+  @NotNull
+  private Consumer<Throwable> myNoPiiExceptionHanlder;
+
   private ProfilerService myProfilerService;
   private final ServerInterceptor myInterceptor;
   private final Map<DeviceId, DataStoreClient> myConnectedClients = new HashMap<>();
@@ -99,7 +103,9 @@ public class DataStoreService {
    *                      The runnable, when run, begins polling the target service. You probably
    *                      want to run it on a background thread.
    */
-  public DataStoreService(@NotNull String serviceName, @NotNull String datastoreDirectory, Consumer<Runnable> fetchExecutor) {
+  public DataStoreService(@NotNull String serviceName,
+                          @NotNull String datastoreDirectory,
+                          @NotNull Consumer<Runnable> fetchExecutor) {
     this(serviceName, datastoreDirectory, fetchExecutor, null);
   }
 
@@ -111,6 +117,7 @@ public class DataStoreService {
     myInterceptor = interceptor;
     myDatastoreDirectory = datastoreDirectory;
     myServerBuilder = InProcessServerBuilder.forName(serviceName).directExecutor();
+    myNoPiiExceptionHanlder = (t) -> getLogger().error(t);
     createPollers();
     myServer = myServerBuilder.build();
     try {
@@ -122,6 +129,11 @@ public class DataStoreService {
 
     myReportTimer = new Timer("DataStoreReportTimer");
     myReportTimer.schedule(new ReportTimerTask(), REPORT_INITIAL_DELAY, REPORT_PERIOD);
+    DataStoreTable.addDataStoreErrorCallback(this);
+  }
+
+  public void setNoPiiExceptionHanlder(@NotNull Consumer<Throwable> noPiiExceptionHanlder) {
+    myNoPiiExceptionHanlder = noPiiExceptionHanlder;
   }
 
   /**
@@ -140,8 +152,10 @@ public class DataStoreService {
 
   @VisibleForTesting
   @NotNull
-  DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic) {
-    return new DataStoreDatabase(dbPath, characteristic);
+  DataStoreDatabase createDatabase(@NotNull String dbPath,
+                                   @NotNull DataStoreDatabase.Characteristic characteristic,
+                                   Consumer<Throwable> noPiiExceptionHandler) {
+    return new DataStoreDatabase(dbPath, characteristic, noPiiExceptionHandler);
   }
 
   /**
@@ -156,7 +170,7 @@ public class DataStoreService {
     namespaces.forEach(namespace -> {
       assert !namespace.myNamespace.isEmpty();
       DataStoreDatabase db = myDatabases.computeIfAbsent(namespace, backingNamespace -> createDatabase(
-        myDatastoreDirectory + backingNamespace.myNamespace, backingNamespace.myCharacteristic));
+        myDatastoreDirectory + backingNamespace.myNamespace, backingNamespace.myCharacteristic, myNoPiiExceptionHanlder));
       service.setBackingStore(namespace, db.getConnection());
     });
 
@@ -197,6 +211,7 @@ public class DataStoreService {
     }
     myConnectedClients.clear();
     myDatabases.forEach((name, db) -> db.disconnect());
+    DataStoreTable.removeDataStoreErrorCallback(this);
   }
 
   @VisibleForTesting
@@ -228,6 +243,11 @@ public class DataStoreService {
 
   public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(@NotNull DeviceId deviceId) {
     return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getProfilerClient() : null;
+  }
+
+  @Override
+  public void onDataStoreError(Throwable t) {
+    myNoPiiExceptionHanlder.accept(t);
   }
 
   /**

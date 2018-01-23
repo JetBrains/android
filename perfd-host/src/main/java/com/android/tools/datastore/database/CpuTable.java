@@ -49,10 +49,6 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     INSERT_TRACE_INFO,
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(CpuTable.class);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
@@ -82,7 +78,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       createUniqueIndex("Thread_Activities", "Session", "ThreadId", "Timestamp");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -117,7 +113,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                       "WHERE Session = ? AND Timestamp > ? AND Timestamp <= ?;");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -138,7 +134,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return cpuData;
   }
@@ -196,7 +192,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
 
     // Add all threads that should be included in the response.
@@ -223,7 +219,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       }
     }
     catch (SQLException | InvalidProtocolBufferException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
 
     return traceInfo;
@@ -242,7 +238,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }

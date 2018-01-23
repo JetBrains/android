@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.diagnostics.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
@@ -276,4 +277,8 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     AndroidNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR);
   }
 
+  @Override
+  public void reportNoPiiException(@NotNull Throwable ex) {
+    getLogger().error(new NoPiiException(ex));
+  }
 }

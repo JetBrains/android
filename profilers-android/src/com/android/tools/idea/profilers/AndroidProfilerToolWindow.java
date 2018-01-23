@@ -51,6 +51,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
     myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
     myLayeredPane = new ProfilerLayeredPane();
+    service.getDataStoreService().setNoPiiExceptionHanlder(myProfilers.getIdeServices()::reportNoPiiException);
     initializeUi();
 
     myProfilers.addDependency(this)
