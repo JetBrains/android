@@ -35,6 +35,7 @@ public class CreateResourceTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/37105406
   @Test
   public void testLibraryPrefix() throws IOException {
     // Tests creating a new resource in a library project with a predefined library prefix,
