@@ -170,7 +170,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       // Erase the part of the line that the text overlays
       g2d.setColor(JBColor.background());
       int widthStringWidth = metrics.stringWidth(widthString);
-      int widthTextX = round(PADDING + (screenSize.width - widthStringWidth) / 2);
+      int widthTextX = round(PADDING + (screenSize.width - widthStringWidth) / 2.0);
       g2d.drawLine(widthTextX - FIGURE_PADDING, widthLineY, widthTextX + widthStringWidth + FIGURE_PADDING, widthLineY);
 
 
@@ -186,7 +186,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
       // Erase the part of the line that the text overlays
       g2d.setColor(JBColor.background());
-      int heightTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2);
+      int heightTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2.0);
       g2d.drawLine(heightLineX, heightTextY + FIGURE_PADDING, heightLineX, heightTextY - stringHeight - FIGURE_PADDING);
 
       // Paint the height text
@@ -196,8 +196,8 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       // Paint the diagonal dimension
       g2d.setColor(OUR_GRAY);
       String diagString = FORMAT.format(myDeviceData.diagonalScreenSize().get());
-      int diagTextX = round(PADDING + (screenSize.width - metrics.stringWidth(diagString)) / 2);
-      int diagTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2);
+      int diagTextX = round(PADDING + (screenSize.width - metrics.stringWidth(diagString)) / 2.0);
+      int diagTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2.0);
 
       double chin = (double)myDeviceData.screenChinSize().get();
       chin *= screenSize.getWidth() / myDeviceData.getDeviceScreenDimension().getWidth();
@@ -230,12 +230,12 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         Ellipse2D circle = new Ellipse2D.Double(x, y, screenSize.width, screenSize.height + chin);
         g2d.draw(circle);
         if (chin > 0) {
-          erasureRect = new Rectangle((int)x, (int)(y + screenSize.height + OUTLINE_LINE_WIDTH / 2 + 1), screenSize.width,
+          erasureRect = new Rectangle((int)x, (int)(y + screenSize.height + OUTLINE_LINE_WIDTH / 2.0 + 1), screenSize.width,
                                       (int)chin + OUTLINE_LINE_WIDTH / 2 + 1);
           g2d.setColor(JBColor.background());
           g2d.fill(erasureRect);
           g2d.setColor(JBColor.foreground());
-          double halfChinWidth = Math.sqrt(chin * (screenSize.width - chin)) - OUTLINE_LINE_WIDTH / 2;
+          double halfChinWidth = Math.sqrt(chin * (screenSize.width - chin)) - OUTLINE_LINE_WIDTH / 2.0;
           int chinX = (int)(x + screenSize.width / 2 - halfChinWidth);
           g2d.drawLine(chinX, (int)(y + screenSize.height), (int)(chinX + halfChinWidth * 2), (int)(y + screenSize.height));
         }
@@ -273,7 +273,8 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       Density pixelDensity = myDeviceData.density().get();
       if (pixelDensity == Density.NODPI) {
         // We need to calculate the density
-        pixelDensity = AvdScreenData.getScreenDensity(myDeviceData.isTv().get(),
+        pixelDensity = AvdScreenData.getScreenDensity(myDeviceData.deviceId().get(),
+                                                      myDeviceData.isTv().get(),
                                                       myDeviceData.screenDpi().get(),
                                                       myDeviceData.screenResolutionHeight().get());
       }
