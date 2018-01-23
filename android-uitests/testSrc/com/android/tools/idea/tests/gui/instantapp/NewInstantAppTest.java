@@ -17,7 +17,10 @@ package com.android.tools.idea.tests.gui.instantapp;
 
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -49,7 +52,6 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRunner.class)
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
 
   @Before
   public void before() {
