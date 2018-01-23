@@ -210,9 +210,8 @@ public class ProfilerTimelineTest {
     ProfilerTimeline timeline = new ProfilerTimeline();
     assertFalse(timeline.isStreaming());
     Range dataRange = timeline.getDataRange();
-    Range viewRange = timeline.getViewRange();
     long deviceStartTimeNs = 20;
-    timeline.reset(deviceStartTimeNs, 0);
+    timeline.reset(deviceStartTimeNs);
 
     // Timeline should be streaming after reset
     assertTrue(timeline.isStreaming());
@@ -233,16 +232,6 @@ public class ProfilerTimelineTest {
     assertEquals(TimeUnit.SECONDS.toMicros(1),
                  dataRange.getMax(),
                  0);
-
-    timeline.reset(0, TimeUnit.SECONDS.toNanos(1));
-    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
-    assertEquals(ProfilerTimeline.DEFAULT_VIEW_LENGTH_US, viewRange.getLength(), 0);
-
-    timeline.update(TimeUnit.SECONDS.toNanos(1));
-    assertEquals(dataRange.getMax(), viewRange.getMax(), dataRange.getMax() * .05f);
-    assertEquals(ProfilerTimeline.DEFAULT_VIEW_LENGTH_US, viewRange.getLength(), 0);
-    //Validate that our max is equal to our initial of DEFAULT_VIEW_LENGTH + 1 second initial + 1 second update.
-    assertEquals(TimeUnit.SECONDS.toMicros(2), dataRange.getMax(), 0);
   }
 
   @Test
@@ -255,7 +244,7 @@ public class ProfilerTimelineTest {
   public void testTimeConversionWithOffset() {
     final long OFFSET = 5000;
     ProfilerTimeline timeline = new ProfilerTimeline();
-    timeline.reset(OFFSET, 0);
+    timeline.reset(OFFSET);
     assertEquals(OFFSET, timeline.getDataStartTimeNs());
     assertEquals(0, timeline.convertToRelativeTimeUs(5000));
     assertEquals(6, timeline.convertToRelativeTimeUs(11000));
