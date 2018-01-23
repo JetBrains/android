@@ -427,6 +427,15 @@ public class StudioIcons {
     public static final Icon WRAP_TEXT = load("/studio/icons/logcat/toolbar/wrap-text.png"); // 16x16
   }
 
+  public static class Menu {
+    public static final Icon CAST = load("/studio/icons/menu/cast.png"); // 16x16
+    public static final Icon GROUP = load("/studio/icons/menu/group.png"); // 16x16
+    public static final Icon ITEM = load("/studio/icons/menu/item.png"); // 16x16
+    public static final Icon MENU = load("/studio/icons/menu/menu.png"); // 16x16
+    public static final Icon SEARCH = load("/studio/icons/menu/search.png"); // 16x16
+    public static final Icon SWITCH = load("/studio/icons/menu/switch.png"); // 16x16
+  }
+
   public static class NavEditor {
     public static class ExistingDestinations {
       public static final Icon ACTIVITY = load("/studio/icons/nav-editor/existing-destinations/activity.png"); // 146x188
@@ -437,6 +446,7 @@ public class StudioIcons {
     public static class Properties {
       public static final Icon ACTION = load("/studio/icons/nav-editor/properties/action.png"); // 16x16
       public static final Icon GLOBAL_ACTION = load("/studio/icons/nav-editor/properties/global-action.png"); // 16x16
+      public static final Icon SOURCE = load("/studio/icons/nav-editor/properties/source.png"); // 16x16
     }
 
     public static class Surface {
