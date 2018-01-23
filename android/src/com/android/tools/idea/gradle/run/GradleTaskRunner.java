@@ -18,12 +18,13 @@ package com.android.tools.idea.gradle.run;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.Semaphore;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +51,8 @@ public interface GradleTaskRunner {
   }
 
   class DefaultGradleTaskRunner implements GradleTaskRunner {
-    @NotNull final Project myProject;
-    @NotNull final AtomicReference<Object> model = new AtomicReference<>();
+    private Project myProject;
+    @NotNull private final AtomicReference<Object> model = new AtomicReference<>();
 
     @Nullable final BuildAction myBuildAction;
 
@@ -62,11 +63,16 @@ public interface GradleTaskRunner {
     DefaultGradleTaskRunner(@NotNull Project project, @Nullable BuildAction buildAction) {
       myProject = project;
       myBuildAction = buildAction;
+      Disposer.register(myProject, new Disposable() {
+        @Override
+        public void dispose() {
+          myProject = null;
+        }
+      });
     }
 
     @Override
-    public boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
-      throws InvocationTargetException, InterruptedException {
+    public boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments) {
       assert !ApplicationManager.getApplication().isDispatchThread();
 
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);

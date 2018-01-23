@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.mock;
@@ -77,21 +78,15 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = new GradleTaskRunner.DefaultGradleTaskRunner(getProject(), new TestBuildAction());
 
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    ForkJoinPool.commonPool().execute(() -> {
-      try {
-        ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-        tasks.put(new File(getProject().getBasePath()).toPath(), "assembleDebug");
-        runner.run(tasks, BuildMode.ASSEMBLE, Collections.emptyList());
-        countDownLatch.countDown();
-      }
-      catch (InvocationTargetException | InterruptedException e) {
-        e.printStackTrace();
-      }
+    ForkJoinTask<Void> task = ForkJoinPool.commonPool().submit(() -> {
+      ListMultimap<Path, String> tasks = ArrayListMultimap.create();
+      tasks.put(new File(getProject().getBasePath()).toPath(), "assembleDebug");
+      runner.run(tasks, BuildMode.ASSEMBLE, Collections.emptyList());
+      return null;
     });
     UIUtil.dispatchAllInvocationEvents();
 
-    countDownLatch.await(1, TimeUnit.MINUTES);
+    task.get(2, TimeUnit.MINUTES);
     assertEquals("test", runner.getModel());
   }
 
