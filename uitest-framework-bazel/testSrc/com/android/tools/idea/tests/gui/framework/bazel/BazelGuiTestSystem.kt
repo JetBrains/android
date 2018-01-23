@@ -19,11 +19,11 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.bazel.fixture.ImportBazelProjectWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem
 import com.android.tools.idea.tests.gui.framework.guitestsystem.RunWithBuildSystem
 import com.google.common.io.Files
-import com.google.idea.blaze.base.settings.BlazeUserSettings
 import com.intellij.openapi.util.SystemInfo
 import org.fest.swing.core.Robot
 import java.io.File
@@ -62,9 +62,11 @@ android_sdk_repository(
   }
 
   override fun importProject(targetTestDirectory: File, robot: Robot) {
-    // Explicitly set bazel binary path before importing a project
-    // to make sure the steps are consistent.
-    BlazeUserSettings.getInstance().bazelBinaryPath = getBazelBinaryPath()
+    WelcomeFrameFixture.find(robot)
+      .openSettings()
+      .selectBazelSettings()
+      .setBazelBinaryPathField(getBazelBinaryPath())
+      .clickOK()
 
     openBazelImportWizard(robot)
         .setWorkspacePath(targetTestDirectory.path)

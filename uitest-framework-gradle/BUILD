@@ -23,6 +23,5 @@ iml_module(
         "//tools/idea/platform/platform-impl[module, test]",
         "//tools/adt/idea/android[module, test]",
         "//tools:fest-swing[module, test]",
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar",
     ],
 )
