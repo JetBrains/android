@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
-import com.android.tools.idea.gradle.structure.configurables.*
+import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
+import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
+import com.android.tools.idea.gradle.structure.configurables.createConfigurablesTree
+import com.android.tools.idea.gradle.structure.configurables.listFromGenerator
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.ui.NamedConfigurable
@@ -31,6 +34,13 @@ class SigningConfigsTreeModel(
     val configurable = SigningConfigConfigurable(signingConfig)
     val node = createNode(rootNode, configurable)
     return configurable to node
+  }
+
+  fun removeSigningConfig(node: DefaultMutableTreeNode) {
+    val signingConfigConfigurable = node.userObject as SigningConfigConfigurable
+    val signingConfig = signingConfigConfigurable.model
+    module.removeSigningConfig(signingConfig)
+    removeNodeFromParent(node)
   }
 }
 
