@@ -514,7 +514,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       metadata.setFromTree("javax_imageio_png_1.0", node);
 
       pngWriter.write(new IIOImage(image, null, metadata));
-    } else {
+    }
+    else {
       pngWriter.write(image);
     }
     pngWriter.dispose();
@@ -524,6 +525,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private static byte[] deflate(byte[] data) {
+    @SuppressWarnings("resource")
     ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
 
     Deflater deflater = new Deflater();
@@ -544,7 +546,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     Iterator<ImageWriter> iterator = ImageIO.getImageWriters(type, format);
     if (iterator.hasNext()) {
       return iterator.next();
-    } else {
+    }
+    else {
       return null;
     }
   }
@@ -604,7 +607,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
 
     @Override
-    public Object getTransferData(DataFlavor dataFlavor) throws UnsupportedFlavorException, IOException {
+    public Object getTransferData(DataFlavor dataFlavor) throws UnsupportedFlavorException {
       if (!DataFlavor.imageFlavor.equals(dataFlavor)) {
         throw new UnsupportedFlavorException(dataFlavor);
       }
