@@ -725,6 +725,7 @@ class NavSceneTest : NavTestCase() {
         fragment("fragment1")
         fragment("fragment2") {
           action("action8", destination = "fragment3")
+          action("action9", destination = "fragment2")
         }
         fragment("fragment3")
       }
@@ -748,6 +749,8 @@ class NavSceneTest : NavTestCase() {
         "DrawTruncatedText,3,Preview Unavailable,611x401x74x126,ffa7a7a7,Default:0:9,true\n" +
         "DrawAction,NORMAL,610x400x76x128,400x400x76x128,NORMAL\n" +
         "DrawArrow,2,RIGHT,390x461x5x6,b2a7a7a7\n" +
+        "DrawAction,SELF,610x400x76x128,610x400x76x128,NORMAL\n" +
+        "DrawArrow,2,UP,667x533x6x5,b2a7a7a7\n" +
         "DrawTruncatedText,3,fragment2,610x390x76x5,ff656565,Default:0:9,false\n" +
         "DrawLine,2,597x455,601x455,b2a7a7a7,3:0:1\n" +
         "DrawArrow,2,RIGHT,601x452x5x6,b2a7a7a7\n" +
