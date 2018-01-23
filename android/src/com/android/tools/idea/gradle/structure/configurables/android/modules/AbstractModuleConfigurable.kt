@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.ui.PanelWithUiState
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.intellij.openapi.Disposable
@@ -36,6 +37,7 @@ abstract class AbstractModuleConfigurable<out PanelT>(
     module: PsAndroidModule
 ) : BaseNamedConfigurable<PsModule>(module)
     where PanelT : JComponent,
+          PanelT : PanelWithUiState,
           PanelT : Disposable,
           PanelT : Place.Navigator {
 
@@ -47,6 +49,7 @@ abstract class AbstractModuleConfigurable<out PanelT>(
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = modulePanel.navigateTo(place, requestFocus)
   override fun queryPlace(place: Place) = modulePanel.queryPlace(place)
   override fun createOptionsPanel(): JComponent = modulePanel
+  override fun restoreUiState() = modulePanel.restoreUiState()
 
   override fun setHistory(history: History?) {
     super.setHistory(history)
@@ -63,3 +66,4 @@ abstract class AbstractModuleConfigurable<out PanelT>(
     }
   }
 }
+

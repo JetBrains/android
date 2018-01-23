@@ -18,6 +18,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.buildvarian
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorsTreeModel
 
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractTabbedMainPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypesPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorsPanel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -30,12 +31,17 @@ class BuildVariantsPanel(
 ) : AbstractTabbedMainPanel(
     context, placeName = "android.psd.myPanel"
 ) {
-
   private val buildTypesPanel = BuildTypesPanel(buildTypesTreeModel)
   private val productFlavorsPanel = ProductFlavorsPanel(productFlavorsTreeModel)
 
   init {
     addTab(buildTypesPanel)
     addTab(productFlavorsPanel)
+  }
+
+  override fun PsUISettings.getLastSelectedTab(): String? = BUILD_VARIANTS_TAB
+
+  override fun PsUISettings.setLastSelectedTab(value: String) {
+    BUILD_VARIANTS_TAB = value
   }
 }
