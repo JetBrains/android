@@ -556,7 +556,8 @@ public final class AvdOptionsModel extends WizardModel {
   @NotNull
   private static Storage calculateInitialVmHeap(@NotNull AvdDeviceData deviceData) {
     ScreenSize size = AvdScreenData.getScreenSize(deviceData.diagonalScreenSize().get());
-    Density density = AvdScreenData.getScreenDensity(deviceData.isTv().get(),
+    Density density = AvdScreenData.getScreenDensity(deviceData.deviceId().get(),
+                                                     deviceData.isTv().get(),
                                                      deviceData.screenDpi().get(),
                                                      deviceData.screenResolutionHeight().get());
     int vmHeapSize = 32;

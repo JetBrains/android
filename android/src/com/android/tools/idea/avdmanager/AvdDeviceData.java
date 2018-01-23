@@ -43,6 +43,7 @@ public final class AvdDeviceData {
   private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<IdDisplay>();
   private StringProperty myManufacturer = new StringValueProperty();
   private StringProperty myTagId = new StringValueProperty();
+  private StringProperty myDeviceId = new StringValueProperty();
 
   private DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
   private IntProperty myScreenResolutionWidth = new IntValueProperty();
@@ -160,6 +161,11 @@ public final class AvdDeviceData {
   @NotNull
   public StringProperty tagId() {
     return myTagId;
+  }
+
+  @NotNull
+  public StringProperty deviceId() {
+    return myDeviceId;
   }
 
   @NotNull
@@ -361,6 +367,7 @@ public final class AvdDeviceData {
         }
       }
     }
+    myDeviceId.set(device.getId());
     Hardware defaultHardware = device.getDefaultHardware();
     Screen screen = defaultHardware.getScreen();
 
