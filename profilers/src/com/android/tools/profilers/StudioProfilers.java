@@ -351,11 +351,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           myProcess.getState() == Common.Process.State.ALIVE) {
         // Starts a new session.
         beginSession();
-
-        TimeResponse response =
-          myClient.getProfilerClient().getCurrentTime(TimeRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).build());
-        long sessionRunTime = response.getTimestampNs() - mySessionData.getStartTimestamp();
-        myTimeline.reset(mySessionData.getStartTimestamp(), sessionRunTime);
+        myTimeline.reset(mySessionData.getStartTimestamp());
 
         // Attach agent for advanced profiling if JVMTI is enabled and not yet attached.
         if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&

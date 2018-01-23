@@ -214,18 +214,14 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
    * This function resets the internal state to the timeline.
    *
    * @param startTimeNs the time which should be the 0 value on the timeline.
-   * @param lengthNs    the initial length of the timeline. This accounts for the time delay between when a session starts and the device's
-   *                    current time when the timeline is reset.
    */
-  public void reset(long startTimeNs, long lengthNs) {
+  public void reset(long startTimeNs) {
     myDataStartTimeNs = startTimeNs;
-    myDataLengthNs = lengthNs;
+    myDataLengthNs = 0;
     myIsPaused = false;
     double startTimeUs = TimeUnit.NANOSECONDS.toMicros(myDataStartTimeNs);
-    long deviceNowNs = myDataStartTimeNs + myDataLengthNs;
-    long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-    myDataRangeUs.set(startTimeUs, deviceNowUs);
-    myViewRangeUs.set(deviceNowUs - DEFAULT_VIEW_LENGTH_US, deviceNowUs);
+    myDataRangeUs.set(startTimeUs, startTimeUs);
+    myViewRangeUs.set(startTimeUs - DEFAULT_VIEW_LENGTH_US, startTimeUs);
     setStreaming(true);
   }
 
