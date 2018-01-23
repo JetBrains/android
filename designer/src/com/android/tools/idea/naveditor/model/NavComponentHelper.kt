@@ -119,8 +119,8 @@ val NlComponent.isAction: Boolean
 val NlComponent.isNavigation: Boolean
   get() = destinationType == NavigationSchema.DestinationType.NAVIGATION
 
-val NlComponent.isRegularAction: Boolean
-  get() = actionType == ActionType.REGULAR
+val NlComponent.isSelfAction: Boolean
+  get() = actionType == ActionType.SELF
 
 val NlComponent.actionType: ActionType
   get() {

@@ -383,7 +383,9 @@ public class NavSceneManager extends SceneManager {
           String destinationId = NavComponentHelperKt.getEffectiveDestinationId(action);
           if (children.contains(destinationId)) {
             connectedActionSources.add(component.getId());
-            connectedActionDestinations.add(destinationId);
+            if (!NavComponentHelperKt.isSelfAction(action)) {
+              connectedActionDestinations.add(destinationId);
+            }
           }
         });
     }
