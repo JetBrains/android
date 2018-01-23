@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -27,8 +31,10 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Ordering;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.google.wireless.android.sdk.stats.KotlinSupport;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
@@ -47,6 +53,7 @@ import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
@@ -309,7 +316,9 @@ public class GradleSyncState {
     GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
     String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
 
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_ENDED).setGradleVersion(gradleVersionString);
+    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_ENDED)
+      .setGradleVersion(gradleVersionString)
+      .setKotlinSupport(generateKotlinSupportProto());
     UsageTracker.getInstance().log(event);
 
     syncFinished(syncEndTimestamp);
@@ -476,6 +485,53 @@ public class GradleSyncState {
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return event;
   }
+
+  @NotNull
+  private KotlinSupport.Builder generateKotlinSupportProto() {
+
+    Ordering<GradleVersion> ordering = Ordering.natural().nullsFirst();
+    GradleVersion kotlinVersion = null;
+    GradleVersion ktxVersion = null;
+
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidModuleModel model = AndroidModuleModel.get(module);
+      if (model == null) {
+        continue;
+      }
+
+      IdeDependencies dependencies = model.getSelectedMainCompileLevel2Dependencies();
+
+      kotlinVersion = ordering.max(kotlinVersion, findVersion("org.jetbrains.kotlin:kotlin-stdlib", dependencies.getJavaLibraries()));
+      ktxVersion = ordering.max(ktxVersion, findVersion("androidx.core:core-ktx", dependencies.getAndroidLibraries()));
+    }
+
+    KotlinSupport.Builder result = KotlinSupport.newBuilder();
+    if (kotlinVersion != null) {
+      result.setKotlinSupportVersion(kotlinVersion.toString());
+    }
+    if (ktxVersion != null) {
+      result.setAndroidKtxVersion(ktxVersion.toString());
+    }
+    return result;
+  }
+
+  @Nullable
+  private static GradleVersion findVersion(@NotNull String artifact, @NotNull Iterable<Library> libraries) {
+    for (Library library : libraries) {
+      String coordinateString = library.getArtifactAddress();
+      if (coordinateString.startsWith(artifact)) {
+        GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateString);
+        if (coordinate == null) {
+          return null;
+        }
+
+        return coordinate.getVersion();
+      }
+    }
+
+    return null;
+  }
+
 
   @VisibleForTesting
   long getSyncTotalTimeMs() {

@@ -60,6 +60,10 @@ iml_module(
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/idea/platform/smRunner[module, test]",
         "//tools/idea/.idea/libraries:truth",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/analytics-library/testing:analytics-testing[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/analytics-library/protos:analytics-protos[module, test]",
     ],
 )
 
