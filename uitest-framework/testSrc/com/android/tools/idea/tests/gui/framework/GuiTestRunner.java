@@ -67,7 +67,6 @@ public class GuiTestRunner extends Suite {
 
     // If number of @Test methods is greater than number of @RunWithBuildSystem methods, then there are unannotated tests.
     if (getTestClass().getAnnotatedMethods(Test.class).size() > getTestClass().getAnnotatedMethods(RunWithBuildSystem.class).size()) {
-      System.out.println("Detected tests without specific annotation.  Adding defaults.");
       neededBuildSystems.addAll(getDefaultBuildSystems());
     }
 
