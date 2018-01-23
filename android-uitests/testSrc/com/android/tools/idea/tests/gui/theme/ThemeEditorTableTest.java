@@ -64,18 +64,21 @@ public class ThemeEditorTableTest {
     // The expected elements are:
     // 0. Holo Light
     // 1. -- Separator
-    // 2. AppCompat Light
-    // 3. AppCompat
-    // 4. -- Separator
-    // 5. Show all themes
-    assertThat(parentsList).hasSize(6);
+    // 2. Material Light
+    // 3. Material
+    // 4. AppCompat Light
+    // 5. AppCompat
+    // 6. -- Separator
+    // 7. Show all themes
+    assertThat(parentsList).hasSize(8);
     assertThat(parentsList.get(0)).isEqualTo("android:Theme.Holo.Light.DarkActionBar");
-    assertThat(parentsList.get(2)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
-    assertThat(parentsList.get(3)).isEqualTo("Theme.AppCompat.NoActionBar");
-    assertThat(parentsList.get(5)).isEqualTo("Show all themes");
-
     assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
-    assertThat(parentsList.get(4)).startsWith("javax.swing.JSeparator");
+    assertThat(parentsList.get(2)).isEqualTo("android:Theme.Material.Light.NoActionBar");
+    assertThat(parentsList.get(3)).isEqualTo("android:Theme.Material.NoActionBar");
+    assertThat(parentsList.get(4)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(parentsList.get(5)).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(parentsList.get(6)).startsWith("javax.swing.JSeparator");
+    assertThat(parentsList.get(7)).isEqualTo("Show all themes");
 
     JTableCellFixture parentCellFixture = themeEditorTable.cell(parentCell);
     parentCellFixture.requireEditable();
@@ -85,7 +88,7 @@ public class ThemeEditorTableTest {
     parentCellFixture.startEditing();
     JComboBoxFixture parentComboBox = new JComboBoxFixture(guiTest.robot(), guiTest
       .robot().finder().findByType((JComponent)parentEditor, JComboBox.class));
-    parentComboBox.selectItem(4);
+    parentComboBox.selectItem(6);
     parentCellFixture.stopEditing();
     assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
