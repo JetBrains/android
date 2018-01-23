@@ -46,6 +46,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -146,6 +147,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private JPanel myLeftPanel;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myRightPanel;
+  private JBScrollPane myScrollPane;
 
   public NewVectorAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Vector Asset");
@@ -220,7 +222,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       });
 
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
-      myValidatorPanel.registerValidator(myAssetValidityState, validity -> validity);
+      myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
         myActiveAssetBindings.bind(myActiveAsset.get().color(), myColor);
@@ -238,6 +240,26 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     // Refresh the asset preview.
     renderPreviews();
+  }
+
+  /**
+   * Truncates the message if it contains too many lines.
+   */
+  @NotNull
+  private static Validator.Result truncateMessage(@NotNull Validator.Result validity) {
+    String message = validity.getMessage();
+    int lineCount = 0;
+    int lineOffset = 0;
+    int offset = 0;
+    while ((offset = message.indexOf('\n', offset)) >= 0) {
+      offset++;
+      if (++lineCount > 3) {
+        message = message.substring(0, lineOffset) + "...";
+        return new Validator.Result(validity.getSeverity(), message);
+      }
+      lineOffset = offset;
+    }
+    return validity;
   }
 
   @Override
