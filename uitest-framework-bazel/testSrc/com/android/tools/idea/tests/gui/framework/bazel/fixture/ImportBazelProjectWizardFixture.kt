@@ -71,16 +71,16 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     return this
   }
 
-  fun uncommentApi26(): ImportBazelProjectWizardFixture {
+  fun uncommentApi27(): ImportBazelProjectWizardFixture {
     val editor = robot().finder().findByType(EditorComponentImpl::class.java)
 
     // Maybe let test configs select which platform to use?
-    val toSelect = "# android_sdk_platform: android-26"
-    val toPaste = "android_sdk_platform: android-26"
+    val toSelect = "# android_sdk_platform: android-27"
+    val toPaste = "android_sdk_platform: android-27"
     val selectionStartIndex = editor.text.indexOf(toSelect)
 
     if (selectionStartIndex < 0) {
-      System.out.println("Assuming api 26 in bazel test run.")
+      System.out.println("Assuming api 27 in bazel test run.")
     }
     else {
       val selectionEndIndex = selectionStartIndex + toSelect.length
