@@ -35,7 +35,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
    */
   @NotNull
   public ConsoleViewImpl getGradleSyncConsoleView() {
-    Content syncContent = getContent("Sync");
+    Content syncContent = getContent("Build: Sync");
     return myRobot.finder().findByType(syncContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
   }
 
