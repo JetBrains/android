@@ -31,7 +31,9 @@ import com.intellij.ui.navigation.Place.queryFurther
 abstract class AbstractTabbedMainPanel(
     context: PsContext,
     private val placeName: String
-) : AbstractMainPanel(context) {
+) : AbstractMainPanel(context), PanelWithUiState {
+
+  private var inQuietSelection = false
 
   @Suppress("LeakingThis")
   private val tabbedPane = TabbedPaneWrapper(this).also {
@@ -52,7 +54,10 @@ abstract class AbstractTabbedMainPanel(
       super.setHistory(history)
       tabPanels.forEach { it.setHistory(history) }
       tabbedPane.addChangeListener {
-        history.pushQueryPlace()
+        if (!inQuietSelection) {
+          PsUISettings.getInstance().setLastSelectedTab(tabbedPane.selectedTitle.orEmpty())
+          history.pushQueryPlace()
+        }
       }
     }
   }
@@ -70,13 +75,31 @@ abstract class AbstractTabbedMainPanel(
     }
 
     val path = place?.getPath(placeName)
-    val tabPanel = tabPanels.find { it.title == path }
+    val tabPanel = findPanel(path as String?)
 
     return if (tabPanel != null) {
       navigateToTab(tabPanel)
     }
     else {
       ActionCallback.DONE
+    }
+  }
+
+  private fun findPanel(path: String?): ModelPanel<*>? = tabPanels.find { it.title == path }
+
+  abstract fun PsUISettings.getLastSelectedTab(): String?
+  abstract fun PsUISettings.setLastSelectedTab(value: String)
+
+  override fun restoreUiState() {
+    val panel = findPanel(PsUISettings.getInstance().getLastSelectedTab())
+    if (panel != null) {
+      inQuietSelection = true
+      try {
+        tabbedPane.selectedTitle = panel.title
+      }
+      finally {
+        inQuietSelection = false
+      }
     }
   }
 }

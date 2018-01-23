@@ -33,6 +33,8 @@ public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean RESOLVED_DEPENDENCIES_MINIMIZE = true;
   public boolean TARGET_MODULES_MINIMIZE = true;
   public boolean MODULES_LIST_MINIMIZE;
+  public String MODULE_TAB;
+  public String BUILD_VARIANTS_TAB;
 
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 

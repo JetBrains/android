@@ -45,4 +45,7 @@ public abstract class AbstractDependenciesConfigurable<T extends PsModule> exten
   protected List<PsModule> getExtraTopModules() {
     return myExtraTopModules;
   }
+
+  @Override
+  public void restoreUiState() {}
 }

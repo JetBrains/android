@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.modules
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.modules.SigningConfigsTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractTabbedMainPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 
 class ModulePanel(
@@ -34,5 +35,11 @@ class ModulePanel(
     addTab(modulePropertiesConfigPanel)
     addTab(moduleDefaultConfigConfigPanel)
     addTab(moduleSigningConfigsPanel)
+  }
+
+  override fun PsUISettings.getLastSelectedTab(): String? = MODULE_TAB
+
+  override fun PsUISettings.setLastSelectedTab(value: String) {
+    MODULE_TAB = value
   }
 }

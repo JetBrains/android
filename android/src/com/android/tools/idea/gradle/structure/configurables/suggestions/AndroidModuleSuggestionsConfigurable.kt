@@ -44,6 +44,8 @@ class AndroidModuleSuggestionsConfigurable(
     ensurePanelCreated().queryPlace(place)
   }
 
+  override fun restoreUiState() = Unit
+
   override fun createOptionsPanel(): JComponent = ensurePanelCreated()
 
   private fun ensurePanelCreated(): AbstractMainPanel {
