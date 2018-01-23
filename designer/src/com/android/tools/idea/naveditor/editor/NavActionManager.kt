@@ -15,31 +15,91 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.tools.idea.common.actions.*
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.ZoomType
+import com.android.tools.idea.naveditor.actions.*
+import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.IdeActions
 import javax.swing.JComponent
 
 /**
  * Provides and handles actions in the navigation editor
  */
 class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
+  private val gotoComponentAction: GotoComponentAction = GotoComponentAction(surface)
 
   private val createDestinationMenu by lazy { CreateDestinationMenu(mySurface) }
 
   private val addExistingDestinationMenu by lazy { AddExistingDestinationMenu(mySurface) }
 
   override fun registerActionsShortcuts(component: JComponent) {
-    // TODO
+    ActionManager.registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)
   }
 
   override fun createPopupMenu(
     actionManager: com.intellij.openapi.actionSystem.ActionManager,
     leafComponent: NlComponent?
   ): DefaultActionGroup {
-    // TODO
-    return DefaultActionGroup()
+    val group = DefaultActionGroup()
+
+    if (leafComponent == null) {
+      return group
+    }
+
+    // TODO: Add group for action context menu items
+    when {
+      mySurface.selectionModel.selection.count() > 1 -> addMultiSelectionGroup(group, actionManager)
+      leafComponent == mySurface.currentNavigation -> addSurfaceGroup(group)
+      leafComponent.isDestination -> addDestinationGroup(group, leafComponent, actionManager)
+    }
+
+    return group
+  }
+
+  private fun addMultiSelectionGroup(group: DefaultActionGroup, actionManager: com.intellij.openapi.actionSystem.ActionManager) {
+    group.addSeparator()
+    group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
+  }
+
+  private fun addSurfaceGroup(group: DefaultActionGroup) {
+    group.add(ZoomInAction(mySurface))
+    group.add(ZoomOutAction(mySurface))
+    group.add(SetZoomAction(mySurface, ZoomType.FIT))
+
+    group.addSeparator()
+    group.add(gotoComponentAction)
+  }
+
+  private fun addDestinationGroup(
+    group: DefaultActionGroup,
+    component: NlComponent,
+    actionManager: com.intellij.openapi.actionSystem.ActionManager
+  ) {
+    group.add(ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", mySurface, component))
+
+    group.addSeparator()
+    group.add(createAddActionGroup(component))
+    group.add(StartDestinationAction(component))
+
+    group.addSeparator()
+    group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
+
+    group.addSeparator()
+    group.add(gotoComponentAction)
+  }
+
+  private fun createAddActionGroup(component: NlComponent): DefaultActionGroup {
+    val group = DefaultActionGroup("Add Action", true)
+    mySurface?.configuration?.resourceResolver?.let { group.add(ToDestinationAction(component, it)) }
+    group.add(ToSelfAction(mySurface, component))
+    group.add(ReturnToSourceAction(mySurface, component))
+    group.add(AddGlobalAction(mySurface, component))
+    return group
   }
 
   override fun addActions(

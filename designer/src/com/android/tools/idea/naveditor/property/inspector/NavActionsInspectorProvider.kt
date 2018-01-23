@@ -41,25 +41,7 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
 
   override fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
     assert(parents.size == 1)
-    addItem(existing, parents[0], resourceResolver, AddActionDialog.Defaults.NORMAL)
-  }
-
-  fun addItem(existing: NlComponent?, parent: NlComponent, resourceResolver: ResourceResolver?, defaultsType: AddActionDialog.Defaults) {
-    val addActionDialog = AddActionDialog(defaultsType, existing, parent, resourceResolver)
-
-    if (addActionDialog.showAndGet()) {
-      WriteCommandAction.runWriteCommandAction(null, {
-        val realComponent = existing ?: addActionDialog.source.createAction()
-        realComponent.actionDestinationId = addActionDialog.destination?.id
-        realComponent.enterAnimation = addActionDialog.enterTransition
-        realComponent.exitAnimation = addActionDialog.exitTransition
-        realComponent.popUpTo = addActionDialog.popTo
-        realComponent.inclusive = addActionDialog.isInclusive
-        realComponent.singleTop = addActionDialog.isSingleTop
-        realComponent.document = addActionDialog.isDocument
-        realComponent.clearTask = addActionDialog.isClearTask
-      })
-    }
+    AddActionDialogHelper.addItem(existing, parents[0], resourceResolver, AddActionDialog.Defaults.NORMAL)
   }
 
   override fun getTitle(components: List<NlComponent>, surface: NavDesignSurface?) =
@@ -120,19 +102,19 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
     val actions: MutableList<AnAction> = mutableListOf(
         object : AnAction("Add Action...") {
           override fun actionPerformed(e: AnActionEvent?) {
-            addItem(null, parent, resourceResolver, AddActionDialog.Defaults.NORMAL)
+            AddActionDialogHelper.addItem(null, parent, resourceResolver, AddActionDialog.Defaults.NORMAL)
           }
         },
         object : AnAction("Return to Source...") {
           override fun actionPerformed(e: AnActionEvent?) {
-            addItem(null, parent, resourceResolver, AddActionDialog.Defaults.RETURN_TO_SOURCE)
+            AddActionDialogHelper.addItem(null, parent, resourceResolver, AddActionDialog.Defaults.RETURN_TO_SOURCE)
           }
         })
     if (parent != surface.currentNavigation) {
       actions.add(Separator.getInstance())
       actions.add(object : AnAction("Add Global...") {
         override fun actionPerformed(e: AnActionEvent?) {
-          addItem(null, parent, resourceResolver, AddActionDialog.Defaults.GLOBAL)
+          AddActionDialogHelper.addItem(null, parent, resourceResolver, AddActionDialog.Defaults.GLOBAL)
         }
       })
     }
