@@ -491,11 +491,24 @@ public class HtmlLinkManager {
                 importList.add(factory.createImportStatement(attributeSetClass));
               }
             }
-            PsiMethod constructor = factory.createMethodFromText(
+
+            PsiMethod constructor1arg = factory.createMethodFromText(
+              "public " + className + "(Context context) {\n" +
+              "  this(context, null);\n" +
+              "}\n", targetClass);
+            targetClass.add(constructor1arg);
+
+            PsiMethod constructor2args = factory.createMethodFromText(
+              "public " + className + "(Context context, AttributeSet attrs) {\n" +
+              "  this(context, attrs, 0);\n" +
+              "}\n", targetClass);
+            targetClass.add(constructor2args);
+
+            PsiMethod constructor3args = factory.createMethodFromText(
               "public " + className + "(Context context, AttributeSet attrs, int defStyle) {\n" +
               "  super(context, attrs, defStyle);\n" +
               "}\n", targetClass);
-            targetClass.add(constructor);
+            targetClass.add(constructor3args);
 
             // Format class
             CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(manager.getProject());
