@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.diagnostics.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
@@ -287,4 +288,8 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       .showBalloon(title, body, NotificationType.ERROR, AndroidNotification.BALLOON_GROUP, false, hyperlink);
   }
 
+  @Override
+  public void reportNoPiiException(@NotNull Throwable ex) {
+    getLogger().error(new NoPiiException(ex));
+  }
 }
