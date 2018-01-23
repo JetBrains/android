@@ -16,9 +16,12 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.content.BaseLabel;
+import com.intellij.openapi.wm.impl.content.ContentTabLabelFixture;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.DialogFixture;
@@ -73,7 +76,11 @@ public class DebuggerTestBase {
     checkAppIsPaused(ideFrame, expectedPattern, DEBUG_CONFIG_NAME);
   }
 
-  public static void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern, String debugConfigName) {
+  public static void checkAppIsPaused(@NotNull IdeFrameFixture ideFrame, @NotNull String[] expectedPattern, @NotNull String debugConfigName) {
+    ContentTabLabelFixture tabLabel = ContentTabLabelFixture.find(ideFrame.robot(), Matchers.byText(BaseLabel.class, debugConfigName));
+    Wait.seconds(5).expecting("ContentTabLabel " + debugConfigName + " to become active")
+      .until(() -> tabLabel.isSelected());
+
     Wait.seconds(5).expecting("variable patterns to match")
       .until(() -> verifyVariablesAtBreakpoint(ideFrame, expectedPattern, debugConfigName));
   }
