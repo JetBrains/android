@@ -71,9 +71,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -471,7 +473,13 @@ public class EditorFixture {
 
   @NotNull
   public EditorFixture checkNoNotification() {
-    checkState(robot.finder().findAll(Matchers.byType(EditorNotificationPanel.class)).isEmpty());
+    Collection<EditorNotificationPanel> notificationPanels = robot.finder().findAll(Matchers.byType(EditorNotificationPanel.class));
+    if (!notificationPanels.isEmpty()) {
+      String notifications = notificationPanels.stream()
+        .map(p -> p.getIntentionAction().getText())
+        .collect(Collectors.joining(", "));
+      throw new AssertionError("unwanted notifications: " + notifications);
+    }
     return this;
   }
 
