@@ -170,17 +170,21 @@ public class ThemeSelectorTest {
     // The expected elements are:
     // 0. AppTheme
     // 1. -- Separator
-    // 2. AppCompat Light
-    // 3. AppCompat
-    // 4. -- Separator
-    // 5. Show all themes
-    assertThat(parentsArray).hasLength(6);
+    // 2. Material Light
+    // 3. Material
+    // 4. AppCompat Light
+    // 5. AppCompat
+    // 6. -- Separator
+    // 7. Show all themes
+    assertThat(parentsArray).hasLength(8);
     assertThat(parentsArray[0]).isEqualTo("AppTheme");
-    assertThat(parentsArray[2]).isEqualTo("Theme.AppCompat.Light.NoActionBar");
-    assertThat(parentsArray[3]).isEqualTo("Theme.AppCompat.NoActionBar");
-    assertThat(parentsArray[5]).isEqualTo("Show all themes");
     assertThat(parentsArray[1]).startsWith("javax.swing.JSeparator");
-    assertThat(parentsArray[4]).startsWith("javax.swing.JSeparator");
+    assertThat(parentsArray[2]).isEqualTo("android:Theme.Material.Light.NoActionBar");
+    assertThat(parentsArray[3]).isEqualTo("android:Theme.Material.NoActionBar");
+    assertThat(parentsArray[4]).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(parentsArray[5]).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(parentsArray[6]).startsWith("javax.swing.JSeparator");
+    assertThat(parentsArray[7]).isEqualTo("Show all themes");
 
     parentComboBox.selectItem("Theme.AppCompat.NoActionBar");
     newNameTextField.requireText("Theme.AppTheme.NoActionBar");
@@ -247,7 +251,8 @@ public class ThemeSelectorTest {
     themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     themeList = themeEditor.getThemesList();
     assertThat(themeList).doesNotContain("Theme.AppCompat.Light.NoActionBar");
-    assertThat(themeList).contains("android:Theme.Material.NoActionBar");
+    assertThat(themeList).doesNotContain("Theme.AppCompat.NoActionBar");
     assertThat(themeList).contains("android:Theme.Material.Light.NoActionBar");
+    assertThat(themeList).contains("android:Theme.Material.NoActionBar");
   }
 }

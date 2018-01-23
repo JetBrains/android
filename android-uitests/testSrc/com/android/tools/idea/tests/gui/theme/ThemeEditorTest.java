@@ -71,23 +71,28 @@ public class ThemeEditorTest {
     List<String> themeList = themeEditor.getThemesList();
     // The expected elements are:
     // 0. AppTheme
-    // 1. -- Separator
-    // 2. AppCompat Light
-    // 3. AppCompat
-    // 4. Show all themes
-    // 5. -- Separator
-    // 6. Create New Theme
-    // 7. Rename AppTheme
-    assertThat(themeList).hasSize(9);
+    // 1. Preview Theme
+    // 2. -- Separator
+    // 3. Material Light
+    // 4. Material Dark
+    // 5. AppCompat Light
+    // 6. AppCompat Dark
+    // 7. Show all themes
+    // 8. -- Separator
+    // 9. Create New Theme
+    // 10. Rename AppTheme
+    assertThat(themeList).hasSize(11);
     assertThat(themeList.get(0)).isEqualTo("AppTheme");
-    assertThat(themeList.get(3)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
-    assertThat(themeList.get(4)).isEqualTo("Theme.AppCompat.NoActionBar");
-    assertThat(themeList.get(5)).isEqualTo("Show all themes");
-    assertThat(themeList.get(7)).isEqualTo("Create New Theme");
-    assertThat(themeList.get(8)).isEqualTo("Rename AppTheme");
-
+    assertThat(themeList.get(1)).isEqualTo("PreviewTheme");
     assertThat(themeList.get(2)).startsWith("javax.swing.JSeparator");
-    assertThat(themeList.get(6)).startsWith("javax.swing.JSeparator");
+    assertThat(themeList.get(3)).isEqualTo("android:Theme.Material.Light.NoActionBar");
+    assertThat(themeList.get(4)).isEqualTo("android:Theme.Material.NoActionBar");
+    assertThat(themeList.get(5)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(themeList.get(6)).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(themeList.get(7)).isEqualTo("Show all themes");
+    assertThat(themeList.get(8)).startsWith("javax.swing.JSeparator");
+    assertThat(themeList.get(9)).isEqualTo("Create New Theme");
+    assertThat(themeList.get(10)).isEqualTo("Rename AppTheme");
 
     // Check the attributes table is populated
     assertThat(themeEditor.getPropertiesTable().rowCount()).isGreaterThan(0);
