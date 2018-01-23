@@ -34,7 +34,6 @@ import org.junit.runner.RunWith;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -196,7 +195,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/72224616
+  @RunIn(TestGroup.SANITY)
   public void testDualDebuggerBreakpoints() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -231,20 +230,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
       variableToSearchPattern("s", "\"Success. Sum = 55, Product = 3628800, Quotient = 512\""),
     };
 
-    // TODO Remove the try-catch block and restore it to just the checkAppIsPaused method call
-    // See http://b/72164324
-    try {
-      checkAppIsPaused(ideFrameFixture, expectedPatterns);
-    } catch(WaitTimedOutError timeout) {
-      // This is currently a mysterious error. Try to collect more information for test results
-      ByteArrayOutputStream hierarchyCollector = new ByteArrayOutputStream();
-      PrintStream ps = new PrintStream(hierarchyCollector);
-      ideFrameFixture.robot().printer().printComponents(ps);
-      ps.flush();
-      String hierarchy = hierarchyCollector.toString();
-      ps.close();
-      throw new Exception(hierarchy, timeout);
-    }
+    checkAppIsPaused(ideFrameFixture, expectedPatterns, "app-java");
     assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNotNull();
     // TODO Stop the session.
   }
