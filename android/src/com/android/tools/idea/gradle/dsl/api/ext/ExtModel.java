@@ -31,8 +31,15 @@ public interface ExtModel {
 
   /**
    * Returns all of the existing properties defined in this block. This does not include variables, every {@link GradlePropertyModel}
-   * returned by this method will have a property type of {@link PropertyType.REGULAR}
+   * returned by this method will have a property type of {@link PropertyType#REGULAR}
    */
   @NotNull
   List<GradlePropertyModel> getProperties();
+
+  /**
+   * Return all of the existing variables defined within Gradle's ExtraPropertiesExtension. Note that these can only be referenced from
+   * properties in this modules {@link ExtModel}.
+   */
+  @NotNull
+  List<GradlePropertyModel> getVariables();
 }
