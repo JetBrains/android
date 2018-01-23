@@ -37,11 +37,25 @@ class ProductFlavorsTreeModel(
     return configurable to node
   }
 
+  fun removeProductFlavor(node: DefaultMutableTreeNode) {
+    val productFlavorConfigurable = node.userObject as ProductFlavorConfigurable
+    val productFlavor = productFlavorConfigurable.model
+    module.removeProductFlavor(productFlavor)
+    removeNodeFromParent(node)
+  }
+
   fun createFlavorDimension(newName: String): Pair<FlavorDimensionConfigurable, DefaultMutableTreeNode> {
     module.addNewFlavorDimension(newName)
     val configurable = FlavorDimensionConfigurable(module, newName)
     val node = createNode(rootNode, configurable)
     return configurable to node
+  }
+
+  fun removeFlavorDimension(node: DefaultMutableTreeNode) {
+    val flavorDimensionConfigurable = node.userObject as FlavorDimensionConfigurable
+    val flavorDimension = flavorDimensionConfigurable.flavorDimension
+    module.removeFlavorDimension(flavorDimension)
+    removeNodeFromParent(node)
   }
 
   private fun findDimensionNode(dimension: String) =

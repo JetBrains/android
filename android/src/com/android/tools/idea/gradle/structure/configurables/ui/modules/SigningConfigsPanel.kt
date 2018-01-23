@@ -23,8 +23,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.Messages.YES
 import com.intellij.util.IconUtil
-import javax.swing.tree.TreePath
 
 class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
     ConfigurablesMasterDetailsPanel<PsSigningConfig>(
@@ -34,8 +34,21 @@ class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
     ) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.getRemoveIcon()) {
+      override fun update(e: AnActionEvent?) {
+        e?.presentation?.isEnabled = selectedConfigurable != null
+      }
+
       override fun actionPerformed(e: AnActionEvent?) {
-        TODO("Implement remove signing config")
+        if (Messages.showYesNoDialog(
+            e?.project,
+            "Remove signing config '${selectedConfigurable?.displayName}' from the module?",
+            "Remove Signing Config",
+            Messages.getQuestionIcon()
+          ) == YES) {
+          val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
+          treeModel.removeSigningConfig(selectedNode)
+          selectNode(nodeToSelectAfter)
+        }
       }
     }
   }
@@ -56,7 +69,7 @@ class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
                 })
             if (newName != null) {
               val (_, node) = treeModel.createSigningConfig(newName)
-              tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
+              selectNode(node)
             }
           }
         }

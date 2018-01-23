@@ -28,8 +28,21 @@ class BuildTypesPanel(val treeModel: BuildTypesTreeModel) :
     ConfigurablesMasterDetailsPanel<PsBuildType>("Build Types", "android.psd.build_type", treeModel) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Build Type", "Removes a Build Type", IconUtil.getRemoveIcon()) {
+      override fun update(e: AnActionEvent?) {
+        e?.presentation?.isEnabled = selectedConfigurable != null
+      }
+
       override fun actionPerformed(e: AnActionEvent?) {
-        TODO("Implement remove build type")
+        if (Messages.showYesNoDialog(
+            e?.project,
+            "Remove build type '${selectedConfigurable?.displayName}' from the module?",
+            "Remove Build Type",
+            Messages.getQuestionIcon()
+          ) == Messages.YES) {
+          val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
+          treeModel.removeBuildType(selectedNode)
+          selectNode(nodeToSelectAfter)
+        }
       }
     }
   }

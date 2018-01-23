@@ -29,6 +29,7 @@ import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import java.util.*
+import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
 /**
@@ -114,5 +115,11 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
     super.updateSelection(configurable)
     myHistory.pushQueryPlace()
+  }
+
+  protected fun selectNode(node: TreeNode?) {
+    if (node != null) {
+      tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
+    }
   }
 }

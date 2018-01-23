@@ -33,6 +33,13 @@ class BuildTypesTreeModel(
     val node = createNode(rootNode, configurable)
     return configurable to node
   }
+
+  fun removeBuildType(node: DefaultMutableTreeNode) {
+    val buildTypeConfigurable = node.userObject as BuildTypeConfigurable
+    val buildType = buildTypeConfigurable.model
+    module.removeBuildType(buildType)
+    removeNodeFromParent(node)
+  }
 }
 
 fun createBuildTypesModel(module: PsAndroidModule): BuildTypesTreeModel =
