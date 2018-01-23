@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -178,9 +180,23 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     return getPropertyElements().keySet();
   }
 
+  /**
+   * Note: This function does NOT guarantee that only elements belonging to properties are returned, since this class is also used
+   * for maps it is also possible for the resulting elements to be of {@link PropertyType#DERIVED}.
+   */
   @NotNull
   public Map<String, GradleDslElement> getPropertyElements() {
     return replayPropertyAdjustmentsOnto(myProperties);
+  }
+
+  @NotNull
+  public Map<String, GradleDslElement> getVariableElements() {
+    // We use a LinkedHashMap collector to ensure that the order of the element is preserved.
+    return replayPropertyAdjustmentsOnto(myVariables).entrySet().stream()
+      .filter(e -> e.getValue().getElementType() == PropertyType.VARIABLE)
+      .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (u, v) -> {
+        throw new IllegalStateException(String.format("Duplicate key %s", u));
+      }, LinkedHashMap::new));
   }
 
   /**

@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
  *   <li>{@code DERIVED} - this is a internal property derived from values an a map of list, e.g property "key"
  *                          in "prop1 = ["key" : 'value']"</li>
  *   <li>{@code GLOBAL}   - this is a global property defined by Gradle e.g projectDir</li>
+ *   <li>{@code PROPERTIES_FILE} - a Gradle property from a gradle.properties file</li>
  * </ul>
  */
 public enum PropertyType {
@@ -32,4 +33,5 @@ public enum PropertyType {
   VARIABLE,
   DERIVED,
   GLOBAL,
+  PROPERTIES_FILE,
 }

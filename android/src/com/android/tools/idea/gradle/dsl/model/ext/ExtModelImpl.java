@@ -68,4 +68,11 @@ public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel 
     return myDslElement.getPropertyElements().values().stream().map(element -> new GradlePropertyModelImpl(element))
       .collect(Collectors.toList());
   }
+
+  @NotNull
+  @Override
+  public List<GradlePropertyModel> getVariables() {
+    return myDslElement.getVariableElements().values().stream().map(element -> new GradlePropertyModelImpl(element))
+      .collect(Collectors.toList());
+  }
 }

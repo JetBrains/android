@@ -255,6 +255,28 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(properties[2].dependencies[0], STRING_TYPE, "Value3", STRING, VARIABLE, 0, "var3", "ext.var3")
   }
 
+  fun testGetVariables() {
+    val text = """
+               ext {
+                 def var1 = "gecko"
+                 def var2 = "barbet"
+                 def var3 = "crane"
+                 prop1 = "sidewinder"
+                 prop2 = "jackel"
+                 prop3 = "tiger"
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+    val variables = extModel.variables
+    // Note: this shouldn't include properties.
+    assertSize(3, variables)
+
+    verifyPropertyModel(variables[0], STRING_TYPE, "gecko", STRING, VARIABLE, 0, "var1", "ext.var1")
+    verifyPropertyModel(variables[1], STRING_TYPE, "barbet", STRING, VARIABLE, 0, "var2", "ext.var2")
+    verifyPropertyModel(variables[2], STRING_TYPE, "crane", STRING, VARIABLE, 0, "var3", "ext.var3")
+  }
+
   fun testReferencePropertyDependency() {
     val text = """
                ext {
@@ -2374,6 +2396,127 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+    }
+  }
+
+  fun testResolveAndSetVariablesInParentModule() {
+    val parentText = """
+                     ext {
+                       greeting = "hello"
+                     }""".trimIndent()
+
+    val childText = """
+                    ext {
+                      prop1 = greeting
+                      prop2 = "${'$'}{greeting} world!"
+                    }""".trimIndent()
+    writeToBuildFile(parentText)
+    writeToSubModuleBuildFile(childText)
+    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+
+    val buildModel = subModuleGradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      propertyModel.getValue(STRING_TYPE)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "greeting", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "hello", STRING, REGULAR, 0)
+      val otherModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(otherModel, STRING_TYPE, "hello world!", STRING, REGULAR, 1)
+
+
+      propertyModel.dependencies[0].setValue("howdy")
+
+      verifyPropertyModel(propertyModel, STRING_TYPE, "greeting", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "howdy", STRING, REGULAR, 0)
+      verifyPropertyModel(otherModel, STRING_TYPE, "howdy world!", STRING, REGULAR, 1)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      val otherModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "greeting", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "howdy", STRING, REGULAR, 0)
+      verifyPropertyModel(otherModel, STRING_TYPE, "howdy world!", STRING, REGULAR, 1)
+    }
+  }
+
+  fun testResolveVariablesInPropertiesFile() {
+    val parentText = """
+                     ext {
+                       animal = "penguin"
+                     }""".trimIndent()
+
+    val childText = """
+                    ext {
+                      def animal = "rhino"
+                      prop = "hello, ${'$'}{animal}!"
+                    }""".trimIndent()
+    val childProperties = "animal = lion"
+    val parentProperties = "animal = meerkat"
+    writeToBuildFile(parentText)
+    writeToSubModuleBuildFile(childText)
+    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToPropertiesFile(parentProperties)
+    writeToSubModulePropertiesFile(childProperties)
+
+    var buildModel = subModuleGradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, rhino!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "rhino", STRING, VARIABLE, 0)
+
+      // Delete the dependency and try resolution again.
+      propertyModel.dependencies[0].delete()
+
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, lion!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "lion", STRING, PROPERTIES_FILE, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, lion!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "lion", STRING, PROPERTIES_FILE, 0)
+
+      // Properties file can't be edited directed.
+      writeToSubModulePropertiesFile("")
+      // Applying changes and reparsing does not affect properties files, need to completely remake the build model.
+      buildModel = subModuleGradleBuildModel
+    }
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, meerkat!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "meerkat", STRING, PROPERTIES_FILE, 0)
+
+      // Properties file can't be edited directed.
+      writeToPropertiesFile("")
+      // Applying changes and reparsing does not affect properties files, need to completely remake the build model.
+      buildModel = subModuleGradleBuildModel
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, penguin!", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "penguin", STRING, REGULAR, 0)
+
+      propertyModel.dependencies[0].delete()
+
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, ${'$'}{animal}!", STRING, REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello, ${'$'}{animal}!", STRING, REGULAR, 0)
     }
   }
 

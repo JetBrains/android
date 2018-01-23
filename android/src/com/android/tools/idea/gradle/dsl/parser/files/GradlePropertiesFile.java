@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Properties;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE;
+
 public final class GradlePropertiesFile extends GradleDslFile {
   @NotNull
   private final Properties myProperties;
@@ -68,6 +70,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
 
     private GradlePropertyElement(@Nullable GradleDslElement parent, @NotNull String name) {
       super(parent, null, name, null);
+      setElementType(PROPERTIES_FILE);
     }
 
     @Override
