@@ -18,5 +18,9 @@
     <orderEntry type="module" module-name="adt-branding" scope="RUNTIME" />
     <orderEntry type="library" scope="RUNTIME" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
+    <orderEntry type="module" module-name="analytics-testing" scope="TEST" />
+    <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
+    <orderEntry type="module" module-name="analytics-protos" scope="TEST" />
   </component>
 </module>
