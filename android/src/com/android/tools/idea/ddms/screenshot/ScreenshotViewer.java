@@ -16,6 +16,7 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
@@ -24,7 +25,6 @@ import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.pixelprobe.color.Colors;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -48,7 +48,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.containers.ContainerUtil;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
@@ -102,7 +101,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private JButton myRefreshButton;
   private JButton myRotateRightButton;
   private JButton myRotateLeftButton;
-  private JBScrollPane myScrollPane;
+  private JScrollPane myScrollPane;
   private JCheckBox myFrameScreenshotCheckBox;
   private JComboBox<String> myDeviceArtCombo;
   private JCheckBox myDropShadowCheckBox;
@@ -396,14 +395,13 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
   }
 
-  private void updateEditorImage() {
+  @VisibleForTesting
+  void updateEditorImage() {
     BufferedImage image = myDisplayedImageRef.get();
     ImageEditor imageEditor = myImageFileEditor.getImageEditor();
 
     imageEditor.getDocument().setValue(image);
     pack();
-
-    updateZoom();
   }
 
   private FileEditorProvider getImageFileEditorProvider() {
@@ -560,6 +558,17 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   public File getScreenshot() {
     return myScreenshotFile;
+  }
+
+  @VisibleForTesting
+  void setScrollPane(@NotNull JScrollPane scrollPane) {
+    // noinspection BoundFieldAssignment
+    myScrollPane = scrollPane;
+  }
+
+  @VisibleForTesting
+  ImageFileEditor getImageFileEditor() {
+    return myImageFileEditor;
   }
 
   private VirtualFile loadScreenshotPath() {
