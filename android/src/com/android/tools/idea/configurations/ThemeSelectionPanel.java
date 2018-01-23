@@ -17,11 +17,9 @@ package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -78,14 +76,13 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   @NotNull private Tree myCategoryTree;
   @NotNull private JPanel myContentPanel;
   @NotNull private ThemeFilterComponent myFilter;
-  @Nullable private List<String> myFrameworkThemes;
-  @Nullable private List<String> myProjectThemes;
-  @Nullable private List<String> myLibraryThemes;
+  @NotNull private final List<String> myFrameworkThemes;
+  @NotNull private final List<String> myProjectThemes;
+  @NotNull private final List<String> myLibraryThemes;
   @Nullable private static Deque<String> ourRecent;
   @Nullable private ThemeCategory myCategory = ThemeCategory.ALL;
   @NotNull private Map<ThemeCategory, List<String>> myThemeMap = Maps.newEnumMap(ThemeCategory.class);
-  @NotNull private ThemeResolver myThemeResolver;
-  @NotNull private Set<String> myExcludedThemes;
+  @NotNull private final Set<String> myExcludedThemes;
   private boolean myIgnore;
 
   private ThemeChangedListener myThemeChangedListener;
@@ -99,7 +96,12 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myDialog = dialog;
     myConfiguration = configuration;
     myExcludedThemes = excludedThemes;
-    myThemeResolver = new ThemeResolver(configuration);
+
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    myFrameworkThemes = ThemeUtils.getFrameworkThemes(themeResolver, myExcludedThemes);
+    myProjectThemes = ThemeUtils.getProjectThemes(themeResolver, myExcludedThemes);
+    myLibraryThemes = ThemeUtils.getLibraryThemes(themeResolver, myExcludedThemes);
+
     String currentTheme = configuration.getTheme();
     if (currentTheme != null) {
       currentTheme = ResolutionUtils.getQualifiedNameFromResourceUrl(currentTheme);
@@ -241,54 +243,54 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         break;
       case HOLO:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(HOLO_PREFIX) && !theme.startsWith(HOLO_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case HOLO_LIGHT:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(HOLO_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case MATERIAL:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(MATERIAL_PREFIX) && !theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case MATERIAL_LIGHT:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case PROJECT:
-        for (String theme : getProjectThemes()) {
+        for (String theme : myProjectThemes) {
           themes.add(theme);
         }
         break;
       case CLASSIC:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (!theme.startsWith(HOLO_PREFIX) && !theme.startsWith(DEVICE_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case CLASSIC_LIGHT:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case LIGHT:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(HOLO_LIGHT_PREFIX) || theme.startsWith(LIGHT_PREFIX) || theme.startsWith(DEVICE_LIGHT_PREFIX)
               || theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
             themes.add(theme);
@@ -296,19 +298,19 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         break;
       case DEVICE:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(DEVICE_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case DIALOGS:
-        for (String theme : getProjectThemes()) {
+        for (String theme : myProjectThemes) {
           if (theme.endsWith(DIALOG_SUFFIX) || theme.contains(DIALOG_PART)) {
             themes.add(theme);
           }
         }
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.endsWith(DIALOG_SUFFIX) || theme.contains(DIALOG_PART)) {
             themes.add(theme);
           }
@@ -348,13 +350,13 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         break;
       }
       case ALL:
-        for (String theme : getProjectThemes()) {
+        for (String theme : myProjectThemes) {
           themes.add(theme);
         }
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           themes.add(theme);
         }
-        for (String theme : getLibraryThemes()) {
+        for (String theme : myLibraryThemes) {
           themes.add(theme);
         }
         break;
@@ -397,30 +399,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   private static boolean matchesFilter(String theme, String filter) {
     int index = theme.lastIndexOf('/');
     return filter.isEmpty() || StringUtil.indexOfIgnoreCase(theme, filter, index + 1) != -1;
-  }
-
-  private List<String> getFrameworkThemes() {
-    if (myFrameworkThemes == null) {
-      myFrameworkThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getFrameworkThemes()), myExcludedThemes);
-    }
-    return myFrameworkThemes;
-  }
-
-  private List<String> getProjectThemes() {
-    if (myProjectThemes == null) {
-      myProjectThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getLocalThemes()), myExcludedThemes);
-    }
-
-    return myProjectThemes;
-  }
-
-  private List<String> getLibraryThemes() {
-    if (myLibraryThemes == null) {
-      myLibraryThemes = getFilteredPrefixesSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()), myExcludedThemes,
-                                                       ImmutableSet.of("Base.", "Platform."));
-    }
-
-    return myLibraryThemes;
   }
 
   // ---- Implements ListSelectionListener ----
@@ -579,62 +557,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
   }
 
-  /**
-   * Sorts the themes in themesRaw excluding those in excludedThemes
-   *
-   * @param themesRaw      themes to process
-   * @param excludedThemes themes to filter out
-   * @return the sorted themes excluding those in excludedThemes
-   */
-  private static List<String> getFilteredSortedNames(Collection<ConfiguredThemeEditorStyle> themesRaw, Set<String> excludedThemes) {
-    return getFilteredPrefixesSortedNames(themesRaw, excludedThemes, Collections.<String>emptySet());
-  }
-
-  /**
-   * Sorts the themes in themesRaw excluding those in excludedThemes and those starting with prefixes in excludedPrefixes
-   *
-   * @param themesRaw themes to process
-   * @param excludedThemes themes to filter out
-   * @param excludedPrefixes set of prefixes of the themes to filter
-   * @return the sorted themes excluding those in excludedThemes or starting with a prefix in excludedPrefixes
-   */
-  private static List<String> getFilteredPrefixesSortedNames(Collection<ConfiguredThemeEditorStyle> themesRaw,
-                                                             Set<String> excludedThemes,
-                                                             Set<String> excludedPrefixes) {
-    List<String> themes = new ArrayList<String>(themesRaw.size());
-    for (ConfiguredThemeEditorStyle theme : themesRaw) {
-      String qualifiedName = theme.getQualifiedName();
-      if (!excludedThemes.contains(qualifiedName)) {
-        boolean startWithPrefix = false;
-        String themeName = theme.getName();
-        for (String prefix : excludedPrefixes) {
-          if (themeName.startsWith(prefix)) {
-            startWithPrefix = true;
-            break;
-          }
-        }
-        if (!startWithPrefix) {
-          themes.add(qualifiedName);
-        }
-      }
-    }
-    Collections.sort(themes);
-    return themes;
-  }
-
-  /**
-   * Filters a collection of themes to return a new collection with only the public ones.
-   */
-  private static Collection<ConfiguredThemeEditorStyle> getPublicThemes(Collection<ConfiguredThemeEditorStyle> themes) {
-    HashSet<ConfiguredThemeEditorStyle> publicThemes = new HashSet<ConfiguredThemeEditorStyle>();
-    for (ConfiguredThemeEditorStyle theme : themes) {
-      if (theme.isPublic()) {
-        publicThemes.add(theme);
-      }
-    }
-    return publicThemes;
-  }
-
   private enum ThemeCategory {
     ROOT(""),
     RECENT("Recent"),
@@ -685,7 +607,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   }
 
   private boolean haveAnyMatches(String filter) {
-    return haveMatches(filter, getFrameworkThemes()) || haveMatches(filter, getProjectThemes());
+    return haveMatches(filter, myFrameworkThemes) || haveMatches(filter, myProjectThemes);
   }
 
   private void createUIComponents() {
