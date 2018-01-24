@@ -90,7 +90,7 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     GradleModuleModel appGradleModel = mock(GradleModuleModel.class);
 
     CachedModuleModels cachedAppModels = mock(CachedModuleModels.class);
-    when(myCachedProjectModels.findCacheForModule(":app")).thenReturn(cachedAppModels);
+    when(myCachedProjectModels.findCacheForModule("app")).thenReturn(cachedAppModels);
     when(cachedAppModels.findModel(AndroidModuleModel.class)).thenReturn(appAndroidModel);
     when(cachedAppModels.findModel(GradleModuleModel.class)).thenReturn(appGradleModel);
 
@@ -101,7 +101,7 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     GradleModuleModel cppGradleModel = mock(GradleModuleModel.class);
 
     CachedModuleModels cachedCppModels = mock(CachedModuleModels.class);
-    when(myCachedProjectModels.findCacheForModule(":cpp")).thenReturn(cachedCppModels);
+    when(myCachedProjectModels.findCacheForModule("cpp")).thenReturn(cachedCppModels);
     when(cachedCppModels.findModel(NdkModuleModel.class)).thenReturn(cppNdkModel);
     when(cachedCppModels.findModel(GradleModuleModel.class)).thenReturn(cppGradleModel);
 
@@ -112,7 +112,7 @@ public class ModuleSetupImplTest extends IdeaTestCase {
     GradleModuleModel javaGradleModel = mock(GradleModuleModel.class);
 
     CachedModuleModels cachedJavaModels = mock(CachedModuleModels.class);
-    when(myCachedProjectModels.findCacheForModule(":java")).thenReturn(cachedJavaModels);
+    when(myCachedProjectModels.findCacheForModule("java")).thenReturn(cachedJavaModels);
     when(cachedJavaModels.findModel(JavaModuleModel.class)).thenReturn(javaModel);
     when(cachedJavaModels.findModel(GradleModuleModel.class)).thenReturn(javaGradleModel);
 

@@ -27,24 +27,17 @@ import java.util.Objects;
 
 public class CachedModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final String myModuleName;
-  @NotNull private final String myGradlePath;
   @NotNull private final Map<Class<?>, Serializable> myGradleModelsByType = new HashMap<>();
 
-  CachedModuleModels(@NotNull Module module, @NotNull String gradlePath) {
+  CachedModuleModels(@NotNull Module module) {
     myModuleName = module.getName();
-    myGradlePath = gradlePath;
   }
 
   public void addModel(@NotNull Serializable model) {
     myGradleModelsByType.put(model.getClass(), model);
-  }
-
-  @NotNull
-  public String getGradlePath() {
-    return myGradlePath;
   }
 
   @Override
@@ -73,20 +66,18 @@ public class CachedModuleModels implements GradleModuleModels {
     }
     CachedModuleModels that = (CachedModuleModels)o;
     return Objects.equals(myModuleName, that.myModuleName) &&
-           Objects.equals(myGradlePath, that.myGradlePath) &&
            Objects.equals(myGradleModelsByType, that.myGradleModelsByType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myModuleName, myGradlePath, myGradleModelsByType);
+    return Objects.hash(myModuleName, myGradleModelsByType);
   }
 
   @Override
   public String toString() {
     return "GradleModuleModelsCache{" +
            "myModuleName='" + myModuleName + '\'' +
-           ", myGradlePath='" + myGradlePath + '\'' +
            ", myGradleModelsByType=" + myGradleModelsByType +
            '}';
   }

@@ -190,8 +190,8 @@ abstract class ModuleSetup {
       });
 
       for (GradleFacet gradleFacet : gradleFacets) {
-        String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-        CachedModuleModels moduleModelsCache = projectModels.findCacheForModule(gradlePath);
+        String moduleName = gradleFacet.getModule().getName();
+        CachedModuleModels moduleModelsCache = projectModels.findCacheForModule(moduleName);
         if (moduleModelsCache != null) {
           setUpModule(gradleFacet, moduleModelsCache, moduleFinder);
         }
@@ -277,7 +277,7 @@ abstract class ModuleSetup {
 
         // Set up GradleFacet right away. This is necessary to set up inter-module dependencies.
         GradleModuleModel gradleModel = myGradleModuleSetup.setUpModule(module, myModelsProvider, moduleModels);
-        CachedModuleModels cachedModels = cache.addModule(module, moduleModels.getModuleName());
+        CachedModuleModels cachedModels = cache.addModule(module);
         cachedModels.addModel(gradleModel);
 
         moduleFinder.addModule(module, gradleModel.getGradlePath());
