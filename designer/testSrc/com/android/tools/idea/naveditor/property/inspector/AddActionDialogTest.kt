@@ -14,6 +14,7 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.AUTO_URI
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.ui.TitledSeparator
@@ -290,14 +291,72 @@ class AddActionDialogTest : NavTestCase() {
 
   }
 
-  private fun getRendererComponent(
-    renderer: ListCellRenderer<in AddActionDialog.DestinationListEntry>,
-    list: JList<out AddActionDialog.DestinationListEntry>,
-    combo: JComboBox<AddActionDialog.DestinationListEntry>,
-    index: Int
-  ) = renderer.getListCellRendererComponent(list, combo.getItemAt(index), index, false, false) as JLabel
+  private fun <T> getRendererComponent(renderer: ListCellRenderer<in T>, list: JList<out T>, combo: JComboBox<T>, index: Int)
+      = renderer.getListCellRendererComponent(list, combo.getItemAt(index), index, false, false) as JLabel
 
   fun testPopToRendering() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        navigation("othersubnav")
+        navigation("subnav1") {
+          fragment("f2")
+          fragment("f3")
+          navigation("subnav2") {
+            fragment("f4")
+            navigation("subnav3")
+          }
+        }
+      }
+    }
+
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("subnav2")!!, null)
+
+    val combo = dialog.myPopToComboBox
+    val renderer = combo.renderer
+
+    @Suppress("UNCHECKED_CAST")
+    val list = mock(JList::class.java) as JList<out NlComponent>
+    val font = UIUtil.getListFont().deriveFont(Font.PLAIN)
+    `when`(list.font).thenReturn(font)
+
+    var rendererComponent = getRendererComponent(renderer, list, combo, 0)
+    assertEquals("None", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 1)
+    assertEquals("navigation (Root)", rendererComponent.text)
+    assertTrue(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 2)
+    assertEquals("  f1", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 3)
+    assertEquals("othersubnav", rendererComponent.text)
+    assertTrue(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 4)
+    assertEquals("subnav1", rendererComponent.text)
+    assertTrue(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 5)
+    assertEquals("  f2", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 6)
+    assertEquals("  f3", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 7)
+    assertEquals("subnav2", rendererComponent.text)
+    assertTrue(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 8)
+    assertEquals("  f4", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
+    rendererComponent = getRendererComponent(renderer, list, combo, 9)
+    assertEquals("subnav3", rendererComponent.text)
+    assertTrue(rendererComponent.font.isBold)
+
+    // Check that it doesn't have leading spaces when it's the selected item (not in the popup)
+    rendererComponent = renderer.getListCellRendererComponent(list, combo.getItemAt(8), -1, false, false) as JLabel
+    assertEquals("f4", rendererComponent.text)
+    assertFalse(rendererComponent.font.isBold)
+
+    dialog.close(0)
 
   }
 
