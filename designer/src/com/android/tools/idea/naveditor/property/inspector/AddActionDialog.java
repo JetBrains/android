@@ -130,14 +130,24 @@ public class AddActionDialog extends DialogWrapper {
         .collect(Collectors.groupingBy(c -> c.getParent(),
                                        LinkedHashMap::new,
                                        Collectors.mapping(Function.identity(), Collectors.toList())));
-    myDestinationComboBox.addItem(new DestinationListEntry(myParent.getParent()));
-    byParent.get(myParent.getParent()).forEach(c -> myDestinationComboBox
-      .addItem(new DestinationListEntry(c)));
+    // Add parent and siblings
+    if (!myParent.isRoot()) {
+      myDestinationComboBox.addItem(new DestinationListEntry(myParent.getParent()));
+      byParent.get(myParent.getParent()).forEach(c -> myDestinationComboBox
+        .addItem(new DestinationListEntry(c)));
+    }
+    else {
+      // If this is the root, we need to explicitly add it.
+      myDestinationComboBox.addItem(new DestinationListEntry(myParent));
+    }
+    // Add return to source
     myDestinationComboBox.addItem(DestinationListEntry.RETURN_TO_SOURCE);
+    // Add children if we're a nav
     if (NavComponentHelperKt.isNavigation(myParent) && byParent.containsKey(myParent)) {
       myDestinationComboBox.addItem(DestinationListEntry.SEPARATOR);
       byParent.get(myParent).forEach(c -> myDestinationComboBox.addItem(new DestinationListEntry(c)));
     }
+    // Add siblings of ancestors
     if (byParent.keySet().stream().anyMatch(c -> (c != myParent && c != myParent.getParent()))) {
       myDestinationComboBox.addItem(DestinationListEntry.SEPARATOR);
       for (NlComponent nav : byParent.keySet()) {
