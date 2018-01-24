@@ -9,11 +9,11 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="layoutlib" level="project" />
-    <orderEntry type="module" module-name="sdk-common" />
-    <orderEntry type="module" module-name="annotations" />
-    <orderEntry type="module" module-name="android-common" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="layoutlib-api" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="intellij.platform.annotations.java5" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="library" name="ASM" level="project" />
   </component>
 </module>

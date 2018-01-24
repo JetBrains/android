@@ -4,12 +4,12 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="adt-branding" />
-    <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="platform-main" />
-    <orderEntry type="module" module-name="resources" />
-    <orderEntry type="module" module-name="structuralsearch-java" />
-    <orderEntry type="module" module-name="colorSchemes" />
-    <orderEntry type="module" module-name="android-plugin" />
+    <orderEntry type="module" module-name="intellij.android.adt.branding" />
+    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.platform.main" />
+    <orderEntry type="module" module-name="intellij.java.resources" />
+    <orderEntry type="module" module-name="intellij.java.structuralSearch" />
+    <orderEntry type="module" module-name="intellij.platform.colorSchemes" />
+    <orderEntry type="module" module-name="intellij.android.plugin" />
   </component>
 </module>

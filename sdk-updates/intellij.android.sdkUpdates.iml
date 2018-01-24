@@ -7,13 +7,13 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="platform-impl" />
-    <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="lang-api" />
-    <orderEntry type="module" module-name="observable" />
-    <orderEntry type="module" module-name="adt-ui" />
-    <orderEntry type="module" module-name="wizard" />
-    <orderEntry type="module" module-name="observable-ui" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
+    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.platform.lang" />
+    <orderEntry type="module" module-name="intellij.android.observable" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.wizard" />
+    <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
     <orderEntry type="library" name="analytics-protos" level="project" />
   </component>

@@ -10,18 +10,18 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="annotations" />
+    <orderEntry type="module" module-name="intellij.platform.annotations.java5" />
     <orderEntry type="library" name="Trove4j" level="project" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="platform-impl" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="common" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="testutils" scope="TEST" />
-    <orderEntry type="module" module-name="adt-ui-model" />
-    <orderEntry type="module" module-name="testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="library" name="jcip" level="project" />
-    <orderEntry type="module" module-name="observable" />
+    <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
   </component>
 </module>

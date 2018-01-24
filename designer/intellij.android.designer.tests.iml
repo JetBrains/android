@@ -7,31 +7,31 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="designer" scope="TEST" />
-    <orderEntry type="module" module-name="android" scope="TEST" />
-    <orderEntry type="module" module-name="xml-psi-api" scope="TEST" />
-    <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="lang-api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
-    <orderEntry type="module" module-name="xml-psi-impl" scope="TEST" />
-    <orderEntry type="module" module-name="testutils" scope="TEST" />
-    <orderEntry type="module" module-name="adt-ui" scope="TEST" />
-    <orderEntry type="module" module-name="pixelprobe" scope="TEST" />
-    <orderEntry type="module" module-name="sherpa-ui" scope="TEST" />
-    <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
-    <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
-    <orderEntry type="module" module-name="adt-branding" scope="TEST" />
-    <orderEntry type="module" module-name="sdk-updates" scope="TEST" />
-    <orderEntry type="module" module-name="layoutinspector" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.pixelprobe" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.sherpaUi" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutInspector" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
-    <orderEntry type="module" module-name="flags" />
-    <orderEntry type="module" module-name="artwork" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.flags" />
+    <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="analytics-protos" level="project" />
-    <orderEntry type="module" module-name="android-plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
   </component>
 </module>
