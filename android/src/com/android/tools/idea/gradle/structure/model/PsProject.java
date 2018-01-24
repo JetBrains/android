@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -103,7 +104,7 @@ public class PsProject extends PsModel {
   }
 
   public void forEachModule(@NotNull Consumer<PsModule> consumer) {
-    myModules.forEach(consumer);
+    myModules.stream().sorted(Comparator.comparing(v -> v.getName())).forEachOrdered(consumer);
   }
 
   @Override
