@@ -27,8 +27,9 @@ public class StartupCpuProfilingConfiguration {
 
   public static final List<StartupCpuProfilingConfiguration> DEFAULT_CONFIGS = ImmutableList.of(
     new StartupCpuProfilingConfiguration(Technology.SAMPLED_JAVA),
-    new StartupCpuProfilingConfiguration(Technology.INSTRUMENTED_JAVA),
-    new StartupCpuProfilingConfiguration(Technology.SAMPLED_NATIVE)
+    new StartupCpuProfilingConfiguration(Technology.INSTRUMENTED_JAVA)
+    // TODO: active it once simpleperf is supported: http://b/73886014
+    // new StartupCpuProfilingConfiguration(Technology.SAMPLED_NATIVE)
   );
 
   @NotNull private final String myName;

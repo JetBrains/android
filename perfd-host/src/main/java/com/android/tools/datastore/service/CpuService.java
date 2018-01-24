@@ -22,6 +22,7 @@ import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.stub.StreamObserver;
@@ -195,6 +196,19 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     }
     else {
       observer.onNext(ProfilingStateResponse.getDefaultInstance());
+    }
+    observer.onCompleted();
+  }
+
+  @Override
+  public void startStartupProfiling(StartupProfilingRequest request,
+                                    StreamObserver<StartupProfilingResponse> observer) {
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.of(request.getDeviceId()));
+    if (client != null) {
+      observer.onNext(client.startStartupProfiling(request));
+    }
+    else {
+      observer.onNext(StartupProfilingResponse.getDefaultInstance());
     }
     observer.onCompleted();
   }

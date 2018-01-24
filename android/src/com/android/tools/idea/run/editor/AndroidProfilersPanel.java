@@ -109,8 +109,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
     myStartupCpuProfileCheckBox.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
 
-    StartupCpuProfilingConfiguration config =
-      StartupCpuProfilingConfiguration.getDefaultConfigByName(state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME);
+    StartupCpuProfilingConfiguration config = state.getStartupCpuProfilingConfiguration();
     if (config != null) {
       myStartupCpuConfigsComboBox.setSelectedItem(config);
     }
