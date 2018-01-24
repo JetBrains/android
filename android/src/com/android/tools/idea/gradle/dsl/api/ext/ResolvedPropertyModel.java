@@ -62,4 +62,21 @@ public interface ResolvedPropertyModel extends GradlePropertyModel {
    */
   @NotNull
   GradlePropertyModel getUnresolvedModel();
+
+  /**
+   * Returns a model representing the property that was the result of resolving the reference chain starting at this property.
+   * For example with the following Gradle file:
+   *
+   * ext {
+   *   colour = "red"
+   *   carColour = color
+   * }
+   *
+   * Using the ext model to get the carColor property, with {@link ExtModel#findProperty(String)}.
+   * Then calling {@link GradlePropertyModel#resolve()} to obtain the resolved model. This model represents the carColour property
+   * on the file. This means that any edits to this model will not edit the value of the colour property. This method enables the
+   * caller to obtain the colour model from the carColour model.
+   */
+  @NotNull
+  GradlePropertyModel getResultModel();
 }

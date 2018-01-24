@@ -45,7 +45,7 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @NotNull
   @Override
   public ValueType getValueType() {
-    return getResolvedModel().getValueType();
+    return resolveModel().getValueType();
   }
 
   @NotNull
@@ -57,7 +57,7 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @Nullable
   @Override
   public <T> T getValue(@NotNull TypeReference<T> typeReference) {
-    return getResolvedModel().getValue(typeReference);
+    return resolveModel().getValue(typeReference);
   }
 
   @Nullable
@@ -108,7 +108,8 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
 
   @Override
   public GradlePropertyModel convertToEmptyList() {
-    return myRealModel.convertToEmptyList();
+    myRealModel.convertToEmptyList();
+    return this;
   }
 
   @Override
@@ -126,7 +127,24 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
     myRealModel.delete();
   }
 
-  private GradlePropertyModel getResolvedModel() {
+  @Override
+  public ResolvedPropertyModel resolve() {
+    return this;
+  }
+
+  @Override
+  @NotNull
+  public GradlePropertyModel getUnresolvedModel() {
+    return myRealModel;
+  }
+
+  @NotNull
+  @Override
+  public GradlePropertyModel getResultModel() {
+    return resolveModel();
+  }
+
+  private GradlePropertyModel resolveModel() {
     GradlePropertyModel model = myRealModel;
     Set<GradlePropertyModel> seenModels = new HashSet<>();
 
@@ -138,11 +156,5 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
       model = model.getDependencies().get(0);
     }
     return model;
-  }
-
-  @Override
-  @NotNull
-  public GradlePropertyModel getUnresolvedModel() {
-    return myRealModel;
   }
 }
