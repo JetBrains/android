@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -469,7 +470,8 @@ public class GradleSyncState {
     syncStats.setTotalTimeMs(getSyncTotalTimeMs())
              .setIdeTimeMs(getSyncIdeTimeMs())
              .setGradleTimeMs(getSyncGradleTimeMs())
-             .setTrigger(myTrigger);
+             .setTrigger(myTrigger)
+             .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().ENABLE_EMBEDDED_MAVEN_REPO);
     // @formatter:on
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return event;
