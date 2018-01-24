@@ -225,7 +225,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
   private void setUpModuleAsGradleModule() {
     Module module = getModule();
 
-    ExternalSystemModulePropertyManager modulePropertyManager = new ExternalSystemModulePropertyManager(module);
+    ExternalSystemModulePropertyManager modulePropertyManager = ExternalSystemModulePropertyManager.getInstance(module);
     String projectPath = module.getProject().getBasePath();
     String gradlePath = ":";
     String moduleId = isEmpty(gradlePath) || ":".equals(gradlePath) ? module.getName() : gradlePath;
