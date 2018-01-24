@@ -218,6 +218,30 @@ class AddActionDialogTest : NavTestCase() {
 
     assertEquals(12, combo.itemCount)
     dialog.close(0)
+  }
+
+  fun testDestinationsForRoot() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        navigation("subnav1") {
+          fragment("otherfragment1")
+        }
+      }
+    }
+
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("root")!!, null)
+
+    val combo = dialog.myDestinationComboBox
+    assertEquals(null, combo.getItemAt(0))
+    assertEquals(model.find("root"), combo.getItemAt(1).component)
+    assertTrue(combo.getItemAt(2).isReturnToSource)
+    assertTrue(combo.getItemAt(3).isSeparator)
+    assertEquals(model.find("f1"), combo.getItemAt(4).component)
+    assertEquals(model.find("subnav1"), combo.getItemAt(5).component)
+
+    assertEquals(6, combo.itemCount)
+    dialog.close(0)
 
   }
 
