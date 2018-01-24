@@ -61,14 +61,8 @@ public class AtraceParser implements TraceParser {
     double startTimestampUs = convertToUserTimeUs(myModel.getBeginTimestamp());
     double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
     myRange = new Range(startTimestampUs, endTimestampUs);
-
-    // TODO(b/70808458) Remove when getProcess returns a Hashset.
-    for (ProcessModel process : myModel.getProcesses()) {
-      if (process.getId() == myProcessId) {
-        myProcessModel = process;
-        break;
-      }
-    }
+    myProcessModel = myModel.getProcesses().get(myProcessId);
+    
     // TODO (b/69910215): Handle case capture does not contain process we are looking for.
     assert myProcessModel != null;
     myCaptureTreeNodes = buildCaptureTreeNodes();
@@ -94,6 +88,7 @@ public class AtraceParser implements TraceParser {
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
     return myCaptureTreeNodes;
   }
+
 
   public Map<Integer, List<SeriesData<CpuProfilerStage.ThreadState>>> getThreadStateDataSeries() {
     return myThreadStateData;

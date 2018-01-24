@@ -19,7 +19,8 @@ package trebuchet.model
 import trebuchet.model.fragments.ModelFragment
 
 class Model constructor(fragments: Iterable<ModelFragment>) {
-    val processes: List<ProcessModel>
+    val processes: Map<Int, ProcessModel>
+    val cpus: List<CpuModel>
     val beginTimestamp: Double
     val endTimestamp: Double
     val parentTimestamp: Double
@@ -27,7 +28,8 @@ class Model constructor(fragments: Iterable<ModelFragment>) {
     val duration get() = endTimestamp - beginTimestamp
 
     init {
-        val processBuilder = mutableListOf<ProcessModel>()
+        val processBuilder = mutableMapOf<Int, ProcessModel>()
+        val cpuBuilder = mutableListOf<CpuModel>()
         var beginTimestamp = Double.MAX_VALUE
         var endTimestamp = 0.0
         var parentTimestamp = 0.0
@@ -41,12 +43,16 @@ class Model constructor(fragments: Iterable<ModelFragment>) {
             it.processes.forEach {
                 if (it.id != InvalidId) {
                     // TODO: Merge
-                    processBuilder.add(ProcessModel(this, it))
+                    processBuilder.put(it.id, ProcessModel(this, it))
                 }
             }
+            it.cpus.forEach {
+                cpuBuilder.add(CpuModel(this, it))
+            }
         }
-        processBuilder.sortBy { it.id }
+        cpuBuilder.sortBy { it.id }
         processes = processBuilder
+        cpus = cpuBuilder
         this.beginTimestamp = minOf(beginTimestamp, endTimestamp)
         this.endTimestamp = endTimestamp
         this.parentTimestamp = parentTimestamp

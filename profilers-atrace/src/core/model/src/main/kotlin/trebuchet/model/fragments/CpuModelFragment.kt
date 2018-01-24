@@ -16,7 +16,14 @@
 
 package trebuchet.model.fragments
 
+import trebuchet.model.CpuProcessSlice
+import trebuchet.model.base.Slice
 
-class CpuModelFragment {
-    
+
+class CpuModelFragment(var id: Int) {
+  val schedulingProcessBuilder = SchedulingProcessFragment.Builder()
+
+  val slices: List<CpuProcessSlice> get() {
+    return schedulingProcessBuilder.slices
+  }
 }

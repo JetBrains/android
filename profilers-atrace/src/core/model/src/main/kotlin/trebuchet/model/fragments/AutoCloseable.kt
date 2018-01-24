@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package trebuchet.queries
+package trebuchet.model.fragments
 
-import trebuchet.model.Model
-import trebuchet.model.ThreadModel
-
-
-object ThreadQueries {
-    fun firstOrNull(model: Model, predicate: (ThreadModel) -> Boolean): ThreadModel? {
-        model.processes.values.forEach {
-            it.threads.forEach {
-                if (predicate(it)) return it
-            }
-        }
-        return null
-    }
+interface AutoCloseable {
+    fun autoClose(maxTimestamp: Double)
 }
