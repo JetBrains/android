@@ -64,23 +64,23 @@ public class CachedProjectModels implements Serializable {
     }
   }
 
-  // Key: module's Gradle path.
-  private final Map<String, CachedModuleModels> myModelsByModulePath = new HashMap<>();
+  // Key: module name.
+  @NotNull private final Map<String, CachedModuleModels> myModelsByModuleName = new HashMap<>();
 
   @VisibleForTesting
   CachedProjectModels() {
   }
 
   @NotNull
-  public CachedModuleModels addModule(@NotNull Module module, @NotNull String gradlePath) {
-    CachedModuleModels cache = new CachedModuleModels(module, gradlePath);
-    myModelsByModulePath.put(gradlePath, cache);
+  public CachedModuleModels addModule(@NotNull Module module) {
+    CachedModuleModels cache = new CachedModuleModels(module);
+    myModelsByModuleName.put(module.getName(), cache);
     return cache;
   }
 
   @Nullable
-  public CachedModuleModels findCacheForModule(@NotNull String gradlePath) {
-    return myModelsByModulePath.get(gradlePath);
+  public CachedModuleModels findCacheForModule(@NotNull String moduleName) {
+    return myModelsByModuleName.get(moduleName);
   }
 
   @NotNull
@@ -132,18 +132,18 @@ public class CachedProjectModels implements Serializable {
       return false;
     }
     CachedProjectModels cache = (CachedProjectModels)o;
-    return Objects.equals(myModelsByModulePath, cache.myModelsByModulePath);
+    return Objects.equals(myModelsByModuleName, cache.myModelsByModuleName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myModelsByModulePath);
+    return Objects.hash(myModelsByModuleName);
   }
 
   @Override
   public String toString() {
-    return "GradleProjectModelsCache{" +
-           "myModelsByModulePath=" + myModelsByModulePath +
+    return "CachedProjectModels{" +
+           "myModelsByModuleName=" + myModelsByModuleName +
            '}';
   }
 }
