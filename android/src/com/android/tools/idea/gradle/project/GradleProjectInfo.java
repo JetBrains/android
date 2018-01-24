@@ -37,12 +37,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
@@ -52,6 +50,7 @@ public class GradleProjectInfo {
   @NotNull private final AtomicReference<String> myProjectCreationErrorRef = new AtomicReference<>();
 
   private volatile boolean myIsNewOrImportedProject;
+  private final ProjectFacetManager myFacetManager;
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
@@ -66,6 +65,7 @@ public class GradleProjectInfo {
     myProjectInfo = projectInfo;
     myGradleProjectSettings = gradleProjectSettings;
     myProjectFileIndex = projectFileIndex;
+    myFacetManager = ProjectFacetManager.getInstance(myProject);
   }
 
   public boolean canUseLocalMavenRepo() {
@@ -108,7 +108,7 @@ public class GradleProjectInfo {
    */
   public boolean isBuildWithGradle() {
     return ReadAction.compute(() -> {
-      if (ProjectFacetManager.getInstance(myProject).hasFacets(GradleFacet.getFacetTypeId())) {
+      if (myFacetManager.hasFacets(GradleFacet.getFacetTypeId())) {
         return true;
       }
 
@@ -130,9 +130,9 @@ public class GradleProjectInfo {
     if (myProject.isDefault()) {
       return false;
     }
-    File projectFolderPath = getBaseDirPath(myProject);
-    File buildFilePath = new File(projectFolderPath, FN_BUILD_GRADLE);
-    return buildFilePath.isFile();
+    VirtualFile baseDir = myProject.getBaseDir();
+    VirtualFile buildGradle = baseDir == null ? null : baseDir.findChild(FN_BUILD_GRADLE);
+    return buildGradle != null && !buildGradle.isDirectory();
   }
 
   /**
