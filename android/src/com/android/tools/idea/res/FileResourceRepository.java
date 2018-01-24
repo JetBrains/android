@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +62,7 @@ public class FileResourceRepository extends LocalResourceRepository {
    */
   @Nullable protected Map<String, Integer> myAarDeclaredIds;
 
-  @NotNull private final File myFile;
+  @NotNull private final File myResourceDirectory;
   @NotNull ResourceNamespace myNamespace;
   @Nullable private final String myLibraryName;
 
@@ -70,20 +71,20 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   private final static Map<File, FileResourceRepository> ourCache = ContainerUtil.createSoftValueMap();
 
-  private FileResourceRepository(@NotNull File file, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
-    super(file.getName());
-    myFile = file;
+  protected FileResourceRepository(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
+    super(resourceDirectory.getName());
+    myResourceDirectory = resourceDirectory;
     myNamespace = namespace;
     myLibraryName = libraryName;
   }
 
   @NotNull
   // TODO: namespaces
-  static synchronized FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
-    FileResourceRepository repository = ourCache.get(file);
+  static synchronized FileResourceRepository get(@NotNull File resourceDirectory, @Nullable String libraryName) {
+    FileResourceRepository repository = ourCache.get(resourceDirectory);
     if (repository == null) {
-      repository = create(file, ResourceNamespace.TODO, libraryName);
-      ourCache.put(file, repository);
+      repository = create(resourceDirectory, ResourceNamespace.TODO, libraryName);
+      ourCache.put(resourceDirectory, repository);
     }
 
     return repository;
@@ -91,15 +92,15 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @Nullable
   @VisibleForTesting
-  static synchronized FileResourceRepository getCached(@NotNull final File file) {
-    return ourCache.get(file);
+  static synchronized FileResourceRepository getCached(@NotNull File resourceDirectory) {
+    return ourCache.get(resourceDirectory);
   }
 
   @NotNull
-  private static FileResourceRepository create(@NotNull final File file, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
-    final FileResourceRepository repository = new FileResourceRepository(file, namespace, libraryName);
+  private static FileResourceRepository create(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
+    FileResourceRepository repository = new FileResourceRepository(resourceDirectory, namespace, libraryName);
     try {
-      ResourceMerger resourceMerger = createResourceMerger(file, namespace, libraryName);
+      ResourceMerger resourceMerger = createResourceMerger(resourceDirectory, namespace, libraryName);
       repository.getItems().update(resourceMerger);
     }
     catch (Exception e) {
@@ -109,7 +110,7 @@ public class FileResourceRepository extends LocalResourceRepository {
     // Look for a R.txt file which describes the available id's; this is
     // available both in an exploded-aar folder as well as in the build-cache
     // for AAR files
-    File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
+    File rDotTxt = new File(resourceDirectory.getParentFile(), FN_RESOURCE_TEXT);
     if (rDotTxt.exists()) {
       repository.myResourceTextFile = rDotTxt;
       repository.myAarDeclaredIds = RDotTxtParser.getIds(rDotTxt);
@@ -118,10 +119,12 @@ public class FileResourceRepository extends LocalResourceRepository {
     return repository;
   }
 
+  @VisibleForTesting
   @NotNull
-  public static FileResourceRepository createForTest(@NotNull final File file, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
+  public static FileResourceRepository createForTest(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
+                                                     @Nullable String libraryName) {
     assert ApplicationManager.getApplication().isUnitTestMode();
-    return create(file, namespace, libraryName);
+    return create(resourceDirectory, namespace, libraryName);
   }
 
   @Nullable
@@ -135,7 +138,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @NotNull
   public File getResourceDirectory() {
-    return myFile;
+    return myResourceDirectory;
   }
 
   @Override
@@ -173,6 +176,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @Override
   @Nullable
+  @Contract("_, _, true -> !null")
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
     if (multimap == null && create) {
@@ -197,13 +201,13 @@ public class FileResourceRepository extends LocalResourceRepository {
   // For debugging only
   @Override
   public String toString() {
-    return getClass().getSimpleName() + " for " + myFile + ": @" + Integer.toHexString(System.identityHashCode(this));
+    return getClass().getSimpleName() + " for " + myResourceDirectory + ": @" + Integer.toHexString(System.identityHashCode(this));
   }
 
   @NotNull
   @Override
   protected Set<VirtualFile> computeResourceDirs() {
-    VirtualFile virtualFile = VfsUtil.findFileByIoFile(myFile, !ApplicationManager.getApplication().isReadAccessAllowed());
+    VirtualFile virtualFile = VfsUtil.findFileByIoFile(myResourceDirectory, !ApplicationManager.getApplication().isReadAccessAllowed());
     if (virtualFile == null) {
       return ImmutableSet.of();
     }
