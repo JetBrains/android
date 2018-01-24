@@ -93,7 +93,8 @@ abstract class ModuleSetup {
                                  new IdeDependenciesFactory(),
                                  new ProjectDataNodeSetup(),
                                  new ModuleSetupContext.Factory(),
-                                 new ModuleFinder.Factory());
+                                 new ModuleFinder.Factory(),
+                                 new CompositeBuildDataSetup());
     }
   }
 
@@ -118,6 +119,7 @@ abstract class ModuleSetup {
     @NotNull private final ProjectDataNodeSetup myProjectDataNodeSetup;
     @NotNull private final ModuleSetupContext.Factory myModuleSetupFactory;
     @NotNull private final ModuleFinder.Factory myModuleFinderFactory;
+    @NotNull private final CompositeBuildDataSetup myCompositeBuildDataSetup;
 
     @NotNull private final List<Module> myAndroidModules = new ArrayList<>();
 
@@ -139,7 +141,8 @@ abstract class ModuleSetup {
                     @NotNull IdeDependenciesFactory dependenciesFactory,
                     @NotNull ProjectDataNodeSetup projectDataNodeSetup,
                     @NotNull ModuleSetupContext.Factory moduleSetupFactory,
-                    @NotNull ModuleFinder.Factory moduleFinderFactory) {
+                    @NotNull ModuleFinder.Factory moduleFinderFactory,
+                    @NotNull CompositeBuildDataSetup compositeBuildDataSetup) {
       myProject = project;
       myModelsProvider = modelsProvider;
       myModuleFactory = moduleFactory;
@@ -159,6 +162,7 @@ abstract class ModuleSetup {
       myProjectDataNodeSetup = projectDataNodeSetup;
       myModuleSetupFactory = moduleSetupFactory;
       myModuleFinderFactory = moduleFinderFactory;
+      myCompositeBuildDataSetup = compositeBuildDataSetup;
     }
 
     @Override
@@ -172,6 +176,7 @@ abstract class ModuleSetup {
 
       notifyModuleConfigurationStarted(indicator);
 
+      myCompositeBuildDataSetup.setupCompositeBuildData(projectModels, myProject);
       List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
       List<GradleFacet> gradleFacets = new ArrayList<>();
 
@@ -240,6 +245,7 @@ abstract class ModuleSetup {
     void setUpModules(@NotNull SyncProjectModels projectModels, @NotNull ProgressIndicator indicator) {
       notifyModuleConfigurationStarted(indicator);
       CachedProjectModels cache = myCachedProjectModelsFactory.createNew();
+      myCompositeBuildDataSetup.setupCompositeBuildData(projectModels, cache, myProject);
 
       GlobalLibraryMap globalLibraryMap = projectModels.getGlobalLibraryMap();
       if (globalLibraryMap != null) {

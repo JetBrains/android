@@ -65,6 +65,7 @@ public class ModuleSetupImplTest extends IdeaTestCase {
   @Mock private ModuleFinder.Factory myModulesFinderFactory;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleFinder myModuleFinder;
+  @Mock private CompositeBuildDataSetup myCompositeBuildDataSetup;
 
   private ModuleSetupImpl myModuleSetup;
 
@@ -79,7 +80,8 @@ public class ModuleSetupImplTest extends IdeaTestCase {
                                         myAndroidModuleSetup, myNdkModuleSetup, myJavaModuleSetup, myAndroidModuleProcessor,
                                         myVariantSelector, myProjectCleanup, myModuleDisposer, myCachedProjectModelsFactory,
                                         myNativeAndroidProjectFactory, myJavaModuleModelFactory, myDependenciesFactory,
-                                        myProjectDataNodeSetup, myModuleSetupContextFactory, myModulesFinderFactory);
+                                        myProjectDataNodeSetup, myModuleSetupContextFactory, myModulesFinderFactory,
+                                        myCompositeBuildDataSetup);
   }
 
   public void testSetUpModulesFromCache() throws Exception {
@@ -132,6 +134,9 @@ public class ModuleSetupImplTest extends IdeaTestCase {
 
     // Invoke the method to test.
     myModuleSetup.setUpModules(myCachedProjectModels, indicator);
+
+    // Verify CompositeBuild data is setup.
+    verify(myCompositeBuildDataSetup).setupCompositeBuildData(myCachedProjectModels, myProject);
 
     // Verify that the modules were set up from the models in the cache.
     verify(myGradleModuleSetup).setUpModule(appModule, myModelsProvider, appGradleModel);

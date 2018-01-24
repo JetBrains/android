@@ -88,6 +88,14 @@ public class SyncModuleModels implements GradleModuleModels {
     myModuleName = myBuildId.getRootDir().getName() + "-" + myModuleName;
   }
 
+  /**
+   * @return the build identifier of current module.
+   */
+  @NotNull
+  public BuildIdentifier getBuildId() {
+    return myBuildId;
+  }
+
   @Nullable
   private <T> T findAndAddModel(@NotNull GradleProject gradleProject, @NotNull BuildController controller, @NotNull Class<T> modelType) {
     T model = controller.findModel(gradleProject, modelType);
