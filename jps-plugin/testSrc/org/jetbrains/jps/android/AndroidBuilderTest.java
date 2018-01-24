@@ -1306,7 +1306,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.addRegexPathPattern("PROGUARD_INPUT_JAR", ".*/proguard_input\\S*\\.jar");
 
     // for running on buildserver
-    executor.addRegexPathPattern("IDEA_RT_PATH", ".*/production/java-runtime");
+    executor.addRegexPathPattern("IDEA_RT_PATH", ".*/production/intellij.java.rt");
 
     AndroidBuildTestingManager.startBuildTesting(executor);
   }
