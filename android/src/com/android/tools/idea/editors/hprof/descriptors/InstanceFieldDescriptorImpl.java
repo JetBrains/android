@@ -95,16 +95,16 @@ public class InstanceFieldDescriptorImpl extends HprofFieldDescriptorImpl {
       myTruncatedValueText = String.format(" \"class %s\"", ((ClassObj)myValueData).getClassName());
     }
     else if (isString()) {
-      char[] stringChars = ((ClassInstance)myValueData).getStringChars(MAX_VALUE_TEXT_LENGTH);
-      if (stringChars != null) {
-        int charLength = stringChars.length;
-        StringBuilder builder = new StringBuilder(6 + charLength);
+      String text = ((ClassInstance)myValueData).getAsString(MAX_VALUE_TEXT_LENGTH);
+      if (text != null) {
+        int textLength = text.length();
+        StringBuilder builder = new StringBuilder(6 + textLength);
         builder.append(" \"");
-        if (charLength == MAX_VALUE_TEXT_LENGTH) {
-          builder.append(stringChars, 0, charLength - 1).append("...");
+        if (textLength == MAX_VALUE_TEXT_LENGTH) {
+          builder.append(text, 0, textLength - 1).append("...");
         }
         else {
-          builder.append(stringChars);
+          builder.append(text);
         }
         builder.append("\"");
         myTruncatedValueText = builder.toString();
