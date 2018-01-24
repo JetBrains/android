@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
 import com.android.xml.XmlBuilder;
 import icons.StudioIcons;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -107,11 +104,11 @@ public final class LinearLayoutTest {
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/70726902
   /**
    * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
    */
   @Test
+  @RunIn(TestGroup.UNRELIABLE)  // b/70726902
   public void resolveAttributeStyleReference() throws IOException {
     // @formatter:off
     String xml = new XmlBuilder()
@@ -145,7 +142,9 @@ public final class LinearLayoutTest {
     editor.enterText("<item name=\"linear_layout_style\">@style/vertical_linear_layout");
 
     editor.open(myLayoutPath.toString());
-    assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
+    Wait.seconds(10)
+      .expecting("Component tree pane to update")
+      .until(() -> getComponentTree().valueAt(0).equals("LinearLayout (vertical)"));
   }
 
   @NotNull
