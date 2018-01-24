@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -58,6 +59,10 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return;
+    }
     if (!mySurface.getSelectionModel().isEmpty()) {
       myCopyPasteManager.setContents(mySurface.getSelectionAsTransferable());
     }
@@ -65,16 +70,28 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
   @Override
   public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return false;
+    }
     return hasNonEmptySelection();
   }
 
   @Override
   public boolean isCopyVisible(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return false;
+    }
     return true;
   }
 
   @Override
   public void performCut(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return;
+    }
     if (!mySurface.getSelectionModel().isEmpty()) {
       ItemTransferable transferable = mySurface.getSelectionAsTransferable();
       try {
@@ -91,11 +108,19 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
   @Override
   public boolean isCutEnabled(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return false;
+    }
     return hasNonEmptySelection();
   }
 
   @Override
   public boolean isCutVisible(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return false;
+    }
     return true;
   }
 
@@ -117,6 +142,10 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
 
   @Override
   public void performPaste(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return;
+    }
     pasteOperation(false /* check and perform the actual paste */);
   }
 
@@ -125,6 +154,10 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
    */
   @Override
   public boolean isPastePossible(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return false;
+    }
     // The execution of this method must be quick as it is called in regularly when updating
     // the actions' presentations
     return mySurface.getSelectionModel().getSelection().size() <= 1;
@@ -135,6 +168,10 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
    */
   @Override
   public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+    // TODO: support nav editor
+    if (!(mySurface instanceof NlDesignSurface)) {
+      return false;
+    }
     return pasteOperation(true /* check only */);
   }
 
