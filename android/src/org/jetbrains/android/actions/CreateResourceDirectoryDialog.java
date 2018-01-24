@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 
 /**
@@ -94,13 +95,10 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
   }
 
   @Nullable
+  @VisibleForTesting
   @Override
-  protected ValidationInfo doValidate() {
-    if (myDirectoryNameTextField.getText().equals(SdkConstants.FD_RES_LAYOUT)) {
-      return new ValidationInfo("Enter or select a qualifier", myDirectoryNameTextField);
-    }
-
-    return null;
+  public ValidationInfo doValidate() {
+    return super.doValidate();
   }
 
   @Override
@@ -135,6 +133,11 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     else {
       return myDirectoryNameTextField;
     }
+  }
+
+  @VisibleForTesting
+  JTextComponent getDirectoryNameTextField() {
+    return myDirectoryNameTextField;
   }
 
   @Override
