@@ -29,7 +29,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixt
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureFormFactorStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.openapi.module.Module;
@@ -37,10 +36,8 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
-import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -464,19 +461,9 @@ public class NewProjectTest {
         .enterApplicationName(myName)
         .enterCompanyDomain(myDomain)
         .enterPackageName(myPkg);
+      newProjectWizard.clickNext();
 
-      Ref<ConfigureFormFactorStepFixture> configureFormFactorStepRef = new Ref<>();
-      Wait.seconds(15).expecting("Wait for 'Target Android Devices' dialog appear").until(() -> {
-        newProjectWizard.clickNext();
-        try {
-          configureFormFactorStepRef.set(newProjectWizard.getConfigureFormFactorStep());
-          return true;
-        } catch (WaitTimedOutError e) {
-          return false;
-        }
-      });
-
-      configureFormFactorStepRef.get().selectMinimumSdkApi(MOBILE, myMinSdk);
+      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
       newProjectWizard.clickNext();
 
       // Skip "Add Activity" step
