@@ -319,6 +319,6 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
 
   @Nullable
   public PsiElement getPsiElement() {
-    return mySourceElement.getElement();
+    return mySourceElement != null ? mySourceElement.getElement() : null;
   }
 }
