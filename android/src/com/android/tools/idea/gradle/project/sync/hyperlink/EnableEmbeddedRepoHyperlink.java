@@ -28,7 +28,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_EMBEDDED_REPO_ENABLED_BY_QUICKFIX;
 import static java.io.File.separator;
 
 /**
@@ -42,7 +42,7 @@ public class EnableEmbeddedRepoHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     AndroidStudioGradleIdeSettings.getInstance().ENABLE_EMBEDDED_MAVEN_REPO = true;
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_EMBEDDED_REPO_ENABLED_BY_QUICKFIX);
   }
 
   /**
