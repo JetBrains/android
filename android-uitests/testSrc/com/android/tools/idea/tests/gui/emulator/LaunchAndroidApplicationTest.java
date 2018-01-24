@@ -264,10 +264,33 @@ public class LaunchAndroidApplicationTest {
     samplesWizard.clickFinish();
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    // HACK: This is needed until the github project is updated
+    ideFrameFixture
+      .waitForGradleProjectSyncToFail()
+      .getEditor()
+      .open("build.gradle")
+      .select("com.android.tools.build:gradle:(3.0.1)")
+      .enterText("3.1.0-dev")
+      .open("choreographer-30fps/build.gradle")
+      .select("constraint-layout:1.0.(1)")
+      .enterText("2")
+      .open("classic-teapot/build.gradle")
+      .select("constraint-layout:1.0.(1)")
+      .enterText("2")
+      .open("more-teapots/build.gradle")
+      .select("constraint-layout:1.0.(1)")
+      .enterText("2")
+      .open("gradle/wrapper/gradle-wrapper.properties")
+      .select("gradle-(4.1)-all.zip")
+      .enterText("4.4")
+      .getIdeFrame()
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(60));
+
     ideFrameFixture
       .waitForGradleProjectSyncToFinish()
       .getEditor()
-      .open("app/src/main/jni/TeapotNativeActivity.cpp")
+      .open("classic-teapot/src/main/cpp/TeapotNativeActivity.cpp")
       .moveBetween("g_engine.Draw", "Frame()")
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT) // First break point - First Frame is drawn
       .moveBetween("static int32_t Handle", "Input(")
@@ -280,15 +303,19 @@ public class LaunchAndroidApplicationTest {
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
-      .debugApp(APP_NAME)
+      .debugApp("classic-teapot")
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
+
+    Wait.seconds(EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
+      .expecting("emulator with the app launched in debug mode")
+      .until(() -> ideFrameFixture.getDebugToolWindow().getContentCount() >= 2);
 
     // Wait for the UI App to be up and running, by waiting for the first Frame draw to get hit.
     expectBreakPoint("g_engine.DrawFrame()");
 
     // Simulate a screen touch
-    emulator.getEmulatorConnection().tapRunningAvd(400, 400);
+    emulator.getEmulatorConnection().tapRunningAvd(400, 800);
 
     // Wait for the Cpp HandleInput() break point to get hit.
     expectBreakPoint("Engine* eng = (Engine*)app->userData;");

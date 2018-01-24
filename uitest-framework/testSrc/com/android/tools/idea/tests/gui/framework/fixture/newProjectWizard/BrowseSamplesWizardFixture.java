@@ -19,7 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,9 +46,9 @@ public class BrowseSamplesWizardFixture extends AbstractWizardFixture<BrowseSamp
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture<BrowseSamplesWizardFixture> getConfigureFormFactorStep() {
+  public ConfigureAndroidSampleProjectStepFixture<BrowseSamplesWizardFixture> getConfigureFormFactorStep() {
     JRootPane rootPane = findStepWithTitle("Configure Sample");
-    return new ConfigureAndroidProjectStepFixture<>(this, rootPane);
+    return new ConfigureAndroidSampleProjectStepFixture<>(this, rootPane);
   }
 
   @NotNull
