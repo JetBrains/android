@@ -1,11 +1,11 @@
 /*
- * Copyright 2017 Google Inc.
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,20 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package trebuchet.model
 
-package trebuchet.queries
+import trebuchet.model.fragments.CpuModelFragment
 
-import trebuchet.model.Model
-import trebuchet.model.ThreadModel
+class CpuModel constructor(val model: Model, fragment: CpuModelFragment) {
+  val id: Int = fragment.id
+  val slices = fragment.slices
+  val hasContent = slices.isNotEmpty()
 
-
-object ThreadQueries {
-    fun firstOrNull(model: Model, predicate: (ThreadModel) -> Boolean): ThreadModel? {
-        model.processes.values.forEach {
-            it.threads.forEach {
-                if (predicate(it)) return it
-            }
-        }
-        return null
-    }
+  init {
+    if (id == InvalidId) throw IllegalArgumentException("Cpu has invalid id")
+  }
 }
