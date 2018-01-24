@@ -36,7 +36,7 @@ import static java.util.stream.Collectors.groupingBy;
 
 public class SyncProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
@@ -44,6 +44,7 @@ public class SyncProjectModels implements Serializable {
   // List of SyncModuleModels for modules in root build and included builds.
   @NotNull private final List<SyncModuleModels> mySyncModuleModels = new ArrayList<>();
   @Nullable private GlobalLibraryMap myGlobalLibraryMap;
+  private BuildIdentifier myRootBuildId;
 
   public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes, @NotNull Set<Class<?>> extraJavaModelTypes) {
     myExtraAndroidModelTypes = extraAndroidModelTypes;
@@ -52,6 +53,7 @@ public class SyncProjectModels implements Serializable {
 
   public void populate(@NotNull BuildController controller) {
     GradleBuild rootBuild = controller.getBuildModel();
+    myRootBuildId = rootBuild.getBuildIdentifier();
     List<GradleBuild> gradleBuilds = new ArrayList<>();
     // add the root builds.
     gradleBuilds.add(rootBuild);
@@ -120,5 +122,13 @@ public class SyncProjectModels implements Serializable {
   @Nullable
   public GlobalLibraryMap getGlobalLibraryMap() {
     return myGlobalLibraryMap;
+  }
+
+  /**
+   * @return the build identifier of root project.
+   */
+  @NotNull
+  public BuildIdentifier getRootBuildId() {
+    return myRootBuildId;
   }
 }

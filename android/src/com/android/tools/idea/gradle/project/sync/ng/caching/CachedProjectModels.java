@@ -22,11 +22,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getCacheFolderRootPath;
@@ -34,7 +33,7 @@ import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 
 public class CachedProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   public static class Factory {
     @NotNull
@@ -66,9 +65,19 @@ public class CachedProjectModels implements Serializable {
 
   // Key: module name.
   @NotNull private final Map<String, CachedModuleModels> myModelsByModuleName = new HashMap<>();
+  @NotNull private final List<BuildParticipant> myBuildParticipants = new ArrayList<>();
 
   @VisibleForTesting
   CachedProjectModels() {
+  }
+
+  @NotNull
+  public List<BuildParticipant> getBuildParticipants() {
+    return myBuildParticipants;
+  }
+
+  public void addBuildParticipant(@NotNull BuildParticipant buildParticipant) {
+    myBuildParticipants.add(buildParticipant);
   }
 
   @NotNull
@@ -132,18 +141,20 @@ public class CachedProjectModels implements Serializable {
       return false;
     }
     CachedProjectModels cache = (CachedProjectModels)o;
-    return Objects.equals(myModelsByModuleName, cache.myModelsByModuleName);
+    return Objects.equals(myModelsByModuleName, cache.myModelsByModuleName)
+           && Objects.equals(myBuildParticipants, cache.myBuildParticipants);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myModelsByModuleName);
+    return Objects.hash(myModelsByModuleName, myBuildParticipants);
   }
 
   @Override
   public String toString() {
     return "CachedProjectModels{" +
            "myModelsByModuleName=" + myModelsByModuleName +
+           "myBuildParticipants=" + myBuildParticipants +
            '}';
   }
 }
