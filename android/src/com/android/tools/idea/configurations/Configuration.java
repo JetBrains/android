@@ -207,9 +207,9 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @NotNull
   @VisibleForTesting
-  static Configuration create(@NotNull ConfigurationManager manager,
-                              @Nullable VirtualFile file,
-                              @NotNull FolderConfiguration editedConfig) {
+  public static Configuration create(@NotNull ConfigurationManager manager,
+                                     @Nullable VirtualFile file,
+                                     @NotNull FolderConfiguration editedConfig) {
     return new Configuration(manager, file, editedConfig);
   }
 
