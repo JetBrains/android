@@ -50,6 +50,14 @@ public class ProfilerState {
 
   private boolean myCheckAdvancedProfiling;
 
+  @NotNull
+  public StartupCpuProfilingConfiguration getStartupCpuProfilingConfiguration() {
+    StartupCpuProfilingConfiguration config =
+      StartupCpuProfilingConfiguration.getDefaultConfigByName(STARTUP_CPU_PROFILING_CONFIGURATION_NAME);
+    assert config != null;
+    return config;
+  }
+
   /**
    * Reads the state from the {@link Element}, overwriting all member values.
    */

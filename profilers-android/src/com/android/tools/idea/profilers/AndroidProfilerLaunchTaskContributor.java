@@ -17,15 +17,18 @@ package com.android.tools.idea.profilers;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.TimeoutException;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.run.AndroidLaunchTaskContributor;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.LaunchOptions;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -74,19 +78,98 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    return getAttachAgentArgs(profilerService, applicationId, device, deviceId);
+    StringBuilder args = new StringBuilder(getAttachAgentArgs(applicationId, profilerService, device, deviceId));
+    args.append(" ").append(startStartupProfiling(applicationId, module, profilerService, device, deviceId));
+    return args.toString();
   }
 
   @NotNull
-  private static String getAttachAgentArgs(@NotNull ProfilerService profilerService, @NotNull String appPackageName,
-                                           @NotNull IDevice device, long deviceId) {
+  private static String getAttachAgentArgs(@NotNull String appPackageName,
+                                           @NotNull ProfilerService profilerService,
+                                           @NotNull IDevice device,
+                                           long deviceId) {
     Profiler.ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getProfilerClient()
       .configureStartupAgent(Profiler.ConfigureStartupAgentRequest.newBuilder().setDeviceId(deviceId)
                             // TODO: Find a way of finding the correct ABI
                             .setAgentLibFileName(getAbiDependentLibPerfaName(device))
                             .setAppPackageName(appPackageName).build());
-
     return response.getAgentArgs().isEmpty() ? "" : "--attach-agent " + response.getAgentArgs();
+  }
+
+  /**
+   * Starts startup profiling by RPC call to perfd.
+   *
+   * @return arguments used with --start-profiler flag, i.e "--start-profiler $filePath --sampling 100 --streaming",
+   * the result is an empty string, when either startup CPU profiling is not enabled
+   * or the selected CPU configuration is not an ART profiling.
+   */
+  @NotNull
+  private static String startStartupProfiling(@NotNull String appPackageName,
+                                              @NotNull Module module,
+                                              @NotNull ProfilerService profilerService,
+                                              @NotNull IDevice device,
+                                              long deviceId) {
+    if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
+      return "";
+    }
+
+    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(module.getProject());
+    if (runConfig == null || !runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
+      return "";
+    }
+
+    StartupCpuProfilingConfiguration startupConfig = runConfig.getProfilerState().getStartupCpuProfilingConfiguration();
+    CpuProfiler.StartupProfilingResponse response = profilerService
+      .getProfilerClient().getCpuClient()
+      .startStartupProfiling(CpuProfiler.StartupProfilingRequest
+                               .newBuilder()
+                               .setAppPackage(appPackageName)
+                               .setDeviceId(deviceId)
+                               .setConfiguration(getCpuProfilerConfiguration(startupConfig, device))
+                               .build());
+    if (response.getFilePath().isEmpty()) {
+      return "";
+    }
+    StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(response.getFilePath());
+    if (startupConfig.getTechnology() == StartupCpuProfilingConfiguration.Technology.SAMPLED_JAVA) {
+      argsBuilder.append(" --sampling ").append(startupConfig.getSamplingInterval());
+    }
+
+    if (device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
+      argsBuilder.append(" --streaming");
+    }
+    return argsBuilder.toString();
+  }
+
+  @NotNull
+  private static CpuProfiler.CpuProfilerConfiguration getCpuProfilerConfiguration(@NotNull StartupCpuProfilingConfiguration configuration,
+                                                                               @NotNull IDevice device) {
+    CpuProfiler.CpuProfilerConfiguration.Builder request = CpuProfiler.CpuProfilerConfiguration.newBuilder();
+    switch (configuration.getTechnology()) {
+      case SAMPLED_JAVA:
+        request.setProfilerType(CpuProfiler.CpuProfilerType.ART);
+        request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+        break;
+      case INSTRUMENTED_JAVA:
+        request.setProfilerType(CpuProfiler.CpuProfilerType.ART);
+        request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
+        break;
+      case SAMPLED_NATIVE:
+        request.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
+        request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+        break;
+    }
+    request.setSamplingIntervalUs(configuration.getSamplingInterval());
+    return request.build();
+  }
+
+  @Nullable
+  private static AndroidRunConfigurationBase getSelectedRunConfiguration(@NotNull Project project) {
+    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
+    if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
+      return (AndroidRunConfigurationBase)settings.getConfiguration();
+    }
+    return null;
   }
 
   /**
