@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -60,6 +59,7 @@ public class GradleProjectInfo {
 
   private volatile boolean myNewProject;
   private volatile boolean myImportedProject;
+  private final ProjectFacetManager myFacetManager;
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
@@ -70,6 +70,7 @@ public class GradleProjectInfo {
     myProject = project;
     myProjectInfo = projectInfo;
     myProjectFileIndex = projectFileIndex;
+    myFacetManager = ProjectFacetManager.getInstance(myProject);
   }
 
   public boolean isNewProject() {
@@ -119,7 +120,7 @@ public class GradleProjectInfo {
       if (myProject.isDisposed()) {
         return false;
       }
-      if (ProjectFacetManager.getInstance(myProject).hasFacets(GradleFacet.getFacetTypeId())) {
+      if (myFacetManager.hasFacets(GradleFacet.getFacetTypeId())) {
         return true;
       }
       // See https://code.google.com/p/android/issues/detail?id=203384
@@ -140,9 +141,9 @@ public class GradleProjectInfo {
     if (myProject.isDefault()) {
       return false;
     }
-    File projectFolderPath = getBaseDirPath(myProject);
-    File buildFilePath = new File(projectFolderPath, FN_BUILD_GRADLE);
-    return buildFilePath.isFile();
+    VirtualFile baseDir = myProject.getBaseDir();
+    VirtualFile buildGradle = baseDir == null ? null : baseDir.findChild(FN_BUILD_GRADLE);
+    return buildGradle != null && !buildGradle.isDirectory();
   }
 
   /**
