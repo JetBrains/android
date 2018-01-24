@@ -34,9 +34,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 
@@ -49,17 +49,13 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo) {
-    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).values().stream()
-      .filter(item -> item.getNamespace() == RES_AUTO) // TODO(namespaces): See SampleDataResourceRepository.addPredefinedItems()
-      .collect(Collectors.toList());
+  private static Collection<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo) {
+    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).values();
   }
 
   @Nullable
   private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo, @NotNull String resName) {
-    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).get(resName).stream()
-      .filter(item -> item.getNamespace() == RES_AUTO) // TODO(namespaces): See SampleDataResourceRepository.addPredefinedItems()
-      .collect(Collectors.toList());
+    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).get(resName);
   }
 
   public void testDataLoad() {

@@ -91,34 +91,12 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   }
 
   /**
-   * Creates a new {@link SampleDataResourceItem}
-   * @param name name of the resource
-   * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
-   *                                   must return any exceptions that happened during the processing of the file.
-   * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
-   *                                                    content changes. If 0, the content won't be cached.
-   * @param sourceElement optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
-   *                      references to the content.
-   */
-  private SampleDataResourceItem(@NonNull String name,
-                                 @NonNull Function<OutputStream, Exception> dataSource,
-                                 @NonNull Supplier<Long> dataSourceModificationStamp,
-                                 @Nullable SmartPsiElementPointer<PsiElement> sourceElement) {
-    this(name, ResourceNamespace.TODO, dataSource, dataSourceModificationStamp, sourceElement);
-  }
-
-  /**
    * Returns a {@link SampleDataResourceItem} from the given static content generator. Static content generators can be cached indefinitely
    * since the never change.
-   *
-   * <p>As a temporary workaround, the item is crated in the TOOLS namespace, but is stored under RES_AUTO namespace
-   * (SampleDataResourceRepository#addPredefinedItems) and has "tools:" prepended to the name, which is a convention followed by consuming
-   * code in ResourceReferenceConverter#referenceTo.
-   * TODO(namespaces): fix this.
    */
   @NonNull
   static SampleDataResourceItem getFromStaticDataSource(@NonNull String name, @NonNull Function<OutputStream, Exception> source) {
-    return new SampleDataResourceItem("tools:" + name, ResourceNamespace.TOOLS, source, () -> 1L, null);
+    return new SampleDataResourceItem(name, SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, source, () -> 1L, null);
   }
 
   /**
@@ -130,7 +108,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
     VirtualFile vFile = filePointer.getVirtualFile();
     String fileName = vFile.getName();
 
-    return new SampleDataResourceItem(fileName, output -> {
+    return new SampleDataResourceItem(fileName, ResourceNamespace.TODO, output -> {
       PsiElement sourceElement = filePointer.getElement();
       if (sourceElement == null) {
         LOG.warn("File pointer was invalidated and the repository was not refreshed");
@@ -155,7 +133,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   @NonNull
   private static SampleDataResourceItem getFromDirectory(@NonNull SmartPsiElementPointer<PsiElement> directoryPointer) {
     VirtualFile directory = directoryPointer.getVirtualFile();
-    return new SampleDataResourceItem(directory.getName(), output -> {
+    return new SampleDataResourceItem(directory.getName(), ResourceNamespace.TODO, output -> {
       PrintStream printStream = new PrintStream(output);
       Arrays.stream(directory.getChildren())
         .filter(child -> !child.isDirectory())
@@ -175,7 +153,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
                                                         @NonNull String contentPath) {
     VirtualFile vFile = jsonPointer.getVirtualFile();
     String fileName = vFile.getName();
-    return new SampleDataResourceItem(fileName + contentPath, output -> {
+    return new SampleDataResourceItem(fileName + contentPath, ResourceNamespace.TODO, output -> {
       if (contentPath.isEmpty()) {
         return null;
       }
@@ -243,7 +221,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         Set<String> possiblePaths = parser.getPossiblePaths();
         ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
         for (String path : possiblePaths) {
-          items.add(new SampleDataResourceItem(sampleDataSource.getName() + path,
+          items.add(new SampleDataResourceItem(sampleDataSource.getName() + path, ResourceNamespace.TODO,
                                                new HardcodedContent(Joiner.on('\n').join(parser.getPossiblePaths())),
                                                () -> vFile.getModificationStamp() + 1, psiPointer));
         }

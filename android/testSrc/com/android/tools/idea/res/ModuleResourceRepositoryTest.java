@@ -41,6 +41,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 @SuppressWarnings("SpellCheckingInspection")
 public class ModuleResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -106,7 +108,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertSize(2, stringList);
     FolderConfiguration valueConfig = FolderConfiguration.getConfigForFolder("values-no");
     assertNotNull(valueConfig);
-    ResourceValue stringValue = resources.getConfiguredResources(ResourceType.STRING, valueConfig).get("another_unique_string");
+    ResourceValue stringValue = resources.getConfiguredResources(RES_AUTO, ResourceType.STRING, valueConfig).get("another_unique_string");
     assertNotNull(stringValue);
     assertEquals("En Annen", stringValue.getValue());
 
