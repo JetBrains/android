@@ -15,6 +15,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.b
 
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.buildtypes.BuildTypesTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -68,5 +69,11 @@ class BuildTypesPanel(val treeModel: BuildTypesTreeModel) :
           }
         }
     )
+  }
+
+  override fun PsUISettings.getLastEditedItem(): String? = LAST_EDITED_BUILD_TYPE
+
+  override fun PsUISettings.setLastEditedItem(value: String?) {
+    LAST_EDITED_BUILD_TYPE = value
   }
 }

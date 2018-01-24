@@ -39,10 +39,14 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     override val title: String,
     private val placeName: String,
     private val treeModel: ConfigurablesTreeModel
-) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator {
+) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, PanelWithUiState {
+
+  private var inQuietSelection = false
 
   abstract fun getRemoveAction(): AnAction?
   abstract fun getCreateActions(): List<AnAction>
+  abstract fun PsUISettings.getLastEditedItem(): String?
+  abstract fun PsUISettings.setLastEditedItem(value: String?)
 
   init {
     splitter.orientation = true
@@ -84,17 +88,8 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   override fun getDisplayName(): String = title
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback? {
-    val path = place?.getPath(placeName) ?: return ActionCallback.DONE
-    val matchingNode =
-        treeModel
-            .rootNode
-            .breadthFirstEnumeration()
-            .asSequence()
-            .mapNotNull { it as? MasterDetailsComponent.MyNode }
-            .firstOrNull {
-              val namedConfigurable = it.userObject as? NamedConfigurable<*>
-              namedConfigurable?.displayName == path
-            }
+    val configurableDisplayName = place?.getPath(placeName) as? String ?: return ActionCallback.DONE
+    val matchingNode = findConfigurableNode(configurableDisplayName)
     if (matchingNode != null) {
       tree.selectionPath = TreePath(treeModel.getPathToRoot(matchingNode))
       val navigator = matchingNode.userObject as? Place.Navigator
@@ -102,6 +97,17 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     }
     return ActionCallback.REJECTED
   }
+
+  private fun findConfigurableNode(configurableDisplayName: String): MyNode? =
+    treeModel
+      .rootNode
+      .breadthFirstEnumeration()
+      .asSequence()
+      .mapNotNull { it as? MyNode }
+      .firstOrNull {
+        val namedConfigurable = it.userObject as? NamedConfigurable<*>
+        namedConfigurable?.displayName == configurableDisplayName
+      }
 
   override fun queryPlace(place: Place) {
     val selectedNode = tree.selectionPath?.lastPathComponent as? MasterDetailsComponent.MyNode
@@ -114,7 +120,28 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
     super.updateSelection(configurable)
+    saveUiState()
     myHistory.pushQueryPlace()
+  }
+
+  override fun restoreUiState() {
+    val lastEditedItem = PsUISettings.getInstance().getLastEditedItem()
+    if (lastEditedItem != null) {
+      val configurableNode = findConfigurableNode(lastEditedItem)
+      if (configurableNode != null) {
+        inQuietSelection = true
+        try {
+          selectNode(configurableNode)
+        } finally {
+          inQuietSelection = false
+        }
+      }
+    }
+  }
+
+  private fun saveUiState() {
+    if (selectedConfigurable == null) return
+    PsUISettings.getInstance().setLastEditedItem(selectedConfigurable?.displayName)
   }
 
   protected fun selectNode(node: TreeNode?) {

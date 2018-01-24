@@ -17,6 +17,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.buildvarian
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.productflavors.ProductFlavorsTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.actionSystem.AnAction
@@ -118,6 +119,12 @@ class ProductFlavorsPanel(val treeModel: ProductFlavorsTreeModel) : Configurable
           }
         }
     )
+  }
+
+  override fun PsUISettings.getLastEditedItem(): String? = LAST_EDITED_FLAVOR_OR_DIMENSION
+
+  override fun PsUISettings.setLastEditedItem(value: String?) {
+    LAST_EDITED_FLAVOR_OR_DIMENSION = value
   }
 }
 
