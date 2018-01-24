@@ -1,10 +1,11 @@
 package com.android.tools.idea.editors.theme;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
@@ -115,7 +116,10 @@ public class ThemeResolver {
       return Collections.emptyList();
     }
 
-    return getThemes(repository.getConfiguredResources(ResourceType.STYLE, myConfiguration.getFullConfig()), false /*isFramework*/);
+    return getThemes(repository.getConfiguredResources(ResourceNamespace.TODO,
+                                                       ResourceType.STYLE,
+                                                       myConfiguration.getFullConfig()),
+                     false /*isFramework*/);
   }
 
   /**
@@ -144,7 +148,10 @@ public class ThemeResolver {
       return;
     }
 
-    for (StyleResourceValue value : getThemes(repository.getConfiguredResources(ResourceType.STYLE, myConfiguration.getFullConfig()), false)) {
+    ResourceValueMap configuredResources = repository.getConfiguredResources(ResourceNamespace.TODO,
+                                                                             ResourceType.STYLE,
+                                                                             myConfiguration.getFullConfig());
+    for (StyleResourceValue value : getThemes(configuredResources, false)) {
       sink.add(Pair.create(value, module));
     }
   }

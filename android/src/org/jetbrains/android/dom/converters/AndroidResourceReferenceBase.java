@@ -1,14 +1,14 @@
 package org.jetbrains.android.dom.converters;
 
+import com.android.SdkConstants;
+import com.android.builder.model.AaptOptions;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.sampledata.SampleDataManager;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.DynamicResourceValueItem;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.SampleDataResourceItem;
+import com.android.tools.idea.res.*;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -113,46 +113,48 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
         String resourceName = myResourceValue.getResourceName();
         if (resourceType == ResourceType.SAMPLE_DATA) {
           resourceName = SampleDataManager.getResourceNameFromSampleReference(resourceName);
-          if (myResourceValue.getNamespace() != null) {
-            // TODO: Remove this SAMPLE_DATA check once repositories have namespace support
-            // Resource repositories do not support namespaces yet. Because of this
-            // we currently hack the namespace support as part of the item name.
-            resourceName = myResourceValue.getNamespace() + ":" + resourceName;
-          }
         }
 
-        List<ResourceItem> items = resources.getResourceItem(resourceType, resourceName);
-        if (items != null) {
-          if (FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
-            for (ResourceItem item : items) {
-              XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
-              if (tag != null) {
-                elements.add(tag);
-              } else if (item instanceof DynamicResourceValueItem) {
-                result.add(((DynamicResourceValueItem)item).createResolveResult());
-              }
+        ResourceNamespace namespace = ResourceNamespace.TODO;
+
+        // In non-namespaced project we allowed the usage of "tools:" without proper xmlns declaration.
+        // TODO(namespaces): revisit this once we have code-completion working in namespaced projects.
+        if (resourceType == ResourceType.SAMPLE_DATA &&
+            SdkConstants.TOOLS_NS_NAME.equals(myResourceValue.getNamespace()) &&
+            ResourceRepositoryManager.getOrCreateInstance(myFacet).getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+          namespace = ResourceNamespace.TOOLS;
+        }
+
+        List<ResourceItem> items = resources.getResourceItems(namespace, resourceType, resourceName);
+        if (FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
+          for (ResourceItem item : items) {
+            XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
+            if (tag != null) {
+              elements.add(tag);
+            } else if (item instanceof DynamicResourceValueItem) {
+              result.add(((DynamicResourceValueItem)item).createResolveResult());
             }
           }
-          else if (resourceType == ResourceType.SAMPLE_DATA && myElement.getParent() instanceof XmlAttribute) {
-            // The mock references can only be applied to tools: attributes
-            XmlAttribute attribute = (XmlAttribute)myElement.getParent();
-            if (TOOLS_URI.equals(attribute.getNamespace())) {
-              items.stream()
-                .filter(SampleDataResourceItem.class::isInstance)
-                .map(SampleDataResourceItem.class::cast)
-                .forEach(sampleDataItem -> result.add(new ResolveResult() {
-                  @Nullable
-                  @Override
-                  public PsiElement getElement() {
-                    return sampleDataItem.getPsiElement();
-                  }
+        }
+        else if (resourceType == ResourceType.SAMPLE_DATA && myElement.getParent() instanceof XmlAttribute) {
+          // The mock references can only be applied to tools: attributes
+          XmlAttribute attribute = (XmlAttribute)myElement.getParent();
+          if (TOOLS_URI.equals(attribute.getNamespace())) {
+            items.stream()
+              .filter(SampleDataResourceItem.class::isInstance)
+              .map(SampleDataResourceItem.class::cast)
+              .forEach(sampleDataItem -> result.add(new ResolveResult() {
+                @Nullable
+                @Override
+                public PsiElement getElement() {
+                  return sampleDataItem.getPsiElement();
+                }
 
-                  @Override
-                  public boolean isValidResult() {
-                    return true;
-                  }
-                }));
-            }
+                @Override
+                public boolean isValidResult() {
+                  return true;
+                }
+              }));
           }
         }
       }

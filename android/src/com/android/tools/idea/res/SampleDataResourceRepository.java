@@ -22,8 +22,8 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.sampledata.datasource.*;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,7 +41,7 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -65,6 +65,9 @@ import static com.android.SdkConstants.FD_SAMPLE_DATA;
  * </ul>
  */
 public class SampleDataResourceRepository extends LocalResourceRepository {
+
+  public static final ResourceNamespace PREDEFINED_SAMPLES_NS = ResourceNamespace.TOOLS;
+
   /**
    * List of predefined data sources that are always available within studio
    */
@@ -93,15 +96,20 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
 
     // TODO: Delegate path parsing to the data source to avoid all these declarations
     SampleDataResourceItem.getFromStaticDataSource("date/day_of_week",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS)),
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS)
+    ),
     SampleDataResourceItem.getFromStaticDataSource("date/ddmmyy",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS)),
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS)
+    ),
     SampleDataResourceItem.getFromStaticDataSource("date/mmddyy",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS)),
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS)
+    ),
     SampleDataResourceItem.getFromStaticDataSource("date/hhmm",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES)),
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES)
+    ),
     SampleDataResourceItem.getFromStaticDataSource("date/hhmmss",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS)));
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS)
+    ));
 
 
   private final ResourceTable myFullTable;
@@ -186,19 +194,23 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     invalidate();
   }
 
-  private static void addItems(@NotNull ImmutableListMultimap.Builder<String, ResourceItem> items, @NotNull PsiFileSystemItem sampleDataFile) {
+  private void addItems(@NotNull PsiFileSystemItem sampleDataFile) {
     try {
-      SampleDataResourceItem.getFromPsiFileSystemItem(sampleDataFile).forEach(item -> items.put(item.getName(), item));
+      List<SampleDataResourceItem> fromFile = SampleDataResourceItem.getFromPsiFileSystemItem(sampleDataFile);
+      if (!fromFile.isEmpty()) {
+        // All items from a single file have the same namespace, look up the table cell they all go into.
+        ListMultimap<String, ResourceItem> cell = myFullTable.getOrPutEmpty(fromFile.get(0).getNamespace(), ResourceType.SAMPLE_DATA);
+        fromFile.forEach(item -> cell.put(item.getName(), item));
+      }
     }
     catch (IOException e) {
       LOG.warn("Error loading sample data file " + sampleDataFile.getName(), e);
     }
   }
 
-  private static void addPredefinedItems(@NotNull ImmutableListMultimap.Builder<String, ResourceItem> items) {
-    // Predefined items are in the TOOLS namespace, but stored under RES_AUTO for now, with "tool:" prepended to the name.
-    // TODO(namespaces): fix this.
-    PREDEFINED_SOURCES.forEach(source -> items.put(source.getName(), source));
+  private void addPredefinedItems() {
+    ListMultimap<String, ResourceItem> cell = myFullTable.getOrPutEmpty(PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA);
+    PREDEFINED_SOURCES.forEach(source -> cell.put(source.getName(), source));
   }
 
   /**
@@ -219,15 +231,13 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     }
     myFullTable.clear();
 
-    ImmutableListMultimap.Builder<String, ResourceItem> projectItems = ImmutableListMultimap.builder();
-
     if (sampleDataDir != null) {
       PsiManager psiManager = PsiManager.getInstance(facet.getModule().getProject());
       Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
       ApplicationManager.getApplication().runReadAction(() -> childrenStream
         .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
         .filter(Objects::nonNull)
-        .forEach(f -> addItems(projectItems, f)));
+        .forEach(f -> addItems(f)));
 
       registerPsiListener();
     }
@@ -235,12 +245,10 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
       // There is no sample data directory, no reason to listen for PSI changes
       unregisterPsiListener();
     }
-    addPredefinedItems(projectItems);
-    myFullTable.put(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA, projectItems.build());
 
+    addPredefinedItems();
     setModificationCount(ourModificationCounter.incrementAndGet());
-
-    invalidateParentCaches(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA);
+    invalidateParentCaches(PREDEFINED_SAMPLES_NS, ResourceType.SAMPLE_DATA);
   }
 
   /**
@@ -370,13 +378,18 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
   @Nullable
   @Override
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NonNull ResourceType type, boolean create) {
-    return myFullTable.get(namespace, type);
+    ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
+    if (multimap == null && create) {
+      multimap = ArrayListMultimap.create();
+      myFullTable.put(namespace, type, multimap);
+    }
+    return multimap;
   }
 
   @NonNull
   @Override
   public Set<ResourceNamespace> getNamespaces() {
-    return Collections.emptySet();
+    return myFullTable.rowKeySet();
   }
 
   @NotNull

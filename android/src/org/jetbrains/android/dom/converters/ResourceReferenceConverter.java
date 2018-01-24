@@ -15,13 +15,13 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -319,12 +319,27 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                  Collection<ResourceValue> result,
                                                  boolean explicitResourceType) {
     PsiFile file = element != null ? element.getContainingFile() : null;
-    Collection<String> names =
-      type == ResourceType.ID && resPackage == null && file != null && isNonValuesResourceFile(file) ?
-      ResourceHelper.findIdsInFile(file) : findResourceNames(facet, type, resPackage);
-    String typeName = type.getName();
-    for (String name : names) {
-      result.add(referenceTo(prefix, typeName, resPackage, name, explicitResourceType));
+
+    if (type == ResourceType.ID && resPackage == null && file != null && isNonValuesResourceFile(file)) {
+      // TODO: namespaces
+      for (String id : ResourceHelper.findIdsInFile(file)) {
+        result.add(referenceTo(prefix, type.getName(), null, id, explicitResourceType));
+      }
+    }
+    else {
+      for (String resourceName : findResources(facet, type, resPackage)) {
+        result.add(referenceTo(prefix, type.getName(), resPackage, resourceName, explicitResourceType));
+      }
+
+      // TODO(namespaces): Once we figure out code completion, rethink if we need this special case.
+      if (type == ResourceType.SAMPLE_DATA && resPackage == null) {
+        Collection<String> predefinedSamples =
+          AppResourceRepository.getOrCreateInstance(facet).getItemsOfType(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA);
+
+        for (String name : predefinedSamples) {
+          result.add(referenceTo(prefix, type.getName(), TOOLS_NS_NAME, name, explicitResourceType));
+        }
+      }
     }
   }
 
@@ -333,9 +348,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return resourceType != null && resourceType != ResourceFolderType.VALUES;
   }
 
-  private static Collection<String> findResourceNames(@NotNull AndroidFacet facet,
-                                                      @NotNull ResourceType type,
-                                                      @Nullable String resPackage) {
+  private static Collection<String> findResources(@NotNull AndroidFacet facet,
+                                                  @NotNull ResourceType type,
+                                                  @Nullable String resPackage) {
     ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
     if (manager == null) {
       return Collections.emptySet();
@@ -346,20 +361,6 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private static ResourceValue referenceTo(char prefix, String type, String resPackage, String name, boolean explicitResourceType) {
-    if (ResourceType.SAMPLE_DATA.getName().equals(type)) {
-      // TODO(namespaces): Handling of namespaces for SAMPLE_DATA until namespaces are fully supported across the resources stack.
-      List<String> sampleDataResource = Splitter.on(':')
-        .trimResults()
-        .omitEmptyStrings()
-        .limit(2)
-        .splitToList(name);
-
-      if (resPackage == null && sampleDataResource.size() == 2) {
-        resPackage = sampleDataResource.get(0);
-        name = sampleDataResource.get(1);
-      }
-    }
-
     return ResourceValue.referenceTo(prefix, resPackage, explicitResourceType ? type : null, name);
   }
 
