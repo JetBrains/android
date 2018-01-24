@@ -8,12 +8,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="openapi" />
-    <orderEntry type="module" module-name="database-openapi" />
-    <orderEntry type="module" module-name="database-impl" />
-    <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="lang-impl" />
-    <orderEntry type="module" module-name="dom-openapi" />
-    <orderEntry type="module" module-name="artwork" />
+    <orderEntry type="module" module-name="intellij.java" />
+    <orderEntry type="module" module-name="intellij.database" />
+    <orderEntry type="module" module-name="intellij.database.impl" />
+    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
+    <orderEntry type="module" module-name="intellij.xml.dom" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
 </module>

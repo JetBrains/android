@@ -11,11 +11,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="lang-impl" />
-    <orderEntry type="module" module-name="testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
-    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />

@@ -7,9 +7,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="sdk-updates" />
-    <orderEntry type="module" module-name="designer" />
-    <orderEntry type="module" module-name="profilers-android" />
+    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
+    <orderEntry type="module" module-name="intellij.android.designer" />
+    <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
   </component>
 </module>

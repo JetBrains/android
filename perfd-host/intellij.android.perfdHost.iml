@@ -9,16 +9,16 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android-annotations" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="library" name="Trove4j" level="project" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="platform-impl" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="common" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="testutils" scope="TEST" />
-    <orderEntry type="module" module-name="adt-ui-model" />
-    <orderEntry type="module" module-name="annotations-common" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="module" module-name="intellij.platform.annotations.common" />
     <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" name="sqlite" level="project" />

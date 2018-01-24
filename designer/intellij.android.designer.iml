@@ -8,26 +8,26 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="editor-ui-api" />
-    <orderEntry type="module" module-name="core-api" />
-    <orderEntry type="module" module-name="platform-api" />
-    <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="sherpa-ui" />
-    <orderEntry type="module" module-name="xml-psi-api" />
-    <orderEntry type="module" module-name="lang-impl" />
-    <orderEntry type="module" module-name="pixelprobe" />
-    <orderEntry type="module" module-name="images" />
-    <orderEntry type="module" module-name="android-annotations" />
+    <orderEntry type="module" module-name="intellij.platform.editor" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.android.sherpaUi" />
+    <orderEntry type="module" module-name="intellij.xml.psi" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
+    <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
+    <orderEntry type="module" module-name="intellij.platform.images" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="library" name="jsr305" level="project" />
-    <orderEntry type="module" module-name="dom-openapi" />
-    <orderEntry type="module" module-name="lang-api" />
-    <orderEntry type="module" module-name="xml-psi-impl" />
-    <orderEntry type="module" module-name="java-psi-impl" />
-    <orderEntry type="module" module-name="java-indexing-api" />
-    <orderEntry type="module" module-name="adt-ui" />
-    <orderEntry type="module" module-name="wizard" />
-    <orderEntry type="module" module-name="flags" />
-    <orderEntry type="module" module-name="artwork" />
+    <orderEntry type="module" module-name="intellij.xml.dom" />
+    <orderEntry type="module" module-name="intellij.platform.lang" />
+    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
+    <orderEntry type="module" module-name="intellij.java.psi.impl" />
+    <orderEntry type="module" module-name="intellij.java.indexing" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.wizard" />
+    <orderEntry type="module" module-name="intellij.android.flags" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="layoutlib" level="project" />
     <orderEntry type="library" name="analytics-protos" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />

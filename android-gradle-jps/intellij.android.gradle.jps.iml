@@ -8,12 +8,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="jps-builders" />
-    <orderEntry type="module" module-name="jps-model-api" />
-    <orderEntry type="module" module-name="jps-model-impl" />
-    <orderEntry type="module" module-name="jps-model-serialization" />
-    <orderEntry type="module" module-name="android-jps-plugin" />
-    <orderEntry type="module" module-name="build-common" />
+    <orderEntry type="module" module-name="intellij.platform.jps.build" />
+    <orderEntry type="module" module-name="intellij.platform.jps.model" />
+    <orderEntry type="module" module-name="intellij.platform.jps.model.impl" />
+    <orderEntry type="module" module-name="intellij.platform.jps.model.serialization" />
+    <orderEntry type="module" module-name="intellij.android.jps" />
+    <orderEntry type="module" module-name="intellij.android.buildCommon" />
     <orderEntry type="library" name="Gradle" level="project" />
   </component>
 </module>
