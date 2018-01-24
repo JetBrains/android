@@ -16,6 +16,7 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.ImmutableList;
@@ -232,6 +233,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Override
   public void delete() {
     deleteInternal();
+  }
+
+  @Override
+  public ResolvedPropertyModel resolve() {
+    return new ResolvedPropertyModelImpl(this);
   }
 
   @Override

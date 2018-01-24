@@ -259,7 +259,7 @@ public final class GroovyDslUtil {
       GrListOrMap listOrMap = (GrListOrMap)psiElement;
       // Make sure it was being used as a map
       if (removed instanceof GrNamedArgument) {
-        if (listOrMap.getLBrack().getNextSibling() == listOrMap.getRBrack()) {
+        if (listOrMap.isEmpty()) {
           final ASTNode node = listOrMap.getNode();
           node.addLeaf(mCOLON, ":", listOrMap.getRBrack().getNode());
         }

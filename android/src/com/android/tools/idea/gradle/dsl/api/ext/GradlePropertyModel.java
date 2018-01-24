@@ -190,4 +190,9 @@ public interface GradlePropertyModel {
    * from the file. Any call to {@link #setValue(Object)} will recreate the property and add it back to the file.
    */
   void delete();
+
+  /**
+   * @return a resolved model representing this property.
+   */
+  ResolvedPropertyModel resolve();
 }
