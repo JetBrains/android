@@ -26,7 +26,6 @@ import com.android.tools.idea.res.ResourceHelper
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
-import com.intellij.openapi.editor.ex.util.LexerEditorHighlighter
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
@@ -41,17 +40,17 @@ import java.io.File
  * This is an enumeration indicating the type of action represented by the specified NlComponent.
  * In order of decreasing precedence:
  * NONE: This tag is either not an action or is invalid.
- * SELF: The destination attribute of this action element refers to its own parent.
- * EXIT: The destination attribute of this action element refers to a destination that is not in the containing navigation
- * GLOBAL: The parent of this action element is a navigation element.
- * REGULAR: The destination attribute of this action element refers to a destination that is in the containing navigation
+ * SELF: The destination attribute refers to the action's parent.
+ * REGULAR: The destination attribute refers to a sibling of the action's parent
+ * GLOBAL: The destination attribute refers to one of the action's siblings, and their common parent is a navigation element
+ * EXIT: The destination attribute refers to an element that is not under the action's parent's parent.
  */
 enum class ActionType {
-  GLOBAL,
-  EXIT,
+  NONE,
   SELF,
+  GLOBAL,
   REGULAR,
-  NONE
+  EXIT
 }
 
 fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
@@ -128,20 +127,25 @@ val NlComponent.actionType: ActionType
       return ActionType.NONE
     }
 
-    if (parent?.id == actionDestinationId) {
+    val myParent = parent ?: throw IllegalStateException()
+
+    if (myParent.id == actionDestinationId) {
       return ActionType.SELF
     }
 
-    val parentIsNavigation = parent?.isNavigation == true
-    val containingNavigation = (if (parentIsNavigation) parent else parent?.parent) ?: throw IllegalStateException()
-
-    return when { !containingNavigation.children
-        .map { it.id }
-        .contains(actionDestinationId) -> ActionType.EXIT
-      parentIsNavigation -> ActionType.GLOBAL
-      else -> ActionType.REGULAR
+    myParent.parent?.let {
+      if (it.containsDestination(actionDestinationId)) {
+        return ActionType.REGULAR
+      }
     }
+
+    return if (myParent.isNavigation && myParent.containsDestination(actionDestinationId)) ActionType.GLOBAL
+    else ActionType.EXIT
   }
+
+private fun NlComponent.containsDestination(destinationId: String?): Boolean {
+  return children.map { it.id }.contains(destinationId)
+}
 
 var NlComponent.actionDestinationId: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_DESTINATION)
 var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
