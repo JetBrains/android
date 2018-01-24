@@ -91,6 +91,11 @@ abstract class AbstractTabbedMainPanel(
   abstract fun PsUISettings.setLastSelectedTab(value: String)
 
   override fun restoreUiState() {
+    // First, restore the state of the tabs before they may try to override it on selection change.
+    for (panelWithUiState in tabPanels.mapNotNull { it as? PanelWithUiState }) {
+      panelWithUiState.restoreUiState()
+    }
+    // Then restore the tab selection itself.
     val panel = findPanel(PsUISettings.getInstance().getLastSelectedTab())
     if (panel != null) {
       inQuietSelection = true

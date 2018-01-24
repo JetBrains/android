@@ -33,8 +33,12 @@ public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean RESOLVED_DEPENDENCIES_MINIMIZE = true;
   public boolean TARGET_MODULES_MINIMIZE = true;
   public boolean MODULES_LIST_MINIMIZE;
+  // Lazily synced items (No change notification).
   public String MODULE_TAB;
   public String BUILD_VARIANTS_TAB;
+  public String LAST_EDITED_SIGNING_CONFIG;
+  public String LAST_EDITED_BUILD_TYPE;
+  public String LAST_EDITED_FLAVOR_OR_DIMENSION;
 
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 

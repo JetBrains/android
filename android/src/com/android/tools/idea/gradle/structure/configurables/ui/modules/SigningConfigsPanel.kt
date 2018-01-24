@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.modules
 
 import com.android.tools.idea.gradle.structure.configurables.android.modules.SigningConfigsTreeModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -74,5 +75,11 @@ class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
           }
         }
     )
+  }
+
+  override fun PsUISettings.getLastEditedItem(): String? = LAST_EDITED_SIGNING_CONFIG
+
+  override fun PsUISettings.setLastEditedItem(value: String?) {
+    LAST_EDITED_SIGNING_CONFIG = value
   }
 }
