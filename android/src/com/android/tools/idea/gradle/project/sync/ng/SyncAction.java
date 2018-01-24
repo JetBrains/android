@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.builder.model.AndroidProject;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,10 +33,6 @@ public class SyncAction implements BuildAction<SyncProjectModels>, Serializable 
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
 
-  public SyncAction() {
-    this(Collections.emptySet(), Collections.emptySet());
-  }
-
   public SyncAction(@NotNull Set<Class<?>> extraAndroidModelTypes, @NotNull Set<Class<?>> extraJavaModelTypes) {
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
@@ -46,9 +41,8 @@ public class SyncAction implements BuildAction<SyncProjectModels>, Serializable 
   @Override
   @Nullable
   public SyncProjectModels execute(@NotNull BuildController controller) {
-    GradleBuild gradleBuild = controller.getBuildModel();
     SyncProjectModels models = new SyncProjectModels(myExtraAndroidModelTypes, myExtraJavaModelTypes);
-    models.populate(gradleBuild, controller);
+    models.populate(controller);
     return models;
   }
 }

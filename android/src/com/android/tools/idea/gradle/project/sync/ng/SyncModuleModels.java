@@ -20,6 +20,7 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,20 +31,24 @@ import java.util.Set;
 
 public class SyncModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
-  @NotNull private final GradleProject myGradleProject;
+  @NotNull private final BuildIdentifier myBuildId;
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
 
   @NotNull private final Map<Class, Object> myModelsByType = new HashMap<>();
 
+  @NotNull private String myModuleName;
+
   SyncModuleModels(@NotNull GradleProject gradleProject,
+                   @NotNull BuildIdentifier buildId,
                    @NotNull Set<Class<?>> extraAndroidModelTypes,
                    @NotNull Set<Class<?>> extraJavaModelTypes) {
-    myGradleProject = gradleProject;
+    myBuildId = buildId;
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
+    myModuleName = gradleProject.getName();
   }
 
   void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
@@ -72,7 +77,15 @@ public class SyncModuleModels implements GradleModuleModels {
   @Override
   @NotNull
   public String getModuleName() {
-    return myGradleProject.getName();
+    return myModuleName;
+  }
+
+  /**
+   * Include project name in module name to make sure module names are unique. For example, MyApplication-app.
+   * Call this method if current module has duplicated name with another module.
+   */
+  public void deduplicateModuleName() {
+    myModuleName = myBuildId.getRootDir().getName() + "-" + myModuleName;
   }
 
   @Nullable

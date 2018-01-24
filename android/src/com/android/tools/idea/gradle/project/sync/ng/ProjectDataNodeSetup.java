@@ -51,15 +51,13 @@ public class ProjectDataNodeSetup {
     assert projectFolder != null;
     ProjectData projectData = new ProjectData(SYSTEM_ID, project.getName(), projectFolder, projectFolder);
     DataNode<ProjectData> projectDataNode = new DataNode<>(ProjectKeys.PROJECT, projectData, null);
-    for (String gradlePath : projectModels.getProjectPaths()) {
-      GradleModuleModels moduleModels = projectModels.getModels(gradlePath);
-      if (moduleModels != null) {
-        DataNode<ModuleData> moduleData = createModuleDataNode(moduleModels, projectDataNode);
-        createTaskDataNode(moduleModels, moduleData);
-      }
+    for (GradleModuleModels moduleModels : projectModels.getSyncModuleModels()) {
+      DataNode<ModuleData> moduleData = createModuleDataNode(moduleModels, projectDataNode);
+      createTaskDataNode(moduleModels, moduleData);
     }
     // Link to external project.
     InternalExternalProjectInfo projectInfo = new InternalExternalProjectInfo(SYSTEM_ID, projectFolder, projectDataNode);
+    //noinspection deprecation
     ProjectDataManager.getInstance().updateExternalProjectData(project, projectInfo);
   }
 

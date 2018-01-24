@@ -268,22 +268,20 @@ abstract class ModuleSetup {
       String projectRootFolderPath = nullToEmpty(myProject.getBasePath());
 
       ModuleFinder moduleFinder = myModuleFinderFactory.create(myProject);
-      for (String gradlePath : projectModels.getProjectPaths()) {
-        GradleModuleModels moduleModels = projectModels.getModels(gradlePath);
-        if (moduleModels != null) {
-          Module module = myModuleFactory.createModule(moduleModels);
+      for (GradleModuleModels moduleModels : projectModels.getSyncModuleModels()) {
+        Module module = myModuleFactory.createModule(moduleModels);
 
-          // This is needed by GradleOrderEnumeratorHandler#addCustomModuleRoots. Without this option, sync will fail.
-          module.setOption(ROOT_PROJECT_PATH_KEY, projectRootFolderPath);
+        // This is needed by GradleOrderEnumeratorHandler#addCustomModuleRoots. Without this option, sync will fail.
+        //noinspection deprecation
+        module.setOption(ROOT_PROJECT_PATH_KEY, projectRootFolderPath);
 
-          // Set up GradleFacet right away. This is necessary to set up inter-module dependencies.
-          GradleModuleModel gradleModel = myGradleModuleSetup.setUpModule(module, myModelsProvider, moduleModels);
-          CachedModuleModels cachedModels = cache.addModule(module, gradlePath);
-          cachedModels.addModel(gradleModel);
+        // Set up GradleFacet right away. This is necessary to set up inter-module dependencies.
+        GradleModuleModel gradleModel = myGradleModuleSetup.setUpModule(module, myModelsProvider, moduleModels);
+        CachedModuleModels cachedModels = cache.addModule(module, moduleModels.getModuleName());
+        cachedModels.addModel(gradleModel);
 
-          moduleFinder.addModule(module, gradleModel.getGradlePath());
-          moduleSetupInfos.add(new ModuleSetupInfo(module, moduleModels, cachedModels));
-        }
+        moduleFinder.addModule(module, gradleModel.getGradlePath());
+        moduleSetupInfos.add(new ModuleSetupInfo(module, moduleModels, cachedModels));
       }
 
       for (ModuleSetupInfo moduleSetupInfo : moduleSetupInfos) {
@@ -296,11 +294,7 @@ abstract class ModuleSetup {
      * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
      */
     private void populateModuleBuildFolders(@NotNull SyncProjectModels projectModels) {
-      for (String projectPath : projectModels.getProjectPaths()) {
-        GradleModuleModels moduleModels = projectModels.getModels(projectPath);
-        if (moduleModels == null) {
-          continue;
-        }
+      for (GradleModuleModels moduleModels : projectModels.getSyncModuleModels()) {
         GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
         if (gradleProject != null) {
           try {
