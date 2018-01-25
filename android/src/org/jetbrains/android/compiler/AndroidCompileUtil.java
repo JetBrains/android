@@ -614,7 +614,7 @@ public class AndroidCompileUtil {
     final GlobalSearchScope moduleScope = facet.getModule().getModuleScope();
     final Ref<Boolean> modelChangedFlag = Ref.create(false);
 
-    if (facet.isLibraryProject()) {
+    if (facet.getConfiguration().isLibraryProject()) {
       removeGenModule(model, modelChangedFlag);
     }
     final Set<String> genRootsToCreate = new HashSet<String>();

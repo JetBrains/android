@@ -108,8 +108,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
   }
 
+  @Deprecated
   public boolean isLibraryProject() {
-    return getProjectType() == PROJECT_TYPE_LIBRARY;
+    return getConfiguration().isLibraryProject();
   }
 
   public int getProjectType() {

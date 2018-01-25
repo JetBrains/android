@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding;
 
 import com.android.SdkConstants;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiClass;
@@ -43,7 +42,7 @@ public class DataBindingComponentClassFinder extends PsiElementFinder {
       () -> {
         List<PsiClass> classes = Lists.newArrayList();
         for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
-          if (facet.isLibraryProject()) {
+          if (facet.getConfiguration().isLibraryProject()) {
             continue;
           }
           classes.add(new LightGeneratedComponentClass(PsiManager.getInstance(component.getProject()), facet));

@@ -557,7 +557,7 @@ public class LintIdeProject extends Project {
       myFacet = facet;
 
       gradleProject = false;
-      library = myFacet.isLibraryProject();
+      library = myFacet.getConfiguration().isLibraryProject();
 
       AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
       if (platform != null) {
