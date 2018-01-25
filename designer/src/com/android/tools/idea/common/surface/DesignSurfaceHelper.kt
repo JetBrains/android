@@ -37,6 +37,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
 import java.io.IOException
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
@@ -123,7 +124,7 @@ private fun createResourceFile(project: Project,
 
 @Throws(IOException::class)
 private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, child: String): VirtualFile? {
-  val resourceDirectory = facet.primaryResourceDir
+  val resourceDirectory = ResourceFolderManager.getInstance(facet).primaryFolder
 
   if (resourceDirectory == null) {
     Logger.getInstance("DesignSurfaceHelper").warn("resourceDirectory is null")
