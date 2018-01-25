@@ -16,19 +16,17 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.common.property.inspector.InspectorComponent;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
-import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.util.List;
@@ -85,7 +83,6 @@ public class IdInspectorProvider implements InspectorProvider<NlPropertiesManage
     private final NlReferenceEditor myIdEditor;
     private final NlEnumEditor myWidthEditor;
     private final NlEnumEditor myHeightEditor;
-    private final WidgetConstraintPanel myConstraintWidgetPanel;
 
     private NlProperty myIdAttr;
     private NlProperty myLayoutWidth;
@@ -95,7 +92,6 @@ public class IdInspectorProvider implements InspectorProvider<NlPropertiesManage
       myIdEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), DEFAULT_LISTENER);
       myWidthEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       myHeightEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
-      myConstraintWidgetPanel = new WidgetConstraintPanel(ImmutableList.of());
     }
 
     @Override
@@ -105,7 +101,6 @@ public class IdInspectorProvider implements InspectorProvider<NlPropertiesManage
       myIdAttr = properties.get(ATTR_ID);
       myLayoutWidth = properties.get(ATTR_LAYOUT_WIDTH);
       myLayoutHeight = properties.get(ATTR_LAYOUT_HEIGHT);
-      myConstraintWidgetPanel.updateComponents(components);
     }
 
     @Override
@@ -116,9 +111,6 @@ public class IdInspectorProvider implements InspectorProvider<NlPropertiesManage
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
       myIdEditor.setLabel(inspector.addComponent("ID", null, myIdEditor.getComponent()));
-      if (myConstraintWidgetPanel.isApplicable()) {
-        inspector.addPanel(myConstraintWidgetPanel);
-      }
       myWidthEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_WIDTH, null, myWidthEditor.getComponent()));
       myHeightEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_HEIGHT, null, myHeightEditor.getComponent()));
       refresh();
@@ -141,20 +133,12 @@ public class IdInspectorProvider implements InspectorProvider<NlPropertiesManage
         myHeightEditor.setProperty(myLayoutHeight);
         setToolTip(myHeightEditor, myLayoutHeight);
       }
-      if (myIdAttr != null && !myIdAttr.getComponents().isEmpty()) {
-        myConstraintWidgetPanel.setProperty(myIdAttr);
-      }
     }
 
     @Override
     @NotNull
     public List<NlComponentEditor> getEditors() {
       return ImmutableList.of(myIdEditor, myWidthEditor, myHeightEditor);
-    }
-
-    @TestOnly
-    public WidgetConstraintPanel getConstraintPanel() {
-      return myConstraintWidgetPanel;
     }
 
     private static void setToolTip(@NotNull NlComponentEditor editor, @NotNull NlProperty property) {

@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
@@ -32,6 +32,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -50,7 +51,7 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 /**
  * UI component for Constraint Inspector
  */
-public class WidgetConstraintPanel extends AdtSecondaryPanel {
+public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPanel {
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private final SingleWidgetView mMain;
@@ -76,10 +77,6 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel {
    * feed the changes back to the widget.
    */
   private ChangeListener myChangeLiveListener = e -> configureUI();
-
-  public void setProperty(NlProperty property) {
-    updateComponents(property.getComponents());
-  }
 
   public void setAspect(String aspect) {
     setSherpaAttribute(SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO, aspect);
@@ -109,7 +106,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel {
     mVerticalSlider.setToolTipText(VERTICAL_TOOL_TIP_TEXT);
     mVerticalSlider.setName(VERTICAL_BIAS_SLIDER);
     mHorizontalSlider.setName(HORIZONTAL_BIAS_SLIDER);
-    updateComponents(components);
+    updateComponent(components.isEmpty() ? null : components.get(0));
 
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
@@ -134,6 +131,22 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel {
     mVerticalSlider.addChangeListener(e -> setVerticalBias());
     mHorizontalSlider.addMouseListener(mDoubleClickListener);
     mVerticalSlider.addMouseListener(mDoubleClickListener);
+  }
+
+  @Override
+  @NotNull
+  public JPanel getPanel() {
+    return this;
+  }
+
+  @Override
+  public void useComponent(@Nullable NlComponent component) {
+    updateComponent(component);
+  }
+
+  @Override
+  public void refresh() {
+    configureUI();
   }
 
   // Reset mouse on double click
@@ -464,8 +477,11 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel {
     return mComponent.getLiveAttribute(SdkConstants.SHERPA_URI, attr);
   }
 
-  public void updateComponents(@NotNull List<NlComponent> components) {
-    mComponent = components.isEmpty() ? null : components.get(0);
+  private void updateComponent(@Nullable NlComponent component) {
+    if (mComponent != null) {
+      mComponent.removeLiveChangeListener(myChangeLiveListener);
+    }
+    mComponent = isApplicable(component) ? component : null;
     if (mComponent != null) {
       mComponent.addLiveChangeListener(myChangeLiveListener);
       //mComponent.getModel().getSelectionModel().addListener(new SelectionListener() {
@@ -478,11 +494,11 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel {
     }
   }
 
-  public boolean isApplicable() {
-    if (mComponent == null) {
+  private static boolean isApplicable(@Nullable NlComponent component) {
+    if (component == null) {
       return false;
     }
-    NlComponent parent = mComponent.getParent();
+    NlComponent parent = component.getParent();
     return parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, CONSTRAINT_LAYOUT);
   }
 

@@ -84,7 +84,6 @@ public class IdInspectorProviderTest extends PropertyTestCase {
       }
       verify(panel).addComponent(eq(propertyName), eq(null), eq(editor.getComponent()));
     }
-    verify(panel, never()).addPanel(inspector.getConstraintPanel());
   }
 
   public void testUpdateProperties() {

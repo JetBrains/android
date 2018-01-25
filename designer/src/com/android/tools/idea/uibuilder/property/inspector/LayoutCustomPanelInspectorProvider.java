@@ -111,7 +111,7 @@ public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlP
     @Override
     @NotNull
     public List<NlComponentEditor> getEditors() {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
 
     @Override
@@ -122,7 +122,7 @@ public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlP
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
       refresh();
-      inspector.addPanel(myPanel);
+      inspector.addPanel(myPanel.getPanel());
     }
 
     @Override

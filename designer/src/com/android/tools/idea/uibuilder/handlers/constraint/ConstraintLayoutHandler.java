@@ -164,6 +164,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   }
 
   @Override
+  @NotNull
+  public CustomPanel getLayoutCustomPanel() {
+    return new WidgetConstraintPanel(ImmutableList.of());
+  }
+
+  @Override
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     myActions.clear();
 
