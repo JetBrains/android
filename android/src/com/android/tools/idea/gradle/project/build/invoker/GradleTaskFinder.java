@@ -96,7 +96,7 @@ public class GradleTaskFinder {
           .map(module -> {
             String projectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
             if (projectPath == null) {
-              projectPath = project.getBaseDir().getPath();
+              projectPath = project.getBasePath();
             }
             return projectPath;
           })
@@ -232,7 +232,7 @@ public class GradleTaskFinder {
    */
   @VisibleForTesting
   static boolean isCompositeBuild(@NotNull Module module) {
-    String projectPath = module.getProject().getBaseDir().getPath();
+    String projectPath = module.getProject().getBasePath();
     GradleProjectSettings projectSettings =
       GradleSettings.getInstance(module.getProject()).getLinkedProjectSettings(projectPath);
     if (projectSettings == null) {

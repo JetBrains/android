@@ -337,7 +337,7 @@ public class TemplateManager {
           return templateDirectories;
         }
       }
-      File aarRoot = new File(project.getBaseDir().getPath(), FileUtil.toSystemDependentName(EXPLODED_AAR_PATH));
+      File aarRoot = new File(project.getBasePath(), FileUtil.toSystemDependentName(EXPLODED_AAR_PATH));
       if (aarRoot.isDirectory()) {
         for (File artifactPackage : listFiles(aarRoot)) {
           if (artifactPackage.isDirectory() && !artifactPackage.isHidden()) {
