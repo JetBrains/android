@@ -48,6 +48,14 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     robot().pressAndReleaseKey(VK_DELETE)
   }
 
+  fun setBazelBinaryPath(path: String): ImportBazelProjectWizardFixture {
+    val textField = robot().finder().findByName("bazel-binary-path-field")
+    selectAndClearTextField(textField)
+    robot().enterText(path)
+
+    return this
+  }
+
   fun setWorkspacePath(path: String): ImportBazelProjectWizardFixture {
     val textField = robot().finder().findByName("workspace-directory-field")
     selectAndClearTextField(textField)

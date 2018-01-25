@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.bazel.fixture.ImportBazelProjectWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem
 import com.android.tools.idea.tests.gui.framework.guitestsystem.RunWithBuildSystem
@@ -62,14 +61,10 @@ android_sdk_repository(
   }
 
   override fun importProject(targetTestDirectory: File, robot: Robot) {
-    WelcomeFrameFixture.find(robot)
-      .openSettings()
-      .selectBazelSettings()
-      .setBazelBinaryPathField(getBazelBinaryPath())
-      .clickOK()
-
     openBazelImportWizard(robot)
         .setWorkspacePath(targetTestDirectory.path)
+        .clickNext()
+        .setBazelBinaryPath(getBazelBinaryPath())
         .clickNext()
         .selectGenerateFromBuildFileOptionAndSetPath("app/BUILD")
         .clickNext()
