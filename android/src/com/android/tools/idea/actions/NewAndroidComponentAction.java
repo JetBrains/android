@@ -85,7 +85,7 @@ public class NewAndroidComponentAction extends AnAction {
     }
     else {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
-      boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP;
+      boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP;
       presentation.setEnabled(isProjectReady);
     }
   }

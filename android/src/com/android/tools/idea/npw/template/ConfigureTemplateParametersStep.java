@@ -397,7 +397,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       ObjectProperty<NamedModuleTemplate> template = getModel().getTemplate();
       additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, template.get().getName());
       additionalValues
-        .put(ATTR_IS_INSTANT_APP, (myFacet != null && (myFacet.getProjectType() == PROJECT_TYPE_FEATURE)) || getModel().instantApp().get());
+        .put(ATTR_IS_INSTANT_APP, (myFacet != null && (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE)) || getModel().instantApp().get());
       additionalValues.put(ATTR_COMPANY_DOMAIN, getInitialDomain(false));
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);

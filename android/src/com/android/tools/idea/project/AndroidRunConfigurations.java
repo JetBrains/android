@@ -65,7 +65,7 @@ public class AndroidRunConfigurations {
     AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
     configuration.setModule(module);
 
-    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       configuration.setLaunchUrl(getDefaultInstantAppUrl(facet));
     }
     else if (isWatchFaceApp(facet)) {

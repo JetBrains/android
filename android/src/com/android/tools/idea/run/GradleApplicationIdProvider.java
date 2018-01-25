@@ -57,7 +57,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
   @Override
   @NotNull
   public String getPackageName() throws ApkProvisionException {
-    if (myFacet.getProjectType() == PROJECT_TYPE_TEST) {
+    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_TEST) {
       AndroidFacet targetFacet = getTargetFacet();
       if (targetFacet != null) {
         GradleApplicationIdProvider targetApplicationProvider = new GradleApplicationIdProvider(targetFacet, myOutputModelProvider);
@@ -68,7 +68,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       }
     }
 
-    if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       String applicationId = tryToGetInstantAppApplicationId();
       if (applicationId != null) {
         return applicationId;
@@ -111,7 +111,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    if (myFacet.getProjectType() == PROJECT_TYPE_TEST) {
+    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_TEST) {
       return ApkProviderUtil.computePackageName(myFacet);
     }
 

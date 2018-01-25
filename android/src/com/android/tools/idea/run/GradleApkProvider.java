@@ -217,7 +217,7 @@ public class GradleApkProvider implements ApkProvider {
       return getApkFromPreBuildSync(variant, device, fromTestArtifact);
     }
 
-    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(facet);
       if (outputModel == null) {
         throw new ApkProvisionException("Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");

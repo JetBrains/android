@@ -109,7 +109,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     }
     else {
       return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess,
-                                         facet.getProjectType() == PROJECT_TYPE_INSTANTAPP);
+                                         facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
     }
   }
 

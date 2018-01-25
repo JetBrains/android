@@ -227,7 +227,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
     final List<Object> newState = Arrays.asList(
       androidTargetHashString,
-      facet.getProjectType(),
+      facet.getConfiguration().getProjectType(),
       Arrays.asList(dependencyPaths),
       facet.getProperties().ENABLE_MANIFEST_MERGING,
       facet.getProperties().ENABLE_PRE_DEXING);
@@ -348,7 +348,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
                                                @NotNull final PropertiesFile propertiesFile,
                                                @NotNull List<Runnable> changes) {
     IProperty property = propertiesFile.findPropertyByKey(AndroidUtils.ANDROID_PROJECT_TYPE_PROPERTY);
-    String value = Integer.toString(facet.getProjectType());
+    String value = Integer.toString(facet.getConfiguration().getProjectType());
 
     if (property != null) {
 

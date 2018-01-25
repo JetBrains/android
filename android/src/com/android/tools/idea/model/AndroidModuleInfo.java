@@ -43,7 +43,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
     AndroidModuleInfo androidModuleInfo = facet.getUserData(KEY);
     if (androidModuleInfo == null) {
-      if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
         // If this is an AIA app module the info about the app module is actually held in the base split module. Try to set up a
         // redirection to the AndroidModuleInfo of the base split.
         Module baseFeature = findBaseFeature(facet);

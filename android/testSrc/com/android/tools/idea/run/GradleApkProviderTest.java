@@ -156,7 +156,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, true);
 
-    assertEquals(PROJECT_TYPE_TEST, myAndroidFacet.getProjectType());
+    assertEquals(PROJECT_TYPE_TEST, myAndroidFacet.getConfiguration().getProjectType());
     AndroidModel androidModel = myAndroidFacet.getConfiguration().getModel();
     assertInstanceOf(androidModel, AndroidModuleModel.class);
     for (TestedTargetVariant testedTargetVariant : ((AndroidModuleModel)androidModel).getSelectedVariant().getTestedTargetVariants()) {

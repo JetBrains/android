@@ -156,7 +156,7 @@ public class NewInstantAppModuleTest {
     Module module = ideFrame.getModule("instantapp");
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull(facet);
-    assertEquals(PROJECT_TYPE_INSTANTAPP, facet.getProjectType());
+    assertEquals(PROJECT_TYPE_INSTANTAPP, facet.getConfiguration().getProjectType());
   }
 
   private void addNewFeatureModule(@Nullable String moduleName) {
@@ -200,6 +200,6 @@ public class NewInstantAppModuleTest {
   private static void assertValidFeatureModule(Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull(facet);
-    assertEquals(PROJECT_TYPE_FEATURE, facet.getProjectType());
+    assertEquals(PROJECT_TYPE_FEATURE, facet.getConfiguration().getProjectType());
   }
 }

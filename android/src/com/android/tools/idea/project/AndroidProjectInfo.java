@@ -55,7 +55,7 @@ public class AndroidProjectInfo {
     return Stream.of(ModuleManager.getInstance(myProject).getModules())
       .filter(module -> {
         AndroidFacet facet = AndroidFacet.getInstance(module);
-        return facet != null && facet.getProjectType() == projectType;
+        return facet != null && facet.getConfiguration().getProjectType() == projectType;
       })
       .collect(Collectors.toList());
   }
