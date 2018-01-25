@@ -12,7 +12,6 @@
     <orderEntry type="module" module-name="external-system-api" scope="TEST" />
     <orderEntry type="module" module-name="openapi" scope="TEST" />
     <orderEntry type="module" module-name="platform-impl" scope="TEST" />
-    <orderEntry type="module" module-name="aswb" scope="TEST" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
