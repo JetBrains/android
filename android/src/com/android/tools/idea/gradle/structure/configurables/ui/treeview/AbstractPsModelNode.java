@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -28,26 +28,26 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 public abstract class AbstractPsModelNode<T extends PsModel> extends AbstractPsNode {
   @NotNull private final List<T> myModels;
 
-  @SafeVarargs
-  protected AbstractPsModelNode(@NotNull AbstractPsNode parent, @NotNull T...models) {
-    super(parent);
-    myModels = Lists.newArrayList(models);
+  protected AbstractPsModelNode(@NotNull AbstractPsNode parent, @NotNull T model, @NotNull PsUISettings uiSettings) {
+    super(parent, uiSettings);
+    myModels = Lists.newArrayList(model);
     updateNameAndIcon();
   }
 
-  @SafeVarargs
-  protected AbstractPsModelNode(@NotNull T...models) {
-    myModels = Lists.newArrayList(models);
+  protected AbstractPsModelNode(@NotNull T model, @NotNull PsUISettings uiSettings) {
+    super(uiSettings);
+    myModels = Lists.newArrayList(model);
     updateNameAndIcon();
   }
 
-  protected AbstractPsModelNode(@NotNull AbstractPsNode parent, @NotNull List<T> models) {
-    super(parent);
+  protected AbstractPsModelNode(@NotNull AbstractPsNode parent, @NotNull List<T> models, @NotNull PsUISettings uiSettings) {
+    super(parent, uiSettings);
     myModels = models;
     updateNameAndIcon();
   }
 
-  protected AbstractPsModelNode(@NotNull List<T> models) {
+  protected AbstractPsModelNode(@NotNull List<T> models, @NotNull PsUISettings uiSettings) {
+    super(uiSettings);
     myModels = models;
     updateNameAndIcon();
   }

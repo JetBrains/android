@@ -29,7 +29,7 @@ class ModulePanel(
 
   private val modulePropertiesConfigPanel = ModulePropertiesConfigPanel(module)
   private val moduleDefaultConfigConfigPanel = ModuleDefaultConfigConfigPanel(module.defaultConfig)
-  private val moduleSigningConfigsPanel = SigningConfigsPanel(signingConfigsTreeModel)
+  private val moduleSigningConfigsPanel = SigningConfigsPanel(signingConfigsTreeModel, context.uiSettings)
 
   init {
     addTab(modulePropertiesConfigPanel)

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
@@ -35,16 +36,19 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndroidDependency> {
   @NotNull private final List<AbstractDependencyNode> myChildren = Lists.newArrayList();
+  @NotNull private final DependencyNodeComparator myDependencyNodeComparator;
 
   public LibraryDependencyNode(@NotNull AbstractPsNode parent, @NotNull PsLibraryAndroidDependency dependency) {
     super(parent, dependency);
     setUp(dependency);
+    myDependencyNodeComparator = new DependencyNodeComparator(new PsDependencyComparator(getUiSettings()));
   }
 
-  public LibraryDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<PsLibraryAndroidDependency> dependencies) {
+  public LibraryDependencyNode(@NotNull AbstractPsNode parent,
+                               @NotNull List<PsLibraryAndroidDependency> dependencies) {
     super(parent, dependencies);
-    assert !dependencies.isEmpty();
     setUp(dependencies.get(0));
+    myDependencyNodeComparator = new DependencyNodeComparator(new PsDependencyComparator(getUiSettings()));
   }
 
   private void setUp(@NotNull PsLibraryAndroidDependency dependency) {
@@ -59,7 +63,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
       myChildren.add(child);
     });
 
-    Collections.sort(myChildren, DependencyNodeComparator.INSTANCE);
+    Collections.sort(myChildren, myDependencyNodeComparator);
   }
 
   @NotNull
@@ -70,14 +74,14 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
       PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
       assert declaredSpec != null;
       String version = declaredSpec.getVersion() + "→" + resolvedSpec.getVersion();
-      return getTextForSpec(declaredSpec.getName(), version, declaredSpec.getGroup());
+      return getTextForSpec(declaredSpec.getName(), version, declaredSpec.getGroup(),
+                            getUiSettings().DECLARED_DEPENDENCIES_SHOW_GROUP_ID);
     }
-    return resolvedSpec.getDisplayText();
+    return resolvedSpec.getDisplayText(getUiSettings());
   }
 
   @NotNull
-  private static String getTextForSpec(@NotNull String name, @NotNull String version, @Nullable String group) {
-    boolean showGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+  private static String getTextForSpec(@NotNull String name, @NotNull String version, @Nullable String group, boolean showGroupId) {
     StringBuilder text = new StringBuilder();
     if (showGroupId && isNotEmpty(group)) {
       text.append(group).append(GRADLE_PATH_SEPARATOR);

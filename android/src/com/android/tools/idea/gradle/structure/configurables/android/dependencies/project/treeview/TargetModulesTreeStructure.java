@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.PsRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.SimpleNodeComparator;
@@ -37,7 +38,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
-  @NotNull private final PsRootNode myRootNode = new PsRootNode();
+
+  @NotNull private final PsRootNode myRootNode;
+  @NotNull PsUISettings myUISettings;
+
+  public TargetModulesTreeStructure(@NotNull PsUISettings uiSettings) {
+    myUISettings = uiSettings;
+    myRootNode = new PsRootNode(uiSettings);
+  }
 
   @Override
   @NotNull
@@ -131,7 +139,7 @@ class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
       Collections.sort(configurations);
 
       List<TargetConfigurationNode> nodes = Lists.newArrayList();
-      configurations.forEach(configuration -> nodes.add(new TargetConfigurationNode(configuration)));
+      configurations.forEach(configuration -> nodes.add(new TargetConfigurationNode(configuration, myUISettings)));
 
       moduleNode.setChildren(nodes);
       children.add(moduleNode);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.SingleLibraryDependencyDetails;
@@ -108,7 +109,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
 
-    DependenciesTreeStructure treeStructure = new DependenciesTreeStructure(createRootNode(module));
+    DependenciesTreeStructure treeStructure = new DependenciesTreeStructure(createRootNode(module, context.getUiSettings()));
     myTreeBuilder = new DependenciesTreeBuilder(myTree, treeModel, treeStructure);
 
     module.add(event -> {
@@ -206,7 +207,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
   }
 
   @NotNull
-  private static DependenciesTreeRootNode<PsModule> createRootNode(@NotNull PsAndroidModule module) {
+  private static DependenciesTreeRootNode<PsModule> createRootNode(@NotNull PsAndroidModule module, @NotNull PsUISettings uiSettings) {
     return new DependenciesTreeRootNode<>(module, new DependenciesTreeRootNode.DependencyCollectorFunction<PsModule>() {
       @Override
       public DependenciesTreeRootNode.DependencyCollector apply(PsModule module) {
@@ -214,7 +215,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
         collectDeclaredDependencies(module, collector);
         return collector;
       }
-    });
+    }, uiSettings);
   }
 
   private void initializeDependencyDetails() {

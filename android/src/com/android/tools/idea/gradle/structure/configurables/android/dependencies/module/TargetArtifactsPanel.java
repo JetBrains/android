@@ -77,7 +77,7 @@ public class TargetArtifactsPanel extends ToolWindowPanel {
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
-    myTreeBuilder = new TargetArtifactsTreeBuilder(module, myTree, treeModel);
+    myTreeBuilder = new TargetArtifactsTreeBuilder(module, myTree, treeModel, context.getUiSettings());
     JScrollPane scrollPane = setUp(myTreeBuilder);
     add(scrollPane, BorderLayout.CENTER);
 

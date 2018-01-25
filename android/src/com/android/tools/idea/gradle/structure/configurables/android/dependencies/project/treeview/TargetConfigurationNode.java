@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.roots.ui.CellAppearanceEx;
@@ -30,7 +31,8 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 class TargetConfigurationNode extends AbstractPsNode implements CellAppearanceEx {
   private final List<String> myTypes;
 
-  TargetConfigurationNode(Configuration configuration) {
+  TargetConfigurationNode(Configuration configuration, @NotNull PsUISettings uiSettings) {
+    super(uiSettings);
     myName = configuration.getName();
     setIcon(configuration.getIcon());
     myTypes = configuration.getTypes();

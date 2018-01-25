@@ -130,8 +130,8 @@ public final class PsArtifactDependencySpec {
   }
 
   @NotNull
-  public String getDisplayText() {
-    boolean showGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
+  public String getDisplayText(@NotNull PsUISettings uiSettings) {
+    boolean showGroupId = uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
     StringBuilder text = new StringBuilder();
     if (showGroupId && isNotEmpty(myGroup)) {
       text.append(myGroup).append(GRADLE_PATH_SEPARATOR);

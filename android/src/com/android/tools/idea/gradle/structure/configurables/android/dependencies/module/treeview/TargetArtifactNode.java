@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -23,8 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.builder.model.AndroidProject.*;
 
 class TargetArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> {
-  TargetArtifactNode(@NotNull PsAndroidArtifact artifact) {
-    super(artifact);
+  TargetArtifactNode(@NotNull PsAndroidArtifact artifact, @NotNull PsUISettings uiSettings) {
+    super(artifact, uiSettings);
     setAutoExpandNode(true);
   }
 

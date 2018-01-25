@@ -90,14 +90,14 @@ class MainPanel extends AbstractMainDependenciesPanel {
     saveMinimizedState(true);
   }
 
-  private static void saveMinimizedState(boolean minimize) {
-    PsUISettings.getInstance().RESOLVED_DEPENDENCIES_MINIMIZE = minimize;
+  private void saveMinimizedState(boolean minimize) {
+    getContext().getUiSettings().RESOLVED_DEPENDENCIES_MINIMIZE = minimize;
   }
 
   @Override
   public void addNotify() {
     super.addNotify();
-    boolean minimize = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_MINIMIZE;
+    boolean minimize = getContext().getUiSettings().RESOLVED_DEPENDENCIES_MINIMIZE;
     if (minimize) {
       minimizeResolvedDependenciesPanel();
     }

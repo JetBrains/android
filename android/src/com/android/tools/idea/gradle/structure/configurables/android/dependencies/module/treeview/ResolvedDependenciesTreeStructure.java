@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import org.jetbrains.annotations.NotNull;
@@ -22,8 +23,9 @@ import org.jetbrains.annotations.NotNull;
 class ResolvedDependenciesTreeStructure extends AbstractBaseTreeStructure {
   @NotNull private final ResolvedDependenciesTreeRootNode myRootNode;
 
-  ResolvedDependenciesTreeStructure(@NotNull PsAndroidModule module) {
-    myRootNode = new ResolvedDependenciesTreeRootNode(module);
+  ResolvedDependenciesTreeStructure(@NotNull PsAndroidModule module,
+                                    @NotNull PsUISettings uiSettings) {
+    myRootNode = new ResolvedDependenciesTreeRootNode(module, uiSettings);
   }
 
   @Override

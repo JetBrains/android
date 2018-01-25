@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
@@ -25,17 +26,18 @@ import java.util.Comparator;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 
 public class PsDependencyComparator implements Comparator<PsDependency> {
-  @NotNull public static final PsDependencyComparator INSTANCE = new PsDependencyComparator();
+  @NotNull private final PsUISettings myUiSettings;
 
-  private PsDependencyComparator() {
+  public PsDependencyComparator(@NotNull PsUISettings uiSettings) {
+    myUiSettings = uiSettings;
   }
 
   @Override
   public int compare(PsDependency d1, PsDependency d2) {
     if (d1 instanceof PsLibraryDependency) {
       if (d2 instanceof PsLibraryDependency) {
-        String s1 = ((PsLibraryDependency)d1).getResolvedSpec().getDisplayText();
-        String s2 = ((PsLibraryDependency)d2).getResolvedSpec().getDisplayText();
+        String s1 = ((PsLibraryDependency)d1).getResolvedSpec().getDisplayText(myUiSettings);
+        String s2 = ((PsLibraryDependency)d2).getResolvedSpec().getDisplayText(myUiSettings);
         return s1.compareTo(s2);
       }
     }

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
@@ -40,10 +41,12 @@ final class DependencyNodes {
 
   @NotNull
   static List<AbstractPsModelNode<?>> createNodesFor(@NotNull AndroidArtifactNode parent,
-                                                     @NotNull Collection<PsDependency> dependencies) {
+                                                     @NotNull Collection<PsDependency> dependencies,
+                                                     @NotNull PsUISettings uiSettings
+                                                     ) {
     List<AbstractPsModelNode<?>> children = Lists.newArrayList();
 
-    List<PsDependency> declared = new SortedList<>(PsDependencyComparator.INSTANCE);
+    List<PsDependency> declared = new SortedList<>(new PsDependencyComparator(uiSettings));
     Multimap<PsDependency, PsDependency> allTransitive = HashMultimap.create();
     List<PsDependency> mayBeTransitive = Lists.newArrayList();
 

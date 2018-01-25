@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ArtifactComparator;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.PsRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.model.PsModelNameComparator;
@@ -37,10 +38,13 @@ import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 
 public class TargetArtifactsTreeStructure extends AbstractBaseTreeStructure {
   @NotNull private final PsAndroidModule myModule;
-  @NotNull private final PsRootNode myRootNode = new PsRootNode();
+  @NotNull private final PsUISettings myUiSettings;
+  @NotNull private final PsRootNode myRootNode;
 
-  TargetArtifactsTreeStructure(@NotNull PsAndroidModule module) {
+  TargetArtifactsTreeStructure(@NotNull PsAndroidModule module, @NotNull PsUISettings uiSettings) {
     myModule = module;
+    myUiSettings = uiSettings;
+    myRootNode = new PsRootNode(uiSettings);
   }
 
   @Override
@@ -77,7 +81,7 @@ public class TargetArtifactsTreeStructure extends AbstractBaseTreeStructure {
 
     List<TargetVariantNode> children = Lists.newArrayList();
     for (PsVariant variant : variants) {
-      TargetVariantNode variantNode = new TargetVariantNode(variant);
+      TargetVariantNode variantNode = new TargetVariantNode(variant, myUiSettings);
 
       Collection<PsAndroidArtifact> artifacts = artifactsByVariant.get(variant);
       List<PsAndroidArtifact> sorted = artifacts.stream().collect(Collectors.toList());
@@ -87,7 +91,7 @@ public class TargetArtifactsTreeStructure extends AbstractBaseTreeStructure {
 
       List<TargetArtifactNode> artifactNodes = Lists.newArrayList();
       for (PsAndroidArtifact artifact : sorted) {
-        artifactNodes.add(new TargetArtifactNode(artifact));
+        artifactNodes.add(new TargetArtifactNode(artifact, myUiSettings));
       }
       variantNode.setChildren(artifactNodes);
 

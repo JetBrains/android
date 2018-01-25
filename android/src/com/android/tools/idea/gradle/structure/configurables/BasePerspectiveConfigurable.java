@@ -107,12 +107,12 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       }
     }, this);
 
-    myTreeMinimized = PsUISettings.getInstance().MODULES_LIST_MINIMIZE;
+    myTreeMinimized = myContext.getUiSettings().MODULES_LIST_MINIMIZE;
     if (myTreeMinimized) {
       myToReInitWholePanel = true;
       reInitWholePanelIfNeeded();
     }
-    PsUISettings.getInstance().addListener(settings -> {
+    myContext.getUiSettings().addListener(settings -> {
       if (settings.MODULES_LIST_MINIMIZE != myTreeMinimized) {
         myTreeMinimized = settings.MODULES_LIST_MINIMIZE;
         myToReInitWholePanel = true;
@@ -230,7 +230,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   }
 
   private void modulesTreeMinimized() {
-    PsUISettings settings = PsUISettings.getInstance();
+    PsUISettings settings = myContext.getUiSettings();
     settings.MODULES_LIST_MINIMIZE = myTreeMinimized = myToReInitWholePanel = true;
     settings.fireUISettingsChanged();
   }

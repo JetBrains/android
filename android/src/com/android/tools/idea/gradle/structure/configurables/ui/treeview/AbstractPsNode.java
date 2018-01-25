@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractPsNode extends SimpleNode {
   private boolean myAutoExpandNode;
+  @NotNull private PsUISettings myUiSettings;
 
-  public AbstractPsNode() {
+  public AbstractPsNode(@NotNull PsUISettings uiSettings) {
+    myUiSettings = uiSettings;
   }
 
-  public AbstractPsNode(@NotNull AbstractPsNode parent) {
+  public AbstractPsNode(@NotNull AbstractPsNode parent, @NotNull PsUISettings uiSettings) {
     super(parent);
+    myUiSettings = uiSettings;
   }
 
   @Override
@@ -35,5 +39,10 @@ public abstract class AbstractPsNode extends SimpleNode {
 
   public void setAutoExpandNode(boolean autoExpandNode) {
     myAutoExpandNode = autoExpandNode;
+  }
+
+  @NotNull
+  public PsUISettings getUiSettings() {
+    return myUiSettings;
   }
 }

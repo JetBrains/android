@@ -37,7 +37,7 @@ public class TargetAndroidModuleNode extends AbstractPsModelNode<PsAndroidModule
   @NotNull private List<TargetConfigurationNode> myChildren = Collections.emptyList();
 
   TargetAndroidModuleNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidModule module, @Nullable String version) {
-    super(parent, module);
+    super(parent, module, parent.getUiSettings());
     myVersion = version;
     setAutoExpandNode(true);
   }

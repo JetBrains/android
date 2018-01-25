@@ -41,32 +41,23 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AbstractDeclaredDependenciesTableModel}.
  */
 public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
-  private boolean myOriginalShowGroupId;
   private PsLibraryAndroidDependency myLibraryDependency;
+  private PsUISettings myUISettings;
 
   private AbstractDeclaredDependenciesTableModel<PsAndroidDependency> myTableModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myOriginalShowGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
     myLibraryDependency = mock(PsLibraryAndroidDependency.class);
+    myUISettings = new PsUISettings();
 
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
     dependencies.add(myLibraryDependency);
     PsAndroidModuleStub module = new PsAndroidModuleStub(dependencies);
-    myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, mock(PsContext.class)) {};
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = myOriginalShowGroupId;
-    }
-    finally {
-      //noinspection ThrowFromFinallyBlock
-      super.tearDown();
-    }
+    PsContext context = mock(PsContext.class);
+    when(context.getUiSettings()).thenReturn(myUISettings);
+    myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, context) {};
   }
 
   public void testShowArtifactDependencySpec() {
@@ -77,7 +68,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
 
-    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
+    myUISettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
 
     //noinspection unchecked
     ColumnInfo<PsAndroidDependency, String> specColumnInfo = columnInfos[0];
@@ -87,7 +78,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     String text = renderer.getText();
     assertEquals("com.android.support:appcompat-v7:23.1.0", text);
 
-    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
+    myUISettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
 
     text = renderer.getText();
     assertEquals("appcompat-v7:23.1.0", text);

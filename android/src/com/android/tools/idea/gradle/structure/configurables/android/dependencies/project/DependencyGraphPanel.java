@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.MultipleLibraryDependenciesDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
@@ -29,6 +28,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.DependencyVi
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
@@ -176,14 +176,17 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   @NotNull
   private DependenciesTreeRootNode<PsProject> createRootNode() {
-    return new DependenciesTreeRootNode<>(myContext.getProject(), new DependencyCollectorFunction<PsProject>() {
-      @Override
-      public DependenciesTreeRootNode.DependencyCollector apply(PsProject project) {
-        DependenciesTreeRootNode.DependencyCollector collector = new DependenciesTreeRootNode.DependencyCollector();
-        project.forEachModule(module -> collectDeclaredDependencies(module, collector));
-        return collector;
-      }
-    });
+    return new DependenciesTreeRootNode<>(
+      myContext.getProject(),
+      new DependencyCollectorFunction<PsProject>() {
+        @Override
+        public DependenciesTreeRootNode.DependencyCollector apply(PsProject project) {
+          DependenciesTreeRootNode.DependencyCollector collector = new DependenciesTreeRootNode.DependencyCollector();
+          project.forEachModule(module -> collectDeclaredDependencies(module, collector));
+          return collector;
+        }
+      },
+      myContext.getUiSettings());
   }
 
   @SuppressWarnings("unchecked")

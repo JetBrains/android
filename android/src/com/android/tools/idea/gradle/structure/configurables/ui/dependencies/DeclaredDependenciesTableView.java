@@ -62,7 +62,7 @@ public class DeclaredDependenciesTableView<T extends PsDependency> extends Table
     new TableSpeedSearch(this, (o, cell) -> {
       T dependency = model.getItem(cell.getRow());
       if (dependency != null) {
-        return displayTextOf(dependency);
+        return displayTextOf(dependency, context.getUiSettings());
       }
       return o == null || o instanceof Boolean ? "" : o.toString();
     });

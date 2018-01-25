@@ -25,8 +25,11 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.util.IconUtil
 import javax.swing.tree.TreePath
 
-class BuildTypesPanel(val treeModel: BuildTypesTreeModel) :
-    ConfigurablesMasterDetailsPanel<PsBuildType>("Build Types", "android.psd.build_type", treeModel) {
+class BuildTypesPanel(
+  val treeModel: BuildTypesTreeModel,
+  uiSettings: PsUISettings
+) :
+    ConfigurablesMasterDetailsPanel<PsBuildType>("Build Types", "android.psd.build_type", treeModel, uiSettings) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Build Type", "Removes a Build Type", IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent?) {
