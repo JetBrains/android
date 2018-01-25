@@ -763,7 +763,7 @@ public class AndroidCompileUtil {
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.isAppProject()) {
+    if (facet == null || facet.getConfiguration().isAppProject()) {
       return true;
     }
 

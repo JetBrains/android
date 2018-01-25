@@ -82,7 +82,7 @@ class LegacyAndroidProjects {
       for (Module module : ModuleManager.getInstance(myProject).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null && !facet.requiresAndroidModel()) {
-          if (facet.isAppProject()) {
+          if (facet.getConfiguration().isAppProject()) {
             // Prefer the package name from an app module.
             packageName = getPackageNameInLegacyIdeaAndroidModule(facet);
             if (packageName != null) {

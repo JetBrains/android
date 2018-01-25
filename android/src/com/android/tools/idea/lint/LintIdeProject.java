@@ -172,7 +172,7 @@ public class LintIdeProject extends Project {
 
     // Prefer Android app modules
     for (AndroidFacet facet : facets) {
-      if (facet.isAppProject()) {
+      if (facet.getConfiguration().isAppProject()) {
         return facet.getModule();
       }
     }

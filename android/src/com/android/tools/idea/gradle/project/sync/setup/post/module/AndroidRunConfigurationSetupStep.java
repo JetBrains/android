@@ -33,7 +33,7 @@ public class AndroidRunConfigurationSetupStep extends ModuleSetupStep {
   @Override
   public void setUpModule(@NotNull Module module, @Nullable ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.isAppProject()) {
+    if (facet != null && facet.getConfiguration().isAppProject()) {
       myRunConfigurations.createRunConfiguration(facet);
     }
   }

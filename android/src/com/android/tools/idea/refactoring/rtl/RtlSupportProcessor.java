@@ -290,7 +290,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     // For all non library modules in our project
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isAppProject()) {
+      if (facet != null && facet.getConfiguration().isAppProject()) {
         int minSdk = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel();
 
         if (myProperties.generateV17resourcesOption) {

@@ -112,7 +112,7 @@ public class AndroidPrecompileTask implements CompileTask {
 
       LOG.debug("Platform-tools revision for module " + module.getName() + " is " + platformToolsRevision);
 
-      if (!facet.isAppProject()) {
+      if (!facet.getConfiguration().isAppProject()) {
         if (platformToolsRevision >= 0 && platformToolsRevision <= 7) {
           LOG.debug("Excluded sources of module " + module.getName());
           excludeAllSourceRoots(module, configuration, addedEntries);
@@ -279,7 +279,7 @@ public class AndroidPrecompileTask implements CompileTask {
                            manifestMergerProp.getSecond().getUrl(), -1, -1);
       }
 
-      if (facet.isAppProject()) {
+      if (facet.getConfiguration().isAppProject()) {
 
         for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
           if (entry instanceof ModuleOrderEntry) {

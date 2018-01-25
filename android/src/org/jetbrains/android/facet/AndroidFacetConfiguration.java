@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 /**
  * @author Eugene.Kudelevsky
@@ -138,6 +140,11 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   public void setIncludeAssetsFromLibraries(boolean includeAssetsFromLibraries) {
     myProperties.myIncludeAssetsFromLibraries = includeAssetsFromLibraries;
+  }
+
+  public boolean isAppProject() {
+    int projectType = getState().PROJECT_TYPE;
+    return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
   }
 
   @Nullable
