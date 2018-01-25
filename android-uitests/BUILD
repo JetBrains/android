@@ -73,8 +73,6 @@ iml_module(
         "//tools/idea/platform/xdebugger-api[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/uitest-framework[module, test]",
-        "//tools/adt/idea/uitest-framework-gradle[module, test]",
-        "//tools/adt/idea/uitest-framework-bazel[module, test]",
     ],
 )
 

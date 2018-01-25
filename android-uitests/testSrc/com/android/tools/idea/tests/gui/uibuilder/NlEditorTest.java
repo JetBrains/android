@@ -88,15 +88,13 @@ public class NlEditorTest {
   public void basicLayoutEdit() throws Exception {
     guiTest.importSimpleLocalApplication()
       .getEditor()
-      // TODO: once cr/181207315 is submitted, reformat Bazel files so that the "../SimpleLocalApplication/" isn't necessary.
-      .open("../SimpleLocalApplication/app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .waitForRenderToFinish()
       .dragComponentToSurface("Text", "TextView")
       .dragComponentToSurface("Buttons", "Button");
     String layoutFileContents = guiTest.ideFrame()
       .getEditor()
-      .open("../SimpleLocalApplication/app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
     assertThat(layoutFileContents).contains("<TextView");
     assertThat(layoutFileContents).contains("<Button");

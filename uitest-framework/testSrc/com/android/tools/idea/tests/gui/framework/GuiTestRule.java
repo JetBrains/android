@@ -17,19 +17,22 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
@@ -72,7 +75,6 @@ public class GuiTestRule implements TestRule {
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
-  private GuiTestSystem myTestSystem = null;
   private IdeFrameFixture myIdeFrameFixture;
   @Nullable private String myTestDirectory;
 
@@ -102,10 +104,6 @@ public class GuiTestRule implements TestRule {
   @NotNull
   @Override
   public Statement apply(final Statement base, final Description description) {
-    // The test system should be available at this time.  If it's not, error out.
-    myTestSystem = getTestSystem();
-    if (myTestSystem == null) throw new RuntimeException("Required GuiTestSystem cannot be found from extensions.");
-
     RuleChain chain = RuleChain.emptyRuleChain()
       .around(new LogStartAndStop())
       .around(new BlockReloading())
@@ -121,18 +119,6 @@ public class GuiTestRule implements TestRule {
     }
 
     return chain.apply(base, description);
-  }
-
-  /**
-   * @return the [GuiTestSystem] this test rule should use to perform build system specific operations.
-   */
-  public static GuiTestSystem getTestSystem() {
-    for (GuiTestSystem sys : GuiTestSystem.Companion.getEP_NAME().getExtensions()) {
-      if (System.getProperty("guitest.currentguitestsystem").equals(sys.getId())) {
-        return sys;
-      }
-    }
-    return null;
   }
 
   private class IdeHandling implements TestRule {
@@ -292,14 +278,13 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    importProject(projectDirName);
-    myTestSystem.waitForProjectSyncToFinish(ideFrame());
-    return ideFrame();
+    return importProject(projectDirName).waitForGradleProjectSyncToFinish();
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    File testProjectDir = setUpProject(projectDirName);
-    myTestSystem.importProject(testProjectDir, robot());
+    VirtualFile toSelect = VfsUtil.findFileByIoFile(setUpProject(projectDirName), true);
+    ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().importProject(toSelect));
+
     return ideFrame();
   }
 
@@ -323,7 +308,6 @@ public class GuiTestRule implements TestRule {
   private File setUpProject(@NotNull String projectDirName) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
-    myTestSystem.prepareTestForImport(projectPath);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
     updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
