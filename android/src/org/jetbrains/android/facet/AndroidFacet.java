@@ -104,11 +104,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @Deprecated
-  public boolean canBeDependency() {
-    return getConfiguration().canBeDependency();
-  }
-
-  @Deprecated
   public boolean isLibraryProject() {
     return getConfiguration().isLibraryProject();
   }
