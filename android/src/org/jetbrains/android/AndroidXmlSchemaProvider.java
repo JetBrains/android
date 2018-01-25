@@ -172,7 +172,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
   @Nullable
   public static String getLocalXmlNamespace(@NotNull AndroidFacet facet) {
-    if (facet.isLibraryProject() || facet.requiresAndroidModel()) {
+    if (facet.getConfiguration().isLibraryProject() || facet.requiresAndroidModel()) {
       return AUTO_URI;
     }
     final Manifest manifest = facet.getManifest();

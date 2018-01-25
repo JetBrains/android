@@ -103,7 +103,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
           return false;
         }
 
-        return !facet.isLibraryProject() || libraryProjectValidator.apply(facet);
+        return !facet.getConfiguration().isLibraryProject() || libraryProjectValidator.apply(facet);
       }
     };
     myModulesComboBox.addActionListener(this);

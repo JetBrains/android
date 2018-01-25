@@ -162,7 +162,7 @@ public class AndroidAppPropertiesEditor {
     if (!library) {
       for (Module module : modulesProvider.getModules()) {
         final AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null && !facet.isLibraryProject()) {
+        if (facet != null && !facet.getConfiguration().isLibraryProject()) {
           final Manifest manifest = facet.getManifest();
           if (manifest != null) {
             final String packageName = manifest.getPackage().getValue();

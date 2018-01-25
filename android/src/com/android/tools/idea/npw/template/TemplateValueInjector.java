@@ -95,7 +95,7 @@ public final class TemplateValueInjector {
     addDebugKeyStore(myTemplateValues, facet);
 
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, false); // Android Modules are called Gradle Projects
-    myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
+    myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, facet.getConfiguration().isLibraryProject());
 
     String appTheme = MergedManifest.get(facet).getManifestTheme();
     myTemplateValues.put(ATTR_HAS_APPLICATION_THEME, appTheme != null);

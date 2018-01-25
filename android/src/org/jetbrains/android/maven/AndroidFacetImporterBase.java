@@ -204,7 +204,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       rootModel.addExcludedFolder(aidlPath);
     }
 
-    if (facet.isLibraryProject()) {
+    if (facet.getConfiguration().isLibraryProject()) {
       removeAttachedJarDependency(modelsProvider, mavenTree, mavenProject);
     }
   }

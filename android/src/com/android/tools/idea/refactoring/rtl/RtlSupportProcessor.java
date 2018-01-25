@@ -158,7 +158,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     // For all non library modules in our project
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null || facet.isLibraryProject()) {
+      if (facet == null || facet.getConfiguration().isLibraryProject()) {
         continue;
       }
       for (VirtualFile manifestFile : IdeaSourceProvider.getManifestFiles(facet)) {

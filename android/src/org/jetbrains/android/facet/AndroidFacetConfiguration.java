@@ -40,6 +40,8 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -174,5 +176,9 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
    */
   public void disposeFacet() {
     myAndroidModel = null;
+  }
+
+  public boolean isLibraryProject() {
+    return getState().PROJECT_TYPE == PROJECT_TYPE_LIBRARY;
   }
 }

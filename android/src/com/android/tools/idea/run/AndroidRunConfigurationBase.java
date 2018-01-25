@@ -164,7 +164,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
     if (!facet.isAppProject() && facet.getProjectType() != PROJECT_TYPE_TEST) {
-      if (facet.isLibraryProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE) {
+      if (facet.getConfiguration().isLibraryProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE) {
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {
           errors.add(ValidationError.fatal(result.getSecond()));
