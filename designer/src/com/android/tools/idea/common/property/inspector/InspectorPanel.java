@@ -74,7 +74,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
   private final InspectorExpandableItemsHandler myExpandableItemsHandler;
   private final Disposable myParentDisposable;
 
-  private InspectorProviders myInspectorProviders;
+  private InspectorProviders<PropMgr> myInspectorProviders;
   private List<InspectorComponent<PropMgr>> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
   private GridConstraints myConstraints = new GridConstraints();
@@ -333,6 +333,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     label.setFont(myBoldLabelFont);
     addLineComponent(label, myRow++);
     myLabel2ComponentMap.put(myDefaultLabel, label);
+    startGroup(label, true, null);
     return label;
   }
 
@@ -362,7 +363,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     JLabel label = createLabel(labelText, tooltip, component);
     addLabelComponent(label, myRow);
     addValueComponent(component, myRow++);
-    startGroup(label, keySource);
+    startGroup(label, false, keySource);
     myLabel2GroupMap.put(label, myGroup);
     myLabel2ComponentMap.put(label, component);
     return label;
@@ -424,10 +425,11 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     panel.add(component, myConstraints);
   }
 
-  private void startGroup(@NotNull JLabel label, @NotNull Component keySource) {
-    assert myGroup == null;
-    myGroup = new ExpandableGroup(label);
-    mySource2GroupMap.put(keySource, myGroup);
+  private void startGroup(@NotNull JLabel label, boolean initiallyExpanded, @Nullable Component keySource) {
+    myGroup = new ExpandableGroup(label, myGroup, initiallyExpanded);
+    if (keySource != null) {
+      mySource2GroupMap.put(keySource, myGroup);
+    }
   }
 
   private void endGroup() {
@@ -439,13 +441,17 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     private static final Icon EXPANDED_ICON = (Icon)UIManager.get("Tree.expandedIcon");
     private static final Icon COLLAPSED_ICON = (Icon)UIManager.get("Tree.collapsedIcon");
     private final JLabel myLabel;
+    private final ExpandableGroup myParent;
     private final List<Component> myComponents;
+    private final List<ExpandableGroup> myChildren;
     private boolean myExpanded;
 
-    public ExpandableGroup(@NotNull JLabel label) {
+    public ExpandableGroup(@NotNull JLabel label, @Nullable ExpandableGroup parent, boolean defaultValue) {
       myLabel = label;
+      myParent = parent;
       myComponents = new ArrayList<>(4);
-      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + StringUtil.removeHtmlTags(label.getText()));
+      myChildren = new ArrayList<>();
+      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + StringUtil.removeHtmlTags(label.getText()), defaultValue);
       label.setIcon(myExpanded ? EXPANDED_ICON : COLLAPSED_ICON);
       label.addMouseListener(new MouseAdapter() {
         @Override
@@ -455,11 +461,19 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
           }
         }
       });
+      if (parent != null) {
+        parent.myChildren.add(this);
+      }
     }
 
     public void addComponent(@NotNull Component component) {
+      if (myParent != null) {
+        myParent.addComponent(component);
+      }
       myComponents.add(component);
-      component.setVisible(myExpanded);
+      if (!myExpanded) {
+        component.setVisible(false);
+      }
     }
 
     public boolean isExpanded() {
@@ -470,6 +484,11 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
       myExpanded = expanded;
       myLabel.setIcon(expanded ? EXPANDED_ICON : COLLAPSED_ICON);
       myComponents.forEach(component -> component.setVisible(expanded));
+      if (expanded) {
+        for (ExpandableGroup group : myChildren) {
+          group.setExpanded(group.isExpanded(), false);
+        }
+      }
       if (updateProperties) {
         PropertiesComponent.getInstance().setValue(KEY_PREFIX + StringUtil.removeHtmlTags(myLabel.getText()), expanded);
       }
