@@ -166,20 +166,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public List<VirtualFile> getAllResourceDirectories() {
     return getResourceFolderManager().getFolders();
   }
-
-  /**
-   * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
-   * deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among the available flavors
-   * (see {@link AndroidModuleModel#getFlavorSourceProviders()} etc).
-   *
-   * @return the primary resource dir, if any.
-   */
-  @Deprecated
-  @Nullable
-  public VirtualFile getPrimaryResourceDir() {
-    return ResourceFolderManager.getInstance(this).getPrimaryFolder();
-  }
-
+  
   @Override
   public void disposeFacet() {
     getConfiguration().disposeFacet();
