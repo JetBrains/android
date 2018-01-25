@@ -80,6 +80,8 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
       case RUNNING:
       case RUNNING_CAPTURED:
         return "Running";
+      case RUNNABLE_CAPTURED:
+        return "Runnable";
       case SLEEPING:
       case SLEEPING_CAPTURED:
         return "Sleeping";
@@ -89,6 +91,8 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
       case WAITING:
       case WAITING_CAPTURED:
         return "Waiting";
+      case WAITING_IO_CAPTURED:
+        return "Waiting on IO";
       default:
         return "Unknown";
     }

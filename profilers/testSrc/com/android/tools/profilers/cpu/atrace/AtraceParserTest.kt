@@ -75,7 +75,10 @@ class AtraceParserTest {
     assertThat(dataSeries).hasSize(THREAD_STATE_SERIES_SIZE)
     assertThat(dataSeries[THREAD_ID]!!.size).isEqualTo(THREAD_STATE_SIZE)
     assertThat(dataSeries[THREAD_ID]!!.get(0).x).isGreaterThan(EXPECTED_MIN_RANGE.toLong())
-    assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNING_CAPTURED);
+    // Waking / Runnable = RUNNABLE.
+    assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED);
+    // Running = RUNNING
+    assertThat(dataSeries[THREAD_ID]!!.get(1).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNING_CAPTURED);
   }
 
   companion object {
@@ -91,6 +94,6 @@ class AtraceParserTest {
     private val TEST_PID = 2652
     private val THREAD_ID = 2659
     private val THREAD_STATE_SERIES_SIZE = 20
-    private val THREAD_STATE_SIZE = 468
+    private val THREAD_STATE_SIZE = 1316
   }
 }
