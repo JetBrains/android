@@ -31,6 +31,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,7 +118,7 @@ public abstract class WidgetCreator {
       Logger.getInstance(FloatingActionButtonCreator.class).error("The color name can't be empty. Aborting color resource creation");
       return;
     }
-    VirtualFile primaryResourceDir = model.getFacet().getPrimaryResourceDir();
+    VirtualFile primaryResourceDir = ResourceFolderManager.getInstance(model.getFacet()).getPrimaryFolder();
     FolderConfiguration configForFolder = FolderConfiguration.getConfigForFolder(ResourceFolderType.VALUES.getName());
     if (primaryResourceDir != null && configForFolder != null) {
       AndroidResourceUtil.createValueResource(

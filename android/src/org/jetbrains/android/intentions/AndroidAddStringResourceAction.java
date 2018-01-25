@@ -19,7 +19,6 @@ package org.jetbrains.android.intentions;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -57,6 +56,7 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -199,7 +199,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (resName != null && ApplicationManager.getApplication().isUnitTestMode()) {
       String fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
       assert fileName != null;
-      VirtualFile resourceDir = facet.getPrimaryResourceDir();
+      VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       assert resourceDir != null;
       AndroidResourceUtil.createValueResource(project, resourceDir, resName, type, fileName,
                                               Collections.singletonList(ResourceFolderType.VALUES.getName()), value);

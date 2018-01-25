@@ -24,6 +24,7 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +98,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
 
   @Override
   public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-    final VirtualFile resourceDir = myFacet.getPrimaryResourceDir();
+    final VirtualFile resourceDir = ResourceFolderManager.getInstance(myFacet).getPrimaryFolder();
     if (resourceDir == null) {
       return;
     }

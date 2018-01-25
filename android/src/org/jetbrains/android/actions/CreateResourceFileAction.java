@@ -36,6 +36,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -157,7 +158,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     CreateResourceFileDialogBase.ValidatorFactory validatorFactory = action.createValidatorFactory(project);
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       String subdirName = resType.getName();
-      VirtualFile resDir = facet.getPrimaryResourceDir();
+      VirtualFile resDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       if (resDir == null) {
         return PsiElement.EMPTY_ARRAY;
       }

@@ -113,7 +113,7 @@ public class AndroidRootUtil {
   @Deprecated
   @Nullable
   public static VirtualFile getResourceDir(@NotNull AndroidFacet facet) {
-    return facet.getPrimaryResourceDir();
+    return ResourceFolderManager.getInstance(facet).getPrimaryFolder();
   }
 
   @Nullable

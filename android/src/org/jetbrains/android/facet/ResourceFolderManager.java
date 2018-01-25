@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.facet;
 
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -106,6 +107,23 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
     }
 
     return myResDirCache;
+  }
+
+  /**
+   * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
+   * deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among the available flavors
+   * (see {@link AndroidModuleModel#getFlavorSourceProviders()} etc).
+   *
+   * @return the primary resource dir, if any.
+   */
+  @Deprecated
+  @Nullable
+  public VirtualFile getPrimaryFolder() {
+    List<VirtualFile> dirs = getFolders();
+    if (!dirs.isEmpty()) {
+      return dirs.get(0);
+    }
+    return null;
   }
 
   private List<VirtualFile> computeFolders() {

@@ -79,6 +79,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -409,7 +410,7 @@ public class ThemeEditorUtils {
     }
     Project project = module.getProject();
     @SuppressWarnings("deprecation")
-    VirtualFile resourceDir = facet.getPrimaryResourceDir();
+    VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     if (resourceDir == null) {
       AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
       return null;
