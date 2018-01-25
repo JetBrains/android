@@ -777,7 +777,7 @@ public final class AvdOptionsModel extends WizardModel {
         GpuMode gpuMode = (GpuMode)value;
         if (gpuMode == GpuMode.SWIFT &&
             !AvdManagerConnection.getDefaultAvdManagerConnection().
-              emulatorVersionIsAtLeast(new Revision(27, 0, 5))) {
+              emulatorVersionIsAtLeast(new Revision(27, 1, 6))) {
           // Older Emulator versions expect "guest" when SWIFT is selected on the UI
           return "guest";
         }

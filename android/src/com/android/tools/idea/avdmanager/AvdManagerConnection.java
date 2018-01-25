@@ -493,7 +493,6 @@ public class AvdManagerConnection {
    * Indicates if the Emulator's version is at least {@code desired}
    * @return true if the Emulator version is the desired version or higher
    */
-  @VisibleForTesting
   public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
     if (mySdkHandler == null) return false; // Don't know, so guess
     ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
