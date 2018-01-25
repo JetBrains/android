@@ -13,7 +13,7 @@
     <orderEntry type="module" module-name="intellij.android" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.ideaCommunity.main" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.idea.community.main" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.debugger" scope="TEST" />
     <orderEntry type="library" name="fest" level="project" />
