@@ -58,8 +58,7 @@ public class ResourceFolderManager extends AndroidFacetScopedService implements 
   private boolean myVariantListenerAdded;
 
   /**
-   * Should only be constructed by {@link AndroidFacet}; others should obtain instance
-   * via {@link AndroidFacet#getResourceFolderManager}
+   * Should only be constructed by {@link #getInstance}.
    */
   ResourceFolderManager(AndroidFacet facet) {
     super(facet);
