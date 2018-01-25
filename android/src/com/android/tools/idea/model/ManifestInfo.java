@@ -88,7 +88,7 @@ final class ManifestInfo {
     final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
 
     ILogger logger = NullLogger.getLogger();
-    ManifestMerger2.MergeType mergeType = facet.isAppProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
+    ManifestMerger2.MergeType mergeType = facet.getConfiguration().isAppProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
     AndroidModel androidModel = facet.getConfiguration().getModel();
     AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
@@ -360,7 +360,7 @@ final class ManifestInfo {
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifests);
 
       List<VirtualFile> libraryManifests = Collections.emptyList();
-      if (myFacet.isAppProject() || myFacet.getProjectType() == PROJECT_TYPE_FEATURE) {
+      if (myFacet.getConfiguration().isAppProject() || myFacet.getProjectType() == PROJECT_TYPE_FEATURE) {
         libraryManifests = getLibManifests(myFacet);
         trackChanges(lastModifiedMap, libraryManifests);
       }

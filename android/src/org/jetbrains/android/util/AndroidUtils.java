@@ -31,7 +31,6 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.ui.ConsoleView;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
@@ -456,7 +455,7 @@ public class AndroidUtils {
     final List<AndroidFacet> result = new ArrayList<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (facet.isAppProject()) {
+      if (facet.getConfiguration().isAppProject()) {
         result.add(facet);
       }
     }

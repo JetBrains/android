@@ -115,7 +115,7 @@ public class AndroidDependenciesCache {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
             if (depFacet != null &&
-                !(androidLibrariesOnly && depFacet.isAppProject()) &&
+                !(androidLibrariesOnly && depFacet.getConfiguration().isAppProject()) &&
                 visited.add(depFacet)) {
               final List<WeakReference<AndroidFacet>> cachedDepDeps =
                 getInstance(depModule).getListRef(androidLibrariesOnly).get();

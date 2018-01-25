@@ -283,7 +283,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       // then try and find a non-lib facet
       for (Module module : modules) {
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null && androidFacet.isAppProject()) {
+        if (androidFacet != null && androidFacet.getConfiguration().isAppProject()) {
           myAndroidFacet = androidFacet;
           break;
         }

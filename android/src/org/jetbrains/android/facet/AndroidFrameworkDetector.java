@@ -131,7 +131,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
       facet.setProjectType(Integer.parseInt(androidProjectTypeProperty.getFirst()));
     }
 
-    if (facet.isAppProject()) {
+    if (facet.getConfiguration().isAppProject()) {
       Pair<String, VirtualFile> dexForceJumboProperty = getProjectPropertyValue(module, ANDROID_DEX_FORCE_JUMBO_PROPERTY);
       if (dexForceJumboProperty != null) {
         showDexOptionNotification(module, ANDROID_DEX_FORCE_JUMBO_PROPERTY);

@@ -135,7 +135,7 @@ public class InstantRunGradleUtils {
     if (module != null) {
       assert module.getProject() == project;
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.isAppProject()) {
+      if (facet != null && facet.getConfiguration().isAppProject()) {
         return facet;
       }
     }
@@ -146,7 +146,7 @@ public class InstantRunGradleUtils {
 
     for (Module m : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(m);
-      if (facet != null && facet.isAppProject()) {
+      if (facet != null && facet.getConfiguration().isAppProject()) {
         return facet;
       }
     }
