@@ -83,7 +83,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
   static LocalResourceRepository create(@NotNull AndroidFacet facet) {
     if (!facet.requiresAndroidModel()) {
       // Always just a single resource folder: simple
-      VirtualFile primaryResourceDir = facet.getPrimaryResourceDir();
+      VirtualFile primaryResourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       if (primaryResourceDir == null) {
         return new EmptyRepository();
       }

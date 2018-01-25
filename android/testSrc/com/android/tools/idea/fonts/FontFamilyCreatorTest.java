@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -234,7 +235,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
   @NotNull
   static String getResourceFileContent(@NotNull AndroidFacet facet, @NotNull ResourceFolderType type, @NotNull String fileName) throws IOException {
     @SuppressWarnings("deprecation")
-    VirtualFile resourceDirectory = checkNotNull(facet.getPrimaryResourceDir());
+    VirtualFile resourceDirectory = checkNotNull(ResourceFolderManager.getInstance(facet).getPrimaryFolder());
     VirtualFile resourceFolder = checkNotNull(resourceDirectory.findChild(type.getName()));
     VirtualFile file = checkNotNull(resourceFolder.findChild(fileName));
     file.refresh(false, false);

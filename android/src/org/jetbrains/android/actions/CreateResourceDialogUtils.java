@@ -36,6 +36,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +95,7 @@ public class CreateResourceDialogUtils {
     // Otherwise use the main source set:
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      VirtualFile res = facet.getPrimaryResourceDir();
+      VirtualFile res = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       if (res != null) {
         return PsiManager.getInstance(module.getProject()).findDirectory(res);
       }

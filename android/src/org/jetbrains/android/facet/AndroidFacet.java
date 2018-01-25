@@ -181,11 +181,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Deprecated
   @Nullable
   public VirtualFile getPrimaryResourceDir() {
-    List<VirtualFile> dirs = getResourceFolderManager().getFolders();
-    if (!dirs.isEmpty()) {
-      return dirs.get(0);
-    }
-    return null;
+    return ResourceFolderManager.getInstance(this).getPrimaryFolder();
   }
 
   @Override

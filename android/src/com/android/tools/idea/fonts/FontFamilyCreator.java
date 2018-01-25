@@ -41,6 +41,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,7 +126,7 @@ public class FontFamilyCreator {
   @NotNull
   private VirtualFile getResourceFolder(@NotNull ResourceFolderType folderType) throws IOException {
     @SuppressWarnings("deprecation")
-    VirtualFile resourceDirectory = myFacet.getPrimaryResourceDir();
+    VirtualFile resourceDirectory = ResourceFolderManager.getInstance(myFacet).getPrimaryFolder();
 
     if (resourceDirectory == null) {
       throw new IOException("PrimaryResourceDirectory is null");

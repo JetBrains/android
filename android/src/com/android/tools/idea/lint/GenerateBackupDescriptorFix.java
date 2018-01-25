@@ -35,6 +35,7 @@ import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.refactoring.psi.SearchUtils;
 import com.intellij.util.containers.SmartHashSet;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -100,7 +101,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
     WriteCommandAction.runWriteCommandAction(project, "Create Backup Descriptor", null, () -> {
       try {
         @SuppressWarnings("deprecation")
-        VirtualFile primaryResourceDir = facet.getPrimaryResourceDir();
+        VirtualFile primaryResourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
         assert primaryResourceDir != null;
         VirtualFile xmlDir = createChildDirectoryIfNotExist(project, primaryResourceDir, FD_RES_XML);
         VirtualFile resFile = xmlDir.createChildData(project, myUrl.name + DOT_XML);

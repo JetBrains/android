@@ -34,6 +34,7 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -184,7 +185,7 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
 
   private static void setTemplate(@NotNull Project project, @NotNull NlComponent component, @NotNull String resourceName, @NotNull String content) {
     AndroidFacet facet = component.getModel().getFacet();
-    VirtualFile resourceDir = facet.getPrimaryResourceDir();
+    VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
 
     WriteCommandAction.runWriteCommandAction(project, "Adding RecyclerView template", null, () -> {
@@ -232,7 +233,7 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
     super(new BorderLayout());
 
     AndroidFacet facet = component.getModel().getFacet();
-    VirtualFile resourceDir = facet.getPrimaryResourceDir();
+    VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
     Project project = facet.getModule().getProject();
     String resourceName = getTemplateName(facet, "recycler_view");
