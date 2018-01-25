@@ -127,6 +127,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     DEAD_CAPTURED,
     WAITING,
     WAITING_CAPTURED,
+
+    // These values are captured from Atrace as such we only have a captured state.
+    RUNNABLE_CAPTURED,
+    WAITING_IO_CAPTURED,
     UNKNOWN
   }
 

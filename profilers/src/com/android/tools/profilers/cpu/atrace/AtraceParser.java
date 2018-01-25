@@ -158,17 +158,18 @@ public class AtraceParser implements TraceParser {
   private CpuProfilerStage.ThreadState getState(SchedSlice slice) {
     switch (slice.getState()) {
       case RUNNING:
-      case RUNNABLE:
-      case WAKING:
         return CpuProfilerStage.ThreadState.RUNNING_CAPTURED;
+      case WAKING:
+      case RUNNABLE:
+        return CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED;
       case EXIT_DEAD:
         return CpuProfilerStage.ThreadState.DEAD_CAPTURED;
       case SLEEPING:
         return CpuProfilerStage.ThreadState.SLEEPING_CAPTURED;
       case UNINTR_SLEEP:
-        // TODO (b/72498194) Add a new ThreadState for waiting on IO.
-      case UNINTR_SLEEP_IO:
         return CpuProfilerStage.ThreadState.WAITING_CAPTURED;
+      case UNINTR_SLEEP_IO:
+        return CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED;
       default:
         return CpuProfilerStage.ThreadState.UNKNOWN;
     }

@@ -57,12 +57,18 @@ public class ProfilerColors {
     .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
          new JBColor(0x53B5A0, 0x44B67F),
          new JBColor(0x84DEA7, 0x84DEA7))
+    .add(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED,
+         new JBColor(0x49917C, 0x3B9163),
+         new JBColor(0x599C74, 0x559B70))
     .add(CpuProfilerStage.ThreadState.WAITING,
          new JBColor(0xD4E675, 0x94A244),
          new JBColor(0xD4E675, 0x94A244))
     .add(CpuProfilerStage.ThreadState.WAITING_CAPTURED,
          new JBColor(0xEFF35C, 0xDCF35C),
          new JBColor(0xEFF35C, 0xDCF35C))
+    .add(CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED,
+         new JBColor(0xFFB74D, 0xFFCA28),
+         new JBColor(0xFFB74D, 0xFFCA28))
     .add(CpuProfilerStage.ThreadState.SLEEPING,
          new JBColor(0xEDEFF1, 0x3B3E42),
          new JBColor(0x7BA6E9, 0x7BA6E9))
