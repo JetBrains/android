@@ -116,7 +116,7 @@ public class NlBooleanRendererTest extends PropertyTestCase {
 
   private static NlPropertyItem createMockProperty(@NotNull String propertyName, @Nullable String url, @Nullable String resolvedValue) {
     ResourceResolver resolver = ResourceResolver.withValues(
-      new ResourceValue(ResourceUrl.parse(url).resolve(RES_AUTO, ResourceNamespace.EMPTY_NAMESPACE_CONTEXT), resolvedValue));
+      new ResourceValue(ResourceUrl.parse(url).resolve(RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER), resolvedValue));
 
     NlPropertyItem property = mock(NlPropertyItem.class);
     when(property.getName()).thenReturn(propertyName);
