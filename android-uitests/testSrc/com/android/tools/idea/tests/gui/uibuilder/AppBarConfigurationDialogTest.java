@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AppBarConfigurationDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -37,7 +35,6 @@ public class AppBarConfigurationDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72124019
   @Test
   public void testDependencyDialog() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication()
