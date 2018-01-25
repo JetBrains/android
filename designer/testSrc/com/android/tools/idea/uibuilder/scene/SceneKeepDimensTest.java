@@ -26,8 +26,8 @@ import org.mockito.Mockito;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.ide.common.rendering.api.ResourceNamespace.EMPTY_NAMESPACE_CONTEXT;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.ide.common.rendering.api.ResourceNamespace.Resolver.EMPTY_RESOLVER;
 import static org.mockito.Mockito.when;
 
 /**
@@ -87,7 +87,7 @@ public class SceneKeepDimensTest extends SceneTest {
   }
 
   private void setFakeResource(String dimension, String value) {
-    ResourceValue resourceValue = new ResourceValue(ResourceUrl.parse(dimension).resolve(RES_AUTO, EMPTY_NAMESPACE_CONTEXT), value);
+    ResourceValue resourceValue = new ResourceValue(ResourceUrl.parse(dimension).resolve(RES_AUTO, EMPTY_RESOLVER), value);
     ResourceResolver resolver = ResourceResolver.withValues(resourceValue);
 
     Configuration configuration = Mockito.mock(Configuration.class);
