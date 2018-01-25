@@ -141,16 +141,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
     return myMainIdeaSourceSet;
   }
-
-  /**
-   * @deprecated Use {@link ResourceFolderManager#getInstance(AndroidFacet)}
-   */
-  @NotNull
-  @Deprecated
-  public ResourceFolderManager getResourceFolderManager() {
-    return ResourceFolderManager.getInstance(this);
-  }
-
+  
   /**
    * @return all resource directories, in the overlay order.
    * @deprecated use getResourceFolderManager().getFolders() instead
