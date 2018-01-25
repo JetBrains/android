@@ -104,7 +104,7 @@ public class PsProject extends PsModel {
   }
 
   public void forEachModule(@NotNull Consumer<PsModule> consumer) {
-    myModules.stream().sorted(Comparator.comparing(v -> v.getName())).forEachOrdered(consumer);
+    myModules.stream().sorted(Comparator.comparing(v -> v.getName().toLowerCase())).forEachOrdered(consumer);
   }
 
   @Override
