@@ -31,8 +31,8 @@ class BuildVariantsPanel(
 ) : AbstractTabbedMainPanel(
     context, placeName = "android.psd.myPanel"
 ) {
-  private val buildTypesPanel = BuildTypesPanel(buildTypesTreeModel)
-  private val productFlavorsPanel = ProductFlavorsPanel(productFlavorsTreeModel)
+  private val buildTypesPanel = BuildTypesPanel(buildTypesTreeModel, context.uiSettings)
+  private val productFlavorsPanel = ProductFlavorsPanel(productFlavorsTreeModel, context.uiSettings)
 
   init {
     addTab(buildTypesPanel)

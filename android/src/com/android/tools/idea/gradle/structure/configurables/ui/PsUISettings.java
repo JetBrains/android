@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.*;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ import java.util.EventListener;
 
 @State(
   name = "PsdUISettings",
-  storages = @Storage(file = StoragePathMacros.APP_CONFIG + "/android.gradle.psd.xml")
+  storages = @Storage(StoragePathMacros.WORKSPACE_FILE)
 )
 public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
@@ -42,8 +43,8 @@ public class PsUISettings implements PersistentStateComponent<PsUISettings> {
 
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 
-  public static PsUISettings getInstance() {
-    return ServiceManager.getService(PsUISettings.class);
+  public static PsUISettings getInstance(Project project) {
+    return ServiceManager.getService(project, PsUISettings.class);
   }
 
   public void addListener(@NotNull ChangeListener listener, @NotNull Disposable parentDisposable) {

@@ -22,15 +22,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 
 public class DependencyNodeComparator implements Comparator<AbstractDependencyNode> {
-  @NotNull public static final DependencyNodeComparator INSTANCE = new DependencyNodeComparator();
+  @NotNull private final PsDependencyComparator myDependencyComparator;
 
-  private DependencyNodeComparator() {
+  public DependencyNodeComparator(@NotNull PsDependencyComparator comparator) {
+    myDependencyComparator = comparator;
   }
 
   @Override
   public int compare(AbstractDependencyNode n1, AbstractDependencyNode n2) {
     PsAndroidDependency d1 = (PsAndroidDependency)n1.getFirstModel();
     PsAndroidDependency d2 = (PsAndroidDependency)n2.getFirstModel();
-    return PsDependencyComparator.INSTANCE.compare(d1, d2);
+    return myDependencyComparator.compare(d1, d2);
   }
 }

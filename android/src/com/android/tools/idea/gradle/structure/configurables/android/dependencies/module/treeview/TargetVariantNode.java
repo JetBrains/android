@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.android.PsVariant;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -26,8 +27,8 @@ import java.util.List;
 class TargetVariantNode extends AbstractPsModelNode<PsVariant> {
   @NotNull private List<TargetArtifactNode> myChildren = Collections.emptyList();
 
-  TargetVariantNode(@NotNull PsVariant variant) {
-    super(variant);
+  TargetVariantNode(@NotNull PsVariant variant, @NotNull PsUISettings uiSettings) {
+    super(variant, uiSettings);
     setAutoExpandNode(true);
   }
 

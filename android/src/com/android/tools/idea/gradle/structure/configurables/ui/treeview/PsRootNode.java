@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +25,8 @@ import java.util.List;
 public class PsRootNode extends AbstractPsNode {
   @NotNull private List<? extends AbstractPsNode> myChildren = Collections.emptyList();
 
-  public PsRootNode() {
+  public PsRootNode(@NotNull PsUISettings uiSettings) {
+    super(uiSettings);
     setAutoExpandNode(true);
   }
 

@@ -45,7 +45,7 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myIdeComponents = new IdeComponents(myProject);
-    myIdeComponents.mockService(PsUISettings.class);
+    myIdeComponents.mockProjectService(PsUISettings.class);
   }
 
   @Override
@@ -202,32 +202,36 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:1.0");
     assertNotNull(spec);
 
-    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
-    assertEquals("group:name:1.0", spec.getDisplayText());
+    PsUISettings uiSettings = new PsUISettings();
+    uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
+    assertEquals("group:name:1.0", spec.getDisplayText(uiSettings));
   }
 
   public void testGetDisplayText_fullySpecifiedWithoutGroup() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name:1.0");
     assertNotNull(spec);
 
-    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
-    assertEquals("name:1.0", spec.getDisplayText());
+    PsUISettings uiSettings = new PsUISettings();
+    uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
+    assertEquals("name:1.0", spec.getDisplayText(uiSettings));
   }
 
   public void testGetDisplayText_noVersionWithGroup() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name");
     assertNotNull(spec);
 
-    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
-    assertEquals("group:name", spec.getDisplayText());
+    PsUISettings uiSettings = new PsUISettings();
+    uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
+    assertEquals("group:name", spec.getDisplayText(uiSettings));
   }
 
   public void testGetDisplayText_noVersionWithoutGroup() {
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create("group:name");
     assertNotNull(spec);
 
-    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
-    assertEquals("name", spec.getDisplayText());
+    PsUISettings uiSettings = new PsUISettings();
+    uiSettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
+    assertEquals("name", spec.getDisplayText(uiSettings));
   }
 
   public void testCompactNotation() {

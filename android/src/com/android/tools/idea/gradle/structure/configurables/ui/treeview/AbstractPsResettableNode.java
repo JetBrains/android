@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -24,8 +25,8 @@ import java.util.List;
 public abstract class AbstractPsResettableNode<T extends PsModel> extends AbstractPsModelNode<T> {
   private List<? extends AbstractPsModelNode> myChildren;
 
-  protected AbstractPsResettableNode(@NotNull T model) {
-    super(model);
+  protected AbstractPsResettableNode(@NotNull T model, @NotNull PsUISettings uiSettings) {
+    super(model, uiSettings);
     setAutoExpandNode(true);
   }
 

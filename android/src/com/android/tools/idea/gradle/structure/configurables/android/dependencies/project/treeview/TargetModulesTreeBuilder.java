@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +27,8 @@ import javax.swing.tree.DefaultTreeModel;
 import java.util.List;
 
 public class TargetModulesTreeBuilder extends AbstractPsNodeTreeBuilder {
-  public TargetModulesTreeBuilder(@NotNull JTree tree, @NotNull DefaultTreeModel treeModel) {
-    super(tree, treeModel, new TargetModulesTreeStructure());
+  public TargetModulesTreeBuilder(@NotNull JTree tree, @NotNull DefaultTreeModel treeModel, @NotNull PsUISettings uiSettings) {
+    super(tree, treeModel, new TargetModulesTreeStructure(uiSettings));
   }
 
   public void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {

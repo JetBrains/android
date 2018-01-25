@@ -55,7 +55,7 @@ abstract class AbstractTabbedMainPanel(
       tabPanels.forEach { it.setHistory(history) }
       tabbedPane.addChangeListener {
         if (!inQuietSelection) {
-          PsUISettings.getInstance().setLastSelectedTab(tabbedPane.selectedTitle.orEmpty())
+          context.uiSettings.setLastSelectedTab(tabbedPane.selectedTitle.orEmpty())
           history.pushQueryPlace()
         }
       }
@@ -96,7 +96,7 @@ abstract class AbstractTabbedMainPanel(
       panelWithUiState.restoreUiState()
     }
     // Then restore the tab selection itself.
-    val panel = findPanel(PsUISettings.getInstance().getLastSelectedTab())
+    val panel = findPanel(context.uiSettings.getLastSelectedTab())
     if (panel != null) {
       inQuietSelection = true
       try {

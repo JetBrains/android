@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
@@ -26,8 +27,9 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 
 public class TargetArtifactsTreeBuilder extends AbstractPsNodeTreeBuilder {
-  public TargetArtifactsTreeBuilder(@NotNull PsAndroidModule module, @NotNull JTree tree, @NotNull DefaultTreeModel treeModel) {
-    super(tree, treeModel, new TargetArtifactsTreeStructure(module));
+  public TargetArtifactsTreeBuilder(@NotNull PsAndroidModule module, @NotNull JTree tree, @NotNull DefaultTreeModel treeModel,
+                                    @NotNull PsUISettings uiSettings) {
+    super(tree, treeModel, new TargetArtifactsTreeStructure(module, uiSettings));
   }
 
   public void displayTargetArtifacts(@Nullable PsAndroidDependency dependency) {

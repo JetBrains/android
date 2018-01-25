@@ -53,11 +53,11 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
     myProject = context.getProject();
     myContext = context;
 
-    myShowModulesDropDown = PsUISettings.getInstance().MODULES_LIST_MINIMIZE;
+    myShowModulesDropDown = context.getUiSettings().MODULES_LIST_MINIMIZE;
     if (myShowModulesDropDown) {
       createAndAddModulesAction(extraTopModules);
     }
-    PsUISettings.getInstance().addListener(settings -> {
+    context.getUiSettings().addListener(settings -> {
       if (settings.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
         myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
         if (myShowModulesDropDown) {
@@ -77,7 +77,7 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
     AnAction restoreModuleListAction = new DumbAwareAction("Restore 'Modules' List", "", AllIcons.Actions.MoveTo2) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        PsUISettings settings = PsUISettings.getInstance();
+        PsUISettings settings = myContext.getUiSettings();
         settings.MODULES_LIST_MINIMIZE = myShowModulesDropDown = false;
         settings.fireUISettingsChanged();
         removeModulesAction();

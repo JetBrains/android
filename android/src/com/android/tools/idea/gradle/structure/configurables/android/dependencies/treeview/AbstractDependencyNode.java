@@ -41,11 +41,11 @@ public abstract class AbstractDependencyNode<T extends PsAndroidDependency> exte
   }
 
   protected AbstractDependencyNode(@NotNull AbstractPsNode parent, @NotNull T dependency) {
-    super(parent, dependency);
+    super(parent, dependency, parent.getUiSettings());
   }
 
   protected AbstractDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<T> dependencies) {
-    super(parent, dependencies);
+    super(parent, dependencies, parent.getUiSettings());
   }
 
   public boolean isDeclared() {

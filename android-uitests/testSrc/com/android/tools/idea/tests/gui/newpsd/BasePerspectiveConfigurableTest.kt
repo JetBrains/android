@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner
 import com.android.tools.idea.tests.gui.framework.RunIn
@@ -47,7 +46,6 @@ class BasePerspectiveConfigurableTest {
   @After
   fun tearDown() {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
-    PsUISettings.getInstance().MODULES_LIST_MINIMIZE = false
   }
 
   @Test

@@ -29,10 +29,14 @@ import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.util.IconUtil
 import javax.swing.tree.TreePath
 
-class ProductFlavorsPanel(val treeModel: ProductFlavorsTreeModel) : ConfigurablesMasterDetailsPanel<PsProductFlavor>(
-   "Flavors",
-   "android.psd.product_flavor",
-    treeModel) {
+class ProductFlavorsPanel(
+  val treeModel: ProductFlavorsTreeModel,
+  uiSettings: PsUISettings
+) : ConfigurablesMasterDetailsPanel<PsProductFlavor>(
+  "Flavors",
+  "android.psd.product_flavor",
+  treeModel, uiSettings
+) {
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent?) {

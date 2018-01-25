@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ArtifactComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.android.*;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsDependencyContainer;
+import com.android.tools.idea.gradle.structure.model.android.PsVariant;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -39,16 +42,17 @@ import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencyNodes.createNodesFor;
 
 class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroidModule> {
-  private boolean myGroupVariants = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
+  private boolean myGroupVariants;
 
-  ResolvedDependenciesTreeRootNode(@NotNull PsAndroidModule module) {
-    super(module);
+  ResolvedDependenciesTreeRootNode(@NotNull PsAndroidModule module, @NotNull PsUISettings uiSettings) {
+    super(module, uiSettings);
+    myGroupVariants = getUiSettings().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
   }
 
   boolean settingsChanged() {
-    if (PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS != myGroupVariants) {
+    if (getUiSettings().RESOLVED_DEPENDENCIES_GROUP_VARIANTS != myGroupVariants) {
       // If the "Group Variants" setting changed, remove all children nodes, so the subsequent call to "queueUpdate" will recreate them.
-      myGroupVariants = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
+      myGroupVariants = getUiSettings().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
       reset();
       return true;
     }
@@ -75,7 +79,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
                                                                     @NotNull Map<String, PsVariant> variantsByName) {
     Map<String, List<PsDependencyContainer>> containersWithMainArtifactByVariant = Maps.newHashMap();
 
-    Map<List<PsDependencyContainer>, List<PsDependency>> groupedDependencies = groupDependencies(module);
+    Map<List<PsDependencyContainer>, List<PsDependency>> groupedDependencies = groupDependencies(module, getUiSettings());
     for (List<PsDependencyContainer> containers : groupedDependencies.keySet()) {
       for (PsDependencyContainer container : containers) {
         if (container.getArtifact().endsWith(ARTIFACT_MAIN)) {
@@ -134,7 +138,9 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
   @VisibleForTesting
   @NotNull
-  static Map<List<PsDependencyContainer>, List<PsDependency>> groupDependencies(@NotNull PsAndroidModule module) {
+  static Map<List<PsDependencyContainer>, List<PsDependency>> groupDependencies(@NotNull PsAndroidModule module,
+                                                                                @NotNull PsUISettings uiSettings) {
+    PsDependencyComparator dependencyComparator = new PsDependencyComparator(uiSettings);
     Map<PsDependencyContainer, List<PsDependency>> dependenciesByContainer = Maps.newHashMap();
 
     // Key: variant name
@@ -148,7 +154,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
         }
         List<PsDependency> containerDependencies = dependenciesByContainer.get(container);
         if (containerDependencies == null) {
-          containerDependencies = new SortedList<>(PsDependencyComparator.INSTANCE);
+          containerDependencies = new SortedList<>(dependencyComparator);
           dependenciesByContainer.put(container, containerDependencies);
         }
         containerDependencies.add(dependency);
@@ -240,7 +246,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
                                                  @Nullable AndroidArtifactNode mainArtifactNode) {
     if (!dependencies.isEmpty() || mainArtifactNode != null) {
       AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifacts);
-      populate(artifactNode, dependencies, mainArtifactNode);
+      populate(artifactNode, dependencies, mainArtifactNode, getUiSettings());
       return artifactNode;
     }
     return null;
@@ -326,7 +332,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
                                                  @Nullable AndroidArtifactNode mainArtifactNode) {
     if (!dependencies.isEmpty() || mainArtifactNode != null) {
       AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
-      populate(artifactNode, dependencies, mainArtifactNode);
+      populate(artifactNode, dependencies, mainArtifactNode, getUiSettings());
       return artifactNode;
     }
     return null;
@@ -334,8 +340,9 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
   private static void populate(@NotNull AndroidArtifactNode artifactNode,
                                @NotNull List<PsDependency> dependencies,
-                               @Nullable AndroidArtifactNode mainArtifactNode) {
-    List<AbstractPsModelNode<?>> children = createNodesFor(artifactNode, dependencies);
+                               @Nullable AndroidArtifactNode mainArtifactNode,
+                               @NotNull PsUISettings uiSettings) {
+    List<AbstractPsModelNode<?>> children = createNodesFor(artifactNode, dependencies, uiSettings);
     if (mainArtifactNode != null) {
       children.add(0, mainArtifactNode);
     }

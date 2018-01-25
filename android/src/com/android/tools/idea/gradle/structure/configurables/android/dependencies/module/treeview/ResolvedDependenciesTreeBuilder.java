@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.openapi.util.ActionCallback;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -34,8 +33,9 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
                                          @NotNull JTree tree,
                                          @NotNull DefaultTreeModel treeModel,
                                          @NotNull DependencySelection dependencySelectionSource,
-                                         @NotNull DependencySelection dependencySelectionDestination) {
-    super(tree, treeModel, new ResolvedDependenciesTreeStructure(module));
+                                         @NotNull DependencySelection dependencySelectionDestination,
+                                         @NotNull PsUISettings uiSettings) {
+    super(tree, treeModel, new ResolvedDependenciesTreeStructure(module, uiSettings));
     myDependencySelectionSource = dependencySelectionSource;
     myDependencySelectionDestination = dependencySelectionDestination;
 
@@ -49,7 +49,7 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
         }
       }
     };
-    PsUISettings.getInstance().addListener(changeListener, this);
+    uiSettings.addListener(changeListener, this);
   }
 
   @Override

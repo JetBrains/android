@@ -19,14 +19,16 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodeComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -40,10 +42,13 @@ import java.util.function.Function;
 
 public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsResettableNode<T> {
   @NotNull private final DependencyCollectorFunction<T> myDependencyCollectorFunction;
+  @NotNull private final DependencyNodeComparator myDependencyNodeComparator;
 
-  public DependenciesTreeRootNode(@NotNull T model, @NotNull DependencyCollectorFunction<T> dependencyCollectorFunction) {
-    super(model);
+  public DependenciesTreeRootNode(@NotNull T model, @NotNull DependencyCollectorFunction<T> dependencyCollectorFunction,
+                                  @NotNull PsUISettings uiSettings) {
+    super(model, uiSettings);
     myDependencyCollectorFunction = dependencyCollectorFunction;
+    myDependencyNodeComparator = new DependencyNodeComparator(new PsDependencyComparator(getUiSettings()));
   }
 
   @Override
@@ -63,7 +68,7 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
       children.add(child);
     }
 
-    Collections.sort(children, DependencyNodeComparator.INSTANCE);
+    Collections.sort(children, myDependencyNodeComparator);
     return children;
   }
 

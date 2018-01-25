@@ -98,7 +98,8 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
-    myTreeBuilder = new ResolvedDependenciesTreeBuilder(module, myTree, treeModel, dependencySelection, this);
+    myTreeBuilder = new ResolvedDependenciesTreeBuilder(
+      module, myTree, treeModel, dependencySelection, this, myContext.getUiSettings());
 
     module.add(event -> myTreeBuilder.reset(), this);
 

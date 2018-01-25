@@ -29,12 +29,12 @@ public class AndroidArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> 
   @NotNull private List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
 
   public AndroidArtifactNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidArtifact artifact) {
-    super(parent, artifact);
+    super(parent, artifact, parent.getUiSettings());
     setAutoExpandNode(true);
   }
 
   public AndroidArtifactNode(@NotNull AbstractPsNode parent, @NotNull List<PsAndroidArtifact> artifacts) {
-    super(parent, artifacts);
+    super(parent, artifacts, parent.getUiSettings());
     setAutoExpandNode(true);
   }
 

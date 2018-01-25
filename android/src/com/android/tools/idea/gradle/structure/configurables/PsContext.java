@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.structure.FastGradleSync;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -104,6 +105,11 @@ public class PsContext implements Disposable {
   @NotNull
   public PsProject getProject() {
     return myProject;
+  }
+
+  @NotNull
+  public PsUISettings getUiSettings() {
+    return PsUISettings.getInstance(myProject.getResolvedModel());
   }
 
   @Override

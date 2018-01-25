@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractPsModelTableCellRenderer;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColumnInfo;
@@ -115,6 +116,11 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
     return null;
   }
 
+  @NotNull
+  protected PsContext getContext() {
+    return myContext;
+  }
+
   static class DependencyCellRenderer extends AbstractPsModelTableCellRenderer<PsDependency> {
     @NotNull private final PsDependency myDependency;
     @NotNull private final PsContext myContext;
@@ -157,19 +163,19 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
     @Override
     @NotNull
     protected String getText() {
-      return displayTextOf(getModel());
+      return displayTextOf(getModel(), myContext.getUiSettings());
     }
   }
 
   @NotNull
-  static String displayTextOf(@NotNull PsDependency dependency) {
+  static String displayTextOf(@NotNull PsDependency dependency, @NotNull PsUISettings uiSettings) {
     String text = dependency.toText(PLAIN_TEXT);
 
     if (dependency instanceof PsLibraryDependency) {
       PsLibraryDependency library = (PsLibraryDependency)dependency;
       PsArtifactDependencySpec spec = library.getDeclaredSpec();
       assert spec != null;
-      text = spec.getDisplayText();
+      text = spec.getDisplayText(uiSettings);
     }
     return text;
   }

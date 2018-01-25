@@ -83,7 +83,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
-    myTreeBuilder = new TargetModulesTreeBuilder(myTree, treeModel);
+    myTreeBuilder = new TargetModulesTreeBuilder(myTree, treeModel, context.getUiSettings());
 
     JScrollPane scrollPane = setUp(myTreeBuilder);
     add(scrollPane, BorderLayout.CENTER);
