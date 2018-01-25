@@ -37,9 +37,6 @@ public final class ModuleValidatorTest {
   public void createModuleValidator() {
     myTmpDir = Files.createTempDir();
     myModuleValidator = new ModuleValidator(new StringValueProperty(myTmpDir.getAbsolutePath()));
-
-    // Hack for build bots. The directory used to run the tests in a sand box is very very long
-    ((List<PathValidator.Rule>) myModuleValidator.getPathValidator().getErrors()).remove(PathValidator.PATH_TOO_LONG);
   }
 
   @After
