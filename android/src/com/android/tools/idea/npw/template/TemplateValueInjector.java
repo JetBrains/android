@@ -122,7 +122,7 @@ public final class TemplateValueInjector {
     addGradleVersions(project);
     addKotlinVersion();
 
-    if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
+    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
       setInstantAppSupport(true, project, facet.getModule().getName());
     }
 

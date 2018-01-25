@@ -99,12 +99,12 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   public boolean isAppProject() {
-    int projectType = getProjectType();
+    int projectType = getConfiguration().getProjectType();
     return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
   }
 
   public int getProjectType() {
-    return getProperties().PROJECT_TYPE;
+    return getConfiguration().getProjectType();
   }
 
   public void setProjectType(int type) {

@@ -163,8 +163,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Can't proceed.
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
-    if (!facet.getConfiguration().isAppProject() && facet.getProjectType() != PROJECT_TYPE_TEST) {
-      if (facet.getConfiguration().isLibraryProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE) {
+    if (!facet.getConfiguration().isAppProject() && facet.getConfiguration().getProjectType() != PROJECT_TYPE_TEST) {
+      if (facet.getConfiguration().isLibraryProject() || facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {
           errors.add(ValidationError.fatal(result.getSecond()));
@@ -177,7 +177,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet.getConfiguration().getAndroidPlatform() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
-    if (facet.getManifest() == null && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getManifest() == null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));

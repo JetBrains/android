@@ -214,7 +214,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     String extraFlags = ACTIVITY_EXTRA_FLAGS;
 
     StartActivityFlagsProvider startActivityFlagsProvider;
-    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       startActivityFlagsProvider = new InstantAppStartActivityFlagsProvider();
     }
     else {

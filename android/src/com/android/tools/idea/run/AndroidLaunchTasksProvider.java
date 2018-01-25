@@ -142,7 +142,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
       tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
     }
-    if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       tasks.add(new DeployInstantAppTask(myApkProvider.getApks(device)));
     } else {
       InstantRunManager.LOG.info("Using legacy/main APK deploy task");

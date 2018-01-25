@@ -168,7 +168,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
     if (androidModel != null) {
       // Only suggest the android test run configuration if it makes sense for the selected test artifact.
-      if (facet.getProjectType() != PROJECT_TYPE_TEST && androidModel.getSelectedVariant().getAndroidTestArtifact() == null) {
+      if (facet.getConfiguration().getProjectType() != PROJECT_TYPE_TEST && androidModel.getSelectedVariant().getAndroidTestArtifact() == null) {
         return false;
       }
 

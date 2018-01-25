@@ -57,7 +57,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
       if (DEEP_LINK == null || DEEP_LINK.isEmpty()) {
         return ImmutableList.of(ValidationError.warning("URL not specified"));
       }
-      else if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      else if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
         boolean matched = false;
         List<Module> featureModules = findFeatureModules(facet);
         for (Module featureModule : featureModules) {

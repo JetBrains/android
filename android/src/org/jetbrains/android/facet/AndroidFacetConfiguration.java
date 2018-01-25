@@ -194,4 +194,8 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public boolean isLibraryProject() {
     return getState().PROJECT_TYPE == PROJECT_TYPE_LIBRARY;
   }
+
+  public int getProjectType() {
+    return getState().PROJECT_TYPE;
+  }
 }
