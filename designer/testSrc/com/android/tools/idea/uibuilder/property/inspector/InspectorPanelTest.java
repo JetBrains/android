@@ -27,6 +27,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.UIUtil;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,8 +49,14 @@ public class InspectorPanelTest extends PropertyTestCase {
   private InspectorPanel myInspector;
   private Multimap<Integer, Component> myComponents;
   private Map<String, Integer> myLabelToRowNumber;
-  private Map<String, Integer> myLabelToGroupSize;
   private Map<Component, String> myComponentToLabel;
+
+  private static final String DESIGN_POSTFIX = "_design";
+  private static final String[] TEXT_APPEARANCE_PROPERTIES =
+    {ATTR_FONT_FAMILY, ATTR_TYPEFACE, ATTR_TEXT_SIZE, ATTR_LINE_SPACING_EXTRA, ATTR_TEXT_COLOR, ATTR_TEXT_ALIGNMENT, ATTR_TEXT_STYLE};
+  private static final String[] TEXT_VIEW_PROPERTIES =
+    {ATTR_TEXT, ATTR_TEXT + DESIGN_POSTFIX, ATTR_CONTENT_DESCRIPTION, ATTR_TEXT_APPEARANCE,
+      ATTR_FONT_FAMILY, ATTR_TYPEFACE, ATTR_TEXT_SIZE, ATTR_LINE_SPACING_EXTRA, ATTR_TEXT_COLOR, ATTR_TEXT_ALIGNMENT, ATTR_TEXT_STYLE};
 
   @Override
   public void setUp() throws Exception {
@@ -66,8 +73,6 @@ public class InspectorPanelTest extends PropertyTestCase {
     myComponents = findComponents(myInspector);
     myLabelToRowNumber = identifyLabelledRows(myComponents);
     myComponentToLabel = getComponentToLabelMap(myComponents, myLabelToRowNumber);
-    myLabelToGroupSize = properties.contains(ANDROID_URI, ATTR_TEXT)
-                         ? Collections.singletonMap(ATTR_TEXT_APPEARANCE, 7) : Collections.emptyMap();
   }
 
   @Override
@@ -79,7 +84,6 @@ public class InspectorPanelTest extends PropertyTestCase {
       myInspector = null;
       myComponents = null;
       myLabelToRowNumber = null;
-      myLabelToGroupSize = null;
       myComponentToLabel = null;
     }
     finally {
@@ -90,7 +94,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   public void testTextAppearanceGroupInitiallyClosed() {
     init(myTextView);
     assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isFalse();
-    checkVisibleRowsWithoutFilter();
+    checkInvisibleRowsWithoutFilter(TEXT_APPEARANCE_PROPERTIES);
   }
 
   public void testFilter() {
@@ -137,7 +141,7 @@ public class InspectorPanelTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isFalse();
-    checkVisibleRowsWithoutFilter();
+    checkInvisibleRowsWithoutFilter(TEXT_APPEARANCE_PROPERTIES);
   }
 
   public void testExpandGroup() {
@@ -149,8 +153,64 @@ public class InspectorPanelTest extends PropertyTestCase {
     fireMouseClick(label);
 
     assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isTrue();
-    checkVisibleRowsWithoutFilter();
+    checkInvisibleRowsWithoutFilter();
     verify(myPropertiesComponent).setValue("inspector.open.textAppearance", true);
+  }
+
+  public void testExpandParentGroupWithClosedChildGroup() {
+    // Setup:
+    init(myTextView);
+    JLabel parent = findFirstLabelWithText(myComponents.get(myLabelToRowNumber.get(TEXT_VIEW)));
+
+    // Check initial setup:
+    assertThat(isGroupOpen(TEXT_VIEW)).isTrue();
+    assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isFalse();
+    checkInvisibleRowsWithoutFilter(TEXT_APPEARANCE_PROPERTIES);
+
+    // Now close the parent:
+    fireMouseClick(parent);
+
+    // Check that both sections are closed:
+    assertThat(isGroupOpen(TEXT_VIEW)).isFalse();
+    assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isFalse();
+    checkInvisibleRowsWithoutFilter(TEXT_VIEW_PROPERTIES);
+
+    // Then reopen the parent:
+    fireMouseClick(parent);
+
+    // Assert initial setup is restored (this is the actual test):
+    assertThat(isGroupOpen(TEXT_VIEW)).isTrue();
+    assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isFalse();
+    checkInvisibleRowsWithoutFilter(TEXT_APPEARANCE_PROPERTIES);
+  }
+
+  public void testCloseParentGroupWithOpenChildGroup() {
+    // Setup:
+    init(myTextView);
+    JLabel parent = findFirstLabelWithText(myComponents.get(myLabelToRowNumber.get(TEXT_VIEW)));
+    JLabel child = findFirstLabelWithText(myComponents.get(myLabelToRowNumber.get(ATTR_TEXT_APPEARANCE)));
+    fireMouseClick(child);
+
+    // Check initial setup:
+    assertThat(isGroupOpen(TEXT_VIEW)).isTrue();
+    assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isTrue();
+    checkInvisibleRowsWithoutFilter();
+
+    // Now close the parent:
+    fireMouseClick(parent);
+
+    // Check that both sections are closed:
+    assertThat(isGroupOpen(TEXT_VIEW)).isFalse();
+    assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isTrue();
+    checkInvisibleRowsWithoutFilter(TEXT_VIEW_PROPERTIES);
+
+    // Then reopen the parent:
+    fireMouseClick(parent);
+
+    // Assert initial setup is restored (this is the actual test):
+    assertThat(isGroupOpen(TEXT_VIEW)).isTrue();
+    assertThat(isGroupOpen(ATTR_TEXT_APPEARANCE)).isTrue();
+    checkInvisibleRowsWithoutFilter();
   }
 
   public void testClickOnLabelWithFilterDoesNotExpand() {
@@ -170,7 +230,7 @@ public class InspectorPanelTest extends PropertyTestCase {
     init(myProgressBar);
     UIUtil.dispatchAllInvocationEvents();
 
-    checkVisibleRowsWithoutFilter(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT);
+    checkInvisibleRowsWithoutFilter(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT);
   }
 
   public void testFilterInProgressBar() {
@@ -188,7 +248,7 @@ public class InspectorPanelTest extends PropertyTestCase {
     myInspector.setFilter("");
     UIUtil.dispatchAllInvocationEvents();
 
-    checkVisibleRowsWithoutFilter(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT);
+    checkInvisibleRowsWithoutFilter(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT);
   }
 
   private static void fireMouseClick(@NotNull JLabel label) {
@@ -199,9 +259,9 @@ public class InspectorPanelTest extends PropertyTestCase {
   }
 
   @Nullable
-  private Boolean isGroupOpen(@NotNull String propertyName) {
-    JLabel label = findFirstLabelWithText(myComponents.get(myLabelToRowNumber.get(propertyName)));
-    assert label != null : "Cannot find label for group property: " + propertyName;
+  private Boolean isGroupOpen(@NotNull String labelName) {
+    JLabel label = findFirstLabelWithText(myComponents.get(myLabelToRowNumber.get(labelName)));
+    assert label != null : "Cannot find label for group property: " + labelName;
     if (Objects.equals(label.getIcon(), UIManager.get("Tree.expandedIcon"))) {
       return Boolean.TRUE;
     }
@@ -211,29 +271,19 @@ public class InspectorPanelTest extends PropertyTestCase {
     return null;
   }
 
-  private void checkVisibleRowsWithoutFilter(@NotNull String... invisiblePropertyNames) {
-    Set<Component> visible = new HashSet<>();
+  private void checkInvisibleRowsWithoutFilter(@NotNull String... expectedInvisiblePropertyNames) {
+    Set<Component> visible = new HashSet<>(myComponents.values());
     Set<Component> invisible = new HashSet<>();
-    for (String propertyName : myLabelToGroupSize.keySet()) {
-      int row = myLabelToRowNumber.get(propertyName);
-      int length = myLabelToGroupSize.get(propertyName);
-      if (isGroupOpen(propertyName) == Boolean.FALSE) {
-        for (int index = 1; index <= length; index++) {
-          invisible.addAll(myComponents.get(row + index));
-        }
-      }
-    }
-    for (String propertyName : invisiblePropertyNames) {
+    for (String propertyName : expectedInvisiblePropertyNames) {
       invisible.addAll(myComponents.get(myLabelToRowNumber.get(propertyName)));
     }
-    visible.addAll(myComponents.values());
     visible.removeAll(invisible);
     checkVisibleComponents(visible, invisible);
   }
 
   private void checkVisibleRowsWithFilter(@NotNull String... propertyNames) {
     Set<Component> visible = new HashSet<>();
-    Set<Component> invisible = new HashSet<>();
+    Set<Component> invisible = new HashSet<>(myComponents.values());
     for (String propertyName : propertyNames) {
       visible.addAll(myComponents.get(myLabelToRowNumber.get(propertyName)));
     }
@@ -241,7 +291,6 @@ public class InspectorPanelTest extends PropertyTestCase {
     int rows = myComponents.keySet().size();
     visible.addAll(myComponents.get(rows - 1));
     visible.addAll(myComponents.get(rows - 2));
-    invisible.addAll(myComponents.values());
     invisible.removeAll(visible);
     checkVisibleComponents(visible, invisible);
   }
@@ -280,7 +329,11 @@ public class InspectorPanelTest extends PropertyTestCase {
     for (int row : components.keySet()) {
       JLabel label = findFirstLabelWithText(components.get(row));
       if (label != null) {
-        labelToRowNumber.put(StringUtil.removeHtmlTags(label.getText()), row);
+        String propertyName = StringUtil.removeHtmlTags(label.getText());
+        if (label.getIcon() == StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY) {
+          propertyName += DESIGN_POSTFIX;
+        }
+        labelToRowNumber.put(propertyName, row);
       }
     }
     return labelToRowNumber;
