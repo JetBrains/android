@@ -28,6 +28,7 @@ import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
+import com.intellij.util.ui.tree.TreeUtil
 import java.util.*
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
@@ -53,6 +54,7 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.configurables"
     tree.model = treeModel
     tree.isRootVisible = false
+    TreeUtil.expandAll(tree)
   }
 
   override fun createActions(fromPopup: Boolean): ArrayList<AnAction>? {
