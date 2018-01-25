@@ -97,10 +97,15 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public boolean requiresAndroidModel() {
     return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
   }
-  
-  public boolean canBeDependency() {
+
+  public boolean isAppProject() {
     int projectType = getProjectType();
-    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
+    return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
+  }
+
+  @Deprecated
+  public boolean canBeDependency() {
+    return getConfiguration().canBeDependency();
   }
 
   @Deprecated

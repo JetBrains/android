@@ -863,7 +863,7 @@ public class AndroidCompileUtil {
   // support for lib<->lib and app<->lib circular dependencies
   // see IDEA-79737 for details
   public static boolean isLibraryWithBadCircularDependency(@NotNull AndroidFacet facet) {
-    if (!facet.canBeDependency()) {
+    if (!facet.getConfiguration().canBeDependency()) {
       return false;
     }
 
@@ -885,7 +885,7 @@ public class AndroidCompileUtil {
       if (depDependencies.contains(facet) &&
           dependencies.contains(depFacet) &&
           (depFacet.getModule().getName().compareTo(facet.getModule().getName()) < 0 ||
-           !depFacet.canBeDependency())) {
+           !depFacet.getConfiguration().canBeDependency())) {
         return true;
       }
     }
