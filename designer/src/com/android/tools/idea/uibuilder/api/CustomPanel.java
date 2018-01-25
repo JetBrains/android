@@ -16,10 +16,12 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.common.model.NlComponent;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class CustomPanel extends JPanel {
-  public void useComponent(@NotNull NlComponent component) {}
+public interface CustomPanel {
+  JPanel getPanel();
+  void useComponent(@Nullable NlComponent component);
+  void refresh();
 }

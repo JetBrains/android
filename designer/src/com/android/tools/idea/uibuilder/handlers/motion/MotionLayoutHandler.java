@@ -154,25 +154,41 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler {
     }
   }
 
-  static class AnimationPositionPanel extends CustomPanel {
+  static class AnimationPositionPanel extends JPanel implements CustomPanel {
 
     private NlComponent myComponent;
     private MotionLayoutComponentHelper myTransitionHandler;
 
     @Override
-    public void useComponent(@NotNull NlComponent component) {
-      myComponent = component;
-      NlComponent transitionLayoutComponent = null;
-      if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
-        transitionLayoutComponent = component;
-      } else {
-        NlComponent parent = myComponent.getParent();
-        if (parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.MOTION_LAYOUT)) {
-          transitionLayoutComponent = parent;
-        }
-      }
+    @NotNull
+    public JPanel getPanel() {
+      return this;
+    }
 
-      myTransitionHandler = transitionLayoutComponent != null ? new MotionLayoutComponentHelper(transitionLayoutComponent) : null;
+    @Override
+    public void useComponent(@Nullable NlComponent component) {
+      myComponent = component;
+      if (component == null) {
+        myTransitionHandler = null;
+      }
+      else {
+        NlComponent transitionLayoutComponent = null;
+        if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
+          transitionLayoutComponent = component;
+        }
+        else {
+          NlComponent parent = myComponent.getParent();
+          if (parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.MOTION_LAYOUT)) {
+            transitionLayoutComponent = parent;
+          }
+        }
+
+        myTransitionHandler = transitionLayoutComponent != null ? new MotionLayoutComponentHelper(transitionLayoutComponent) : null;
+      }
+    }
+
+    @Override
+    public void refresh() {
     }
 
     public AnimationPositionPanel() {
