@@ -80,7 +80,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
       allTargetIds.add(module.getName());
 
       if (fullBuild) {
-        if (facet.canBeDependency()) {
+        if (facet.getConfiguration().canBeDependency()) {
           libTargetIds.add(module.getName());
         }
         else {

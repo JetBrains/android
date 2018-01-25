@@ -476,7 +476,7 @@ public class AndroidUtils {
           if (depModule != null) {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-            if (depFacet != null && depFacet.canBeDependency()) {
+            if (depFacet != null && depFacet.getConfiguration().canBeDependency()) {
               depFacets.add(depFacet);
             }
           }

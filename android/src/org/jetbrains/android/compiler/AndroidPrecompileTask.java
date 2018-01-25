@@ -291,7 +291,7 @@ public class AndroidPrecompileTask implements CompileTask {
               if (depModule != null) {
                 final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-                if (depFacet != null && !depFacet.canBeDependency()) {
+                if (depFacet != null && !depFacet.getConfiguration().canBeDependency()) {
                   String message = "Suspicious module dependency " +
                                    module.getName() +
                                    " -> " +

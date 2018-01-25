@@ -40,6 +40,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
@@ -156,6 +157,11 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   @Override
   public void loadState(JpsAndroidModuleProperties properties) {
     myProperties = properties;
+  }
+
+  public boolean canBeDependency() {
+    int projectType = getState().PROJECT_TYPE;
+    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
   }
 
   /**
