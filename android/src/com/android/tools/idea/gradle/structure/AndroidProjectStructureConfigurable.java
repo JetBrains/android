@@ -215,12 +215,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @Override
   @Nullable
-  public String getHelpTopic() {
-    return null;
-  }
-
-  @Override
-  @Nullable
   public JComponent createComponent() {
     JComponent component = new MainPanel();
 
