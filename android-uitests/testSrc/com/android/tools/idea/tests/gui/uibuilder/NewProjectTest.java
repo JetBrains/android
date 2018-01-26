@@ -138,7 +138,7 @@ public class NewProjectTest {
    *   1. Module setting is updated.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void changeLibraryModuleSettings() throws Exception {
     newProject("MyTestApp").withMinSdk("24").create(guiTest)
