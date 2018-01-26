@@ -59,6 +59,8 @@ import java.util.concurrent.CompletableFuture;
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends JPanel implements Disposable {
+  private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until a successful build";
+
   private final NlEditor myEditor;
   private final Project myProject;
   private final VirtualFile myFile;
@@ -97,7 +99,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
   // Build was either cancelled or there was an error
   private void buildError() {
-    myWorkBench.loadingStopped("Design editor is unavailable until a successful build");
+    myWorkBench.loadingStopped(DESIGN_UNAVAILABLE_MESSAGE);
   }
 
   private void initNeleModel() {

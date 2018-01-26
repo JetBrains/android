@@ -44,6 +44,11 @@ interface GuiTestProjectSystem {
   fun importProject(targetTestDirectory: File, robot: Robot)
 
   /**
+   * Triggers a project sync by invoking a build system specific menu path.
+   */
+  fun requestProjectSync(ideFrameFixture: IdeFrameFixture): GuiTestProjectSystem
+
+  /**
    * Waits for the project sync to finish using build system specific waiting logic.
    */
   fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture)

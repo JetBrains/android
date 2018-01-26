@@ -47,6 +47,11 @@ class GradleGuiTestProjectSystem : GuiTestProjectSystem {
     ApplicationManager.getApplication().invokeAndWait { GradleProjectImporter.getInstance().importProject(toSelect!!) }
   }
 
+  override fun requestProjectSync(ideFrameFixture: IdeFrameFixture): GuiTestProjectSystem {
+    ideFrameFixture.invokeMenuPath("File", "Sync Project with Gradle Files")
+    return this
+  }
+
   override fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture) {
     ideFrameFixture.waitForGradleProjectSyncToFinish()
   }
