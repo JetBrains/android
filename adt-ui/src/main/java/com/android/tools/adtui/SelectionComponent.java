@@ -213,7 +213,11 @@ public final class SelectionComponent extends AnimatedComponent {
 
   private float rangeToX(double value, Dimension dim) {
     Range range = myViewRange;
-    return  (float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin())));
+    // Clamp the range to the edge of the screen. This prevents fill artifacts when zoomed in, and improves performance.
+    // If we do not clamp the selection to the screen then during painting java attempts to fill a rectangle several
+    // thousand pixels off screen in both directions. This results in lots of computation that isn't required as well as,
+    // lots of artifacts in the selection itself.
+    return  Math.min(Math.max((float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin()))), 0), dim.width);
   }
 
   private Mode getModeAtCurrentPosition(int x) {

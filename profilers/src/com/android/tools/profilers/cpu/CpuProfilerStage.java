@@ -496,7 +496,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     capture.handleAsync((parsedCapture, exception) -> {
       if (parsedCapture == null) {
         assert exception != null;
-        getLogger().warn("Unable to parse capture: " + exception.getMessage());
+        getLogger().warn("Unable to parse capture: " + exception.getMessage(), exception);
       }
       parsingCallback.accept(parsedCapture);
       return parsedCapture;
