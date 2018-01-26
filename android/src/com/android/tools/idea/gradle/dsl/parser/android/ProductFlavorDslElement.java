@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -38,9 +35,17 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
     }
 
     if (property.equals("testInstrumentationRunnerArguments")) {
+      // This deals with references to maps.
+      if (element instanceof GradleDslReference) {
+        GradleDslReference reference = (GradleDslReference)element;
+        if (reference.getReferenceInjection() != null) {
+          element = reference.getReferenceInjection().getToBeInjected();
+        }
+      }
       if (!(element instanceof GradleDslExpressionMap)) {
         return;
       }
+
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
         getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {

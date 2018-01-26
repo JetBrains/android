@@ -23,7 +23,15 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
  * the [old] element and will do nothing if the [old] element does not exist.
  * This method can ONLY be called on a property of type [GradlePropertyModel.ValueType.LIST]
  */
-fun GradlePropertyModel.replaceListValue(old: Any, new: Any) {
+fun GradlePropertyModel.replaceListValue(old : Any, new : Any) {
   (getValue(LIST_TYPE) ?: throw IllegalStateException("replaceListValue called an type: ${valueType}, must be LIST!"))
       .find { it.getValue(OBJECT_TYPE) == old }?.setValue(new)
+}
+
+/**
+ * Removes a [value] from a list property. This method will only remove the first occurrence of a the given [value].
+ */
+fun GradlePropertyModel.removeListValue(value : Any) {
+  (getValue(LIST_TYPE) ?: throw IllegalStateException("replaceListValue called an type: ${valueType}, must be LIST!"))
+      .find { it.getValue(OBJECT_TYPE) == value }?.delete()
 }

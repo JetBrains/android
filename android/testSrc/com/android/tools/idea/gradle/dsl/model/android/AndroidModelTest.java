@@ -1208,7 +1208,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
 
     defaultConfig.applicationId().delete();
-    defaultConfig.removeAllProguardFiles();
+    defaultConfig.proguardFiles().delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -1216,7 +1216,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     defaultConfig = android.defaultConfig();
     assertMissingProperty(defaultConfig.applicationId());
-    assertNull(defaultConfig.proguardFiles());
+    assertMissingProperty(defaultConfig.proguardFiles());
   }
 
   public void testAddAndApplyBlockStatements() throws Exception {

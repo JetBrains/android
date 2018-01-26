@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.util
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.util.removeListValue
 import com.android.tools.idea.gradle.dsl.api.util.replaceListValue
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 
@@ -106,6 +107,46 @@ class GradlePropertyUtilTest : GradleFileModelTestCase() {
       catch (e: IllegalStateException) {
         // Expected
       }
+    }
+  }
+
+  fun testRemoveListValues() {
+    val text = """
+               ext {
+                 prop1 = [1, 2]
+                 prop2 = ["a", 'b', "b", 'd']
+                 prop3 = [true, true, false, true]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val firstModel = buildModel.ext().findProperty("prop1")
+      firstModel.removeListValue(1)
+      firstModel.removeListValue(2)
+
+      val secondModel = buildModel.ext().findProperty("prop2")
+      secondModel.removeListValue("b")
+
+      val thirdModel = buildModel.ext().findProperty("prop3")
+      thirdModel.removeListValue(true)
+      thirdModel.removeListValue(true)
+
+      verifyListProperty(firstModel, listOf(), REGULAR, 0)
+      verifyListProperty(secondModel, listOf("a", "b", "d"), REGULAR, 0)
+      verifyListProperty(thirdModel, listOf(false, true), REGULAR, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstModel = buildModel.ext().findProperty("prop1")
+      val secondModel = buildModel.ext().findProperty("prop2")
+      val thirdModel = buildModel.ext().findProperty("prop3")
+      verifyListProperty(firstModel, listOf(), REGULAR, 0)
+      verifyListProperty(secondModel, listOf("a", "b", "d"), REGULAR, 0)
+      verifyListProperty(thirdModel, listOf(false, true), REGULAR, 0)
     }
   }
 }

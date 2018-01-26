@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -277,8 +278,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
                  defaultConfig.testInstrumentationRunnerArguments());
   }
 
-  // TODO: Support this use case to get this test pass.
-  /*public void testMapReferenceInMapProperty() throws IOException {
+  public void testMapReferenceInMapProperty() throws IOException {
     String text = "ext.TEST_MAP = [test1:\"value1\", test2:\"value2\"]\n" +
                   "android.defaultConfig {\n" +
                   "    testInstrumentationRunnerArguments TEST_MAP\n" +
@@ -286,23 +286,21 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    GradleBuildModelImpl buildModel = getGradleBuildModel();
-    assertNotNull(buildModel);
-
+    GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel extModel = buildModel.ext();
     assertNotNull(extModel);
 
-    GradleDslExpressionMap expressionMap = extModel.getProperty("TEST_MAP", GradleDslExpressionMap.class);
+    GradlePropertyModel expressionMap = extModel.findProperty("TEST_MAP");
     assertNotNull(expressionMap);
-    assertEquals(ImmutableMap.of("test1", "value1", "test2", "value2"), expressionMap.getValues(String.class));
+    assertEquals("TEST_MAP", ImmutableMap.of("test1", "value1", "test2", "value2"), expressionMap);
 
-    AndroidModelImpl androidModel = buildModel.android();
+    AndroidModel androidModel = buildModel.android();
     assertNotNull(androidModel);
-    ProductFlavorModelImpl defaultConfig = androidModel.defaultConfig();
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
     assertNotNull(defaultConfig);
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("test1", "value1", "test2", "value2"),
                  defaultConfig.testInstrumentationRunnerArguments());
-  }*/
+  }
 
   public void testResolveVariableInMapProperty() throws IOException {
     String text = "ext.TEST_STRING = \"test\"\n" +

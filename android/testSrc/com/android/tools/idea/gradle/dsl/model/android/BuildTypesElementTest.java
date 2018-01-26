@@ -191,14 +191,14 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertEquals("name", "typeA", buildType.name());
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
-    assertNull("consumerProguardFiles", buildType.consumerProguardFiles());
+    assertMissingProperty("consumerProguardFiles", buildType.consumerProguardFiles());
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertNull("manifestPlaceholders", buildType.manifestPlaceholders());
+    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
-    assertNull("proguardFiles", buildType.proguardFiles());
+    assertMissingProperty("proguardFiles", buildType.proguardFiles());
     assertMissingProperty("pseudoLocalesEnabled", buildType.pseudoLocalesEnabled());
     assertMissingProperty("renderscriptDebuggable", buildType.renderscriptDebuggable());
     assertMissingProperty("renderscriptOptimLevel", buildType.renderscriptOptimLevel());

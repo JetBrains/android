@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.vfs.VfsUtil
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
@@ -1720,6 +1721,31 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testAddExistingMapProperty() {
+    val text = """
+               ext {
+                 prop = [key: 'val']
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyMapProperty(propertyModel, ImmutableMap.of("key", "val") as Map<String, Any>)
+
+      propertyModel.addMapValue("key").setValue("newVal")
+      verifyMapProperty(propertyModel, ImmutableMap.of("key", "newVal") as Map<String, Any>)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop")
+      verifyMapProperty(propertyModel, ImmutableMap.of("key", "newVal") as Map<String, Any>)
+    }
+  }
+
   fun testDeleteMapProperty() {
     val text = """
                ext {
@@ -2392,14 +2418,14 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       propertyModel.addListValueAt(1).setValue(ReferenceTo("var"))
       propertyModel.addListValueAt(2).setValue(3)
 
-      verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+      verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
     }
 
     applyChangesAndReparse(buildModel)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+      verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
     }
   }
 
@@ -2415,19 +2441,19 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyListProperty(propertyModel, listOf(1, 2, "var", 4), REGULAR, 1)
+      verifyListProperty(propertyModel, listOf(1, 2, "2", 4), REGULAR, 1)
 
       propertyModel.getValue(LIST_TYPE)!![1].setValue(ReferenceTo("var"))
       propertyModel.getValue(LIST_TYPE)!![2].setValue(3)
 
-      verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+      verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
     }
 
     applyChangesAndReparse(buildModel)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyListProperty(propertyModel, listOf(1, "var", 3, 4), REGULAR, 1)
+      verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
     }
   }
 

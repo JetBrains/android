@@ -38,14 +38,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
 import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.*;
@@ -173,6 +173,22 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     buildModel.reparse();
   }
 
+  protected void verifyPropertyModel(@NotNull GradlePropertyModel propertyModel,
+                                     @NotNull String propertyName,
+                                     @NotNull String propertyText) {
+    verifyPropertyModel(propertyModel, propertyName, propertyText, toSystemIndependentName(myBuildFile.getPath()));
+  }
+
+  protected void verifyPropertyModel(@NotNull GradlePropertyModel propertyModel,
+                                     @NotNull String propertyName,
+                                     @NotNull String propertyText,
+                                     @NotNull String propertyFilePath) {
+    assertNotNull(propertyModel.getPsiElement());
+    assertEquals(propertyText, propertyModel.getValue(STRING_TYPE));
+    assertEquals(propertyFilePath, propertyModel.getGradleFile().getPath());
+    assertEquals(propertyName, propertyModel.getFullyQualifiedName());
+  }
+
   protected void verifyGradleValue(@NotNull GradleNullableValue gradleValue,
                                    @NotNull String propertyName,
                                    @NotNull String propertyText) {
@@ -218,6 +234,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   public static <T> void assertEquals(@NotNull String message, @NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
     assertNotNull(message, actual);
     assertWithMessage(message).that(getValues(actual)).containsExactlyElementsIn(expected);
+  }
+
+  public static void assertEquals(@NotNull String message, @NotNull List<Object> expected, @Nullable GradlePropertyModel propertyModel) {
+    verifyListProperty(message, propertyModel, expected);
+  }
+
+  public static <T> void assertEquals(@NotNull String message,
+                                  @NotNull Map<String, T> expected,
+                                  @Nullable GradlePropertyModel propertyModel) {
+    verifyMapProperty(message, propertyModel, new HashMap<>(expected));
   }
 
   public static <T> void assertEquals(@NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
@@ -298,31 +324,66 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(dependencies, model.getDependencies().size());
   }
 
-  // This method is not suitable for lists or maps in lists, these must be verified manually.
-  public static void verifyListProperty(GradlePropertyModel model, List<Object> expectedValues, PropertyType propertyType, int dependencies) {
+  public static void verifyPropertyModel(@NotNull String message, @NotNull GradlePropertyModel model, @NotNull Object expected) {
+    switch (model.getValueType()) {
+      case INTEGER:
+        assertEquals(message, expected, model.getValue(INTEGER_TYPE));
+        break;
+      case STRING:
+        assertEquals(message, expected, model.getValue(STRING_TYPE));
+        break;
+      case BOOLEAN:
+        assertEquals(message, expected, model.getValue(BOOLEAN_TYPE));
+        break;
+      case REFERENCE:
+        assertEquals(message, expected, model.resolve().getValue(STRING_TYPE));
+        break;
+      default:
+        fail("Type for model: " + model + " was unexpected, " + model.getValueType());
+    }
+  }
+
+  public static void verifyListProperty(@NotNull String message,
+                                        @Nullable GradlePropertyModel model,
+                                        @NotNull List<Object> expectedValues) {
+    assertNotNull(message, model);
+    assertEquals(message, LIST, model.getValueType());
     List<GradlePropertyModel> actualValues = model.getValue(LIST_TYPE);
-    assertNotNull(actualValues);
-    assertEquals(expectedValues.size(), actualValues.size());
+    assertNotNull(message, actualValues);
+    assertEquals(message, expectedValues.size(), actualValues.size());
     for (int i = 0; i < actualValues.size(); i++) {
       GradlePropertyModel tempModel = actualValues.get(i);
-      switch (tempModel.getValueType()) {
-        case INTEGER:
-          assertEquals(expectedValues.get(i), tempModel.getValue(INTEGER_TYPE));
-          break;
-        case STRING:
-          assertEquals(expectedValues.get(i), tempModel.getValue(STRING_TYPE));
-          break;
-        case BOOLEAN:
-          assertEquals(expectedValues.get(i), tempModel.getValue(BOOLEAN_TYPE));
-          break;
-        case REFERENCE:
-          assertEquals(expectedValues.get(i), tempModel.getValue(STRING_TYPE));
-          break;
-        default:
-          fail("Type for model: " + tempModel + " was unexpected");
-      }
+      verifyPropertyModel(message, tempModel, expectedValues.get(i));
     }
-    assertEquals(LIST, model.getValueType());
+  }
+
+  public static void verifyMapProperty(@Nullable GradlePropertyModel model,
+                                       @NotNull Map<String, Object> expectedValues) {
+    verifyMapProperty("verifyMapProperty", model, expectedValues);
+  }
+
+  public static void verifyMapProperty(@NotNull String message,
+                                       @Nullable GradlePropertyModel model,
+                                       @NotNull Map<String, Object> expectedValues) {
+    assertNotNull(message, model);
+    assertEquals(message, MAP, model.getValueType());
+    Map<String, GradlePropertyModel> actualValues = model.getValue(MAP_TYPE);
+    assertNotNull(message, actualValues);
+    assertEquals(message, expectedValues.entrySet().size(), actualValues.entrySet().size());
+    for (String key : actualValues.keySet()) {
+      GradlePropertyModel tempModel = actualValues.get(key);
+      Object expectedValue = expectedValues.get(key);
+      assertNotNull(message, expectedValue);
+      verifyPropertyModel(message, tempModel, expectedValue);
+    }
+  }
+
+  // This method is not suitable for lists or maps in lists, these must be verified manually.
+  public static void verifyListProperty(GradlePropertyModel model,
+                                        List<Object> expectedValues,
+                                        PropertyType propertyType,
+                                        int dependencies) {
+    verifyListProperty("verifyListProperty", model, expectedValues);
     assertEquals(propertyType, model.getPropertyType());
     assertEquals(dependencies, model.getDependencies().size());
   }
