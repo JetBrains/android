@@ -35,7 +35,6 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.draw.DrawAction;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -137,9 +136,10 @@ public class ActionTarget extends BaseTarget {
     myComponent.getScene().getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(myNlComponent));
   }
 
+  // TODO: This should depend on selection
   @Override
   public int getPreferenceLevel() {
-    return 0;
+    return DRAG_LEVEL;
   }
 
   @Override

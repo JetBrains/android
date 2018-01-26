@@ -116,7 +116,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
       return candidate;
     }
     Target candidate = myHitTargets.get(count - 1);
-    boolean inSelection = selection.contains(candidate.getComponent().getNlComponent());
+    boolean inSelection = parentInSelection(candidate.getComponent(), selection);
 
     for (int i = count - 2; i >= 0; i--) {
       Target target = myHitTargets.get(i);

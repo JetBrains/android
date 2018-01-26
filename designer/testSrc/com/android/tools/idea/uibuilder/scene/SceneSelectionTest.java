@@ -63,6 +63,11 @@ public class SceneSelectionTest extends SceneTest {
   public void testSelection() {
     List<NlComponent> componentList = myScreen.getScreen().getSelectionModel().getSelection();
     assertEquals(0, componentList.size());
+    myInteraction.mouseDown(25, 25);
+    myInteraction.mouseRelease(25, 25);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("root").getNlComponent(), componentList.get(0));
     myInteraction.mouseDown("button");
     myInteraction.mouseRelease("button");
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
@@ -79,9 +84,13 @@ public class SceneSelectionTest extends SceneTest {
     List<NlComponent> componentList = myScreen.getScreen().getSelectionModel().getSelection();
     assertEquals(0, componentList.size());
     myInteraction.mouseDown(0, 0);
-    myInteraction.mouseRelease(10, 10);
+    myInteraction.mouseRelease(50, 50);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(1, componentList.size()); // will select root
+    assertEquals(0, componentList.size());
+    myInteraction.mouseDown(25, 25);
+    myInteraction.mouseRelease(25, 25);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
     assertEquals(myScene.getSceneComponent("root").getNlComponent(), componentList.get(0));
     myInteraction.mouseDown(80, 190);
     myInteraction.mouseRelease(110, 210);
@@ -89,16 +98,15 @@ public class SceneSelectionTest extends SceneTest {
     assertEquals(1, componentList.size());
     assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
     myInteraction.mouseDown(0, 0);
-    myInteraction.mouseRelease(10, 10);
+    myInteraction.mouseRelease(50, 50);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(1, componentList.size());
-    assertEquals(myScene.getSceneComponent("root").getNlComponent(), componentList.get(0));
+    assertEquals(0, componentList.size());
     myInteraction.mouseDown(80, 190);
     myInteraction.mouseRelease(110, 510);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
     assertEquals(2, componentList.size());
-    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
-    assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(1));
+    assertTrue(componentList.contains(myScene.getSceneComponent("button").getNlComponent()));
+    assertTrue(componentList.contains(myScene.getSceneComponent("button2").getNlComponent()));
   }
 
   public void testShiftSelection() {

@@ -21,10 +21,9 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawLasso;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -38,6 +37,38 @@ public class LassoTarget extends BaseTarget {
   @AndroidDpCoordinate private float myLastX;
   @AndroidDpCoordinate private float myLastY;
   private boolean myShowRect;
+  private final boolean mySelectWhileDragging;
+  private final HashSet<SceneComponent> myIntersectingComponents = new HashSet<>();
+  private boolean myHasChanged;
+  private boolean myHasDragged;
+
+  public LassoTarget() {
+    this(false);
+  }
+
+  public LassoTarget(boolean selectWhileDragging) {
+    mySelectWhileDragging = selectWhileDragging;
+  }
+
+  public boolean getSelectWhileDragging() {
+    return mySelectWhileDragging;
+  }
+
+  public boolean getHasChanged()  {
+    return myHasChanged;
+  }
+
+  public void clearHasChanged() {
+    myHasChanged = false;
+  }
+
+  public boolean getHasDragged()  {
+    return myHasDragged;
+  }
+
+  public HashSet<SceneComponent> getIntersectingComponents() {
+    return myIntersectingComponents;
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -93,6 +124,9 @@ public class LassoTarget extends BaseTarget {
     myOriginY = y;
     myLastX = x;
     myLastY = y;
+    myIntersectingComponents.clear();
+    myHasChanged = false;
+    myHasDragged = false;
   }
 
   @Override
@@ -100,6 +134,8 @@ public class LassoTarget extends BaseTarget {
     myLastX = x;
     myLastY = y;
     myShowRect = true;
+    myHasDragged = true;
+    fillSelectedComponents();
     myComponent.getScene().needsRebuildList();
   }
 
@@ -114,7 +150,7 @@ public class LassoTarget extends BaseTarget {
    *
    * @param components
    */
-  public void fillSelectedComponents(ArrayList<SceneComponent> components) {
+  private void fillSelectedComponents() {
     int count = myComponent.getChildCount();
     float x1 = Math.min(myOriginX, myLastX);
     float x2 = Math.max(myOriginX, myLastX);
@@ -123,14 +159,28 @@ public class LassoTarget extends BaseTarget {
     if ((int) (x2 - x1) == 0 && (int) (y2 - y1) == 0) {
       return;
     }
-    components.clear();
+
     Rectangle bounds = new Rectangle((int) x1, (int) y1, (int) (x2 - x1), (int) (y2 - y1));
+
     for (int i = 0; i < count; i++) {
       SceneComponent component = myComponent.getChild(i);
-      if (component.intersects(bounds)) {
-        components.add(component);
+
+      boolean intersects = component.intersects(bounds);
+      boolean contains = myIntersectingComponents.contains(component);
+      if (intersects == contains) {
+        continue;
+      }
+
+      myHasChanged = true;
+
+      if (contains) {
+        myIntersectingComponents.remove(component);
+      }
+      else {
+        myIntersectingComponents.add(component);
       }
     }
+    return;
   }
 
   //endregion

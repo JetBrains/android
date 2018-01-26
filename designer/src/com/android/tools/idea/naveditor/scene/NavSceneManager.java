@@ -35,6 +35,7 @@ import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
+import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
@@ -81,6 +82,7 @@ public class NavSceneManager extends SceneManager {
   @NavCoordinate private static final int EXIT_ACTION_HORIZONTAL_PADDING = 2;
 
   private final NavScreenTargetProvider myScreenTargetProvider;
+  private final NavigationTargetProvider myNavigationTargetProvider;
 
   // TODO: enable layout algorithm switching
   @SuppressWarnings("CanBeFinal") private NavSceneLayoutAlgorithm myLayoutAlgorithm;
@@ -93,6 +95,7 @@ public class NavSceneManager extends SceneManager {
     NavigationSchema schema = surface.getSchema();
     myLayoutAlgorithm = new ManualLayoutAlgorithm(model.getModule());
     myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm, schema);
+    myNavigationTargetProvider = new NavigationTargetProvider();
 
     updateHierarchy(getModel(), null);
     getModel().addListener(new ModelChangeListener());
@@ -135,7 +138,9 @@ public class NavSceneManager extends SceneManager {
 
     NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(nlComponent.getTagName());
     if (type != null) {
-      sceneComponent.setTargetProvider(myScreenTargetProvider);
+      sceneComponent.setTargetProvider(sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()
+                                       ? myNavigationTargetProvider
+                                       : myScreenTargetProvider);
 
       switch (type) {
         case NAVIGATION:
