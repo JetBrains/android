@@ -39,7 +39,7 @@ class MergeCaptureDataSeriesTest {
   var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
       FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-  private var myMergeCaptureDataSeries: MergeCaptureDataSeries? = null
+  private var myMergeCaptureDataSeries: MergeCaptureDataSeries<CpuProfilerStage.ThreadState>? = null
 
   @Before
   @Throws(Exception::class)
@@ -49,7 +49,7 @@ class MergeCaptureDataSeriesTest {
     val profilers = StudioProfilers(myGrpcChannel.client, services, timer)
     val stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
-    val aTraceSeries = AtraceThreadStateDataSeries()
+    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>()
     aTraceSeries.addCaptureSeriesData(
         Range(
             TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
@@ -57,7 +57,7 @@ class MergeCaptureDataSeriesTest {
         ), buildSeriesData(50, 150, 10)
     )
     val threadStateSeries = ThreadStateDataSeries(stage, ProfilersTestData.SESSION_DATA, 1)
-    myMergeCaptureDataSeries = MergeCaptureDataSeries(threadStateSeries, aTraceSeries)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(threadStateSeries, aTraceSeries)
     myCpuService.addAdditionalThreads(1, "Thread", buildThreadActivityData(1, 200, 20))
   }
 

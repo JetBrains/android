@@ -117,12 +117,12 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
     // This data series combines the sampled data series pulled from perfd, and the Atrace data series
     // populated when an atrace capture is parsed.
-    private final MergeCaptureDataSeries mySeries;
+    private final MergeCaptureDataSeries<CpuProfilerStage.ThreadState> mySeries;
     // The Atrace data series is added to the MergeCaptureDataSeries, however it is only populated
     // when an Atrace capture is parsed. When the data series is populated the results from the
     // Atrace data series are used in place of the ThreadStateDataSeries for the range that
     // overlap.
-    private final AtraceThreadStateDataSeries myAtraceThreadStateDataSeries;
+    private final AtraceDataSeries<CpuProfilerStage.ThreadState> myAtraceDataSeries;
 
     public RangedCpuThread(Range range, int threadId, String name) {
       myRange = range;
@@ -130,8 +130,8 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       myName = name;
       myModel = new StateChartModel<>();
       ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
-      myAtraceThreadStateDataSeries = new AtraceThreadStateDataSeries();
-      mySeries = new MergeCaptureDataSeries(threadStateDataSeries, myAtraceThreadStateDataSeries);
+      myAtraceDataSeries = new AtraceDataSeries();
+      mySeries = new MergeCaptureDataSeries(threadStateDataSeries, myAtraceDataSeries);
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }
 
@@ -153,10 +153,10 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
     /**
      * @param range the range of the capture. The range is expected to cover the full range of the series data.
-     * @param seriesData to be added to {@link AtraceThreadStateDataSeries}.
+     * @param seriesData to be added to {@link AtraceDataSeries}.
      */
     public void addAtraceCaptureSeries(Range range, List<SeriesData<CpuProfilerStage.ThreadState>> seriesData) {
-      myAtraceThreadStateDataSeries.addCaptureSeriesData(range, seriesData);
+      myAtraceDataSeries.addCaptureSeriesData(range, seriesData);
     }
   }
 }

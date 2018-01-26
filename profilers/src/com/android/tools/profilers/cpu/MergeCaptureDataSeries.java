@@ -28,27 +28,27 @@ import java.util.List;
  * its results are returned otherwise {@link ThreadStateDataSeries} results are used.
  * The {@link AtraceThreadStateDataSeries} is populated when an Atrace capture is parsed.
  */
-public class MergeCaptureDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
-  // The thread state data series contains all sampled data pulled from perfd. This series
+public class MergeCaptureDataSeries<T> implements DataSeries<T> {
+  // The {@link DataStore} data series that contains sampled data pulled from perfd. This series
   // is used when the request range does not overlap the Atrace data series.
-  private final ThreadStateDataSeries myThreadStateDataSeries;
+  private final DataSeries<T> myDataStoreSeries;
   // The Atrace data series will contain thread state when an Atrace capture is parsed.
   // The series overrides any thread state data coming from perfd. As the Atrace capture
   // has more accurate data.
-  private AtraceThreadStateDataSeries myAtraceThreadStateDataSeries;
+  private AtraceDataSeries<T> myAtraceDataSeries;
 
-  public MergeCaptureDataSeries(ThreadStateDataSeries threadState,
-                                AtraceThreadStateDataSeries traceState) {
-    myAtraceThreadStateDataSeries = traceState;
-    myThreadStateDataSeries = threadState;
+  public MergeCaptureDataSeries(DataSeries<T> dataStoreSeries,
+                                AtraceDataSeries traceState) {
+    myAtraceDataSeries = traceState;
+    myDataStoreSeries = dataStoreSeries;
   }
 
   @Override
-  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForXRange(Range xRange) {
+  public List<SeriesData<T>> getDataForXRange(Range xRange) {
     double minRangeUs = xRange.getMin();
     double maxRangeUs = xRange.getMax();
-    List<SeriesData<CpuProfilerStage.ThreadState>> seriesData = new ArrayList<>();
-    Range traceRange = myAtraceThreadStateDataSeries.getOverlapRange(xRange);
+    List<SeriesData<T>> seriesData = new ArrayList<>();
+    Range traceRange = myAtraceDataSeries.getOverlapRange(xRange);
     if (traceRange != null) {
       if (traceRange.getMin() <= maxRangeUs && traceRange.getMax() >= minRangeUs) {
         // If the trace starts before our minimum requested range capture we pull all data from the trace.
@@ -60,30 +60,30 @@ public class MergeCaptureDataSeries implements DataSeries<CpuProfilerStage.Threa
           if (traceRange.getMax() > maxRangeUs) {
             requestTo = maxRangeUs;
           }
-          seriesData.addAll(getDataForRangeFromSeries(minRangeUs, requestTo, myAtraceThreadStateDataSeries));
+          seriesData.addAll(getDataForRangeFromSeries(minRangeUs, requestTo, myAtraceDataSeries));
           minRangeUs = traceRange.getMax();
         }
         // If our trace starts before our max requested range and extends beyond it.
         // |------[#####|####]
         else if (traceRange.getMax() > maxRangeUs) {
           seriesData.addAll(getDataForRangeFromSeries(
-            traceRange.getMin(), maxRangeUs, myAtraceThreadStateDataSeries));
+            traceRange.getMin(), maxRangeUs, myAtraceDataSeries));
           minRangeUs = maxRangeUs;
         }
         // Our trace starts somewhere in the middle so we store a request for both Datastore data and capture data.
         // |----[####]----|
         else {
           seriesData.addAll(getDataForRangeFromSeries(
-            minRangeUs, traceRange.getMin(), myThreadStateDataSeries));
+            minRangeUs, traceRange.getMin(), myDataStoreSeries));
           seriesData
-            .addAll(getDataForRangeFromSeries(traceRange.getMin(), traceRange.getMax(), myAtraceThreadStateDataSeries));
+            .addAll(getDataForRangeFromSeries(traceRange.getMin(), traceRange.getMax(), myAtraceDataSeries));
           minRangeUs = traceRange.getMax();
         }
       }
     }
 
     if (minRangeUs != maxRangeUs) {
-      seriesData.addAll(getDataForRangeFromSeries(minRangeUs, maxRangeUs, myThreadStateDataSeries));
+      seriesData.addAll(getDataForRangeFromSeries(minRangeUs, maxRangeUs, myDataStoreSeries));
     }
 
     return seriesData;
@@ -95,8 +95,8 @@ public class MergeCaptureDataSeries implements DataSeries<CpuProfilerStage.Threa
    * @param series series to query data from.
    * @return results from data series query.
    */
-  private static List<SeriesData<CpuProfilerStage.ThreadState>> getDataForRangeFromSeries(
-    double minUs, double maxUs, DataSeries<CpuProfilerStage.ThreadState> series) {
+  private List<SeriesData<T>> getDataForRangeFromSeries(
+    double minUs, double maxUs, DataSeries<T> series) {
     Range range = new Range(minUs, maxUs);
     return series.getDataForXRange(range);
   }
