@@ -1474,7 +1474,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       try {
-        propertyModel.addMapValue("key")
+        propertyModel.getMapValue("key")
         fail("Exception should have been thrown!")
       } catch (e : IllegalStateException) {
         // Expected.
@@ -1502,7 +1502,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
         verifyPropertyModel(map["key2"], STRING_TYPE, "value2", STRING, DERIVED, 0)
 
         // Attempt to set a new value.
-        val newValue = propertyModel.addMapValue("key3")
+        val newValue = propertyModel.getMapValue("key3")
         verifyPropertyModel(newValue, OBJECT_TYPE, null, NONE, DERIVED, 0)
         newValue.setValue(true)
         verifyPropertyModel(newValue, BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
@@ -1551,7 +1551,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       }
 
       // Set the new value.
-      propertyModel.addMapValue("key1").setValue(ReferenceTo("val"))
+      propertyModel.getMapValue("key1").setValue(ReferenceTo("val"))
 
       // Check the correct values are shown in the property.
       run {
@@ -1644,7 +1644,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertSize(0, propertyModel.getValue(MAP_TYPE)!!.entries)
 
       // Attempt to set a new value
-      propertyModel.addMapValue("Conquest").setValue("Famine")
+      propertyModel.getMapValue("Conquest").setValue("Famine")
       // Check the model again
       assertEquals(MAP, propertyModel.valueType)
       val map = propertyModel.getValue(MAP_TYPE)!!
@@ -1734,7 +1734,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = buildModel.ext().findProperty("prop")
       verifyMapProperty(propertyModel, ImmutableMap.of("key", "val") as Map<String, Any>)
 
-      propertyModel.addMapValue("key").setValue("newVal")
+      propertyModel.getMapValue("key").setValue("newVal")
       verifyMapProperty(propertyModel, ImmutableMap.of("key", "newVal") as Map<String, Any>)
     }
 
@@ -1850,7 +1850,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       // Check it is not a map yet
       verifyPropertyModel(mapPropertyModel, STRING_TYPE, "value", STRING, VARIABLE, 0)
 
-      mapPropertyModel.addMapValue("key").setValue("Hello")
+      mapPropertyModel.getMapValue("key").setValue("Hello")
 
       assertEquals(MAP, mapPropertyModel.valueType)
       val map = mapPropertyModel.getValue(MAP_TYPE)!!
@@ -1998,7 +1998,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val map = propertyModel.getValue(MAP_TYPE)!!
       assertSize(1, map.entries)
       // Try to set a new map value.
-      propertyModel.getValue(MAP_TYPE)!!["key1"]!!.convertToEmptyMap().addMapValue("War")?.setValue("Death")
+      propertyModel.getValue(MAP_TYPE)!!["key1"]!!.convertToEmptyMap().getMapValue("War")?.setValue("Death")
     }
 
     applyChangesAndReparse(buildModel)
@@ -2598,11 +2598,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(map["key3"], INTEGER_TYPE, 23, INTEGER, DERIVED, 0)
       verifyPropertyModel(map["key4"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
 
-      propertyModel.addMapValue("key1").setValue(ReferenceTo("otherVal"))
-      propertyModel.addMapValue("key2").setValue("newValue")
-      propertyModel.addMapValue("key3").setValue(false)
-      propertyModel.addMapValue("key4").setValue(32)
-      propertyModel.addMapValue("newKey").setValue("meerkats")
+      propertyModel.getMapValue("key1").setValue(ReferenceTo("otherVal"))
+      propertyModel.getMapValue("key2").setValue("newValue")
+      propertyModel.getMapValue("key3").setValue(false)
+      propertyModel.getMapValue("key4").setValue(32)
+      propertyModel.getMapValue("newKey").setValue("meerkats")
 
       assertEquals(MAP, propertyModel.valueType)
       val newMap = propertyModel.getValue(MAP_TYPE)!!
@@ -2641,7 +2641,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val firstModel = buildModel.ext().findProperty("prop1")
       try {
-        firstModel.addMapValue("value1").setValue("newValue")
+        firstModel.getMapValue("value1").setValue("newValue")
         fail()
       }
       catch (e: IllegalStateException) {
@@ -2650,7 +2650,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       val secondModel = buildModel.ext().findProperty("prop2")
       try {
-        secondModel.addMapValue("hello").setValue("goodbye")
+        secondModel.getMapValue("hello").setValue("goodbye")
         fail()
       }
       catch (e: IllegalStateException) {
@@ -2659,7 +2659,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       val thirdModel = buildModel.ext().findProperty("prop3")
       try {
-        thirdModel.addMapValue("key").setValue(0)
+        thirdModel.getMapValue("key").setValue(0)
         fail()
       }
       catch (e: IllegalStateException) {

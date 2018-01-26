@@ -825,8 +825,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", "value1", "key2", "value2"), buildType.manifestPlaceholders());
 
-    buildType.manifestPlaceholders().addMapValue("key1").setValue(12345);
-    buildType.manifestPlaceholders().addMapValue("key3").setValue(true);
+    buildType.manifestPlaceholders().getMapValue("key1").setValue(12345);
+    buildType.manifestPlaceholders().getMapValue("key3").setValue(true);
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
                  buildType.manifestPlaceholders());
 
@@ -848,8 +848,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
 
-    buildType.manifestPlaceholders().addMapValue("activityLabel1").setValue("newName1");
-    buildType.manifestPlaceholders().addMapValue("activityLabel2").setValue("newName2");
+    buildType.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1");
+    buildType.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2");
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
                  buildType.manifestPlaceholders());
 
@@ -1498,8 +1498,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", "value1", "key2", "value2"), buildType.manifestPlaceholders());
 
-    buildType.manifestPlaceholders().addMapValue("key1").setValue(12345);
-    buildType.manifestPlaceholders().addMapValue("key3").setValue(true);
+    buildType.manifestPlaceholders().getMapValue("key1").setValue(12345);
+    buildType.manifestPlaceholders().getMapValue("key3").setValue(true);
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
                  buildType.manifestPlaceholders());
 
@@ -1527,8 +1527,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
 
-    buildType.manifestPlaceholders().addMapValue("activityLabel1").setValue("newName1");
-    buildType.manifestPlaceholders().addMapValue("activityLabel2").setValue("newName2");
+    buildType.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1");
+    buildType.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2");
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
                  buildType.manifestPlaceholders());
 

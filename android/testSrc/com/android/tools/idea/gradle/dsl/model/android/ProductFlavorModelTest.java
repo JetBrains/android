@@ -873,10 +873,10 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
                  defaultConfig.testInstrumentationRunnerArguments());
 
-    defaultConfig.manifestPlaceholders().addMapValue("key1").setValue(12345);
-    defaultConfig.manifestPlaceholders().addMapValue("key3").setValue(true);
-    defaultConfig.testInstrumentationRunnerArguments().addMapValue("size").setValue("small");
-    defaultConfig.testInstrumentationRunnerArguments().addMapValue("key").setValue("value");
+    defaultConfig.manifestPlaceholders().getMapValue("key1").setValue(12345);
+    defaultConfig.manifestPlaceholders().getMapValue("key3").setValue(true);
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small");
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value");
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
                  defaultConfig.manifestPlaceholders());
@@ -906,10 +906,10 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders());
     assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
 
-    defaultConfig.manifestPlaceholders().addMapValue("activityLabel1").setValue("newName1");
-    defaultConfig.manifestPlaceholders().addMapValue("activityLabel2").setValue("newName2");
-    defaultConfig.testInstrumentationRunnerArguments().addMapValue("size").setValue("small");
-    defaultConfig.testInstrumentationRunnerArguments().addMapValue("key").setValue("value");
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1");
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2");
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small");
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value");
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
                  defaultConfig.manifestPlaceholders());
@@ -1654,10 +1654,10 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
                  defaultConfig.testInstrumentationRunnerArguments());
 
-    defaultConfig.manifestPlaceholders().addMapValue("key1").setValue(12345);
-    defaultConfig.manifestPlaceholders().addMapValue("key3").setValue(true);
-    defaultConfig.testInstrumentationRunnerArguments().addMapValue("size").setValue("small");
-    defaultConfig.testInstrumentationRunnerArguments().addMapValue("key").setValue("value");
+    defaultConfig.manifestPlaceholders().getMapValue("key1").setValue(12345);
+    defaultConfig.manifestPlaceholders().getMapValue("key3").setValue(true);
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small");
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value");
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
                  defaultConfig.manifestPlaceholders());
@@ -1697,10 +1697,10 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders());
     assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
 
-    defaultConfig.manifestPlaceholders().addMapValue("activityLabel1").setValue("newName1");
-    defaultConfig.manifestPlaceholders().addMapValue("activityLabel2").setValue("newName2");
-    defaultConfig.testInstrumentationRunnerArguments().addMapValue("size").setValue("small");
-    defaultConfig.testInstrumentationRunnerArguments().addMapValue("key").setValue("value");
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1");
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2");
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small");
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value");
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
                  defaultConfig.manifestPlaceholders());
