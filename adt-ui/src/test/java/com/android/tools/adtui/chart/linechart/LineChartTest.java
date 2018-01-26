@@ -19,8 +19,12 @@ import com.android.tools.adtui.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.awt.*;
+import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.awt.BasicStroke.CAP_SQUARE;
@@ -31,7 +35,7 @@ import static org.mockito.Mockito.*;
 public class LineChartTest {
 
   @Test
-  public void testNoRenderWithEmptyRange() throws Exception {
+  public void testNoRenderWithEmptyRange() {
     // Ensures that if the LineChartModel hasn't had a chance to update and the yRange remains zero - then the LineChart would not render
     // any data.
     LineChartModel model = new LineChartModel();
@@ -53,7 +57,7 @@ public class LineChartTest {
   }
 
   @Test
-  public void testRenderConfigNoWithData() throws Exception {
+  public void testRenderConfigNoWithData() {
     LineChartModel model = new LineChartModel();
     DefaultDataSeries<Long> emptySeries = new DefaultDataSeries<>();
     DefaultDataSeries<Long> seriesWithData = new DefaultDataSeries<>();
@@ -80,7 +84,7 @@ public class LineChartTest {
   }
 
   @Test
-  public void testAdjustDashPhase() throws Exception {
+  public void testAdjustDashPhase() {
     LineChartModel model = new LineChartModel();
     Range xRange = new Range(0, 15);
     Range yRange = new Range(0, 15);
@@ -207,6 +211,78 @@ public class LineChartTest {
     Assert.assertEquals(0, config.getAdjustedDashPhase(), LineChart.EPSILON);
   }
 
+  @Test
+  public void testConfigLerpsMinMaxValues() {
+    LineChartModel model = new LineChartModel();
+    Range xRange = new Range(8, 12);
+    Range yRange = new Range(0, 10);
+    int windowHeight = 20;
+
+    DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
+    testSeries.add(0, 0L);
+    testSeries.add(4, 2L);
+    testSeries.add(6, 4L);
+    testSeries.add(10, 6L);
+    testSeries.add(14, 8L);
+    testSeries.add(20, 10L);
+
+    RangedContinuousSeries rangedSeries = new RangedContinuousSeries("test", xRange, yRange, testSeries);
+    model.add(rangedSeries);
+
+    float[][] expectedPoints = {
+      // The first point is the 6 point. Points before this are dropped.
+      {0.0f, computeYValue(4, 6, .5f, yRange, windowHeight)},
+      // The next point is going from 6 -> 10
+      {2.0f, computeYValue(6, 8, 0.0f, yRange, windowHeight)},
+      // The next point is going from 10 -> 14
+      {4.0f, computeYValue(6, 8, 0.5f, yRange, windowHeight)},
+      // The final points get dropped, so should be 0 to indicate the end.
+      {0.0f, 0.0f}
+    };
+
+    // Configure Chart.
+    LineChart chart = new LineChart(model);
+    chart.setSize(4, windowHeight);
+    BasicStroke stroke = new BasicStroke(1f);
+    LineConfig config = new LineConfig(Color.BLACK).setStroke(stroke).setStepped(false);
+    chart.configure(rangedSeries, config);
+
+    // Configure Mocks.
+    Graphics2D fakeGraphics = mock(Graphics2D.class);
+    ArgumentCaptor valueCapture = ArgumentCaptor.forClass(Shape.class);
+    when(fakeGraphics.create()).thenReturn(fakeGraphics);
+    doNothing().when(fakeGraphics).draw((Shape)valueCapture.capture());
+
+    // Update and draw chart.
+    shiftRangeAndRepaintChart(chart, model, xRange, fakeGraphics, 0);
+    java.util.List<Path2D.Float> values = valueCapture.getAllValues();
+    Assert.assertEquals(values.size(), 1);
+
+    // Validate each point
+    PathIterator it = values.get(0).getPathIterator(null);
+    for (int i = 0; !it.isDone() && i < expectedPoints.length; i++) {
+      float[] coords = new float[2];
+      it.currentSegment(coords);
+      Assert.assertArrayEquals(expectedPoints[i], coords, 0.000001f);
+      it.next();
+    }
+  }
+
+  /**
+   * Helper function to convert from series data to expected test value.
+   * @param previousY the series value expected from a previous point.
+   * @param nextY the series value expected on the current or next point.
+   * @param ratio the ratio between the two values used.
+   * @param range the range used for normalizing the y values between 0 and 1.
+   * @param windowHeight the scaler used to scale the y points back to the window size.
+   * @return the pixel location of two Y values interpolated between some ratio.
+   */
+  private float computeYValue(float previousY, float nextY, float ratio, Range range, int windowHeight) {
+    double ydPrev = 1 - (previousY - range.getMin()) / range.getLength();
+    double ydNext = 1 - (nextY - range.getMin()) / range.getLength();
+    return (float)((((1 - ratio) * ydPrev) + (ratio * ydNext)) * windowHeight);
+  }
+
   private void shiftRangeAndRepaintChart(@NotNull LineChart chart,
                                          @NotNull LineChartModel model,
                                          @NotNull Range range,
@@ -215,5 +291,12 @@ public class LineChartTest {
     range.shift(delta);
     model.update(FakeTimer.ONE_SECOND_IN_NS);
     chart.paint(graphics);
+  }
+
+  private static final class ReturnAllDataSeries extends DefaultDataSeries<Long> {
+    @Override
+    public List<SeriesData<Long>> getDataForXRange(Range xRange) {
+      return getAllData();
+    }
   }
 }

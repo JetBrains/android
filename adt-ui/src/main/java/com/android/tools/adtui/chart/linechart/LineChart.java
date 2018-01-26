@@ -216,11 +216,55 @@ public class LineChart extends AnimatedComponent {
       seriesList = myReducer.reduceData(seriesList, config);
       double xBucketInterval = config.getDataBucketInterval() / xLength;
       double xBucketBarWidth = xBucketInterval * BUCKET_BAR_PERCENTAGE;
-      for (SeriesData<Long> data : seriesList) {
+      for (int i = 0; i < seriesList.size(); i++) {
+        SeriesData<Long> data = seriesList.get(i);
+        SeriesData<Long> dataNext = seriesList.get(i + 1 == seriesList.size() ? i : i + 1);
+        SeriesData<Long> dataPrev = seriesList.get(i - 1 < 0 ? i : i - 1);
         // TODO: refactor to allow different types (e.g. double)
         double xd = (data.x - xMin) / xLength;
         // Swing's (0, 0) coordinate is in top-left. As we use bottom-left (0, 0), we need to adjust the y coordinate.
         double yd = 1 - (data.value - yMin) / yLength;
+
+        // This change significantly speeds up drawing when zoomed into the chart. Without this change a line could extend
+        // a few thousand pixels off the screen in both directions. The fill/draw function would then spend a lot of time
+        // computing a line fill for pixels never to be rendered.
+        // Truncate points that are off screen. Ones that cross the border get pushed to the border, and the
+        // height gets scaled accordingly.
+
+        if (xd < 0) {
+          double xdNext = (dataNext.x - xMin) / xLength;
+          // If our next point is also offscreen then ignore this point and continue.
+          if (xdNext < 0) {
+            continue;
+          }
+
+          //Get the Y offset of our next point.
+          double ydNext = 1 - (dataNext.value - yMin) / yLength;
+
+          // If we are a dash line we get the closest normalized point to are graph otherwise we just set our point to 0.
+          double newPosition = 0;
+          if (config.isDash()) {
+            newPosition = xd % 1.0f;
+          }
+          if (!config.isStepped()) {
+            // If we are not stepped we need to adjust the starting Y position to be a linear interpolation of our new X point.
+            double ratio = (newPosition - xd) / (xdNext - xd);
+            yd = (1 - ratio) * yd + (ratio * ydNext);
+          }
+          // Set our new X position and carry on.
+          xd = newPosition;
+        } else if (xd > 1) {
+          double xdPrev = (dataPrev.x - xMin) / xLength;
+          if (xdPrev > 1) {
+            break;
+          }
+          if (!config.isStepped()) {
+            double ratio = (1 - xdPrev) / (xd - xdPrev);
+            double ydPrev = 1 - (dataPrev.value - yMin) / yLength;
+            yd = (1 - ratio) * ydPrev + (ratio * yd);
+          }
+          xd = 1;
+        }
 
         if (path.getCurrentPoint() == null) {
           firstXd = xd;
