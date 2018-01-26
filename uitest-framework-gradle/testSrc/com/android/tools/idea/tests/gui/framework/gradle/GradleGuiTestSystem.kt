@@ -18,10 +18,9 @@ package com.android.tools.idea.tests.gui.framework.gradle
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem
-import com.android.tools.idea.tests.gui.framework.guitestsystem.RunWithBuildSystem
+import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import org.fest.swing.core.Robot
 import java.io.File
@@ -30,8 +29,8 @@ class GradleGuiTestSystem : GuiTestSystem {
   override val id: String
     get() = GradleGuiTestSystem::class.java.name
 
-  override val buildSystem: RunWithBuildSystem.BuildSystem
-    get() = RunWithBuildSystem.BuildSystem.GRADLE
+  override val buildSystem: TargetBuildSystem.BuildSystem
+    get() = TargetBuildSystem.BuildSystem.GRADLE
 
   override fun prepareTestForImport(targetTestDirectory: File) {
     // If the uitestignore file exists, then delete the files listed in that file.

@@ -30,7 +30,7 @@ interface GuiTestSystem {
   /**
    * The build system for which this test system is responsible for providing implementations for.
    */
-  val buildSystem: RunWithBuildSystem.BuildSystem
+  val buildSystem: TargetBuildSystem.BuildSystem
 
   /**
    * Modifies the test project in preparation for testing. (e.g. removing/transforming build files.)

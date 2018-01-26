@@ -29,6 +29,14 @@
     <target name="preBuild" depends="bazel-dependencies, android-plugin">
     </target>
 
+    <target name="unzip_aswb">
+        <exec executable="${bazel}" dir="${workspace}" failonerror="true">
+            <arg value="build" />
+            <arg value="//tools/adt/idea/android-uitests:unzip_aswb" />
+            <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
+        </exec>
+    </target>
+
     <target name="bazel-dependencies" unless="${skip.bazel.dependencies}">
         <exec executable="${bazel}" dir="${workspace}" failonerror="true">
             <arg value="build" />

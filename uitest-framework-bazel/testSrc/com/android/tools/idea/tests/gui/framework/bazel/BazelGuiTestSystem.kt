@@ -21,7 +21,7 @@ import com.android.tools.idea.tests.gui.framework.bazel.fixture.ImportBazelProje
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem
-import com.android.tools.idea.tests.gui.framework.guitestsystem.RunWithBuildSystem
+import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem
 import com.google.common.io.Files
 import com.intellij.openapi.util.SystemInfo
 import org.fest.swing.core.Robot
@@ -31,8 +31,8 @@ class BazelGuiTestSystem : GuiTestSystem {
   override val id: String
     get() = BazelGuiTestSystem::class.java.name
 
-  override val buildSystem: RunWithBuildSystem.BuildSystem
-    get() = RunWithBuildSystem.BuildSystem.BAZEL
+  override val buildSystem: TargetBuildSystem.BuildSystem
+    get() = TargetBuildSystem.BuildSystem.BAZEL
 
   override fun prepareTestForImport(targetTestDirectory: File) {
     // If the uitestignore file exists, then delete the files listed in that file.

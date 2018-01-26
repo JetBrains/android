@@ -73,6 +73,8 @@ iml_module(
         "//tools/idea/platform/xdebugger-api[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/uitest-framework[module, test]",
+        "//tools/adt/idea/uitest-framework-gradle[module, test]",
+        "//tools/adt/idea/uitest-framework-bazel[module, test]",
     ],
 )
 
@@ -227,4 +229,20 @@ java_test(
     tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
+)
+
+genrule(
+    name = "unzip_aswb",
+    srcs = ["@blaze//third_party/intellij/bazel/plugin/aswb:aswb_bazel_zip"],
+    outs = [
+        "aswb/aspect/WORKSPACE",
+        "aswb/aspect/BUILD.bazel",
+        "aswb/aspect/intellij_info_bundled.bzl",
+        "aswb/aspect/intellij_info_impl.bzl",
+        "aswb/aspect/java_classpath.bzl",
+        "aswb/aspect/JarFilter_deploy.jar",
+        "aswb/aspect/PackageParser_deploy.jar",
+        "aswb/lib/aswb_bazel.jar",
+    ],
+    cmd = "unzip $(location @blaze//third_party/intellij/bazel/plugin/aswb:aswb_bazel_zip) -d $(@D)",
 )

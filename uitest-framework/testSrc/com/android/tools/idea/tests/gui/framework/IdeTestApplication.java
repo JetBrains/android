@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.BootstrapClassLoaderUtil;
@@ -31,6 +32,7 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.text.StringTokenizer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,6 +63,7 @@ public class IdeTestApplication implements Disposable {
   private static IdeTestApplication ourInstance;
 
   @NotNull private final ClassLoader myIdeClassLoader;
+  @Nullable private TargetBuildSystem.BuildSystem myTargetBuildSystem;
 
   @NotNull
   public static synchronized IdeTestApplication getInstance() throws Exception {
@@ -255,5 +258,17 @@ public class IdeTestApplication implements Disposable {
 
   public static synchronized boolean isLoaded() {
     return ourInstance != null;
+  }
+
+  public void setTargetBuildSystem(@NotNull TargetBuildSystem.BuildSystem targetBuildSystem) {
+    System.out.println("Setting build system to use: " + targetBuildSystem);
+    System.out.println("JAVA_HOME: " + System.getenv("JAVA_HOME"));
+    System.out.println("CC: " + System.getenv("CC"));
+    myTargetBuildSystem = targetBuildSystem;
+  }
+
+  @Nullable
+  public TargetBuildSystem.BuildSystem getTargetBuildSystem() {
+    return myTargetBuildSystem;
   }
 }

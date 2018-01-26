@@ -17,14 +17,17 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runners.Parameterized;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
@@ -102,7 +105,25 @@ public class GuiTestSuiteRunner extends Suite {
 
   private static boolean isGuiTest(Class<?> testClass) {
     RunWith runWith = testClass.getAnnotation(RunWith.class);
-    return runWith != null && runWith.value().getSimpleName().equals(GuiTestRunner.class.getSimpleName());
+    if (runWith == null) {
+      return false;
+    }
+
+    String runWithClassName = runWith.value().getSimpleName();
+
+    // either the test is run via GuiTestRunner
+    if (runWithClassName.equals(GuiTestRunner.class.getSimpleName())) {
+      return true;
+    }
+
+    // or it is parameterized to run with a run provided by GuiTestRunnerFactory
+    boolean usesParameterized = runWithClassName.equals(Parameterized.class.getSimpleName());
+    if (!usesParameterized) {
+      return false;
+    }
+
+    Parameterized.UseParametersRunnerFactory factory = testClass.getAnnotation(Parameterized.UseParametersRunnerFactory.class);
+    return factory != null && GuiTestRunnerFactory.class.getSimpleName().equals(factory.value().getSimpleName());
   }
 
   private static void findPotentialGuiTestClassFiles(@NotNull File directory, @NotNull List<File> guiTestClassFiles) {

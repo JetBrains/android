@@ -36,5 +36,7 @@
     <orderEntry type="module" module-name="xdebugger-api" scope="TEST" />
     <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
     <orderEntry type="module" module-name="uitest-framework" scope="TEST" />
+    <orderEntry type="module" module-name="uitest-framework-gradle" scope="TEST" />
+    <orderEntry type="module" module-name="uitest-framework-bazel" scope="TEST" />
   </component>
 </module>

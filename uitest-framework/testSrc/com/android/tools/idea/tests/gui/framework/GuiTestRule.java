@@ -17,22 +17,20 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem;
+import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
@@ -278,13 +276,14 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProject(projectDirName).waitForGradleProjectSyncToFinish();
+    importProject(projectDirName);
+    getTestSystem().waitForProjectSyncToFinish(ideFrame());
+    return ideFrame();
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    VirtualFile toSelect = VfsUtil.findFileByIoFile(setUpProject(projectDirName), true);
-    ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().importProject(toSelect));
-
+    File testProjectDir = setUpProject(projectDirName);
+    getTestSystem().importProject(testProjectDir, robot());
     return ideFrame();
   }
 
@@ -308,6 +307,7 @@ public class GuiTestRule implements TestRule {
   private File setUpProject(@NotNull String projectDirName) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
+    getTestSystem().prepareTestForImport(projectPath);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
     updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
@@ -424,5 +424,24 @@ public class GuiTestRule implements TestRule {
   public GuiTestRule withTimeout(long timeout, @NotNull TimeUnit timeUnits) {
     myTimeout = new Timeout(timeout, timeUnits);
     return this;
+  }
+
+  @NotNull
+  private static GuiTestSystem getTestSystem() {
+    TargetBuildSystem.BuildSystem targetBuildSystem;
+    try {
+      targetBuildSystem = IdeTestApplication.getInstance().getTargetBuildSystem();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Unable to get IDE Instance", e);
+    }
+
+    for (GuiTestSystem sys : GuiTestSystem.Companion.getEP_NAME().getExtensions()) {
+      if (sys.getBuildSystem().equals(targetBuildSystem)) {
+        return sys;
+      }
+    }
+
+    throw new IllegalStateException("No build system delegate found for " + targetBuildSystem);
   }
 }

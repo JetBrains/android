@@ -20,4 +20,6 @@
   <extensions defaultExtensionNs="com.android.tools.idea.ui">
     <guiTestingStatusProvider implementation="com.android.tools.idea.tests.gui.StatusProvider" />
   </extensions>
+
+  <xi:include href="/META-INF/uitest-framework-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
