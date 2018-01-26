@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +25,6 @@ import org.junit.runner.RunWith;
 /**
  * UI tests for the canvas resizing interaction
  */
-@Ignore("b/72499090")  // triggers NPE in IDE
 @RunWith(GuiTestRunner.class)
 public class CanvasResizeTest {
 
