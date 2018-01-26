@@ -78,6 +78,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.*;
 import com.intellij.util.ui.accessibility.ScreenReader;
@@ -94,6 +95,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -112,6 +114,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.android.SdkConstants.*;
 
@@ -423,8 +426,8 @@ public class ChooseResourceDialog extends DialogWrapper {
     setupViewOptions();
     init();
 
-    selectResourceValue(resValue);
     updateFilter();
+    selectResourceValue(resValue);
 
     // we need to trigger this once before the window is made visible to update any extra labels
     doValidate();
@@ -1325,6 +1328,8 @@ public class ChooseResourceDialog extends DialogWrapper {
     @NotNull private ResourceChooserGroup[] myGroups = new ResourceChooserGroup[0];
     @NotNull private final ResourceType myType;
 
+    private ResourceChooserItem mySelectedItem;
+
     public ResourcePanel(@NotNull ResourceType type, boolean includeFileResources,
                          @NotNull Collection<String> attrs) {
       myType = type;
@@ -1337,7 +1342,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       myComponent.setFirstComponent(loadingPanel);
       loadingPanel.startLoading();
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      CompletableFuture.runAsync(() -> {
         List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(3);
         ResourceChooserGroup projectItems = new ResourceChooserGroup(APP_NAMESPACE_LABEL, type, myFacet, false, includeFileResources);
         if (!projectItems.isEmpty()) {
@@ -1358,7 +1363,8 @@ public class ChooseResourceDialog extends DialogWrapper {
 
         myComponent.setFirstComponent(firstComponent);
         Disposer.dispose(animationDisposable);
-      });
+      }, PooledThreadExecutor.INSTANCE)
+        .thenRunAsync(() -> setSelectedItem(mySelectedItem), EdtExecutorService.getInstance());
 
       myPreviewPanel = new JPanel(new CardLayout());
       myPreviewPanel.setPreferredSize(JBUI.size(400,600));
@@ -2253,6 +2259,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     public void setSelectedItem(@Nullable ResourceChooserItem item) {
+      mySelectedItem = item;
       if (myList != null) {
         myList.setSelectedElement(item);
       } else if (myTable != null) {
