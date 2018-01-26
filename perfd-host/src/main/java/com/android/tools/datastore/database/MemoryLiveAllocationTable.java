@@ -21,6 +21,8 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
+import gnu.trove.TLongHashSet;
+import gnu.trove.TLongObjectHashMap;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +30,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.*;
 
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.*;
 
@@ -70,12 +72,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                 ")"),
     INSERT_JNI_REF(
       "INSERT OR IGNORE INTO Memory_JniGlobalReferences " +
-      "(Session, Tag, RefValue, AllocTime, AllocThreadId, AllocStackHash, FreeThreadId, FreeStackHash, FreeTime) " +
-      "VALUES (?, ?, ?, ?, ?, ?, 0, '', " + Long.MAX_VALUE + ")"),
+      "(Session, Tag, RefValue, AllocTime, AllocThreadId, AllocBacktrace, FreeThreadId, FreeTime) " +
+      "VALUES (?, ?, ?, ?, ?, ?, 0, " + Long.MAX_VALUE + ")"),
 
     UPDATE_JNI_REF(
       "UPDATE Memory_JniGlobalReferences " +
-      "SET FreeTime = ?, FreeStackHash = ?, FreeThreadId = ?" +
+      "SET FreeTime = ?, FreeBacktrace = ?, FreeThreadId = ?" +
       "WHERE Session = ? AND Tag = ? AND RefValue = ?"),
 
     COUNT_JNI_REF_RECORDS("SELECT COUNT(1) FROM Memory_JniGlobalReferences"),
@@ -88,20 +90,25 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                           ")"),
 
     QUERY_JNI_REF_CREATE_EVENTS(
-      "SELECT Refs.Tag, Refs.RefValue, Refs.AllocTime AS Timestamp, Refs.AllocThreadId AS ThreadId, AllockStack.Backtrace AS Backtrace " +
-      "FROM Memory_JniGlobalReferences AS Refs " +
-      "LEFT JOIN Memory_NativeStackInfos AS AllockStack ON Refs.Session = AllockStack.Session AND Refs.AllocStackHash = AllockStack.StackHash " +
-      "WHERE Refs.Session = ? AND Refs.AllocTime >= ? AND Refs.AllocTime <= ? AND Refs.FreeTime >= ? AND Refs.FreeTime <= ? " +
-      "ORDER BY Refs.AllocTime"),
+      "SELECT Tag, RefValue, AllocTime AS Timestamp, AllocThreadId AS ThreadId, AllocBacktrace AS Backtrace " +
+      "FROM Memory_JniGlobalReferences " +
+      "WHERE Session = ? AND AllocTime >= ? AND AllocTime <= ? AND FreeTime >= ? AND FreeTime <= ? " +
+      "ORDER BY AllocTime"),
 
     QUERY_JNI_REF_DELETE_EVENTS(
-      "SELECT Refs.Tag, Refs.RefValue, Refs.FreeTime AS Timestamp, Refs.FreeThreadId AS ThreadId, FreeStack.Backtrace AS Backtrace " +
-      "FROM Memory_JniGlobalReferences AS Refs " +
-      "LEFT JOIN Memory_NativeStackInfos AS FreeStack ON Refs.Session = FreeStack.Session AND Refs.FreeStackHash = FreeStack.StackHash " +
-      "WHERE Refs.Session = ? AND Refs.AllocTime >= ? AND Refs.AllocTime <= ? AND Refs.FreeTime >= ? AND Refs.FreeTime <= ? " +
-      "ORDER BY Refs.FreeTime"),
+      "SELECT Tag, RefValue, FreeTime AS Timestamp, FreeThreadId AS ThreadId, FreeBacktrace AS Backtrace " +
+      "FROM Memory_JniGlobalReferences " +
+      "WHERE Session = ? AND AllocTime >= ? AND AllocTime <= ? AND FreeTime >= ? AND FreeTime <= ? " +
+      "ORDER BY FreeTime"),
 
-    INSERT_NATIVE_STACK("INSERT OR IGNORE INTO Memory_NativeStackInfos (Session, StackHash, Backtrace) VALUES (?, ?, ?)");
+    INSERT_NATIVE_FRAME("INSERT OR IGNORE INTO Memory_NativeFrames (Session, Address, Offset, Module, Symbolized) " +
+                        "VALUES (?, ?, ?, ?, 0)"),
+    UPDATE_NATIVE_FRAME("UPDATE Memory_NativeFrames SET NativeFrame = ?, Symbolized = 1 WHERE Session = ? AND Address = ?"),
+    QUERY_NATIVE_FRAME("SELECT NativeFrame FROM Memory_NativeFrames " +
+                       "WHERE (Session = ?) AND (Address = ?)"),
+    QUERY_NATIVE_FRAMES_TO_SYMBOLIZE("SELECT Address, Offset, Module FROM Memory_NativeFrames " +
+                                     "WHERE (Session = ?) AND Symbolized = 0 " +
+                                     "LIMIT ?");
 
 
     @NotNull private final String mySqlStatement;
@@ -140,18 +147,20 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                   "StackData BLOB", "PRIMARY KEY(Session, StackId)");
       createTable("Memory_ThreadInfos", "Session INTEGER NOT NULL", "ThreadId INTEGER", "AllocTime INTEGER",
                   "ThreadName TEXT", "PRIMARY KEY(Session, ThreadId)");
-      createTable("Memory_NativeStackInfos", "Session INTEGER NOT NULL", "StackHash TEXT",
-                  "Backtrace BLOB", "PRIMARY KEY(Session, StackHash)");
+      createTable("Memory_NativeFrames", "Session INTEGER NOT NULL", "Address INTEGER NOT NULL",
+                  "Symbolized INTEGER NOT NULL", "Offset INTEGER", "Module TEXT",
+                  "NativeFrame BLOB", "PRIMARY KEY(Session, Address)");
       createTable("Memory_JniGlobalReferences", "Session INTEGER NOT NULL", "Tag INTEGER",
                   "RefValue INTEGER", "AllocTime INTEGER", "FreeTime INTEGER", "AllocThreadId INTEGER", "FreeThreadId INTEGER",
-                  "AllocStackHash INTEGER", "FreeStackHash INTEGER", "PRIMARY KEY(Session, Tag, RefValue)");
+                  "AllocBacktrace BLOB", "FreeBacktrace BLOB", "PRIMARY KEY(Session, Tag, RefValue)");
 
       createIndex("Memory_AllocationEvents", 0, "Session", "AllocTime");
       createIndex("Memory_AllocationEvents", 1, "Session", "FreeTime");
       createIndex("Memory_AllocatedClass", 0, "Session", "AllocTime");
       createIndex("Memory_StackInfos", 0, "Session", "AllocTime");
       createIndex("Memory_ThreadInfos", 0, "Session", "AllocTime");
-      createIndex("Memory_NativeStackInfos", 0, "Session", "StackHash");
+      createIndex("Memory_NativeFrames", 0, "Session", "Address");
+      createIndex("Memory_NativeFrames", 1, "Session", "Symbolized");
       createIndex("Memory_JniGlobalReferences", 0, "Session", "AllocTime");
       createIndex("Memory_JniGlobalReferences", 1, "Session", "FreeTime");
     }
@@ -343,6 +352,27 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return event.build();
   }
 
+  public NativeCallStack resolveNativeBacktrace(@NotNull Common.Session session, @NotNull NativeBacktrace backtrace) {
+    NativeCallStack.Builder resultBuilder = NativeCallStack.newBuilder();
+    try {
+      for (Long address : backtrace.getAddressesList()) {
+        NativeCallStack.NativeFrame frame = NativeCallStack.NativeFrame.getDefaultInstance();
+        ResultSet result = executeQuery(QUERY_NATIVE_FRAME, session.getSessionId(), address);
+        if (result.next()) {
+          byte[] frameBytes = result.getBytes(1);
+          if (frameBytes != null && frameBytes.length != 0) {
+            frame = NativeCallStack.NativeFrame.parseFrom(frameBytes);
+          }
+        }
+        resultBuilder.addFrames(frame);
+      }
+    }
+    catch (SQLException | InvalidProtocolBufferException ex) {
+      getLogger().error(ex);
+    }
+    return resultBuilder.build();
+  }
+
   public BatchJNIGlobalRefEvent getJniReferencesSnapshot(Common.Session session, long endTime) {
     BatchJNIGlobalRefEvent.Builder resultBuilder = BatchJNIGlobalRefEvent.newBuilder();
     long timestamp = 0;
@@ -387,39 +417,78 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return resultBuilder.build();
   }
 
+  private static TreeMap<Long, MemoryMap.MemoryRegion> buildAddressMap(MemoryMap map) {
+    TreeMap<Long, MemoryMap.MemoryRegion> result = new TreeMap<Long, MemoryMap.MemoryRegion>();
+    if (map == null) {
+      return result;
+    }
+    for (MemoryMap.MemoryRegion region : map.getRegionsList()) {
+      result.put(region.getStartAddress(), region);
+    }
+    return result;
+  }
+
+  public static MemoryMap.MemoryRegion getRegionByAddress(TreeMap<Long, MemoryMap.MemoryRegion> addressMap, Long address) {
+    Map.Entry<Long, MemoryMap.MemoryRegion> entry = addressMap.floorEntry(address);
+    if (entry == null) {
+      return null;
+    }
+    MemoryMap.MemoryRegion region = entry.getValue();
+    if (address >= region.getStartAddress() && address < region.getEndAddress()) {
+      return region;
+    }
+    return null;
+  }
+
   public void insertJniReferenceData(@NotNull Common.Session session, @NotNull BatchJNIGlobalRefEvent batch) {
     PreparedStatement insertRefStatement = null;
     PreparedStatement updateRefStatement = null;
-    PreparedStatement insertStackStatement = null;
+    PreparedStatement insertFrameStatement = null;
     try {
+      TreeMap<Long, MemoryMap.MemoryRegion> addressMap = buildAddressMap(batch.getMemoryMap());
+      TLongHashSet insertedAddresses = new TLongHashSet();
       for (JNIGlobalReferenceEvent event : batch.getEventsList()) {
         long refValue = event.getRefValue();
         int objectTag = event.getObjectTag();
         long timestamp = event.getTimestamp();
         int threadId = event.getThreadId();
-        String stackHash = "";
+        byte[] backtrace = null;
+
         if (event.hasBacktrace()) {
-          byte[] backtrace = event.getBacktrace().toByteArray();
-          stackHash = DigestUtils.md5Hex(backtrace);
-          if (insertStackStatement == null) {
-            insertStackStatement = getStatementMap().get(INSERT_NATIVE_STACK);
+          backtrace = event.getBacktrace().toByteArray();
+          for (Long address : event.getBacktrace().getAddressesList()) {
+            if (!insertedAddresses.contains(address)) {
+              String module = "";
+              long offset = 0;
+              MemoryMap.MemoryRegion region = getRegionByAddress(addressMap, address);
+              if (region != null) {
+                module = region.getName();
+                // Adjust address to represent module offset.
+                offset = address + region.getFileOffset() - region.getStartAddress();
+              }
+              if (insertFrameStatement == null) {
+                insertFrameStatement = getStatementMap().get(INSERT_NATIVE_FRAME);
+              }
+              applyParams(insertFrameStatement, session.getSessionId(), address, offset, module);
+              insertFrameStatement.addBatch();
+              insertedAddresses.add(address);
+            }
           }
-          applyParams(insertStackStatement, session.getSessionId(), stackHash, backtrace);
-          insertStackStatement.addBatch();
         }
+
         switch (event.getEventType()) {
           case CREATE_GLOBAL_REF:
             if (insertRefStatement == null) {
               insertRefStatement = getStatementMap().get(INSERT_JNI_REF);
             }
-            applyParams(insertRefStatement, session.getSessionId(), objectTag, refValue, timestamp, threadId, stackHash);
+            applyParams(insertRefStatement, session.getSessionId(), objectTag, refValue, timestamp, threadId, backtrace);
             insertRefStatement.addBatch();
             break;
           case DELETE_GLOBAL_REF:
             if (updateRefStatement == null) {
               updateRefStatement = getStatementMap().get(UPDATE_JNI_REF);
             }
-            applyParams(updateRefStatement, timestamp, stackHash, threadId, session.getSessionId(), objectTag, refValue);
+            applyParams(updateRefStatement, timestamp, backtrace, threadId, session.getSessionId(), objectTag, refValue);
             updateRefStatement.addBatch();
             break;
           default:
@@ -427,8 +496,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         }
       }
 
-      if (insertStackStatement != null) {
-        insertStackStatement.executeBatch();
+      if (insertFrameStatement != null) {
+        insertFrameStatement.executeBatch();
       }
       if (insertRefStatement != null) {
         insertRefStatement.executeBatch();
@@ -442,6 +511,43 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
     catch (SQLException ex) {
       onError(ex);
+    }
+  }
+
+  public @NotNull
+  List<NativeCallStack.NativeFrame> queryNotsymbolizedNativeFrames(@NotNull Common.Session session, int maxCount) {
+    List<NativeCallStack.NativeFrame> records = new ArrayList<>();
+    try {
+      ResultSet result = executeQuery(QUERY_NATIVE_FRAMES_TO_SYMBOLIZE, session.getSessionId(), maxCount);
+      while (result.next()) {
+        NativeCallStack.NativeFrame frame = NativeCallStack.NativeFrame.newBuilder()
+          .setModuleName(result.getString("Module"))
+          .setModuleOffset(result.getLong("Offset"))
+          .setAddress(result.getLong("Address"))
+          .build();
+        records.add(frame);
+      }
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+    return records;
+  }
+
+  public void updateSymbolizedNativeFrames(@NotNull Common.Session session, @NotNull List<NativeCallStack.NativeFrame> frames) {
+    if (frames.isEmpty()) {
+      return;
+    }
+    try {
+      PreparedStatement updateFramesStatement = getStatementMap().get(UPDATE_NATIVE_FRAME);
+      for (NativeCallStack.NativeFrame frame : frames) {
+        applyParams(updateFramesStatement, frame.toByteArray(), session.getSessionId(), frame.getAddress());
+        updateFramesStatement.addBatch();
+      }
+      updateFramesStatement.executeBatch();
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
     }
   }
 

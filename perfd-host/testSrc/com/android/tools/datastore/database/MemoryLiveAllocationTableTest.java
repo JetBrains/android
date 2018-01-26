@@ -74,10 +74,14 @@ public class MemoryLiveAllocationTableTest {
   private final long STACK2_TIME = 17;
   private final long THREAD1_TIME = 13;
   private final long THREAD2_TIME = 18;
-  private final long NATIVE_ADDRESS1 = 1230001;
-  private final long NATIVE_ADDRESS2 = 1230002;
-  private final long NATIVE_ADDRESS3 = 1230003;
-  private final long NATIVE_ADDRESS4 = 1230004;
+  private final long NATIVE_ADDRESS1 = 1300;
+  private final long NATIVE_ADDRESS2 = 2300;
+  private final long NATIVE_ADDRESS3 = 3300;
+  private final long NATIVE_ADDRESS4 = 4300;
+  private final long NATIVE_LIB_OFFSET = 100;
+  private final String NATIVE_LIB1 = "/path/to/native/lib1.so";
+  private final String NATIVE_LIB2 = "/path/to/native/lib2.so";
+  private final String NATIVE_LIB3 = "/path/to/native/lib3.so";
   private final long JNI_REF_VALUE1 = 2001;
   private final long JNI_REF_VALUE2 = 2002;
   private final long JNI_REF_VALUE3 = 2003;
@@ -125,6 +129,28 @@ public class MemoryLiveAllocationTableTest {
     return result.build();
   }
 
+
+  private MemoryMap createMemoryMap() {
+    MemoryMap.Builder memMap = MemoryMap.newBuilder();
+    memMap.addRegions(MemoryMap.MemoryRegion.newBuilder()
+                          .setStartAddress((NATIVE_ADDRESS1 - NATIVE_LIB_OFFSET))
+                          .setEndAddress(NATIVE_ADDRESS1 + NATIVE_LIB_OFFSET)
+                          .setName(NATIVE_LIB1));
+
+    memMap.addRegions(MemoryMap.MemoryRegion.newBuilder()
+                        .setStartAddress((NATIVE_ADDRESS2 - NATIVE_LIB_OFFSET))
+                        .setEndAddress(NATIVE_ADDRESS2 + NATIVE_LIB_OFFSET)
+                        .setName(NATIVE_LIB2));
+
+    memMap.addRegions(MemoryMap.MemoryRegion.newBuilder()
+                        .setStartAddress((NATIVE_ADDRESS3 - NATIVE_LIB_OFFSET))
+                        .setEndAddress(NATIVE_ADDRESS3 + NATIVE_LIB_OFFSET)
+                        .setName(NATIVE_LIB3));
+
+    // NATIVE_ADDRESS4 intentionally left unmapped
+    return memMap.build();
+  }
+
   @Test
   public void testRepeatedInsertAndQueryOfJniRefs() throws Exception {
     long timestamp = 0;
@@ -132,6 +158,7 @@ public class MemoryLiveAllocationTableTest {
     final int BATCH_SIZE = 1000;
     for (int iteration = 0; iteration < ITERATION_COUNT; iteration++) {
       BatchJNIGlobalRefEvent.Builder insertBatchBuilder = BatchJNIGlobalRefEvent.newBuilder();
+      insertBatchBuilder.setMemoryMap(createMemoryMap());
       for (int counter = 1; counter <= BATCH_SIZE; counter++) {
         int seed = iteration * BATCH_SIZE * 2 + counter;
         JNIGlobalReferenceEvent alloc = JNIGlobalReferenceEvent.newBuilder()
@@ -170,6 +197,94 @@ public class MemoryLiveAllocationTableTest {
   }
 
   @Test
+  public void testNativeSymbolResolution() throws Exception {
+    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent.newBuilder()
+      .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+      .setObjectTag(KLASS1_INSTANCE1_TAG)
+      .setRefValue(JNI_REF_VALUE1)
+      .setThreadId(THREAD1)
+      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS4))
+      .setTimestamp(1).build();
+
+    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent.newBuilder()
+      .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+      .setObjectTag(KLASS1_INSTANCE2_TAG)
+      .setRefValue(JNI_REF_VALUE2)
+      .setThreadId(THREAD2)
+      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS3, NATIVE_ADDRESS4))
+      .setTimestamp(5).build();
+
+    JNIGlobalReferenceEvent dealloc1 = JNIGlobalReferenceEvent.newBuilder()
+      .setEventType(JNIGlobalReferenceEvent.Type.DELETE_GLOBAL_REF)
+      .setObjectTag(KLASS1_INSTANCE1_TAG)
+      .setRefValue(JNI_REF_VALUE1)
+      .setThreadId(THREAD3)
+      .setBacktrace(createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS3, NATIVE_ADDRESS4))
+      .setTimestamp(10).build();
+
+    BatchJNIGlobalRefEvent.Builder insertBatch = BatchJNIGlobalRefEvent.newBuilder();
+    insertBatch.setMemoryMap(createMemoryMap());
+    insertBatch.addEvents(alloc1).addEvents(alloc2).addEvents(dealloc1);
+    myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch.build());
+
+    List<NativeCallStack.NativeFrame> limitedFrames = myAllocationTable.queryNotsymbolizedNativeFrames(VALID_SESSION, 2);
+    Truth.assertThat(limitedFrames.size()).isEqualTo(2);
+
+    List<NativeCallStack.NativeFrame> framesToResolve = myAllocationTable.queryNotsymbolizedNativeFrames(VALID_SESSION, 1000);
+    Truth.assertThat(framesToResolve.size()).isEqualTo(4);
+    NativeCallStack.NativeFrame frame1 = framesToResolve.stream().filter(f -> f.getAddress() == NATIVE_ADDRESS1).findAny().get();
+    Truth.assertThat(frame1.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
+    Truth.assertThat(frame1.getModuleName()).isEqualTo(NATIVE_LIB1);
+    Truth.assertThat(frame1.getSymbolName()).isEmpty();
+    frame1 = frame1.toBuilder().setSymbolName(Long.toString(NATIVE_ADDRESS1)).build();
+
+    NativeCallStack.NativeFrame frame2 = framesToResolve.stream().filter(f -> f.getAddress() == NATIVE_ADDRESS2).findAny().get();
+    Truth.assertThat(frame2.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
+    Truth.assertThat(frame2.getModuleName()).isEqualTo(NATIVE_LIB2);
+    Truth.assertThat(frame2.getSymbolName()).isEmpty();
+    frame2 = frame2.toBuilder().setSymbolName(Long.toString(NATIVE_ADDRESS2)).build();
+
+    NativeCallStack.NativeFrame frame3 = framesToResolve.stream().filter(f -> f.getAddress() == NATIVE_ADDRESS3).findAny().get();
+    Truth.assertThat(frame3.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
+    Truth.assertThat(frame3.getModuleName()).isEqualTo(NATIVE_LIB3);
+    Truth.assertThat(frame3.getSymbolName()).isEmpty();
+    frame3 = frame3.toBuilder().setSymbolName(Long.toString(NATIVE_ADDRESS3)).build();
+
+    NativeCallStack.NativeFrame frame4 = framesToResolve.stream().filter(f -> f.getAddress() == NATIVE_ADDRESS4).findAny().get();
+    Truth.assertThat(frame4.getModuleOffset()).isEqualTo(0);
+    Truth.assertThat(frame4.getModuleName()).isEmpty();
+    Truth.assertThat(frame4.getSymbolName()).isEmpty();
+
+    myAllocationTable.updateSymbolizedNativeFrames(VALID_SESSION, Arrays.asList(frame1, frame2, frame3, frame4));
+    List<NativeCallStack.NativeFrame> framesToResolve2 = myAllocationTable.queryNotsymbolizedNativeFrames(VALID_SESSION, 1000);
+    Truth.assertThat(framesToResolve2).isEmpty();
+
+    NativeCallStack callStack = myAllocationTable.resolveNativeBacktrace(VALID_SESSION,
+                                             createBacktrace(NATIVE_ADDRESS1, NATIVE_ADDRESS2, NATIVE_ADDRESS3, NATIVE_ADDRESS4));
+
+    Truth.assertThat(callStack.getFramesCount()).isEqualTo(4);
+    frame1 = callStack.getFrames(0);
+    Truth.assertThat(frame1.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
+    Truth.assertThat(frame1.getModuleName()).isEqualTo(NATIVE_LIB1);
+    Truth.assertThat(frame1.getSymbolName()).isEqualTo(Long.toString(NATIVE_ADDRESS1));
+
+    frame2 = callStack.getFrames(1);
+    Truth.assertThat(frame2.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
+    Truth.assertThat(frame2.getModuleName()).isEqualTo(NATIVE_LIB2);
+    Truth.assertThat(frame2.getSymbolName()).isEqualTo(Long.toString(NATIVE_ADDRESS2));
+
+    frame3 = callStack.getFrames(2);
+    Truth.assertThat(frame3.getModuleOffset()).isEqualTo(NATIVE_LIB_OFFSET);
+    Truth.assertThat(frame3.getModuleName()).isEqualTo(NATIVE_LIB3);
+    Truth.assertThat(frame3.getSymbolName()).isEqualTo(Long.toString(NATIVE_ADDRESS3));
+
+    frame4 = callStack.getFrames(3);
+    Truth.assertThat(frame4.getModuleOffset()).isEqualTo(0);
+    Truth.assertThat(frame4.getModuleName()).isEmpty();
+    Truth.assertThat(frame4.getSymbolName()).isEmpty();
+  }
+
+  @Test
   public void testInsertAndQueryJniRefEvents() throws Exception {
     // create jni ref for instance 1 at t=1
     JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent.newBuilder()
@@ -198,9 +313,10 @@ public class MemoryLiveAllocationTableTest {
       .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
       .setTimestamp(10).build();
 
-    BatchJNIGlobalRefEvent insertBatch = BatchJNIGlobalRefEvent.newBuilder()
-      .addEvents(alloc1).addEvents(alloc2).addEvents(dealloc1).build();
-    myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch);
+    BatchJNIGlobalRefEvent.Builder insertBatch = BatchJNIGlobalRefEvent.newBuilder();
+    insertBatch.setMemoryMap(createMemoryMap());
+    insertBatch.addEvents(alloc1).addEvents(alloc2).addEvents(dealloc1);
+    myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch.build());
 
     // Query all events
     BatchJNIGlobalRefEvent queryBatch = myAllocationTable.getJniReferencesEventsFromRange(VALID_SESSION, 0, Long.MAX_VALUE);
