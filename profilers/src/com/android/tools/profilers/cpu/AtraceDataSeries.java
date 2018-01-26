@@ -18,33 +18,28 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.CpuProfiler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE;
 
 /**
- * This class manages thread state series data parsed from atrace captures. The data series is only responsible for
- * returning thread states supplied to it upon parsing an atrace capture.
+ * This class manages {@link DataSeries} parsed from atrace captures. The data series is responsible for
+ * returning data supplied to it upon parsing an atrace capture.
  */
-public class AtraceThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
+public class AtraceDataSeries<T> implements DataSeries<T> {
   @NotNull
-  private final HashMap<Range, List<SeriesData<CpuProfilerStage.ThreadState>>> mySeriesData;
+  private final HashMap<Range, List<SeriesData<T>>> mySeriesData;
 
-  public AtraceThreadStateDataSeries() {
+  public AtraceDataSeries() {
     mySeriesData = new HashMap<>();
   }
 
   /**
    * @param seriesData to capture and return within a specific range.
    */
-  public void addCaptureSeriesData(Range range, List<SeriesData<CpuProfilerStage.ThreadState>> seriesData) {
+  public void addCaptureSeriesData(Range range, List<SeriesData<T>> seriesData) {
     if (!mySeriesData.containsKey(range)) {
       mySeriesData.put(range, seriesData);
     }
@@ -64,17 +59,14 @@ public class AtraceThreadStateDataSeries implements DataSeries<CpuProfilerStage.
   }
 
   @Override
-  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForXRange(Range xRange) {
+  public List<SeriesData<T>> getDataForXRange(Range xRange) {
     long min = (long)xRange.getMin();
     long max = (long)xRange.getMax();
-    List<SeriesData<CpuProfilerStage.ThreadState>> series = new ArrayList<>();
+    List<SeriesData<T>> series = new ArrayList<>();
     Range seriesRange = getOverlapRange(xRange);
     if (seriesRange != null) {
-      List<SeriesData<CpuProfilerStage.ThreadState>> seriesDataList = mySeriesData.get(seriesRange);
-      if (seriesDataList.isEmpty()) {
-        return series;
-      }
-      for (SeriesData<CpuProfilerStage.ThreadState> data : seriesDataList) {
+      List<SeriesData<T>> seriesDataList = mySeriesData.get(seriesRange);
+      for (SeriesData<T> data : seriesDataList) {
         if (data.x >= min && data.x < max) {
           series.add(data);
         }

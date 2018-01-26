@@ -21,11 +21,13 @@ import org.junit.Test
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class AtraceThreadStateDataSeriesTest {
+import com.google.common.truth.Truth.assertThat
+
+class AtraceDataSeriesTest {
 
   @Test
   fun testCaptureDataAvailable() {
-    val series = AtraceThreadStateDataSeries()
+    val series = AtraceDataSeries<CpuProfilerStage.ThreadState>()
     val validRange = Range(1.0,100.0)
     assertThat(series.getOverlapRange(Range(0.0, 1.0))).isNull()
     series.addCaptureSeriesData(validRange, buildSeriesData(1, 100, 10))
@@ -44,7 +46,7 @@ class AtraceThreadStateDataSeriesTest {
 
   @Test
   fun testCaptureDataRange() {
-    val series = AtraceThreadStateDataSeries()
+    val series = AtraceDataSeries<CpuProfilerStage.ThreadState>()
     val validRange = Range(TimeUnit.MILLISECONDS.toMicros(1).toDouble(),TimeUnit.MILLISECONDS.toMicros(100).toDouble())
     series.addCaptureSeriesData(validRange, buildSeriesData(1, 100, 10))
     // Test get exact data.
