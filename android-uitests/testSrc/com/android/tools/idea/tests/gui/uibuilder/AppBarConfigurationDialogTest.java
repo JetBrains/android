@@ -35,6 +35,7 @@ public class AppBarConfigurationDialogTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/72124019
   @Test
   public void testDependencyDialog() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication()
