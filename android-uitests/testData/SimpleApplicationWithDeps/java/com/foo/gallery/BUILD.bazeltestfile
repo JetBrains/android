@@ -1,0 +1,30 @@
+android_binary(
+    name = "gallery",
+    custom_package = "com.foo.gallery",
+    manifest = "AndroidManifest.xml",
+    resource_files = glob(["res/**"]),
+    deps = [":lib"],
+)
+
+# add deps to binary is necessary when we run an application
+# error message would pop up when you start up an application instead of syncing blaze
+android_library(
+    name = "lib",
+    exports = [
+        "//java/com/foo/gallery/activities",
+        "//java/com/foo/libs",
+    ],
+)
+
+package_group(
+    name = "apps_visibility",
+    packages = [
+        "//java/com/foo/gallery/...",
+    ],
+)
+
+filegroup(
+    name = "manifest_file",
+    srcs = ["AndroidManifest.xml"],
+    visibility = ["apps_visibility"],
+)

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Base.Highlight" parent="android:Theme.DeviceDefault">
+        <item name="android:textSize">30dp</item>
+        <item name="android:textColor">#FF0000</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="Base.Normal" parent="android:Theme.DeviceDefault">
+        <item name="android:textSize">15dp</item>
+        <item name="android:textColor">#C0C0C0</item>
+    </style>
+</resources>
