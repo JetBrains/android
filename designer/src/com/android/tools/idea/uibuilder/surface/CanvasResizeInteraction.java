@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.ResourceType;
@@ -136,8 +137,7 @@ public class CanvasResizeInteraction extends Interaction {
     assert resourceRepository != null;
 
     // TODO: namespaces
-    List<ResourceItem> layouts =
-      resourceRepository.getItems().get(null, ResourceType.LAYOUT).get(layoutName);
+    List<ResourceItem> layouts = resourceRepository.getResourceItems(ResourceNamespace.TODO, ResourceType.LAYOUT, layoutName);
     myFolderConfigurations =
       layouts.stream().map(ResourceItem::getConfiguration).sorted(Collections.reverseOrder()).collect(Collectors.toList());
 
