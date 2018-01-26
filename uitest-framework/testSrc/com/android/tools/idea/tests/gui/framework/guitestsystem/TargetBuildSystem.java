@@ -23,23 +23,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation is used by {@see BuildSystemMultiplexer} that runs a ui-test
- * multiple times with different build systems as specified.
+ * Represents the various build systems that can be used by apps run as part of UI tests.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
-public @interface RunWithBuildSystem {
-
-  /**
-   * Available build systems to test with.
-   */
+public @interface TargetBuildSystem {
   enum BuildSystem {
-    GRADLE, BAZEL
+    GRADLE(true),
+    BAZEL(false);
+
+    private final boolean myDefault;
+
+    BuildSystem(boolean isDefault) {
+      myDefault = isDefault;
+    }
+
+    public boolean isDefault() {
+      return myDefault;
+    }
   }
 
-  /**
-   * The default value is set to GRADLE to make sure tests are always annotated
-   * with at least one build system to run with.
-   */
-  @NotNull BuildSystem[] value() default {BuildSystem.GRADLE};
+  // List of build systems that can be used to run the annotated method
+  @NotNull BuildSystem[] value();
 }
