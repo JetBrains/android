@@ -103,8 +103,8 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
-  public GradlePropertyModel addMapValue(@NotNull String key) {
-    return myRealModel.addMapValue(key);
+  public GradlePropertyModel getMapValue(@NotNull String key) {
+    return myRealModel.getMapValue(key);
   }
 
   @Override

@@ -234,7 +234,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
-  public GradlePropertyModel addMapValue(@NotNull String key) {
+  public GradlePropertyModel getMapValue(@NotNull String key) {
     if (myValueType != MAP && myValueType != NONE) {
       throw new IllegalStateException("Can't add map value to type: " + myValueType + ". " +
                                       "Please call GradlePropertyModel#convertToMap before trying to add values");
