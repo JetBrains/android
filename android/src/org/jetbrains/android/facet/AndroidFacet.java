@@ -18,7 +18,6 @@ package org.jetbrains.android.facet;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.Facet;
@@ -143,7 +142,11 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myMainIdeaSourceSet;
   }
 
+  /**
+   * @deprecated Use {@link ResourceFolderManager#getInstance(AndroidFacet)}
+   */
   @NotNull
+  @Deprecated
   public ResourceFolderManager getResourceFolderManager() {
     return ResourceFolderManager.getInstance(this);
   }
@@ -155,9 +158,9 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   @Deprecated
   public List<VirtualFile> getAllResourceDirectories() {
-    return getResourceFolderManager().getFolders();
+    return ResourceFolderManager.getInstance(this).getFolders();
   }
-  
+
   @Override
   public void disposeFacet() {
     getConfiguration().disposeFacet();

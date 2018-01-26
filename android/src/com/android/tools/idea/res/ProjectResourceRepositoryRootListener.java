@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -82,7 +83,7 @@ public class ProjectResourceRepositoryRootListener {
         // GradleProjectAvailableListener will be called as soon as it is and do a proper sync
         return;
       }
-      facet.getResourceFolderManager().invalidate();
+      ResourceFolderManager.getInstance(facet).invalidate();
       ProjectResourceRepository projectResources = ProjectResourceRepository.findExistingInstance(facet);
       if (projectResources != null) {
         projectResources.updateRoots();

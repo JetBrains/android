@@ -40,6 +40,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagChild;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +66,7 @@ public class StringsWriteUtils {
         // That way, the Undo is always available from the translation editor
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
 
-        facet.getResourceFolderManager().getFolders().stream()
+        ResourceFolderManager.getInstance(facet).getFolders().stream()
           .map(directory -> directory.findChild(name))
           .filter(Objects::nonNull)
           .forEach(directory -> delete(directory, requestor));

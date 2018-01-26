@@ -90,7 +90,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
       return ResourceFolderRegistry.get(facet, primaryResourceDir);
     }
 
-    ResourceFolderManager folderManager = facet.getResourceFolderManager();
+    ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
     List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size() + 1);
     for (VirtualFile resourceDirectory : resourceDirectories) {
@@ -114,7 +114,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
     myFacet = facet;
 
     // Subscribe to update the roots when the resource folders change
-    myResourceFolderManager = myFacet.getResourceFolderManager();
+    myResourceFolderManager = ResourceFolderManager.getInstance(myFacet);
     myResourceFolderManager.addListener(myResourceFolderListener);
   }
 

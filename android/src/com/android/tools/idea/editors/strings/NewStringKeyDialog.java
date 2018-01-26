@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.ListCellRendererWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,7 +75,7 @@ public class NewStringKeyDialog extends DialogWrapper {
   }
 
   private void createUIComponents() {
-    myResourceFolderComboBox = new ComboBox<>(myFacet.getResourceFolderManager().getFolders().toArray(VirtualFile.EMPTY_ARRAY));
+    myResourceFolderComboBox = new ComboBox<>(ResourceFolderManager.getInstance(myFacet).getFolders().toArray(VirtualFile.EMPTY_ARRAY));
     myResourceFolderComboBox.setName("resourceFolderComboBox");
 
     myResourceFolderComboBox.setRenderer(new ListCellRendererWrapper<VirtualFile>() {

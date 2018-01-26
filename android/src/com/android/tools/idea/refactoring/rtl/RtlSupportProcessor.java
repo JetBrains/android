@@ -295,7 +295,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
         if (myProperties.generateV17resourcesOption) {
           // First get all the "res" directories
-          final List<VirtualFile> allRes = facet.getResourceFolderManager().getFolders();
+          final List<VirtualFile> allRes = ResourceFolderManager.getInstance(facet).getFolders();
 
           // Then, need to get all the "layout-XXX" sub directories
           final List<VirtualFile> allLayoutDir = new ArrayList<>();

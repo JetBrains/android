@@ -48,6 +48,7 @@ import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,7 +84,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
-          if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !facet.getResourceFolderManager().getFolders().isEmpty()) {
+          if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
             suitableModules.add(module);
           }
         }

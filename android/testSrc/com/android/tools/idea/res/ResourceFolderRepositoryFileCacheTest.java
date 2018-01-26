@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.picocontainer.MutablePicoContainer;
 
@@ -76,7 +77,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   }
 
   private VirtualFile getResourceDir() {
-    List<VirtualFile> resourceDirectories = myFacet.getResourceFolderManager().getFolders();
+    List<VirtualFile> resourceDirectories = ResourceFolderManager.getInstance(myFacet).getFolders();
     assertNotNull(resourceDirectories);
     assertSize(1, resourceDirectories);
     return resourceDirectories.get(0);
