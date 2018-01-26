@@ -97,11 +97,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
   }
 
-  public boolean isAppProject() {
-    int projectType = getConfiguration().getProjectType();
-    return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
-  }
-
   public void setProjectType(int type) {
     getProperties().PROJECT_TYPE = type;
   }
