@@ -199,6 +199,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       }, LinkedHashMap::new));
   }
 
+  @NotNull
+  public Map<String, GradleDslElement> getAllElements() {
+    return replayPropertyAdjustmentsOnto(myVariables);
+  }
+
   /**
    * Method to check whether a given property string is nested. A property counts as nested if it has move than one component
    * seperated dots ('.').

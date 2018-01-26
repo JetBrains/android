@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -23,10 +26,13 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Base class for the models representing block elements.
  */
-public abstract class GradleDslBlockModel {
+public abstract class GradleDslBlockModel implements GradleDslModel {
   protected GradlePropertiesDslElement myDslElement;
 
   protected GradleDslBlockModel(@NotNull GradlePropertiesDslElement dslElement) {
@@ -52,5 +58,12 @@ public abstract class GradleDslBlockModel {
       return new GradleNotNullValueImpl<>(propertyElement, intValue.toString());
     }
     return myDslElement.getLiteralProperty(propertyName, String.class);
+  }
+
+  @Override
+  @NotNull
+  public Map<String, GradlePropertyModel> getInScopeProperties() {
+    return myDslElement.getInScopeElements().entrySet().stream()
+      .collect(Collectors.toMap(e -> e.getKey(), e -> new GradlePropertyModelImpl(e.getValue())));
   }
 }
