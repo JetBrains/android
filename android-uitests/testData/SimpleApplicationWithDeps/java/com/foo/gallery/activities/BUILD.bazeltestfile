@@ -1,0 +1,12 @@
+package(default_visibility = ["//java/com/foo/gallery:apps_visibility"])
+
+android_library(
+    name = "activities",
+    srcs = glob(["*.java"]),
+    manifest = "//java/com/foo/gallery:manifest_file",
+    resource_files = glob(["res/**"]),
+    deps = [
+        "//java/com/foo/gallery/settings",
+        "//java/com/foo/libs",
+    ],
+)

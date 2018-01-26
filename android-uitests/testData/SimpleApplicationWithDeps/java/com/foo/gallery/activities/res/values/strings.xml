@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gallery_title">My Gallery</string>
+    <string name="gallery_activity_label">Gallery</string>
+    <string name="switch_label">High Light</string>
+    <string name="content_label">Your Picture</string>
+</resources>
