@@ -73,7 +73,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void appTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_APP);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_APP);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
@@ -82,7 +82,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void instantTypePresentationShouldBeDisabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_INSTANTAPP);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_INSTANTAPP);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
@@ -91,7 +91,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void libraryTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_LIBRARY);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
@@ -100,7 +100,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void testTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_TEST);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_TEST);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
@@ -109,7 +109,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void featureTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_FEATURE);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_FEATURE);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 

@@ -128,7 +128,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myAdditionalModules.add(additionalModule);
       AndroidFacet facet = addAndroidFacet(additionalModule);
       removeFacetOn(myFixture.getProjectDisposable(), facet);
-      facet.setProjectType(data.myProjectType);
+      facet.getConfiguration().setProjectType(data.myProjectType);
       String rootPath = getAdditionalModulePath(data.myDirName);
       myFixture.copyDirectoryToProject(getResDir(), rootPath + "/res");
       myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);

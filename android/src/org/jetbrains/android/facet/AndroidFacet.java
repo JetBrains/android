@@ -97,10 +97,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return !getProperties().ALLOW_USER_CONFIGURATION && ApkFacet.getInstance(getModule()) == null;
   }
 
-  public void setProjectType(int type) {
-    getProperties().PROJECT_TYPE = type;
-  }
-
   /**
    * Returns the main source provider for the project. For projects that are not backed by an {@link AndroidProject}, this method returns a
    * {@link SourceProvider} wrapper which provides information about the old project.

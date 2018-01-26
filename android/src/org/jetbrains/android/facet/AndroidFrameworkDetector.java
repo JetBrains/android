@@ -123,12 +123,12 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     // Left here for compatibility with loading older projects
     Pair<String, VirtualFile> androidLibraryProperty = getProjectPropertyValue(module, ANDROID_LIBRARY_PROPERTY);
     if (androidLibraryProperty != null && getFirstAsBoolean(androidLibraryProperty)) {
-      facet.setProjectType(PROJECT_TYPE_LIBRARY);
+      facet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
     }
 
     Pair<String, VirtualFile> androidProjectTypeProperty = getProjectPropertyValue(module, ANDROID_PROJECT_TYPE_PROPERTY);
     if (androidProjectTypeProperty != null) {
-      facet.setProjectType(Integer.parseInt(androidProjectTypeProperty.getFirst()));
+      facet.getConfiguration().setProjectType(Integer.parseInt(androidProjectTypeProperty.getFirst()));
     }
 
     if (facet.getConfiguration().isAppProject()) {

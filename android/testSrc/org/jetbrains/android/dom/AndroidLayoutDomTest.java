@@ -441,7 +441,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testCustomAttributeNameCompletion5() throws Throwable {
-    myFacet.setProjectType(PROJECT_TYPE_LIBRARY);
+    myFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     toTestCompletion("can5.xml", "can5_after.xml");
   }

@@ -373,7 +373,7 @@ public class AndroidUtils {
       AndroidFacetConfiguration configuration = facet.getConfiguration();
       configuration.init(module, contentRoot);
       if (library) {
-        facet.setProjectType(PROJECT_TYPE_LIBRARY);
+        facet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
       }
       model.addFacet(facet);
     }
