@@ -192,7 +192,6 @@ public class NewInstantAppTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test // b/68122671
   public void addMapActivityToExistingIappModule() throws Exception {
     createAndOpenDefaultAIAProject("BuildApp", "feature", null);
