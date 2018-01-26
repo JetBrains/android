@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,9 +25,10 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 
 /**
  * Provide Gradle specific abstraction over a {@link PsiElement}.
@@ -217,4 +219,45 @@ public abstract class GradleDslElement {
   }
 
   protected abstract void reset();
+
+  /**
+   * Computes a list of properties and variables that are visible from this GradleDslElement.
+   */
+  public Map<String, GradleDslElement> getInScopeElements() {
+    Map<String, GradleDslElement> results = new LinkedHashMap<>();
+
+    if (this instanceof GradlePropertiesDslElement) {
+      GradlePropertiesDslElement thisElement = (GradlePropertiesDslElement)this;
+      results.putAll(thisElement.getVariableElements());
+    }
+
+    // Trace parents finding any variable elements present.
+    GradleDslElement currentElement = this;
+    while (currentElement != null && currentElement.getParent() != null) {
+      currentElement = currentElement.getParent();
+      if (currentElement instanceof GradlePropertiesDslElement) {
+        GradlePropertiesDslElement element = (GradlePropertiesDslElement)currentElement;
+        results.putAll(element.getVariableElements());
+      }
+    }
+
+    // Get Ext properties from the GradleDslFile.
+    if (currentElement instanceof GradleDslFile) {
+      GradleDslFile file = (GradleDslFile)currentElement;
+      while (file != null) {
+        ExtDslElement ext = file.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
+        if (ext != null) {
+          results.putAll(ext.getPropertyElements());
+        }
+        // Add properties file properties if it exists.
+        GradleDslFile propertiesFile = file.getSiblingDslFile();
+        if (propertiesFile != null) {
+          results.putAll(propertiesFile.getPropertyElements());
+        }
+        file = file.getParentModuleDslFile();
+      }
+    }
+
+    return results;
+  }
 }

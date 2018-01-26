@@ -25,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE;
@@ -57,6 +59,16 @@ public final class GradlePropertiesFile extends GradleDslFile {
     GradlePropertyElement propertyElement = new GradlePropertyElement(this, property);
     propertyElement.setValue(value);
     return propertyElement;
+  }
+
+  @Override
+  @NotNull
+  public Map<String, GradleDslElement> getPropertyElements() {
+    Map<String, GradleDslElement> results = new HashMap<>();
+    for (String name : myProperties.stringPropertyNames()) {
+      results.put(name, getPropertyElement(name));
+    }
+    return results;
   }
 
   @Override

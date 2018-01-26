@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface FlavorTypeModel {
+public interface FlavorTypeModel extends GradleDslModel {
   @NotNull
   String name();
 

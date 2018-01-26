@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface ExtModel {
+public interface ExtModel extends GradleDslModel {
   /**
    * Returns a {@link GradlePropertyModel} representing the property with a given {@code name} on the
    * Gradle ExtraPropertiesExtension. The returned {@link GradlePropertyModel} will have a {@link ValueType} of NONE if the

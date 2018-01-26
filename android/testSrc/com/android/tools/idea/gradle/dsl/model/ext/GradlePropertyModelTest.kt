@@ -2668,6 +2668,103 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testOuterScopeVariablesResolved() {
+    val text = """
+               def max_version = 15
+               android {
+                 def min_version = 12
+                 defaultConfig {
+                   minSdkVersion min_version
+                   targetSdkVersion max_version
+                 }
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val defaultConfig = buildModel.android()!!.defaultConfig()
+      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 12, INTEGER, DERIVED, 1)
+      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 15, INTEGER, DERIVED, 1)
+
+      // Check that we can edit them.
+      defaultConfig.minSdkVersion().resultModel.setValue(18)
+      defaultConfig.targetSdkVersion().resultModel.setValue(21)
+
+      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 18, INTEGER, DERIVED, 1)
+      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 21, INTEGER, DERIVED, 1)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val defaultConfig = buildModel.android()!!.defaultConfig()
+      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 18, INTEGER, DERIVED, 1)
+      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 21, INTEGER, DERIVED, 1)
+    }
+  }
+
+  fun testInScopeElement() {
+    val parentText = """
+                     def var1 = "aardwolf" // No
+                     ext {
+                       def var2 = "zorro" // No
+                       prop1 = "baboon" // Yes
+                     }""".trimIndent()
+    val childText = """
+                    ext {
+                      def var6 = "swan" // No
+                      prop2 = "kite" // Yes
+                    }
+                    def var3 = "goldeneye" // Yes
+                    android {
+                      def var4 = "wallaby" // Yes
+                      defaultConfig {
+                        def var5 = "curlew" // Yes
+                        targetSdkVersion 14 // No
+                        minSdkVersion 12 // No
+                      }
+                    }""".trimIndent()
+    val childProperties = "prop3 = chickadee"
+    val parentProperties = "prop4 = ferret"
+    writeToBuildFile(parentText)
+    writeToSubModuleBuildFile(childText)
+    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToPropertiesFile(parentProperties)
+    writeToSubModulePropertiesFile(childProperties)
+
+    val buildModel = subModuleGradleBuildModel
+
+    run {
+      val defaultConfig = buildModel.android()!!.defaultConfig()
+      val properties = defaultConfig.inScopeProperties
+      assertEquals(7, properties.entries.size)
+
+      // Check all the properties that we expect are present.
+      verifyPropertyModel(properties["var3"], STRING_TYPE, "goldeneye", STRING, VARIABLE, 0)
+      verifyPropertyModel(properties["var4"], STRING_TYPE, "wallaby", STRING, VARIABLE, 0)
+      verifyPropertyModel(properties["var5"], STRING_TYPE, "curlew", STRING, VARIABLE, 0)
+      verifyPropertyModel(properties["prop1"], STRING_TYPE, "baboon", STRING, REGULAR, 0)
+      verifyPropertyModel(properties["prop2"], STRING_TYPE, "kite", STRING, REGULAR, 0)
+      verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
+    }
+
+    run {
+      val properties = buildModel.ext().inScopeProperties
+      assertEquals(6, properties.entries.size)
+      verifyPropertyModel(properties["prop1"], STRING_TYPE, "baboon", STRING, REGULAR, 0)
+      verifyPropertyModel(properties["prop2"], STRING_TYPE, "kite", STRING, REGULAR, 0)
+      verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["var6"], STRING_TYPE, "swan", STRING, VARIABLE, 0)
+      // TODO: Should not be visible, this needs line number support to correctly hide itself.
+      verifyPropertyModel(properties["var3"], STRING_TYPE, "goldeneye", STRING, VARIABLE, 0)
+
+    }
+  }
+
+
   private fun runSetPropertyTest(text: String, type: PropertyType) {
     writeToBuildFile(text)
 

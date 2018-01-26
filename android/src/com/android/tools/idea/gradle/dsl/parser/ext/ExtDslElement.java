@@ -17,9 +17,12 @@ package com.android.tools.idea.gradle.dsl.parser.ext;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 /**
  * Represents the extra user-defined properties defined in the Gradle file.
@@ -54,5 +57,21 @@ public final class ExtDslElement extends GradleDslBlockElement {
     GradleDslElement newElement = super.setNewElement(property, element);
     newElement.setUseAssignment(true);
     return newElement;
+  }
+
+  /**
+   * For the ExtModel we need to also include properties that are already defined in the block,
+   * rather than just variables.
+   */
+  @Override
+  @NotNull
+  public Map<String, GradleDslElement> getInScopeElements() {
+    if (myParent == null) {
+      return ImmutableMap.of();
+    }
+    Map<String, GradleDslElement> parentResults = myParent.getInScopeElements();
+    // Add my properties as well.
+    parentResults.putAll(getAllElements());
+    return parentResults;
   }
 }
