@@ -50,7 +50,7 @@ public class ProfilerColors {
    * Represents pair of colors of non-selected and selected states of a thread.
    * The first color is for a non-selected thread, the second one is for a selected thread.
    */
-  public static final EnumColors<CpuProfilerStage.ThreadState> THREAD_STATES = new EnumColors.Builder<CpuProfilerStage.ThreadState>(2)
+  public static final EnumColors.Builder<CpuProfilerStage.ThreadState> THREAD_STATES = new EnumColors.Builder<CpuProfilerStage.ThreadState>(2)
     .add(CpuProfilerStage.ThreadState.RUNNING,
          CPU_USAGE,
          new JBColor(0x57D9B2, 0x387358))
@@ -84,8 +84,7 @@ public class ProfilerColors {
     // TODO: remove UNKNOWN mapping when all states are covered.
     .add(CpuProfilerStage.ThreadState.UNKNOWN,
          new JBColor(0xC1D6F6, 0x5A6E7D),
-         new JBColor(0xC1D6F6, 0x5A6E7D))
-    .build();
+         new JBColor(0xC1D6F6, 0x5A6E7D));
 
   public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
 

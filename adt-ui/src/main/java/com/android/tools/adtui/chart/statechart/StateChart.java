@@ -19,7 +19,6 @@ package com.android.tools.adtui.chart.statechart;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.MouseAdapterComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
@@ -31,11 +30,12 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * A chart component that renders series of state change events as rectangles.
  */
-public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
+public class StateChart<T> extends MouseAdapterComponent<Long> {
 
   public enum RenderMode {
     BAR,  // Each state is rendered as a filled rectangle until the next state changed.
@@ -44,46 +44,52 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
 
   private static final int TEXT_PADDING = 3;
 
-  private StateChartModel<E> myModel;
+  private StateChartModel<T> myModel;
+
+  /**
+   * A function that maps between a type T, and a color to be used in the StateChart, all values of T should return a valid color.
+   */
+  @NotNull
+  private Function<T, Color> myColorMapper;
+
+  private float myHeightGap;
 
   @NotNull
-  private EnumColors<E> mColors;
-
-  private float mHeightGap;
+  private final HashMap<Rectangle2D.Float, T> myValues;
 
   @NotNull
-  private final HashMap<Rectangle2D.Float, E> mValues;
+  private RenderMode myRenderMode;
 
   @NotNull
-  private RenderMode mRenderMode;
-
-  @NotNull
-  private StateChartConfig<E> myConfig;
+  private StateChartConfig<T> myConfig;
 
   private boolean myRender;
 
   /**
    * @param colors map of a state to corresponding color
    */
-  public StateChart(@NotNull StateChartModel<E> model, @NotNull Map<E, Color> colors) {
-    this(model, new EnumColors<>(colors));
+  @VisibleForTesting
+  public StateChart(@NotNull StateChartModel<T> model, @NotNull Map<T, Color> colors) {
+    this(model, colors::get);
   }
 
-  public StateChart(@NotNull StateChartModel<E> model, @NotNull EnumColors<E> enumColors) {
-    this(model, enumColors, new StateChartConfig(new DefaultStateChartReducer<>()));
+  public StateChart(@NotNull StateChartModel<T> model, @NotNull Function<T, Color> colorMapping) {
+    this(model, new StateChartConfig<>(new DefaultStateChartReducer<>()), colorMapping);
   }
 
   @VisibleForTesting
-  public StateChart(@NotNull StateChartModel<E> model, @NotNull Map<E, Color> colors, @NotNull StateChartConfig<E> config) {
-    this(model, new EnumColors<>(colors), config);
+  public StateChart(@NotNull StateChartModel<T> model, @NotNull Map<T, Color> colors, @NotNull StateChartConfig<T> config) {
+    this(model, config, (val) -> colors.get(val));
   }
 
   @VisibleForTesting
-  public StateChart(@NotNull StateChartModel<E> model, @NotNull EnumColors<E> enumColors, @NotNull StateChartConfig<E> config) {
+  public StateChart(@NotNull StateChartModel<T> model,
+                    @NotNull StateChartConfig<T> config,
+                    @NotNull Function<T, Color> colorMapping) {
     super(config.getRectangleHeightRatio(), config.getRectangleMouseOverHeightRatio());
-    mColors = enumColors;
-    mValues = new HashMap<>();
-    mRenderMode = RenderMode.BAR;
+    myColorMapper = colorMapping;
+    myValues = new HashMap<>();
+    myRenderMode = RenderMode.BAR;
     myConfig = config;
     myRender = true;
     setFont(AdtUiUtils.DEFAULT_FONT);
@@ -91,7 +97,7 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
     setHeightGap(myConfig.getHeightGap());
   }
 
-  public void setModel(@NotNull StateChartModel<E> model) {
+  public void setModel(@NotNull StateChartModel<T> model) {
     if (myModel != null) {
       myModel.removeDependencies(myAspectObserver);
     }
@@ -105,8 +111,8 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
     opaqueRepaint();
   }
 
-  public void setRenderMode(RenderMode mode) {
-    mRenderMode = mode;
+  public void setRenderMode(@NotNull RenderMode mode) {
+    myRenderMode = mode;
   }
 
   /**
@@ -115,18 +121,18 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
    * @param gap The gap value as a percentage {0...1} of the height given to each data series
    */
   public void setHeightGap(float gap) {
-    mHeightGap = gap;
+    myHeightGap = gap;
   }
 
   @NotNull
-  public EnumColors<E> getColors() {
-    return mColors;
+  public Color getColor(T value) {
+    return myColorMapper.apply(value);
   }
 
   protected void render() {
     long renderTime = System.nanoTime();
 
-    List<RangedSeries<E>> series = myModel.getSeries();
+    List<RangedSeries<T>> series = myModel.getSeries();
     int seriesSize = series.size();
     if (seriesSize == 0) {
       return;
@@ -134,24 +140,24 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
 
     // TODO support adding series on the fly and interpolation.
     float height = 1f / seriesSize;
-    float gap = height * mHeightGap;
+    float gap = height * myHeightGap;
     setHeightFactor(height);
-    mValues.clear();
+    myValues.clear();
 
     int seriesIndex = 0;
     long rectCount = 0;
     Set<Long> pastRectangleKeys = getRectangleKeys();
-    for (RangedSeries<E> data : series) {
+    for (RangedSeries<T> data : series) {
       double min = data.getXRange().getMin();
       double max = data.getXRange().getMax();
       float startHeight = 1 - (height * (seriesIndex + 1));
 
       // Construct rectangles.
       long previousX = -1;
-      E previousValue = null;
-      for (SeriesData<E> seriesData : data.getSeries()) {
+      T previousValue = null;
+      for (SeriesData<T> seriesData : data.getSeries()) {
         long x = seriesData.x;
-        E value = seriesData.value;
+        T value = seriesData.value;
 
         if (value.equals(previousValue)) {
           // Ignore repeated values
@@ -169,7 +175,7 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
                                                     startHeight + gap * 0.5f,
                                                     gap);
           pastRectangleKeys.remove(rectCount);
-          mValues.put(rect, previousValue);
+          myValues.put(rect, previousValue);
           rectCount++;
         }
 
@@ -192,14 +198,14 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
                                                   startHeight + gap * 0.5f,
                                                   gap);
         pastRectangleKeys.remove(rectCount);
-        mValues.put(rect, previousValue);
+        myValues.put(rect, previousValue);
         rectCount++;
       }
       seriesIndex++;
     }
 
     for (Long key : pastRectangleKeys) {
-      mValues.remove(getRectangle(key));
+      myValues.remove(getRectangle(key));
       removeRectangle(key);
     }
 
@@ -217,24 +223,24 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
     g2d.setFont(getFont());
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    assert getRectangleCount() == mValues.size();
+    assert getRectangleCount() == myValues.size();
 
     List<Shape> transformedShapes = new ArrayList<>(getRectangleCount());
-    List<E> transformedValues = new ArrayList<>(getRectangleCount());
+    List<T> transformedValues = new ArrayList<>(getRectangleCount());
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
     for (Long key : getRectangleKeys()) {
       transformedShapes.add(scale.createTransformedShape(getRectangle(key)));
-      transformedValues.add(mValues.get(getRectangle(key)));
+      transformedValues.add(myValues.get(getRectangle(key)));
     }
     myConfig.getReducer().reduce(transformedShapes, transformedValues);
     assert transformedShapes.size() == transformedValues.size();
 
     for (int i = 0; i < transformedShapes.size(); i++) {
       Shape shape = transformedShapes.get(i);
-      E value = transformedValues.get(i);
-      g2d.setColor(mColors.getColor(value));
+      T value = transformedValues.get(i);
+      g2d.setColor(getColor(value));
 
-      switch (mRenderMode) {
+      switch (myRenderMode) {
         case BAR:
           g2d.fill(shape);
           break;

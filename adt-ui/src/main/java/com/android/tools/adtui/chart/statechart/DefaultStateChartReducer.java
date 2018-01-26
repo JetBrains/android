@@ -27,14 +27,14 @@ import java.util.Map;
  * Implementation of {@link StateChartReducer} which combines all rectangles that are strictly inside a pixel into one rectangle
  * and as a value of the combined rectangle will be taken most occurred value (i.e with the biggest total width).
  */
-public class DefaultStateChartReducer<E extends Enum<E> > implements StateChartReducer<E> {
+public class DefaultStateChartReducer<T> implements StateChartReducer<T> {
   @Override
   public void reduce(@NotNull List<Shape> rectangles,
-                     @NotNull List<E> values) {
+                     @NotNull List<T> values) {
     int index = 0, keepIndex = 0;
     while (index < rectangles.size()) {
       Shape shape = rectangles.get(index);
-      E value = values.get(index);
+      T value = values.get(index);
       Rectangle2D bounds = shape.getBounds2D();
 
       // Crossing several pixels, let's just keep it
@@ -49,7 +49,7 @@ public class DefaultStateChartReducer<E extends Enum<E> > implements StateChartR
 
       int pixel = (int)(Math.floor(bounds.getMaxX()));
 
-      Map<E, Float> occurrenceWidth = new HashMap<>();
+      Map<T, Float> occurrenceWidth = new HashMap<>();
       float minX = (float)bounds.getMinX(), maxX = Float.MIN_VALUE;
       float minY = (float)bounds.getMinY(), maxY = (float)bounds.getMaxY();
 
@@ -69,9 +69,9 @@ public class DefaultStateChartReducer<E extends Enum<E> > implements StateChartR
         ++index;
       }
 
-      E mostOccurred = null;
+      T mostOccurred = null;
       float mostOccurredWidth = -1;
-      for (Map.Entry<E, Float> entry: occurrenceWidth.entrySet()) {
+      for (Map.Entry<T, Float> entry: occurrenceWidth.entrySet()) {
         if (entry.getValue() > mostOccurredWidth) {
           mostOccurredWidth = entry.getValue().floatValue();
           mostOccurred = entry.getKey();

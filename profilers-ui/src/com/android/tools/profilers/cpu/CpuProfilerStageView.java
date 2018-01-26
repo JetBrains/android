@@ -22,6 +22,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -635,6 +636,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
      */
     private final UpdatableManager myUpdatableManager;
 
+    /**
+     * Maps a {@link StateChart} to a {@link EnumColors} helper class to return the proper color object for the {@link StateChart}
+     */
+    @NotNull
+    private final Map<StateChart<CpuProfilerStage.ThreadState>, EnumColors<CpuProfilerStage.ThreadState>> myColors;
+
     public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, UpdatableManager updatableManager) {
       myLabel = new JLabel();
       myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
@@ -644,6 +651,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myLabel.setOpaque(true);
       myUpdatableManager = updatableManager;
       myStateCharts = new HashMap<>();
+      myColors = new HashMap<>();
       list.addMouseMotionListener(new MouseAdapter() {
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -679,10 +687,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myUpdatableManager.unregister(myStateCharts.get(tid).getModel());
       }
       StateChart<CpuProfilerStage.ThreadState> stateChart = getOrCreateStateChart(tid, model);
+      stateChart.setOpaque(true);
       // 1 is index of the selected color, 0 is of the non-selected
       // See more: {@link ProfilerColors#THREAD_STATES}
-      stateChart.getColors().setColorIndex(isSelected ? 1 : 0);
-      stateChart.setOpaque(true);
+      myColors.get(stateChart).setColorIndex(isSelected ? 1 : 0);
 
       if (isSelected) {
         // Cell is selected. Update its background accordingly.
@@ -714,10 +722,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         return myStateCharts.get(tid).getChart();
       }
       // The state chart corresponding to the thread is not stored on the map. Create a new one.
-      StateChart<CpuProfilerStage.ThreadState> stateChart = new StateChart<>(model, ProfilerColors.THREAD_STATES);
+      EnumColors<CpuProfilerStage.ThreadState> enumColors = ProfilerColors.THREAD_STATES.build();
+      StateChart<CpuProfilerStage.ThreadState> stateChart = new StateChart<>(model, enumColors::getColor);
       StateChartData data = new StateChartData(stateChart, model);
       stateChart.setHeightGap(0.40f);
       myStateCharts.put(tid, data);
+      myColors.put(stateChart, enumColors);
       myUpdatableManager.register(model);
       return stateChart;
     }
