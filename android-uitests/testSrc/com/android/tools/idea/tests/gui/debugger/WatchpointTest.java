@@ -54,7 +54,7 @@ public class WatchpointTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70629290
+  @RunIn(TestGroup.QA)
   public void testWatchpoint() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("WatchpointTestAppForUI");
 
