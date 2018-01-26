@@ -174,7 +174,6 @@ public final class LinearLayoutTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)
   public void changeOrientation() throws IOException {
     // @formatter:off
     String layout = new XmlBuilder()
