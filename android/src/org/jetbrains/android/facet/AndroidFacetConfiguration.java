@@ -198,4 +198,8 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public int getProjectType() {
     return getState().PROJECT_TYPE;
   }
+
+  public void setProjectType(int type) {
+    getState().PROJECT_TYPE = type;
+  }
 }

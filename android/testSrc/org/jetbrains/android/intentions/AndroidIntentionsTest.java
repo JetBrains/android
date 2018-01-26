@@ -16,21 +16,21 @@ public class AndroidIntentionsTest extends AndroidTestCase {
   private static final String BASE_PATH = "intentions/";
 
   public void testSwitchOnResourceId() {
-    myFacet.setProjectType(PROJECT_TYPE_LIBRARY);
+    myFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
     myFixture.copyFileToProject(BASE_PATH + "R.java", "src/p1/p2/R.java");
     final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
     doTest(inspection, true, inspection.getQuickFixName());
   }
 
   public void testSwitchOnResourceId1() {
-    myFacet.setProjectType(PROJECT_TYPE_APP);
+    myFacet.getConfiguration().setProjectType(PROJECT_TYPE_APP);
     myFixture.copyFileToProject(BASE_PATH + "R.java", "src/p1/p2/R.java");
     final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
     doTest(inspection, false, inspection.getQuickFixName());
   }
 
   public void testSwitchOnResourceId2() {
-    myFacet.setProjectType(PROJECT_TYPE_LIBRARY);
+    myFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
     myFixture.copyFileToProject(BASE_PATH + "R.java", "src/p1/p2/R.java");
     final AndroidNonConstantResIdsInSwitchInspection inspection = new AndroidNonConstantResIdsInSwitchInspection();
     doTest(inspection, false, inspection.getQuickFixName());
