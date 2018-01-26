@@ -88,7 +88,7 @@
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.gradle" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
