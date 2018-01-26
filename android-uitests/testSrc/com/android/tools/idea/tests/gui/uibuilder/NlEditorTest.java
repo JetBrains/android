@@ -87,20 +87,74 @@ public class NlEditorTest {
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE, TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void basicLayoutEdit() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    NlEditorFixture editorFixture = guiTest.importSimpleLocalApplication()
       .getEditor()
-      // TODO: once cr/181207315 is submitted, reformat Bazel files so that the "../SimpleLocalApplication/" isn't necessary.
+      // TODO: once cr/181207315 is submitted, reformat Bazel files so that the leading "../" isn't necessary. Here and rest of file.
       .open("../SimpleLocalApplication/app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .waitForRenderToFinish()
-      .dragComponentToSurface("Text", "TextView")
+      .waitForSurfaceToLoad();
+
+    assertThat(editorFixture.canInteractWithSurface()).isTrue();
+
+    editorFixture.dragComponentToSurface("Text", "TextView")
       .dragComponentToSurface("Buttons", "Button");
+
     String layoutFileContents = guiTest.ideFrame()
       .getEditor()
       .open("../SimpleLocalApplication/app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
     assertThat(layoutFileContents).contains("<TextView");
     assertThat(layoutFileContents).contains("<Button");
+  }
+
+  @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
+  @Test
+  public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
+    // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
+    guiTest.importSimpleLocalApplication()
+      .getEditor()
+      .open("../SimpleLocalApplication/app/BUILD")
+      .moveBetween("deps = [", "")
+      .enterText("\n\":bogus_dependency\",")
+      .close();
+
+    guiTest.testSystem().requestProjectSync(guiTest.ideFrame());
+
+    // Open design editor while sync is in progress. We should see a loading panel
+    // while the sync is taking place. Then, once the sync fails, the loading
+    // animation should be replaced with an error message.
+    NlEditorFixture editorFixture = guiTest.ideFrame().getEditor()
+      .open("../SimpleLocalApplication/app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(false)
+      .waitForSurfaceToLoad();
+
+    // The design editor should be unavailable because the in-progress sync failed.
+    assertThat(editorFixture.canInteractWithSurface()).isFalse();
+  }
+
+  @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
+  @Test
+  public void designEditorUnavailableIfLastBazelSyncFailed() throws Exception {
+    // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
+    guiTest.importSimpleLocalApplication()
+      .getEditor()
+      .open("../SimpleLocalApplication/app/BUILD")
+      .moveBetween("deps = [", "")
+      .enterText("\n\":bogus_dependency\",")
+      .close();
+
+    guiTest.testSystem()
+      .requestProjectSync(guiTest.ideFrame())
+      .waitForProjectSyncToFinish(guiTest.ideFrame());
+
+    // After the failing sync, open the design editor.
+    NlEditorFixture editorFixture = guiTest.ideFrame().getEditor()
+      .open("../SimpleLocalApplication/app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(false)
+      .waitForSurfaceToLoad();
+
+    // The design editor should be unavailable because the last sync failed.
+    assertThat(editorFixture.canInteractWithSurface()).isFalse();
   }
 
   @Test

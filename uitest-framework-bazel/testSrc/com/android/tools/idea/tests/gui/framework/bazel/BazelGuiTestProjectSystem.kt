@@ -72,6 +72,11 @@ android_sdk_repository(
         .clickFinish()
   }
 
+  override fun requestProjectSync(ideFrameFixture: IdeFrameFixture): GuiTestProjectSystem {
+    ideFrameFixture.invokeMenuPath("Bazel", "Sync", "Sync Project with BUILD Files")
+    return this
+  }
+
   override fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture) {
     // For bazel projects all we need to wait for are all background tasks to finish, as the bazel
     // sync is a part of the background tasks.

@@ -27,6 +27,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -57,6 +58,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
   private NlPaletteFixture myPaletteFixture;
+  private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
   private final ComponentDragAndDrop myDragAndDrop;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
@@ -72,6 +74,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
       throw new RuntimeException("Unsupported DesignSurface type " + surface.getClass().getName());
     }
     myDragAndDrop = new ComponentDragAndDrop(robot);
+
+    myLoadingPanelFixture = new WorkBenchLoadingPanelFixture(robot, target().getWorkBench().getLoadingPanel());
   }
 
   @NotNull
@@ -83,7 +87,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   @NotNull
   public NlEditorFixture waitForRenderToFinish(@NotNull Wait wait) {
     myDesignSurfaceFixture.waitForRenderToFinish(wait);
-    wait.expecting("WorkBench is showing").until(() -> !target().getWorkBench().isLoading());
+    wait.expecting("WorkBench is showing").until(() -> !myLoadingPanelFixture.isLoading());
     // Fade out of the loading panel takes 500ms
     Pause.pause(1000);
     return this;
@@ -101,6 +105,33 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public double getScale() {
     return myDesignSurfaceFixture.getScale();
+  }
+
+  /**
+   * Waits for the design tab of the layout editor to either load (waiting for sync and indexing
+   * to complete if necessary) or display an error message. Callers can check whether or not the
+   * design editor is usable after this method completes by calling canInteractWithSurface().
+   *
+   * @see #canInteractWithSurface()
+   */
+  @NotNull
+  public NlEditorFixture waitForSurfaceToLoad() {
+    // A long timeout is necessary in case the IDE needs to perform indexing (since the design surface will not render
+    // until sync and indexing are finished). We can't simply wait for background tasks to complete before calling
+    // this method because there might be a delay between the sync and indexing steps that causes the wait to finish prematurely.
+    Wait.seconds(90).expecting("Design surface finished loading").until(() -> {
+      if (myLoadingPanelFixture.hasError()) {
+        return true;
+      }
+
+      return myDesignSurfaceFixture.target().isShowing();
+    });
+
+    return this;
+  }
+
+  public boolean canInteractWithSurface() {
+    return !myLoadingPanelFixture.hasError() && myDesignSurfaceFixture.target().isShowing();
   }
 
   public boolean hasRenderErrors() {

@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.testing.Modules;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
@@ -378,13 +379,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public IdeFrameFixture requestProjectSync(@Nullable Wait wait) {
     myGradleProjectEventListener.reset();
 
-    waitForGradleSyncAction(wait);
+    waitForSyncAction(wait);
     invokeMenuPath("File", "Sync Project with Gradle Files");
 
     return this;
   }
 
-  private void waitForGradleSyncAction(@Nullable Wait wait) {
+  private void waitForSyncAction(@Nullable Wait wait) {
     GuiTests.waitForBackgroundTasks(robot(), wait);
   }
 
@@ -462,7 +463,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return syncFinished;
       });
 
-    waitForGradleSyncAction(null);
+    waitForSyncAction(null);
 
     if (myGradleProjectEventListener.hasSyncError()) {
       RuntimeException syncError = myGradleProjectEventListener.getSyncError();
