@@ -84,7 +84,7 @@ public final class ConnectionsStateChart {
       series.add(data.getEndTimeUs(), NetworkState.NONE);
     }
     StateChartModel<NetworkState> stateModel = new StateChartModel<>();
-    StateChart<NetworkState> chart = new StateChart<>(stateModel, myColors);
+    StateChart<NetworkState> chart = new StateChart<>(stateModel, myColors::getColor);
     stateModel.addSeries(new RangedSeries<>(range, series));
     return chart;
   }
