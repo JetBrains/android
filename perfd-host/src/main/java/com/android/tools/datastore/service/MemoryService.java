@@ -23,8 +23,10 @@ import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
+import com.android.tools.datastore.poller.NativeSymbolsPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -45,6 +47,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Map<Long, PollRunner> myJvmtiRunners = new HashMap<>();
+  private final Map<Long, PollRunner> mySymbolizationRunners = new HashMap<>();
   private final MemoryStatsTable myStatsTable;
   private final MemoryLiveAllocationTable myAllocationsTable;
   private final Consumer<Runnable> myFetchExecutor;
@@ -68,6 +71,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       long sessionId = session.getSessionId();
       myJvmtiRunners.put(sessionId, new MemoryJvmtiDataPoller(session, myAllocationsTable, client));
       myRunners.put(sessionId, new MemoryDataPoller(session, myStatsTable, client, myFetchExecutor));
+      mySymbolizationRunners.put(sessionId, new NativeSymbolsPoller(session, myAllocationsTable));
+      myFetchExecutor.accept(mySymbolizationRunners.get(sessionId));
       myFetchExecutor.accept(myJvmtiRunners.get(sessionId));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }
@@ -85,6 +90,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       runner.stop();
     }
     runner = myJvmtiRunners.remove(sessionId);
+    if (runner != null) {
+      runner.stop();
+    }
+    runner = mySymbolizationRunners.remove(sessionId);
     if (runner != null) {
       runner.stop();
     }
@@ -282,6 +291,14 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     }
 
     responseObserver.onNext(result);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void resolveNativeBacktrace(ResolveNativeBacktraceRequest request,
+                                     StreamObserver<NativeCallStack> responseObserver) {
+    NativeCallStack callStack = myAllocationsTable.resolveNativeBacktrace(request.getSession(), request.getBacktrace());
+    responseObserver.onNext(callStack);
     responseObserver.onCompleted();
   }
 
