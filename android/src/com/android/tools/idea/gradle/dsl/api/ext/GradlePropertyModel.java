@@ -16,6 +16,7 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -195,4 +196,10 @@ public interface GradlePropertyModel {
    * @return a resolved model representing this property.
    */
   ResolvedPropertyModel resolve();
+
+  /**
+   * @return the {@link PsiElement} that this property originated from.
+   */
+  @Nullable
+  PsiElement getPsiElement();
 }

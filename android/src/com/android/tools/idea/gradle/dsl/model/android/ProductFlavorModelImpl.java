@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.ExternalNativeBuildOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.NdkOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.ExternalNativeBuildOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
@@ -27,16 +26,11 @@ import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalN
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Map;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_BLOCK_NAME;
 
-public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
-                                                                              ProductFlavorModel {
+public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements ProductFlavorModel {
   @NonNls private static final String APPLICATION_ID = "applicationId";
   @NonNls private static final String DIMENSION = "dimension";
   @NonNls private static final String MAX_SDK_VERSION = "maxSdkVersion";
@@ -114,29 +108,9 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> resConfigs() {
-    return myDslElement.getListProperty(RES_CONFIGS, String.class);
-  }
-
-  @Override
-  public void addResConfig(@NotNull String resConfig) {
-    myDslElement.addToNewLiteralList(RES_CONFIGS, resConfig);
-  }
-
-  @Override
-  public void removeResConfig(@NotNull String resConfig) {
-    myDslElement.removeFromExpressionList(RES_CONFIGS, resConfig);
-  }
-
-  @Override
-  public void removeAllResConfigs() {
-    myDslElement.removeProperty(RES_CONFIGS);
-  }
-
-  @Override
-  public void replaceResConfig(@NotNull String oldResConfig, @NotNull String newResConfig) {
-    myDslElement.replaceInExpressionList(RES_CONFIGS, oldResConfig, newResConfig);
+  @NotNull
+  public ResolvedPropertyModel resConfigs() {
+    return getModelForProperty(RES_CONFIGS);
   }
 
   @Override
@@ -170,24 +144,9 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  @Nullable
-  public Map<String, GradleNotNullValue<String>> testInstrumentationRunnerArguments() {
-    return myDslElement.getMapProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, String.class);
-  }
-
-  @Override
-  public void setTestInstrumentationRunnerArgument(@NotNull String name, @NotNull String value) {
-    myDslElement.setInNewLiteralMap(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name, value);
-  }
-
-  @Override
-  public void removeTestInstrumentationRunnerArgument(@NotNull String name) {
-    myDslElement.removeFromExpressionMap(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name);
-  }
-
-  @Override
-  public void removeAllTestInstrumentationRunnerArguments() {
-    myDslElement.removeProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
+  @NotNull
+  public ResolvedPropertyModel testInstrumentationRunnerArguments() {
+    return getModelForProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
   }
 
   @Override

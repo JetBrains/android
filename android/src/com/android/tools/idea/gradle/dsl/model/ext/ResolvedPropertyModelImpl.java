@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -130,6 +131,12 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @Override
   public ResolvedPropertyModel resolve() {
     return this;
+  }
+
+  @Nullable
+  @Override
+  public PsiElement getPsiElement() {
+    return myRealModel.getPsiElement();
   }
 
   @Override

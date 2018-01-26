@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
@@ -59,60 +58,14 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
   @Override
   @Nullable
-  public List<GradleNotNullValue<String>> consumerProguardFiles() {
-    return myDslElement.getListProperty(CONSUMER_PROGUARD_FILES, String.class);
-  }
-
-  @Override
-  public void addConsumerProguardFile(@NotNull String consumerProguardFile) {
-    myDslElement.addToNewLiteralList(CONSUMER_PROGUARD_FILES, consumerProguardFile);
-  }
-
-  @Override
-  public void removeConsumerProguardFile(@NotNull String consumerProguardFile) {
-    myDslElement.removeFromExpressionList(CONSUMER_PROGUARD_FILES, consumerProguardFile);
-  }
-
-  @Override
-  public void removeAllConsumerProguardFiles() {
-    myDslElement.removeProperty(CONSUMER_PROGUARD_FILES);
-  }
-
-  @Override
-  public void replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile,
-                                          @NotNull String newConsumerProguardFile) {
-    myDslElement.replaceInExpressionList(CONSUMER_PROGUARD_FILES, oldConsumerProguardFile, newConsumerProguardFile);
+  public ResolvedPropertyModel consumerProguardFiles() {
+    return getModelForProperty(CONSUMER_PROGUARD_FILES);
   }
 
   @Override
   @Nullable
-  public Map<String, GradleNotNullValue<Object>> manifestPlaceholders() {
-    return myDslElement.getMapProperty(MANIFEST_PLACEHOLDERS, Object.class);
-  }
-
-  @Override
-  public void setManifestPlaceholder(@NotNull String name, @NotNull String value) {
-    myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
-  }
-
-  @Override
-  public void setManifestPlaceholder(@NotNull String name, int value) {
-    myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
-  }
-
-  @Override
-  public void setManifestPlaceholder(@NotNull String name, boolean value) {
-    myDslElement.setInNewLiteralMap(MANIFEST_PLACEHOLDERS, name, value);
-  }
-
-  @Override
-  public void removeManifestPlaceholder(@NotNull String name) {
-    myDslElement.removeFromExpressionMap(MANIFEST_PLACEHOLDERS, name);
-  }
-
-  @Override
-  public void removeAllManifestPlaceholders() {
-    myDslElement.removeProperty(MANIFEST_PLACEHOLDERS);
+  public ResolvedPropertyModel manifestPlaceholders() {
+    return getModelForProperty(MANIFEST_PLACEHOLDERS);
   }
 
   @Override
@@ -123,28 +76,8 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
   @Override
   @Nullable
-  public List<GradleNotNullValue<String>> proguardFiles() {
-    return myDslElement.getListProperty(PROGUARD_FILES, String.class);
-  }
-
-  @Override
-  public void addProguardFile(@NotNull String proguardFile) {
-    myDslElement.addToNewLiteralList(PROGUARD_FILES, proguardFile);
-  }
-
-  @Override
-  public void removeProguardFile(@NotNull String proguardFile) {
-    myDslElement.removeFromExpressionList(PROGUARD_FILES, proguardFile);
-  }
-
-  @Override
-  public void removeAllProguardFiles() {
-    myDslElement.removeProperty(PROGUARD_FILES);
-  }
-
-  @Override
-  public void replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile) {
-    myDslElement.replaceInExpressionList(PROGUARD_FILES, oldProguardFile, newProguardFile);
+  public ResolvedPropertyModel proguardFiles() {
+    return getModelForProperty(PROGUARD_FILES, true);
   }
 
   @Nullable
@@ -346,10 +279,19 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
   @NotNull
   protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
+    return getModelForProperty(property, false);
+  }
+
+  @NotNull
+  protected ResolvedPropertyModel getModelForProperty(@NotNull String property, boolean isMethod) {
     GradleDslElement element = myDslElement.getPropertyElement(property);
-    return new ResolvedPropertyModelImpl(element == null
-                                         ? new GradlePropertyModelImpl(myDslElement, REGULAR, property)
-                                         : new GradlePropertyModelImpl(element));
+
+    GradlePropertyModelImpl model = element == null
+                                    ? new GradlePropertyModelImpl(myDslElement, REGULAR, property) : new GradlePropertyModelImpl(element);
+    if (isMethod) {
+      model.markAsMethodCall();
+    }
+    return new ResolvedPropertyModelImpl(model);
   }
 
   /**

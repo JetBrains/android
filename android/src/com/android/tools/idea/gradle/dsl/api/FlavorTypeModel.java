@@ -21,49 +21,22 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 public interface FlavorTypeModel {
   @NotNull
   String name();
 
   @Nullable
-  List<GradleNotNullValue<String>> consumerProguardFiles();
-
-  void addConsumerProguardFile(@NotNull String consumerProguardFile);
-
-  void removeConsumerProguardFile(@NotNull String consumerProguardFile);
-
-  void removeAllConsumerProguardFiles();
-
-  void replaceConsumerProguardFile(@NotNull String oldConsumerProguardFile, @NotNull String newConsumerProguardFile);
+  ResolvedPropertyModel consumerProguardFiles();
 
   @Nullable
-  Map<String, GradleNotNullValue<Object>> manifestPlaceholders();
-
-  void setManifestPlaceholder(@NotNull String name, @NotNull String value);
-
-  void setManifestPlaceholder(@NotNull String name, int value);
-
-  void setManifestPlaceholder(@NotNull String name, boolean value);
-
-  void removeManifestPlaceholder(@NotNull String name);
-
-  void removeAllManifestPlaceholders();
+  ResolvedPropertyModel manifestPlaceholders();
 
   @NotNull
   ResolvedPropertyModel multiDexEnabled();
 
   @Nullable
-  List<GradleNotNullValue<String>> proguardFiles();
-
-  void addProguardFile(@NotNull String proguardFile);
-
-  void removeProguardFile(@NotNull String proguardFile);
-
-  void removeAllProguardFiles();
-
-  void replaceProguardFile(@NotNull String oldProguardFile, @NotNull String newProguardFile);
+  ResolvedPropertyModel proguardFiles();
 
   @Nullable
   List<GradleNotNullValue<ResValue>> resValues();
