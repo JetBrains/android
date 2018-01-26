@@ -343,13 +343,13 @@ public class ResourceNotificationManager {
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts a re-render)
         ModuleResourceRepository.getOrCreateInstance(myFacet);
-        myFacet.getResourceFolderManager().addListener(this);
+        ResourceFolderManager.getInstance(myFacet).addListener(this);
       }
     }
 
     private void unregisterListeners() {
       if (myFacet.requiresAndroidModel()) {
-        myFacet.getResourceFolderManager().removeListener(this);
+        ResourceFolderManager.getInstance(myFacet).removeListener(this);
       }
     }
 

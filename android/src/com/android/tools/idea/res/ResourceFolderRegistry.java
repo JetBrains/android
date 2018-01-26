@@ -29,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.BoundedTaskExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
@@ -120,7 +121,7 @@ public class ResourceFolderRegistry {
   static Map<VirtualFile, AndroidFacet> getResourceDirectoriesForFacets(@NotNull List<AndroidFacet> facets) {
     Map<VirtualFile, AndroidFacet> resDirectories = Maps.newHashMap();
     for (AndroidFacet facet : facets) {
-      for (VirtualFile resourceDir : facet.getResourceFolderManager().getFolders()) {
+      for (VirtualFile resourceDir : ResourceFolderManager.getInstance(facet).getFolders()) {
         if (!resDirectories.containsKey(resourceDir)) {
           resDirectories.put(resourceDir, facet);
         }

@@ -21,6 +21,7 @@ import com.android.tools.lint.checks.IconDetector;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
@@ -54,7 +55,7 @@ public class AndroidLintConvertToWebpInspection extends AndroidLintInspectionBas
           if (facet != null) {
             AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
             int minSdkVersion = info.getMinSdkVersion().getApiLevel();
-            List<VirtualFile> folders = facet.getResourceFolderManager().getFolders();
+            List<VirtualFile> folders = ResourceFolderManager.getInstance(facet).getFolders();
             ConvertToWebpAction action = new ConvertToWebpAction();
             action.perform(startElement.getProject(), minSdkVersion, folders.toArray(VirtualFile.EMPTY_ARRAY));
           }

@@ -44,6 +44,7 @@ import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -130,7 +131,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   private VirtualFile getResourceDirectory() {
-    List<VirtualFile> resourceDirectories = myFacet.getResourceFolderManager().getFolders();
+    List<VirtualFile> resourceDirectories = ResourceFolderManager.getInstance(myFacet).getFolders();
     assertNotNull(resourceDirectories);
     assertSize(1, resourceDirectories);
     return resourceDirectories.get(0);

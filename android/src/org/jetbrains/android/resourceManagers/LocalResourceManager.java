@@ -36,6 +36,7 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +87,7 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   public List<VirtualFile> getResourceDirs() {
-    return myFacet.getResourceFolderManager().getFolders();
+    return ResourceFolderManager.getInstance(myFacet).getFolders();
   }
 
   @NotNull

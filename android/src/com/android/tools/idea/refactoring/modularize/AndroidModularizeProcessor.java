@@ -50,6 +50,7 @@ import com.intellij.usageView.UsageViewUtil;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -231,7 +232,7 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
     }
     VirtualFile javaTargetDir = javaSourceFolders.get(0);
 
-    VirtualFile resDir = facet.getResourceFolderManager().getFolders().get(0);
+    VirtualFile resDir = ResourceFolderManager.getInstance(facet).getFolders().get(0);
     ResourceFolderRepository repo = ResourceFolderRegistry.get(facet, resDir);
 
     Set<XmlFile> touchedXmlFiles = new HashSet<>();

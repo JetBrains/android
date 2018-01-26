@@ -43,6 +43,7 @@ import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
@@ -283,7 +284,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
       if (resolvedStyleNameElement != null &&
           resolvedStyleNameElement.equals(styleNameAttrValue)) {
-        resDirs.addAll(f.getResourceFolderManager().getFolders());
+        resDirs.addAll(ResourceFolderManager.getInstance(f).getFolders());
       }
     }
   }

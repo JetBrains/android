@@ -22,6 +22,7 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.util.AndroidResourceUtil
 import java.io.IOException
 
@@ -83,7 +84,7 @@ interface ResourceFileHelper {
 
     private fun createResSubDir(folderName: String, facet: AndroidFacet) =
         WriteAction.compute<VirtualFile, IOException> {
-          facet.resourceFolderManager.folders[0].createChildDirectory(this, folderName)
+          ResourceFolderManager.getInstance(facet).primaryFolder!!.createChildDirectory(this, folderName)
         }
 
     private fun findResourceSubdir(resourceSubdirs: List<VirtualFile>, folderName: String) =

@@ -30,6 +30,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.ScalableIcon;
 import com.intellij.psi.xml.XmlFile;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -114,7 +115,7 @@ final class AddLocaleAction extends AnAction {
     StringResourceData data = myPanel.getTable().getData();
     assert data != null;
 
-    StringResourceKey key = new StringResourceKey("app_name", myPanel.getFacet().getResourceFolderManager().getFolders().get(0));
+    StringResourceKey key = new StringResourceKey("app_name", ResourceFolderManager.getInstance(myPanel.getFacet()).getFolders().get(0));
 
     if (data.containsKey(key)) {
       return data.getStringResource(key);

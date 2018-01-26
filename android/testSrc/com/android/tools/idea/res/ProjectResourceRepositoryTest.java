@@ -45,6 +45,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -152,7 +153,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   public void testGetResourceDirsAndUpdateRoots() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     addArchiveLibraries();
-    List<VirtualFile> flavorDirs = Lists.newArrayList(myFacet.getResourceFolderManager().getFolders());
+    List<VirtualFile> flavorDirs = Lists.newArrayList(ResourceFolderManager.getInstance(myFacet).getFolders());
     final ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     List<? extends LocalResourceRepository> originalChildren = repository.getChildren();
     // Should have a bunch repository directories from the various flavors.
@@ -172,7 +173,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
         catch (IOException e) {
           assertFalse("delete failed " + e, false);
         }
-        myFacet.getResourceFolderManager().invalidate();
+        ResourceFolderManager.getInstance(myFacet).invalidate();
         repository.updateRoots();
       }
     });

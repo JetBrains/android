@@ -50,6 +50,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.*;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
@@ -556,7 +557,7 @@ public class ResourceHelper {
     }
 
     // Pick among actual files in the project
-    for (VirtualFile resourceDir : facet.getResourceFolderManager().getFolders()) {
+    for (VirtualFile resourceDir : ResourceFolderManager.getInstance(facet).getFolders()) {
       for (VirtualFile folder : resourceDir.getChildren()) {
         if (folder.getName().startsWith(FD_RES_LAYOUT) && folder.isDirectory()) {
           for (VirtualFile file : folder.getChildren()) {
