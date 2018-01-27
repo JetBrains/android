@@ -261,9 +261,6 @@ public class IdeTestApplication implements Disposable {
   }
 
   public void setTargetBuildSystem(@NotNull TargetBuildSystem.BuildSystem targetBuildSystem) {
-    System.out.println("Setting build system to use: " + targetBuildSystem);
-    System.out.println("JAVA_HOME: " + System.getenv("JAVA_HOME"));
-    System.out.println("CC: " + System.getenv("CC"));
     myTargetBuildSystem = targetBuildSystem;
   }
 
