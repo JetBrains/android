@@ -42,7 +42,6 @@ import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -567,7 +566,6 @@ public class ConstraintLayoutTest {
     assertThat(layoutContents).doesNotContainMatch("<Button.*app:layout_constraintBottom_toBottomOf=\"parent\"");
   }
 
-  @Ignore("b/66680171")
   @RunIn(TestGroup.UNRELIABLE)  // b/64152425
   @Test
   public void fileIsFormattedAfterSelectingMarginStart() {
@@ -608,7 +606,6 @@ public class ConstraintLayoutTest {
     assertEquals(expected, editor.getCurrentFileContents());
   }
 
-  @Ignore("b/66680171")
   @RunIn(TestGroup.UNRELIABLE)  // b/64152425
   @Test
   public void cleanUpAttributes() throws IOException {
