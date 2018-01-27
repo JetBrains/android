@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
@@ -24,7 +26,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +35,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Objects;
 
-@Ignore("b/66680171")
+@RunIn(TestGroup.UNRELIABLE)  // b/66680171
 @RunWith(GuiTestRunner.class)
 public final class NavigationViewTest {
   @Rule
