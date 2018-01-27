@@ -26,6 +26,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,6 +64,7 @@ public final class NavigationViewTest {
     waitUntilEditorCurrentFileEquals(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "nav_header_main.xml"));
   }
 
+  @Ignore("b/72574190")  // triggers IDE error
   @Test
   public void doubleClickMenu() {
     myLayoutEditor.getSurface().doubleClick(new Point(150, 410));
