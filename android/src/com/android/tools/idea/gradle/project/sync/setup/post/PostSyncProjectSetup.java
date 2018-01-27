@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersi
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -44,6 +46,10 @@ import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.SyncViewManager;
+import com.intellij.build.events.EventResult;
+import com.intellij.build.events.Failure;
+import com.intellij.build.events.FinishEvent;
+import com.intellij.build.events.impl.FailureResultImpl;
 import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.compiler.options.CompileStepBeforeRun;
@@ -183,6 +189,7 @@ public class PostSyncProjectSetup {
       // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
       // previous sync, and not the one from the sync that just ended.
       mySyncState.syncFailed("");
+      finishFailedSync();
       return;
     }
 
@@ -222,11 +229,47 @@ public class PostSyncProjectSetup {
     ExternalSystemTaskId id = myProject.getUserData(EXTERNAL_SYSTEM_TASK_ID_KEY);
     if (id != null) {
       String message = "synced successfully";
+      // Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
+      EventResult result;
+      ArrayList<Failure> failures = new ArrayList<>();
+      GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
+      List<AndroidSyncIssueEvent> events = messages.getEvents();
+      for (AndroidSyncIssueEvent event : events) {
+        failures.addAll(((AndroidSyncIssueEventResult)event.getResult()).getFailures());
+      }
+      if (failures.isEmpty()) {
+        result = new SuccessResultImpl();
+      }
+      else {
+        result = new FailureResultImpl(failures);
+      }
+
       FinishBuildEventImpl finishBuildEvent =
-        new FinishBuildEventImpl(id, null, System.currentTimeMillis(), message, new SuccessResultImpl());
-      ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
-      myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, null);
+        new FinishBuildEventImpl(id, null, System.currentTimeMillis(), message, result);
+      callFinishEventAndShowBuildView(finishBuildEvent);
     }
+  }
+
+  private void finishFailedSync() {
+    ExternalSystemTaskId id = myProject.getUserData(EXTERNAL_SYSTEM_TASK_ID_KEY);
+    if (id != null) {
+      String message = "sync failed";
+      ArrayList<Failure> failures = new ArrayList<>();
+      GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
+      List<AndroidSyncIssueEvent> events = messages.getEvents();
+      for (AndroidSyncIssueEvent event : events) {
+        failures.addAll(((AndroidSyncIssueEventResult)event.getResult()).getFailures());
+      }
+      FailureResultImpl failureResult = new FailureResultImpl(failures);
+      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), message, failureResult);
+      callFinishEventAndShowBuildView(finishBuildEvent);
+    }
+  }
+
+  private void callFinishEventAndShowBuildView(@NotNull FinishEvent event) {
+    SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
+    syncViewManager.onEvent(event);
+    myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, null);
   }
 
   public void onCachedModelsSetupFailure(@NotNull Request request) {
