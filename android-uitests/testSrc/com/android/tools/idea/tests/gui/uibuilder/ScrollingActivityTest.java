@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.common.editor.NlEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -38,7 +36,6 @@ public final class ScrollingActivityTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/66680171
   @Test
   public void contentScrollingXmlOpensInLayoutEditor() {
     WizardUtils.createNewProject(myGuiTest, "Scrolling Activity");

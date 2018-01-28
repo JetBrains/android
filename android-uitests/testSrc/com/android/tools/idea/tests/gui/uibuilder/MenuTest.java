@@ -42,7 +42,6 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
-@RunIn(TestGroup.UNRELIABLE)  // b/66680171
 @RunWith(GuiTestRunner.class)
 public final class MenuTest {
   @Language("XML")
