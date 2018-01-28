@@ -145,6 +145,7 @@ public class NlEditorTest {
     assertEquals(5, layout.getAllComponents().size());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/72573971
   @Test
   public void testZoomAndPanWithMouseShortcut() throws Exception {
     guiTest.importSimpleLocalApplication();
