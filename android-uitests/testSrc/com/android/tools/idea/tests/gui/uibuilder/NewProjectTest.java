@@ -330,6 +330,7 @@ public class NewProjectTest {
     ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
+      .waitForRenderToFinish()
       .dragComponentToSurface("Containers", "RecyclerView");
 
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
