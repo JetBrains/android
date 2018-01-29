@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.FilterComponent;
-import com.android.tools.adtui.FlatTabbedPane;
+import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
@@ -91,7 +91,7 @@ class CpuCaptureView {
 
   private final JPanel myPanel;
 
-  private final FlatTabbedPane myTabsPanel;
+  private final CommonTabbedPane myTabsPanel;
 
   @NotNull
   private FilterComponent myFilterComponent;
@@ -110,7 +110,7 @@ class CpuCaptureView {
 
   CpuCaptureView(@NotNull CpuProfilerStageView view) {
     myView = view;
-    myTabsPanel = new FlatTabbedPane();
+    myTabsPanel = new CommonTabbedPane();
 
     for (String label : TABS.values()) {
       myTabsPanel.addTab(label, new JPanel(new BorderLayout()));

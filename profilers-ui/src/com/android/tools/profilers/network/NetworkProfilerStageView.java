@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.network.details.ConnectionDetailsView;
@@ -77,7 +78,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionsPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
     JPanel connectionsPanel = new JPanel(new CardLayout());
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
-      JTabbedPane connectionsTab = new FlatTabbedPane();
+      JTabbedPane connectionsTab = new CommonTabbedPane();
       JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
       connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
       JScrollPane threadsViewScrollPane = new JBScrollPane(myThreadsView.getComponent());
