@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,61 +15,40 @@
  */
 package org.jetbrains.android.actions;
 
-import com.google.common.collect.Iterables;
-import com.intellij.openapi.application.Application;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFileSystemItem;
-import com.intellij.psi.PsiManager;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.actions.CreateResourceDirectoryDialogBase.ValidatorFactory;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.Mockito;
 
-public final class CreateResourceDirectoryDialogTest extends AndroidTestCase {
-  private PsiDirectory myResDirectory;
+import static org.junit.Assert.assertNull;
+
+public final class CreateResourceDirectoryDialogTest {
+  @Rule
+  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
+
   private CreateResourceDirectoryDialog myDialog;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-
-    Project project = myModule.getProject();
-    VirtualFile resVirtualFile = Iterables.getOnlyElement(myFacet.getResourceFolderManager().getFolders());
-
-    myResDirectory = PsiManager.getInstance(project).findDirectory(resVirtualFile);
-
-    Application application = ApplicationManager.getApplication();
+  @Before
+  public void initCreateResourceDirectoryDialog() {
     ValidatorFactory factory = Mockito.mock(ValidatorFactory.class);
 
-    application.invokeAndWait(() -> myDialog = new CreateResourceDirectoryDialog(project, myModule, null, myResDirectory, null, factory));
+    ApplicationManager.getApplication().invokeAndWait(
+      () -> myDialog = new CreateResourceDirectoryDialog(myRule.getProject(), myRule.getModule(), null, null, null, factory));
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      ApplicationManager.getApplication().invokeAndWait(() -> Disposer.dispose(myDialog.getDisposable()));
-    }
-    finally {
-      super.tearDown();
-    }
+  @After
+  public void disposeOfCreateResourceDirectoryDialog() {
+    ApplicationManager.getApplication().invokeAndWait(() -> Disposer.dispose(myDialog.getDisposable()));
   }
 
-  public void testDoValidateWhenSubdirectoryDoesntExist() {
+  @Test
+  public void doValidateReturnsNullWhenDirectoryNameEqualsLayout() {
     myDialog.getDirectoryNameTextField().setText("layout");
     assertNull(myDialog.doValidate());
-  }
-
-  public void testDoValidateWhenSubdirectoryExists() {
-    Computable<PsiFileSystemItem> createLayoutSubdirectory = () -> myResDirectory.createSubdirectory("layout");
-    PsiFileSystemItem subdirectory = ApplicationManager.getApplication().runWriteAction(createLayoutSubdirectory);
-
-    myDialog.getDirectoryNameTextField().setText("layout");
-
-    String expected = subdirectory.getVirtualFile().getPresentableUrl() + " already exists. Use a different qualifier.";
-    assertEquals(expected, myDialog.doValidate().message);
   }
 }

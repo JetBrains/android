@@ -26,7 +26,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
@@ -99,19 +98,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
   @VisibleForTesting
   @Override
   public ValidationInfo doValidate() {
-    PsiDirectory directory = getResourceDirectory(myDataContext);
-
-    if (directory == null) {
-      return null;
-    }
-
-    PsiFileSystemItem subdirectory = directory.findSubdirectory(myDirectoryNameTextField.getText());
-
-    if (subdirectory != null) {
-      return new ValidationInfo(subdirectory.getVirtualFile().getPresentableUrl() + " already exists. Use a different qualifier.");
-    }
-
-    return null;
+    return super.doValidate();
   }
 
   @Override
