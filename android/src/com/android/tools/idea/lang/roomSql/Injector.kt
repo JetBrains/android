@@ -72,11 +72,12 @@ class RoomSqlLanguageInjector : ConcatenationAwareInjector {
 
   private fun insideExecSql(element: PsiElement): Boolean {
     // Check if element is inside a method invocation.
-    val methodCall = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java) ?: return false
-    val targetMethod = methodCall.methodExpression.resolve() as? PsiMethod ?: return false
+    val methodCall = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java, true,
+                                                 PsiStatement::class.java, PsiLambdaExpression::class.java) ?: return false
+    val sqlArgumentIndex = SQLITE_DATABASE_METHODS[methodCall.methodExpression.referenceName] ?: return false
+    val targetMethod = methodCall.resolveMethod() ?: return false
 
     // Now check it's the right argument of the right method.
-    val sqlArgumentIndex = SQLITE_DATABASE_METHODS[targetMethod.name] ?: return false
     return targetMethod.containingClass?.qualifiedName == SQLITE_DATABASE_CLASS_NAME
         && PsiTreeUtil.isAncestor(methodCall.argumentList.expressions[sqlArgumentIndex], element, false)
   }
