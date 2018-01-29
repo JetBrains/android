@@ -47,7 +47,6 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
-import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -60,6 +59,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
@@ -277,20 +277,26 @@ public class PostSyncProjectSetup {
   private void modifyJUnitRunConfigurations() {
     ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
     BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".
-    String makeTaskName = myIdeInfo.isAndroidStudio() ? MakeBeforeRunTaskProvider.TASK_NAME
-                                                      : ExecutionBundle.message("before.launch.compile.step");
+    Key<? extends BeforeRunTask> makeTaskId = myIdeInfo.isAndroidStudio() ? MakeBeforeRunTaskProvider.ID : CompileStepBeforeRun.ID;
     BeforeRunTaskProvider targetProvider = null;
     for (BeforeRunTaskProvider<? extends BeforeRunTask> provider : taskProviders) {
-      if (makeTaskName.equals(provider.getName())) {
+      if (makeTaskId.equals(provider.getId())) {
         targetProvider = provider;
         break;
       }
     }
 
     if (targetProvider != null) {
+      // Store current before run tasks in each configuration to reset them after modifying the template, since modifying
+      Map<RunConfiguration, List<? extends BeforeRunTask<?>>> currentTasks = new HashMap<>();
+      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+        currentTasks.put(runConfiguration, new ArrayList<>(runManager.getBeforeRunTasks(runConfiguration)));
+      }
+
       // Fix the "JUnit Run Configuration" templates.
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
         RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
@@ -302,8 +308,8 @@ public class PostSyncProjectSetup {
 
       // Fix existing JUnit Configurations.
       for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
-        // Set the correct "Make step" in existing JUnit Configurations.
-        setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
+        // Keep the previous configurations in existing run configurations
+        runManager.setBeforeRunTasks(runConfiguration, currentTasks.get(runConfiguration), false);
       }
     }
   }
@@ -326,7 +332,7 @@ public class PostSyncProjectSetup {
         newBeforeRunTasks.add(beforeRunTask);
       }
     }
-    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, true);
+    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
   }
 
   private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {
