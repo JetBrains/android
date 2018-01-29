@@ -22,9 +22,3 @@ package_group(
         "//java/com/foo/gallery/...",
     ],
 )
-
-filegroup(
-    name = "manifest_file",
-    srcs = ["AndroidManifest.xml"],
-    visibility = ["apps_visibility"],
-)
