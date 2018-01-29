@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.stdui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.Gray;
@@ -33,9 +33,9 @@ import java.awt.event.MouseMotionAdapter;
  * A simple tabbed pane that mimics the laf of IntelliJ's flat toolbar tabs. Supports hover states over tab.
  * TODO: render vertical texts for left/right tab placement.
  */
-public class FlatTabbedPane extends JTabbedPane {
+public class CommonTabbedPane extends JTabbedPane {
 
-  @NotNull private final FlatTabbedPaneUI myUi;
+  @NotNull private final CommonTabbedPaneUI myUi;
 
   enum ActionDirection {
     LEFT,
@@ -61,8 +61,8 @@ public class FlatTabbedPane extends JTabbedPane {
     }
   }
 
-  public FlatTabbedPane() {
-    myUi = new FlatTabbedPaneUI();
+  public CommonTabbedPane() {
+    myUi = new CommonTabbedPaneUI();
     setUI(myUi);
     setFont(AdtUiUtils.DEFAULT_FONT);
     getActionMap().put("navigatePrevious", new NavigateAction(ActionDirection.LEFT));
@@ -133,7 +133,7 @@ public class FlatTabbedPane extends JTabbedPane {
    * 1) Supports hover states when mouse over unselected tabs
    * 2) Simpler content panel border rendering - only the border along the tab placement is drawn.
    */
-  private static class FlatTabbedPaneUI extends BasicTabbedPaneUI {
+  private static class CommonTabbedPaneUI extends BasicTabbedPaneUI {
 
     private static final Color DEFAULT_ACTIVE_COLOR = new JBColor(new Color(255, 255, 255), new Color(81, 86, 88));
     private static final Color DEFAULT_INACTIVE_COLOR = new JBColor(new Color(212, 212, 212), new Color(60, 62, 63));
@@ -153,7 +153,7 @@ public class FlatTabbedPane extends JTabbedPane {
     @NotNull private Insets myTabAreaInsets;
     @NotNull private Insets myContentBorderInsets;
 
-    public FlatTabbedPaneUI() {
+    public CommonTabbedPaneUI() {
       myActiveColor = DEFAULT_ACTIVE_COLOR;
       myInactiveColor = DEFAULT_INACTIVE_COLOR;
       myHoverColor = DEFAULT_HOVER_COLOR;

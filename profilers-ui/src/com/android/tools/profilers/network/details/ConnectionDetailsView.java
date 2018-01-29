@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.network.details;
 
-import com.android.tools.adtui.FlatTabbedPane;
+import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -40,7 +40,7 @@ public class ConnectionDetailsView extends JPanel {
   private final NetworkProfilerStageView myStageView;
 
   @NotNull
-  private final FlatTabbedPane myTabsPanel;
+  private final CommonTabbedPane myTabsPanel;
 
   @NotNull
   private final List<TabContent> myTabs = new ArrayList<>();
@@ -56,7 +56,7 @@ public class ConnectionDetailsView extends JPanel {
     // where main contents span the whole area and a close button fits into the top right
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
-    myTabsPanel = new FlatTabbedPane();
+    myTabsPanel = new CommonTabbedPane();
     myTabsPanel.getTabAreaInsets().top = -1;
 
     populateTabs();

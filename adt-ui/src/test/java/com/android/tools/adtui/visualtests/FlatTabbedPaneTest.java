@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.FlatTabbedPane;
+import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.ui.ComboBox;
@@ -50,7 +50,7 @@ public class FlatTabbedPaneTest extends VisualTest {
   @Override
   protected void populateUi(@NotNull JPanel panel) {
     // Content for tabbed pane.
-    FlatTabbedPane tabbedPane = new FlatTabbedPane();
+    CommonTabbedPane tabbedPane = new CommonTabbedPane();
     for (int i = 0; i < 5; i++) {
       tabbedPane.add("Tab" + i, new JLabel("Content " + i));
     }
@@ -73,7 +73,7 @@ public class FlatTabbedPaneTest extends VisualTest {
   }
 
   private void createSlidersForInsets(@NotNull JPanel controls,
-                                      @NotNull FlatTabbedPane tabbedPane,
+                                      @NotNull CommonTabbedPane tabbedPane,
                                       @NotNull Insets insets,
                                       @NotNull String insetsName,
                                       @NotNull Consumer<Insets> updateFunc) {

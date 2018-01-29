@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.FlatTabbedPane;
+import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -88,7 +88,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
     myIdeProfilerComponents = ideProfilerComponents;
 
-    myTabsPanel = new FlatTabbedPane();
+    myTabsPanel = new CommonTabbedPane();
     myTabsPanel.addChangeListener(this::trackActiveTab);
     myStackTraceView = ideProfilerComponents.createStackView(stage.getStackTraceModel());
 
