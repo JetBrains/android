@@ -18,9 +18,12 @@ package com.android.tools.idea.tests.gui.kotlin;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +32,7 @@ import java.util.Locale;
 
 import static com.google.common.truth.Truth.assertThat;
 
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith (GuiTestRunner.class)
 public class NewKotlinModuleTest {
 
@@ -65,7 +69,7 @@ public class NewKotlinModuleTest {
       .clickNext() // Skip "Add Activity" step
       .clickFinish();
 
-    guiTest.ideFrame().waitForGradleImportProjectSync();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
     if (hasKotlinSupport) {
       assertModuleSupportsKotlin(APP_NAME);
@@ -95,8 +99,7 @@ public class NewKotlinModuleTest {
       .clickFinish();
 
     ideFrame
-      .waitForGradleImportProjectSync()
-      .waitForGradleProjectSyncToFinish();
+      .waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
     assertModuleSupportsKotlin(NEW_KOTLIN_MDULE_NAME);
   }
