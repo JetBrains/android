@@ -32,8 +32,10 @@ import com.android.tools.lint.checks.ApiLookup;
 import com.android.utils.CharSequences;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.AtomicNullableLazyValue;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -271,12 +273,16 @@ public class LauncherIconGenerator extends IconGenerator {
 
     // Execute tasks in parallel and wait for results
     WaitableExecutor executor = WaitableExecutor.useGlobalSharedThreadPool();
+    Disposable taskCanceler = () -> executor.cancelAllTasks();
+    Disposer.register(this, taskCanceler);
     tasks.forEach(executor::execute);
 
     try {
       return executor.waitForTasksWithQuickFail(true);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
+    } finally {
+      Disposer.dispose(taskCanceler);
     }
   }
 
