@@ -71,7 +71,7 @@ public final class ExtDslElement extends GradleDslBlockElement {
     }
     Map<String, GradleDslElement> parentResults = myParent.getInScopeElements();
     // Add my properties as well.
-    parentResults.putAll(getAllElements());
+    parentResults.putAll(getElements());
     return parentResults;
   }
 }

@@ -54,7 +54,7 @@ public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel 
   @Override
   @NotNull
   public GradlePropertyModel findProperty(@NotNull String name) {
-    GradleDslElement element = myDslElement.getPropertyElement(name);
+    GradleDslElement element = myDslElement.getElement(name);
     if (element == null) {
       element = myDslElement.getVariableElement(name);
     }
