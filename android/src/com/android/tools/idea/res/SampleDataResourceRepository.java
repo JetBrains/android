@@ -135,7 +135,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     myFullTable = new ResourceTable();
     myAndroidFacet = androidFacet;
 
-    VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
+    VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileListener() {
       @Override
       public void fileCreated(@NotNull VirtualFileEvent event) {
         rootsUpdated(event);
