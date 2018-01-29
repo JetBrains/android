@@ -108,4 +108,30 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     // if the method is annotated, then one of the annotations must include the current build system
     return ImmutableSet.copyOf(annotation.value()).contains(myBuildSystem);
   }
+
+  /**
+   * Include information about the current build system as a part of the test's name to provide
+   * better tooling support when running tests from within IntelliJ.
+   */
+  @Override
+  protected String getName() {
+    // The test name needs to be enclosed in square brackets due to the way IntelliJ parses test names
+    // based on runners. Without square brackets the tests would show up in the Run window as:
+    //
+    //   > TestClassName
+    //     > Running with buildSystemOne
+    //       > TestClassName.testName
+    //     > Running with buildSystemTwo
+    //       > TestClassName.testName
+    //
+    // With square brackets they show as:
+    //
+    //   > TestClassName
+    //     > [Running with buildSystemOne]
+    //       > testName
+    //     > [Running with buildSystemTwo]
+    //       > testName
+    //
+    return "[Running with " + myBuildSystem.name().toLowerCase() + " based project]";
+  }
 }
