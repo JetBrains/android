@@ -590,7 +590,7 @@ public class ConstraintLayoutTest {
       "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
       "    android:layout_width=\"match_parent\"\n" +
       "    android:layout_height=\"match_parent\"\n" +
-      "    tools:context=\"com.google.myapplication.MainActivity\">\n" +
+      "    tools:context=\".MainActivity\">\n" +
       "\n" +
       "    <TextView\n" +
       "        android:layout_width=\"wrap_content\"\n" +
@@ -601,7 +601,7 @@ public class ConstraintLayoutTest {
       "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
       "\n" +
-      "</android.support.constraint.ConstraintLayout>\n";
+      "</android.support.constraint.ConstraintLayout>";
 
     assertEquals(expected, editor.getCurrentFileContents());
   }
