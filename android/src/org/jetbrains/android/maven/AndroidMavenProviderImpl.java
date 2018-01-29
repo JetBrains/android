@@ -143,7 +143,7 @@ public class AndroidMavenProviderImpl implements AndroidMavenProvider {
   @Override
   public boolean isMavenizedModule(@NotNull Module module) {
     MavenProjectsManager mavenProjectsManager = MavenProjectsManager.getInstance(module.getProject());
-    return mavenProjectsManager != null ? mavenProjectsManager.isMavenizedModule(module) : null;
+    return mavenProjectsManager != null ? mavenProjectsManager.isMavenizedModule(module) : false;
   }
 
   @Override
