@@ -143,7 +143,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @NotNull
   private List<GradlePropertyModel> getList(boolean resolved) {
-    if (myValueType != LIST || !(myElement instanceof GradleDslExpressionList) ) {
+    if (myValueType != LIST || !(myElement instanceof GradleDslExpressionList)) {
       return ImmutableList.of();
     }
 
@@ -214,7 +214,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       expression.setValue(value);
       // Set the value type for the new value.
       myValueType = extractAndGetValueType(myElement);
-    } else {
+    }
+    else {
       // We can't reuse, need to delete and create a new one.
       int index = deleteInternal();
 
@@ -250,7 +251,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     assert myElement instanceof GradleDslExpressionMap;
 
-    return new GradlePropertyModelImpl(myElement, PropertyType.DERIVED, key);
+    // Does the element already exist?
+    GradleDslExpressionMap map = (GradleDslExpressionMap)myElement;
+    GradleDslElement element = map.getPropertyElement(key);
+
+    return element == null ? new GradlePropertyModelImpl(myElement, PropertyType.DERIVED, key) : new GradlePropertyModelImpl(element);
   }
 
   @Override
@@ -293,7 +298,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     GradleDslLiteral literal = new GradleDslLiteral(myElement, "listItem");
     literal.setValue("");
 
-    GradleDslExpressionList list = (GradleDslExpressionList) myElement;
+    GradleDslExpressionList list = (GradleDslExpressionList)myElement;
     list.addNewExpression(literal, index);
 
     return new GradlePropertyModelImpl(literal);
@@ -420,7 +425,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       list.addNewElement(element);
       myElement = element;
     }
-
     else {
       throw new IllegalStateException("Property holder has unknown type, " + myPropertyHolder);
     }
@@ -439,7 +443,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     if (myPropertyHolder instanceof GradlePropertiesDslElement) {
-      ((GradlePropertiesDslElement)myPropertyHolder).removeProperty(myElement.getName());
+      ((GradlePropertiesDslElement)myPropertyHolder).removeProperty(myElement);
     }
     else if (myPropertyHolder instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)myPropertyHolder;

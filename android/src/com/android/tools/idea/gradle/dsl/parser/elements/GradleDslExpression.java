@@ -258,7 +258,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
 
     // If the index matcher doesn't give us anything, just attempt to find the property on the element;
     if (!indexMatcher.find()) {
-      return sameScope ? properties.getVariableElement(name) : properties.getPropertyElement(name);
+      return sameScope ? properties.getElement(name) : properties.getPropertyElement(name);
     }
 
     // Sanity check
@@ -272,7 +272,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
       return null;
     }
 
-    GradleDslElement element = sameScope ? properties.getVariableElement(elementName) : properties.getPropertyElement(elementName);
+    GradleDslElement element = sameScope ? properties.getElement(elementName) : properties.getPropertyElement(elementName);
 
     // Construct a list of all of the index parts
     Deque<String> indexParts = new ArrayDeque<>();

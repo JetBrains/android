@@ -457,7 +457,7 @@ public class GroovyDslParser implements GradleDslParser {
       }
 
       variableElement.setElementType(VARIABLE);
-      blockElement.setParsedVariable(variable.getName(), variableElement);
+      blockElement.setParsedElement(variable.getName(), variableElement);
     }
     return true;
   }
