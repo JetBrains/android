@@ -19,10 +19,15 @@ import com.android.testutils.ClassSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.XDisplayRule;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.testutils.TestUtils.getWorkspaceRoot;
 
@@ -53,13 +58,38 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
 
-    // Enable Kotlin plugin if available(see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-    File kotlin = new File(getWorkspaceRoot(), "prebuilts/tools/common/kotlin-plugin/Kotlin");
-    if (kotlin.exists()) {
-      System.setProperty("plugin.path", kotlin.getAbsolutePath());
+    List<File> additionalPlugins = getExternalPlugins();
+    if (!additionalPlugins.isEmpty()) {
+      String pluginPaths = additionalPlugins.stream().map(f -> f.getAbsolutePath()).collect(Collectors.joining(","));
+      Logger.getInstance(GuiJarTestSuite.class).info("Setting additional plugin paths: " + pluginPaths);
+
+      String existingPluginPaths = System.getProperty("plugin.path");
+      if (!StringUtil.isEmpty(existingPluginPaths)) {
+        pluginPaths = existingPluginPaths + "," + pluginPaths;
+      }
+
+      System.setProperty("plugin.path", pluginPaths);
     }
 
     // Make sure we run with UI
     System.setProperty("java.awt.headless", "false");
+  }
+
+  private static List<File> getExternalPlugins() {
+    List<File> plugins = new ArrayList<>(2);
+
+    // Enable Kotlin plugin if available(see PluginManagerCore.PROPERTY_PLUGIN_PATH).
+    File kotlin = new File(getWorkspaceRoot(), "prebuilts/tools/common/kotlin-plugin/Kotlin");
+    if (kotlin.exists()) {
+      plugins.add(kotlin);
+    }
+
+    // Enable Bazel plugin if it's available
+    File aswb = new File(getWorkspaceRoot(), "tools/adt/idea/android-uitests/aswb");
+    if (aswb.exists()) {
+      plugins.add(aswb);
+    }
+
+    return plugins;
   }
 }

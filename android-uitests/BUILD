@@ -141,8 +141,11 @@ java_test(
 java_test(
     name = "NlEditorTest",
     data = COMMON_DATA + [
+        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
+        "//prebuilts/studio/sdk:tools/support-annotations",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
+        ":unzip_aswb",
     ] + glob([
         "testData/SimpleLocalApplication/**",
     ]) + glob(["testData/LayoutLocalTest/**"]),
