@@ -139,9 +139,8 @@ public class NewInstantAppModuleTest {
   }
 
   @Test
-  @Ignore("http://b/69534580")
   public void testAddNewInstantAppModule() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
@@ -152,7 +151,6 @@ public class NewInstantAppModuleTest {
     ideFrame
       .waitForGradleProjectSyncToFinish(Wait.seconds(20))
       .waitForBuildToFinish(SOURCE_GEN);
-    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
 
     Module module = ideFrame.getModule("instantapp");
     AndroidFacet facet = AndroidFacet.getInstance(module);
