@@ -39,9 +39,9 @@ public final class ConstraintLayoutViewInspectorFixture {
   }
 
   public void selectMarginStart(int margin) {
-    myRobot.moveMouse(myRobot.finder().findByName(myTarget, "marginStart"));
+    myRobot.moveMouse(myRobot.finder().findByName(myTarget, SingleWidgetView.TOP_MARGIN_WIDGET));
 
-    GenericTypeMatcher<JComboBox> matcher = Matchers.byName(JComboBox.class, "marginStartComboBox");
+    GenericTypeMatcher<JComboBox> matcher = Matchers.byName(JComboBox.class, SingleWidgetView.TOP_MARGIN_WIDGET + "ComboBox");
     new JComboBoxFixture(myRobot, GuiTests.waitUntilShowing(myRobot, myTarget, matcher)).selectItem(Integer.toString(margin));
   }
 
