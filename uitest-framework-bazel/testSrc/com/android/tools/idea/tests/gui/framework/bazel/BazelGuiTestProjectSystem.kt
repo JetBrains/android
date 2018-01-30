@@ -60,13 +60,13 @@ android_sdk_repository(
     Files.append(androidSdkRepositoryInfo, File(targetTestDirectory, "WORKSPACE"), Charsets.UTF_8)
   }
 
-  override fun importProject(targetTestDirectory: File, robot: Robot) {
+  override fun importProject(targetTestDirectory: File, robot: Robot, buildFilePath: String?) {
     openBazelImportWizard(robot)
         .setWorkspacePath(targetTestDirectory.path)
         .clickNext()
         .setBazelBinaryPath(getBazelBinaryPath())
         .clickNext()
-        .selectGenerateFromBuildFileOptionAndSetPath("app/BUILD")
+        .selectGenerateFromBuildFileOptionAndSetPath(buildFilePath ?: "app/BUILD")
         .clickNext()
         .uncommentApi27()
         .clickFinish()
@@ -118,4 +118,3 @@ android_sdk_repository(
     }
   }
 }
-
