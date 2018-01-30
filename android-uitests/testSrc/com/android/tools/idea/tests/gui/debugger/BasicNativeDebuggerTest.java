@@ -50,7 +50,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    *
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/72699808
   public void testSessionRestart() throws Exception{
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
