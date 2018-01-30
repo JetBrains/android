@@ -210,7 +210,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testCommonRoots() throws Exception {
-    loadProject(NAVIGATOR_PACKAGEVIEW_COMMONROOTS);
+    loadProject(
+      NAVIGATOR_PACKAGEVIEW_COMMONROOTS);
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
