@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
@@ -60,9 +61,8 @@ public class ResourceFolderRegistry {
   }
 
   @NotNull
-  // TODO: namespaces
   public static ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
-    return get(facet, dir, ResourceNamespace.TODO);
+    return get(facet, dir, ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace());
   }
 
   @NotNull
@@ -73,7 +73,6 @@ public class ResourceFolderRegistry {
       ResourceFolderRepository repository = ourDirMap.get(dir);
       if (repository == null) {
         Project project = facet.getModule().getProject();
-        // TODO: namespaces: use the namespace as the cache key.
         repository = ResourceFolderRepository.create(facet, dir, namespace);
         putRepositoryInCache(project, dir, repository);
       }
@@ -213,7 +212,11 @@ public class ResourceFolderRegistry {
       @NotNull final BoundedTaskExecutor myParallelBuildExecutor,
       @NotNull final AndroidFacet facet,
       @NotNull final VirtualFile dir) {
-      return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir, ResourceNamespace.TODO));
+      return myParallelBuildExecutor.submit(
+        () -> {
+          ResourceNamespace namespace = ReadAction.compute(() -> ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace());
+          return ResourceFolderRepository.create(facet, dir, namespace);
+        });
     }
   }
 

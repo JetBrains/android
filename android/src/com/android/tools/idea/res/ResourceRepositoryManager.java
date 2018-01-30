@@ -29,6 +29,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
@@ -160,6 +161,7 @@ public class ResourceRepositoryManager implements Disposable {
     FileResourceRepository.reset();
   }
 
+  @NotNull
   public AaptOptions.Namespacing getNamespacing() {
     AndroidModel model = myFacet.getConfiguration().getModel();
     if (model != null) {
@@ -169,11 +171,17 @@ public class ResourceRepositoryManager implements Disposable {
     }
   }
 
+  /**
+   * Returns the {@link ResourceNamespace} used by the current module.
+   *
+   * <p>This is read from the manifest, so needs to be run inside a read action.
+   */
+  @NotNull
   public ResourceNamespace getNamespace() {
     if (getNamespacing() == AaptOptions.Namespacing.DISABLED) {
       return ResourceNamespace.RES_AUTO;
     }
 
-    return myNamespace.getValue();
+    return ObjectUtils.notNull(myNamespace.getValue(), ResourceNamespace.RES_AUTO);
   }
 }
