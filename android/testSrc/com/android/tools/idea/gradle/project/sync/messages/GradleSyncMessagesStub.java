@@ -19,6 +19,7 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 public class GradleSyncMessagesStub extends GradleSyncMessages {
   @NotNull private final List<SyncMessage> myMessages = new ArrayList<>();
@@ -44,7 +46,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   }
 
   public GradleSyncMessagesStub(@NotNull Project project) {
-    super(project);
+    super(project, mock(ExternalSystemNotificationManager.class));
   }
 
   @Override

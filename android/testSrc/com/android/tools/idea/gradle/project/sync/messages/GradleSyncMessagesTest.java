@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
-import com.android.tools.idea.project.messages.SyncMessage;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.testFramework.IdeaTestCase;
+import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleSyncMessages}.
  */
 public class GradleSyncMessagesTest extends IdeaTestCase {
+  @Mock private ExternalSystemNotificationManager myNotificationManager;
+
   private GradleSyncMessages mySyncMessages;
 
   @Override
@@ -36,19 +39,7 @@ public class GradleSyncMessagesTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    mySyncMessages = new GradleSyncMessages(getProject());
-    ExternalSystemTaskId taskId = ExternalSystemTaskId.create(mySyncMessages.getProjectSystemId(), EXECUTE_TASK, myProject);
-    myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, taskId);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, null);
-    }
-    finally {
-      super.tearDown();
-    }
+    mySyncMessages = new GradleSyncMessages(getProject(), myNotificationManager);
   }
 
   public void testGetProjectSystemId() {
@@ -56,9 +47,12 @@ public class GradleSyncMessagesTest extends IdeaTestCase {
   }
 
   public void testRemoveProjectMessages() {
-    mySyncMessages.report(new SyncMessage("Test", ERROR, "Message for test"));
-    assertFalse(mySyncMessages.isEmpty());
     mySyncMessages.removeProjectMessages();
-    assertTrue(mySyncMessages.isEmpty());
+    verify(myNotificationManager).clearNotifications("Project Structure Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).clearNotifications("Missing Dependencies", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).clearNotifications("Variant Selection Conflicts", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).clearNotifications("Generated Sources", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).clearNotifications("Gradle Sync Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).clearNotifications("Version Compatibility Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
   }
 }

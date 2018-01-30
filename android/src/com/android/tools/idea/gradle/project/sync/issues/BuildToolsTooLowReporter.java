@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
+import static com.android.tools.idea.project.messages.MessageType.findFromSyncIssue;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 class BuildToolsTooLowReporter extends BaseSyncIssuesReporter {
   @NotNull private final SdkBuildToolsTooLowErrorHandler myErrorHandler;
@@ -51,7 +53,7 @@ class BuildToolsTooLowReporter extends BaseSyncIssuesReporter {
     String minimumVersion = syncIssue.getData();
     assert minimumVersion != null;
 
-    SyncMessage message = generateSyncMessage(syncIssue, module, buildFile);
+    SyncMessage message = new SyncMessage(DEFAULT_GROUP, findFromSyncIssue(syncIssue), syncIssue.getMessage());
     List<NotificationHyperlink> quickFixes = myErrorHandler.getQuickFixHyperlinks(minimumVersion, module.getProject(), module);
     message.add(quickFixes);
 

@@ -33,7 +33,7 @@ import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class SyncIssuesReporter {
-  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(5);
+  @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(3);
   @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
 
   @NotNull
