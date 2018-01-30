@@ -154,6 +154,13 @@ public class ScenePickerTest extends TestCase {
   }
 
   public void testCurveTo() {
+    testCurveTo(4, 0);
+    testCurveTo(2, 2);
+    testCurveTo(0, 4);
+  }
+
+  private void testCurveTo(int range, int w)
+  {
     ScenePicker scenePicker = new ScenePicker();
     scenePicker.reset();
     int x1 = 10;
@@ -165,7 +172,7 @@ public class ScenePickerTest extends TestCase {
     int x4 = 100;
     int y4 = 100;
     error = 3;
-    scenePicker.addCurveTo(new Integer(1), 4, x1, y1, x2, y2, x3, y3, x4, y4);
+    scenePicker.addCurveTo(new Integer(1), range, x1, y1, x2, y2, x3, y3, x4, y4, w);
     boolean[] found = new boolean[1];
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
@@ -304,7 +311,7 @@ public class ScenePickerTest extends TestCase {
         int y4 = 100;
         Rectangle rect = new Rectangle(x1 - 1, y1 - 1, x4 - x1 + 2, y4 - y1 + 2);
         ScenePicker.CurveToSelectionEngine c = new ScenePicker.CurveToSelectionEngine();
-        c.add(null, 10, x1, y1, x2, y2, x3, y3, x4, y4);
+        c.add(null, 10, x1, y1, x2, y2, x3, y3, x4, y4, 0);
         for (double i = 0; i < 1; i += .01) {
           double x = c.evalX(i);
           double y = c.evalY(1);
@@ -326,7 +333,7 @@ public class ScenePickerTest extends TestCase {
     int x4 = 10;
     int y4 = 10;
     error = 3;
-    scenePicker.addCurveTo(new Integer(1), 4, x1, y1, x2, y2, x3, y3, x4, y4);
+    scenePicker.addCurveTo(new Integer(1), 4, x1, y1, x2, y2, x3, y3, x4, y4, 0);
 
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
