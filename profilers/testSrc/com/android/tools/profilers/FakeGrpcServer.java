@@ -189,7 +189,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
 
   private static class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase {
     @Override
-    public void getData(EnergyProfiler.EnergyDataRequest request, StreamObserver<EnergyProfiler.EnergyDataResponse> response) {
+    public void getData(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergyDataResponse> response) {
       response.onNext(EnergyProfiler.EnergyDataResponse.getDefaultInstance());
       response.onCompleted();
     }
