@@ -15,74 +15,102 @@
  */
 package com.android.tools.idea.project.messages;
 
-import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
-import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.util.PositionInFile;
-import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.MessageEvent;
+import com.intellij.ide.errorTreeView.NewEditableErrorTreeViewPanel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.Navigatable;
-import com.intellij.util.SystemProperties;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.MessageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import javax.swing.*;
+import java.util.List;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
 import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.openapi.wm.ToolWindowId.MESSAGES_WINDOW;
 
 public abstract class AbstractSyncMessages {
   private static final NotificationSource NOTIFICATION_SOURCE = PROJECT_SYNC;
 
   @NotNull private final Project myProject;
-  @NotNull private final List<AndroidSyncIssueEvent> myCurrentEvents = new ArrayList<>();
+  @NotNull private final ExternalSystemNotificationManager myNotificationManager;
 
-  protected AbstractSyncMessages(@NotNull Project project) {
+  protected AbstractSyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
     myProject = project;
-    myCurrentEvents.clear();
+    myNotificationManager = manager;
   }
 
   public int getErrorCount() {
-    int total = 0;
-    for (AndroidSyncIssueEvent event : myCurrentEvents) {
-      if (event.getKind() == MessageEvent.Kind.ERROR) {
-        total++;
-      }
-    }
-    return total;
+    return getMessageCount(NotificationCategory.ERROR);
   }
 
   public int getMessageCount(@NotNull String groupName) {
-    int total = 0;
-    for (AndroidSyncIssueEvent event : myCurrentEvents) {
-      if (event.getGroup() == groupName) {
-        total++;
-      }
-    }
-    return total;
+    return myNotificationManager.getMessageCount(groupName, NOTIFICATION_SOURCE, null, getProjectSystemId());
   }
 
   public boolean isEmpty() {
-    return myCurrentEvents.isEmpty();
+    return getMessageCount((NotificationCategory)null) == 0;
+  }
+
+  private int getMessageCount(@Nullable NotificationCategory category) {
+    return myNotificationManager.getMessageCount(NOTIFICATION_SOURCE, category, getProjectSystemId());
   }
 
   public void removeAllMessages() {
-    clearEvents();
+    myNotificationManager.clearNotifications(NOTIFICATION_SOURCE, getProjectSystemId());
   }
 
   public void removeMessages(@NotNull String... groupNames) {
-    Set<String> groupSet = new HashSet<>(Arrays.asList(groupNames));
-    myCurrentEvents.removeIf(event -> groupSet.contains(event.getGroup()));
+    for (String groupName : groupNames) {
+      myNotificationManager.clearNotifications(groupName, NOTIFICATION_SOURCE, getProjectSystemId());
+    }
+
+    ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(MESSAGES_WINDOW);
+    if (toolWindow != null) {
+      MessageView messageView = ServiceManager.getService(myProject, MessageView.class);
+      ApplicationManager.getApplication().invokeLater(() -> {
+        if (myProject.isDisposed()) {
+          return;
+        }
+        // Refresh UI to see updated list of messages.
+        NewEditableErrorTreeViewPanel messagesView = findMessagesView(messageView);
+        if (messagesView != null) {
+          messagesView.updateTree();
+        }
+      });
+    }
+  }
+
+  @Nullable
+  private NewEditableErrorTreeViewPanel findMessagesView(@NotNull MessageView messageView) {
+    NewEditableErrorTreeViewPanel messagesView = null;
+    for (Content content : messageView.getContentManager().getContents()) {
+      if (!content.isPinned()) {
+        String displayName = content.getDisplayName();
+        if (displayName != null && displayName.startsWith(getProjectSystemId().getReadableName())) {
+          JComponent component = content.getComponent();
+          if (component instanceof NewEditableErrorTreeViewPanel) {
+            messagesView = (NewEditableErrorTreeViewPanel)component;
+            break;
+          }
+        }
+      }
+    }
+    return messagesView;
   }
 
   public void report(@NotNull SyncMessage message) {
@@ -145,25 +173,8 @@ public abstract class AbstractSyncMessages {
     }
   }
 
-  public void report(@NotNull NotificationData notificationData) {
-    ExternalSystemTaskId id = myProject.getUserData(EXTERNAL_SYSTEM_TASK_ID_KEY);
-    if (id != null) {
-      String title = notificationData.getTitle();
-      // Since the title of the notification data is the grooup, it is better to display the first line of the message
-      String[] lines = notificationData.getMessage().split(SystemProperties.getLineSeparator());
-      if (lines.length > 0) {
-        title = lines[0];
-      }
-      AndroidSyncIssueEvent issueEvent;
-      if (notificationData.getFilePath() != null) {
-        issueEvent = new AndroidSyncIssueFileEvent(id, notificationData, title);
-      }
-      else {
-        issueEvent = new AndroidSyncIssueEvent(id, notificationData, title);
-      }
-      myCurrentEvents.add(issueEvent);
-      ServiceManager.getService(myProject, SyncViewManager.class).onEvent(issueEvent);
-    }
+  public void report(@NotNull NotificationData notification) {
+    myNotificationManager.showNotification(getProjectSystemId(), notification);
   }
 
   @NotNull
@@ -172,14 +183,5 @@ public abstract class AbstractSyncMessages {
   @NotNull
   protected Project getProject() {
     return myProject;
-  }
-
-  @NotNull
-  public List<AndroidSyncIssueEvent> getEvents() {
-    return myCurrentEvents;
-  }
-
-  protected void clearEvents() {
-    myCurrentEvents.clear();
   }
 }
