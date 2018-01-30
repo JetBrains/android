@@ -23,6 +23,7 @@ import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canAddParcelable
 import org.jetbrains.kotlin.android.implementParcelable
+import org.jetbrains.kotlin.android.isParcelize
 import org.jetbrains.kotlin.psi.KtClass
 
 
@@ -31,8 +32,10 @@ class ParcelableQuickFix : AndroidLintQuickFix {
         startElement.getTargetClass()?.implementParcelable()
     }
 
-    override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean =
-            startElement.getTargetClass()?.canAddParcelable() ?: false
+    override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean {
+        val targetClass = startElement.getTargetClass() ?: return false
+        return targetClass.canAddParcelable() && !targetClass.isParcelize()
+    }
 
     override fun getName(): String = AndroidBundle.message("implement.parcelable.intention.text")
 
