@@ -598,6 +598,17 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   @Override
+  public String getNamespace(String prefix) {
+    for (int i = myNodeStack.size() - 1; i >= 0; i--) {
+      String uri = myNodeStack.get(i).namespaceDeclarations.get(prefix);
+      if (uri != null) {
+        return uri;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public boolean isEmptyElementTag() throws XmlPullParserException {
     if (myParsingState == START_TAG) {
       TagSnapshot currentNode = getCurrentNode();
