@@ -38,6 +38,7 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
  * Generates TestProjectPaths.
  */
 public class TestProjectPathsGenerator {
+  @SuppressWarnings("SpellCheckingInspection")
   private static final List<String> TEST_SUB_FOLDERS =
     Arrays.asList("apk", "manifestConflict", "moduleInfo", "navigationEditor", "projectModel", "runConfig", "signapk", "sync",
                   "testArtifacts", "uibuilder");
