@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.values;
 
+import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.ResValue;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel.BuildConfigField;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl;
+import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.Map;
@@ -96,9 +96,9 @@ public class GradleValueTest extends GradleFileModelTestCase {
     assertNotNull(consumerProguardFiles);
     assertThat(consumerProguardFiles).hasSize(2);
     verifyPropertyModel(consumerProguardFiles.get(0), "android.defaultConfig.consumerProguardFiles[0]",
-                      "con-proguard-android.txt");
+                        "con-proguard-android.txt");
     verifyPropertyModel(consumerProguardFiles.get(1), "android.defaultConfig.consumerProguardFiles[1]",
-                      "con-proguard-rules.pro");
+                        "con-proguard-rules.pro");
 
     List<GradlePropertyModel> proguardFiles = defaultConfig.proguardFiles().getValue(LIST_TYPE);
     assertNotNull(proguardFiles);
@@ -131,9 +131,9 @@ public class GradleValueTest extends GradleFileModelTestCase {
     assertNotNull(consumerProguardFiles);
     assertThat(consumerProguardFiles).hasSize(2);
     verifyPropertyModel(consumerProguardFiles.get(0), "android.defaultConfig.consumerProguardFiles[0]",
-                      "con-proguard-android.txt");
+                        "con-proguard-android.txt");
     verifyPropertyModel(consumerProguardFiles.get(1), "android.defaultConfig.consumerProguardFiles[1]",
-                      "con-proguard-rules.pro");
+                        "con-proguard-rules.pro");
 
     List<GradlePropertyModel> proguardFiles = defaultConfig.proguardFiles().getValue(LIST_TYPE);
     assertNotNull(proguardFiles);
@@ -166,7 +166,8 @@ public class GradleValueTest extends GradleFileModelTestCase {
     assertNotNull(activityLabel2);
     verifyPropertyModel(activityLabel2, "android.defaultConfig.manifestPlaceholders.activityLabel2", "defaultName2");
 
-    Map<String, GradlePropertyModel> testInstrumentationRunnerArguments = defaultConfig.testInstrumentationRunnerArguments().getValue(MAP_TYPE);
+    Map<String, GradlePropertyModel> testInstrumentationRunnerArguments =
+      defaultConfig.testInstrumentationRunnerArguments().getValue(MAP_TYPE);
     assertNotNull(testInstrumentationRunnerArguments);
     GradlePropertyModel size = testInstrumentationRunnerArguments.get("size");
     verifyPropertyModel(size, "android.defaultConfig.testInstrumentationRunnerArguments.size", "medium");
@@ -198,7 +199,8 @@ public class GradleValueTest extends GradleFileModelTestCase {
     assertNotNull(activityLabel2);
     verifyPropertyModel(activityLabel2, "android.defaultConfig.manifestPlaceholders.activityLabel2", "defaultName2");
 
-    Map<String, GradlePropertyModel> testInstrumentationRunnerArguments = defaultConfig.testInstrumentationRunnerArguments().getValue(MAP_TYPE);
+    Map<String, GradlePropertyModel> testInstrumentationRunnerArguments =
+      defaultConfig.testInstrumentationRunnerArguments().getValue(MAP_TYPE);
     assertNotNull(testInstrumentationRunnerArguments);
     GradlePropertyModel size = testInstrumentationRunnerArguments.get("size");
     verifyPropertyModel(size, "android.defaultConfig.testInstrumentationRunnerArguments.size", "medium");
@@ -223,16 +225,17 @@ public class GradleValueTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ProductFlavorModel defaultConfig = android.defaultConfig();
-    List<GradleNotNullValue<FlavorTypeModelImpl.ResValue>> resValues = defaultConfig.resValues();
+    List<ResValue> resValues = defaultConfig.resValues();
     assertNotNull(resValues);
     assertThat(resValues).hasSize(1);
-    verifyGradleValue(resValues.get(0), "android.defaultConfig.resValue", "\"abcd\", \"efgh\", \"ijkl\"");
+    verifyListProperty(resValues.get(0).getModel(), "android.defaultConfig.resValue", Lists.newArrayList("abcd", "efgh", "ijkl"));
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(1);
-    List<GradleNotNullValue<BuildConfigField>> buildConfigFields = buildTypes.get(0).buildConfigFields();
+    List<BuildConfigField> buildConfigFields = buildTypes.get(0).buildConfigFields();
     assertNotNull(buildConfigFields);
     assertThat(buildConfigFields).hasSize(1);
-    verifyGradleValue(buildConfigFields.get(0), "android.buildTypes.xyz.buildConfigField", "\"mnop\", \"qrst\", \"uvwx\"");
+    verifyListProperty(buildConfigFields.get(0).getModel(), "android.buildTypes.xyz.buildConfigField",
+                       Lists.newArrayList("mnop", "qrst", "uvwx"));
   }
 }
