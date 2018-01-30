@@ -50,5 +50,8 @@ interface GuiTestProjectSystem {
 
   companion object {
     val EP_NAME: ExtensionPointName<GuiTestProjectSystem> = ExtensionPointName.create("com.android.project.guitestprojectsystem")
+
+    fun forBuildSystem(buildSystem: TargetBuildSystem.BuildSystem): GuiTestProjectSystem?
+        = EP_NAME.extensions.firstOrNull { it.buildSystem == buildSystem }
   }
 }

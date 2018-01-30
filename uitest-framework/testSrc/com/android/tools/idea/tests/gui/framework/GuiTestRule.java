@@ -24,7 +24,7 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem;
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
+import com.android.tools.idea.tests.gui.framework.guitestsystem.CurrentGuiTestProjectSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
@@ -78,6 +78,7 @@ public class GuiTestRule implements TestRule {
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
+  private final CurrentGuiTestProjectSystem myCurrentProjectSystem = new CurrentGuiTestProjectSystem();
 
   private Timeout myTimeout = new Timeout(5, TimeUnit.MINUTES);
 
@@ -105,6 +106,7 @@ public class GuiTestRule implements TestRule {
     RuleChain chain = RuleChain.emptyRuleChain()
       .around(new LogStartAndStop())
       .around(new BlockReloading())
+      .around(myCurrentProjectSystem)
       .around(myRobotTestRule)
       .around(myLeakCheck)
       .around(new IdeHandling())
@@ -277,13 +279,13 @@ public class GuiTestRule implements TestRule {
 
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
     importProject(projectDirName);
-    getTestSystem().waitForProjectSyncToFinish(ideFrame());
+    testSystem().waitForProjectSyncToFinish(ideFrame());
     return ideFrame();
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File testProjectDir = setUpProject(projectDirName);
-    getTestSystem().importProject(testProjectDir, robot());
+    testSystem().importProject(testProjectDir, robot());
     return ideFrame();
   }
 
@@ -307,7 +309,7 @@ public class GuiTestRule implements TestRule {
   private File setUpProject(@NotNull String projectDirName) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
-    getTestSystem().prepareTestForImport(projectPath);
+    testSystem().prepareTestForImport(projectPath);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
     updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
@@ -399,6 +401,10 @@ public class GuiTestRule implements TestRule {
     return myRobotTestRule.getRobot();
   }
 
+  public GuiTestProjectSystem testSystem() {
+    return myCurrentProjectSystem.getTestProjectSystem();
+  }
+
   @NotNull
   public File getProjectPath() {
     return ideFrame().getProjectPath();
@@ -424,24 +430,5 @@ public class GuiTestRule implements TestRule {
   public GuiTestRule withTimeout(long timeout, @NotNull TimeUnit timeUnits) {
     myTimeout = new Timeout(timeout, timeUnits);
     return this;
-  }
-
-  @NotNull
-  private static GuiTestProjectSystem getTestSystem() {
-    TargetBuildSystem.BuildSystem targetBuildSystem;
-    try {
-      targetBuildSystem = IdeTestApplication.getInstance().getTargetBuildSystem();
-    }
-    catch (Exception e) {
-      throw new IllegalStateException("Unable to get IDE Instance", e);
-    }
-
-    for (GuiTestProjectSystem system : GuiTestProjectSystem.Companion.getEP_NAME().getExtensions()) {
-      if (system.getBuildSystem().equals(targetBuildSystem)) {
-        return system;
-      }
-    }
-
-    throw new IllegalStateException("No build system delegate found for " + targetBuildSystem);
   }
 }
