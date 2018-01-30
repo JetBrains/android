@@ -471,7 +471,7 @@ public class GradleSyncState {
              .setIdeTimeMs(getSyncIdeTimeMs())
              .setGradleTimeMs(getSyncGradleTimeMs())
              .setTrigger(myTrigger)
-             .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().ENABLE_EMBEDDED_MAVEN_REPO);
+             .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled());
     // @formatter:on
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return event;
