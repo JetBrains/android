@@ -64,7 +64,7 @@ public class LayoutInspectorTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE)  // b/71361448
   public void launchLayoutInspectorViaChooser() throws Exception {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     ideFrame.runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
