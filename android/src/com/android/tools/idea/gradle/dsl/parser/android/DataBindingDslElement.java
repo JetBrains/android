@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class DataBindingDslElement extends GradlePropertiesDslElement {
+public class DataBindingDslElement extends GradleDslBlockElement {
   @NonNls public static final String DATA_BINDING_BLOCK_NAME = "dataBinding";
 
   public DataBindingDslElement(@NotNull GradleDslElement parent) {
-    super(parent, null, DATA_BINDING_BLOCK_NAME);
+    super(parent, DATA_BINDING_BLOCK_NAME);
   }
 }
