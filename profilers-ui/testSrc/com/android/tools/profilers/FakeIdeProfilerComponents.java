@@ -74,6 +74,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Override
   public ContextMenuInstaller createContextMenuInstaller() {
     return new ContextMenuInstaller() {
+
       @Override
       public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
         List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
