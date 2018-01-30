@@ -15,10 +15,14 @@ package com.android.tools.idea.naveditor.editor;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.ASGallery;
-import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.DocumentAdapter;
@@ -29,7 +33,6 @@ import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.ui.speedSearch.FilteringListModel;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -42,9 +45,8 @@ import java.util.List;
  * "Add" popup menu in the navigation editor.
  */
 @VisibleForTesting
-public class AddExistingDestinationMenu extends DropDownAction {
+public class AddExistingDestinationMenu extends NavToolbarMenu {
 
-  private final NavDesignSurface mySurface;
   @VisibleForTesting
   public final List<Destination> myDestinations;
   private JPanel myMainPanel;
@@ -60,23 +62,17 @@ public class AddExistingDestinationMenu extends DropDownAction {
   SearchTextField mySearchField = new SearchTextField();
 
   AddExistingDestinationMenu(@NotNull NavDesignSurface surface, @NotNull List<Destination> destinations) {
-    super("", "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_EXISTING);
-    mySurface = surface;
+    super(surface, "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_EXISTING);
     myDestinations = destinations;
   }
 
-  @Nullable
   @Override
-  protected JPanel createCustomComponentPopup() {
-    if (myMainPanel == null) {
-      myMainPanel = createSelectionPanel();
-    }
-    return myMainPanel;
-  }
-
   @VisibleForTesting
   @NotNull
   public JPanel getMainPanel() {
+    if (myMainPanel == null) {
+      myMainPanel = createSelectionPanel();
+    }
     return myMainPanel;
   }
 
@@ -109,7 +105,6 @@ public class AddExistingDestinationMenu extends DropDownAction {
       }
     };
 
-    myDestinationsGallery.setBackground(null);
     myDestinationsGallery.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(@NotNull MouseEvent event) {
@@ -124,7 +119,8 @@ public class AddExistingDestinationMenu extends DropDownAction {
       }
     });
 
-    JPanel selectionPanel = new JPanel(new VerticalLayout(5));
+    JPanel selectionPanel = new AdtSecondaryPanel(new VerticalLayout(5));
+    myDestinationsGallery.setBackground(selectionPanel.getBackground());
     selectionPanel.add(mySearchField);
     mySearchField.addDocumentListener(new DocumentAdapter() {
       @Override
@@ -140,7 +136,7 @@ public class AddExistingDestinationMenu extends DropDownAction {
 
     myDestinations.forEach(destination -> myMediaTracker.addImage(destination.getThumbnail(), 0));
     if (!myMediaTracker.checkAll()) {
-      myLoadingPanel = new JBLoadingPanel(new BorderLayout(), mySurface);
+      myLoadingPanel = new JBLoadingPanel(new BorderLayout(), getSurface());
       myLoadingPanel.add(scrollPane, BorderLayout.CENTER);
       myLoadingPanel.startLoading();
 
@@ -166,23 +162,23 @@ public class AddExistingDestinationMenu extends DropDownAction {
     myDestinationsGallery.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(@NotNull MouseEvent event) {
-        Destination element = myDestinationsGallery.getSelectedElement();
-        if (element != null) {
-          element.addToGraph();
-          // explicitly update so the new SceneComponent is created
-          mySurface.getSceneManager().update();
-          NlComponent component = element.getComponent();
-          mySurface.getSelectionModel().setSelection(ImmutableList.of(component));
-          mySurface.scrollToCenter(ImmutableList.of(component));
-          closePopup();
-        }
+        AnAction action = new AnAction() {
+          @Override
+          public void actionPerformed(AnActionEvent e) {
+            Destination element = myDestinationsGallery.getSelectedElement();
+            if (element != null) {
+              element.addToGraph();
+              // explicitly update so the new SceneComponent is created
+              getSurface().getSceneManager().update();
+              NlComponent component = element.getComponent();
+              getSurface().getSelectionModel().setSelection(ImmutableList.of(component));
+              getSurface().scrollToCenter(ImmutableList.of(component));
+            }
+          }
+        };
+        ActionManager.getInstance().tryToExecute(action, event, event.getComponent(), ActionPlaces.TOOLBAR, true);
       }
     });
     return selectionPanel;
-  }
-
-  @Override
-  protected boolean updateActions() {
-    return true;
   }
 }

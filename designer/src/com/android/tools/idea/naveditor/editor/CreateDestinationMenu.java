@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.editor;
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
@@ -27,18 +27,21 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.psi.PsiClass;
-import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.ui.components.panels.VerticalLayout;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,10 +53,9 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
  * "Add" popup menu in the navigation editor.
  */
 @VisibleForTesting
-public class CreateDestinationMenu extends DropDownAction {
+public class CreateDestinationMenu extends NavToolbarMenu {
 
   private static final JLabel RENDERER_COMPONENT = new JLabel();
-  private final NavDesignSurface mySurface;
   @VisibleForTesting
   public ComboBox<Pair<String, PsiClass>> myKindPopup;
   @VisibleForTesting
@@ -78,32 +80,24 @@ public class CreateDestinationMenu extends DropDownAction {
   private String myDefaultLabel;
 
   CreateDestinationMenu(@NotNull NavDesignSurface surface) {
-    super("", "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION);
-    mySurface = surface;
-    mySchema = mySurface.getSchema();
+    super(surface, "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION);
+    mySchema = surface.getSchema();
+    myMainPanel = createNewPanel();
   }
 
-  @Nullable
   @Override
-  protected JPanel createCustomComponentPopup() {
-    if (myMainPanel == null) {
-      myMainPanel = createNewPanel();
-    }
+  @VisibleForTesting
+  @NotNull
+  public JPanel getMainPanel() {
     myDefaultLabel = null;
     myDefaultId = null;
     updateDefaultIdAndLabel();
     return myMainPanel;
   }
 
-  @VisibleForTesting
-  @NotNull
-  public JPanel getMainPanel() {
-    return myMainPanel;
-  }
-
   @NotNull
   private JPanel createNewPanel() {
-    JPanel newPanel = new JPanel(new VerticalLayout(10));
+    JPanel newPanel = new AdtSecondaryPanel(new VerticalLayout(10));
     JLabel destinationLabel = new JLabel("New Destination");
     newPanel.add(destinationLabel);
     newPanel.add(new JSeparator());
@@ -114,18 +108,22 @@ public class CreateDestinationMenu extends DropDownAction {
     myValidationLabel.setVisible(false);
     newPanel.add(myValidationLabel, VerticalLayout.BOTTOM);
 
-    JPanel buttons = new JPanel(new HorizontalLayout(2, SwingConstants.CENTER));
-
     myCreateButton = new JButton("Create");
-    myCreateButton.addActionListener(event -> {
-      if (validate()) {
-        createDestination();
+    myCreateButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent event) {
+        if (validate()) {
+          AnAction action = new AnAction() {
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+              createDestination();
+            }
+          };
+          ActionManager.getInstance().tryToExecute(action, event, (JComponent)event.getSource(), ActionPlaces.TOOLBAR, true);
+        }
       }
     });
-    buttons.add(myCreateButton);
-    JPanel bottomRow = new JPanel();
-    bottomRow.add(buttons);
-    newPanel.add(bottomRow, VerticalLayout.BOTTOM);
+    newPanel.add(myCreateButton, VerticalLayout.BOTTOM);
     newPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     return newPanel;
   }
@@ -138,8 +136,8 @@ public class CreateDestinationMenu extends DropDownAction {
       return;
     }
     PsiClass psiClass = selected.getSecond();
-    NlComponent parent = mySurface.getCurrentNavigation();
-    Destination result = null;
+    NlComponent parent = getSurface().getCurrentNavigation();
+    Destination result;
     // Should only be true for "include"
     if (psiClass == null) {
       result = new Destination.IncludeDestination(mySourceField.getText(), parent);
@@ -153,11 +151,10 @@ public class CreateDestinationMenu extends DropDownAction {
     }
     result.addToGraph();
     // explicitly update so the new SceneComponent is created
-    mySurface.getSceneManager().update();
+    getSurface().getSceneManager().update();
     NlComponent component = result.getComponent();
-    mySurface.getSelectionModel().setSelection(ImmutableList.of(component));
-    mySurface.scrollToCenter(ImmutableList.of(component));
-    closePopup();
+    getSurface().getSelectionModel().setSelection(ImmutableList.of(component));
+    getSurface().scrollToCenter(ImmutableList.of(component));
   }
 
   @VisibleForTesting
@@ -218,7 +215,7 @@ public class CreateDestinationMenu extends DropDownAction {
     String tag = navigatorClass == null ? TAG_INCLUDE : mySchema.getTag(navigatorClass);
     // If we haven't changed from the default, update the value
     if (myDefaultId == null || myIdField.getText().equals(myDefaultId)) {
-      NlModel model = mySurface.getModel();
+      NlModel model = getSurface().getModel();
       myDefaultId = NlComponent.generateId(tag, model.getIds(), ResourceFolderType.NAVIGATION,
                                            model.getModule());
       myIdField.setText(myDefaultId);
@@ -292,10 +289,5 @@ public class CreateDestinationMenu extends DropDownAction {
     // Unset the type so that when it's reset below we can be sure the listener fires.
     myKindPopup.setSelectedItem(null);
     myKindPopup.setSelectedItem(defaultSelection);
-  }
-
-  @Override
-  protected boolean updateActions() {
-    return true;
   }
 }

@@ -52,7 +52,7 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     surface.setSize(1000, 1000)
     surface.model = model
     _menu = AddExistingDestinationMenu(surface, NavActionManager(surface).destinations)
-    menu.createCustomComponentPopup()
+    menu.getMainPanel()
   }
 
   override fun tearDown() {

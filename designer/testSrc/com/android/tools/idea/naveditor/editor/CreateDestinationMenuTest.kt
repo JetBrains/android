@@ -58,7 +58,7 @@ class CreateDestinationMenuTest : NavTestCase() {
     surface.setSize(1000, 1000)
     surface.model = model
     _menu = CreateDestinationMenu(surface)
-    menu.createCustomComponentPopup()
+    menu.getMainPanel()
 
     val schema = NavigationSchema.get(myFacet)
     val model = menu.myKindPopup.model
@@ -267,7 +267,7 @@ class CreateDestinationMenuTest : NavTestCase() {
     assertEquals("fragment", menu.myIdField.text)
     menu.createDestination()
     val menu2 = CreateDestinationMenu(surface)
-    menu2.createCustomComponentPopup()
+    menu2.getMainPanel()
     menu2.myKindPopup.selectedItem = myItemsByType[NavigationSchema.DestinationType.FRAGMENT]
     assertEquals("fragment2", menu2.myIdField.text)
   }
