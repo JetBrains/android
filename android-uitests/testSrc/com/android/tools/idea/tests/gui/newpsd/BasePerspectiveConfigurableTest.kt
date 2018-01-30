@@ -28,8 +28,10 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Ignore
 import org.junit.runner.RunWith
 
+@Ignore("b/72661879")
 @RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner::class)
 class BasePerspectiveConfigurableTest {
