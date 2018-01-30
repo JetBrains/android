@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.manifest;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
@@ -150,7 +148,6 @@ public class ManifestEditorTest {
     assertThat(editor.getCurrentFileContents()).contains(addedText);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72563054
   @Test
   public void testNavigationSource() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
@@ -163,15 +160,6 @@ public class ManifestEditorTest {
 
     // row 22 is the first row of the intent-filter element generated from the nav-graph element
     mergedManifestFixture.getTree().clickRow(22);
-
-    mergedManifestFixture.clickLinkText("main mobile_navigation.xml navigation file");
-    assertThat(editor.getCurrentFileName()).isEqualTo("mobile_navigation.xml");
-
-    editor.open("app/src/main/AndroidManifest.xml");
-    editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-
-    // row 23 is a sub-element of the intent-filter element generated from the nav-graph element
-    mergedManifestFixture.getTree().clickRow(23);
 
     mergedManifestFixture.clickLinkText("main mobile_navigation.xml navigation file");
     assertThat(editor.getCurrentFileName()).isEqualTo("mobile_navigation.xml");
