@@ -67,7 +67,7 @@ public final class ComponentTreeTest {
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
     // TODO Same here
-    dialog.getList("Project").selectItem("ic_launcher");
+    dialog.expandList("Project").getList("Project").selectItem("ic_launcher");
     dialog.clickOK();
 
     editor.open(activityMainXmlRelativePath, Tab.EDITOR);
