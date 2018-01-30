@@ -33,6 +33,7 @@ sealed class Destination {
   abstract fun addToGraph()
   abstract val label: String
   abstract val thumbnail: Image?
+  abstract val typeLabel: String
 
   var component: NlComponent? = null
 
@@ -51,6 +52,9 @@ sealed class Destination {
         iconToImage(StudioIcons.NavEditor.ExistingDestinations.DESTINATION)
       }
     }
+
+    override val typeLabel: String
+      get() = parent.model.schema.getTagLabel(tag)
 
     override val label = destinationLabel ?: layoutFile?.let { FileUtil.getNameWithoutExtension(it.name) } ?: className ?: tag
 
@@ -92,5 +96,7 @@ sealed class Destination {
 
     override val thumbnail: Image? by lazy { iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED) }
 
+    override val typeLabel: String
+      get() = parent.model.schema.getTagLabel(SdkConstants.TAG_INCLUDE)
   }
 }
