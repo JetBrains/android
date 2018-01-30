@@ -16,7 +16,7 @@
 <component xmlns="http://jetbrains.org/intellij/schema/application-info"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
-  <version major="3" minor="2" micro="0" patch="0" full="{0}.{1} Canary 1" eap="true" />
+  <version major="3" minor="1" micro="0" patch="10" full="{0}.{1} Beta 2" eap="true" />
   <company name="Google" url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-173.4301.25"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="cccccc" progressY="268" progressTailIcon="/artwork/studio_progress_tail.png"/>
