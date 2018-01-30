@@ -180,6 +180,22 @@ java_test(
 )
 
 java_test(
+    name = "AswbGotoDeclarationTest",
+    size = "large",
+    data = COMMON_DATA + [
+        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
+        "//prebuilts/studio/sdk:tools/support-annotations",
+        ":unzip_aswb",
+    ] + glob([
+        "testData/SimpleBazelApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.AswbGotoDeclarationTest"],
+    tags = COMMON_TAGS + ["manual"],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
     name = "ConstraintLayoutTest",
     size = "large",
     data = COMMON_DATA + [
