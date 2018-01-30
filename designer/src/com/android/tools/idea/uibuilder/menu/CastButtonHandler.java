@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.tools.idea.common.model.NlAttributesHolder;
-import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -30,7 +29,7 @@ public final class CastButtonHandler extends MenuHandler {
 
   @NotNull
   @Override
-  public String getGradleCoordinateId(@NotNull NlComponent button) {
+  public String getGradleCoordinateId(@NotNull String tagName) {
     return "com.android.support:mediarouter-v7";
   }
 }

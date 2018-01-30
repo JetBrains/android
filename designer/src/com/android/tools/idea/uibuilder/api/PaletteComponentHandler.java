@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.xml.XmlBuilder;
 import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
@@ -79,11 +78,6 @@ public abstract class PaletteComponentHandler {
   @NotNull
   public Icon getLargeIcon(@NotNull String tagName) {
     return loadBuiltinLargeIcon(tagName);
-  }
-
-  @NotNull
-  public String getGradleCoordinateId(@NotNull NlComponent component) {
-    return getGradleCoordinateId(component.getTagName());
   }
 
   /**

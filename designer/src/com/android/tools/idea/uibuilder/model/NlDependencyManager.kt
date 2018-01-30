@@ -29,9 +29,9 @@ import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Handles depedencies for the Layout Editor.
+ * Handles dependencies for the Layout Editor.
  *
- * This class acts as an abstraction layer beetween Layout Editor component and the build sytem to manage
+ * This class acts as an abstraction layer between Layout Editor component and the build system to manage
  * dependencies required by the provided [NlComponent]
  */
 class NlDependencyManager private constructor(private val dependencyManager: DependencyManager) {
@@ -111,9 +111,8 @@ class NlDependencyManager private constructor(private val dependencyManager: Dep
    */
   private fun getDependencies(component: NlComponent): Set<String> {
     val artifacts = mutableSetOf<String>()
-    val tagName = component.tag.name
-    val handler = ViewHandlerManager.get(component.model.project).getHandler(tagName) ?: return emptySet()
-    val artifactId = handler.getGradleCoordinateId(tagName)
+    val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
+    val artifactId = handler.getGradleCoordinateId(component.tag.name)
     if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
       artifacts.add(artifactId)
     }
