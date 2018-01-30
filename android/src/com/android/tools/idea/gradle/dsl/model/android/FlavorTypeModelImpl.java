@@ -16,16 +16,16 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
-import com.android.utils.Pair;
-import com.google.common.base.Objects;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +33,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 /**
@@ -80,109 +83,47 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     return getModelForProperty(PROGUARD_FILES, true);
   }
 
+  @Override
   @Nullable
-  protected List<Pair<GradleDslExpressionList, TypeNameValueElement>> getTypeNameValueElements(@NotNull String elementName) {
-    GradleDslElementList typeNameValueElements = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
-    if (typeNameValueElements == null) {
+  public List<ResValue> resValues() {
+    return getTypeNameValuesElements(ResValueImpl::new, RES_VALUE);
+  }
+
+  @Override
+  @NotNull
+  public ResValue addResValue(@NotNull String type, @NotNull String name, @NotNull String value) {
+    return addNewTypeNameValueElement(ResValueImpl::new, RES_VALUE, type, name, value);
+  }
+
+  @Override
+  public void removeResValue(@NotNull String type, @NotNull String name, @NotNull String value) {
+    ResValue model = getTypeNameValueElement(ResValueImpl::new, RES_VALUE, type, name, value);
+    if (model != null) {
+      model.remove();
+    }
+  }
+
+  @Override
+  public ResValue replaceResValue(@NotNull String oldType,
+                                  @NotNull String oldName,
+                                  @NotNull String oldValue,
+                                  @NotNull String type,
+                                  @NotNull String name,
+                                  @NotNull String value) {
+    ResValue field = getTypeNameValueElement(ResValueImpl::new, RES_VALUE, oldType, oldName, oldValue);
+    if (field == null) {
       return null;
     }
 
-    List<Pair<GradleDslExpressionList, TypeNameValueElement>> result = Lists.newArrayList();
-    for (GradleDslElement typeNameValue : typeNameValueElements.getElements()) {
-      if (typeNameValue instanceof GradleDslExpressionList) {
-        GradleDslExpressionList listElement = (GradleDslExpressionList)typeNameValue;
-        List<GradleNotNullValue<String>> values = listElement.getValues(String.class);
-        if (values.size() == 3) {
-          result.add(Pair.of(listElement,
-                             new TypeNameValueElementImpl(elementName, values.get(0).value(), values.get(1).value(),
-                                                          values.get(2).value())));
-        }
-      }
-    }
-    return result;
-  }
-
-  @Override
-  @Nullable
-  public List<GradleNotNullValue<ResValue>> resValues() {
-    List<Pair<GradleDslExpressionList, TypeNameValueElement>> typeNameValueElements = getTypeNameValueElements(RES_VALUE);
-    if (typeNameValueElements == null) {
-      return null;
-    }
-
-    List<GradleNotNullValue<ResValue>> resValues = Lists.newArrayListWithCapacity(typeNameValueElements.size());
-    for (Pair<GradleDslExpressionList, TypeNameValueElement> elementPair : typeNameValueElements) {
-      GradleDslExpressionList listElement = elementPair.getFirst();
-      TypeNameValueElement typeNameValueElement = elementPair.getSecond();
-      resValues.add(new GradleNotNullValueImpl<>(listElement, new ResValueImpl(typeNameValueElement.type(), typeNameValueElement.name(),
-                                                                               typeNameValueElement.value())));
-    }
-
-    return resValues;
-  }
-
-  protected void addTypeNameValueElement(@NotNull TypeNameValueElement typeNameValueElement) {
-    GradleDslElementList elementList = myDslElement.getPropertyElement(typeNameValueElement.elementName(), GradleDslElementList.class);
-    if (elementList == null) {
-      elementList = new GradleDslElementList(myDslElement, typeNameValueElement.elementName());
-      myDslElement.setNewElement(typeNameValueElement.elementName(), elementList);
-    }
-    elementList.addNewElement(TypeNameValueElementImpl.toLiteralListElement(typeNameValueElement, myDslElement));
-  }
-
-  @Override
-  public void addResValue(@NotNull ResValue resValue) {
-    addTypeNameValueElement(resValue);
-  }
-
-  protected void removeTypeNameValueElement(@NotNull TypeNameValueElement typeNameValueElement) {
-    GradleDslElementList elementList = myDslElement.getPropertyElement(typeNameValueElement.elementName(), GradleDslElementList.class);
-    if (elementList != null) {
-      for (GradleDslExpressionList element : elementList.getElements(GradleDslExpressionList.class)) {
-        List<GradleNotNullValue<String>> values = element.getValues(String.class);
-        if (values.size() == 3
-            && typeNameValueElement.type().equals(values.get(0).value())
-            && typeNameValueElement.name().equals(values.get(1).value())
-            && typeNameValueElement.value().equals(values.get(2).value())) {
-          elementList.removeElement(element);
-        }
-      }
-    }
-  }
-
-  @Override
-  public void removeResValue(@NotNull ResValue resValue) {
-    removeTypeNameValueElement(resValue);
+    field.type().setValue(type);
+    field.name().setValue(name);
+    field.value().setValue(value);
+    return field;
   }
 
   @Override
   public void removeAllResValues() {
     myDslElement.removeProperty(RES_VALUE);
-  }
-
-  protected void replaceTypeNameValueElement(@NotNull TypeNameValueElement oldElement,
-                                             @NotNull TypeNameValueElement newElement) {
-    if (oldElement.elementName().equals(newElement.elementName())) {
-      GradleDslElementList elementList = myDslElement.getPropertyElement(oldElement.elementName(), GradleDslElementList.class);
-      if (elementList != null) {
-        for (GradleDslExpressionList element : elementList.getElements(GradleDslExpressionList.class)) {
-          List<GradleDslExpression> gradleDslLiterals = element.getExpressions();
-          if (gradleDslLiterals.size() == 3
-              && oldElement.type().equals(gradleDslLiterals.get(0).getValue())
-              && oldElement.name().equals(gradleDslLiterals.get(1).getValue())
-              && oldElement.value().equals(gradleDslLiterals.get(2).getValue())) {
-            gradleDslLiterals.get(0).setValue(newElement.type());
-            gradleDslLiterals.get(1).setValue(newElement.name());
-            gradleDslLiterals.get(2).setValue(newElement.value());
-          }
-        }
-      }
-    }
-  }
-
-  @Override
-  public void replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue) {
-    replaceTypeNameValueElement(oldResValue, newResValue);
   }
 
   @Override
@@ -196,36 +137,45 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
    */
   public static class TypeNameValueElementImpl implements TypeNameValueElement {
     @NotNull private final String myElementName;
-    @NotNull private final String myType;
-    @NotNull private final String myName;
-    @NotNull private final String myValue;
+    @NotNull private final GradlePropertyModelImpl myList;
 
     public TypeNameValueElementImpl(@NotNull String elementName,
-                                    @NotNull String type,
-                                    @NotNull String name,
-                                    @NotNull String value) {
+                                    @NotNull GradleDslExpressionList list) {
       myElementName = elementName;
-      myType = type;
-      myName = name;
-      myValue = value;
+      myList = new GradlePropertyModelImpl(list);
+      List<GradlePropertyModel> elements = myList.getValue(LIST_TYPE);
+      assert elements != null;
+      // Make sure the list has at least 3 elements.
+      for (int i = elements.size(); i < 3; i++) {
+        myList.addListValue();
+      }
+    }
+
+    @NotNull
+    private ResolvedPropertyModel getModelForIndex(int index) {
+      List<GradlePropertyModel> elements = myList.getValue(LIST_TYPE);
+      assert elements != null;
+      GradlePropertyModel expression = elements.get(index);
+      assert expression.getValueType() != NONE;
+      return expression.resolve();
     }
 
     @Override
     @NotNull
-    public String type() {
-      return myType;
+    public ResolvedPropertyModel type() {
+      return getModelForIndex(0);
     }
 
     @Override
     @NotNull
-    public String name() {
-      return myName;
+    public ResolvedPropertyModel name() {
+      return getModelForIndex(1);
     }
 
     @Override
     @NotNull
-    public String value() {
-      return myValue;
+    public ResolvedPropertyModel value() {
+      return getModelForIndex(2);
     }
 
     @Override
@@ -235,45 +185,19 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     }
 
     @Override
-    public int hashCode() {
-      return Objects.hashCode(myType, myName, myValue);
+    public void remove() {
+      myList.delete();
     }
 
     @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof TypeNameValueElementImpl)) {
-        return false;
-      }
-
-      TypeNameValueElementImpl other = (TypeNameValueElementImpl)o;
-      return myElementName.equals(other.myElementName)
-             && myType.equals(other.myType)
-             && myName.equals(other.myName)
-             && myValue.equals(other.myValue);
+    public GradlePropertyModel getModel() {
+      return myList;
     }
 
     @Override
     public String toString() {
-      return String.format("Type: %1$s, Name: %2$s, Value: %3$s", myType, myName, myValue);
-    }
-
-    @NotNull
-    protected static GradleDslExpressionList toLiteralListElement(@NotNull TypeNameValueElement element, @NotNull GradleDslElement parent) {
-      GradleDslLiteral typeElement = new GradleDslLiteral(parent, element.elementName());
-      typeElement.setValue(element.type());
-      GradleDslLiteral nameElement = new GradleDslLiteral(parent, element.elementName());
-      nameElement.setValue(element.name());
-      GradleDslLiteral valueElement = new GradleDslLiteral(parent, element.elementName());
-      valueElement.setValue(element.value());
-
-      GradleDslExpressionList gradleDslExpressionList = new GradleDslExpressionList(parent, element.elementName(), false);
-      gradleDslExpressionList.addNewExpression(typeElement);
-      gradleDslExpressionList.addNewExpression(nameElement);
-      gradleDslExpressionList.addNewExpression(valueElement);
-      return gradleDslExpressionList;
+      return String.format("Type: %1$s, Name: %2$s, Value: %3$s", type().getValue(STRING_TYPE), name().getValue(STRING_TYPE),
+                           value().getValue(STRING_TYPE));
     }
   }
 
@@ -294,12 +218,82 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     return new ResolvedPropertyModelImpl(model);
   }
 
+
+  protected <T extends TypeNameValueElement> T addNewTypeNameValueElement(@NotNull Function<GradleDslExpressionList, T> producer,
+                                                                          @NotNull String elementName,
+                                                                          @NotNull String type,
+                                                                          @NotNull String name,
+                                                                          @NotNull String value) {
+    GradleDslElementList elementList = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
+    if (elementList == null) {
+      elementList = new GradleDslElementList(myDslElement, elementName);
+      myDslElement.setNewElement(elementName, elementList);
+    }
+
+    GradleDslExpressionList expressionList = new GradleDslExpressionList(myDslElement, elementName, false);
+    T newValue = producer.apply(expressionList);
+    assert newValue != null;
+    newValue.type().setValue(type);
+    newValue.name().setValue(name);
+    newValue.value().setValue(value);
+    elementList.addNewElement(expressionList);
+
+    return newValue;
+  }
+
+  protected <T> List<T> getTypeNameValuesElements(@NotNull Function<GradleDslExpressionList, T> producer, @NotNull String elementName) {
+    GradleDslElementList elementList = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
+    if (elementList == null) {
+      return null;
+    }
+
+    List<T> result = Lists.newArrayList();
+    for (GradleDslElement element : elementList.getElements()) {
+      if (element instanceof GradleDslExpressionList) {
+        GradleDslExpressionList list = (GradleDslExpressionList)element;
+        T value = producer.apply(list);
+        assert value != null;
+        result.add(value);
+      }
+    }
+    return result;
+  }
+
+  @Nullable
+  protected <T extends TypeNameValueElement> T getTypeNameValueElement(@NotNull Function<GradleDslExpressionList, T> producer,
+                                                                       @NotNull String elementName,
+                                                                       @NotNull String type,
+                                                                       @NotNull String name,
+                                                                       @NotNull String value) {
+    GradleDslElementList elementList = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
+    if (elementList == null) {
+      return null;
+    }
+
+    for (GradleDslElement element : elementList.getElements()) {
+      if (element instanceof GradleDslExpressionList) {
+        GradleDslExpressionList list = (GradleDslExpressionList)element;
+        T typeNameValueElement = producer.apply(list);
+        assert typeNameValueElement != null;
+        String oldType = typeNameValueElement.type().getValue(STRING_TYPE);
+        String oldName = typeNameValueElement.name().getValue(STRING_TYPE);
+        String oldValue = typeNameValueElement.value().getValue(STRING_TYPE);
+        if (oldType != null && oldType.equals(type) &&
+            oldName != null && oldName.equals(name) &&
+            oldValue != null && oldValue.equals(value)) {
+          return typeNameValueElement;
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Represents a {@code resValue} statement defined in the product flavor block of the Gradle file.
    */
   public static final class ResValueImpl extends TypeNameValueElementImpl implements ResValue {
-    public ResValueImpl(@NotNull String type, @NotNull String name, @NotNull String value) {
-      super(RES_VALUE, type, name, value);
+    public ResValueImpl(@NotNull GradleDslExpressionList list) {
+      super(RES_VALUE, list);
     }
   }
 }

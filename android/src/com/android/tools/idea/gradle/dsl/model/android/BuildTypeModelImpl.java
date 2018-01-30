@@ -17,12 +17,8 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
-import com.android.utils.Pair;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,43 +52,45 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
 
   @Override
   @Nullable
-  public List<GradleNotNullValue<BuildConfigField>> buildConfigFields() {
-    List<Pair<GradleDslExpressionList, TypeNameValueElement>> typeNameValueElements = getTypeNameValueElements(BUILD_CONFIG_FIELD);
-    if (typeNameValueElements == null) {
+  public List<BuildConfigField> buildConfigFields() {
+    return getTypeNameValuesElements(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD);
+  }
+
+  @Override
+  public BuildConfigField addBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value) {
+    return addNewTypeNameValueElement(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD, type, name, value);
+  }
+
+  @Override
+  public void removeBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value) {
+    BuildConfigField model = getTypeNameValueElement(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD, type, name, value);
+    if (model != null) {
+      model.remove();
+    }
+  }
+
+  @Override
+  @Nullable
+  public BuildConfigField replaceBuildConfigField(@NotNull String oldType,
+                                                  @NotNull String oldName,
+                                                  @NotNull String oldValue,
+                                                  @NotNull String type,
+                                                  @NotNull String name,
+                                                  @NotNull String value) {
+    BuildConfigField field = getTypeNameValueElement(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD, oldType, oldName, oldValue);
+    if (field == null) {
       return null;
     }
 
-    List<GradleNotNullValue<BuildConfigField>> buildConfigFields = Lists.newArrayListWithCapacity(typeNameValueElements.size());
-    for (Pair<GradleDslExpressionList, TypeNameValueElement> pair : typeNameValueElements) {
-      GradleDslExpressionList listElement = pair.getFirst();
-      TypeNameValueElement typeNameValueElement = pair.getSecond();
-      buildConfigFields.add(new GradleNotNullValueImpl<>(listElement,
-                                                         new BuildConfigFieldImpl(typeNameValueElement.type(), typeNameValueElement.name(),
-                                                                                  typeNameValueElement.value())));
-    }
-
-    return buildConfigFields;
-  }
-
-  @Override
-  public void addBuildConfigField(@NotNull BuildConfigField buildConfigField) {
-    addTypeNameValueElement(buildConfigField);
-  }
-
-  @Override
-  public void removeBuildConfigField(@NotNull BuildConfigField buildConfigField) {
-    removeTypeNameValueElement(buildConfigField);
+    field.type().setValue(type);
+    field.name().setValue(name);
+    field.value().setValue(value);
+    return field;
   }
 
   @Override
   public void removeAllBuildConfigFields() {
     myDslElement.removeProperty(BUILD_CONFIG_FIELD);
-  }
-
-  @Override
-  public void replaceBuildConfigField(@NotNull BuildConfigField oldBuildConfigField,
-                                                @NotNull BuildConfigField newBuildConfigField) {
-    replaceTypeNameValueElement(oldBuildConfigField, newBuildConfigField);
   }
 
   @Override
@@ -165,8 +163,8 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
    * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.
    */
   public final static class BuildConfigFieldImpl extends TypeNameValueElementImpl implements BuildConfigField {
-    public BuildConfigFieldImpl(@NotNull String type, @NotNull String name, @NotNull String value) {
-      super(BUILD_CONFIG_FIELD, type, name, value);
+    public BuildConfigFieldImpl(@NotNull GradleDslExpressionList list) {
+      super(BUILD_CONFIG_FIELD, list);
     }
   }
 }

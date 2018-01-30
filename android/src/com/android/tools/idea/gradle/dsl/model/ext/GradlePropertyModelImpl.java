@@ -53,7 +53,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     GradleDslElement parent = element.getParent();
     assert parent != null &&
            (parent instanceof GradlePropertiesDslElement ||
-            parent instanceof GradleDslExpressionList) : "Property found to be invalid, this should never happen!";
+            parent instanceof GradleDslExpressionList ||
+            parent instanceof GradleDslElementList) : "Property found to be invalid, this should never happen!";
     myPropertyHolder = parent;
 
     myPropertyType = myElement.getElementType();
@@ -188,6 +189,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (myElement != null && myPropertyHolder instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)myPropertyHolder;
       return myPropertyHolder.getQualifiedName() + "[" + String.valueOf(list.findIndexOf(myElement)) + "]";
+    } else if (myElement != null && myPropertyHolder instanceof GradleDslElementList) {
+      // Elements contained within a GradleDslElementList should not have their own names.
+      return myPropertyHolder.getQualifiedName();
     }
 
     return myPropertyHolder.getQualifiedName() + "." + getName();
@@ -410,7 +414,14 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       assert element instanceof GradleDslExpression;
       list.addNewExpression((GradleDslExpression)element, index);
       myElement = element;
-    } else {
+    }
+    else if (myPropertyHolder instanceof GradleDslElementList) {
+      GradleDslElementList list = (GradleDslElementList)myPropertyHolder;
+      list.addNewElement(element);
+      myElement = element;
+    }
+
+    else {
       throw new IllegalStateException("Property holder has unknown type, " + myPropertyHolder);
     }
     element.setElementType(myPropertyType);
@@ -430,11 +441,14 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (myPropertyHolder instanceof GradlePropertiesDslElement) {
       ((GradlePropertiesDslElement)myPropertyHolder).removeProperty(myElement.getName());
     }
-    else {
-      assert myPropertyHolder instanceof GradleDslExpressionList;
+    else if (myPropertyHolder instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)myPropertyHolder;
       index = list.findIndexOf(myElement);
       ((GradleDslExpressionList)myPropertyHolder).removeElement(myElement);
+    } else {
+      assert myPropertyHolder instanceof GradleDslElementList;
+      GradleDslElementList elementList = (GradleDslElementList)myPropertyHolder;
+      elementList.removeElement(myElement);
     }
 
     myElement = null;

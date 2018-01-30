@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
+import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.TypeNameValueElement;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
@@ -263,6 +265,15 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertThat(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
   }
 
+  public static void verifyFlavorType(@NotNull String message, @NotNull List<List<Object>> expected, @Nullable List<? extends TypeNameValueElement> elements) {
+    assertEquals(message, expected.size(), elements.size());
+    for (int i = 0; i < expected.size(); i++) {
+      List<Object> list = expected.get(i);
+      TypeNameValueElement element = elements.get(i);
+      assertEquals(message, list, element.getModel());
+    }
+  }
+
   public static void assertMissingProperty(@NotNull GradlePropertyModel model) {
     assertEquals(NONE, model.getValueType());
   }
@@ -341,6 +352,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       default:
         fail("Type for model: " + model + " was unexpected, " + model.getValueType());
     }
+  }
+
+  public static void verifyListProperty(@Nullable GradlePropertyModel model,
+                                        @NotNull String name,
+                                        @NotNull List<Object> expectedValues) {
+    verifyListProperty("verifyListProperty", model, expectedValues);
+    assertEquals(name, model.getFullyQualifiedName());
   }
 
   public static void verifyListProperty(@NotNull String message,

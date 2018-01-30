@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
@@ -40,15 +42,20 @@ public interface FlavorTypeModel extends GradleDslModel {
   ResolvedPropertyModel proguardFiles();
 
   @Nullable
-  List<GradleNotNullValue<ResValue>> resValues();
+  List<ResValue> resValues();
 
-  void addResValue(@NotNull ResValue resValue);
+  ResValue addResValue(@NotNull String type, @NotNull String name, @NotNull String value);
 
-  void removeResValue(@NotNull ResValue resValue);
+  void removeResValue(@NotNull String type, @NotNull String name, @NotNull String value);
+
+  ResValue replaceResValue(@NotNull String oldType,
+                           @NotNull String oldName,
+                           @NotNull String oldValue,
+                           @NotNull String type,
+                           @NotNull String name,
+                           @NotNull String value);
 
   void removeAllResValues();
-
-  void replaceResValue(@NotNull ResValue oldResValue, @NotNull ResValue newResValue);
 
   @NotNull
   ResolvedPropertyModel useJack();
@@ -57,17 +64,23 @@ public interface FlavorTypeModel extends GradleDslModel {
    * Represents a statement like {@code resValue} or {@code buildConfigField} which contains type, name and value parameters.
    */
   interface TypeNameValueElement {
-    @NotNull
-    String name();
 
     @NotNull
-    String value();
+    ResolvedPropertyModel name();
 
     @NotNull
-    String type();
+    ResolvedPropertyModel value();
+
+    @NotNull
+    ResolvedPropertyModel type();
 
     @NotNull
     String elementName();
+
+    void remove();
+
+    @VisibleForTesting
+    GradlePropertyModel getModel();
   }
 
   /**
