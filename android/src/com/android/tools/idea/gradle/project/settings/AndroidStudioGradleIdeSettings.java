@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.settings;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.*;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.util.xmlb.XmlSerializerUtil.copyBean;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Android Studio-specific Gradle project settings.
@@ -29,6 +31,18 @@ import static com.intellij.util.xmlb.XmlSerializerUtil.copyBean;
 )
 public class AndroidStudioGradleIdeSettings implements PersistentStateComponent<AndroidStudioGradleIdeSettings> {
   public boolean ENABLE_EMBEDDED_MAVEN_REPO;
+  public long EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS = -1;
+
+  @NotNull private final CurrentTimeProvider myCurrentTimeProvider;
+
+  public AndroidStudioGradleIdeSettings() {
+    this(new CurrentTimeProvider());
+  }
+
+  @VisibleForTesting
+  AndroidStudioGradleIdeSettings(@NotNull CurrentTimeProvider currentTimeProvider) {
+    myCurrentTimeProvider = currentTimeProvider;
+  }
 
   @NotNull
   public static AndroidStudioGradleIdeSettings getInstance() {
@@ -47,6 +61,25 @@ public class AndroidStudioGradleIdeSettings implements PersistentStateComponent<
   }
 
   public boolean isEmbeddedMavenRepoEnabled() {
+    if (ENABLE_EMBEDDED_MAVEN_REPO) {
+      if (EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS == -1) {
+        EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS = myCurrentTimeProvider.getCurrentTimeMillis();
+      }
+      long timePassedMillis = myCurrentTimeProvider.getCurrentTimeMillis() - EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS;
+      long daysPassed = MILLISECONDS.toDays(timePassedMillis);
+      ENABLE_EMBEDDED_MAVEN_REPO = daysPassed <= 14; // Disable offline repo after 2 weeks
+    }
     return ENABLE_EMBEDDED_MAVEN_REPO;
+  }
+
+  public void setEmbeddedMavenRepoEnabled(boolean value) {
+    ENABLE_EMBEDDED_MAVEN_REPO = value;
+    EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS = value ? myCurrentTimeProvider.getCurrentTimeMillis() : -1;
+  }
+
+  static class CurrentTimeProvider {
+    long getCurrentTimeMillis() {
+      return System.currentTimeMillis();
+    }
   }
 }
