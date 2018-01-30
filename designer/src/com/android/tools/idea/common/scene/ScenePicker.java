@@ -199,9 +199,10 @@ public class ScenePicker {
    * @param y3
    * @param x4
    * @param y4
+   * @param w
    */
-  public void addCurveTo(Object e, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
-    mCurve.add(e, range, x1, y1, x2, y2, x3, y3, x4, y4);
+  public void addCurveTo(Object e, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int w) {
+    mCurve.add(e, range, x1, y1, x2, y2, x3, y3, x4, y4, w);
   }
 
   /*-----------------------------------------------------------------------*/
@@ -496,9 +497,10 @@ public class ScenePicker {
     double cy1;
     double cy2;
     double cy3;
+    double w;
     double mDistance;
 
-    public void add(Object select, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
+    public void add(Object select, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int w) {
       resizeTables();
       mObjectOffset[mObjectCount] = mObjectDataUsed;
       mObjectData[mObjectDataUsed++] = range;
@@ -519,9 +521,10 @@ public class ScenePicker {
       mObjectData[mObjectDataUsed++] = cy1;
       mObjectData[mObjectDataUsed++] = cy2;
       mObjectData[mObjectDataUsed++] = cy3;
+      mObjectData[mObjectDataUsed++] = w;
       mObjects[mObjectCount] = select;
       mTypes[mObjectCount] = OBJECT_CURVE;
-      bounds(range);
+      bounds(range + w);
       mObjectCount++;
     }
 
@@ -536,8 +539,11 @@ public class ScenePicker {
       cy1 = mObjectData[mDataOffset + 6];
       cy2 = mObjectData[mDataOffset + 7];
       cy3 = mObjectData[mDataOffset + 8];
-      double rangeSqr = range * range;
-      //TODO currently returns first distance in range not minimum distance
+      w = mObjectData[mDataOffset + 9];
+
+      double minDistanceSqr = Integer.MAX_VALUE;
+      double widthSqr = w * w;
+
       for (double t = 0; t < 1; t += .03) {
         double t2 = t * t;
         double t3 = t * t2;
@@ -546,12 +552,21 @@ public class ScenePicker {
         double dx = x - mMouseX;
         double dy = y - mMouseY;
         double distanceSq = dx * dx + dy * dy;
-        if (rangeSqr > distanceSq) {
-          mDistance = Math.sqrt(distanceSq);
+
+        if(distanceSq < widthSqr) {
+          mDistance = 0;
           return true;
         }
+
+        minDistanceSqr = Math.min(minDistanceSqr, distanceSq);
       }
-      return false;
+
+      if(minDistanceSqr > (range + w) * (range + w)) {
+        return false;
+      }
+
+      mDistance = Math.sqrt(minDistanceSqr) - w;
+      return true;
     }
 
     public final double evalX(double t) {
