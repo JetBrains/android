@@ -326,6 +326,7 @@
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
     <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
+    <cachesInvalidator implementation="com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesInvalidator"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.project.sync.idea.notification.GradleNotificationExtension"/>

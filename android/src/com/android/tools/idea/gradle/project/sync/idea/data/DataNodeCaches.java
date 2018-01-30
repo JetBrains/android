@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
+import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
@@ -45,6 +46,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAllRecursively;
 
 public class DataNodeCaches {
   @NotNull private final Project myProject;
@@ -133,5 +135,25 @@ public class DataNodeCaches {
       }
     }
     return false;
+  }
+
+  public void clearCaches() {
+    DataNode<ProjectData> cache = getCachedProjectData();
+    if (cache != null) {
+      clearCaches(cache);
+    }
+  }
+
+  private static void clearCaches(@NotNull DataNode<ProjectData> cache) {
+    clearCachesOfType(cache, GRADLE_MODULE_MODEL);
+    clearCachesOfType(cache, ANDROID_MODEL);
+    clearCachesOfType(cache, JAVA_MODULE_MODEL);
+    clearCachesOfType(cache, NDK_MODEL);
+  }
+
+  private static <T> void clearCachesOfType(@NotNull DataNode<ProjectData> cache, @NotNull Key<T> type) {
+    for (DataNode<T> dataNode : findAllRecursively(cache, type)) {
+      dataNode.clear(true);
+    }
   }
 }
