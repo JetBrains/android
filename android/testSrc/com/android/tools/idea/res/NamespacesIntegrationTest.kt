@@ -18,6 +18,7 @@ package com.android.tools.idea.res
 import com.android.builder.model.AaptOptions.Namespacing.DISABLED
 import com.android.builder.model.AaptOptions.Namespacing.REQUIRED
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.openapi.command.WriteCommandAction
@@ -26,8 +27,7 @@ import com.intellij.psi.PsiDocumentManager
 
 class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
-  // TODO(b/72488141)
-  fun ignore_testNamespaceChoosing() {
+  fun testNamespaceChoosing() {
     loadProject(TestProjectPaths.NAMESPACES)
     val resourceRepositoryManager = ResourceRepositoryManager.getOrCreateInstance(myAndroidFacet)
     assertEquals(REQUIRED, resourceRepositoryManager.namespacing)
@@ -48,5 +48,26 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     val resourceRepositoryManager = ResourceRepositoryManager.getOrCreateInstance(myAndroidFacet)
     assertEquals(DISABLED, resourceRepositoryManager.namespacing)
     assertSame(ResourceNamespace.RES_AUTO, resourceRepositoryManager.namespace)
+  }
+
+  @Suppress("DEPRECATION") // We're calling the same method as layoutlib currently.
+  fun testResolver() {
+    loadProject(TestProjectPaths.NAMESPACES)
+    val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "activity_my.xml")!!
+    val resourceResolver = ConfigurationManager.getOrCreateInstance(myModules.appModule).getConfiguration(layout).resourceResolver!!
+
+    fun check(reference: String, resolvesTo: String) {
+      assertEquals(
+        resolvesTo,
+        resourceResolver.resolveValue(null, "text", reference, false)!!.value
+      )
+    }
+
+    check("@com.example.lib:string/lib_string", resolvesTo = "Hello, this is lib.")
+    check("@com.example.lib:string/lib_string_indirect_full", resolvesTo = "Hello, this is lib.")
+    check("@com.example.app:string/get_from_lib_full", resolvesTo = "Hello, this is lib.")
+
+    check("@com.example.lib:string/get_from_lib_full", resolvesTo = "@com.example.lib:string/get_from_lib_full")
+    check("@com.example.app:string/lib_string", resolvesTo = "@com.example.app:string/lib_string")
   }
 }

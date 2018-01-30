@@ -878,7 +878,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   @Override
   public AaptOptions.Namespacing getNamespacing() {
-    // TODO(b/72488141): Read this from the model once IdeAaptOptions exists.
-    return AaptOptions.Namespacing.DISABLED;
+    return myAndroidProject.getAaptOptions().getNamespacing();
   }
 }

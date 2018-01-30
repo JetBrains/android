@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "testData.namespaces"
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
@@ -31,7 +30,5 @@ android {
 }
 
 dependencies {
-    implementation project(':lib')
-
-    // No external dependencies for now.
+  // No external dependencies for now.
 }

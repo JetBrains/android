@@ -5,4 +5,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
+    <string name="get_from_lib_full">@com.example.lib:string/lib_string</string>
+
 </resources>
