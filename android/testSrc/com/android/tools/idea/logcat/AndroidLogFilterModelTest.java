@@ -37,26 +37,26 @@ public class AndroidLogFilterModelTest {
   }
 
   @Test
-  public void filterAcceptsCorrectLogcatLine() throws Exception {
+  public void filterAcceptsCorrectLogcatLine() {
     LogFilterModel.MyProcessingResult result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
     assertThat(result.isApplicable()).isTrue();
   }
 
   @Test
-  public void filterRejectsIncorrectLogcatLine() throws Exception {
+  public void filterRejectsIncorrectLogcatLine() {
     LogFilterModel.MyProcessingResult result = myFilterModel.processLine("--- INVALID LINE ---");
     assertThat(result.isApplicable()).isFalse();
   }
 
   @Test
-  public void filterRejectsBelowMinimumLogLevelLine() throws Exception {
+  public void filterRejectsBelowMinimumLogLevelLine() {
     myFilterModel.setMinimumLevel(LogLevel.ERROR);
     LogFilterModel.MyProcessingResult result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
     assertThat(result.isApplicable()).isFalse();
   }
 
   @Test
-  public void filterRejectsOldMessages() throws Exception {
+  public void filterRejectsOldMessages() {
     String dateOld = "01-22 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message";
     String dateNow = "01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message";
     String dateNew = "01-24 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message";
@@ -72,7 +72,7 @@ public class AndroidLogFilterModelTest {
   }
 
   @Test
-  public void configuredFilterRejectsLinesThatDontMatch() throws Exception {
+  public void configuredFilterRejectsLinesThatDontMatch() {
     PersistentAndroidLogFilters.FilterData filterData = new PersistentAndroidLogFilters.FilterData();
     filterData.setLogMessagePattern("Dummy Message");
     filterData.setLogTagPattern("DummyTag");
@@ -90,7 +90,7 @@ public class AndroidLogFilterModelTest {
   }
 
   @Test
-  public void customPatternRejectsLinesThatDontMatch() throws Exception {
+  public void customPatternRejectsLinesThatDontMatch() {
     myFilterModel.updateCustomPattern(Pattern.compile("^.+/DummyTag: Dummy Message$"));
 
     LogFilterModel.MyProcessingResult result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
@@ -104,7 +104,7 @@ public class AndroidLogFilterModelTest {
   }
 
   @Test
-  public void filterCanMatchAgainstAnyLineInAMultiLineLog() throws Exception {
+  public void filterCanMatchAgainstAnyLineInAMultiLineLog() {
     PersistentAndroidLogFilters.FilterData filterData = new PersistentAndroidLogFilters.FilterData();
 
     String[] lines = "01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n+ line 2\n+ line 3".split("\n");
@@ -116,17 +116,17 @@ public class AndroidLogFilterModelTest {
 
     result = myFilterModel.processLine(lines[0]);
     assertThat(result.isApplicable()).isTrue();
-    assert(result.getMessagePrefix() != null);
+    assert (result.getMessagePrefix() != null);
     assertThat(result.getMessagePrefix()).isEmpty();
 
     result = myFilterModel.processLine(lines[1]);
     assertThat(result.isApplicable()).isTrue();
-    assert(result.getMessagePrefix() != null);
+    assert (result.getMessagePrefix() != null);
     assertThat(result.getMessagePrefix()).isEmpty();
 
     result = myFilterModel.processLine(lines[2]);
     assertThat(result.isApplicable()).isTrue();
-    assert(result.getMessagePrefix() != null);
+    assert (result.getMessagePrefix() != null);
     assertThat(result.getMessagePrefix()).isEmpty();
 
     // Test multiline log against second line
@@ -138,12 +138,12 @@ public class AndroidLogFilterModelTest {
 
     result = myFilterModel.processLine(lines[1]);
     assertThat(result.isApplicable()).isTrue();
-    assert(result.getMessagePrefix() != null);
+    assert (result.getMessagePrefix() != null);
     assertThat(result.getMessagePrefix()).isEqualTo("01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n");
 
     result = myFilterModel.processLine(lines[2]);
     assertThat(result.isApplicable()).isTrue();
-    assert(result.getMessagePrefix() != null);
+    assert (result.getMessagePrefix() != null);
     assertThat(result.getMessagePrefix()).isEmpty();
 
     // Test multiline log against third line
@@ -158,7 +158,7 @@ public class AndroidLogFilterModelTest {
 
     result = myFilterModel.processLine(lines[2]);
     assertThat(result.isApplicable()).isTrue();
-    assert(result.getMessagePrefix() != null);
+    assert (result.getMessagePrefix() != null);
     assertThat(result.getMessagePrefix()).isEqualTo("01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n+ line 2\n");
 
     // Test multiline log against non-existent line
@@ -197,6 +197,5 @@ public class AndroidLogFilterModelTest {
     public String getSelectedLogLevelName() {
       return myMinimumLevel.getStringValue();
     }
-
   }
 }
