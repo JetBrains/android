@@ -57,7 +57,6 @@ public class ConnectionDetailsView extends JPanel {
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
     myTabsPanel = new CommonTabbedPane();
-    myTabsPanel.getTabAreaInsets().top = -1;
 
     populateTabs();
 
