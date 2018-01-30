@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
@@ -40,15 +39,15 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
 
   public LibraryDependencyNode(@NotNull AbstractPsNode parent, @NotNull PsLibraryAndroidDependency dependency) {
     super(parent, dependency);
-    setUp(dependency);
     myDependencyNodeComparator = new DependencyNodeComparator(new PsDependencyComparator(getUiSettings()));
+    setUp(dependency);
   }
 
   public LibraryDependencyNode(@NotNull AbstractPsNode parent,
                                @NotNull List<PsLibraryAndroidDependency> dependencies) {
     super(parent, dependencies);
-    setUp(dependencies.get(0));
     myDependencyNodeComparator = new DependencyNodeComparator(new PsDependencyComparator(getUiSettings()));
+    setUp(dependencies.get(0));
   }
 
   private void setUp(@NotNull PsLibraryAndroidDependency dependency) {
