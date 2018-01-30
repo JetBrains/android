@@ -27,6 +27,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
@@ -200,8 +201,8 @@ class PsiResourceItem extends ResourceItem {
         break;
     }
 
-    // TODO(namespaces): precompute this?
-    value.setNamespaceLookup(prefix -> StringUtil.nullize(myTag.getNamespaceByPrefix(prefix)));
+    // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
+    value.setNamespaceLookup(prefix -> ReadAction.compute(() -> StringUtil.nullize(myTag.getNamespaceByPrefix(prefix))));
     return value;
   }
 

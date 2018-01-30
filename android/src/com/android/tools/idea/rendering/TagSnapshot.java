@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.android.SdkConstants.*;
@@ -48,6 +49,7 @@ public class TagSnapshot {
   @Nullable private TagSnapshot myNext;
   @NotNull public List<TagSnapshot> children;
   @NotNull public List<AttributeSnapshot> attributes;
+  @NotNull public Map<String, String> namespaceDeclarations;
   /** Whether this element or any of its children has any aapt:attr definitions */
   public boolean hasDeclaredAaptAttrs = false;
 
@@ -60,6 +62,7 @@ public class TagSnapshot {
     this.attributes = attributes;
     this.children = children;
     this.hasDeclaredAaptAttrs = hasDeclaredAaptAttrs;
+    this.namespaceDeclarations = tag != null ? tag.getLocalNamespaceDeclarations() : Collections.emptyMap();
   }
 
   public static TagSnapshot createSyntheticTag(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix,

@@ -284,6 +284,12 @@ public class DomPullParser extends LayoutPullParser {
   }
 
   @Override
+  public String getNamespace(String prefix) {
+    Element currentNode = getCurrentElement();
+    return currentNode != null ? currentNode.lookupNamespaceURI(prefix) : null;
+  }
+
+  @Override
   public boolean isEmptyElementTag() throws XmlPullParserException {
     if (myParsingState == START_TAG) {
       Element currentNode = getCurrentElement();

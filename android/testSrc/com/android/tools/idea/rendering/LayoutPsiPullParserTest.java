@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -441,6 +442,34 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals("ListView", parser.getName());
     assertEquals("@+id/_dynamic", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
     assertEquals(END_TAG, parser.nextTag());
+  }
+
+  public void testNamespaces() throws XmlPullParserException {
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/namespaces.xml", "res/layout/my_layout.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(ANDROID_URI, parser.getNamespace("a"));
+    assertNull(parser.getNamespace("android"));
+    assertNull(parser.getNamespace("a2"));
+
+
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(ANDROID_URI, parser.getNamespace("a"));
+    assertEquals(ANDROID_URI, parser.getNamespace("a2"));
+    assertNull(parser.getNamespace("android"));
+
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("ImageView", parser.getName());
+    assertEquals(URI_PREFIX + "com.example.aaa", parser.getNamespace("a"));
+    assertEquals(ANDROID_URI, parser.getNamespace("a2"));
+    assertNull(parser.getNamespace("android"));
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }

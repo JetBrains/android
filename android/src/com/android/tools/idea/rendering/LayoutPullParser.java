@@ -63,11 +63,6 @@ public abstract class LayoutPullParser implements ILayoutPullParser {
   }
 
   @Override
-  public String getNamespace(String prefix) {
-    throw new RuntimeException("getNamespace() not supported");
-  }
-
-  @Override
   public int getNamespaceCount(int depth) throws XmlPullParserException {
     throw new XmlPullParserException("getNamespaceCount() not supported");
   }
