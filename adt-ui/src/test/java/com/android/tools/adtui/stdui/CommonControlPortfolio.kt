@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
+import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
@@ -44,7 +45,7 @@ object CommonControlPortfolio {
     setLAF(UIManager.getLookAndFeel())
 
     //Create and set up the window.
-    val frame = JFrame("ASTextField Demo")
+    val frame = JFrame("Common Controls")
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
     //Set up the content pane.
@@ -53,31 +54,41 @@ object CommonControlPortfolio {
 
     //Display the window.
     frame.pack()
-    frame.setSize(250, frame.height)
+    frame.setSize(500, frame.height)
     frame.isVisible = true
   }
 
   private fun addComponentsToPane(contentPane: Container) {
-    val grid = JPanel()
-    grid.layout = GridLayout(8, 1, 5, 5)
-    grid.border = JBUI.Borders.empty(20, 20, 20, 20)
-    grid.isOpaque = false
-
+    var grid = JPanel(VerticalFlowLayout())
     grid.add(makeTextField("Normal", true))
     grid.add(makeTextField("Disabled", false))
     grid.add(makeTextField("Error", true))
     grid.add(makeTextField("", true))
+
+    val topPanel = CommonTabbedPane()
+    topPanel.add(grid, "TextField")
+
+    grid = JPanel(VerticalFlowLayout())
     grid.add(makeComboBox("zero", true, true))
     grid.add(makeComboBox("zero", true, false))
-    grid.add(makeLAFControl())
+    topPanel.add(grid, "ComboBox")
 
-    val topPanel = JPanel(BorderLayout())
-    topPanel.isOpaque = false
-    topPanel.add(grid, BorderLayout.NORTH)
-    topPanel.add(JPanel(), BorderLayout.CENTER)
+    grid = JPanel()
+    grid.layout = GridLayout(2, 2, 5, 5)
+    grid.border = JBUI.Borders.empty(20, 20, 20, 20)
+
+    listOf(SwingConstants.TOP, SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.BOTTOM).forEach {
+      val tab = CommonTabbedPane()
+      tab.border = BorderFactory.createLineBorder(StandardColors.TAB_BORDER_COLOR, 1)
+      tab.tabPlacement = it
+      listOf("One", "Two", "Three").forEach {  tab.add(JLabel("Label $it"), it) }
+      grid.add(tab)
+    }
+    topPanel.add(grid, "Tabs")
 
     contentPane.layout = BorderLayout()
     contentPane.add(topPanel, BorderLayout.CENTER)
+    contentPane.add(makeLAFControl(), BorderLayout.SOUTH)
     contentPane.background = secondaryPanelBackground
   }
 
