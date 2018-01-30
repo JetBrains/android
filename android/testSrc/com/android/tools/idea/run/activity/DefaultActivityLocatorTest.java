@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,15 +35,15 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testActivity() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/activity/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/activity/src/debug/java/com/example/unittest/Launcher.java",
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
     assertEquals("com.example.unittest.Launcher", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
   }
 
   public void testActivityAlias() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
+    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
     assertEquals("LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
   }
@@ -50,20 +51,20 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
   // preference to the one that also has category DEFAULT
   public void testPreferDefaultCategoryActivity() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/default/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
+    myFixture.copyFileToProject(RUN_CONFIG_DEFAULT + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
     assertEquals("com.example.unittest.LauncherAlias", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
   }
 
   // tests that when there are multiple launcher activities, then we pick the leanback launcher for a TV device
   public void testLeanbackLauncher() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/tv/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/tv/Launcher.java",
+    myFixture.copyFileToProject(RUN_CONFIG_TV + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_TV + "/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    myFixture.copyFileToProject("projects/runConfig/tv/DefaultLauncher.java",
+    myFixture.copyFileToProject(RUN_CONFIG_TV + "/DefaultLauncher.java",
                                 "src/com/example/unittest/DefaultLauncher.java");
-    myFixture.copyFileToProject("projects/runConfig/tv/TvLauncher.java",
+    myFixture.copyFileToProject(RUN_CONFIG_TV + "/TvLauncher.java",
                                 "src/com/example/unittest/TvLauncher.java");
 
     IDevice tv = mock(IDevice.class);
@@ -77,8 +78,8 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
 
   // tests that when there are multiple launcher activities, we exclude the ones with android:enabled="false"
   public void testEnabledActivities() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/enabled/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
+    myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
     assertEquals("LaunchActivity", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
 
@@ -88,7 +89,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testLauncherActivityIntent() throws Exception {
-    myFixture.copyFileToProject("projects/runConfig/manifests/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_MANIFESTS + "/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertNull("No launchable activity registration is present in the manifest, but one was detected",
                DefaultActivityLocator.computeDefaultActivity(myFacet, null));
   }
