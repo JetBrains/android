@@ -21,11 +21,18 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
-public class GuiTestingService {
-  public static Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
-  public static Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
+import javax.annotation.concurrent.GuardedBy;
 
+public class GuiTestingService {
+  public static final Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
+  public static final Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
+
+  private final Object LOCK = new Object();
+
+  @GuardedBy("LOCK")
   private boolean myGuiTestingMode;
+
+  @GuardedBy("LOCK")
   private GuiTestSuiteState myGuiTestSuiteState;
 
   public static GuiTestingService getInstance() {
@@ -33,29 +40,39 @@ public class GuiTestingService {
   }
 
   private GuiTestingService() {
+    boolean en = false;
+
     ExtensionPointName<GuiTestingStatusProvider> epName = ExtensionPointName.create("com.android.tools.idea.ui.guiTestingStatusProvider");
     for (GuiTestingStatusProvider provider : epName.getExtensions()) {
-      myGuiTestingMode = provider.enableUiTestMode() || myGuiTestingMode;
+      en = provider.enableUiTestMode() || en;
     }
+
+    setGuiTestingMode(en);
   }
 
   public boolean isGuiTestingMode() {
-    return myGuiTestingMode;
+    synchronized (LOCK) {
+      return myGuiTestingMode;
+    }
   }
 
   public void setGuiTestingMode(boolean guiTestingMode) {
-    myGuiTestingMode = guiTestingMode;
-    myGuiTestSuiteState = myGuiTestingMode ? new GuiTestSuiteState() : null;
+    synchronized (LOCK) {
+      myGuiTestingMode = guiTestingMode;
+      myGuiTestSuiteState = myGuiTestingMode ? new GuiTestSuiteState() : null;
+    }
   }
 
   // Ideally we would have this class in IdeTestApplication. The problem is that IdeTestApplication and UI tests run in different
   // ClassLoaders and UI tests are unable to see the same instance of IdeTestApplication.
   @NotNull
   public GuiTestSuiteState getGuiTestSuiteState() {
-    if (!myGuiTestingMode) {
-      throw new UnsupportedOperationException("The method 'getGuiTestSuiteState' can only be invoked when running UI tests");
+    synchronized (LOCK) {
+      if (!myGuiTestingMode) {
+        throw new UnsupportedOperationException("The method 'getGuiTestSuiteState' can only be invoked when running UI tests");
+      }
+      return myGuiTestSuiteState;
     }
-    return myGuiTestSuiteState;
   }
 
   public static class GuiTestSuiteState {
