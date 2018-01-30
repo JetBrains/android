@@ -51,12 +51,12 @@ public class AndroidStudioGradleIdeSettingsConfigurable implements SearchableCon
 
   @Override
   public boolean isModified() {
-    return isEmbeddedRepoEnabled() != mySettings.ENABLE_EMBEDDED_MAVEN_REPO;
+    return isEmbeddedRepoEnabled() != mySettings.isEmbeddedMavenRepoEnabled();
   }
 
   @Override
   public void apply() {
-    mySettings.ENABLE_EMBEDDED_MAVEN_REPO = isEmbeddedRepoEnabled();
+    mySettings.setEmbeddedMavenRepoEnabled(isEmbeddedRepoEnabled());
   }
 
   @VisibleForTesting
@@ -66,7 +66,7 @@ public class AndroidStudioGradleIdeSettingsConfigurable implements SearchableCon
 
   @Override
   public void reset() {
-    myEnableEmbeddedRepoCheckbox.setSelected(mySettings.ENABLE_EMBEDDED_MAVEN_REPO);
+    myEnableEmbeddedRepoCheckbox.setSelected(mySettings.isEmbeddedMavenRepoEnabled());
   }
 
   @Override
