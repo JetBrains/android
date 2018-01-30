@@ -25,8 +25,7 @@ import java.util.function.Supplier;
 
 public interface ContextMenuInstaller {
   /**
-   * Installs a generic IntelliJ context menu on a {@code component} from the specified {@code contextMenu}.
-   * TODO - handles shortcut
+   * Installs a generic IntelliJ context menu on a {@code component}.
    */
   void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem);
 

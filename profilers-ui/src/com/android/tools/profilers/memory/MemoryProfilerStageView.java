@@ -31,11 +31,13 @@ import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
@@ -49,11 +51,14 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
@@ -63,6 +68,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
   @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
+  @NotNull private SelectionComponent mySelectionComponent;
   @Nullable private CaptureObject myCaptureObject = null;
 
   @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
@@ -71,8 +77,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @Nullable private LoadingPanel myCaptureLoadingPanel;
   @NotNull private final JBSplitter myInstanceDetailsSplitter = new JBSplitter(true);
 
+  @NotNull private JButton myForceGarbageCollectionButton;
   @NotNull private JButton myHeapDumpButton;
   @NotNull private JButton myAllocationButton;
+  @NotNull private ProfilerAction myForceGarbageCollectionAction;
+  @NotNull private ProfilerAction myHeapDumpAction;
+  @NotNull private ProfilerAction myAllocationAction;
+  @NotNull private ProfilerAction myStopAllocationAction;
   @NotNull private final JLabel myCaptureElapsedTime;
 
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
@@ -100,13 +111,32 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
 
+    myForceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
+    myForceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
+    myForceGarbageCollectionButton.addActionListener(e -> {
+      getStage().forceGarbageCollection();
+      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackForceGc();
+    });
+    myForceGarbageCollectionAction =
+      new ProfilerAction.Builder("Force garbage collection")
+        .setIcon(myForceGarbageCollectionButton.getIcon())
+        .setActionRunnable(() -> myForceGarbageCollectionButton.doClick(0))
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_G, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK)).build();
+    myForceGarbageCollectionButton.setToolTipText(myForceGarbageCollectionAction.getDefaultToolTipText());
+
+
     myHeapDumpButton = new CommonButton(StudioIcons.Profiler.Toolbar.HEAP_DUMP);
     myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.HEAP_DUMP));
-    myHeapDumpButton.setToolTipText("Dump Java heap");
     myHeapDumpButton.addActionListener(e -> {
       getStage().requestHeapDump();
       getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
     });
+    myHeapDumpAction =
+      new ProfilerAction.Builder("Dump Java heap")
+        .setIcon(myHeapDumpButton.getIcon())
+        .setActionRunnable(() -> myHeapDumpButton.doClick(0))
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_H, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK)).build();
+    myHeapDumpButton.setToolTipText(myHeapDumpAction.getDefaultToolTipText());
 
     myCaptureElapsedTime = new JLabel("");
     myCaptureElapsedTime.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
@@ -123,6 +153,18 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         getStage().trackAllocations(!getStage().isTrackingAllocations());
       });
     myAllocationButton.setVisible(!getStage().useLiveAllocationTracking());
+    myAllocationAction =
+      new ProfilerAction.Builder("Record allocations")
+        .setIcon(StudioIcons.Profiler.Toolbar.RECORD)
+        .setEnableBooleanSupplier(() -> !getStage().isTrackingAllocations())
+        .setActionRunnable(() -> myAllocationButton.doClick(0)).
+        setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK)).build();
+    myStopAllocationAction =
+      new ProfilerAction.Builder("Stop recording")
+        .setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING)
+        .setEnableBooleanSupplier(() -> getStage().isTrackingAllocations())
+        .setActionRunnable(() -> myAllocationButton.doClick(0)).
+        setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_S, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK)).build();
 
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
@@ -132,27 +174,20 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     captureObjectChanged();
     allocationTrackingChanged();
+    buildContextMenu(mySelectionComponent);
   }
 
   @Override
   public JComponent getToolbar() {
     JPanel toolBar = new JPanel(createToolbarLayout());
-    JButton forceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
-    forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
-    forceGarbageCollectionButton.setToolTipText("Force garbage collection");
-    forceGarbageCollectionButton.addActionListener(e -> {
-      getStage().forceGarbageCollection();
-      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackForceGc();
-    });
-    toolBar.add(forceGarbageCollectionButton);
-
+    toolBar.add(myForceGarbageCollectionButton);
     toolBar.add(myHeapDumpButton);
     toolBar.add(myAllocationButton);
     toolBar.add(myCaptureElapsedTime);
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     Runnable toggleButtons = () -> {
-      forceGarbageCollectionButton.setEnabled(profilers.isSessionAlive());
+      myForceGarbageCollectionButton.setEnabled(profilers.isSessionAlive());
       myHeapDumpButton.setEnabled(profilers.isSessionAlive());
       myAllocationButton.setEnabled(profilers.isSessionAlive());
     };
@@ -318,12 +353,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .build();
     lineChart.addCustomRenderer(gcRenderer);
 
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
-    selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    mySelectionComponent = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
+    mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final OverlayComponent overlay = new OverlayComponent(selection);
+    final OverlayComponent overlay = new OverlayComponent(mySelectionComponent);
     overlay.addDurationDataRenderer(gcRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
 
@@ -427,14 +462,32 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
     layout.setRowSizing(1, "*"); // Give monitor as much space as possible
     panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
-
     return panel;
+  }
+
+  private void buildContextMenu(@NotNull JComponent component) {
+    IdeProfilerComponents ideProfilerComponents = getIdeComponents();
+    ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
+
+    if (!getStage().useLiveAllocationTracking()) {
+      contextMenuInstaller.installGenericContextMenu(component, myAllocationAction);
+      contextMenuInstaller.installGenericContextMenu(component, myStopAllocationAction);
+    }
+    contextMenuInstaller.installGenericContextMenu(component, myForceGarbageCollectionAction);
+    contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
+    contextMenuInstaller.installGenericContextMenu(component, myHeapDumpAction);
+    contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
+
+    ProfilerContextMenu contextMenu = ProfilerContextMenu.createIfAbsent(getProfilersView().getComponent());
+    for (ContextMenuItem item : contextMenu.getContextMenuItems()) {
+      contextMenuInstaller.installGenericContextMenu(component, item);
+    }
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {

@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.SelectionModel;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Path2D;
@@ -91,24 +92,28 @@ public final class SelectionComponent extends AnimatedComponent {
     this.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        requestFocusInWindow();
-        myMode = getModeAtCurrentPosition(e.getX());
-        if (myMode == Mode.CREATE) {
-          myModel.beginUpdate();
-          double value = xToRange(e.getX());
-          myModel.set(value, value);
+        if (SwingUtilities.isLeftMouseButton(e)) {
+          requestFocusInWindow();
+          myMode = getModeAtCurrentPosition(e.getX());
+          if (myMode == Mode.CREATE) {
+            myModel.beginUpdate();
+            double value = xToRange(e.getX());
+            myModel.set(value, value);
+          }
+          myMousePressed = e.getX();
+          updateCursor(myMode, myMousePressed);
         }
-        myMousePressed = e.getX();
-        updateCursor(myMode, myMousePressed);
       }
 
       @Override
       public void mouseReleased(MouseEvent e) {
-        if (myMode == Mode.CREATE) {
-          myModel.endUpdate();
+        if (SwingUtilities.isLeftMouseButton(e)) {
+          if (myMode == Mode.CREATE) {
+            myModel.endUpdate();
+          }
+          myMode = Mode.NONE;
+          opaqueRepaint();
         }
-        myMode = Mode.NONE;
-        opaqueRepaint();
       }
 
       @Override
