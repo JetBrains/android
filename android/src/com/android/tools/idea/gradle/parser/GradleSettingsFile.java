@@ -128,6 +128,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
   public void addModule(@NotNull String modulePath, @NotNull File location) {
     checkInitialized();
     commitDocumentChanges();
+    reload();
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
       for (GrLiteral lit : getLiteralArguments(includeStatement)) {
         if (modulePath.equals(lit.getValue())) {
@@ -181,6 +182,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
   public void removeModule(@NotNull String modulePath) {
     checkInitialized();
     commitDocumentChanges();
+    reload();
     boolean removedAnyIncludes = false;
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
       for (GrLiteral lit : getLiteralArguments(includeStatement)) {
