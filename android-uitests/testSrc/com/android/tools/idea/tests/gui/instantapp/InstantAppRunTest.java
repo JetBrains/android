@@ -137,6 +137,12 @@ public class InstantAppRunTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     guiTest.waitForBackgroundTasks();
 
+    // TODO remove the following workaround waits for the project to be set up. See http://b/72666461
+    Wait.seconds(20)
+      .expecting("a file to be opened")
+      .until(() -> ideFrame.getEditor().getCurrentFile() != null);
+    guiTest.waitForBackgroundTasks();
+
     emulator.createAVD(
       ideFrame.invokeAvdManager(),
       "x86 Images",
