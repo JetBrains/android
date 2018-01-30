@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.npw.project.NewProjectModel.getSuggestedProjectPackage;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionProvider {
@@ -157,7 +158,8 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, isLibrary(), false, myName);
+      String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), false);
+      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, basePackage, isLibrary(), false, myName);
     }
   }
 }

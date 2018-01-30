@@ -41,10 +41,10 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      super.tearDown();
+      BatchInvoker.clearOverrideStrategy();
     }
     finally {
-      BatchInvoker.clearOverrideStrategy();
+      super.tearDown();
     }
   }
 
@@ -62,7 +62,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
 
     NewModuleModel newModuleModel = new NewModuleModel(project);
     ConfigureAndroidModuleStep configureAndroidModuleStep =
-      new ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, false, false, "Test Title");
+      new ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", false, false, "Test Title");
 
     Disposer.register(getTestRootDisposable(), newModuleModel);
     Disposer.register(getTestRootDisposable(), configureAndroidModuleStep);
