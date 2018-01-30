@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static com.android.tools.idea.npw.project.NewProjectModel.getSuggestedProjectPackage;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -98,7 +99,9 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureAndroidModuleStep(model, FormFactor.MOBILE, myTemplateMetadata.getMinSdk(), true, true, getDescription());
+      String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), true);
+      return new ConfigureAndroidModuleStep(model, FormFactor.MOBILE, myTemplateMetadata.getMinSdk(), basePackage, true, true,
+                                            getDescription());
     }
   }
 

@@ -21,6 +21,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.observable.core.*;
@@ -35,6 +36,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -49,6 +51,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -168,6 +171,28 @@ public class NewProjectModel extends WizardModel {
     // TODO: Figure out if this legacy behaviour, of including User Name, can be removed.
     String userName = includeUserName ? System.getProperty("user.name") : null;
     return userName == null ? EXAMPLE_DOMAIN : toPackagePart(userName) + '.' + EXAMPLE_DOMAIN;
+  }
+
+  /**
+   * Tries to get a valid package suggestion for the specifies Project. For instant apps, the base feature module package is used, for
+   * other modules, the saved user domain is used.
+   */
+  @NotNull
+  public static String getSuggestedProjectPackage(@NotNull Project project, boolean isInstantApp) {
+    String basePackage = null;
+    if (isInstantApp) {
+      Module baseFeatureModule = InstantApps.findBaseFeature(project);
+      AndroidFacet androidFacet = baseFeatureModule == null ? null : AndroidFacet.getInstance(baseFeatureModule);
+      if (androidFacet != null && androidFacet.getConfiguration().getModel() != null) {
+        basePackage = AndroidPackageUtils.getPackageForApplication(androidFacet);
+      }
+    }
+
+    if (basePackage == null) {
+      StringProperty companyDomain = new StringValueProperty(getInitialDomain(false));
+      basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
+    }
+    return basePackage;
   }
 
   /**

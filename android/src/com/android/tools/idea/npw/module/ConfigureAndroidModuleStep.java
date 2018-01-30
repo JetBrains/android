@@ -25,8 +25,6 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.npw.project.DomainToPackageExpression;
-import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -55,6 +53,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.npw.project.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -82,7 +81,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
   @NotNull private RenderTemplateModel myRenderModel;
 
-  public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel,
+  public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel, String basePackage,
                                     boolean isLibrary, boolean isInstantApp, @NotNull String title) {
     super(model, title, formFactor.getIcon());
 
@@ -91,11 +90,15 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myIsLibrary = isLibrary;
     myIsInstantApp = isInstantApp;
 
-    StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
     TextProperty packageNameText = new TextProperty(myPackageName);
     TextProperty moduleNameText = new TextProperty(myModuleName);
-
-    Expression<String> computedPackageName = new DomainToPackageExpression(companyDomain, model.moduleName());
+    Expression<String> computedPackageName = new Expression<String>(model.moduleName()) {
+      @NotNull
+      @Override
+      public String get() {
+        return String.format("%s.%s", basePackage, toPackagePart(model.moduleName().get()));
+      }
+    };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myBindings.bind(model.packageName(), packageNameText);
