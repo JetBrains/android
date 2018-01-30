@@ -17,7 +17,7 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataRequest;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import io.grpc.stub.StreamObserver;
@@ -49,7 +49,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   }
 
   @Override
-  public void getData(EnergyDataRequest request, StreamObserver<EnergyDataResponse> responseObserver) {
+  public void getData(EnergyRequest request, StreamObserver<EnergyDataResponse> responseObserver) {
     EnergyDataResponse.Builder responseBuilder = EnergyDataResponse.newBuilder();
 
     // TODO: Get real energy data from device and delete check session range, this adds fake sample within request range.

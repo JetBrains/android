@@ -13,7 +13,7 @@
 // limitations under the License.
 package com.android.tools.profilers.energy
 
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataRequest
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample
 import com.android.tools.profiler.proto.EnergyServiceGrpc
@@ -24,7 +24,7 @@ import java.util.stream.Collectors
 
 class FakeEnergyService(val dataList: List<EnergySample> = ArrayList()) : EnergyServiceGrpc.EnergyServiceImplBase() {
 
-  override fun getData(request: EnergyDataRequest, responseObserver: StreamObserver<EnergyDataResponse>) {
+  override fun getData(request: EnergyRequest, responseObserver: StreamObserver<EnergyDataResponse>) {
     val listStream = dataList.stream().filter({d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp })
     val resultList = listStream.collect(Collectors.toList())
     val response = EnergyDataResponse.newBuilder().addAllSampleData(resultList).build()

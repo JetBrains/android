@@ -17,7 +17,7 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataRequest;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample;
 import com.android.tools.profilers.ProfilerClient;
@@ -53,7 +53,7 @@ class EnergyUsageDataSeries implements DataSeries<Long> {
 
   @Override
   public List<SeriesData<Long>> getDataForXRange(Range range) {
-    EnergyDataRequest.Builder builder = EnergyDataRequest.newBuilder().setSession(mySession);
+    EnergyRequest.Builder builder = EnergyRequest.newBuilder().setSession(mySession);
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     builder.setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long) range.getMin()) - bufferNs);
     builder.setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long) range.getMax()) + bufferNs);
