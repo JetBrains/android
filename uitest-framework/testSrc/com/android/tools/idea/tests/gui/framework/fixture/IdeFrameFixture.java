@@ -233,13 +233,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return findActionButtonByText("Attach debugger to Android process");
   }
 
-  public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) throws ClassNotFoundException {
+  public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) {
     selectApp(appName);
     findDebugApplicationButton().click();
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
-  public DeployTargetPickerDialogFixture runApp(@NotNull String appName) throws ClassNotFoundException {
+  public DeployTargetPickerDialogFixture runApp(@NotNull String appName) {
     selectApp(appName);
     findRunApplicationButton().waitUntilEnabledAndShowing().click();
     return DeployTargetPickerDialogFixture.find(robot());
@@ -419,7 +419,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFinish() {
-    return waitForGradleProjectSyncToFinish(Wait.seconds(10));
+    return waitForGradleProjectSyncToFinish(Wait.seconds(30));
   }
 
   @NotNull

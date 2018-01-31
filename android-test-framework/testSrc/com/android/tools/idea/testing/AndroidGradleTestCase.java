@@ -199,7 +199,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
           try {
             myFixture.tearDown();
           }
-          catch (Exception e) {
+          catch (Throwable e) {
             LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
           }
           myFixture = null;

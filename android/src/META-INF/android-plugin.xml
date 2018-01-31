@@ -361,7 +361,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSync"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncFailureHandler" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter"/>
