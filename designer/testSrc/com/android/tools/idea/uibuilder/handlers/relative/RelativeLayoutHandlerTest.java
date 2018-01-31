@@ -20,13 +20,11 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.mockito.Mockito;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockViewWithBaseline;
@@ -34,8 +32,6 @@ import static com.android.tools.idea.uibuilder.model.SegmentType.*;
 import static java.awt.event.InputEvent.SHIFT_MASK;
 
 public class RelativeLayoutHandlerTest extends LayoutTestCase {
-
-  @Nullable private AndroidModel myMockAndroidModel;
 
   @Override
   protected void setUp() throws Exception {
@@ -318,8 +314,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
 
   public void testMoveLeft() {
     // This should have both start and left attributes
-    setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START - 1);
-    setTargetSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    setAndroidModel(RtlSupportProcessor.RTL_TARGET_SDK_START - 1, RtlSupportProcessor.RTL_TARGET_SDK_START);
     screen(createRtlLeftModel())
       .get("@id/textView")
       .drag()
@@ -337,8 +332,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_marginStart=\"15dp\" />");
 
     // This should have start attributes and no left attributes
-    setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
-    setTargetSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    setAndroidModel(RtlSupportProcessor.RTL_TARGET_SDK_START, RtlSupportProcessor.RTL_TARGET_SDK_START);
     screen(createRtlLeftModel())
       .get("@id/textView")
       .drag()
@@ -356,8 +350,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
 
   public void testMoveRight() {
     // This should have both start and left attributes
-    setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START - 1);
-    setTargetSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    setAndroidModel(RtlSupportProcessor.RTL_TARGET_SDK_START - 1, RtlSupportProcessor.RTL_TARGET_SDK_START);
     screen(createRtlRightModel())
       .get("@id/textView")
       .drag()
@@ -375,8 +368,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_marginRight=\"15dp\" />");
 
     // This should have start attributes and no left attributes
-    setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
-    setTargetSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    setAndroidModel(RtlSupportProcessor.RTL_TARGET_SDK_START, RtlSupportProcessor.RTL_TARGET_SDK_START);
     screen(createRtlRightModel())
       .get("@id/textView")
       .drag()
@@ -499,22 +491,10 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "</RelativeLayout>");
   }
 
-  private void setMinimumSdkVersion(int version) {
-    if (myMockAndroidModel == null) {
-      myMockAndroidModel = Mockito.mock(AndroidModel.class);
-      myFacet.getConfiguration().setModel(myMockAndroidModel);
-    }
-    //noinspection ConstantConditions
-    Mockito.when(myMockAndroidModel.getMinSdkVersion()).thenReturn(new AndroidVersion(version));
-  }
-
-  private void setTargetSdkVersion(int version) {
-    if (myMockAndroidModel == null) {
-      myMockAndroidModel = Mockito.mock(AndroidModel.class);
-      myFacet.getConfiguration().setModel(myMockAndroidModel);
-    }
-    //noinspection ConstantConditions
-    Mockito.when(myMockAndroidModel.getTargetSdkVersion()).thenReturn(new AndroidVersion(version));
+  private void setAndroidModel(int minSdk, int targetSdk) {
+    myFacet.getConfiguration().setModel(new TestAndroidModel("com.example.test",
+                                                             new AndroidVersion(minSdk),
+                                                             new AndroidVersion(targetSdk)));
   }
 
   @NotNull
