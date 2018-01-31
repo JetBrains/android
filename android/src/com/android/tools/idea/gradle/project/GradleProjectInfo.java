@@ -118,6 +118,9 @@ public class GradleProjectInfo {
    */
   public boolean isBuildWithGradle() {
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+      if (myProject.isDisposed()) {
+        return false;
+      }
       if (ProjectFacetManager.getInstance(myProject).hasFacets(GradleFacet.getFacetTypeId())) {
         return true;
       }
