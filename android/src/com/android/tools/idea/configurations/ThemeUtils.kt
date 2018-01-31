@@ -22,8 +22,8 @@ import com.android.ide.common.resources.ResourceResolver.THEME_NAME
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
 import com.google.common.collect.ImmutableList
-import java.util.stream.Collectors
-import java.util.stream.Stream
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.project.Project
 
 /**
  * The themes we encourage developer to use. They will be displayed as an option in dropdown menu.
@@ -41,6 +41,9 @@ private const val ANDROID_THEME_PREFIX = PREFIX_ANDROID + "Theme."
 private const val PROJECT_THEME_PREFIX = "Theme."
 private const val PROJECT_THEME = "Theme"
 
+private const val RECENTLY_USED_THEMES_PROPERTY = "android.recentlyUsedThemes"
+private const val MAX_RECENTLY_USED_THEMES = 5
+
 /**
  * If the [theme] is called [THEME_NAME] or [PROJECT_THEME], return [THEME_NAME]
  * otherwise, if the [theme] has prefix [ANDROID_THEME_PREFIX], [PROJECT_THEME_PREFIX], or [STYLE_RESOURCE_PREFIX], remove it.
@@ -53,20 +56,34 @@ internal fun getPreferredThemeName(theme: String): String {
   return theme.removePrefix(ANDROID_THEME_PREFIX).removePrefix(PROJECT_THEME_PREFIX).removePrefix(STYLE_RESOURCE_PREFIX)
 }
 
-internal fun getFrameworkThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
+fun getFrameworkThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
   getFilteredSortedNames(getPublicThemes(themeResolver.frameworkThemes), excludedThemes)
 
-internal fun getProjectThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
+fun getProjectThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
   getFilteredSortedNames(getPublicThemes(themeResolver.localThemes), excludedThemes)
 
-internal fun getLibraryThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
+fun getLibraryThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
   getFilteredPrefixesSortedNames(getPublicThemes(themeResolver.externalLibraryThemes), excludedThemes, setOf("Base.", "Platform."))
 
-internal fun getRecommendedThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
+fun getRecommendedThemes(themeResolver: ThemeResolver, excludedThemes: Set<String> = emptySet()) =
   sequenceOf(getLibraryThemes(themeResolver, excludedThemes), getFrameworkThemes(themeResolver, excludedThemes))
     .flatten()
     .filter { it in RECOMMENDED_THEMES }
     .toList()
+
+@JvmOverloads
+fun getRecentlyUsedThemes(project: Project, excludedThemes: Set<String> = emptySet()) =
+  PropertiesComponent.getInstance(project)
+    .getValues(RECENTLY_USED_THEMES_PROPERTY)
+    ?.asList()
+    ?.minus(excludedThemes) ?: emptyList()
+
+fun addRecentlyUsedTheme(project: Project, theme: String) {
+  // The recently used themes are not shared between different projects.
+  val old = PropertiesComponent.getInstance(project).getValues(RECENTLY_USED_THEMES_PROPERTY)?.toSet() ?: emptySet()
+  val new = setOf(theme).plus(old).take(MAX_RECENTLY_USED_THEMES).toTypedArray()
+  PropertiesComponent.getInstance(project).setValues(RECENTLY_USED_THEMES_PROPERTY, new)
+}
 
 /**
  * Filters a collection of themes to return a new collection with only the public ones.

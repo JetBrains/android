@@ -26,11 +26,13 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -138,6 +140,20 @@ public class ThemeMenuAction extends DropDownAction {
     // Add recommended themes.
     List<String> recommendedThemes = ThemeUtils.getRecommendedThemes(myThemeResolver, excludedThemes);
     addThemes(recommendedThemes, currentThemeName, true);
+
+    Configuration config = myRenderContext.getConfiguration();
+    if (config != null) {
+      Project project = config.getModule().getProject();
+
+      // Add recent used themes
+      // Don't show any theme added above as recent Theme.
+      Set<String> existingThemes = new HashSet<>();
+      existingThemes.addAll(excludedThemes);
+      existingThemes.addAll(projectThemeWithoutDefaultTheme);
+      existingThemes.addAll(recommendedThemes);
+      List<String> recentUsedThemes = ThemeUtils.getRecentlyUsedThemes(project, existingThemes);
+      addThemes(recentUsedThemes, currentThemeName, true);
+    }
   }
 
   /**
@@ -240,8 +256,13 @@ public class ThemeMenuAction extends DropDownAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
-      // The theme in here must be one of default theme, project themes, or recommend themes.
+      // The theme in here must be one of default theme, project themes, recommend themes, or recent used themes.
+      // It doesn't need to be added to recent used theme since it is in the dropdown menu already.
       configuration.setTheme(myTheme);
+      if (ThemeUtils.getRecentlyUsedThemes(configuration.getModule().getProject()).contains(myTheme)) {
+        // Add this theme to recent Themes again to make it as the most recent one.
+        ThemeUtils.addRecentlyUsedTheme(configuration.getModule().getProject(), myTheme);
+      }
     }
   }
 
@@ -261,6 +282,7 @@ public class ThemeMenuAction extends DropDownAction {
           String theme = dialog.getTheme();
           if (theme != null) {
             configuration.setTheme(theme);
+            ThemeUtils.addRecentlyUsedTheme(configuration.getModule().getProject(), theme);
           }
         }
       }
