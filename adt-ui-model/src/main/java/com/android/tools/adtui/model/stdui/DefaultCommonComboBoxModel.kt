@@ -17,12 +17,18 @@ package com.android.tools.adtui.model.stdui
 
 import javax.swing.DefaultComboBoxModel
 
-class DefaultCommonComboBoxModel<Item>() : DefaultComboBoxModel<Item>(), CommonComboBoxModel<Item> {
+class DefaultCommonComboBoxModel<Item>(initialValue: String) : DefaultComboBoxModel<Item>(), CommonComboBoxModel<Item> {
   private val listeners = mutableListOf<ValueChangedListener>()
 
-  constructor(elements: List<Item>) : this() {
+  constructor(initialValue: String, elements: List<Item>) : this(initialValue) {
     elements.forEach { addElement(it) }
   }
+
+  override var value = initialValue
+    set(value) {
+      field = value
+      fireValueChanged()
+    }
 
   override var placeHolderValue = ""
     set(value) {

@@ -39,7 +39,6 @@ open class CommonComboBox<E>(model: CommonComboBoxModel<E>) : JComboBox<E>(model
   private fun updateFromModel(model: CommonComboBoxModel<E>) {
     setEditable(model.editable)
     isEnabled = model.enabled
-    selectedItem = model.selectedItem
   }
 
   override fun updateUI() {

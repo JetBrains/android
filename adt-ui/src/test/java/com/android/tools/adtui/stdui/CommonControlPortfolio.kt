@@ -22,10 +22,12 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.Container
+import java.awt.GridLayout
 import javax.swing.*
 
 /**
@@ -65,8 +67,8 @@ object CommonControlPortfolio {
     grid.add(makeTextField("Disabled", false))
     grid.add(makeTextField("Error", true))
     grid.add(makeTextField("", true))
-    grid.add(makeComboBox(true, true))
-    grid.add(makeComboBox(true, false))
+    grid.add(makeComboBox("zero", true, true))
+    grid.add(makeComboBox("zero", true, false))
     grid.add(makeLAFControl())
 
     val topPanel = JPanel(BorderLayout())
@@ -143,13 +145,14 @@ object CommonControlPortfolio {
     return field
   }
 
-  private fun makeComboBox(enabled: Boolean, editable: Boolean): JComponent {
-    val model = DefaultCommonComboBoxModel(listOf("one", "two", "three", "four", "five", "six"))
-    val combo = CommonComboBox(model)
-    val inset = combo.insets.left
+  private fun makeComboBox(initialValue: String, enabled: Boolean, editable: Boolean): JComponent {
+    val model = DefaultCommonComboBoxModel(initialValue, listOf("one", "two", "three", "four", "five", "six"))
     model.enabled = enabled
     model.editable = editable
     model.placeHolderValue = "@+id/name"
+
+    val combo = CommonComboBox(model)
+    val inset = combo.insets.left
     combo.isOpaque = false
     combo.renderer = SimpleListRenderer(0, inset)
     return combo

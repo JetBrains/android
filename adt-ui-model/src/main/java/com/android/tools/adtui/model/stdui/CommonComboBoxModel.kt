@@ -17,19 +17,4 @@ package com.android.tools.adtui.model.stdui
 
 import javax.swing.ComboBoxModel
 
-interface CommonComboBoxModel<E> : ComboBoxModel<E> {
-  val enabled: Boolean
-    get() = true
-
-  val editable: Boolean
-    get() = true
-
-  val placeHolderValue: String
-    get() = ""
-
-  fun validationError(editedValue: String): String = ""
-
-  fun addListener(listener: ValueChangedListener)
-
-  fun removeListener(listener: ValueChangedListener)
-}
+interface CommonComboBoxModel<E> : CommonTextFieldModel, ComboBoxModel<E>
