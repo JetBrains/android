@@ -38,7 +38,6 @@ fun getProjectType(typeId: Int): ProjectType {
     0 -> ProjectType.APP
     1 -> ProjectType.LIBRARY
     2 -> ProjectType.TEST
-    3 -> ProjectType.ATOM
     4 -> ProjectType.INSTANT_APP
     5 -> ProjectType.FEATURE
     else -> throw IllegalArgumentException("The value $typeId is not a valid project type ID")
