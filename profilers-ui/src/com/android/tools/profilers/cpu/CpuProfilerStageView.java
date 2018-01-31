@@ -47,7 +47,6 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TitledSeparator;
-import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
@@ -73,7 +72,6 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 import static java.awt.event.InputEvent.*;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
-
   private final CpuProfilerStage myStage;
 
   private final JButton myCaptureButton;
@@ -81,7 +79,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Contains the status of the capture, e.g. "Starting record...", "Recording - XXmXXs", etc.
    */
   private final JLabel myCaptureStatus;
-  private final JBList<CpuThreadsModel.RangedCpuThread> myThreads;
+  private final DragAndDropList<CpuThreadsModel.RangedCpuThread> myThreads;
   /**
    * The action listener of the capture button changes depending on the state of the profiler.
    * It can be either "start capturing" or "stop capturing".
@@ -127,7 +125,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                    ProfilerLayeredPane.class);
     mySelection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
     mySelection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    myThreads = new JBList<>(myStage.getThreadStates());
+    myThreads = new DragAndDropList<>(myStage.getThreadStates());
 
     final OverlayComponent overlay = new OverlayComponent(mySelection);
     final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
@@ -327,6 +325,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void configureThreadsPanel(JScrollPane scrollingThreads, AxisComponent timeAxisGuide) {
+    // TODO(b/62447834): Make a decision on how we want to handle thread selection.
+    myThreads.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
     CpuThreadsModel model = myStage.getThreadStates();
     myThreads.addListSelectionListener((e) -> {
       int selectedIndex = myThreads.getSelectedIndex();
@@ -345,7 +346,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myThreads.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
-        if (myThreads.getSelectedIndex() < 0 && myThreads.getItemsCount() > 0) {
+        if (myThreads.getSelectedIndex() < 0 && myThreads.getModel().getSize() > 0) {
           myThreads.setSelectedIndex(0);
         }
       }

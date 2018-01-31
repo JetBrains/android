@@ -16,22 +16,30 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profilers.DragAndDropListModel;
+import com.android.tools.profilers.DragAndDropModelListElement;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuThread> implements Updatable {
+public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.RangedCpuThread> implements Updatable {
+  @NotNull private static final String RENDER_THREAD_NAME = "RenderThread";
+
   @NotNull private final CpuProfilerStage myStage;
 
   @NotNull private final Common.Session mySession;
@@ -51,8 +59,12 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     myThreadIdToCpuThread = new HashMap<>();
 
     myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
+
+    // Initialize first set of elements.
     rangeChanged();
+    sortElements();
   }
+
   public void rangeChanged() {
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setSession(mySession)
@@ -62,29 +74,79 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     CpuProfiler.GetThreadsResponse response = client.getThreads(request.build());
 
     // Merge the two lists.
-    int i = 0;
-    int j = 0;
-    while (i < getSize() && j < response.getThreadsCount()) {
-      RangedCpuThread oldThread = getElementAt(i);
-      CpuProfiler.GetThreadsResponse.Thread newThread = response.getThreads(j);
-      if (oldThread.getThreadId() == newThread.getTid()) {
-        i++;
-        j++;
+    Map<Integer, RangedCpuThread> requestedThreadsRangedCpuThreads = new HashMap<>();
+    for (CpuProfiler.GetThreadsResponse.Thread newThread : response.getThreadsList()) {
+      RangedCpuThread cpuThread = myThreadIdToCpuThread.computeIfAbsent(newThread.getTid(),
+                                                                        id -> new RangedCpuThread(myRange, newThread.getTid(),
+                                                                                                  newThread.getName()));
+      requestedThreadsRangedCpuThreads.put(newThread.getTid(), cpuThread);
+    }
+
+    // Find elements that already exist and remove them from the incoming set.
+    for (int i = 0; i < getSize(); i++) {
+      RangedCpuThread element = getElementAt(i);
+      // If our element exists in the incoming set we remove it from the set, because we do not need to do anything with it.
+      // If the element does not exist it means we no longer need to show this thread and we remove it from our list of elements.
+      if (requestedThreadsRangedCpuThreads.containsKey(element.getThreadId())) {
+        requestedThreadsRangedCpuThreads.remove(element.getThreadId());
       }
       else {
-        removeElementAt(i);
+        removeOrderedElement(element);
+        i--;
       }
     }
-    while (i < getSize()) {
-      removeElementAt(i);
-      i++;
+
+    // Add threads that dont have an element already associated with them.
+    for (RangedCpuThread element : requestedThreadsRangedCpuThreads.values()) {
+      insertOrderedElement(element);
     }
-    while (j < response.getThreadsCount()) {
-      CpuProfiler.GetThreadsResponse.Thread newThread = response.getThreads(j);
-      RangedCpuThread cpuThread = new RangedCpuThread(myRange, newThread.getTid(), newThread.getName());
-      myThreadIdToCpuThread.put(newThread.getTid(), cpuThread);
-      addElement(cpuThread);
-      j++;
+  }
+
+  private void sortElements() {
+    // Grab elements before we clear them.
+    Object[] elements = toArray();
+    clearOrderedElements();
+    // Sort the other threads by name, except for the process thread, and render thread. The process is moved to the top followed by
+    // the render thread.
+    Arrays.sort(elements, (a, b) -> {
+      RangedCpuThread first = (RangedCpuThread)a;
+      RangedCpuThread second = (RangedCpuThread)b;
+      // Process main thread should be first element.
+      if (first.getThreadId() == mySession.getPid()) {
+        return -1;
+      }
+      else if (second.getThreadId() == mySession.getPid()) {
+        return 1;
+      }
+
+      // Render render threads should be the next elements.
+      assert first.getName() != null;
+      assert second.getName() != null;
+      boolean firstIsRenderThread = first.getName().equals(RENDER_THREAD_NAME);
+      boolean secondIsRenderThread = second.getName().equals(RENDER_THREAD_NAME);
+      if (firstIsRenderThread && secondIsRenderThread) {
+        return first.getThreadId() - second.getThreadId();
+      }
+      else if (firstIsRenderThread) {
+        return -1;
+      }
+      else if (secondIsRenderThread) {
+        return 1;
+      }
+
+      // Finally the list is sorted by thread name, with conflicts sorted by thread id.
+      int nameResult = first.getName().compareTo(second.getName());
+      if (nameResult == 0) {
+        return first.getThreadId() - second.getThreadId();
+      }
+      return nameResult;
+    });
+
+    // Even with the render thread at the top of the sorting, the pre-populated elements get priority so,
+    // all of our threads will be added below our process thread in order.
+    for (Object element : elements) {
+      RangedCpuThread rangedCpuThread = (RangedCpuThread)element;
+      insertOrderedElement(rangedCpuThread);
     }
   }
 
@@ -93,7 +155,7 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     fireContentsChanged(this, 0, size());
   }
 
-  public class RangedCpuThread {
+  public class RangedCpuThread implements DragAndDropModelListElement {
 
     private final int myThreadId;
     private final String myName;
@@ -134,6 +196,14 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
     public MergeCaptureDataSeries getStateSeries() {
       return mySeries;
+    }
+
+    /**
+     * @return Thread Id used to uniquely identify this object in our {@link DragAndDropListModel}
+     */
+    @Override
+    public int getId() {
+      return myThreadId;
     }
   }
 }
