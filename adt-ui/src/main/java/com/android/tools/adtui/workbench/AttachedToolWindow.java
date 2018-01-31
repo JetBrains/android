@@ -92,7 +92,6 @@ class AttachedToolWindow<T> implements Disposable {
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
-    myPanel.setFocusCycleRoot(true);
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
