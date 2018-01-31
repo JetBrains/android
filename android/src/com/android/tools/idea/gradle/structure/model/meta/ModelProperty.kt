@@ -18,16 +18,24 @@ package com.android.tools.idea.gradle.structure.model.meta
 import kotlin.properties.ReadWriteProperty
 
 /**
+ * A UI core descriptor of a model of type [ModelT].
+ */
+interface ModelPropertyCore<in ModelT, PropertyT : Any> {
+  fun getValue(model: ModelT): PropertyValue<PropertyT>
+  fun setValue(model: ModelT, value: ParsedValue<PropertyT>)
+}
+
+/**
  * A UI descriptor a property of a model of type [ModelT].
  */
-interface ModelProperty<in ModelT, PropertyT: Any> : ReadWriteProperty<ModelT, ParsedValue<PropertyT>> {
+interface ModelProperty<in ModelT, PropertyT : Any> :
+  ModelPropertyCore<ModelT, PropertyT>,
+  ReadWriteProperty<ModelT, ParsedValue<PropertyT>> {
   /**
    * A property description as it should appear in the UI.
    */
   val description: String
 
-  fun getValue(model: ModelT): PropertyValue<PropertyT>
-  fun setValue(model: ModelT, value: ParsedValue<PropertyT>)
   fun getDefaultValue(model: ModelT): PropertyT?
 }
 
@@ -36,7 +44,7 @@ interface ModelProperty<in ModelT, PropertyT: Any> : ReadWriteProperty<ModelT, P
  *
  * The simple-types property is a property whose value can be easily represented in the UI as text.
  */
-interface ModelSimpleProperty<in ModelT, PropertyT: Any> : ModelProperty<ModelT, PropertyT> {
+interface ModelSimpleProperty<in ModelT, PropertyT : Any> : ModelProperty<ModelT, PropertyT> {
   /**
    * Parses the text representation of type [PropertyT].
    *

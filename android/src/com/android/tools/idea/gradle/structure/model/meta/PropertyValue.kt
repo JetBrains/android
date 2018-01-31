@@ -18,4 +18,6 @@ package com.android.tools.idea.gradle.structure.model.meta
 /**
  * A value of a property of type [T] as it is defined in build files and as it is resolved by Gradle.
  */
-class PropertyValue<out T>(val parsedValue: ParsedValue<T>, val resolved: ResolvedValue<T>)
+class PropertyValue<out T>(val parsedValue: ParsedValue<T>, val resolved: ResolvedValue<T>) {
+  constructor() : this(ParsedValue.NotSet<T>(), ResolvedValue.NotResolved<T>())
+}
