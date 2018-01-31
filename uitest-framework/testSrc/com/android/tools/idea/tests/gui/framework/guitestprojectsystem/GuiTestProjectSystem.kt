@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.guitestsystem
+package com.android.tools.idea.tests.gui.framework.guitestprojectsystem
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.intellij.openapi.extensions.ExtensionPointName
 import org.fest.swing.core.Robot
 import java.io.File
 
-interface GuiTestSystem {
+interface GuiTestProjectSystem {
   /**
-   * A unique identifier for the test system implementation. This identifier may be used by users of [GuiTestSystem] to
-   * identify which underlying implementation of [GuiTestSystem] is being used.
+   * A unique identifier for the test system implementation. This identifier may be used by users of [GuiTestProjectSystem] to
+   * identify which underlying implementation of [GuiTestProjectSystem] is being used.
    */
   val id: String
 
@@ -49,6 +49,6 @@ interface GuiTestSystem {
   fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture)
 
   companion object {
-    val EP_NAME: ExtensionPointName<GuiTestSystem> = ExtensionPointName.create("com.android.project.guitestsystem")
+    val EP_NAME: ExtensionPointName<GuiTestProjectSystem> = ExtensionPointName.create("com.android.project.guitestprojectsystem")
   }
 }

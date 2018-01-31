@@ -23,8 +23,8 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem;
-import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem;
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem;
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
@@ -427,7 +427,7 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
-  private static GuiTestSystem getTestSystem() {
+  private static GuiTestProjectSystem getTestSystem() {
     TargetBuildSystem.BuildSystem targetBuildSystem;
     try {
       targetBuildSystem = IdeTestApplication.getInstance().getTargetBuildSystem();
@@ -436,9 +436,9 @@ public class GuiTestRule implements TestRule {
       throw new IllegalStateException("Unable to get IDE Instance", e);
     }
 
-    for (GuiTestSystem sys : GuiTestSystem.Companion.getEP_NAME().getExtensions()) {
-      if (sys.getBuildSystem().equals(targetBuildSystem)) {
-        return sys;
+    for (GuiTestProjectSystem system : GuiTestProjectSystem.Companion.getEP_NAME().getExtensions()) {
+      if (system.getBuildSystem().equals(targetBuildSystem)) {
+        return system;
       }
     }
 

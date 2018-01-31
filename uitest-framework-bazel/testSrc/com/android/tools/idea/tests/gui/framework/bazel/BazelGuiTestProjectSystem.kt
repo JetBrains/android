@@ -20,16 +20,16 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.bazel.fixture.ImportBazelProjectWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
-import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem
-import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.io.Files
 import com.intellij.openapi.util.SystemInfo
 import org.fest.swing.core.Robot
 import java.io.File
 
-class BazelGuiTestSystem : GuiTestSystem {
+class BazelGuiTestProjectSystem : GuiTestProjectSystem {
   override val id: String
-    get() = BazelGuiTestSystem::class.java.name
+    get() = BazelGuiTestProjectSystem::class.java.name
 
   override val buildSystem: TargetBuildSystem.BuildSystem
     get() = TargetBuildSystem.BuildSystem.BAZEL

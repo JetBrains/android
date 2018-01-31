@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem;
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
 import com.google.common.collect.Iterables;
-import com.intellij.compiler.ant.taskdefs.Target;
 import org.junit.runner.Runner;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.parameterized.ParametersRunnerFactory;

@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensionPoints>
-    <extensionPoint qualifiedName="com.android.project.guitestsystem"
-                    interface="com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem"/>
+    <extensionPoint qualifiedName="com.android.project.guitestprojectsystem"
+                    interface="com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem"/>
   </extensionPoints>
 </idea-plugin>
