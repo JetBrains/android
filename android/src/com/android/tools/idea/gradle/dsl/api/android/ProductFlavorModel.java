@@ -45,7 +45,7 @@ public interface ProductFlavorModel extends FlavorTypeModel {
 
   void removeNdk();
 
-  @Nullable
+  @NotNull
   ResolvedPropertyModel resConfigs();
 
   @NotNull
@@ -63,7 +63,7 @@ public interface ProductFlavorModel extends FlavorTypeModel {
   @NotNull
   ResolvedPropertyModel testInstrumentationRunner();
 
-  @Nullable
+  @NotNull
   ResolvedPropertyModel testInstrumentationRunnerArguments();
 
   @NotNull
