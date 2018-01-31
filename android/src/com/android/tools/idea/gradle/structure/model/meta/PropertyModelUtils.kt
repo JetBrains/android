@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue
+import java.io.File
 
 fun ResolvedPropertyModel.asString(): String? = when (valueType) {
   ValueType.STRING -> getValue(GradlePropertyModel.STRING_TYPE)
@@ -37,6 +38,11 @@ fun ResolvedPropertyModel.asInt(): Int? = when (valueType) {
 
 fun ResolvedPropertyModel.asBoolean(): Boolean? = when (valueType) {
   ValueType.BOOLEAN -> getValue(GradlePropertyModel.BOOLEAN_TYPE)
+  else -> null
+}
+
+fun ResolvedPropertyModel.asFile(): File? = when (valueType) {
+  ValueType.STRING -> File(getValue(GradlePropertyModel.STRING_TYPE))
   else -> null
 }
 

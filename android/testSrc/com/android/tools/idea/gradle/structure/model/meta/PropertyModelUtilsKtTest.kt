@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import java.io.File
 
 class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
@@ -130,6 +131,20 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propUnresolved.asBoolean(), nullValue())
     assertThat(propOtherExpression1.asBoolean(), nullValue())
     assertThat(propOtherExpression2.asBoolean(), nullValue())
+  }
+
+  fun testAsFile() {
+    val text = """
+               ext {
+                 propFile = 'tmp1'
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    val propFile = extModel.findProperty("propFile").wrap()
+
+    assertThat(propFile.asFile(), equalTo(File("tmp1")))
   }
 
   fun testDslText() {
