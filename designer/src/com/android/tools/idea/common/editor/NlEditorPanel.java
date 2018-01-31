@@ -36,12 +36,10 @@ import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.util.SyncUtil;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -87,6 +85,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
       mySurface = new NlDesignSurface(project, false, editor);
       ((NlDesignSurface)mySurface).setCentered(true);
     }
+    Disposer.register(this, mySurface);
 
     myWorkBench.setLoadingText("Waiting for build to finish...");
     ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
@@ -150,9 +149,11 @@ public class NlEditorPanel extends JPanel implements Disposable {
     });
   }
 
-  private void initNeleModelOnEventDispatchThread(NlModel model) {
+  private void initNeleModelOnEventDispatchThread(@NotNull NlModel model) {
+    if (Disposer.isDisposed(model)) {
+      return;
+    }
     mySurface.setModel(model);
-    Disposer.register(myEditor, mySurface);
 
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
     myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
