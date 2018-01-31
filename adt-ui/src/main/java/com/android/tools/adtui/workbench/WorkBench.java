@@ -104,6 +104,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   public void init(@NotNull JComponent content,
                    @NotNull T context,
                    @NotNull List<ToolWindowDefinition<T>> definitions) {
+    setFocusCycleRoot(true);
+    setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myLoadingPanel.stopLoading();
     myMainPanel.setVisible(true);
     content.addComponentListener(createWidthUpdater());
