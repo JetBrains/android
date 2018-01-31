@@ -17,47 +17,35 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.intellij.util.ui.JBUI
-import java.awt.Insets
 import javax.swing.JComboBox
 
 open class CommonComboBox<E>(model: CommonComboBoxModel<E>) : JComboBox<E>(model) {
 
   init {
-    updateFromModel(model)
-    background = StandardColors.BACKGROUND_COLOR
-    isFocusable = true
+    setFromModel()
 
     model.addListener(object: ValueChangedListener {
       override fun valueChanged() {
-        updateFromModel(model)
+        updateFromModel()
         repaint()
       }
     })
   }
 
-  private fun updateFromModel(model: CommonComboBoxModel<E>) {
-    setEditable(model.editable)
-    isEnabled = model.enabled
+  protected open fun updateFromModel() {
+    setFromModel()
+  }
+
+  private fun setFromModel() {
+    val comboModel = model as? CommonComboBoxModel ?: return
+    isEnabled = comboModel.enabled
+    if (isEditable != comboModel.editable) {
+      super.setEditable(comboModel.editable)
+    }
   }
 
   override fun updateUI() {
     setUI(CommonComboBoxUI())
     revalidate()
-  }
-
-  override fun getInsets(): Insets {
-    val insets = JBUI.insets(
-        StandardDimensions.VERTICAL_PADDING,
-        StandardDimensions.HORIZONTAL_PADDING,
-        StandardDimensions.VERTICAL_PADDING,
-        StandardDimensions.HORIZONTAL_PADDING
-    )
-    val fromBorder = border?.getBorderInsets(this) ?: JBUI.insets(0)
-    insets.left += fromBorder.left
-    insets.right += fromBorder.right
-    insets.top += fromBorder.top
-    insets.bottom += fromBorder.bottom
-    return insets
   }
 }

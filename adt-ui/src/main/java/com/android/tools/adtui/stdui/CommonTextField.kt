@@ -17,11 +17,7 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
-import com.android.tools.adtui.stdui.StandardDimensions.VERTICAL_PADDING
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.Insets
 import javax.swing.JTextField
 import javax.swing.text.PlainDocument
 
@@ -35,23 +31,26 @@ open class CommonTextField(val model: CommonTextFieldModel) : JTextField() {
   init {
     isFocusable = true
     document = PlainDocument()
-    foreground = StandardColors.TEXT_COLOR
-    background = StandardColors.BACKGROUND_COLOR
-    selectedTextColor = StandardColors.SELECTED_TEXT_COLOR
-    selectionColor = StandardColors.SELECTED_BACKGROUND_COLOR
-    disabledTextColor = StandardColors.DISABLED_TEXT_COLOR
     isOpaque = false
-    text = model.value
-    super.setEditable(model.editable)
+    setFromModel()
 
     model.addListener(object: ValueChangedListener {
       override fun valueChanged() {
-        text = model.value
-        isEnabled = model.enabled
+        updateFromModel()
       }
     })
     @Suppress("LeakingThis")
     UIUtil.addUndoRedoActions(this)
+  }
+
+  protected open fun updateFromModel() {
+    setFromModel()
+  }
+
+  private fun setFromModel() {
+    text = model.value
+    isEnabled = model.enabled
+    isEditable = model.editable
   }
 
   override fun updateUI() {
@@ -62,16 +61,5 @@ open class CommonTextField(val model: CommonTextFieldModel) : JTextField() {
   override fun setText(text: String?) {
     super.setText(text)
     UIUtil.resetUndoRedoActions(this)
-  }
-
-  override fun getInsets(): Insets {
-    val fromBorder = border?.getBorderInsets(this) ?: JBUI.insets(0)
-    if (border !is StandardBorder) return fromBorder
-    val insets = JBUI.insets(VERTICAL_PADDING, HORIZONTAL_PADDING, VERTICAL_PADDING, HORIZONTAL_PADDING)
-    insets.left += fromBorder.left
-    insets.right += fromBorder.right
-    insets.top += fromBorder.top
-    insets.bottom += fromBorder.bottom
-    return insets
   }
 }

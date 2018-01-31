@@ -25,7 +25,9 @@ import com.android.tools.adtui.stdui.StandardColors.INNER_BORDER_COLOR
 import com.android.tools.adtui.stdui.StandardColors.PLACEHOLDER_INNER_BORDER_COLOR
 import com.android.tools.adtui.stdui.StandardDimensions.INNER_BORDER_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.OUTER_BORDER_WIDTH
-import com.intellij.util.ui.JBInsets
+import com.android.tools.adtui.stdui.StandardDimensions.HORIZONTAL_PADDING
+import com.android.tools.adtui.stdui.StandardDimensions.VERTICAL_PADDING
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.TRANSPARENT_COLOR
 import java.awt.*
@@ -44,7 +46,7 @@ import javax.swing.plaf.UIResource
 class StandardBorder(private val cornerRadius: Float) : Border, UIResource {
 
   override fun getBorderInsets(c: Component?): Insets {
-    val insets = JBInsets(0, 0, 0, 0)
+    val insets = JBUI.insets(VERTICAL_PADDING, HORIZONTAL_PADDING, VERTICAL_PADDING, HORIZONTAL_PADDING)
     val inset = Math.round(INNER_BORDER_WIDTH + OUTER_BORDER_WIDTH)
     insets.left += inset
     insets.right += inset
