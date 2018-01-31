@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem;
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.BootstrapClassLoaderUtil;

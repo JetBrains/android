@@ -17,17 +17,17 @@ package com.android.tools.idea.tests.gui.framework.gradle
 
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.guitestsystem.GuiTestSystem
-import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import org.fest.swing.core.Robot
 import java.io.File
 
-class GradleGuiTestSystem : GuiTestSystem {
+class GradleGuiTestProjectSystem : GuiTestProjectSystem {
   override val id: String
-    get() = GradleGuiTestSystem::class.java.name
+    get() = GradleGuiTestProjectSystem::class.java.name
 
   override val buildSystem: TargetBuildSystem.BuildSystem
     get() = TargetBuildSystem.BuildSystem.GRADLE

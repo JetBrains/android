@@ -18,6 +18,6 @@
   <id>com.android.tools.idea.uitest.framework.bazel</id>
 
   <extensions defaultExtensionNs="com.android.project">
-    <guitestsystem implementation="com.android.tools.idea.tests.gui.framework.bazel.BazelGuiTestSystem"/>
+    <guitestprojectsystem implementation="com.android.tools.idea.tests.gui.framework.bazel.BazelGuiTestProjectSystem"/>
   </extensions>
 </idea-plugin>

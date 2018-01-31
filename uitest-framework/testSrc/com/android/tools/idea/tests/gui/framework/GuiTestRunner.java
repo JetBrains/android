@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.tests.gui.framework.guitestsystem.TargetBuildSystem;
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
 import com.google.common.collect.ImmutableSet;
 import org.junit.AssumptionViolatedException;
 import org.junit.internal.runners.statements.Fail;
@@ -27,10 +27,8 @@ import org.junit.runners.model.TestClass;
 
 import java.awt.*;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private final TargetBuildSystem.BuildSystem myBuildSystem;
