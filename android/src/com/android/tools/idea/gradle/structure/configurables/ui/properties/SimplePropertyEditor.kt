@@ -21,9 +21,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.ComboBox
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Event
 import java.awt.event.FocusEvent
-import java.awt.event.FocusEvent.FOCUS_GAINED
 import java.awt.event.FocusListener
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
@@ -40,8 +38,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   val model: ModelT,
   val property: ModelPropertyT,
   private val variablesProvider: VariablesProvider?
-) : ComboBox<String>(), ModelPropertyEditor<ModelT> {
-
+) : ComboBox<String>(), ModelPropertyEditor<ModelT, PropertyT> {
   private var textToParsedValue: Map<String, ParsedValue<PropertyT>> = mapOf()
   private var valueToText: Map<PropertyT, String> = mapOf()
   private var beingLoaded = false
@@ -55,7 +52,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     } else dimensions
   }
 
-  private fun getParsedValue(): ParsedValue<PropertyT> {
+  override fun getValue(): ParsedValue<PropertyT> {
     val text = editor.item.toString()
     return when {
       text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.REFERENCE, text.substring(1)))
@@ -65,12 +62,10 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     }
   }
 
+  override fun getValueText(): String = getValue().getText(valueToText)
+
   private fun setText(text: String) {
     selectedItem = text
-  }
-
-  private fun setValue(value: PropertyT?) {
-    selectedItem = if (value == null) "" else (valueToText[value] ?: value.toString())
   }
 
   private fun setColorAndTooltip(toolTipText: String? = null, background: Color? = null) {
@@ -97,27 +92,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   private fun loadValue(value: PropertyValue<PropertyT>) {
     beingLoaded = true
     try {
-      when (value.parsedValue) {
-        is ParsedValue.NotSet -> {
-          setText("")
-        }
-        is ParsedValue.Set.Parsed -> {
-          val dsl = value.parsedValue.dslText
-          if (dsl != null)
-            when (dsl.mode) {
-              DslMode.LITERAL -> setValue(value.parsedValue.value)
-              DslMode.REFERENCE -> setText("\$${dsl.text}")
-              // TODO(b/72088462) Decide on how to handle unparsed DSL text.
-              DslMode.OTHER_UNPARSED_DSL_TEXT -> setText("\$\$${dsl.text}")
-              DslMode.INTERPOLATED_STRING -> setText("\"${dsl.text}\"")
-            }
-          else
-            setValue(value.parsedValue.value)
-        }
-        is ParsedValue.Set.Invalid -> {
-          setText(value.parsedValue.dslText)
-        }
-      }
+      setText(value.parsedValue.getText(valueToText))
       val defaultValue = property.getDefaultValue(model)
       when {
         value.resolved is ResolvedValue.NotResolved && value.parsedValue is ParsedValue.Set -> {
@@ -195,7 +170,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
 
     addActionListener {
       if (!beingLoaded) {
-        applyChanges(getParsedValue())
+        applyChanges(getValue())
         reloadValue()
       }
     }
