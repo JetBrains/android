@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.flat.FlatToggleButton;
+import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -136,7 +136,7 @@ public class StudioProfilersView extends AspectObserver {
     myMonitoringToolbar.add(processCombo);
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    JButton button = new FlatButton(StudioIcons.Common.BACK_ARROW);
+    JButton button = new CommonButton(StudioIcons.Common.BACK_ARROW);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
@@ -166,7 +166,7 @@ public class StudioProfilersView extends AspectObserver {
     toolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    FlatButton endSession = new FlatButton("End Session");
+    CommonButton endSession = new CommonButton("End Session");
     endSession.setFont(endSession.getFont().deriveFont(12.f));
     endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
     endSession.addActionListener(event -> myProfiler.stop());
@@ -176,7 +176,7 @@ public class StudioProfilersView extends AspectObserver {
     rightToolbar.add(new FlatSeparator());
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
-    FlatButton zoomOut = new FlatButton(StudioIcons.Common.ZOOM_OUT);
+    CommonButton zoomOut = new CommonButton(StudioIcons.Common.ZOOM_OUT);
     zoomOut.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_OUT));
     zoomOut.addActionListener(event -> {
       timeline.zoomOut();
@@ -190,7 +190,7 @@ public class StudioProfilersView extends AspectObserver {
     zoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
     rightToolbar.add(zoomOut);
 
-    FlatButton zoomIn = new FlatButton(StudioIcons.Common.ZOOM_IN);
+    CommonButton zoomIn = new CommonButton(StudioIcons.Common.ZOOM_IN);
     zoomIn.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_IN));
     zoomIn.addActionListener(event -> {
       timeline.zoomIn();
@@ -204,7 +204,7 @@ public class StudioProfilersView extends AspectObserver {
     zoomIn.setToolTipText(zoomInAction.getDefaultToolTipText());
     rightToolbar.add(zoomIn);
 
-    FlatButton resetZoom = new FlatButton(StudioIcons.Common.RESET_ZOOM);
+    CommonButton resetZoom = new CommonButton(StudioIcons.Common.RESET_ZOOM);
     resetZoom.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM));
     resetZoom.addActionListener(event -> {
       timeline.resetZoom();
@@ -218,7 +218,7 @@ public class StudioProfilersView extends AspectObserver {
     rightToolbar.add(resetZoom);
     rightToolbar.add(new FlatSeparator());
 
-    myGoLive = new FlatToggleButton("Live", StudioIcons.Profiler.Toolbar.GOTO_LIVE);
+    myGoLive = new CommonToggleButton("Live", StudioIcons.Profiler.Toolbar.GOTO_LIVE);
     myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE));
     myGoLive.setFont(myGoLive.getFont().deriveFont(13.f));
     myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);

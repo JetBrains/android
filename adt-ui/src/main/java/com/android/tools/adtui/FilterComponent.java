@@ -16,7 +16,7 @@
 package com.android.tools.adtui;
 
 
-import com.android.tools.adtui.flat.FlatToggleButton;
+import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.model.FilterModel;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
@@ -282,8 +282,8 @@ public class FilterComponent extends JPanel {
   }
 
   @NotNull
-  static public FlatToggleButton createFilterToggleButton() {
-    FlatToggleButton filterButton = new FlatToggleButton("", StudioIcons.Common.FILTER);
+  static public CommonToggleButton createFilterToggleButton() {
+    CommonToggleButton filterButton = new CommonToggleButton("", StudioIcons.Common.FILTER);
     filterButton.setToolTipText(String.format("Filter (%s)", KeymapUtil.getKeystrokeText(FILTER_KEY_STROKE)));
     return filterButton;
   }

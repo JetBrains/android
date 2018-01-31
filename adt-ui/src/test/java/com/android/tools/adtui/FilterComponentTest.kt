@@ -15,13 +15,12 @@
  */
 package com.android.tools.adtui
 
-import com.android.tools.adtui.flat.FlatToggleButton
+import com.android.tools.adtui.stdui.CommonToggleButton
 import org.junit.Before
 import org.junit.Test
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
 import org.junit.Ignore
 import java.util.function.BiConsumer
 import java.util.regex.Pattern
@@ -29,7 +28,7 @@ import java.util.regex.Pattern
 class FilterComponentTest {
   private lateinit var myPanel: JPanel
   private lateinit var myFilterComponent: FilterComponent
-  private lateinit var myFilterButton: FlatToggleButton
+  private lateinit var myFilterButton: CommonToggleButton
   private lateinit var myPattern: Pattern
 
   @Before

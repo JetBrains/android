@@ -21,9 +21,9 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.flat.FlatToggleButton;
+import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -98,7 +98,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
 
-    myHeapDumpButton = new FlatButton(StudioIcons.Profiler.Toolbar.HEAP_DUMP);
+    myHeapDumpButton = new CommonButton(StudioIcons.Profiler.Toolbar.HEAP_DUMP);
     myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.HEAP_DUMP));
     myHeapDumpButton.setToolTipText("Dump Java heap");
     myHeapDumpButton.addActionListener(e -> {
@@ -111,7 +111,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myCaptureElapsedTime.setBorder(new EmptyBorder(0, 5, 0, 0));
     myCaptureElapsedTime.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
-    myAllocationButton = new FlatButton();
+    myAllocationButton = new CommonButton();
     myAllocationButton.setText("");
     myAllocationButton
       .addActionListener(e -> {
@@ -135,7 +135,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @Override
   public JComponent getToolbar() {
     JPanel toolBar = new JPanel(createToolbarLayout());
-    JButton forceGarbageCollectionButton = new FlatButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
+    JButton forceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
     forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
     forceGarbageCollectionButton.setToolTipText("Force garbage collection");
     forceGarbageCollectionButton.addActionListener(e -> {
@@ -485,7 +485,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JPanel buttonToolbar = new JPanel(createToolbarLayout());
     buttonToolbar.add(getSelectionTimeLabel());
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
-      FlatToggleButton button = FilterComponent.createFilterToggleButton();
+      CommonToggleButton button = FilterComponent.createFilterToggleButton();
       buttonToolbar.add(new FlatSeparator());
       buttonToolbar.add(button);
       FilterComponent filterComponent =

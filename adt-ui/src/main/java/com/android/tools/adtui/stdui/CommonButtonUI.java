@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.flat;
+package com.android.tools.adtui.stdui;
 
 import com.intellij.util.ui.JBUI;
 
@@ -23,12 +23,12 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-class FlatButtonUI extends BasicButtonUI {
+class CommonButtonUI extends BasicButtonUI {
 
   private final MouseAdapter myAdapter;
   private boolean myHover;
 
-  public FlatButtonUI() {
+  public CommonButtonUI() {
     myAdapter = new MouseAdapter() {
       @Override
       public void mouseEntered(MouseEvent e) {
@@ -69,7 +69,7 @@ class FlatButtonUI extends BasicButtonUI {
     AbstractButton b = (AbstractButton)c;
     // TODO: Create a unique style for showing focus on buttons, for now use the hover state visuals.
     if (myHover || b.isSelected() || b.isFocusOwner()) {
-      FlatUiUtils.paintBackground(g, c);
+      GraphicsUtilKt.paintBackground(g, c);
     }
     super.paint(g, c);
   }
