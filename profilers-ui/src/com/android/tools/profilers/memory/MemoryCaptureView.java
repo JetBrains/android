@@ -16,7 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.IdeProfilerComponents;
@@ -57,7 +57,7 @@ public final class MemoryCaptureView extends AspectObserver {
     myLabel = new JLabel();
     myLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
 
-    myExportButton = new FlatButton(AllIcons.Actions.Export);
+    myExportButton = new CommonButton(AllIcons.Actions.Export);
     myExportButton.setToolTipText("Export capture to file");
     myExportButton.addActionListener(e -> ideProfilerComponents.createExportDialog().open(
       () -> "Export As",

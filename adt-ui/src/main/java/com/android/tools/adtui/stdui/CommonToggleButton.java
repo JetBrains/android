@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,37 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.flat;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+package com.android.tools.adtui.stdui;
 
 import javax.swing.*;
 
-/**
- * Borderless button with hover effect used by studio profilers.
- */
-public class FlatButton extends JButton {
+public class CommonToggleButton extends JToggleButton {
 
-  public FlatButton() {
-    this(null, null);
-  }
-
-  public FlatButton(@NotNull String text) {
-    this(text, null);
-  }
-
-  public FlatButton(@NotNull Icon icon) {
-    this(null, icon);
-  }
-
-  public FlatButton(@Nullable String text, @Nullable Icon icon) {
+  public CommonToggleButton(String text, Icon icon) {
     super(text, icon);
   }
 
   @Override
   public void updateUI() {
-    setUI(new FlatButtonUI());
+    setUI(new CommonButtonUI());
   }
 
   /**

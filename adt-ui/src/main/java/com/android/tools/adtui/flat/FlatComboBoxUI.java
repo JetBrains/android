@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.flat;
 
+import com.android.tools.adtui.stdui.GraphicsUtilKt;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
@@ -28,6 +29,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+/**
+ * TODO deprecate in preference of {@link com.android.tools.adtui.stdui.CommonComboBoxUI}
+ */
 class FlatComboBoxUI extends BasicComboBoxUI {
   private final MouseAdapter myHoverAdapter;
   private boolean myHover;
@@ -108,7 +112,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
   public void paint(Graphics g, JComponent c) {
     // TODO: Create a unique style for showing focus, for now use the hover state visuals.
     if (myHover || isPopupVisible(comboBox) || c.isFocusOwner())  {
-      FlatUiUtils.paintBackground(g, c);
+      GraphicsUtilKt.paintBackground(g, c);
     }
     super.paint(g, c);
   }

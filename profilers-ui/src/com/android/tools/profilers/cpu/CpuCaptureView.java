@@ -23,7 +23,7 @@ import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.HTreeChartVerticalScrollBar;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.flat.FlatToggleButton;
+import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
@@ -134,7 +134,7 @@ class CpuCaptureView {
     toolbar.add(myView.getSelectionTimeLabel());
     myFilterComponent = new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
     if (view.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureFilterEnabled()) {
-      FlatToggleButton filterButton = FilterComponent.createFilterToggleButton();
+      CommonToggleButton filterButton = FilterComponent.createFilterToggleButton();
       toolbar.add(new FlatSeparator());
       toolbar.add(filterButton);
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceEnum
-import com.android.tools.adtui.flat.FlatButton
+import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.resourceExplorer.viewmodel.QualifierLexerPresenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
@@ -144,7 +144,8 @@ class QualifierParserPanel(
       layout = boxLayout
       add(matchString)
       add(matchParameterCombo)
-      add(FlatButton(AllIcons.Actions.Delete).also {
+      add(
+          CommonButton(AllIcons.Actions.Delete).also {
         it.addActionListener {
           val grandParent = parent.parent
           parent.remove(this)
