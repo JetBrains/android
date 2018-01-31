@@ -32,7 +32,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -54,8 +53,6 @@ import java.util.List;
 import java.util.Objects;
 
 abstract public class EnumEditor extends BaseComponentEditor implements NlComponentEditor {
-  private static final int SMALL_WIDTH = 65;
-
   private EnumSupport myEnumSupport;
 
   private final JPanel myPanel;
@@ -418,7 +415,6 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
     private boolean myUseDarculaUI;
 
     public CustomComboBox() {
-      super(SMALL_WIDTH);
       setBackground(JBColor.WHITE);
       setBorders();
     }
