@@ -102,7 +102,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
   }
 
-  public void testSyncFromCachedModelsWithoutBuildFileChecksums() throws Exception {
+  public void testSyncFromCachedModelsWithoutBuildFileChecksums() {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.useCachedGradleModels = true;
 
@@ -122,7 +122,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
   }
 
-  public void testSyncFromCachedModelsWithoutModelsCache() throws Exception {
+  public void testSyncFromCachedModelsWithoutModelsCache() {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.useCachedGradleModels = true;
 
@@ -142,7 +142,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
   }
 
-  public void testSyncFromCachedModelsWithoutBuildFileOutdatedChecksums() throws Exception {
+  public void testSyncFromCachedModelsWithoutBuildFileOutdatedChecksums() {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.useCachedGradleModels = true;
 

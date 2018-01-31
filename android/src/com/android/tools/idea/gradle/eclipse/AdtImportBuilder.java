@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.eclipse;
 
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncFailureHandler;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -26,7 +25,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
@@ -44,8 +42,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
 import static com.android.tools.idea.templates.TemplateUtils.openEditor;
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
@@ -55,7 +53,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
  * run the Eclipse importer, which generates a Gradle project, and then it will
  * delegate to {@link org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder}
  * to perform the IntelliJ model import.
- * */
+ */
 public class AdtImportBuilder extends ProjectImportBuilder<String> {
   private File mySelectedProject;
   private GradleImport myImporter;
@@ -96,7 +94,8 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
     try {
       importer.importProjects(projects);
-    } catch (IOException ioe) {
+    }
+    catch (IOException ioe) {
       // pass: the errors are written into the import error list shown in the warnings panel
     }
     return importer;
@@ -125,7 +124,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   @Override
-  public void setList(List<String> list) throws ConfigurationException {
+  public void setList(List<String> list) {
   }
 
   @Override
@@ -162,7 +161,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
 
     try {
-      NewProjectImportGradleSyncListener syncListener = new NewProjectImportGradleSyncListener() {
+      GradleSyncListener syncListener = new GradleSyncListener.Adapter() {
         @Override
         public void syncSucceeded(@NotNull Project project) {
           ApplicationManager.getApplication().invokeLater(() -> {
@@ -173,10 +172,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
 
         @Override
         public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-          ApplicationManager.getApplication().invokeLater(() -> {
-            GradleSyncFailureHandler.getInstance().createTopLevelModelAndOpenProject(project);
-            openSummary(project);
-          });
+          ApplicationManager.getApplication().invokeLater(() -> openSummary(project));
         }
       };
       GradleProjectImporter importer = GradleProjectImporter.getInstance();
@@ -184,12 +180,10 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         GradleProjectImporter.Request request = new GradleProjectImporter.Request();
         request.project = project;
         importer.importProject(project.getName(), destDir, request, syncListener);
-      } else {
+      }
+      else {
         GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, syncListener);
       }
-    }
-    catch (ConfigurationException e) {
-      Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
     }
     catch (Throwable e) {
       Messages.showErrorDialog(project, e.getMessage(), "ADT Project Import");

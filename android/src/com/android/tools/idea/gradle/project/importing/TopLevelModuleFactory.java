@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.importing;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -35,39 +32,21 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleProjects.open;
-import static com.android.tools.idea.util.ToolWindows.activateProjectView;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-public class GradleSyncFailureHandler {
+class TopLevelModuleFactory {
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final IdeSdks myIdeSdks;
 
-  @NotNull
-  public static GradleSyncFailureHandler getInstance() {
-    return ServiceManager.getService(GradleSyncFailureHandler.class);
-  }
-
-  public GradleSyncFailureHandler(@NotNull IdeInfo ideInfo, @NotNull IdeSdks ideSdks) {
+  TopLevelModuleFactory(@NotNull IdeInfo ideInfo, @NotNull IdeSdks ideSdks) {
     myIdeInfo = ideInfo;
     myIdeSdks = ideSdks;
   }
 
-  public void createTopLevelModelAndOpenProject(@NotNull Project project) {
-    ApplicationManager.getApplication().runWriteAction(() -> createTopLevelModule(project));
-
-    // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
-    open(project);
-
-    // Activate "Project View" so users don't get an empty window.
-    activateProjectView(project);
-  }
-
-  @VisibleForTesting
   void createTopLevelModule(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
 

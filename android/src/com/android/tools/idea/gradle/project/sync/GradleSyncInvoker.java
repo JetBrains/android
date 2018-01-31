@@ -36,7 +36,6 @@ import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMo
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
@@ -61,13 +60,11 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
-import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
   @NotNull private final IdeInfo myIdeInfo;
-  @NotNull private final GradleSyncFailureHandler mySyncFailureHandler;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
   @NotNull private final PreSyncChecks myPreSyncChecks;
 
@@ -76,20 +73,16 @@ public class GradleSyncInvoker {
     return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
-                           @NotNull IdeInfo ideInfo,
-                           @NotNull GradleSyncFailureHandler syncFailureHandler) {
-    this(fileDocumentManager, ideInfo, syncFailureHandler, new PreSyncProjectCleanUp(), new PreSyncChecks());
+  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager, @NotNull IdeInfo ideInfo) {
+    this(fileDocumentManager, ideInfo, new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
   private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
                             @NotNull IdeInfo ideInfo,
-                            @NotNull GradleSyncFailureHandler syncFailureHandler,
                             @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
                             @NotNull PreSyncChecks preSyncChecks) {
     myFileDocumentManager = fileDocumentManager;
     myIdeInfo = ideInfo;
-    mySyncFailureHandler = syncFailureHandler;
     myPreSyncProjectCleanUp = preSyncProjectCleanUp;
     myPreSyncChecks = preSyncChecks;
   }
@@ -121,13 +114,8 @@ public class GradleSyncInvoker {
 
     Runnable syncTask = () -> {
       ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID);
-      try {
-        if (prepareProject(project, listener)) {
-          sync(project, request, listener);
-        }
-      }
-      catch (ConfigurationException e) {
-        showErrorDialog(project, e.getMessage(), e.getTitle());
+      if (prepareProject(project, listener)) {
+        sync(project, request, listener);
       }
     };
 
@@ -162,8 +150,7 @@ public class GradleSyncInvoker {
     return false;
   }
 
-  private boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener)
-    throws ConfigurationException {
+  private boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener) {
     if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || hasTopLevelGradleBuildFile(project)) {
       boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
       if (!isImportedProject) {
@@ -238,16 +225,15 @@ public class GradleSyncInvoker {
     gradleSync.sync(request, listener);
   }
 
-  private void handlePreSyncCheckFailure(@NotNull Project project,
-                                         @NotNull String failureCause,
-                                         @Nullable GradleSyncListener syncListener,
-                                         @NotNull GradleSyncInvoker.Request request) {
+  private static void handlePreSyncCheckFailure(@NotNull Project project,
+                                                @NotNull String failureCause,
+                                                @Nullable GradleSyncListener syncListener,
+                                                @NotNull GradleSyncInvoker.Request request) {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (syncState.syncStarted(true, request)) {
       if (syncListener != null) {
         syncListener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
       }
-      mySyncFailureHandler.createTopLevelModelAndOpenProject(project);
       syncState.syncFailed(failureCause);
       if (syncListener != null) {
         syncListener.syncFailed(project, failureCause);

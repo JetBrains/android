@@ -26,8 +26,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -43,6 +41,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -61,7 +60,7 @@ public class GradleProjectImporter {
    * Flag used by unit tests to selectively disable code which requires an open project or UI updates; this is used
    * by unit tests that do not run all of IntelliJ (e.g. do not extend the IdeaTestCase base)
    */
-  public static boolean ourSkipSetupFromTest;
+  @SuppressWarnings("StaticNonFinalField") public static boolean ourSkipSetupFromTest;
 
   @NotNull
   public static GradleProjectImporter getInstance() {
@@ -96,7 +95,7 @@ public class GradleProjectImporter {
     openOrImportProject(selectedFile, false /* import project */);
   }
 
-  private void openOrImportProject(@NotNull VirtualFile selectedFile, boolean open) {
+  private void openOrImportProject(@NotNull VirtualFile selectedFile, boolean openProject) {
     VirtualFile projectFolder = findProjectFolder(selectedFile);
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
@@ -107,13 +106,13 @@ public class GradleProjectImporter {
     }
     try {
       String projectName = projectFolder.getName();
-      openOrImportProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder), open);
+      openOrImportProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, createNewProjectListener(projectFolder), openProject);
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
         rethrowUnchecked(e);
       }
-      showErrorDialog(e.getMessage(), open ? "Open Project" : "Project Import");
+      showErrorDialog(e.getMessage(), openProject ? "Open Project" : "Project Import");
       getLogger().error(e);
     }
   }
@@ -143,8 +142,8 @@ public class GradleProjectImporter {
   }
 
   @NotNull
-  private static NewProjectImportGradleSyncListener createNewProjectListener(@NotNull VirtualFile projectFolder) {
-    return new NewProjectImportGradleSyncListener() {
+  private static GradleSyncListener createNewProjectListener(@NotNull VirtualFile projectFolder) {
+    return new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         TransactionGuard.getInstance().submitTransactionLater(project, () -> {
@@ -157,14 +156,14 @@ public class GradleProjectImporter {
   }
 
   public void importProject(@NotNull String projectName, @NotNull File projectFolderPath, @Nullable GradleSyncListener listener)
-    throws IOException, ConfigurationException {
+    throws IOException {
     importProject(projectName, projectFolderPath, Request.EMPTY_REQUEST, listener);
   }
 
   public void importProject(@NotNull String projectName,
                             @NotNull File projectFolderPath,
                             @NotNull Request request,
-                            @Nullable GradleSyncListener listener) throws IOException, ConfigurationException {
+                            @Nullable GradleSyncListener listener) throws IOException {
     openOrImportProject(projectName, projectFolderPath, request, listener, false /* import project */);
   }
 
@@ -172,7 +171,7 @@ public class GradleProjectImporter {
                                    @NotNull File projectFolderPath,
                                    @NotNull Request request,
                                    @Nullable GradleSyncListener listener,
-                                   boolean open) throws IOException, ConfigurationException {
+                                   boolean openProject) throws IOException {
     ProjectFolder projectFolder = myProjectFolderFactory.create(projectFolderPath);
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
@@ -180,13 +179,13 @@ public class GradleProjectImporter {
     Project newProject = request.project;
 
     if (newProject == null) {
-      newProject = open
+      newProject = openProject
                    ? myNewProjectSetup.openProject(projectFolderPath.getPath())
                    : myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
       GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
       gradleSettings.setGradleVmOptions("");
 
-      String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectFolderPath.getPath());
+      String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
       GradleProjectSettings projectSettings = gradleSettings.getLinkedProjectSettings(externalProjectPath);
       if (projectSettings == null) {
         Set<GradleProjectSettings> projects = ContainerUtilRt.newHashSet(gradleSettings.getLinkedProjectsSettings());
@@ -201,7 +200,7 @@ public class GradleProjectImporter {
     projectInfo.setNewProject(request.isNewProject);
     projectInfo.setImportedProject(true);
 
-    myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel);
+    myNewProjectSetup.prepareProjectForImport(newProject, request.javaLanguageLevel, openProject);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
@@ -214,7 +213,6 @@ public class GradleProjectImporter {
   private static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectRequest) {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
     request.generateSourcesOnSuccess = importProjectRequest.generateSourcesOnSuccess;
-    request.runInBackground = false;
     request.useCachedGradleModels = false;
     return request;
   }

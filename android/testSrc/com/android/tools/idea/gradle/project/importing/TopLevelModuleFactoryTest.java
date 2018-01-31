@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync;
+package com.android.tools.idea.gradle.project.importing;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -38,13 +38,13 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link GradleSyncFailureHandler}.
+ * Tests for {@link TopLevelModuleFactory}.
  */
-public class GradleSyncFailureHandlerTest extends AndroidGradleTestCase {
+public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
   @Mock private IdeInfo myIdeInfo;
 
   private IdeSdks myIdeSdks;
-  private GradleSyncFailureHandler mySyncFailureHandler;
+  private TopLevelModuleFactory mySyncFailureHandler;
 
   @Override
   public void setUp() throws Exception {
@@ -52,7 +52,7 @@ public class GradleSyncFailureHandlerTest extends AndroidGradleTestCase {
     initMocks(this);
 
     myIdeSdks = IdeSdks.getInstance();
-    mySyncFailureHandler = new GradleSyncFailureHandler(myIdeInfo, myIdeSdks);
+    mySyncFailureHandler = new TopLevelModuleFactory(myIdeInfo, myIdeSdks);
   }
 
   public void testCreateTopLevelModule() throws Exception {
