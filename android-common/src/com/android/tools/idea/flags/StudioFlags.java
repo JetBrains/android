@@ -228,6 +228,11 @@ public final class StudioFlags {
     IOT, "iot.uninstalllauncherapps.enabled", "Enable the Uninstall of IoT launcher apps feature",
     "If enabled, uninstall IoT launcher apps when installing a new one", false);
 
+  private static final FlagGroup NDK = new FlagGroup(FLAGS, "ndk", "Native code features");
+  public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag
+    .create(NDK, "ndk.cmakeclionfeatures", "Enable CMake language support from CLion",
+            "If enabled, language support features (e.g. syntax highlighting) currently present in CLion will be turned on.", false);
+
   private StudioFlags() {
   }
 }
