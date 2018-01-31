@@ -16,6 +16,7 @@
 package com.android.tools.adtui.stdui
 
 import com.intellij.util.ui.JBUI
+import javax.swing.BorderFactory
 
 /**
  * Standard UI Component Dimensions.
@@ -30,4 +31,12 @@ object StandardDimensions {
   val DROPDOWN_BUTTON_WIDTH = JBUI.scale(18f)
   val DROPDOWN_ARROW_WIDTH = JBUI.scale(8f)
   val DROPDOWN_ARROW_HEIGHT = JBUI.scale(5f)
+  val DROPDOWN_ARROW_HORIZONTAL_PADDING = JBUI.scale(4f)
+  val DROPDOWN_ARROW_VERITCAL_PADDING_TOP = JBUI.scale(7f)
+  val DROPDOWN_ARROW_VERITCAL_PADDING_BOTTOM = JBUI.scale(6f)
+  var MENU_HEIGHT = JBUI.scale(20f)
+  var MENU_LEFT_PADDING = JBUI.scale(6f)
+  var MENU_RIGHT_PADDING = JBUI.scale(10f)
+  var MENU_ICON_TEXT_GAP = JBUI.scale(4f)
+  var MENU_CHECK_ICON_GAP = JBUI.scale(5f)
 }
