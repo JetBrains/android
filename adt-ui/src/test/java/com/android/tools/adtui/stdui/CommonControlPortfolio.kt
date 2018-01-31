@@ -16,19 +16,20 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.adtui.model.stdui.CommonAction
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.Container
-import java.awt.GridLayout
+import icons.StudioIcons
+import java.awt.*
 import javax.swing.*
 
 /**
@@ -37,7 +38,9 @@ import javax.swing.*
 object CommonControlPortfolio {
   private val ourFont = UIUtil.getFontWithFallback("Ariel", 0, 12)
 
-  @JvmStatic fun main(args: Array<String>) {
+  @JvmStatic
+  fun main(args: Array<String>) {
+    IconLoader.activate()
     SwingUtilities.invokeLater { createAndShowGUI() }
   }
 
@@ -73,6 +76,17 @@ object CommonControlPortfolio {
     grid.add(makeComboBox("zero", true, false))
     topPanel.add(grid, "ComboBox")
 
+    var menuPanel = JPanel(VerticalFlowLayout())
+    var label = JLabel()
+    var toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+    toolBarPanel.add(makeDropDownMenu("MenuWithIconArrow", StudioIcons.Common.ADD, true, 2, 2, label))
+    toolBarPanel.add(makeDropDownMenu("MenuNoIcon", null, false, 2, 2, label))
+    toolBarPanel.add(makeDropDownMenu("", StudioIcons.Common.EXPORT, true, 2, 2, label))
+    toolBarPanel.add(makeDropDownMenu("", StudioIcons.Common.FILTER, false, 2, 2, label))
+    menuPanel.add(toolBarPanel, BorderLayout.PAGE_START)
+    menuPanel.add(label, BorderLayout.CENTER)
+    topPanel.add(menuPanel, "Menus")
+
     grid = JPanel()
     grid.layout = GridLayout(2, 2, 5, 5)
     grid.border = JBUI.Borders.empty(20, 20, 20, 20)
@@ -81,7 +95,7 @@ object CommonControlPortfolio {
       val tab = CommonTabbedPane()
       tab.border = BorderFactory.createLineBorder(StandardColors.TAB_BORDER_COLOR, 1)
       tab.tabPlacement = it
-      listOf("One", "Two", "Three").forEach {  tab.add(JLabel("Label $it"), it) }
+      listOf("One", "Two", "Three").forEach { tab.add(JLabel("Label $it"), it) }
       grid.add(tab)
     }
     topPanel.add(grid, "Tabs")
@@ -110,8 +124,7 @@ object CommonControlPortfolio {
     try {
       UIManager.setLookAndFeel(laf)
       JBColor.setDark(laf is DarculaLaf)
-    }
-    catch (ex: Exception) {
+    } catch (ex: Exception) {
       ex.printStackTrace()
     }
 
@@ -167,6 +180,49 @@ object CommonControlPortfolio {
     combo.isOpaque = false
     combo.renderer = SimpleListRenderer(0, inset)
     return combo
+  }
+
+  private fun makeDropDownMenu(text: String, icon: Icon?, showArrow: Boolean, width: Int, depth: Int, label: JLabel): JComponent {
+    var model = CommonAction(text, icon, null)
+    model.showExpandArrow = showArrow
+
+    for (i in 0 until width) {
+      if (i % 2 == 0) {
+        var action = CommonAction(text, icon)
+        action.setAction(
+            {
+              action.isSelected = !action.isSelected
+              label.text = String.format("Clicked: %s", action)
+            }
+        )
+        model.addChildrenActions(action)
+      } else {
+        var action = CommonAction(text, icon)
+        populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
+        model.addChildrenActions(action)
+      }
+    }
+
+    return CommonDropDownButton(model)
+  }
+
+  private fun populateCommonActionRecursive(parent: CommonAction, text: String, icon: Icon?, width: Int, depth: Int, label: JLabel) {
+    for (i in 0 until width) {
+      if (i % 2 == 0 || depth - 1 == 0) {
+        var action = CommonAction(text, icon)
+        action.setAction(
+            {
+              action.isSelected = !action.isSelected
+              label.text = String.format("Clicked: %s", action)
+            }
+        )
+        parent.addChildrenActions(action)
+      } else {
+        var action = CommonAction(text, icon)
+        populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
+        parent.addChildrenActions(action)
+      }
+    }
   }
 }
 

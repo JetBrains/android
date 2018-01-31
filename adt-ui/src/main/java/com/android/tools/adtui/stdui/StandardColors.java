@@ -34,6 +34,7 @@ public class StandardColors {
   public static Color DISABLED_TEXT_COLOR = new JBColor(new Color(0x7F1D1D1D, true), new Color(0x7FBFBFBF, true));
   public static Color PLACEHOLDER_TEXT_COLOR = new JBColor(new Color(0x921D1D1D, true), new Color(0x92BFBFBF, true));
   public static Color BACKGROUND_COLOR = new JBColor(new Color(0xFFFFFF), new Color(0x13FFFFFF, true));
+  public static Color MENU_BACKGROUND_COLOR = new JBColor(new Color(0xFFFFFF), new Color(0x313335));
   public static Color SELECTED_BACKGROUND_COLOR = new JBColor(0xA4CDFF, 0x2F65CA);
   public static Color ERROR_INNER_BORDER_COLOR = new JBColor(new Color(0x7FFF0F0F, true), new Color(0xC0FD7F7E, true));
   public static Color ERROR_OUTER_BORDER_COLOR = ERROR_INNER_BORDER_COLOR;
