@@ -79,7 +79,7 @@ public class FlavorsExecutionTest {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/72654538
   @Test
   public void runBuildFlavors() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
