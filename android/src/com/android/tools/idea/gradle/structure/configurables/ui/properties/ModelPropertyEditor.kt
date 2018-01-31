@@ -15,17 +15,28 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import javax.swing.JComponent
 
 /**
  * A model property editor.
  *
- * The editor wraps a component configured for editing of a specific property of a model of type [ModelT].  The editor is bound to
- * an instance of[ModelT] and the property of the bound model is automatically updated with the current value of the editor.
+ * The editor wraps a component configured for editing of a specific property of type [ValueT] of a model of type [ModelT].  The editor
+ * is bound to an instance of [ModelT] and the property of the bound model is automatically updated with the current value of the editor.
  */
-interface ModelPropertyEditor<in ModelT> {
+interface ModelPropertyEditor<in ModelT, out ValueT> {
   /**
    * The component to be added to the model editor.
    */
   val component: JComponent
+
+  /**
+   * Returns the current value of the editor.
+   */
+  fun getValue(): ParsedValue<ValueT>
+
+  /**
+   * Returns the text representation of the the current value of the editor as it appears to the user.
+   */
+  fun getValueText(): String
 }
