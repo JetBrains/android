@@ -59,7 +59,6 @@ public class ChooseResourceDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71956091
   @Test
   public void testColorStateList() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");
@@ -116,7 +115,6 @@ public class ChooseResourceDialogTest {
     stateListCell.stopEditing();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/70699703
   @Test
   public void testEditColorReference() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");
