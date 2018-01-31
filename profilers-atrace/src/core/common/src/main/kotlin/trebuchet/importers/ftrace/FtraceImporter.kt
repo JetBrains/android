@@ -50,7 +50,7 @@ class FtraceImporter(val feedback: ImportFeedback) : Importer {
                 parser.parseLine(line, ftraceParserCallback)
             } catch (ex: Exception) {
                 if (line.toString().isNotBlank()) {
-                    feedback.reportImportWarning("Failed to parse: '${line.toString()}'")
+                    feedback.reportImportWarning("Failed to parse: '$line'")
                     feedback.reportImportException(ex)
                 }
             }

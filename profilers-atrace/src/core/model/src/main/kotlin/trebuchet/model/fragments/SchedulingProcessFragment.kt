@@ -18,34 +18,45 @@ package trebuchet.model.fragments
 
 import trebuchet.model.CpuProcessSlice
 
-class SchedulingProcessFragment(val thread: ThreadModelFragment, override val startTime: Double) : CpuProcessSlice {
+class SchedulingProcessFragment(val process: ProcessModelFragment, val thread: ThreadModelFragment, override val startTime: Double) : CpuProcessSlice {
   override var endTime: Double = Double.MAX_VALUE
 
   class Builder {
     private val _slices = mutableListOf<SchedulingProcessFragment>()
     val slices: List<SchedulingProcessFragment> get() = _slices
-    fun switchProcess(thread: ThreadModelFragment, timestamp: Double) {
+    fun switchProcess(process: ProcessModelFragment, thread: ThreadModelFragment, timestamp: Double) {
       if (_slices.isNotEmpty()) {
         if (_slices.last().endTime == Double.MAX_VALUE) {
           _slices.last().endTime = timestamp
         }
       }
       if (thread.id != 0) {
-        _slices.add(SchedulingProcessFragment(thread, timestamp))
+        _slices.add(SchedulingProcessFragment(process, thread, timestamp))
       }
     }
   }
 
   override val name: String get() {
-    if (thread.name == null) {
-      return thread.id.toString()
+    return if (process.name != null) {
+      process.name!!
     } else {
-      return thread.name!!
+      process.id.toString()
     }
   }
 
-  override val id: Int get() {
+  override val threadName: String get() {
+    if (thread.name != null) {
+      return thread.name!!
+    }
+    return threadId.toString()
+  }
+
+  override val threadId: Int get() {
     return thread.id
+  }
+
+  override val id: Int get() {
+    return process.id
   }
 
   override val didNotFinish: Boolean get() = endTime == Double.MAX_VALUE

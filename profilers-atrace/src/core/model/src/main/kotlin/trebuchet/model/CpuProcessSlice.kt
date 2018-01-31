@@ -19,4 +19,6 @@ import trebuchet.model.base.Slice
 
 interface CpuProcessSlice : Slice {
   val id: Int
+  val threadName: String
+  val threadId: Int
 }
