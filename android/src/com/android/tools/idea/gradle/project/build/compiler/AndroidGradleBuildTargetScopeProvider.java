@@ -25,7 +25,6 @@ import com.intellij.compiler.impl.CompositeScope;
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.compiler.impl.ProjectCompileScope;
 import com.intellij.openapi.compiler.CompileScope;
-import com.intellij.openapi.compiler.CompilerFilter;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -44,7 +43,6 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
   @Override
   @NotNull
   public List<TargetTypeBuildScope> getBuildTargetScopes(@NotNull CompileScope baseScope,
-                                                         @NotNull CompilerFilter filter,
                                                          @NotNull Project project,
                                                          boolean forceBuild) {
     if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
