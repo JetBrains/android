@@ -16,9 +16,7 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
-import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.NonSelectableItem
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_HEIGHT
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_BUTTON_WIDTH
@@ -115,8 +113,8 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     val g2 = g.create()
     val model = comboBox.model as? CommonComboBoxModel
     val textEditor = editor as? JTextField
-    val hasErrors = model?.validationError(textEditor?.text ?: "")?.isNotEmpty() ?: false
-    val hasFocus = if (model?.editable == true) editor?.isFocusOwner ?: false else comboBox.isFocusOwner
+    val hasErrors = model?.validationError(textEditor?.text ?: "")?.isNotEmpty() == true
+    val hasFocus = if (model?.editable == true) editor?.isFocusOwner == true else comboBox.isFocusOwner
     val hasVisiblePlaceHolder = textEditor?.text?.isEmpty() == true && model?.placeHolderValue?.isNotEmpty() == true
     (comboBox.border as? StandardBorder)?.paintBorder(comboBox, g2, hasErrors, hasFocus, hasVisiblePlaceHolder)
     paintArrowButton(g)
@@ -174,9 +172,10 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
   }
 
   override fun createEditor(): ComboBoxEditor {
+    val model = comboBox.model as? CommonComboBoxModel ?: return super.createEditor()
     return object : BasicComboBoxEditor.UIResource() {
       override fun createEditorComponent(): JTextField {
-        val editor = object : CommonTextField(createEditorModel()) {
+        val editor = object : CommonTextField(model) {
           override fun processKeyEvent(event: KeyEvent) {
             if (comboBox.isPopupVisible || willOpenPopup(event)) {
               comboBox.processKeyEvent(event)
@@ -213,36 +212,6 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
       }
     }
   }
-
-  private fun createEditorModel(): CommonTextFieldModel {
-    val model = comboBox.model as? CommonComboBoxModel
-    return object : CommonTextFieldModel {
-      override val value: String
-        get() = model?.selectedItem?.toString() ?: ""
-
-      override val enabled: Boolean
-        get() = model?.enabled ?: true
-
-      override val editable: Boolean
-        get() = model?.editable ?: true
-
-      override val placeHolderValue: String
-        get() = model?.placeHolderValue ?: ""
-
-      override fun addListener(listener: ValueChangedListener) {
-        model?.addListener(listener)
-      }
-
-      override fun removeListener(listener: ValueChangedListener) {
-        model?.removeListener(listener)
-      }
-
-      override fun validationError(editedValue: String): String {
-        return model?.validationError(editedValue) ?: ""
-      }
-    }
-  }
-
 
   override fun installKeyboardActions() {
     SwingUtilities.replaceUIInputMap(comboBox, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, getInputMap())

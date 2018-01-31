@@ -17,6 +17,7 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
+import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.junit.After
@@ -28,7 +29,9 @@ import org.mockito.Mockito
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.KeyboardFocusManager
+import javax.swing.JList
 import javax.swing.JTextField
+import javax.swing.plaf.basic.BasicComboBoxUI
 
 private const val MAX_PERCENT_DIFFERENT = 5.0f
 
@@ -36,7 +39,7 @@ private const val MAX_PERCENT_DIFFERENT = 5.0f
 
 @RunWith(JUnit4::class)
 class CommonComboBoxTest {
-  private val model = DefaultCommonComboBoxModel(listOf("one", "two", "three", "four", "five", "six"))
+  private val model = DefaultCommonComboBoxModel("two", listOf("one", "two", "three", "four", "five", "six"))
   private val comboBox = CommonComboBox(model)
   private val focusManager = Mockito.mock(KeyboardFocusManager::class.java)
 
@@ -132,5 +135,24 @@ class CommonComboBoxTest {
   private fun setFieldSize() {
     comboBox.size = Dimension(JBUI.scale(120), JBUI.scale(24))
     comboBox.doLayout()
+  }
+
+  @Test
+  fun valueChangesArePropagatedToEditor() {
+    model.value = "Moonlight"
+    assertThat(comboBox.editor.item).isEqualTo("Moonlight")
+  }
+
+  @Test
+  fun selectionChangesArePropagatedToEditorAndList() {
+    model.selectedItem = "six"
+    assertThat(comboBox.editor.item).isEqualTo("six")
+    assertThat(getList().selectedValuesList).containsExactly("six")
+  }
+
+  private fun getList(): JList<*> {
+    val field = BasicComboBoxUI::class.java.getDeclaredField("listBox")
+    field.isAccessible = true
+    return field!!.get(comboBox.ui) as JList<*>
   }
 }
