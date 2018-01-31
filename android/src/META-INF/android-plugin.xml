@@ -1136,7 +1136,7 @@
     <implicitPropertyUsageProvider implementation="com.android.tools.idea.editors.GradleImplicitPropertyUsageProvider"/>
   </extensions>
 
-  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle.java">
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidDslContributor"/>
   </extensions>
 
