@@ -239,20 +239,14 @@ public class StateChart<T> extends MouseAdapterComponent<Long> {
       Shape shape = transformedShapes.get(i);
       T value = transformedValues.get(i);
       g2d.setColor(getColor(value));
-
-      switch (myRenderMode) {
-        case BAR:
-          g2d.fill(shape);
-          break;
-        case TEXT:
-          Rectangle2D rect = shape.getBounds2D();
-          g2d.draw(new Line2D.Double(rect.getX(), rect.getY(), rect.getX(), rect.getY() + rect.getHeight()));
-          String text = AdtUiUtils.shrinkToFit(value.toString(), mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
-          if (!text.isEmpty()) {
-            g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
-            g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), (float)(rect.getY() + rect.getHeight() - TEXT_PADDING));
-          }
-          break;
+      g2d.fill(shape);
+      if (myRenderMode == RenderMode.TEXT) {
+        Rectangle2D rect = shape.getBounds2D();
+        String text = AdtUiUtils.shrinkToFit(value.toString(), mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
+        if (!text.isEmpty()) {
+          g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
+          g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), (float)(rect.getY() + rect.getHeight() - TEXT_PADDING));
+        }
       }
     }
 
