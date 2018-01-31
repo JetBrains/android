@@ -29,6 +29,11 @@ import java.util.List;
  * returning data supplied to it upon parsing an atrace capture.
  */
 public class AtraceDataSeries<T> implements DataSeries<T> {
+
+  /**
+   * The series data list is populated from an atrace capture. The series data is expected to be sorted
+   * by x values increasing in order.
+   */
   @NotNull
   private final HashMap<Range, List<SeriesData<T>>> mySeriesData;
 
@@ -37,7 +42,7 @@ public class AtraceDataSeries<T> implements DataSeries<T> {
   }
 
   /**
-   * @param seriesData to capture and return within a specific range.
+   * @param seriesData to capture and return within a specific range. The seriesData is assumed to be sorted by x values.
    */
   public void addCaptureSeriesData(Range range, List<SeriesData<T>> seriesData) {
     if (!mySeriesData.containsKey(range)) {
@@ -66,10 +71,25 @@ public class AtraceDataSeries<T> implements DataSeries<T> {
     Range seriesRange = getOverlapRange(xRange);
     if (seriesRange != null) {
       List<SeriesData<T>> seriesDataList = mySeriesData.get(seriesRange);
-      for (SeriesData<T> data : seriesDataList) {
-        if (data.x >= min && data.x < max) {
+      for (int i = 0; i < seriesDataList.size() - 1; i++) {
+        SeriesData<T> data = seriesDataList.get(i);
+        SeriesData<T> nextData = seriesDataList.get(i + 1);
+        // If our series overlaps with the start of the range upto excluding the end. We add the series.
+        if (data.x >= max) {
+          break;
+        }
+        // If our next series is greater than our min then we add our current element to the return set. This works because
+        // we want to add the element just before our range starts so checking the next element gives us that.
+        // After that point all elements will be greater than our min until our current element is > than our max in which case
+        // we break out of the loop.
+        if (nextData.x > min) {
           series.add(data);
         }
+      }
+      SeriesData<T> lastElement = seriesDataList.get(seriesDataList.size() - 1);
+      // Always add the last element if it is less than the max.
+      if (lastElement.x < max) {
+        series.add(lastElement);
       }
     }
     return series;

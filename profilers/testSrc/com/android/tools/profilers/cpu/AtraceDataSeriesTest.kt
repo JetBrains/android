@@ -57,7 +57,9 @@ class AtraceDataSeriesTest {
                 TimeUnit.MILLISECONDS.toMicros(100).toDouble()
             )
         )
-    verifySeriesData(seriesData, 1, 100)
+    verifySeriesData(seriesData, 100)
+    assertThat(seriesData).hasSize(10)
+    assertThat(seriesData[0].x).isAtLeast(1)
 
     // Test no overlap returns false
     seriesData =
@@ -77,9 +79,9 @@ class AtraceDataSeriesTest {
                 TimeUnit.MILLISECONDS.toMicros(50).toDouble()
             )
         )
-    verifySeriesData(seriesData, 0, 50)
+    verifySeriesData(seriesData, 50)
 
-    // Test trace info overlaps end of series data |-----[xx|xxx] returns only data starting at 50 up to max data.
+    // Test trace info overlaps end of series data |-----[xx|xxx] returns only data starting at just before 50 up to max data.
     seriesData =
         series.getDataForXRange(
             Range(
@@ -87,27 +89,40 @@ class AtraceDataSeriesTest {
                 TimeUnit.MILLISECONDS.toMicros(150).toDouble()
             )
         )
-    verifySeriesData(seriesData, 50, 100)
+    verifySeriesData(seriesData, 100)
 
     // Test trace info is subset of series data [xxx|xxxx|xx] returns only data within range
+    val minUs = TimeUnit.MILLISECONDS.toMicros(50)
+    val maxUs = TimeUnit.MILLISECONDS.toMicros(75)
     seriesData =
         series.getDataForXRange(
             Range(
-                TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
-                TimeUnit.MILLISECONDS.toMicros(75).toDouble()
+                minUs.toDouble(),
+                maxUs.toDouble()
             )
         )
-    verifySeriesData(seriesData, 50, 75)
+    verifySeriesData(seriesData, 75)
+    assertThat(seriesData[0].x).isLessThan(minUs);
+    assertThat(seriesData[1].x).isGreaterThan(minUs)
+    assertThat(seriesData[1].x).isLessThan(maxUs)
+
+    // Test last element is returned if we request last bit of data.
+    seriesData =
+        series.getDataForXRange(
+            Range(
+                TimeUnit.MILLISECONDS.toMicros(99).toDouble(),
+                TimeUnit.MILLISECONDS.toMicros(100).toDouble()
+            )
+        )
+    assertThat(seriesData).hasSize(1)
+    assertThat(seriesData[0].x).isLessThan(TimeUnit.MILLISECONDS.toMicros(99))
   }
 
-  private fun verifySeriesData(seriesData: List<SeriesData<CpuProfilerStage.ThreadState>>, min: Long, max: Long) {
-    val minUs = TimeUnit.MILLISECONDS.toMicros(min)
+  private fun verifySeriesData(seriesData: List<SeriesData<CpuProfilerStage.ThreadState>>, max: Long) {
     val maxUs = TimeUnit.MILLISECONDS.toMicros(max)
     assertThat(seriesData).isNotEmpty()
-    assertThat(seriesData[0].x).isAtLeast(minUs)
     assertThat(seriesData[0].x).isLessThan(maxUs)
     assertThat(seriesData[seriesData.size - 1].x).isAtMost(maxUs)
-    assertThat(seriesData[seriesData.size - 1].x).isGreaterThan(minUs)
   }
 
   private fun buildSeriesData(startTime: Long, endTime: Long, count: Int): List<SeriesData<CpuProfilerStage.ThreadState>> {
