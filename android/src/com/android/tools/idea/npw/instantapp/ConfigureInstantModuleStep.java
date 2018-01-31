@@ -36,7 +36,8 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 
 /**
- * This class configures Instant App specific data such as the name of the atom to be created and the path to assign to the default Activity
+ * This class configures Instant App specific data such as the name of the feature to be created and the path to assign to the default
+ * Activity.
  */
 public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleModel> {
   private final BindingsManager myBindings = new BindingsManager();

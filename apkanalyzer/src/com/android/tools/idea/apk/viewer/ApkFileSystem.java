@@ -49,7 +49,6 @@ public class ApkFileSystem extends ArchiveFileSystem {
     SdkConstants.EXT_ANDROID_PACKAGE,
     SdkConstants.EXT_AAR,
     SdkConstants.EXT_INSTANTAPP_PACKAGE,
-    SdkConstants.EXT_ATOM,
     SdkConstants.EXT_ZIP
   );
 

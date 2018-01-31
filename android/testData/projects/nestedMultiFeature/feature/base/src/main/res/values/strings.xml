@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="app_name">Multi-Atom Sample App</string>
+    <string name="app_name">Multi-Feature Sample App</string>
 
-    <!-- Resources used in any AndroidManifest.xml must be defined in the base atom. -->
+    <!-- Resources used in any AndroidManifest.xml must be defined in the base feature. -->
     <string name="feature1_activity_name">Feature1 Activity</string>
     <string name="feature2_activity_name">Feature2 Activity</string>
 </resources>
