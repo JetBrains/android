@@ -16,7 +16,6 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
-import com.android.tools.adtui.model.stdui.NonSelectableItem
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_HEIGHT
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_BUTTON_WIDTH
@@ -36,6 +35,7 @@ import java.beans.PropertyChangeEvent
 import java.lang.Math.round
 import javax.swing.*
 import javax.swing.plaf.ActionMapUIResource
+import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.InputMapUIResource
 import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicComboBoxEditor
@@ -54,6 +54,10 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     val border = comboBox.border
     if (border == null || border is UIResource) {
       comboBox.border = StandardBorder(DROPDOWN_CORNER_RADIUS)
+    }
+    val background = comboBox.background
+    if (background == null || background is UIResource) {
+      comboBox.background = ColorUIResource(StandardColors.BACKGROUND_COLOR)
     }
   }
 
@@ -299,17 +303,7 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
         comboBox.setPopupVisible(true)
       }
       else {
-        var index = getNextIndex(comboBox, type).coerceIn(0, comboBox.itemCount - 1)
-        var item = comboBox.model.getElementAt(index)
-        while (item is NonSelectableItem) {
-          val adjustment = adjustForNonSelectableItem(type)
-          index += adjustment
-          if (adjustment == 0 || index != index.coerceIn(0, comboBox.itemCount - 1)) {
-            return
-          }
-          item = comboBox.model.getElementAt(index)
-        }
-        comboBox.selectedIndex = index
+        comboBox.selectedIndex = getNextIndex(comboBox, type).coerceIn(0, comboBox.itemCount - 1)
       }
     }
 
@@ -323,12 +317,5 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
         ActionType.SELECT_BOTTOM -> comboBox.itemCount - 1
         else -> comboBox.selectedIndex
       }
-
-    private fun adjustForNonSelectableItem(type: ActionType) =
-        when (type) {
-          ActionType.SELECT_PREV, ActionType.SELECT_PAGE_DOWN, ActionType.SELECT_TOP -> -1
-          ActionType.SELECT_NEXT, ActionType.SELECT_PAGE_UP, ActionType.SELECT_BOTTOM -> +1
-          else -> 0
-        }
   }
 }

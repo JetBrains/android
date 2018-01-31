@@ -35,8 +35,6 @@ import javax.swing.plaf.basic.BasicComboBoxUI
 
 private const val MAX_PERCENT_DIFFERENT = 5.0f
 
-// TODO: Add test for NonSelectableItem
-
 @RunWith(JUnit4::class)
 class CommonComboBoxTest {
   private val model = DefaultCommonComboBoxModel("two", listOf("one", "two", "three", "four", "five", "six"))

@@ -20,6 +20,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import javax.swing.plaf.ColorUIResource
 import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicTextFieldUI
 
@@ -45,9 +46,23 @@ open class CommonTextFieldUI(private val editor: CommonTextField) : BasicTextFie
   override fun installDefaults() {
     super.installDefaults()
 
-    val border = editor.border
-    if (border == null || border is UIResource) {
+    if (editor.border == null || editor.border is UIResource) {
       editor.border = StandardBorder(StandardDimensions.TEXT_FIELD_CORNER_RADIUS)
+    }
+    if (editor.foreground == null || editor.foreground is UIResource) {
+      editor.foreground = ColorUIResource(StandardColors.TEXT_COLOR)
+    }
+    if (editor.background == null || editor.background is UIResource) {
+      editor.background = ColorUIResource(StandardColors.BACKGROUND_COLOR)
+    }
+    if (editor.selectedTextColor == null || editor.selectedTextColor is UIResource) {
+      editor.selectedTextColor = ColorUIResource(StandardColors.SELECTED_TEXT_COLOR)
+    }
+    if (editor.selectionColor == null || editor.selectionColor is UIResource) {
+      editor.selectionColor = ColorUIResource(StandardColors.SELECTED_BACKGROUND_COLOR)
+    }
+    if (editor.disabledTextColor == null || editor.disabledTextColor is UIResource) {
+      editor.disabledTextColor = ColorUIResource(StandardColors.DISABLED_TEXT_COLOR)
     }
   }
 
