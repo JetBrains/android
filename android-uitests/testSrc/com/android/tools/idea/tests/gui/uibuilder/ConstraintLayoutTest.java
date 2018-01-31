@@ -595,6 +595,7 @@ public class ConstraintLayoutTest {
       "    <TextView\n" +
       "        android:layout_width=\"wrap_content\"\n" +
       "        android:layout_height=\"wrap_content\"\n" +
+      "        android:layout_marginTop=\"8dp\"\n" +
       "        android:text=\"Hello World!\"\n" +
       "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
       "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
@@ -603,6 +604,8 @@ public class ConstraintLayoutTest {
       "\n" +
       "</android.support.constraint.ConstraintLayout>";
 
+    Wait.seconds(10).expecting("the editor to update and reformat the XML file")
+      .until(() -> expected.equals(editor.getCurrentFileContents()));
     assertEquals(expected, editor.getCurrentFileContents());
   }
 
