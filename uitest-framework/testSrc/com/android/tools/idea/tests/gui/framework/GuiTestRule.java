@@ -217,10 +217,18 @@ public class GuiTestRule implements TestRule {
     List<AssertionError> errors = new ArrayList<>();
     // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
     Dialog modalDialog;
-    while ((modalDialog = getActiveModalDialog()) != null) {
+
+    // Loop can be infinite loop when a modal dialog opens itself again after closing.
+    // Prevent infinite loop without a timeout
+    long startTime = System.currentTimeMillis();
+    long endTime = startTime + TimeUnit.SECONDS.toMillis(10);
+    while ((modalDialog = getActiveModalDialog()) != null && System.currentTimeMillis() < endTime) {
       robot().close(modalDialog);
       errors.add(new AssertionError(
         String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
+    }
+    if (System.currentTimeMillis() >= endTime) {
+      errors.add(new AssertionError("Potential modal dialog infinite loop"));
     }
     return errors;
   }
