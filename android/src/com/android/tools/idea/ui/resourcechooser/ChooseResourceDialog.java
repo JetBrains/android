@@ -1328,7 +1328,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     @NotNull private ResourceChooserGroup[] myGroups = new ResourceChooserGroup[0];
     @NotNull private final ResourceType myType;
 
-    private ResourceChooserItem mySelectedItem;
+    private ResourceValue mySelectedValue;
 
     public ResourcePanel(@NotNull ResourceType type, boolean includeFileResources,
                          @NotNull Collection<String> attrs) {
@@ -1364,7 +1364,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         myComponent.setFirstComponent(firstComponent);
         Disposer.dispose(animationDisposable);
       }, PooledThreadExecutor.INSTANCE)
-        .thenRunAsync(() -> setSelectedItem(mySelectedItem), EdtExecutorService.getInstance());
+        .thenRunAsync(() -> select(mySelectedValue), EdtExecutorService.getInstance());
 
       myPreviewPanel = new JPanel(new CardLayout());
       myPreviewPanel.setPreferredSize(JBUI.size(400,600));
@@ -2214,6 +2214,7 @@ public class ChooseResourceDialog extends DialogWrapper {
      * @param value can also be an instance of {@link ItemResourceValue} for ?attr/ values
      */
     private boolean select(@NotNull ResourceValue value) {
+      mySelectedValue = value;
       boolean isAttr = value instanceof ItemResourceValue;
       for (ResourceChooserGroup group : myGroups) {
         for (ResourceChooserItem item : group.getItems()) {
@@ -2259,7 +2260,6 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     public void setSelectedItem(@Nullable ResourceChooserItem item) {
-      mySelectedItem = item;
       if (myList != null) {
         myList.setSelectedElement(item);
       } else if (myTable != null) {
