@@ -162,12 +162,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     if (mySyncListener != null) {
       mySyncListener.syncFailed(myProject, newMessage);
     }
-
-    if (!myProject.isOpen()) {
-      // if the project is not open yet (e.g. a project created with the NPW) the error will be ignored bt
-      // ExternalSystemNotificationManager#processExternalProjectRefreshError
-      GradleProjectInfo.getInstance(myProject).setProjectCreationError(errorMessage);
-    }
   }
 
   @NotNull
