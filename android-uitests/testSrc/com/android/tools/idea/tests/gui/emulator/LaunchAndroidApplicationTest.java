@@ -356,11 +356,9 @@ public class LaunchAndroidApplicationTest {
     // Here, we expect a Gradle sync failure.
     ideFrameFixture.waitForGradleProjectSyncToFail();
 
-    MessagesToolWindowFixture messagesToolWindow = ideFrameFixture.getMessagesToolWindow();
-    MessagesToolWindowFixture.MessageFixture message = messagesToolWindow.getGradleSyncContent()
-      .findMessage(ERROR, firstLineStartingWith("Failed to find"));
-    MessagesToolWindowFixture.HyperlinkFixture hyperlink = message.findHyperlinkByContainedText("Install");
-    hyperlink.clickAndContinue();
+    BuildToolWindowFixture buildToolWindow = ideFrameFixture.getBuildToolWindow();
+    ConsoleViewImpl consoleView = buildToolWindow.getGradleSyncConsoleView();
+    buildToolWindow.findHyperlinkByTextAndClick(consoleView, "Install missing platform");
 
     DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
@@ -370,8 +368,8 @@ public class LaunchAndroidApplicationTest {
 
     ideFrameFixture.waitForGradleProjectSyncToFail();
 
-    BuildToolWindowFixture buildToolWindow = ideFrameFixture.getBuildToolWindow();
-    ConsoleViewImpl consoleView = buildToolWindow.getGradleSyncConsoleView();
+    buildToolWindow = ideFrameFixture.getBuildToolWindow();
+    consoleView = buildToolWindow.getGradleSyncConsoleView();
     buildToolWindow.findHyperlinkByTextAndClick(consoleView, "Install Build Tools");
 
     downloadDialog = findDialog(withTitle("SDK Quickfix Installation"))
