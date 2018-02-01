@@ -30,5 +30,6 @@ iml_module(
         "//tools/adt/idea/android-layout-inspector[module]",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/connection-assistant[module]",
+        "//tools/adt/idea/whats-new-assistant[module]",
     ],
 )

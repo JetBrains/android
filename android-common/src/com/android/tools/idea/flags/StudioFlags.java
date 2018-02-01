@@ -200,6 +200,11 @@ public final class StudioFlags {
     "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
     true);
 
+  public static final Flag<Boolean> WHATS_NEW_ASSISTANT_ENABLED = Flag.create(
+    ASSISTANT, "whats.new.enabled", "Enable the \"What's New\" assistant",
+    "If enabled, user can access the \"What's New\" assistant under \"Help\" and \"What's New in Android Studio\"",
+    false);
+
   public static final Flag<Boolean> NELE_TARGET_RELATIVE = Flag.create(
     NELE, "target.relative", "Enable the target architecture in relative layout",
     "Enable the new Target architecture in relative layout",

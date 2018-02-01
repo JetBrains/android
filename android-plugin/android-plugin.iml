@@ -19,5 +19,6 @@
     <orderEntry type="module" module-name="android-layout-inspector" />
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="connection-assistant" />
+    <orderEntry type="module" module-name="whats-new-assistant" />
   </component>
 </module>

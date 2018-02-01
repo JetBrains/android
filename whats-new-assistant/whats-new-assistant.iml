@@ -10,17 +10,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="core-api" />
-    <orderEntry type="module" module-name="android-common" />
-    <orderEntry type="module" module-name="editor-ui-api" />
-    <orderEntry type="module" module-name="analytics-protos" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="module" module-name="usb-devices" />
-    <orderEntry type="module" module-name="common" />
-    <orderEntry type="module" module-name="ddmlib" />
     <orderEntry type="module" module-name="android" />
-    <orderEntry type="module" module-name="android-adb" />
-    <orderEntry type="module" module-name="platform-api" />
+    <orderEntry type="module" module-name="android-common" />
+    <orderEntry type="module" module-name="platform-impl" />
     <orderEntry type="module" module-name="flags" />
   </component>
 </module>
