@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
@@ -85,8 +86,11 @@ public final class MenuTest {
   public void dragCastButtonIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
 
-    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
-    dragAndDrop("Cast Button", new Point(320, 121));
+    NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
+      .getLayoutEditor(false)
+      .waitForRenderToFinish()
+      .findView("item", 0);
+    dragAndDrop("Cast Button", settingsItem.getLeftCenterPoint());
 
     MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency").clickOk();
     myGuiTest.ideFrame().waitForGradleProjectSyncToFinish();
@@ -114,8 +118,11 @@ public final class MenuTest {
 
   @Test
   public void dragMenuItemIntoActionBar() {
-    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
-    dragAndDrop("Menu Item", new Point(380, 120));
+    NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
+      .getLayoutEditor(false)
+      .waitForRenderToFinish()
+      .findView("item", 0);
+    dragAndDrop("Menu Item", settingsItem.getTopCenterPoint());
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
@@ -140,8 +147,11 @@ public final class MenuTest {
   public void dragSearchItemIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
 
-    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
-    dragAndDrop("Search Item", new Point(330, 120));
+    NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
+      .getLayoutEditor(false)
+      .waitForRenderToFinish()
+      .findView("item", 0);
+    dragAndDrop("Search Item", settingsItem.getLeftCenterPoint());
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
