@@ -52,7 +52,8 @@ import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqua
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private AndroidProjectViewPane myPane;
 
-  public void testProjectView() throws Exception {
+  // b/72764981
+  public void ignore_testProjectView() throws Exception {
     loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
 
     myPane = createPane();
@@ -209,7 +210,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     return current;
   }
 
-  public void testCommonRoots() throws Exception {
+  // b/72764981
+  public void ignore_testCommonRoots() throws Exception {
     loadProject(
       NAVIGATOR_PACKAGEVIEW_COMMONROOTS);
 
