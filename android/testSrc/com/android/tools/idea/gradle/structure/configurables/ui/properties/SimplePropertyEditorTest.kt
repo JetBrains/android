@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.*
+import org.junit.Assume
+import org.junit.Assume.assumeThat
 import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -200,6 +203,38 @@ class SimplePropertyEditorTest {
     // TODO(b/72088462): Decide what the expectations are.
   }
 
+
+  @Test
+  fun updateProperty() {
+    val editor = simplePropertyEditor(model, property)
+    editor.editor.item = "abc"
+    // Our assumption is that changing the text editor content directly does not immediately raise the notification and thus it is possible
+    // to test updateProperty() method.
+    assumeThat(parsedModel.value, equalTo("parsed"))
+
+    editor.updateProperty()
+    assertEquals("abc", parsedModel.value)
+  }
+
+  @Test
+  fun getValue() {
+    val editor = simplePropertyEditor(model, property)
+    editor.editor.item = "abc"
+    // Our assumption is that changing the text editor content directly does not immediately raise the notification and thus it is possible
+    // to test updateProperty() method.
+    assumeThat(parsedModel.value, equalTo("parsed"))
+
+    assertEquals("abc", editor.getValueText())
+    assertNull((editor.getValue() as ParsedValue.Set.Parsed).dslText)
+  }
+
+  @Test
+  fun dispose() {
+    val editor = simplePropertyEditor(model, property)
+    editor.dispose()
+    editor.selectedItem = "abc"
+    assertEquals("parsed", parsedModel.value)
+  }
   @Test
   fun handlesInvalidInput() {
     val editor = simplePropertyEditor(model, property)

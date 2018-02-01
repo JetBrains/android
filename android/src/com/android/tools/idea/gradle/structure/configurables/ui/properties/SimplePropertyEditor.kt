@@ -42,6 +42,10 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   private var textToParsedValue: Map<String, ParsedValue<PropertyT>> = mapOf()
   private var valueToText: Map<PropertyT, String> = mapOf()
   private var beingLoaded = false
+  private var disposed = false
+  private var lastTextSet: String? = null
+
+
 
   override val component: JComponent = this
 
@@ -53,6 +57,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   }
 
   override fun getValue(): ParsedValue<PropertyT> {
+    // Note: it is fine to get the current value of a disposed editor.
     val text = editor.item.toString()
     return when {
       text.startsWith("\$") -> ParsedValue.Set.Parsed<PropertyT>(value = null, dslText = DslText(DslMode.REFERENCE, text.substring(1)))
@@ -64,7 +69,24 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
 
   override fun getValueText(): String = getValue().getText(valueToText)
 
+  override fun updateProperty() {
+    if (disposed) throw IllegalStateException()
+    // It is important to avoid applying the unchanged values since the application
+    // process while not intended may change the "psi"-representation of the value.
+    // it is especially important in the case of invalid/unparsed values.
+    if (isChanged()) {
+      applyChanges(getValue())
+    }
+  }
+
+  override fun dispose() {
+    disposed = true
+  }
+
+  private fun isChanged() = editor.item.toString() != lastTextSet
+
   private fun setText(text: String) {
+    lastTextSet = text
     selectedItem = text
   }
 
@@ -169,14 +191,16 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     reloadValue()
 
     addActionListener {
-      if (!beingLoaded) {
-        applyChanges(getValue())
+      if (!disposed && !beingLoaded) {
+        updateProperty()
         reloadValue()
       }
     }
     addFocusGainedListener {
-      loadKnownValues()
-      reloadValue()
+      if (!disposed) {
+        loadKnownValues()
+        reloadValue()
+      }
     }
   }
 }
