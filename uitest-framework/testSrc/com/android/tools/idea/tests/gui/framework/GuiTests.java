@@ -391,8 +391,7 @@ public final class GuiTests {
   }
 
   public static void clickPopupMenuItemMatching(@NotNull Predicate<String> predicate, @NotNull Component component, @NotNull Robot robot) {
-
-    JPopupMenu menu = robot.findActivePopupMenu();
+    JPopupMenu menu = GuiQuery.get(robot::findActivePopupMenu);
     if (menu != null) {
       new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
