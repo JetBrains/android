@@ -27,6 +27,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +38,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public abstract class EditorFixtureBase {
+public abstract class EditorFixtureBase implements Closeable {
   private final NlEditingListener myListener;
 
   private Component myFocusedComponent;
@@ -55,6 +56,11 @@ public abstract class EditorFixtureBase {
   public void tearDown() {
     setFocusedComponent(null);
     KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
+  }
+
+  @Override
+  public void close() {
+    tearDown();
   }
 
   protected void setFocusedComponent(@Nullable Component component) {

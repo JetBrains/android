@@ -37,22 +37,26 @@ class AnimationEditorTest : NavTestCase() {
     `when`(property.components).thenReturn(listOf(model.find("a1")))
     `when`(property.model).thenReturn(model)
 
-    EnumEditorFixture
-        .create(::AnimationEditor)
-        .setProperty(property)
+    EnumEditorFixture.create(::AnimationEditor).use {
+      it.setProperty(property)
         .showPopup()
-        .expectChoices("none", null,
-            "fade_in", "@anim/fade_in",
-            "fade_out", "@anim/fade_out",
-            "test1", "@animator/test1")
+        .expectChoices(
+          "none", null,
+          "fade_in", "@anim/fade_in",
+          "fade_out", "@anim/fade_out",
+          "test1", "@animator/test1"
+        )
+    }
 
     `when`(property.components).thenReturn(listOf(model.find("a2")))
-    EnumEditorFixture
-        .create(::AnimationEditor)
-        .setProperty(property)
+    EnumEditorFixture.create(::AnimationEditor).use {
+      it.setProperty(property)
         .showPopup()
-        .expectChoices("none", null,
-            "fade_in", "@anim/fade_in",
-            "fade_out", "@anim/fade_out")
+        .expectChoices(
+          "none", null,
+          "fade_in", "@anim/fade_in",
+          "fade_out", "@anim/fade_out"
+        )
+    }
   }
 }
