@@ -43,24 +43,28 @@ class ChildDestinationsEditorTest : NavTestCase() {
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("root")))
 
-    EnumEditorFixture
-        .create(::ChildDestinationsEditor)
-        .setProperty(property)
+    EnumEditorFixture.create(::ChildDestinationsEditor).use {
+      it.setProperty(property)
         .showPopup()
-        .expectChoices("none", null,
-            "fragment1 (f1)", "@+id/f1",
-            "activity1", "@+id/activity1",
-            "subnav1", "@+id/subnav1",
-            "subnav2", "@+id/subnav2")
+        .expectChoices(
+          "none", null,
+          "fragment1 (f1)", "@+id/f1",
+          "activity1", "@+id/activity1",
+          "subnav1", "@+id/subnav1",
+          "subnav2", "@+id/subnav2"
+        )
+    }
 
     `when`(property.components).thenReturn(listOf(model.find("subnav1")))
 
-    EnumEditorFixture
-        .create(::ChildDestinationsEditor)
-        .setProperty(property)
+    EnumEditorFixture.create(::ChildDestinationsEditor).use {
+      it.setProperty(property)
         .showPopup()
-        .expectChoices("none", null,
-            "fragment2 (f2)", "@+id/f2",
-            "f3", "@+id/f3")
+        .expectChoices(
+          "none", null,
+          "fragment2 (f2)", "@+id/f2",
+          "f3", "@+id/f3"
+        )
+    }
   }
 }

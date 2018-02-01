@@ -37,11 +37,11 @@ class DestinationClassEditorTest : NavTestCase() {
     val editor = DestinationClassEditor()
     editor.property = property
 
-    var choices = EnumEditorFixture
-        .create(::DestinationClassEditor)
-        .setProperty(property)
+    var choices = EnumEditorFixture.create(::DestinationClassEditor).use {
+      it.setProperty(property)
         .showPopup()
         .choices
+    }
 
     assertContainsElements(choices,
         "none" displayFor null,
@@ -53,11 +53,11 @@ class DestinationClassEditorTest : NavTestCase() {
     `when`(property.components).thenReturn(listOf(model.find("activity1")))
     editor.property = property
 
-    choices = EnumEditorFixture
-        .create(::DestinationClassEditor)
-        .setProperty(property)
+    choices = EnumEditorFixture.create(::DestinationClassEditor).use {
+      it.setProperty(property)
         .showPopup()
         .choices
+    }
 
     assertContainsElements(choices,
         "none" displayFor null,

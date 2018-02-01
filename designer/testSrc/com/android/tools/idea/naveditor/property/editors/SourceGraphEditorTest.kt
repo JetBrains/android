@@ -31,11 +31,13 @@ class SourceGraphEditorTest : NavTestCase() {
     `when`(property.components).thenReturn(listOf(model.find("navigation")))
     `when`(property.model).thenReturn(model)
 
-    EnumEditorFixture
-        .create(::SourceGraphEditor)
-        .setProperty(property)
+    EnumEditorFixture.create(::SourceGraphEditor).use {
+      it.setProperty(property)
         .showPopup()
-        .expectChoices("none", null,
-            "navigation.xml", "@navigation/navigation")
+        .expectChoices(
+          "none", null,
+          "navigation.xml", "@navigation/navigation"
+        )
+    }
   }
 }
