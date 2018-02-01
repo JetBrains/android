@@ -17,16 +17,21 @@ package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
+import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
+
+import java.util.regex.Pattern;
 
 public class EmulatorTestRule extends ExternalResource {
 
   public static final long DEFAULT_EMULATOR_WAIT_SECONDS = 240;
 
+  private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final String DEFAULT_AVD_NAME = "device under test";
 
   @NotNull
@@ -91,5 +96,16 @@ public class EmulatorTestRule extends ExternalResource {
 
   public MockAvdManagerConnection getEmulatorConnection() {
     return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+  }
+
+  /**
+   * <p>Waits for the {@code contentWindow} to print text that matches the regular expression
+   * ".*Connected to process (\d+) .*". This pattern indicates that a process has been
+   * started on an emulator.</p>
+   *
+   * @throws org.fest.swing.exception.WaitTimedOutError if no text matches the pattern within the allotted time
+   */
+  public void waitForProcessToStart(ExecutionToolWindowFixture.ContentFixture contentWindow) {
+    contentWindow.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 }

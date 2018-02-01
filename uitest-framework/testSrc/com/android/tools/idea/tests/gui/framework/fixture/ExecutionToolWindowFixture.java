@@ -76,7 +76,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     /**
-     * Waits until it grabs the console window and then returns true if its text matches that of {@code matcher}.
+     * Waits until it grabs the console window and then true if its text matches that of {@code matcher}.
      * Note: This method may not terminate if the console view cannot be found.
      */
     public void waitForOutput(@NotNull final TextMatcher matcher, long secondsToWait) {
