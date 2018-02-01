@@ -130,6 +130,9 @@ public class NewInstantAppTest {
                                "            ExampleUnitTest\n" +
                                "                The declared exception 'Exception' is never thrown\n" +
                                "        Unnecessary module dependency\n" +
+                               "            app\n" +
+                               "                Module 'app' sources do not depend on module 'base' sources\n" +
+                               "                Module 'app' sources do not depend on module 'feature' sources\n" +
                                "            feature\n" +
                                "                Module 'feature' sources do not depend on module 'base' sources\n" +
                                "    XML\n" +
