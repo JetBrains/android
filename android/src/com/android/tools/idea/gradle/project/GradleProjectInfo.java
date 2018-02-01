@@ -43,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
@@ -55,7 +54,6 @@ public class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
   @NotNull private final ProjectFileIndex myProjectFileIndex;
-  @NotNull private final AtomicReference<String> myProjectCreationErrorRef = new AtomicReference<>();
 
   private volatile boolean myNewProject;
   private volatile boolean myImportedProject;
@@ -87,15 +85,6 @@ public class GradleProjectInfo {
 
   public void setImportedProject(boolean importedProject) {
     myImportedProject = importedProject;
-  }
-
-  @Nullable
-  public String getProjectCreationError() {
-    return myProjectCreationErrorRef.get();
-  }
-
-  public void setProjectCreationError(@Nullable String error) {
-    myProjectCreationErrorRef.set(error);
   }
 
   /**
