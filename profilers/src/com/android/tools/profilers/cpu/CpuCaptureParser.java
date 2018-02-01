@@ -125,7 +125,7 @@ public class CpuCaptureParser {
                                          CpuProfilerType profilerType) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
-      File trace = FileUtil.createTempFile("cpu_trace", ".trace");
+      File trace = FileUtil.createTempFile("cpu_trace", ".trace", true);
       try (FileOutputStream out = new FileOutputStream(trace)) {
         out.write(traceData.toByteArray());
       }
