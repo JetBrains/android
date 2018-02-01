@@ -38,16 +38,25 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
-  public void testHandleError() throws Exception {
+  public void testHandleError1() throws Exception {
     String errMsg = "Failed to find CMake.";
     registerSyncErrorToSimulate(errMsg);
+    loadProjectAndExpectMissingCMakeError();
+  }
 
+  public void testHandleError2() throws Exception {
+    String errMsg = "Unable to get the CMake version located at: /Users/alruiz/Library/Android/sdk/cmake/bin";
+    registerSyncErrorToSimulate(errMsg);
+    loadProjectAndExpectMissingCMakeError();
+  }
+
+  private void loadProjectAndExpectMissingCMakeError() throws Exception {
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
-    assertThat(notificationUpdate.getText()).isEqualTo(errMsg);
+    assertThat(notificationUpdate.getText()).isEqualTo("Failed to find CMake.");
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();

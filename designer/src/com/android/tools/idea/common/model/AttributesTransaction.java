@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model;
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.AttributeSnapshot;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.model.LayoutParamsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.Maps;
@@ -91,9 +92,21 @@ public class AttributesTransaction implements NlAttributesHolder {
     }
   }
 
+  /**
+   * Triggers a re-layout of the given {@link View}. This might happen asynchronously.
+   */
   private static void triggerViewRelayout(@NotNull View view) {
-    view.setLayoutParams(view.getLayoutParams());
-    view.forceLayout();
+    try {
+      // We run the re-layout as a render action to avoid a render happening at the same time as the re-layout since that
+      // might cause problems.
+      // TODO: Investigate a more lightweight solution for this.
+      RenderService.runRenderAction(() -> {
+        view.setLayoutParams(view.getLayoutParams());
+        view.forceLayout();
+      });
+    }
+    catch (Exception ignore) {
+    }
   }
 
   /**

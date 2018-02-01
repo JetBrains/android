@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDial
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -166,6 +167,57 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     checkAppIsPaused(projectFrame, new String[]{});
 
     projectFrame.invokeMenuPath("Build", "Clean Project");
+    messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
+    // Click okay and check that the debugger has been killed.
+    messagesFixture.click("Terminate");
+    assertThat(debugToolWindowFixture.getDebuggerContent("app-native")).isNull();
+  }
+
+  @Test
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  public void testNativeDebuggerNewLibraryWhileDebugging() throws Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    final IdeFrameFixture projectFrame = guiTest.ideFrame();
+
+    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Native")
+      .clickOk();
+
+    openAndToggleBreakPoints(projectFrame,
+                             "app/src/main/jni/native-lib.c",
+                             "return (*env)->NewStringUTF(env, message);");
+
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
+    waitForSessionStart(debugToolWindowFixture);
+
+    // Add a new Android Library.  Note that this needs the path to Kotlin defined in the test's
+    // JVM arguments.  See go/studio-testing-pitfalls for information.
+    projectFrame.invokeMenuPath("File", "New", "New Module...");
+    NewModuleDialogFixture newModuleDialogFixture = NewModuleDialogFixture.find(guiTest.ideFrame());
+    newModuleDialogFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+
+    MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
+    // Cancel and check that the debugging session is still happening.
+    messagesFixture.clickCancel();
+    checkAppIsPaused(projectFrame, new String[]{});
+    stopDebugSession(debugToolWindowFixture);
+
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+    debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
+    waitForSessionStart(debugToolWindowFixture);
+
+    projectFrame.invokeMenuPath("File", "New", "New Module...");
+    newModuleDialogFixture = NewModuleDialogFixture.find(guiTest.ideFrame());
+    newModuleDialogFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+
     messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Click okay and check that the debugger has been killed.
     messagesFixture.click("Terminate");

@@ -314,17 +314,19 @@ public class PostSyncProjectSetup {
     RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
     for (BeforeRunTask beforeRunTask : runManager.getBeforeRunTasks(runConfiguration)) {
       if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
-        BeforeRunTask task = targetProvider.createTask(runConfiguration);
-        if (task != null) {
-          task.setEnabled(true);
-          newBeforeRunTasks.add(task);
-        }
+          if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
+            BeforeRunTask task = targetProvider.createTask(runConfiguration);
+            if (task != null) {
+              task.setEnabled(true);
+              newBeforeRunTasks.add(task);
+            }
+          }
       }
       else {
         newBeforeRunTasks.add(beforeRunTask);
       }
     }
-    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
+    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, true);
   }
 
   private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {
