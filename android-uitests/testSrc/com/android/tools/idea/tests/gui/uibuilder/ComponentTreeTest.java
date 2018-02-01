@@ -17,15 +17,12 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
-import org.fest.swing.core.MouseClickInfo;
 import org.fest.swing.fixture.JTreeFixture;
 import org.intellij.lang.annotations.Language;
 import org.junit.Rule;
@@ -46,7 +43,6 @@ public final class ComponentTreeTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/66912463
   @Test
   public void testDropThatOpensDialog() throws IOException {
     WizardUtils.createNewProject(myGuiTest);
