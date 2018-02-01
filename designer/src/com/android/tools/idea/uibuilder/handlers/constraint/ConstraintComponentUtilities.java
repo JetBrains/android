@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
@@ -791,7 +790,7 @@ public final class ConstraintComponentUtilities {
   public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor,
                                                      int major,
                                                      int... version) {
-    GradleVersion v = editor.getDependencyManger().getModuleDependencyVersion(
+    GradleVersion v = editor.getDependencyManager().getModuleDependencyVersion(
       GoogleMavenArtifactId.CONSTRAINT_LAYOUT, editor.getModel().getFacet());
     return (versionGreaterThan(v, major,
                                (version.length > 0) ? version[0] : -1,

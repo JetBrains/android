@@ -264,6 +264,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public void showErrorBalloon(@NotNull String title, @NotNull String text) {}
 
+  @Override
+  public void reportNoPiiException(@NotNull Throwable t) {
+    t.printStackTrace();
+  }
+
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
   }

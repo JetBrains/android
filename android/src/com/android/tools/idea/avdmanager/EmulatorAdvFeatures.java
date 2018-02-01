@@ -26,6 +26,8 @@ import com.android.sdklib.FileOpFileWrapper;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.utils.ILogger;
+import com.intellij.openapi.updateSettings.impl.ChannelStatus;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import java.io.File;
 import java.util.Map;
 
@@ -39,7 +41,33 @@ public final class EmulatorAdvFeatures {
             "VirtualScene"; // Emulator virtual scene feature
 
     private static Map<String, String> mEmuAdvFeatures; // Advanced Emulator Features
+    private static Map<String, String> mEmuAdvFeaturesCanary; // Advanced Emulator Features (canary)
 
+    @Nullable
+    public static Map<String, String> getEmulatorFeaturesMap(
+            @NonNull String featuresFile,
+            @Nullable AndroidSdkHandler sdkHandler,
+            @NonNull ProgressIndicator progressIndicator,
+            @NonNull ILogger log) {
+        if (sdkHandler == null) {
+            return null;
+        }
+
+        LocalPackage emulatorPackage =
+          sdkHandler.getLocalPackage(FD_EMULATOR, progressIndicator);
+        if (emulatorPackage != null) {
+            FileOp fop = sdkHandler.getFileOp();
+            File emuAdvFeaturesFile = new File(
+              emulatorPackage.getLocation(), FD_LIB + File.separator + featuresFile);
+
+            if (fop.exists(emuAdvFeaturesFile)) {
+                return ProjectProperties.parsePropertyFile(
+                    new FileOpFileWrapper(emuAdvFeaturesFile, fop, false), log);
+            }
+        }
+
+        return null;
+    }
     /**
      * Indicates if the Emulator supports the requested advanced feature.
      *
@@ -51,26 +79,34 @@ public final class EmulatorAdvFeatures {
             @Nullable AndroidSdkHandler sdkHandler,
             @NonNull ProgressIndicator progressIndicator,
             @NonNull ILogger log) {
-        if (mEmuAdvFeatures == null) {
-            if (sdkHandler == null) {
-                return false; // 'False' is the safer guess
-            }
-            LocalPackage emulatorPackage =
-                    sdkHandler.getLocalPackage(FD_EMULATOR, progressIndicator);
-            if (emulatorPackage != null) {
-                File emuAdvFeaturesFile =
-                        new File(
-                                emulatorPackage.getLocation(),
-                                FD_LIB + File.separator + FN_ADVANCED_FEATURES);
-                FileOp fop = sdkHandler.getFileOp();
-                if (fop.exists(emuAdvFeaturesFile)) {
-                    mEmuAdvFeatures =
-                            ProjectProperties.parsePropertyFile(
-                                    new FileOpFileWrapper(emuAdvFeaturesFile, fop, false), log);
+        Map<String, String> theMap;
+        ChannelStatus channelStatus = UpdateSettings.getInstance().getSelectedChannelStatus();
+        // TODO(joshuaduong): If emulator decides to use other channels too (beta, dev), need to add
+        // more conditions to handle it.
+        switch (channelStatus) {
+            case EAP: // canary channel
+                if (mEmuAdvFeaturesCanary == null) {
+                    mEmuAdvFeaturesCanary = getEmulatorFeaturesMap(FN_ADVANCED_FEATURES_CANARY, sdkHandler, progressIndicator, log);
                 }
-            }
+                theMap = mEmuAdvFeaturesCanary;
+                break;
+            default:
+                if (mEmuAdvFeatures == null) {
+                    mEmuAdvFeatures = getEmulatorFeaturesMap(FN_ADVANCED_FEATURES, sdkHandler, progressIndicator, log);
+                }
+                theMap = mEmuAdvFeatures;
+                break;
         }
-        return mEmuAdvFeatures != null && "on".equals(mEmuAdvFeatures.get(theFeature));
+
+        if (channelStatus != ChannelStatus.RELEASE && theMap == null) {
+            // Fallback to stable advanced features file
+            if (mEmuAdvFeatures == null) {
+                mEmuAdvFeatures = getEmulatorFeaturesMap(FN_ADVANCED_FEATURES, sdkHandler, progressIndicator, log);
+            }
+            theMap = mEmuAdvFeatures;
+        }
+
+        return theMap != null && "on".equals(theMap.get(theFeature));
     }
 
     /**

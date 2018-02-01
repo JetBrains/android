@@ -36,10 +36,6 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
     QUERY_ACTIVITY,
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(EventsTable.class);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
@@ -50,7 +46,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
       createUniqueIndex("Events_System", "Id", "Session");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -66,7 +62,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
       createStatement(EventStatements.QUERY_ACTIVITY, "SELECT Data from Events_Activity WHERE Session = ?");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -79,7 +75,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }
@@ -94,7 +90,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
       return getActivityDataFromResultSet(results);
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return null;
   }
@@ -117,7 +113,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return events;
   }
@@ -132,7 +128,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
     return activities;
   }

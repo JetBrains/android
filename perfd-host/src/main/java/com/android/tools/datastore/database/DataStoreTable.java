@@ -77,9 +77,13 @@ public abstract class DataStoreTable<T extends Enum> {
       return true;
     }
   }
-
+  /**
+   * Error handling is handled in the callbacks. One of the callbacks is
+   * expected in the {@link DataStoreService}. One of the callbacks will log all errors
+   * without being elided.
+   * @param t A throwable object that contains information about the error encountered.
+   */
   protected static void onError(Throwable t) {
-    LOG.error(t);
     for (DataStoreTableErrorCallback callback : ERROR_CALLBACKS) {
       callback.onDataStoreError(t);
     }
@@ -140,8 +144,10 @@ public abstract class DataStoreTable<T extends Enum> {
   }
 
   protected ResultSet executeQuery(@NotNull T statement, Object... params) throws SQLException {
-    // TODO: Handle when the database conneciton is closed and a query is made.
     PreparedStatement stmt = getStatementMap().get(statement);
+    if (isClosed() || stmt.isClosed()) {
+      return new EmptyResultSet();
+    }
     applyParams(stmt, params);
     return stmt.executeQuery();
   }

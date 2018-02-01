@@ -359,6 +359,8 @@ public class NlModelTest extends LayoutTestCase {
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
+    when(gradleDependencyManager.userWantToAddDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(true);
+    when(gradleDependencyManager.findMissingDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(expectedDependencies);
     when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     XmlTag recyclerViewTag =
@@ -402,6 +404,8 @@ public class NlModelTest extends LayoutTestCase {
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
+    when(gradleDependencyManager.userWantToAddDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(true);
+    when(gradleDependencyManager.findMissingDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(expectedDependencies);
     when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
       .thenReturn(true);
 

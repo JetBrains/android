@@ -74,7 +74,7 @@ final class GroupDragHandler extends DragHandler {
     NlWriteCommandAction.run(myItems.get(0), "menu item addition", () -> {
       updateOrderInCategoryAttributes();
       updateShowAsActionAttribute();
-      editor.getDependencyManger().addDependencies(myItems, editor.getModel().getFacet());
+      editor.getDependencyManager().addDependencies(myItems, editor.getModel().getFacet());
       editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
     });
   }
@@ -170,7 +170,7 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private String getNamespace() {
-    return editor.getDependencyManger().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, editor.getModel().getFacet())
+    return editor.getDependencyManager().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, editor.getModel().getFacet())
            ? AUTO_URI
            : ANDROID_URI;
   }

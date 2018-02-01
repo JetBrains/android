@@ -411,14 +411,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     final DeviceFutures sessionDeviceFutures = getFastDeployDevices(executor, AndroidModuleModel.get(facet), info);;
     boolean couldHaveHotswapped = false;
 
-    if (sessionDeviceFutures == null) {
+    if (sessionDeviceFutures == null && !forceColdswap) {
       // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up
       // with 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
       if (!promptAndKillSession(executor, project, info)) {
         return null;
       }
     }
-    else if (forceColdswap && sessionDeviceFutures.allMatch(chosenDeviceFutues)) { // kill if forceColdswap to same device
+    else if (sessionDeviceFutures != null && sessionDeviceFutures.allMatch(chosenDeviceFutues)) { // kill if forceColdswap to same device
       // the user could have invoked the hotswap action in this scenario, but they chose to force a coldswap (by pressing run)
       couldHaveHotswapped = true;
 
@@ -509,7 +509,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     List<IDevice> devices = info.getDevices();
-    if (devices == null || devices.isEmpty()) {
+    if (devices.isEmpty()) {
       InstantRunManager.LOG.info("Cannot Instant Run since we could not locate the devices from the existing launch session");
       return null;
     }
@@ -690,7 +690,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     if (!InstantRunGradleUtils.appHasCode(AndroidFacet.getInstance(module))) {
-      return InstantRunGradleSupport.HAS_CODE_FALSE;
+      return HAS_CODE_FALSE;
     }
 
     // Gradle will instrument against the runtime android.jar (see commit 353f46cbc7363e3fca44c53a6dc0b4d17347a6ac).

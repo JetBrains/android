@@ -52,10 +52,6 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   // returned in the query results, this results in the UI flickering.
   private final Object myLock = new Object();
 
-  private static Logger getLogger() {
-    return Logger.getInstance(ProfilerTable.class);
-  }
-
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
@@ -72,7 +68,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createUniqueIndex("Profiler_Sessions", "SessionId");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -103,7 +99,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.GET_BYTES, "SELECT Data FROM Profiler_Bytes WHERE Id = ? AND Session = ?");
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
   }
 
@@ -122,7 +118,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
         }
       }
       catch (InvalidProtocolBufferException | SQLException ex) {
-        getLogger().error(ex);
+        onError(ex);
       }
       return responseBuilder.build();
     }
@@ -144,7 +140,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
         }
       }
       catch (InvalidProtocolBufferException | SQLException ex) {
-        getLogger().error(ex);
+        onError(ex);
       }
       return responseBuilder.build();
     }
@@ -172,7 +168,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       }
     }
     catch (SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
 
     return responseBuilder.build();
@@ -200,7 +196,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
         }
       }
       catch (SQLException ex) {
-        getLogger().error(ex);
+        onError(ex);
       }
     }
   }
@@ -241,7 +237,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
         }
       }
       catch (SQLException ex) {
-        getLogger().error(ex);
+        onError(ex);
       }
     }
   }
@@ -259,7 +255,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
         }
       }
       catch (SQLException ex) {
-        getLogger().error(ex);
+        onError(ex);
       }
 
       return responseBuilder.build();
@@ -280,7 +276,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       }
     }
     catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
+      onError(ex);
     }
 
     return null;

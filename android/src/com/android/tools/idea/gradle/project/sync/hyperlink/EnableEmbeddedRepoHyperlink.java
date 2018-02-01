@@ -41,7 +41,7 @@ public class EnableEmbeddedRepoHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    AndroidStudioGradleIdeSettings.getInstance().ENABLE_EMBEDDED_MAVEN_REPO = true;
+    AndroidStudioGradleIdeSettings.getInstance().setEmbeddedMavenRepoEnabled(true);
     GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_EMBEDDED_REPO_ENABLED_BY_QUICKFIX);
   }
 

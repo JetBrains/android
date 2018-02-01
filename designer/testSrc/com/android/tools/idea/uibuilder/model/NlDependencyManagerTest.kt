@@ -82,7 +82,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
       return dependencies.subtract(this.dependencies).toList()
     }
 
-    override fun addDependencies(module: Module, dependencies: Iterable<GradleCoordinate>): Boolean {
+    override fun addDependencies(module: Module, dependencies: Iterable<GradleCoordinate>, syncDoneCallback: (() -> Unit)?): Boolean {
       newlyAddedDependencies.clear()
       newlyAddedDependencies.addAll(dependencies)
       this.dependencies.addAll(dependencies)
