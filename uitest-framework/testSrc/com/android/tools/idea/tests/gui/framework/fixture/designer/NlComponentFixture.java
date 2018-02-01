@@ -103,7 +103,7 @@ public class NlComponentFixture {
    * Returns the top center point in panel coordinates
    */
   @NotNull
-  private Point getTopCenterPoint() {
+  public Point getTopCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
     int topY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY());
@@ -114,7 +114,7 @@ public class NlComponentFixture {
    * Returns the left center point in panel coordinates
    */
   @NotNull
-  private Point getLeftCenterPoint() {
+  public Point getLeftCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int leftX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX());
     int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
