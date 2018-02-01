@@ -66,7 +66,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     devices.add(UsbDevice("test", "test", "test"))
     `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(devices))
     myStateManager.refresh()
-    TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.PARTIALLY_COMPLETE)
+    TestCase.assertEquals(myStateManager.getState(project, emptyActionData), CustomSuccessState)
   }
 
   @Test

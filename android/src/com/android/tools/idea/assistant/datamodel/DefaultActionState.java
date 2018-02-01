@@ -18,6 +18,7 @@ package com.android.tools.idea.assistant.datamodel;
 import com.android.tools.idea.assistant.AssistActionState;
 import com.android.tools.idea.assistant.view.UIUtils;
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,7 +71,7 @@ public enum DefaultActionState implements AssistActionState {
   @NotNull private final Color myForegroundColor;
 
   DefaultActionState(boolean isButtonVisible, boolean isButtonEnabled, boolean isMessageVisible) {
-    this(isButtonVisible, isButtonEnabled, isMessageVisible, null, Color.BLACK);
+    this(isButtonVisible, isButtonEnabled, isMessageVisible, null, JBColor.BLACK);
   }
 
   DefaultActionState(boolean isButtonVisible,

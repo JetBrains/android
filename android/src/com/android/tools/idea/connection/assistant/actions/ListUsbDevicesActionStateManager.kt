@@ -22,6 +22,7 @@ import com.android.tools.idea.assistant.AssistActionStateManager
 import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
+import com.android.tools.idea.assistant.view.UIUtils
 import com.android.tools.usb.Platform
 import com.android.tools.usb.UsbDevice
 import com.android.tools.usb.UsbDeviceCollector
@@ -81,7 +82,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     if (usbDeviceCollector.getPlatform() == Platform.Windows) return DefaultActionState.COMPLETE
     if (!myDevicesFuture.isDone) return DefaultActionState.IN_PROGRESS
 
-    return if (myDevicesFuture.get().isEmpty()) DefaultActionState.INCOMPLETE else DefaultActionState.PARTIALLY_COMPLETE
+    return if (myDevicesFuture.get().isEmpty()) DefaultActionState.INCOMPLETE else CustomSuccessState
   }
 
   override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage? {
@@ -89,17 +90,16 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     return StatefulButtonMessage(generateMessage(), state)
   }
 
-  override fun getId(): String {
-    return ListUsbDevicesAction.ACTION_ID
-  }
+  override fun getId(): String = ListUsbDevicesAction.ACTION_ID
 
   private fun generateMessage(): String {
     if (!myDevicesFuture.isDone) return "Loading..."
     if (myDevicesFuture.get().isEmpty()) return "No USB device detected."
 
     val devices = myDevicesFuture.get().sortedBy { it.name }
-    val count = devices.size
-    val htmlBuilder = HtmlBuilder().openHtmlBody().add("Android Studio detected the following $count USB device(s):").newline()
+    val htmlBuilder = HtmlBuilder()
+        .addHtml("<span style=\"color: ${UIUtils.getCssColor(UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
+        .newline()
 
     if (usbDeviceCollector.getPlatform() == Platform.Windows) {
       htmlBuilder.add("<b>Install device drivers.</b> If you want to connect a device for testing, " +
