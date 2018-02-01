@@ -117,3 +117,10 @@ filegroup(
     srcs = glob(["sampleData/**"]),
     visibility = ["//visibility:public"],
 )
+
+java_import(
+    name = "instantapps-api-1.0",
+    jars = ["instantapps-api-1.0.jar"],
+    tags = ["managed"],
+    visibility = ["//visibility:public"],
+)

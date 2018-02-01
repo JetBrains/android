@@ -99,6 +99,15 @@
     <orderEntry type="module" module-name="apkanalyzer" />
     <orderEntry type="module" module-name="android-lang" />
     <orderEntry type="module" module-name="android-adb" />
+    <orderEntry type="module-library">
+      <library name="instantapps-api-1.0">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" name="batik" level="project" />
     <orderEntry type="library" name="xml-apis-ext" level="project" />
   </component>

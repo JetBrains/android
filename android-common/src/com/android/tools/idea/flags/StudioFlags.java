@@ -215,6 +215,11 @@ public final class StudioFlags {
     RUNDEBUG_GROUP, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
     true);
+  public static final Flag<Boolean> RUNDEBUG_USE_AIA_SDK_LIBRARY = Flag.create(
+    RUNDEBUG_GROUP, "instantapps.sdklib.enabled", "Use external SDK library to launch Instant Apps",
+    "When provisioning devices and launching Instant Apps, use the AIA SDK library JAR to perform these functions if available",
+    false);
+
 
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
   public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(
