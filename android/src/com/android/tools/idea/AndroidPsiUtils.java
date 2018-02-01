@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.uast.UElement;
+import org.jetbrains.uast.UElementKt;
 import org.jetbrains.uast.UastContext;
 import org.jetbrains.uast.UastUtils;
 
@@ -225,9 +226,9 @@ public class AndroidPsiUtils {
     }
 
     while (element != null) {
-      if (parentClass.isInstance(element)) {
-        //noinspection unchecked
-        return (T)element;
+      PsiElement psiElement = UElementKt.getAsJavaPsiElement(element, parentClass);
+      if (psiElement != null) {
+        return parentClass.cast(psiElement);
       }
       element = element.getUastParent();
     }
