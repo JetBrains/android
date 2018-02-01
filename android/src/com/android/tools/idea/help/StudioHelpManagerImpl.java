@@ -87,8 +87,7 @@ public class StudioHelpManagerImpl extends HelpManagerImpl {
     myBrowser.browse(STUDIO_HELP_URL + urlPath);
   }
 
-  @VisibleForTesting
-  String getVersion() {
+  public static String getVersion() {
     ApplicationInfoEx info = ApplicationInfoEx.getInstanceEx();
     String minorVersion = info.getMinorVersion();
     int dot = minorVersion.indexOf('.');
