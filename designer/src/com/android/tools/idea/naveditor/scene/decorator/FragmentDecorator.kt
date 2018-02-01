@@ -22,8 +22,9 @@ import com.android.tools.idea.common.scene.SceneComponent.DrawState
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.scene.draw.DrawRectangle
+import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.frameColor
 import java.awt.Rectangle
 
@@ -39,7 +40,7 @@ class FragmentDecorator : NavScreenDecorator() {
     super.addContent(list, time, sceneContext, component)
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
-    list.add(DrawRectangle(drawRectangle, sceneContext.colorSet.frames, 1))
+    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.frames, 1))
 
     val imageRectangle = Rectangle(drawRectangle)
     imageRectangle.grow(-1, -1)
@@ -53,7 +54,8 @@ class FragmentDecorator : NavScreenDecorator() {
         val outerRectangle = Rectangle(drawRectangle)
         outerRectangle.grow(2 * borderSpacing, 2 * borderSpacing)
 
-        list.add(DrawRectangle(outerRectangle, frameColor(sceneContext, component), outerBorderThickness, 2 * borderSpacing))
+        list.add(DrawRectangle(DRAW_FRAME_LEVEL, outerRectangle, frameColor(sceneContext, component), outerBorderThickness,2 * borderSpacing)
+        )
       }
     }
   }

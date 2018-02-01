@@ -70,24 +70,24 @@ class SerializationTest : TestCase() {
   fun testDrawRectangle() {
     val factory = { s: String -> DrawRectangle(s) }
 
-    testSerialization("DrawRectangle,10x20x30x40,ffff0000,1,0",
-        DrawRectangle(Rectangle(10, 20, 30, 40),
+    testSerialization("DrawRectangle,0,10x20x30x40,ffff0000,1,0",
+        DrawRectangle(0, Rectangle(10, 20, 30, 40),
             Color.RED, 1), factory)
 
-    testSerialization("DrawRectangle,50x60x70x80,ff0000ff,3,4",
-        DrawRectangle(Rectangle(50, 60, 70, 80),
+    testSerialization("DrawRectangle,1,50x60x70x80,ff0000ff,3,4",
+        DrawRectangle(1, Rectangle(50, 60, 70, 80),
             Color.BLUE, 3, 4), factory)
   }
 
   fun testDrawFilledRectangle() {
     val factory = { s: String -> DrawFilledRectangle(s) }
 
-    testSerialization("DrawFilledRectangle,10x20x30x40,ffff0000,2",
-        DrawFilledRectangle(Rectangle(10, 20, 30, 40),
+    testSerialization("DrawFilledRectangle,0,10x20x30x40,ffff0000,2",
+        DrawFilledRectangle(0, Rectangle(10, 20, 30, 40),
             Color.RED, 2), factory)
 
-    testSerialization("DrawFilledRectangle,50x60x70x80,ff0000ff,4",
-        DrawFilledRectangle(Rectangle(50, 60, 70, 80),
+    testSerialization("DrawFilledRectangle,1,50x60x70x80,ff0000ff,4",
+        DrawFilledRectangle(1, Rectangle(50, 60, 70, 80),
             Color.BLUE, 4), factory)
   }
 
