@@ -21,11 +21,11 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
+import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.*
-import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle
-import com.android.tools.idea.naveditor.scene.draw.DrawRectangle
 import java.awt.Font
 import java.awt.Rectangle
 
@@ -45,10 +45,10 @@ class ActivityDecorator : NavScreenDecorator() {
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
     val arcSize = Coordinates.getSwingDimension(sceneContext, ACTIVITY_ARC_SIZE)
-    list.add(DrawFilledRectangle(drawRectangle, sceneContext.colorSet.componentBackground, arcSize))
+    list.add(DrawFilledRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.componentBackground, arcSize))
 
     @SwingCoordinate val strokeThickness = strokeThickness(sceneContext, component, ACTIVITY_BORDER_THICKNESS)
-    list.add(DrawRectangle(drawRectangle, frameColor(sceneContext, component), strokeThickness, arcSize))
+    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, frameColor(sceneContext, component), strokeThickness, arcSize))
 
     val imageRectangle = Rectangle(drawRectangle)
 

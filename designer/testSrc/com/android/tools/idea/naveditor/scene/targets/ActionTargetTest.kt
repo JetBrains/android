@@ -87,8 +87,8 @@ class ActionTargetTest : NavTestCase() {
     val context = SceneContext.get(navView)
     fragment1.buildDisplayList(0, list, context)
 
-    assertEquals("DrawFilledRectangle,491x401x74x126,fffafafa,0\n" +
-        "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
+    assertEquals("DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
+        "DrawFilledRectangle,1,491x401x74x126,fffafafa,0\n" +
         "DrawAction,NORMAL,390x390x0x0,390x390x0x0,NORMAL\n" +
         "DrawArrow,2,RIGHT,380x387x5x6,b2a7a7a7\n" +
         "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
@@ -100,8 +100,8 @@ class ActionTargetTest : NavTestCase() {
     list.clear()
     fragment1.buildDisplayList(0, list, context)
 
-    assertEquals("DrawFilledRectangle,491x401x74x126,fffafafa,0\n" +
-        "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
+    assertEquals("DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
+        "DrawFilledRectangle,1,491x401x74x126,fffafafa,0\n" +
         "DrawAction,NORMAL,390x390x0x0,390x390x0x0,HOVER\n" +
         "DrawArrow,2,RIGHT,380x387x5x6,ffa7a7a7\n" +
         "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +

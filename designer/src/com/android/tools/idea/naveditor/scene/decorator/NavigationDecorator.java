@@ -21,11 +21,11 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawFilledRectangle;
+import com.android.tools.idea.common.scene.draw.DrawRectangle;
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
-import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle;
-import com.android.tools.idea.naveditor.scene.draw.DrawRectangle;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,14 +59,14 @@ public class NavigationDecorator extends SceneDecorator {
     Rectangle bounds = Coordinates.getSwingRect(sceneContext, component.fillDrawRect(0, null));
 
     @SwingCoordinate int arcSize = Coordinates.getSwingDimension(sceneContext, NAVIGATION_ARC_SIZE);
-    list.add(new DrawFilledRectangle(bounds, sceneContext.getColorSet().getComponentBackground(), arcSize));
+    list.add(new DrawFilledRectangle(DRAW_FRAME_LEVEL, bounds, sceneContext.getColorSet().getComponentBackground(), arcSize));
 
     @SwingCoordinate int strokeThickness = strokeThickness(sceneContext, component, NAVIGATION_BORDER_THICKNESS);
     Rectangle frameRectangle = new Rectangle(bounds);
     frameRectangle.grow(strokeThickness, strokeThickness);
 
     Color frameColor = frameColor(sceneContext, component);
-    list.add(new DrawRectangle(frameRectangle, frameColor, strokeThickness, arcSize));
+    list.add(new DrawRectangle(DRAW_FRAME_LEVEL, frameRectangle, frameColor, strokeThickness, arcSize));
 
     String text = NavComponentHelperKt.getIncludeFileName(component.getNlComponent());
     if (text == null) {
