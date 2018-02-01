@@ -27,6 +27,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -121,6 +122,7 @@ public class InstantAppRunTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/70567643
   public void createAndRunInstantApp() throws Exception {
     String runConfigName = "instantapp";
+    long deviceProvisioningSeconds = TimeUnit.MINUTES.toSeconds(3);
     NewProjectWizardFixture newProj = guiTest.welcomeFrame().createNewProject();
 
     newProj.clickNext();
@@ -157,11 +159,11 @@ public class InstantAppRunTest {
     ideFrame.runApp(runConfigName)
       .selectDevice(O_AVD_NAME)
       .clickOk();
-
-    Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
+    // Starting the device and provisioning the device can take a very long time
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(deviceProvisioningSeconds));
 
     ExecutionToolWindowFixture.ContentFixture runWindow = ideFrame.getRunToolWindow().findContent(runConfigName);
-    runWindow.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), TimeUnit.MINUTES.toSeconds(2));
+    emulator.waitForProcessToStart(runWindow);
 
     runWindow.waitForStopClick();
   }
