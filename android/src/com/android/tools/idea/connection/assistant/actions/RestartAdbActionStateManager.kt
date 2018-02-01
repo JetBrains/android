@@ -24,6 +24,7 @@ import com.android.tools.idea.assistant.AssistActionStateManager
 import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
+import com.android.tools.idea.assistant.view.UIUtils
 import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.utils.HtmlBuilder
 import com.google.common.util.concurrent.FutureCallback
@@ -57,9 +58,7 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
     refreshDependencyState(project)
   }
 
-  override fun getId(): String {
-    return RestartAdbAction.ACTION_ID
-  }
+  override fun getId(): String = RestartAdbAction.ACTION_ID
 
   override fun getState(project: Project, actionData: ActionData): AssistActionState {
     if (myLoading) return DefaultActionState.IN_PROGRESS
@@ -70,7 +69,7 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
     if (adb == null || adb.devices.isEmpty()) {
       return DefaultActionState.ERROR_RETRY
     }
-    return DefaultActionState.PARTIALLY_COMPLETE
+    return CustomSuccessState
   }
 
   override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage {
@@ -78,7 +77,7 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
     val state = getState(project, actionData)
     when (state) {
       DefaultActionState.IN_PROGRESS -> returnMessage = AndroidBundle.message("connection.assistant.loading")
-      DefaultActionState.PARTIALLY_COMPLETE, DefaultActionState.ERROR_RETRY -> {
+      CustomSuccessState, DefaultActionState.ERROR_RETRY -> {
         val adb = AndroidDebugBridge.getBridge()
 
         returnMessage = if (adb != null) {
@@ -106,7 +105,10 @@ class RestartAdbActionStateManager : AssistActionStateManager(), AndroidDebugBri
     }
     else {
       // skip open and close htmlbody because the StatefulButtonMessage will add it instead
-      val builder = HtmlBuilder().addHtml(AndroidBundle.message("connection.assistant.adb.devices"))
+      val builder = HtmlBuilder().addHtml("<span style=\"color: ${UIUtils.getCssColor(UIUtils.getSuccessColor())};\">"
+          + AndroidBundle.message("connection.assistant.adb.devices")
+          + "</span>")
+
       devices.forEach { device ->
         builder.addHtml("<p><span>${device.name}</span>")
             .newline()
