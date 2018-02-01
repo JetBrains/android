@@ -99,12 +99,13 @@ class InstallTask extends Task.Backgroundable {
       while (!operations.isEmpty()) {
         // If we end up having to retry some, we'll start from 0 again.
         myLogger.setFraction(0);
-        preparePackages(operations, failures);
+        preparePackages(operations, failures, indicator);
         if (myPrepareCompleteCallback != null) {
           myPrepareCompleteCallback.run();
         }
+        indicator.checkCanceled();
         if (!myBackgrounded) {
-          completePackages(operations, failures, myLogger.createSubProgress(0.9));
+          completePackages(operations, failures, myLogger.createSubProgress(0.9), indicator);
           myLogger.setFraction(0.9);
         }
         else {
@@ -139,16 +140,20 @@ class InstallTask extends Task.Backgroundable {
    * {@code failures}.
    */
   @VisibleForTesting
-  void completePackages(@NotNull Map<RepoPackage, PackageOperation> operations, @NotNull List<RepoPackage> failures,
-                        @NotNull ProgressIndicator progress) {
+  void completePackages(@NotNull Map<RepoPackage, PackageOperation> operations,
+                        @NotNull List<RepoPackage> failures,
+                        @NotNull ProgressIndicator progress,
+                        @NotNull com.intellij.openapi.progress.ProgressIndicator taskProgressIndicator) {
     double progressMax = 0;
     ImmutableSet<RepoPackage> packages = ImmutableSet.copyOf(operations.keySet());
     double progressIncrement = 1. / packages.size();
     for (RepoPackage p : packages) {
+      taskProgressIndicator.checkCanceled();
       PackageOperation installer = operations.get(p);
       // If we're not backgrounded, go on to the final part immediately.
       progressMax += progressIncrement;
       if (!installer.complete(progress.createSubProgress(progressMax))) {
+        taskProgressIndicator.checkCanceled();
         progress.setFraction(progressMax);
         PackageOperation fallback = installer.getFallbackOperation();
         if (fallback != null) {
@@ -196,12 +201,14 @@ class InstallTask extends Task.Backgroundable {
    */
   @VisibleForTesting
   void preparePackages(@NotNull Map<RepoPackage, PackageOperation> packageOperationMap,
-                       @NotNull List<RepoPackage> failures) {
+                       @NotNull List<RepoPackage> failures,
+                       @NotNull com.intellij.openapi.progress.ProgressIndicator taskProgressIndicator) {
     double progressMax = 0;
     ImmutableSet<RepoPackage> packages = ImmutableSet.copyOf(packageOperationMap.keySet());
     double progressIncrement = 1. / (packages.size() * 2.);
     boolean wasBackgrounded = false;
     for (RepoPackage pack : packages) {
+      taskProgressIndicator.checkCanceled();
       PackageOperation op = packageOperationMap.get(pack);
       boolean success = false;
       while (op != null) {
@@ -215,7 +222,11 @@ class InstallTask extends Task.Backgroundable {
         try {
           progressMax += progressIncrement;
           success = op.prepare(myLogger.createSubProgress(progressMax));
+          taskProgressIndicator.checkCanceled();
           myLogger.setFraction(progressMax);
+        }
+        catch (ProcessCanceledException e) {
+          throw e;
         }
         catch (Exception e) {
           Logger.getInstance(getClass()).warn(e);
@@ -286,7 +297,7 @@ class InstallTask extends Task.Backgroundable {
       });
   }
 
-  public void setCompleteCallback(Function<List<RepoPackage>, Void> completeCallback) {
+  public void setCompleteCallback(@Nullable Function<List<RepoPackage>, Void> completeCallback) {
     myCompleteCallback = completeCallback;
   }
 
