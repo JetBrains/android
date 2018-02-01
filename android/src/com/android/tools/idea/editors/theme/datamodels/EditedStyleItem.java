@@ -17,7 +17,8 @@ package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.resources.ResourceUrl;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -71,7 +72,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
    */
   public EditedStyleItem(@NotNull ConfiguredElement<ItemResourceValue> selectedValue,
                          @NotNull ConfiguredThemeEditorStyle sourceTheme) {
-    this(selectedValue, Collections.<ConfiguredElement<ItemResourceValue>>emptyList(), sourceTheme);
+    this(selectedValue, Collections.emptyList(), sourceTheme);
   }
 
   public ItemResourceValue getSelectedValue() {
@@ -89,12 +90,13 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   }
 
   @NotNull
-  public String getName() {
-    return getSelectedValue().getName();
+  public String getAttrName() {
+    return getSelectedValue().getAttr().getName();
   }
 
-  public boolean isFrameworkAttr() {
-    return getSelectedValue().isFrameworkAttr();
+  @NotNull
+  public ResourceNamespace getAttrNamespace() {
+    return getSelectedValue().getAttr().getNamespace();
   }
 
   @NotNull
@@ -134,18 +136,19 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
    * Returns whether this attribute value points to an attr reference.
    */
   public boolean isAttr() {
-    ResourceUrl url = ResourceUrl.parse(getSelectedValue().getRawXmlValue(), getSelectedValue().isFramework());
-    return url != null && url.type == ResourceType.ATTR;
+    ResourceReference reference = getSelectedValue().getReference();
+    return reference != null && reference.getResourceType() == ResourceType.ATTR;
   }
 
   @Override
   public String toString() {
     StringBuilder output = new StringBuilder(
-      String.format("[%1$s] %2$s = %3$s (%4$s)", mySourceTheme, getName(), getValue(), mySelectedValue.myFolderConfiguration));
+      String.format("[%1$s] %2$s = %3$s (%4$s)", mySourceTheme, getAttrName(), getValue(), mySelectedValue.myFolderConfiguration));
 
     for (ConfiguredElement<ItemResourceValue> item : myNonSelectedValues) {
       output.append('\n')
-        .append(String.format("   %1$s = %2$s (%3$s)", item.myValue.getName(), item.myValue.getValue(), item.getConfiguration()));
+        // TODO: namespaces
+        .append(String.format("   %1$s = %2$s (%3$s)", item.myValue.getAttrName(), item.myValue.getValue(), item.getConfiguration()));
     }
 
     return output.toString();
@@ -153,7 +156,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
 
   @NotNull
   public String getQualifiedName() {
-    return ResolutionUtils.getQualifiedItemName(getSelectedValue());
+    return ResolutionUtils.getQualifiedItemAttrName(getSelectedValue());
   }
 
   public String getAttrPropertyName() {
@@ -174,9 +177,11 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   }
 
   public boolean isPublicAttribute() {
-    if (!getSelectedValue().isFrameworkAttr()) {
+    ResourceReference attr = getSelectedValue().getAttr();
+    if (attr == null || attr.getNamespace() != ResourceNamespace.ANDROID) {
       return true;
     }
+
     Configuration configuration = mySourceTheme.getConfiguration();
     IAndroidTarget target = configuration.getRealTarget();
     if (target == null) {
@@ -190,11 +195,11 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
       return false;
     }
 
-    return androidTargetData.isResourcePublic(ResourceType.ATTR.getName(), getName());
+    return androidTargetData.isResourcePublic(ResourceType.ATTR.getName(), getAttrName());
   }
 
   @Override
   public int compareTo(EditedStyleItem that) {
-    return getName().compareTo(that.getName());
+    return getAttrName().compareTo(that.getAttrName());
   }
 }

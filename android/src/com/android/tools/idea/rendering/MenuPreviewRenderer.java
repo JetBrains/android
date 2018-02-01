@@ -16,6 +16,9 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceType;
@@ -102,8 +105,19 @@ public class MenuPreviewRenderer {
   }
 
   private static boolean isLightTheme(ResourceResolver resolver) {
-    String current = (resolver.isProjectTheme() ? STYLE_RESOURCE_PREFIX : ANDROID_STYLE_RESOURCE_PREFIX) + resolver.getThemeName();
-    return resolver.themeExtends("@android:style/Theme.Light", current);
+    StyleResourceValue theme = resolver.getTheme();
+    if (theme == null) {
+      return false;
+    }
+
+    StyleResourceValue androidLight = resolver.getStyle(new ResourceReference(ResourceNamespace.ANDROID,
+                                                                              ResourceType.STYLE,
+                                                                              "Theme.Light"));
+    if (androidLight == null) {
+      return false;
+    }
+
+    return resolver.styleExtends(theme, androidLight);
   }
 
   public ILayoutPullParser render() {

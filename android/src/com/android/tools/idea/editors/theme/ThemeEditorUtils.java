@@ -137,7 +137,7 @@ public class ThemeEditorUtils {
     }
 
     ResourceUrl url = ResourceUrl
-      .parse(ResolutionUtils.getResourceUrlFromQualifiedName(ResolutionUtils.getQualifiedItemName(resValue), SdkConstants.TAG_ATTR));
+      .parse(ResolutionUtils.getResourceUrlFromQualifiedName(ResolutionUtils.getQualifiedItemAttrName(resValue), SdkConstants.TAG_ATTR));
     assert url != null;
     String tooltipContents = AndroidJavaDocRenderer.render(module, configuration, url);
     assert tooltipContents != null;

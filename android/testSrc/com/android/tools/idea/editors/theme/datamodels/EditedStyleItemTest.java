@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -38,13 +39,14 @@ public class EditedStyleItemTest extends AndroidTestCase {
     assertNotNull(fakeTheme);
 
     //noinspection ConstantConditions
-    List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(ConfiguredElement
-                                                                          .create(FolderConfiguration.getConfigForFolder("values-v21"),
-                                                                                  new ItemResourceValue("attribute", false, "otherValue",
-                                                                                                        false, null)));
+    List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(
+      ConfiguredElement.create(FolderConfiguration.getConfigForFolder("values-v21"),
+                               new ItemResourceValue(ResourceNamespace.RES_AUTO, "attribute","otherValue", null)));
 
     EditedStyleItem editedStyleItem = new EditedStyleItem(
-      ConfiguredElement.create(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false, null)), items,
+      ConfiguredElement.create(new FolderConfiguration(),
+                               new ItemResourceValue(ResourceNamespace.RES_AUTO, "attribute", "selectedValue", null)),
+      items,
       fakeTheme);
 
     assertEquals("selectedValue", editedStyleItem.getValue());

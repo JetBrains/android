@@ -179,7 +179,7 @@ public class GradleInstantRunContext implements InstantRunContext {
               hasher.putString(text, UTF_8);
             }
           } else if (resourceValue.getResourceType() == ResourceType.STYLE){
-            ((StyleResourceValue) resourceValue).getValues().stream().forEach(value -> hasher.putString(value.getValue(), UTF_8));
+            ((StyleResourceValue) resourceValue).getDefinedItems().stream().forEach(value -> hasher.putString(value.getValue(), UTF_8));
           }
         }
       }

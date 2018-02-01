@@ -95,7 +95,7 @@ public class ShowJavadocAction extends AbstractAction {
 
     JBPopup hint = JBPopupFactory.getInstance().createComponentPopupBuilder(docComponent, docComponent).setProject(project)
       .setDimensionServiceKey(project, DocumentationManager.JAVADOC_LOCATION_AND_SIZE, false).setResizable(true).setMovable(true)
-      .setRequestFocus(true).setTitle(item.getName()).setCancelCallback(new Computable<Boolean>() {
+      .setRequestFocus(true).setTitle(item.getAttrName()).setCancelCallback(new Computable<Boolean>() {
         @Override
         public Boolean compute() {
           Disposer.dispose(docComponent);

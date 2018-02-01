@@ -23,7 +23,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.utils.SdkUtils;
@@ -120,7 +119,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     for (EditedStyleItem item : values) {
       String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
-      compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getName() + ".ans");
+      compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getAttrName() + ".ans");
     }
   }
 
@@ -139,10 +138,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals(7, values.size());
     for (EditedStyleItem item : values) {
       String displayHtml = ThemeEditorUtils.getDisplayHtml(item);
-      if ("myDeprecated".equals(item.getName())) {
+      if ("myDeprecated".equals(item.getAttrName())) {
         assertEquals("<html><body><strike>myDeprecated</strike></body></html>", displayHtml);
       } else {
-        assertEquals(item.getName(), displayHtml);
+        assertEquals(item.getAttrName(), displayHtml);
       }
     }
   }

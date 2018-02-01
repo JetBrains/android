@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
@@ -25,16 +26,18 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.util.LazyUnionMap;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.FileResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Table;
 import com.intellij.openapi.application.ReadAction;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -96,7 +99,7 @@ public class ResourceResolverCache {
     // Are caches up to date?
     final AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(myManager.getModule());
     if (resources == null) {
-      return ResourceResolver.create(Collections.emptyMap(), null, false);
+      return ResourceResolver.create(Collections.emptyMap(), null);
     }
     if (myCachedGeneration != resources.getModificationCount()) {
       myResolverMap.clear();
@@ -140,9 +143,20 @@ public class ResourceResolverCache {
         new LazyUnionMap<>(Collections.singletonMap(ResourceNamespace.ANDROID, frameworkResources), configuredAppRes.rowMap());
 
       assert themeStyle.startsWith(PREFIX_RESOURCE_REF) : themeStyle;
-      boolean isProjectTheme = ResourceHelper.isProjectStyle(themeStyle);
-      String themeName = ResourceHelper.styleToTheme(themeStyle);
-      resolver = ResourceResolver.create(allResources, themeName, isProjectTheme);
+
+      // TODO(namespaces): the ResourceReference needs to be created by the caller, by resolving prefixes in the Manifest.
+      ResourceNamespace contextNamespace = ResourceNamespace.TODO;
+      AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
+      if (facet != null) {
+        contextNamespace = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace();
+      }
+      ResourceReference theme = null;
+      ResourceUrl themeUrl = ResourceUrl.parse(themeStyle);
+      if (themeUrl != null) {
+        theme = themeUrl.resolve(contextNamespace, ResourceNamespace.Resolver.EMPTY_RESOLVER);
+      }
+
+      resolver = ResourceResolver.create(allResources, theme);
 
       resolver.setLibrariesIdProvider(new RenderResources.ResourceIdProvider() {
         @Override

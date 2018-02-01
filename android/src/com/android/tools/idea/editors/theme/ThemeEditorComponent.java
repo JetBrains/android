@@ -107,8 +107,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       }
 
       if (o1 instanceof EditedStyleItem && o2 instanceof EditedStyleItem) {
-        Integer pos1 = SORTING_MAP.get(((EditedStyleItem)o1).getName());
-        Integer pos2 = SORTING_MAP.get(((EditedStyleItem)o2).getName());
+        Integer pos1 = SORTING_MAP.get(((EditedStyleItem)o1).getAttrName());
+        Integer pos2 = SORTING_MAP.get(((EditedStyleItem)o2).getAttrName());
         if (pos1 != null && pos2 != null) {
           return pos1 - pos2;
         }
@@ -251,7 +251,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme, @NotNull List<ItemResourceValue> originalItems) {
         StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
         StyleResourceValue restoredResourceValue = new StyleResourceValue(modifiedResourceValue,
-                                                                          modifiedResourceValue.getParentStyle(),
+                                                                          modifiedResourceValue.getParentStyleName(),
                                                                           modifiedResourceValue.getLibraryName());
         for (ItemResourceValue item : originalItems) {
           restoredResourceValue.addItem(item);
@@ -275,13 +275,13 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
         // Store the content of the theme newParent so that it can be restored later
         myOriginalItems.clear();
-        myOriginalItems.addAll(newParentStyleResourceValue.getValues());
+        myOriginalItems.addAll(newParentStyleResourceValue.getDefinedItems());
 
         assert myThemeName != null; // theme changed, so there was a previous theme in myThemeName
         ConfiguredThemeEditorStyle myCurrentTheme = themeResolver.getTheme(myThemeName);
         assert myCurrentTheme != null;
         // Add myCurrentTheme attributes to newParent, so that newParent becomes equivalent to having changed the parent of myCurrentTheme
-        for (ItemResourceValue item : myCurrentTheme.getStyleResourceValue().getValues()) {
+        for (ItemResourceValue item : myCurrentTheme.getStyleResourceValue().getDefinedItems()) {
           newParentStyleResourceValue.addItem(item);
         }
 
@@ -707,7 +707,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     boolean isSubStyleSelected = isSubStyleSelected();
     String message = String
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
-              isSubStyleSelected ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
+              isSubStyleSelected ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getAttrName());
 
     final ItemResourceValue originalValue = rv.getSelectedValue();
     ParentRendererEditor.ThemeParentChangedListener themeListener = new ParentRendererEditor.ThemeParentChangedListener() {
@@ -722,7 +722,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         myModifiedTheme = myThemeEditorContext.getThemeResolver().getTheme(name);
         assert myModifiedTheme != null;
         ItemResourceValue newSelectedValue =
-          new ItemResourceValue(originalValue.getName(), originalValue.isFrameworkAttr(), strValue, false, null);
+          new ItemResourceValue(originalValue.getNamespace(), originalValue.getAttrName(), strValue, null);
         myModifiedTheme.getStyleResourceValue().addItem(newSelectedValue);
         myPreviewThemeName = null;
         refreshPreviewPanel(name);
@@ -785,7 +785,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       // The theme pointing to the new style is r/o so create a new theme and then write the value.
       message = String.format("<html>The style '%1$s' which references to '%2$s' is also Read-Only.<br/>" +
                               "A new theme will be created to point to the modified style '%3$s'.<br/></html>",
-                              selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
+                              selectedTheme.getQualifiedName(), rv.getAttrName(), newStyleName);
 
       final String newThemeName =
         ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, false, message, themeListener);

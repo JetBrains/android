@@ -40,6 +40,8 @@ public class ThemeAttributeResolver {
 
   final private ConfigurationManager myManager;
   final private ConfiguredThemeEditorStyle myStyle;
+
+  // TODO(namespaces): use a ResourceReference to the attr as key.
   final private MultiMap<String, ConfiguredElement<ItemResourceValue>> myItemValueMap =
     new MultiMap<String, ConfiguredElement<ItemResourceValue>>();
 
@@ -80,7 +82,7 @@ public class ThemeAttributeResolver {
 
     Set<String> newSeenAttributes = new HashSet<String>(seenAttributes);
     for (ItemResourceValue item : themeEditorStyle.getValues(configuration)) {
-      String itemName = ResolutionUtils.getQualifiedItemName(item);
+      String itemName = ResolutionUtils.getQualifiedItemAttrName(item);
       if (!newSeenAttributes.contains(itemName)) {
         myItemValueMap.putValue(itemName, ConfiguredElement.create(styleRestricted.getAny(), item));
         newSeenAttributes.add(itemName);

@@ -46,7 +46,7 @@ public class AttributesGrouperTest {
       String attributeGroup = args[i + 1];
 
       EditedStyleItem styleItem = mock(EditedStyleItem.class);
-      when(styleItem.getName()).thenReturn(attributeName);
+      when(styleItem.getAttrName()).thenReturn(attributeName);
       when(styleItem.getAttrGroup()).thenReturn(attributeGroup);
       builder.add(styleItem);
     }

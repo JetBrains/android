@@ -314,7 +314,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       AttributeDefinition attrDefinition =
         ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), item.getSelectedValue());
 
-      String attributeName = item.getName().toLowerCase(Locale.US);
+      String attributeName = item.getAttrName().toLowerCase(Locale.US);
 
       if (urlType == ResourceType.COLOR ||
           ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color) ||

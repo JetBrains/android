@@ -166,8 +166,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     return ResourceResolver.create(Collections.singletonMap(ResourceNamespace.RES_AUTO,
                                                             Collections.singletonMap(ResourceType.COLOR,
                                                                                      ResourceValueMap.create())),
-                                   "",
-                                   false);
+                                   null);
   }
 
   private static void addColor(ResourceResolver resolver, String colorName, String colorValue) {

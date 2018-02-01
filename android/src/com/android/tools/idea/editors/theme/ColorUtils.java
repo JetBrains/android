@@ -124,7 +124,7 @@ public class ColorUtils {
             contrastColorsBuilder.put(disabledPrefix +
                                       ThemeEditorUtils.generateWordEnumeration(stateListState.getAttributesNames(false)) +
                                       " <b>" +
-                                      contrastItem.getName() +
+                                      contrastItem.getAttrName() +
                                       "</b>", stateListColor);
           }
         }
@@ -132,7 +132,7 @@ public class ColorUtils {
       else {
         Color resolvedColor = ResourceHelper.resolveColor(styleResourceResolver, contrastItem, project);
         if (resolvedColor != null) {
-          contrastColorsBuilder.put("<b>" + contrastItem.getName() + "</b>", resolvedColor);
+          contrastColorsBuilder.put("<b>" + contrastItem.getAttrName() + "</b>", resolvedColor);
         }
       }
     }

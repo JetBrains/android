@@ -774,18 +774,25 @@ public class AndroidJavaDocRenderer {
       while (styleValue != null) {
         // Make sure the contents for the style are always generated in the same order. Helps with testing and the
         // user will know where to find attributes.
-        ImmutableList<ItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getValues());
+        ImmutableList<ItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getDefinedItems());
         for (ItemResourceValue itemResourceValue : values) {
-          String name = itemResourceValue.getName();
+          String name = itemResourceValue.getAttrName();
           if (masked.contains(name)) {
             continue;
           }
           masked.add(name);
-          final ResourceValue v = styleValue.getItem(name, itemResourceValue.isFrameworkAttr());
-          String value = v == null ? null : v.getValue();
+          String value = null;
+          ResourceReference attr = itemResourceValue.getAttr();
+          if (attr != null) {
+            final ResourceValue v = styleValue.getItem(attr);
+            if (v != null) {
+              value = v.getValue();
+            }
+          }
 
           builder.addNbsps(4);
-          if (itemResourceValue.isFrameworkAttr()) {
+          if (attr != null && attr.getNamespace() == ResourceNamespace.ANDROID) {
+            // TODO: namespaces
             builder.add(PREFIX_ANDROID);
           }
           builder.addBold(name).add(" = ").add(value == null ? "null" : value);

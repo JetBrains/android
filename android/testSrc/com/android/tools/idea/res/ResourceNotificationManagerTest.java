@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -117,7 +118,10 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     // that that optimization doesn't kick in here, we need to look up the value of
     // the resource item first:
     //noinspection ConstantConditions
-    assertEquals("#ff0000", configuration1.getResourceResolver().getStyle("AppTheme", false).getItem("colorBackground", true).getValue());
+    assertEquals("#ff0000",
+                 configuration1.getResourceResolver()
+                   .getStyle("AppTheme", false)
+                   .getItem(ResourceNamespace.ANDROID, "colorBackground").getValue());
     AndroidResourceUtil.createValueResource(getProject(), resourceDir, "color2", ResourceType.COLOR, "colors.xml",
                                             Collections.singletonList("values"), "#fa2395");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);

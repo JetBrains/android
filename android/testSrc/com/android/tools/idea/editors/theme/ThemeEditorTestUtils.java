@@ -37,7 +37,7 @@ public class ThemeEditorTestUtils {
   public static Collection<EditedStyleItem> getStyleLocalValues(@NotNull final ConfiguredThemeEditorStyle style) {
     final Set<String> localAttributes = Sets.newHashSet();
     for (ConfiguredElement<ItemResourceValue> value : style.getConfiguredValues()) {
-      localAttributes.add(ResolutionUtils.getQualifiedItemName(value.getElement()));
+      localAttributes.add(ResolutionUtils.getQualifiedItemAttrName(value.getElement()));
     }
 
     return Collections2
