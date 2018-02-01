@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceRepository;
 import com.android.ide.common.res2.ResourceTable;
-import com.android.ide.common.resources.TestResourceRepository;
+import com.android.ide.common.resources.ResourceRepositoryFixture;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.util.Pair;
@@ -44,9 +44,25 @@ import static java.io.File.separatorChar;
 
 public class ResourceClassGeneratorTest extends AndroidTestCase {
   private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
+  private final ResourceRepositoryFixture resourceFixture = new ResourceRepositoryFixture();
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    resourceFixture.setUp();
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      resourceFixture.tearDown();
+    } finally {
+      super.tearDown();
+    }
+  }
 
   public void testResourceClassGenerator() throws Exception {
-    final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
+    final ResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
       "layout-land/layout1.xml", "<!--contents doesn't matter-->",
@@ -184,7 +200,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testStyleableMerge() throws Exception {
-    final ResourceRepository repositoryA = TestResourceRepository.createRes2(new Object[]{
+    final ResourceRepository repositoryA = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
@@ -263,7 +279,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       attributes.append("    <attr name=\"overflow_").append(i).append("\" />\n");
     }
 
-    final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
+    final ResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +

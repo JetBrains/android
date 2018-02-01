@@ -23,11 +23,11 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.actions.OverrideResourceAction;
@@ -65,11 +65,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
@@ -94,6 +90,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.android.ide.common.res2.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
@@ -183,7 +181,7 @@ public class ThemeEditorUtils {
                                                          boolean isFrameworkAttr) {
     ConfiguredThemeEditorStyle currentTheme = theme;
 
-    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
+    for (int i = 0; (i < MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
       ItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
       if (item != null) {
         return item;
@@ -433,7 +431,7 @@ public class ThemeEditorUtils {
    */
   public static boolean isAppCompatTheme(@NotNull ConfiguredThemeEditorStyle configuredThemeEditorStyle) {
     ConfiguredThemeEditorStyle currentTheme = configuredThemeEditorStyle;
-    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
+    for (int i = 0; (i < MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
       // for loop ensures that we don't run into cyclic theme inheritance.
       //TODO: This check is not enough. User themes could also start with "Theme.AppCompat" and not be AppCompat
       if (currentTheme.getName().startsWith("Theme.AppCompat") && currentTheme.getSourceModule() == null) {

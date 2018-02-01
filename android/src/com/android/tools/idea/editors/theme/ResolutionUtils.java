@@ -16,15 +16,15 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -317,10 +317,10 @@ public class ResolutionUtils {
       ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet.getModule());
       IAndroidTarget target = configurationManager.getDefaultTarget(); // same as getHighestApiTarget();
       assert target != null;
-      ResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
+      AbstractResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
       assert resourceRepository != null;
-      ResourceItem resourceItem = resourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
-      configurables = resourceItem.getSourceFileList();
+      configurables =
+          resourceRepository.getResourceItems(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
     }
     else {
       AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(facet);

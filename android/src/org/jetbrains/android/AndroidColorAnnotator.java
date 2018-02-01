@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.res2.AbstractResourceRepository;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -85,7 +86,7 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  * as any XML resource that references a color attribute (\@color) or color literal (#AARRGGBBB),
  * or references it from Java code (R.color.name). It also previews small icons.
  * <p>
- * TODO: Use {@link com.android.ide.common.resources.ResourceItemResolver} when possible!
+ * TODO: Use {@link ResourceItemResolver} when possible!
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
@@ -265,10 +266,9 @@ public class AndroidColorAnnotator implements Annotator {
         if ("vector".equals(tag)) {
           // Take a look and see if we have a bitmap we can fall back to
           AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
-          List<com.android.ide.common.res2.ResourceItem> items =
-            resourceRepository.getResourceItem(resourceValue.getResourceType(), resourceValue.getName());
+          List<ResourceItem> items = resourceRepository.getResourceItem(resourceValue.getResourceType(), resourceValue.getName());
           if (items != null) {
-            for (com.android.ide.common.res2.ResourceItem item : items) {
+            for (ResourceItem item : items) {
               FolderConfiguration configuration = item.getConfiguration();
               DensityQualifier densityQualifier = configuration.getDensityQualifier();
               if (densityQualifier != null) {
@@ -404,15 +404,15 @@ public class AndroidColorAnnotator implements Annotator {
                                                  Module module,
                                                  Configuration configuration) {
     if (isFramework) {
-      ResourceRepository frameworkResources = configuration.getFrameworkResources();
+      AbstractResourceRepository frameworkResources = configuration.getFrameworkResources();
       if (frameworkResources == null) {
         return null;
       }
-      if (!frameworkResources.hasResourceItem(type, name)) {
+      List<ResourceItem> items = frameworkResources.getResourceItems(ResourceNamespace.ANDROID, type, name);
+      if (items.isEmpty()) {
         return null;
       }
-      ResourceItem item = frameworkResources.getResourceItem(type, name);
-      return item.getResourceValue(type, configuration.getFullConfig(), false);
+      return items.get(0).getResourceValue(true);
     } else {
       LocalResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
       if (appResources == null) {

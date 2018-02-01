@@ -123,7 +123,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   @NotNull
   public static FileResourceRepository createForTest(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
                                                      @Nullable String libraryName) {
-    assert ApplicationManager.getApplication().isUnitTestMode();
+    assert ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode();
     return create(resourceDirectory, namespace, libraryName);
   }
 

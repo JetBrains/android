@@ -30,7 +30,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.hash.Hashing;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -47,8 +46,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
 
@@ -60,9 +57,9 @@ import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
  * can be used to obtain only public resources. This is typically used to display resource lists in
  * the UI.
  *
- * <p>For performance the repository, when possible, is loaded from a binary cache file
- * located under the directory returned by the {@link PathManager#getSystemPath()} method.
- * Loading from a cache file is 5-6 times faster than reading XML files.
+ * <p>For performance the repository, when possible, is loaded from a binary cache file located
+ * under the directory returned by the {@link PathManager#getSystemPath()} method.
+ * Loading from a cache file is 7-8 times faster than reading XML files.
  *
  * <p>For safety we don't assume any compatibility of cache file format between different versions
  * of the Android plugin. For the built-in framework resources used by LayoutLib this also guarantees
@@ -86,7 +83,6 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
   private final boolean myWithLocaleResources;
   private final Map<ResourceType, List<ResourceItem>> myPublicResources = new EnumMap<>(ResourceType.class);
-  private Future myCacheCreatedFuture;
   private boolean myLoadedFromCache;
 
   private FrameworkResourceRepository(@NotNull File resFolder, boolean withLocaleResources) {
@@ -99,13 +95,15 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
    *
    * @param resFolder the folder containing resources of the Android framework
    * @param withLocaleResources whether to include locale-specific resources or not
+   * @param usePersistentCache whether the repository should attempt loading from
+   *     a persistent cache and create the cache if it does not exist
    * @return the created resource repository
    */
   @NotNull
-  public static FrameworkResourceRepository create(@NotNull File resFolder, boolean withLocaleResources) {
+  public static FrameworkResourceRepository create(@NotNull File resFolder, boolean withLocaleResources, boolean usePersistentCache) {
     FrameworkResourceRepository repository = new FrameworkResourceRepository(resFolder, withLocaleResources);
     // Try to load from file cache first. Loading from cache is significantly faster than reading resource files.
-    if (repository.loadFromPersistentCache()) {
+    if (usePersistentCache && repository.loadFromPersistentCache()) {
       return repository;
     }
 
@@ -128,22 +126,18 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     repository.getItems().update(resourceMerger);
 
     repository.loadPublicResources();
-    repository.createPersistentCacheAsynchronously();
+    if (usePersistentCache) {
+      // It would be nice to create persistent cache asynchronously, but unfortunately
+      // this is not possible because Xerces DOM implementation is not thread-safe.
+      // See https://xerces.apache.org/xerces2-j/faq-dom.html#faq-1.
+      repository.createPersistentCache();
+    }
     return repository;
   }
 
-  private void createPersistentCacheAsynchronously() {
-    myCacheCreatedFuture = ApplicationManager.getApplication().executeOnPooledThread(this::createPersistentCache);
-  }
-
-  /**
-   * Returns a collection of <b>public</b> {@link ResourceItem}s matching a given {@link ResourceType}.
-   *
-   * @param type the type of the resources to return
-   * @return a collection of items, possibly empty.
-   */
+  @Override
   @NonNull
-  public List<ResourceItem> getPublicResourcesOfType(@NonNull ResourceType type) {
+  public Collection<ResourceItem> getPublicResourcesOfType(@NonNull ResourceType type) {
     List<ResourceItem> resourceItems = myPublicResources.get(type);
     return resourceItems == null ? Collections.emptyList() : resourceItems;
   }
@@ -154,14 +148,6 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     String dirHash = Hashing.md5().hashUnencodedChars(resourceDir.getAbsolutePath()).toString();
     String filename = String.format("%s%s.bin", dirHash, withLocaleResources ? "_L" : "");
     return new File(new File(PathManager.getSystemPath(), CACHE_DIRECTORY), filename);
-  }
-
-  /**
-   * Waits until the asynchronous creation of the persistent cache finishes, either successfully or not.
-   */
-  @VisibleForTesting
-  void waitUntilPersistentCacheCreated() throws ExecutionException, InterruptedException {
-    myCacheCreatedFuture.get();
   }
 
   @VisibleForTesting
@@ -283,8 +269,8 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
   @Override
   @NotNull
-  public List<ResourceType> getAvailableResourceTypes() {
-    return ImmutableList.copyOf(getMapByType().keySet());
+  public Set<ResourceType> getAvailableResourceTypes() {
+    return EnumSet.copyOf(getMapByType().keySet());
   }
 
   /**
@@ -744,8 +730,9 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
           }
           writeShort(numSignificantChildren);
           for (int i = 0; i < numChildren; i++) {
-            if (children.item(i).getNodeType() != Node.COMMENT_NODE) {
-              writeNode(children.item(i));
+            Node child = children.item(i);
+            if (child.getNodeType() != Node.COMMENT_NODE) {
+              writeNode(child);
             }
           }
         } else if (nodeType == Node.TEXT_NODE) {
@@ -860,7 +847,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
         return true; // Mobile country codes and raw resources are not used by LayoutLib.
       }
 
-      // Skip locale-specific folders.
+      // Skip locale-specific folders if myWithLocaleResources is false.
       if (!myWithLocaleResources && fileName.startsWith("values-")) {
         FolderConfiguration config = FolderConfiguration.getConfigForFolder(fileName);
         if (config == null || config.getLocaleQualifier() != null) {
@@ -939,67 +926,67 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public void setAttribute(String name, String value) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void removeAttribute(String name) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Attr setAttributeNode(Attr newAttr) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Attr removeAttributeNode(Attr oldAttr) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public NodeList getElementsByTagName(String name) {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void setAttributeNS(String namespaceUri, String qualifiedName, String value) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void removeAttributeNS(String namespaceUri, String localName) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Attr setAttributeNodeNS(Attr newAttr) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public NodeList getElementsByTagNameNS(String namespaceUri, String localName) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public TypeInfo getSchemaTypeInfo() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void setIdAttribute(String name, boolean isId) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void setIdAttributeNS(String namespaceUri, String localName, boolean isId) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void setIdAttributeNode(Attr idAttr, boolean isId) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
@@ -1069,22 +1056,22 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public Node setNamedItem(Node arg) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node removeNamedItem(String name) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node setNamedItemNS(Node arg) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node removeNamedItemNS(String namespaceUri, String localName) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
   }
 
@@ -1120,27 +1107,27 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public void setValue(String value) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public boolean getSpecified() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Element getOwnerElement() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public TypeInfo getSchemaTypeInfo() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public boolean isId() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
   }
 
@@ -1178,47 +1165,47 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public Text splitText(int offset) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public boolean isElementContentWhitespace() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Text replaceWholeText(String content) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public String getData() throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void setData(String data) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void appendData(String arg) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void insertData(int offset, String arg) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void deleteData(int offset, int count) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void replaceData(int offset, int count, String arg) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
   }
 
@@ -1304,7 +1291,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public boolean hasChildNodes() {
-      throw new UnsupportedOperationException();
+      return getChildNodes().getLength() != 0;
     }
 
     @Override
@@ -1329,62 +1316,65 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public void setNodeValue(String nodeValue) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node getParentNode() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node getFirstChild() {
-      throw new UnsupportedOperationException();
+      NodeList children = getChildNodes();
+      return children.getLength() != 0 ? children.item(0) : null;
     }
 
     @Override
     public Node getLastChild() {
-      throw new UnsupportedOperationException();
+      NodeList children = getChildNodes();
+      int length = children.getLength();
+      return length != 0 ? children.item(length - 1) : null;
     }
 
     @Override
     public Node getPreviousSibling() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node getNextSibling() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Document getOwnerDocument() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node insertBefore(Node newChild, Node refChild) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node replaceChild(Node newChild, Node oldChild) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node removeChild(Node oldChild) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node appendChild(Node newChild) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Node cloneNode(boolean deep) {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
@@ -1398,27 +1388,27 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public void setPrefix(String prefix) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public String getBaseURI() {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public short compareDocumentPosition(Node other) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public String getTextContent() throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public void setTextContent(String textContent) throws DOMException {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
@@ -1428,17 +1418,29 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public String lookupPrefix(String namespaceUri) {
-      throw new UnsupportedOperationException();
+      // Only well-known namespaces are supported.
+      for (int i = 1; i < WELL_KNOWN_NAMESPACES.length; i += 2) {
+        if (WELL_KNOWN_NAMESPACES[i].equals(namespaceUri)) {
+          return WELL_KNOWN_NAMESPACES[i - 1];
+        }
+      }
+      throw new IllegalStateException("Unknown namespace URI: \"" + namespaceUri + "\"");
     }
 
     @Override
     public boolean isDefaultNamespace(String namespaceUri) {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public String lookupNamespaceURI(String prefix) {
-      throw new UnsupportedOperationException();
+      // Only well-known namespaces are supported.
+      for (int i = 0; i < WELL_KNOWN_NAMESPACES.length; i += 2) {
+        if (WELL_KNOWN_NAMESPACES[i].equals(prefix)) {
+          return WELL_KNOWN_NAMESPACES[i + 1];
+        }
+      }
+      throw new IllegalStateException("Unknown namespace prefix: \"" + prefix + "\"");
     }
 
     @Override
@@ -1448,18 +1450,25 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
     @Override
     public Object getFeature(String feature, String version) {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Object setUserData(String key, Object data, UserDataHandler handler) {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
 
     @Override
     public Object getUserData(String key) {
-      throw new UnsupportedOperationException();
+      throw createAndLogUnsupportedOperationException();
     }
+  }
+
+  @NotNull
+  private static UnsupportedOperationException createAndLogUnsupportedOperationException() {
+    UnsupportedOperationException exception = new UnsupportedOperationException();
+    LOG.error("Unsupported operation in FrameworkResourceRepository", exception);
+    return exception;
   }
 
   private enum ResourceItemType {

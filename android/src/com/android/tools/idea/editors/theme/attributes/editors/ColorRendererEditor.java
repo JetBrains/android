@@ -17,7 +17,10 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.editors.theme.*;
+import com.android.tools.idea.editors.theme.ColorUtils;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;

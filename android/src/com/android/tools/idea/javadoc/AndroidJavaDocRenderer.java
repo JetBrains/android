@@ -22,7 +22,8 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ResourceQualifier;
@@ -70,13 +71,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
-import static com.android.SdkConstants.DOT_PNG;
-import static com.android.SdkConstants.DOT_WEBP;
-import static com.android.SdkConstants.PREFIX_ANDROID;
-import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+import static com.android.SdkConstants.*;
+import static com.android.ide.common.res2.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
 import static com.android.utils.SdkUtils.hasImageExtension;
 import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 
@@ -210,7 +208,7 @@ public class AndroidJavaDocRenderer {
     protected AppResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
-    protected ResourceRepository myFrameworkResources;
+    protected AbstractResourceRepository myFrameworkResources;
 
     protected ResourceValueRenderer(@NotNull Module module, @Nullable Configuration configuration) {
       myModule = module;
@@ -252,10 +250,11 @@ public class AndroidJavaDocRenderer {
     }
 
     /**
-     * Returns a {@link FrameworkResources} instance that allows accessing the framework public resources of the highest available SDK.
+     * Returns a {@link AbstractResourceRepository} instance that allows accessing the framework public resources of the highest available
+     * SDK.
      */
     @Nullable
-    private static FrameworkResources getLatestPublicFrameworkResources(Module module) {
+    private static AbstractResourceRepository getLatestPublicFrameworkResources(Module module) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet == null) {
         return null;
@@ -268,12 +267,7 @@ public class AndroidJavaDocRenderer {
 
       AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
       if (targetData != null) {
-        try {
-          return targetData.getFrameworkResources(true);
-        }
-        catch (IOException e) {
-          // Ignore docs
-        }
+        return targetData.getFrameworkResources(true);
       }
 
       return null;
@@ -379,12 +373,12 @@ public class AndroidJavaDocRenderer {
         if (hasGradleModel) {
           // Go through all the binary libraries and look for additional resources there
           for (LocalResourceRepository dependency : resources.getLibraries()) {
-            addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, type, resourceName, results);
+            addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
           }
         }
         else {
           // If we do not have any gradle model, get the resources from the app repository
-          addItemsFromRepository(null, MASK_NORMAL, 0, resources, type, resourceName, results);
+          addItemsFromRepository(null, MASK_NORMAL, 0, resources, false, type, resourceName, results);
         }
       }
 
@@ -405,7 +399,7 @@ public class AndroidJavaDocRenderer {
         VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
         if (virtualFile != null) {
           ResourceFolderRepository resources = ResourceFolderRegistry.get(facet, virtualFile);
-          addItemsFromRepository(flavor, mask, rank, resources, type, name, results);
+          addItemsFromRepository(flavor, mask, rank, resources, false, type, name, results);
         }
       }
     }
@@ -416,45 +410,34 @@ public class AndroidJavaDocRenderer {
                                        @NotNull ResourceType type,
                                        @NotNull String name,
                                        @NotNull List<ItemInfo> results) {
-      ResourceRepository frameworkResources = getFrameworkResources();
+      AbstractResourceRepository frameworkResources = getFrameworkResources();
       if (frameworkResources == null) {
         return;
       }
 
-      if (frameworkResources.hasResourceItem(type, name)) {
-        com.android.ide.common.resources.ResourceItem item = frameworkResources.getResourceItem(type, name);
-        for (com.android.ide.common.resources.ResourceFile resourceFile : item.getSourceFileList()) {
-          FolderConfiguration configuration = resourceFile.getConfiguration();
-          ResourceValue value = resourceFile.getValue(type, name);
-
-          String folderName = resourceFile.getFolder().getFolder().getName();
-          String folder = renderFolderName(folderName);
-          ItemInfo info = new ItemInfo(value, configuration, folder, flavor, rank, mask);
-          results.add(info);
-        }
-      }
+      addItemsFromRepository(flavor, mask, rank, frameworkResources, true, type, name, results);
     }
 
     private static void addItemsFromRepository(@Nullable String flavor,
                                                int mask,
                                                int rank,
                                                @NotNull AbstractResourceRepository resources,
+                                               boolean isFramework,
                                                @NotNull ResourceType type,
                                                @NotNull String name,
                                                @NotNull List<ItemInfo> results) {
-      List<ResourceItem> items = resources.getResourceItem(type, name);
-      if (items != null) {
-        for (ResourceItem item : items) {
-          String folderName = "?";
-          ResourceFile source = item.getSource();
-          if (source != null) {
-            folderName = source.getFile().getParentFile().getName();
-          }
-          String folder = renderFolderName(folderName);
-          ResourceValue value = item.getResourceValue(resources.isFramework());
-          ItemInfo info = new ItemInfo(value, item.getConfiguration(), folder, flavor, rank, mask);
-          results.add(info);
+      ResourceNamespace namespace = isFramework ? ResourceNamespace.ANDROID : ResourceNamespace.TODO;
+      List<ResourceItem> items = resources.getResourceItems(namespace, type, name);
+      for (ResourceItem item : items) {
+        String folderName = "?";
+        ResourceFile source = item.getSource();
+        if (source != null) {
+          folderName = source.getFile().getParentFile().getName();
         }
+        String folder = renderFolderName(folderName);
+        ResourceValue value = item.getResourceValue(isFramework);
+        ItemInfo info = new ItemInfo(value, item.getConfiguration(), folder, flavor, rank, mask);
+        results.add(info);
       }
     }
 
@@ -570,7 +553,7 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public ResourceRepository getFrameworkResources() {
+    public AbstractResourceRepository getFrameworkResources() {
       if (myFrameworkResources == null) {
         myFrameworkResources = getLatestPublicFrameworkResources(myModule);
       }
