@@ -16,8 +16,8 @@
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItemResolver;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -166,7 +166,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     myResolvedPanel.removeAll();
     ResourceValue resourceValue = item.getResourceValue();
     Configuration configuration = myDialog.getConfiguration();
-    ResourceRepository frameworkResources = configuration.getFrameworkResources();
+    AbstractResourceRepository frameworkResources = configuration.getFrameworkResources();
     if (frameworkResources != null) {
       AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myDialog.getFacet());
       ResourceItemResolver resolver = new ResourceItemResolver(configuration.getFullConfig(), frameworkResources, appResources, null);

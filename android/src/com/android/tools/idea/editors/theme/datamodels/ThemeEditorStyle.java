@@ -17,9 +17,10 @@ package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceType;
@@ -182,24 +183,28 @@ public class ThemeEditorStyle {
       IAndroidTarget target = myManager.getHighestApiTarget();
       assert target != null;
 
-      com.android.ide.common.resources.ResourceItem styleItem =
-        myManager.getResolverCache().getFrameworkResources(new FolderConfiguration(), target)
-          .getResourceItem(ResourceType.STYLE, getName());
+      AbstractResourceRepository frameworkResources =
+          myManager.getResolverCache().getFrameworkResources(new FolderConfiguration(), target);
+      if (frameworkResources != null) {
+        List<ResourceItem> styleItems = frameworkResources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLE, getName());
 
-      for (ResourceFile file : styleItem.getSourceFileList()) {
-        if (file.getConfiguration().equals(configuration)) {
-          StyleResourceValue style = (StyleResourceValue)file.getValue(ResourceType.STYLE, getName());
-          return style.getValues();
+        for (ResourceItem item : styleItems) {
+          if (item.getConfiguration().equals(configuration)) {
+            StyleResourceValue style = (StyleResourceValue)item.getResourceValue(true);
+            if (style != null) {
+              return style.getValues();
+            }
+          }
         }
       }
       throw new IllegalArgumentException("bad folder config " + configuration);
     }
 
-    for (final ResourceItem styleItem : getStyleResourceItems()) {
+    for (ResourceItem styleItem : getStyleResourceItems()) {
       if (configuration.equals(styleItem.getConfiguration())) {
         StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue(false);
         if (style == null) {
-          // style might be null if the value fails to parse
+          // Style might be null if the value fails to parse.
           continue;
         }
         return style.getValues();
@@ -218,14 +223,18 @@ public class ThemeEditorStyle {
       IAndroidTarget target = myManager.getHighestApiTarget();
       assert target != null;
 
-      com.android.ide.common.resources.ResourceItem styleItem =
-        myManager.getResolverCache().getFrameworkResources(new FolderConfiguration(), target)
-          .getResourceItem(ResourceType.STYLE, getName());
+      AbstractResourceRepository frameworkResources =
+          myManager.getResolverCache().getFrameworkResources(new FolderConfiguration(), target);
+      if (frameworkResources != null) {
+        List<ResourceItem> styleItems = frameworkResources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLE, getName());
 
-      for (ResourceFile file : styleItem.getSourceFileList()) {
-        if (file.getConfiguration().equals(configuration)) {
-          StyleResourceValue style = (StyleResourceValue)file.getValue(ResourceType.STYLE, getName());
-          return ResolutionUtils.getParentQualifiedName(style);
+        for (ResourceItem item : styleItems) {
+          if (item.getConfiguration().equals(configuration)) {
+            StyleResourceValue style = (StyleResourceValue)item.getResourceValue(true);
+            if (style != null) {
+              return ResolutionUtils.getParentQualifiedName(style);
+            }
+          }
         }
       }
       throw new IllegalArgumentException("bad folder config " + configuration);

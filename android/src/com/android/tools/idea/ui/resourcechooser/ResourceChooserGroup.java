@@ -17,9 +17,9 @@ package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.DataFile;
-import com.android.ide.common.resources.FrameworkResources;
-import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -29,13 +29,7 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.SdkConstants.FD_RES_VALUES;
+import java.util.*;
 
 @SuppressWarnings("UnnecessaryFullyQualifiedName") // We have both resources and res2 ResourceItems; keep both explicit
 class ResourceChooserGroup {
@@ -63,13 +57,9 @@ class ResourceChooserGroup {
         return;
       }
       AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget());
-      FrameworkResources frameworkResources;
-      try {
-        frameworkResources = targetData.getFrameworkResources(type == ResourceType.STRING);
-        if (frameworkResources == null) {
-          return;
-        }
-      } catch (IOException ignore) {
+      AbstractResourceRepository frameworkResources;
+      frameworkResources = targetData.getFrameworkResources(type == ResourceType.STRING);
+      if (frameworkResources == null) {
         return;
       }
       addFrameworkItems(type, includeFileResources, frameworkResources);
@@ -117,18 +107,28 @@ class ResourceChooserGroup {
 
   private void addFrameworkItems(@NotNull ResourceType type,
                                  boolean includeFileResources,
-                                 @NotNull FrameworkResources frameworkResources) {
-    List<com.android.ide.common.resources.ResourceItem> items;
-    items = frameworkResources.getResourceItemsOfType(type);
-    for (com.android.ide.common.resources.ResourceItem item : items) {
+                                 @NotNull AbstractResourceRepository frameworkResources) {
+    Map<String, List<ResourceItem>> itemsByName = new HashMap<>();
+    Collection<ResourceItem> publicItems = frameworkResources.getPublicResourcesOfType(type);
+    for (ResourceItem item : publicItems) {
+      String name = item.getName();
+      List<ResourceItem> list = itemsByName.get(name);
+      if (list == null) {
+        list = new ArrayList<>();
+        itemsByName.put(name, list);
+      }
+      list.add(item);
+    }
+
+    for (Map.Entry<String, List<ResourceItem>> entry : itemsByName.entrySet()) {
+      List<ResourceItem> items = entry.getValue();
+      String resourceName = entry.getKey();
       if (!includeFileResources) {
-        List<ResourceFile> sourceFileList = item.getSourceFileList();
-        if (!sourceFileList.isEmpty() && !sourceFileList.get(0).getFolder().getFolder().getName().startsWith(FD_RES_VALUES)) {
+        if (items.get(0).getSourceType() != DataFile.FileType.XML_VALUES) {
           continue;
         }
       }
-
-      myItems.add(new ResourceChooserItem.FrameworkItem(myType, item.getName(), item));
+      myItems.add(ResourceChooserItem.createFrameworkItem(myType, resourceName, items));
     }
   }
 
@@ -140,7 +140,7 @@ class ResourceChooserGroup {
       if (lookup != null && lookup.isPrivate(type, resourceName)) {
         continue;
       }
-      List<com.android.ide.common.res2.ResourceItem> items = repository.getResourceItem(type, resourceName);
+      List<ResourceItem> items = repository.getResourceItem(type, resourceName);
       if (items == null || items.isEmpty()) {
         continue;
       }
@@ -150,7 +150,7 @@ class ResourceChooserGroup {
         }
       }
 
-      myItems.add(new ResourceChooserItem.ProjectItem(type, resourceName, items));
+      myItems.add(ResourceChooserItem.createProjectItem(type, resourceName, items));
     }
   }
 

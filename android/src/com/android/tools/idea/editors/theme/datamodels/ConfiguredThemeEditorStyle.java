@@ -17,10 +17,11 @@ package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -28,12 +29,15 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeResolver;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * This class represents styles in ThemeEditor
@@ -91,25 +95,25 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
    */
   @NotNull
   public ImmutableCollection<ConfiguredElement<ItemResourceValue>> getConfiguredValues() {
-    // Get a list of all the items indexed by the item name. Each item contains a list of the
-    // possible values in this theme in different configurations.
+    // Get a list of all the items indexed by the item name. Each item contains a list of the possible
+    // values in this theme in different configurations.
     //
     // If item1 has multiple values in different configurations, there will be an
     // item1 = {folderConfiguration1 -> value1, folderConfiguration2 -> value2}
     final ImmutableList.Builder<ConfiguredElement<ItemResourceValue>> itemResourceValues = ImmutableList.builder();
 
     if (isFramework()) {
-      assert myConfiguration.getFrameworkResources() != null;
+      AbstractResourceRepository frameworkResources = myConfiguration.getFrameworkResources();
+      assert frameworkResources != null;
 
-      com.android.ide.common.resources.ResourceItem styleItem =
-        myConfiguration.getFrameworkResources().getResourceItem(ResourceType.STYLE, myStyleResourceValue.getName());
-      // Go over all the files containing the resource.
-      for (ResourceFile file : styleItem.getSourceFileList()) {
-        ResourceValue styleResourceValue = file.getValue(ResourceType.STYLE, styleItem.getName());
-        FolderConfiguration folderConfiguration = file.getConfiguration();
+      List<ResourceItem> styleItems =
+          frameworkResources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLE, myStyleResourceValue.getName());
+      for (ResourceItem item : styleItems) {
+        ResourceValue styleResourceValue = item.getResourceValue(true);
 
         if (styleResourceValue instanceof StyleResourceValue) {
-          for (final ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
+          FolderConfiguration folderConfiguration = item.getConfiguration();
+          for (ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
             itemResourceValues.add(ConfiguredElement.create(folderConfiguration, value));
           }
         }
@@ -117,11 +121,11 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
     }
     else {
       for (ResourceItem styleDefinition : getStyleResourceItems()) {
-        ResourceValue styleResourceValue = styleDefinition.getResourceValue(isFramework());
+        ResourceValue styleResourceValue = styleDefinition.getResourceValue(false);
         FolderConfiguration folderConfiguration = styleDefinition.getConfiguration();
 
         if (styleResourceValue instanceof StyleResourceValue) {
-          for (final ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
+          for (ItemResourceValue value : ((StyleResourceValue)styleResourceValue).getValues()) {
             // We use the qualified name since apps and libraries can use the same attribute name twice with and without "android:"
             itemResourceValues.add(ConfiguredElement.create(folderConfiguration, value));
           }
@@ -148,7 +152,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
     }
 
     ImmutableList.Builder<ConfiguredElement<String>> parents = ImmutableList.builder();
-    for (final ResourceItem styleItem : getStyleResourceItems()) {
+    for (ResourceItem styleItem : getStyleResourceItems()) {
       StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue(false);
       assert style != null;
       String parentName = ResolutionUtils.getParentQualifiedName(style);

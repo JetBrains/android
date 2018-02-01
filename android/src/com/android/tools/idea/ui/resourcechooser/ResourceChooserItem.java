@@ -16,7 +16,8 @@
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Lists;
@@ -64,6 +65,7 @@ abstract class ResourceChooserItem {
     return isFramework() ? ANDROID_NS_NAME_PREFIX + getName() : getName();
   }
 
+  @Nullable
   public File getFile() {
     return null;
   }
@@ -125,137 +127,51 @@ abstract class ResourceChooserItem {
     return Collections.emptyList();
   }
 
-  public static class FrameworkItem extends ResourceChooserItem {
-    @NotNull private final com.android.ide.common.resources.ResourceItem myFrameworkItem;
-
-    public FrameworkItem(@NotNull ResourceType type,
-                         @NotNull String name,
-                         @NotNull com.android.ide.common.resources.ResourceItem frameworkItem) {
-      super(type, name);
-      myFrameworkItem = frameworkItem;
-    }
-
-    @Override
-    public boolean isFramework() {
-      return true;
-    }
-
-    @Override
-    public File getFile() {
-      // Not super efficient...
-      return new File(myFrameworkItem.getSourceFileList().get(0).getFile().getPath());
-    }
-
-    @Override
-    @Nullable
-    public String getPath() {
-      return myFrameworkItem.getSourceFileList().get(0).getFile().getPath();
-    }
-
-    @Override
-    @Nullable
-    public String getFileForQualifiers(String qualifiers) {
-      for (ResourceFile resourceFile : myFrameworkItem.getSourceFileList()) {
-        String name = resourceFile.getFolder().getFolder().getName();
-        if (name.endsWith(qualifiers) && qualifiers.equals(name.substring(name.indexOf('-') + 1))) {
-          return resourceFile.getFile().getPath();
-        }
-      }
-
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public String getResourceUrl() {
-      return PREFIX_RESOURCE_REF + ANDROID_NS_NAME_PREFIX + myType.getName() + '/' + myName;
-    }
-
-    @Override
-    @NotNull
-    public List<String> getQualifiers() {
-      Set<String> set = Sets.newHashSet();
-      for (ResourceFile resourceFile : myFrameworkItem.getSourceFileList()) {
-        String folder = resourceFile.getFolder().getFolder().getName();
-        int index = folder.indexOf('-');
-        if (index == -1) {
-          set.add(DEFAULT_FOLDER_NAME);
-        } else {
-          set.add(folder.substring(index + 1));
-        }
-      }
-      List<String> qualifiers = new ArrayList<>(set);
-      Collections.sort(qualifiers);
-      return qualifiers;
-    }
-
-    @Override
-    public String getDefaultValue() {
-      ResourceFile file = null;
-      for (ResourceFile resourceFile : myFrameworkItem.getSourceFileList()) {
-        FolderConfiguration configuration = resourceFile.getConfiguration();
-        if (configuration.isDefault()) {
-          file = resourceFile;
-          break;
-        }
-      }
-      if (file == null) {
-        file = myFrameworkItem.getSourceFileList().get(0);
-      }
-      ResourceValue value = file.getValue(getType(), getName());
-      if (value != null) {
-        return value.getValue();
-      }
-
-      return null;
-    }
-
-    @Override
-    @NotNull
-    public List<Pair<FolderConfiguration, String>> getQualifiersAndValues() {
-      List<ResourceFile> sourceFileList = myFrameworkItem.getSourceFileList();
-      ArrayList<Pair<FolderConfiguration, String>> pairs = Lists.newArrayListWithCapacity(sourceFileList.size());
-      ResourceType type = getType();
-      String name = getName();
-      for (ResourceFile resourceFile : sourceFileList) {
-        ResourceValue resourceValue = resourceFile.getValue(type, name);
-        FolderConfiguration configuration = resourceFile.getConfiguration();
-        pairs.add(Pair.create(configuration, resourceValue != null ? resourceValue.getValue() : null));
-      }
-      return pairs;
-    }
+  public static ResourceChooserItem createProjectItem(@NotNull ResourceType type,
+                                               @NotNull String name,
+                                               @NotNull List<ResourceItem> resourceItems) {
+    return new ResourceChooserItemImpl(type, name, resourceItems, false);
   }
 
-  public static class ProjectItem extends ResourceChooserItem {
-    @NotNull private final List<com.android.ide.common.res2.ResourceItem> myProjectItems;
+  public static ResourceChooserItem createFrameworkItem(@NotNull ResourceType type,
+                                                @NotNull String name,
+                                                @NotNull List<ResourceItem> resourceItems) {
+    return new ResourceChooserItemImpl(type, name, resourceItems, true);
+  }
 
-    public ProjectItem(@NotNull ResourceType type,
-                       @NotNull String name,
-                       @NotNull List<com.android.ide.common.res2.ResourceItem> projectItems) {
+  private static class ResourceChooserItemImpl extends ResourceChooserItem {
+    @NotNull private final List<ResourceItem> myResourceItems;
+    private final boolean myIsFramework;
+
+    public ResourceChooserItemImpl(@NotNull ResourceType type,
+                                   @NotNull String name,
+                                   @NotNull List<ResourceItem> resourceItems,
+                                   boolean isFramework) {
       super(type, name);
-      myProjectItems = projectItems;
+      myResourceItems = resourceItems;
+      myIsFramework = isFramework;
     }
 
     @Override
     public boolean isFramework() {
-      return false;
+      return myIsFramework;
     }
 
     @Override
     public File getFile() {
-      return myProjectItems.get(0).getFile();
+      return myResourceItems.get(0).getFile();
     }
 
     @Override
     @Nullable
     public String getPath() {
-      return myProjectItems.get(0).getFile().getPath();
+      return myResourceItems.get(0).getFile().getPath();
     }
 
     @Override
     @Nullable
     public String getFileForQualifiers(String qualifiers) {
-      for (com.android.ide.common.res2.ResourceItem item : myProjectItems) {
+      for (ResourceItem item : myResourceItems) {
         if (qualifiers.equals(item.getQualifiers())) {
           return item.getFile().getPath();
         }
@@ -274,7 +190,7 @@ abstract class ResourceChooserItem {
     @NotNull
     public List<String> getQualifiers() {
       Set<String> set = Sets.newHashSet();
-      for (com.android.ide.common.res2.ResourceItem item : myProjectItems) {
+      for (ResourceItem item : myResourceItems) {
         String q = item.getQualifiers();
         if (!q.isEmpty()) {
           set.add(q);
@@ -290,7 +206,7 @@ abstract class ResourceChooserItem {
 
     @Override
     public String getDefaultValue() {
-      com.android.ide.common.res2.ResourceItem first = myProjectItems.get(0);
+      ResourceItem first = myResourceItems.get(0);
       ResourceValue value = first.getResourceValue(false);
       if (value != null) {
         return value.getValue();
@@ -302,8 +218,8 @@ abstract class ResourceChooserItem {
     @Override
     @NotNull
     public List<Pair<FolderConfiguration, String>> getQualifiersAndValues() {
-      ArrayList<Pair<FolderConfiguration, String>> pairs = Lists.newArrayListWithCapacity(myProjectItems.size());
-      for (com.android.ide.common.res2.ResourceItem item : myProjectItems) {
+      ArrayList<Pair<FolderConfiguration, String>> pairs = new ArrayList<>(myResourceItems.size());
+      for (ResourceItem item : myResourceItems) {
         ResourceValue resourceValue = item.getResourceValue(false);
         FolderConfiguration configuration = item.getConfiguration();
         pairs.add(Pair.create(configuration, resourceValue != null ? resourceValue.getValue() : null));

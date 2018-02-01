@@ -18,15 +18,15 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.DataFile;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.FrameworkResources;
-import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
@@ -59,14 +59,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.ResourceResolver.*;
+import static com.android.ide.common.res2.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.res2.ResourceItem.*;
 
 public class ResourceHelper {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.res.ResourceHelper");
@@ -416,7 +416,6 @@ public class ResourceHelper {
 
   @Nullable
   private static Color resolveColor(@NotNull RenderResources resources, @Nullable ResourceValue colorValue, @NotNull Project project, int depth) {
-
     if (depth >= MAX_RESOURCE_INDIRECTION) {
       LOG.warn("too deep " + colorValue);
       return null;
@@ -1162,13 +1161,10 @@ public class ResourceHelper {
     AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
     ResourceVisibilityLookup lookup = repository.getResourceVisibility(facet);
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
-    FrameworkResources frameworkResources = null;
+    AbstractResourceRepository frameworkResources = null;
     if (androidPlatform != null) {
       AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget());
-      try {
-        frameworkResources = targetData.getFrameworkResources(true);
-      } catch (IOException ignore) {
-      }
+      frameworkResources = targetData.getFrameworkResources(true);
     }
 
     List<String> resources = Lists.newArrayListWithCapacity(500);
@@ -1228,13 +1224,12 @@ public class ResourceHelper {
   private static void addFrameworkItems(@NotNull List<String> destination,
                                         @NotNull ResourceType type,
                                         boolean includeFileResources,
-                                        @NotNull FrameworkResources frameworkResources) {
-    List<com.android.ide.common.resources.ResourceItem> items;
-    items = frameworkResources.getResourceItemsOfType(type);
-    for (com.android.ide.common.resources.ResourceItem item : items) {
+                                        @NotNull AbstractResourceRepository frameworkResources) {
+    Collection<ResourceItem> items = frameworkResources.getPublicResourcesOfType(type);
+    for (ResourceItem item : items) {
       if (!includeFileResources) {
-        List<com.android.ide.common.resources.ResourceFile> sourceFileList = item.getSourceFileList();
-        if (!sourceFileList.isEmpty() && !sourceFileList.get(0).getFolder().getFolder().getName().startsWith(FD_RES_VALUES)) {
+        ResourceFile sourceFile = item.getSource();
+        if (sourceFile != null && !sourceFile.getFile().getParent().startsWith(FD_RES_VALUES)) {
           continue;
         }
       }

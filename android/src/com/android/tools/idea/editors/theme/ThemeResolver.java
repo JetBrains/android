@@ -3,7 +3,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
@@ -98,12 +98,15 @@ public class ThemeResolver {
 
   @NotNull
   private List<StyleResourceValue> resolveFrameworkThemes() {
-    ResourceRepository repository = myConfiguration.getFrameworkResources();
+    AbstractResourceRepository repository = myConfiguration.getFrameworkResources();
     if (repository == null) {
       return Collections.emptyList();
     }
 
-    return getThemes(repository.getConfiguredResources(myConfiguration.getFullConfig()).get(ResourceType.STYLE), true /*isFramework*/);
+    // TODO(namespaces): Use ResourceResolverCache.
+    ResourceValueMap styles =
+        repository.getConfiguredResources(myConfiguration.getFullConfig()).row(ResourceNamespace.ANDROID).get(ResourceType.STYLE);
+    return getThemes(styles, true /*isFramework*/);
   }
 
   /**

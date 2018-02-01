@@ -29,6 +29,8 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,7 +39,7 @@ import java.util.List;
  */
 public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   /** Enables printing of repository statistics. */
-  private static final boolean PRINT_STATS = false;
+  private static final boolean PRINT_STATS = true;
 
   private File myResourceFolder;
 
@@ -93,63 +95,68 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
 
   public void testLoading() throws Exception {
     File resFolder = getSdkResFolder();
-    // Test loading without cache.
-    long start = System.currentTimeMillis();
-    FrameworkResourceRepository repository = FrameworkResourceRepository.create(resFolder, false);
-    long loadTimeWithoutCache = System.currentTimeMillis() - start;
-    assertFalse(repository.isLoadedFromCache());
-    List<ResourceItem> resourceItems = repository.getAllResourceItems();
-    Collections.sort(resourceItems);
-    assertTrue("Too few resources: " + resourceItems.size(), resourceItems.size() >= 10000);
-    for (ResourceItem item : resourceItems) {
-      assertEquals(ResourceNamespace.ANDROID, item.getNamespace());
-    }
-    ImmutableMap<ResourceType, Integer> expectations = ImmutableMap.of(
-      ResourceType.STYLE, 700,
-      ResourceType.ATTR, 1200,
-      ResourceType.DRAWABLE, 600,
-      ResourceType.ID, 60,
-      ResourceType.LAYOUT, 20
-    );
-    for (ResourceType type : ResourceType.values()) {
-      List<ResourceItem> publicResources = repository.getPublicResourcesOfType(type);
-      Integer minExpected = expectations.get(type);
-      if (minExpected != null) {
-        assertTrue("Too few public resources of type " + type.getName(), publicResources.size() >= minExpected);
+    for (boolean withLocaleResources : new boolean[] {true, false}) {
+      // Test loading without cache.
+      long start = System.currentTimeMillis();
+      if (PRINT_STATS) {
+        FrameworkResourceRepository.create(resFolder, withLocaleResources, false);
       }
-    }
+      long loadTimeWithoutCache = System.currentTimeMillis() - start;
+      FrameworkResourceRepository repository = FrameworkResourceRepository.create(resFolder, withLocaleResources, true);
+      assertFalse(repository.isLoadedFromCache());
+      List<ResourceItem> resourceItems = repository.getAllResourceItems();
+      Collections.sort(resourceItems);
+      assertTrue("Too few resources: " + resourceItems.size(), resourceItems.size() >= 10000);
+      for (ResourceItem item : resourceItems) {
+        assertEquals(ResourceNamespace.ANDROID, item.getNamespace());
+      }
+      ImmutableMap<ResourceType, Integer> expectations = ImmutableMap.of(
+          ResourceType.STYLE, 700,
+          ResourceType.ATTR, 1200,
+          ResourceType.DRAWABLE, 600,
+          ResourceType.ID, 60,
+          ResourceType.LAYOUT, 20
+      );
+      for (ResourceType type : ResourceType.values()) {
+        Collection<ResourceItem> publicResources = repository.getPublicResourcesOfType(type);
+        Integer minExpected = expectations.get(type);
+        if (minExpected != null) {
+          assertTrue("Too few public resources of type " + type.getName(), publicResources.size() >= minExpected);
+        }
+      }
 
-    // Test loading from cache.
-    repository.waitUntilPersistentCacheCreated();
-    start = System.currentTimeMillis();
-    FrameworkResourceRepository repository2 = FrameworkResourceRepository.create(resFolder, false);
-    long loadTimeWithCache = System.currentTimeMillis() - start;
-    assertTrue(repository2.isLoadedFromCache());
-    if (PRINT_STATS) {
-      System.out.println("Load time without cache: " + loadTimeWithoutCache / 1000. + " sec, with cache "
-                         + loadTimeWithCache / 1000. + " sec");
-    }
-    List<ResourceItem> resourceItems2 = repository2.getAllResourceItems();
-    Collections.sort(resourceItems2);
-    assertEquals(resourceItems.size(), resourceItems2.size());
-    for (int i = 0; i < resourceItems.size(); i++) {
-      ResourceItem withoutCache = resourceItems.get(i);
-      ResourceItem withCache = resourceItems2.get(i);
-      assertEquals("Different ResourceItem at position " + i, withoutCache, withCache);
-      assertEquals("Different FolderConfiguration at position " + i, withoutCache.getConfiguration(), withCache.getConfiguration());
-      assertEquals("Different ResourceValue at position " + i,
-                   withoutCache.getResourceValue(true), withCache.getResourceValue(true));
-    }
+      // Test loading from cache.
+      start = System.currentTimeMillis();
+      FrameworkResourceRepository repository2 = FrameworkResourceRepository.create(resFolder, withLocaleResources, true);
+      long loadTimeWithCache = System.currentTimeMillis() - start;
+      assertTrue(repository2.isLoadedFromCache());
+      if (PRINT_STATS) {
+        String type = withLocaleResources ? "Load time" : "Load time without locale resources";
+        System.out.println(type + " without cache: " + loadTimeWithoutCache / 1000. + " sec, with cache " + loadTimeWithCache / 1000.
+                           + " sec");
+      }
+      List<ResourceItem> resourceItems2 = repository2.getAllResourceItems();
+      Collections.sort(resourceItems2);
+      assertEquals(resourceItems.size(), resourceItems2.size());
+      for (int i = 0; i < resourceItems.size(); i++) {
+        ResourceItem withoutCache = resourceItems.get(i);
+        ResourceItem withCache = resourceItems2.get(i);
+        assertEquals("Different ResourceItem at position " + i, withoutCache, withCache);
+        assertEquals("Different FolderConfiguration at position " + i, withoutCache.getConfiguration(), withCache.getConfiguration());
+        assertEquals("Different ResourceValue at position " + i,
+                     withoutCache.getResourceValue(true), withCache.getResourceValue(true));
+      }
 
-    for (ResourceType type : ResourceType.values()) {
-      List<ResourceItem> publicResources = repository.getPublicResourcesOfType(type);
-      List<ResourceItem> publicResources2 = repository2.getPublicResourcesOfType(type);
-      assertEquals("Number of public resources doesn't match for type " + type.getName(),
-                   publicResources.size(), publicResources2.size());
-      for (int i = 0; i < publicResources.size(); i++) {
-        ResourceItem withoutCache = publicResources.get(i);
-        ResourceItem withCache = publicResources2.get(i);
-        assertEquals("Public resource difference at position " + i + " for type " + type.getName(), withoutCache, withCache);
+      for (ResourceType type : ResourceType.values()) {
+        List<ResourceItem> publicResources = new ArrayList<>(repository.getPublicResourcesOfType(type));
+        List<ResourceItem> publicResources2 = new ArrayList<>(repository2.getPublicResourcesOfType(type));
+        assertEquals("Number of public resources doesn't match for type " + type.getName(),
+                     publicResources.size(), publicResources2.size());
+        for (int i = 0; i < publicResources.size(); i++) {
+          ResourceItem withoutCache = publicResources.get(i);
+          ResourceItem withCache = publicResources2.get(i);
+          assertEquals("Public resource difference at position " + i + " for type " + type.getName(), withoutCache, withCache);
+        }
       }
     }
   }

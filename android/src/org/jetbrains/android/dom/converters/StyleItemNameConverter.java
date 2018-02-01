@@ -20,7 +20,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.google.common.collect.Lists;
@@ -40,6 +39,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.android.ide.common.res2.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
 
 public class StyleItemNameConverter extends ResolvingConverter<String> {
   /**
@@ -93,7 +94,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
         HashSet<String> attributeNames = Sets.newHashSet();
         LinkedList<ResourceItem> toExplore = Lists.newLinkedList(parentDefinitions);
         int i = 0;
-        while (!toExplore.isEmpty() && i++ < ResourceResolver.MAX_RESOURCE_INDIRECTION) {
+        while (!toExplore.isEmpty() && i++ < MAX_RESOURCE_INDIRECTION) {
           ResourceItem parentItem = toExplore.pop();
           StyleResourceValue parentValue = (StyleResourceValue)parentItem.getResourceValue(false);
           if (parentValue == null || parentValue.isFramework()) {

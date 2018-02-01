@@ -27,9 +27,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.SdkConstants.ATTR_REF_PREFIX;
-import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import static com.android.SdkConstants.*;
 
 public class TextAppearanceEnumSupport extends StyleEnumSupport {
   static final String TEXT_APPEARANCE = "TextAppearance";

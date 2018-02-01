@@ -17,9 +17,9 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.fonts.MoreFontsDialog;
 import com.android.tools.idea.fonts.ProjectFonts;
-import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString.ValueSelector;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;

@@ -19,12 +19,15 @@ package org.jetbrains.android.sdk;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.ide.common.resources.FrameworkResources;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
+import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.res.FrameworkResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -41,12 +44,12 @@ import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
-import com.android.tools.idea.layoutlib.RenderingException;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
@@ -71,7 +74,7 @@ public class AndroidTargetData {
   private TIntObjectHashMap<String> myPublicResourceIdMap;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
-  private FrameworkResources myFrameworkResources;
+  private FrameworkResourceRepository myFrameworkResources;
 
   public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
@@ -139,7 +142,6 @@ public class AndroidTargetData {
     return set != null && set.contains(name);
   }
 
-  @Nullable
   private void parsePublicResCache() {
     final String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
     final String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
@@ -223,13 +225,19 @@ public class AndroidTargetData {
   }
 
   @Nullable
-  public synchronized FrameworkResources getFrameworkResources(boolean withLocale) throws IOException {
-    // if the framework resources that we got was created by someone else who didn't need locale data
-    if (withLocale && myFrameworkResources instanceof FrameworkResourceLoader.IdeFrameworkResources && ((FrameworkResourceLoader.IdeFrameworkResources)myFrameworkResources).getSkippedLocales()) {
+  public synchronized AbstractResourceRepository getFrameworkResources(boolean withLocale) {
+    // If the framework resources that we got was created by someone else who didn't need locale data.
+    if (myFrameworkResources != null && withLocale && myFrameworkResources.isWithLocaleResources()) {
       myFrameworkResources = null;
     }
     if (myFrameworkResources == null) {
-      myFrameworkResources = FrameworkResourceLoader.load(myTarget, withLocale);
+      File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
+      if (!resFolder.isDirectory()) {
+        LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", resFolder.getPath()));
+        return null;
+      }
+
+      myFrameworkResources = FrameworkResourceRepository.create(resFolder, withLocale, true);
     }
     return myFrameworkResources;
   }
@@ -256,8 +264,8 @@ public class AndroidTargetData {
 
   @VisibleForTesting
   static class MyPublicResourceCacheBuilder extends NanoXmlUtil.IXMLBuilderAdapter {
-    private final Map<String, Set<String>> myResult = new HashMap<String, Set<String>>();
-    private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<String>(3000);
+    private final Map<String, Set<String>> myResult = new HashMap<>();
+    private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<>(3000);
 
     private String myName;
     private String myType;
@@ -270,7 +278,7 @@ public class AndroidTargetData {
         Set<String> set = myResult.get(myType);
 
         if (set == null) {
-          set = new HashSet<String>();
+          set = new HashSet<>();
           myResult.put(myType, set);
         }
         set.add(myName);
@@ -374,7 +382,7 @@ public class AndroidTargetData {
 
     @Nullable
     private Set<String> collectValues(int pathId) {
-      final Set<String> result = new HashSet<String>();
+      final Set<String> result = new HashSet<>();
       try {
         final BufferedReader reader = new BufferedReader(new FileReader(myTarget.getPath(pathId)));
 

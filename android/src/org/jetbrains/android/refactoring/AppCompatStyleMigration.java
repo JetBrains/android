@@ -16,7 +16,8 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -86,7 +87,7 @@ class AppCompatStyleMigration {
       return Collections.emptyList();
     }
 
-    ResourceRepository frameworkResources = configManager.getResolverCache()
+    AbstractResourceRepository frameworkResources = configManager.getResolverCache()
       .getFrameworkResources(new FolderConfiguration(), configManager.getTarget());
 
     List<ChangeStyleUsageInfo> result = new ArrayList<>();
@@ -181,7 +182,7 @@ class AppCompatStyleMigration {
   }
 
   private void addUsagesFromStyles(@NotNull Project project,
-                                   ResourceRepository frameworkResources,
+                                   AbstractResourceRepository frameworkResources,
                                    List<ChangeStyleUsageInfo> result,
                                    ProjectResourceRepository projectResources) {
     Set<XmlFile> xmlFiles = MigrateToAppCompatUtil.getPsiFilesOfType(project, projectResources, ResourceType.STYLE);
@@ -202,7 +203,7 @@ class AppCompatStyleMigration {
           String parentValue = parent.getValue();
           String parentStyle = StringUtil.trimStart(parentValue, PREFIX_ANDROID);
           if (parentValue.startsWith(PREFIX_ANDROID)
-              && frameworkResources.hasResourceItem(ResourceType.STYLE, parentStyle)) {
+              && frameworkResources.hasResourceItem(ResourceNamespace.ANDROID, ResourceType.STYLE, parentStyle)) {
             String changeToStyle = toAppCompatThemeOrStyleName(parentStyle);
             // Ensure that the final resulting name is present in the AppCompat styles
             if (isAppCompatStyle(changeToStyle)) {
@@ -223,7 +224,7 @@ class AppCompatStyleMigration {
           String itemNameNoAndroidPrefix = itemNameAttr == null ? null : StringUtil.trimStart(itemNameAttr, PREFIX_ANDROID);
           if (itemNameAttr != null
               && itemNameAttr.startsWith(PREFIX_ANDROID)
-              && frameworkResources.hasResourceItem(ResourceType.ATTR, itemNameNoAndroidPrefix)
+              && frameworkResources.hasResourceItem(ResourceNamespace.ANDROID, ResourceType.ATTR, itemNameNoAndroidPrefix)
               && isAppCompatAttribute(itemNameNoAndroidPrefix)) {
 
             //noinspection ConstantConditions
@@ -256,7 +257,7 @@ class AppCompatStyleMigration {
   }
 
   private void addStyleUsagesFromManifest(@NotNull AndroidFacet facet,
-                                          ResourceRepository frameworkResources,
+                                          AbstractResourceRepository frameworkResources,
                                           List<ChangeStyleUsageInfo> result) {
     // Find all the themes used by activities or the application attribute
     // from AndroidManifest.xml
@@ -301,7 +302,7 @@ class AppCompatStyleMigration {
   }
 
   private void convertThemeAttr2UsageInfo(XmlAttribute theme,
-                                          ResourceRepository frameworkResources,
+                                          AbstractResourceRepository frameworkResources,
                                           List<ChangeStyleUsageInfo> result) {
     if (theme != null && theme.getValueElement() != null && theme.getValue() != null
       && frameworkResources.hasResourceItem(theme.getValue())) {

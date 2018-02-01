@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -39,14 +39,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -56,8 +54,6 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 /** Cache for resolved resources */
 public class ResourceResolverCache {
-  private static final Logger LOG = Logger.getInstance(ResourceResolverCache.class);
-
   /** The configuration manager this cache corresponds to */
   private final ConfigurationManager myManager;
 
@@ -143,7 +139,7 @@ public class ResourceResolverCache {
       if (target == null) {
         frameworkResources = Collections.emptyMap();
       } else {
-        ResourceRepository frameworkRes = getFrameworkResources(fullConfiguration, target);
+        AbstractResourceRepository frameworkRes = getFrameworkResources(fullConfiguration, target);
         if (frameworkRes == null) {
           frameworkResources = Collections.emptyMap();
         }
@@ -151,7 +147,7 @@ public class ResourceResolverCache {
           // get the framework resource values based on the current config
           frameworkResources = myExternalResourceMap.get(configurationKey);
           if (frameworkResources == null) {
-            frameworkResources = frameworkRes.getConfiguredResources(fullConfiguration);
+            frameworkResources = frameworkRes.getConfiguredResources(fullConfiguration).row(ResourceNamespace.ANDROID);
 
             // Fix up assets. We're only doing this in limited cases for now; specifically Froyo (since the Gingerbread
             // assets replaced the look for the same theme; that doesn't happen to the same extend for Holo)
@@ -217,12 +213,18 @@ public class ResourceResolverCache {
   }
 
   /**
-   * Returns a {@link ResourceRepository} for the framework resources based on the current configuration selection.
+   * Returns the framework resource repository based on the current configuration selection.
    *
    * @return the framework resources or {@code null} if not found.
    */
   @Nullable
-  public ResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
+  public AbstractResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
+    // TODO: Michal Bendowski wrote:
+    // I think we need to rework this. The whole idea of a ResourceRepository is that it contains all
+    // ResourceItems for all configurations. ResourceResolver(Cache) is the layer that for a given
+    // configuration turns them all into ResourceValues. So we should be able to just do something like:
+    // ResourceRepositoryManager.getFrameworkResources(target).getConfiguredResources(configuration)
+    // and cache the result. ResourceRepositoryManager should be the one caching the repositories accordingly?
     int apiLevel = target.getVersion().getFeatureLevel();
 
     LocaleQualifier locale = configuration.getLocaleQualifier();
@@ -238,13 +240,7 @@ public class ResourceResolverCache {
       myFrameworkResources.put(apiLevel, targetData);
     }
 
-    try {
-      return targetData.getFrameworkResources(needLocales);
-    }
-    catch (IOException e) {
-      LOG.error(e);
-    }
-    return null;
+    return targetData.getFrameworkResources(needLocales);
   }
 
   /**
