@@ -64,11 +64,10 @@ public class EspressoRecorderTest {
    *   </pre>
    * <p>
    */
-  @Ignore("b/72160209")
   @RunIn(TestGroup.QA_UNRELIABLE) // http://b/72160209
   @Test
   public void addDependencyOnFly() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
@@ -79,7 +78,9 @@ public class EspressoRecorderTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    ideFrameFixture.getDebugToolWindow().findContent(TEST_RECORDER_APP).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+    ideFrameFixture.getDebugToolWindow()
+      .findContent(TEST_RECORDER_APP)
+      .waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
     RecordingDialogFixture.find(guiTest.robot()).clickOk();
     TestClassNameInputDialogFixture.find(guiTest.robot()).clickOk();
