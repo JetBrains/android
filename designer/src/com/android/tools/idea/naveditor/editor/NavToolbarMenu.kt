@@ -28,7 +28,7 @@ import javax.swing.JPanel
 abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) : AnAction("", description, icon) {
   override fun actionPerformed(e: AnActionEvent) {
     val balloonBuilder = JBPopupFactory.getInstance()
-      .createBalloonBuilder(getMainPanel())
+      .createBalloonBuilder(mainPanel)
       .setShadow(true)
       .setHideOnAction(true)
       .setAnimationCycle(200)
@@ -39,5 +39,5 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
     balloonBuilder.createBalloon().show(RelativePoint.getSouthOf(e.inputEvent.source as JComponent), Balloon.Position.below)
   }
 
-  abstract fun getMainPanel(): JPanel
+  abstract val mainPanel: JPanel
 }

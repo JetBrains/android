@@ -32,7 +32,7 @@ import java.awt.Image
 sealed class Destination {
   abstract fun addToGraph()
   abstract val label: String
-  abstract val thumbnail: Image?
+  abstract val thumbnail: Image
   abstract val typeLabel: String
 
   var component: NlComponent? = null
@@ -44,7 +44,7 @@ sealed class Destination {
     : Destination() {
 
     // TODO: render thumbnail with border
-    override val thumbnail: Image? by lazy {
+    override val thumbnail: Image by lazy {
       if (parent.model.schema.getDestinationType(tag) == NavigationSchema.DestinationType.ACTIVITY) {
         iconToImage(StudioIcons.NavEditor.ExistingDestinations.ACTIVITY)
       }
@@ -94,7 +94,7 @@ sealed class Destination {
 
     override val label = graph
 
-    override val thumbnail: Image? by lazy { iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED) }
+    override val thumbnail: Image by lazy { iconToImage(StudioIcons.NavEditor.ExistingDestinations.NESTED) }
 
     override val typeLabel: String
       get() = parent.model.schema.getTagLabel(SdkConstants.TAG_INCLUDE)

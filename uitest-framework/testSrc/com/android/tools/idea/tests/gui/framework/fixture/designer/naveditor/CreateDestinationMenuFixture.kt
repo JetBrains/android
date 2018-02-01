@@ -23,7 +23,7 @@ import org.fest.swing.fixture.JComboBoxFixture
 import javax.swing.JPanel
 
 class CreateDestinationMenuFixture(private val robot: Robot, private val menu: CreateDestinationMenu) :
-    ComponentFixture<CreateDestinationMenuFixture, JPanel>(CreateDestinationMenuFixture::class.java, robot, menu.getMainPanel()) {
+    ComponentFixture<CreateDestinationMenuFixture, JPanel>(CreateDestinationMenuFixture::class.java, robot, menu.mainPanel) {
 
   fun selectKind(tag: String): CreateDestinationMenuFixture = apply { JComboBoxFixture(robot, menu.myKindPopup).selectItem(tag) }
 

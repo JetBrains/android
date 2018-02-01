@@ -52,7 +52,7 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     surface.setSize(1000, 1000)
     surface.model = model
     _menu = AddExistingDestinationMenu(surface, NavActionManager(surface).destinations)
-    menu.getMainPanel()
+    menu.mainPanel
   }
 
   override fun tearDown() {
@@ -63,7 +63,7 @@ class AddExistingDestinationMenuTest : NavTestCase() {
   }
 
   fun testNewComponentSelected() {
-    val gallery = menu.myDestinationsList
+    val gallery = menu.destinationsList
     val cell0Bounds = gallery.getCellBounds(0, 0)
     val destination = gallery.model.getElementAt(0) as Destination
     gallery.setSelectedValue(destination, false)
@@ -75,7 +75,7 @@ class AddExistingDestinationMenuTest : NavTestCase() {
   }
 
   fun testFiltering() {
-    val gallery = menu.myDestinationsList
+    val gallery = menu.destinationsList
     val searchField = menu.mySearchField
 
     assertEquals(3, gallery.itemsCount)
