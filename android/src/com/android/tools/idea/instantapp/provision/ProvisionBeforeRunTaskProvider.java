@@ -20,10 +20,13 @@ import com.android.ddmlib.*;
 import com.android.instantapp.provision.ProvisionException;
 import com.android.instantapp.provision.ProvisionListener;
 import com.android.instantapp.provision.ProvisionRunner;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
+import com.google.android.instantapps.sdk.api.Sdk;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -121,7 +124,9 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
     // configuration or not, so we create the task for all configurations in aia projects (have at least one module PROJECT_TYPE_INSTANTAPP).
     // When running it, we check if the configuration is running the project as app or instant app to decide if we provision or not the device.
     // This method is also called when reading from persistent data (first an empty task is created and after it's configured).
-    if (runConfiguration instanceof AndroidRunConfigurationBase && isInstantAppSdkEnabled()) {
+    if (runConfiguration instanceof AndroidRunConfigurationBase &&
+        isInstantAppSdkEnabled() &&
+        !InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
       // Create the provision before run task only for projects containing an instant app module so normal projects are not affected
       for (Module module : ((AndroidRunConfigurationBase)runConfiguration).getAllModules()) {
         if (isInstantAppApplicationModule(module)) {

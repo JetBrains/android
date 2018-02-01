@@ -21,9 +21,12 @@ import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.module.Module;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -34,6 +37,7 @@ import org.mockito.Mockito;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 
+import static com.android.tools.idea.testing.TestProjectPaths.MULTI_FEATURE;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doAnswer;
@@ -44,14 +48,14 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProvisionBeforeRunTaskProvider}.
  */
-public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
+public class ProvisionBeforeRunTaskProviderTest extends AndroidGradleTestCase {
   private AndroidRunConfigurationBase myActualRunConfiguration;
   private AndroidRunConfigurationBase myRunConfiguration;
   private IdeComponents myIdeComponents;
   private InstantAppSdks myInstantAppSdks;
 
   @Override
-  protected void setUp() throws Exception {
+  public void setUp() throws Exception {
     super.setUp();
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     myActualRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
@@ -73,6 +77,18 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
 
   public void testTaskNotCreatedIfSdkNotDefined() {
     when(myInstantAppSdks.isInstantAppSdkEnabled()).thenReturn(false);
+    assertNull(new ProvisionBeforeRunTaskProvider().createTask(myRunConfiguration));
+  }
+
+  public void testTaskNotCreatedIfRunningInstantAppWithSdkLib() throws Exception {
+    when(myInstantAppSdks.isInstantAppSdkEnabled()).thenReturn(true);
+    when(myInstantAppSdks.shouldUseSdkLibraryToRun()).thenReturn(true);
+
+    // We have to make createTask() think we've got project with real AIA modules, otherwise it will always return null and this test will
+    //  not tell us anything.
+    loadProject(MULTI_FEATURE);
+    when(myRunConfiguration.getModules()).thenReturn(new Module[] {  getModule("instantapp") });
+
     assertNull(new ProvisionBeforeRunTaskProvider().createTask(myRunConfiguration));
   }
 

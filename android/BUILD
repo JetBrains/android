@@ -113,6 +113,7 @@ iml_module(
         "//tools/adt/idea/apkanalyzer[module]",
         "//tools/adt/idea/android-lang[module]",
         "//tools/adt/idea/android-adb[module]",
+        "//tools/adt/idea/android/lib:instantapps-api-1.0",
         "//tools/idea/.idea/libraries:batik",
         "//tools/idea/.idea/libraries:xml-apis-ext",
     ],
@@ -245,6 +246,7 @@ iml_module(
         "//tools/adt/idea/project-system:project-system-tests[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/android-lang[module, test]",
+        "//tools/adt/idea/android/lib:instantapps-api-1.0",
     ],
 )
 

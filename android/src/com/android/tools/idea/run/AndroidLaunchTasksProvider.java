@@ -21,9 +21,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.instantapp.InstantAppSdks;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
+import com.android.tools.idea.run.editor.DeepLinkLaunch;
 import com.android.tools.idea.run.tasks.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.ImmutableList;
@@ -43,6 +46,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -101,11 +105,15 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
-                                                                      amStartOptions.toString(),
-                                                                      myLaunchOptions.isDebug(), launchStatus);
-      if (appLaunchTask != null) {
-        launchTasks.add(appLaunchTask);
+      if (!InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
+        // A separate deep link launch task is not necessary if launch will be handled by
+        // RunInstantAppTask
+        LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
+                                                                        amStartOptions.toString(),
+                                                                        myLaunchOptions.isDebug(), launchStatus);
+        if (appLaunchTask != null) {
+          launchTasks.add(appLaunchTask);
+        }
       }
     }
     catch (ApkProvisionException e) {
@@ -148,7 +156,14 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
     }
     if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      tasks.add(new DeployInstantAppTask(myApkProvider.getApks(device)));
+      if (InstantAppSdks.getInstance().shouldUseSdkLibraryToRun()) {
+        AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
+        DeepLinkLaunch.State state =
+          (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
+        tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK));
+      } else {
+        tasks.add(new DeployInstantAppTask(myApkProvider.getApks(device)));
+      }
     } else {
       InstantRunManager.LOG.info("Using legacy/main APK deploy task");
       tasks.add(new DeployApkTask(myProject, myLaunchOptions, myApkProvider.getApks(device)));

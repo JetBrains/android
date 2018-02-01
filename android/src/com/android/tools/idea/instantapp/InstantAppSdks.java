@@ -19,9 +19,11 @@ import com.android.instantapp.sdk.InstantAppSdkException;
 import com.android.instantapp.sdk.Metadata;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.android.instantapps.sdk.api.Sdk;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -31,6 +33,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ServiceLoader;
 
 import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
@@ -41,6 +47,9 @@ import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogFor
  */
 public class InstantAppSdks {
   @NotNull private static final String INSTANT_APP_SDK_PATH = FD_EXTRAS + ";google;instantapps";
+  private static final String SDK_LIB_JAR_PATH = "tools/lib.jar";
+
+  private Sdk cachedSdkLib = null;
 
   @NotNull
   public static InstantAppSdks getInstance() {
@@ -95,6 +104,44 @@ public class InstantAppSdks {
       getLogger().error(ex);
     }
     return 1; // If there is any exception return the default value
+  }
+
+
+  public boolean shouldUseSdkLibraryToRun() {
+    return StudioFlags.RUNDEBUG_USE_AIA_SDK_LIBRARY.get() && loadLibrary() != null;
+  }
+
+  /**
+   * Attempts to dynamically load the Instant Apps SDK library used to provision devices and run
+   * apps. Returns null if it could not be loaded.
+   */
+  @Nullable
+  public Sdk loadLibrary() {
+    if (cachedSdkLib == null) {
+      try {
+        File sdkRoot = getInstantAppSdk(/* tryToInstall= */ false); // TODO(tdeck): Consider setting to true and updating UI tests
+        if (sdkRoot == null) {
+          return null;
+        }
+
+        File jar = sdkRoot.toPath().resolve(SDK_LIB_JAR_PATH).toFile();
+        if (!jar.exists()) {
+          return null;
+        }
+
+        // Note that this needs to use a ClassLoader that will provide a source location for
+        // classes, because the library uses its own JAR location as a reference point to find
+        // binaries that it needs.
+        // IMPORTANT: This class loader must NOT be closed or subsequent attempts to use library classes will fail!
+        URLClassLoader childClassLoader = new URLClassLoader(new URL[]{jar.toURI().toURL()}, getClass().getClassLoader());
+        cachedSdkLib = ServiceLoader.load(Sdk.class, childClassLoader).iterator().next();
+      }
+      catch (IOException e) {
+        getLogger().error(e);
+      }
+    }
+
+    return cachedSdkLib;
   }
 
   private static Logger getLogger() {
