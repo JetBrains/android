@@ -171,7 +171,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
         // This type is not visible
         LOG.warn(String.format(
           "For item '%1$s': Folder configuration '%2$s' can never be selected. There are no qualifiers combination that would allow selecting it.",
-          item.getName(), configuredItem.getConfiguration()));
+          item.getAttrName(), configuredItem.getConfiguration()));
         continue;
       }
 
@@ -255,7 +255,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
       ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, getAllowedResourceTypes());
 
-      String attributeName = myItem.getName();
+      String attributeName = myItem.getAttrName();
       if (primaryColor != null) {
         dialog.generateColorSuggestions(primaryColor, attributeName);
       }

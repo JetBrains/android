@@ -91,7 +91,7 @@ public class AttributesGrouper {
     final Multimap<Group, EditedStyleItem> classes = ArrayListMultimap.create();
 
     for (final EditedStyleItem item : source) {
-      final String name = item.getName();
+      final String name = item.getAttrName();
       classes.put(Group.getGroupFromName(name), item);
     }
 

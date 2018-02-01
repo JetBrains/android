@@ -117,7 +117,8 @@ public class ThemeHelper {
 
   private boolean isAppCompatTheme(@NotNull String themeName, @Nullable StyleResourceValue localTheme) {
     while (localTheme != null) {
-      String parentThemeName = localTheme.getParentStyle();
+      // TODO: namespaces
+      String parentThemeName = localTheme.getParentStyleName();
       if (parentThemeName == null) {
         if (themeName.lastIndexOf('.') > 0) {
           parentThemeName = themeName.substring(0, themeName.lastIndexOf('.'));

@@ -200,9 +200,14 @@ class PsiResourceItem extends ResourceItem {
         break;
     }
 
-    // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
-    value.setNamespaceLookup(prefix -> ReadAction.compute(() -> StringUtil.nullize(myTag.getNamespaceByPrefix(prefix))));
+    value.setNamespaceLookup(getNamespaceResolver(myTag));
     return value;
+  }
+
+  @NotNull
+  private static ResourceNamespace.Resolver getNamespaceResolver(XmlTag tag) {
+    // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
+    return prefix -> ReadAction.compute(() -> StringUtil.nullize(tag.getNamespaceByPrefix(prefix)));
   }
 
   @Nullable
@@ -239,16 +244,10 @@ class PsiResourceItem extends ResourceItem {
     for (XmlTag child : myTag.getSubTags()) {
       String name = getAttributeValue(child, ATTR_NAME);
       if (!StringUtil.isEmpty(name)) {
-        // is the attribute in the android namespace?
-        boolean isFrameworkAttr = styleValue.isFramework();
-        if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
-          name = name.substring(ANDROID_NS_NAME_PREFIX_LEN);
-          isFrameworkAttr = true;
-        }
-
         String value = ValueXmlHelper.unescapeResourceString(ResourceHelper.getTextContent(child), true, true);
-        ItemResourceValue resValue = new ItemResourceValue(name, isFrameworkAttr, value, styleValue.isFramework(), styleValue.getLibraryName());
-        styleValue.addItem(resValue);
+        ItemResourceValue itemValue = new ItemResourceValue(styleValue.getNamespace(), name, value, styleValue.getLibraryName());
+        itemValue.setNamespaceLookup(getNamespaceResolver(child));
+        styleValue.addItem(itemValue);
       }
     }
 

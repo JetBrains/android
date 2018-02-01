@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.Configurable;
@@ -116,12 +113,12 @@ public class ResolutionUtils {
   }
 
   /**
-   * Returns the item name, including the appropriate namespace.
+   * Returns the name of the attr for this item, including the appropriate namespace.
    */
   @NotNull
-  public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
-    String name = item.getName();
-    return item.isFrameworkAttr() ? PREFIX_ANDROID + name : name;
+  public static String getQualifiedItemAttrName(@NotNull ItemResourceValue item) {
+    ResourceReference attr = item.getAttr();
+    return attr != null ? attr.getRelativeResourceUrl(ResourceNamespace.TODO).getQualifiedName() : item.getAttrName();
   }
 
   /**
@@ -172,7 +169,7 @@ public class ResolutionUtils {
 
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration, @NotNull ItemResourceValue itemResValue) {
-    return getAttributeDefinition(configuration.getModule(), configuration, getQualifiedItemName(itemResValue));
+    return getAttributeDefinition(configuration.getModule(), configuration, getQualifiedItemAttrName(itemResValue));
   }
 
   @Nullable
@@ -244,17 +241,12 @@ public class ResolutionUtils {
 
   @Nullable/*if this style doesn't have parent*/
   public static String getParentQualifiedName(@NotNull StyleResourceValue style) {
-    String parentName = ResourceResolver.getParentName(style);
-    if (parentName == null) {
+    ResourceReference parent = style.getParentStyle();
+    if (parent == null) {
       return null;
     }
-    if (parentName.startsWith(PREFIX_RESOURCE_REF)) {
-      parentName = getQualifiedNameFromResourceUrl(parentName);
-    }
-    if (style.isFramework() && !parentName.startsWith(PREFIX_ANDROID)) {
-      parentName = PREFIX_ANDROID + parentName;
-    }
-    return parentName;
+
+    return parent.getRelativeResourceUrl(ResourceNamespace.TODO).getQualifiedName();
   }
 
   @NotNull
@@ -266,9 +258,9 @@ public class ResolutionUtils {
       if (theme == null) {
         break;
       }
-      Collection<ItemResourceValue> themeItems = theme.getValues();
+      Collection<ItemResourceValue> themeItems = theme.getDefinedItems();
       for (ItemResourceValue item : themeItems) {
-        String itemName = getQualifiedItemName(item);
+        String itemName = getQualifiedItemAttrName(item);
         if (!allItems.containsKey(itemName)) {
           allItems.put(itemName, item);
         }

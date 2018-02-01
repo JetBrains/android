@@ -15,13 +15,13 @@
  */
 package com.android.tools.swing.layoutlib;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.layoutlib.RenderingException;
@@ -435,12 +435,11 @@ public class GraphicsLayoutRenderer {
   public Set<String> getUsedAttrs() {
     HashSet<String> usedAttrs = new HashSet<String>();
     for(ResourceValue value : myResourceLookupChain) {
-      if (!(value instanceof ItemResourceValue) || value.getName() == null) {
+      if (!(value instanceof ItemResourceValue) || ((ItemResourceValue)value).getAttrName() == null) {
         // Only selects resources that are also attributes
         continue;
       }
-      ItemResourceValue itemValue = (ItemResourceValue)value;
-      usedAttrs.add((itemValue.isFrameworkAttr() ? SdkConstants.PREFIX_ANDROID : "") + itemValue.getName());
+      usedAttrs.add(ResolutionUtils.getQualifiedItemAttrName((ItemResourceValue)value));
     }
 
     return Collections.unmodifiableSet(usedAttrs);

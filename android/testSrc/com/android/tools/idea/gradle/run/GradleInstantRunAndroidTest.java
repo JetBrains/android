@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -64,7 +65,7 @@ public class GradleInstantRunAndroidTest extends AndroidTestCase {
     // change the contents of the theme referenced from manifest
     hash = GradleInstantRunContext.getManifestResourcesHash(myFacet);
     resValue = repository.getConfiguredValue(ResourceType.STYLE, "AppTheme", new FolderConfiguration());
-    ((StyleResourceValue)resValue).getItem("colorPrimary", false).setValue("colorPrimaryDark");
+    ((StyleResourceValue)resValue).getItem(ResourceNamespace.RES_AUTO, "colorPrimary").setValue("colorPrimaryDark");
     assertNotEquals("Hash should change if a resource referenced from the manifest is changed",
                     hash, GradleInstantRunContext.getManifestResourcesHash(myFacet));
   }

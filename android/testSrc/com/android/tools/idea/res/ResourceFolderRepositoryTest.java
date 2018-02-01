@@ -25,6 +25,7 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.google.common.collect.Collections2;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -58,6 +59,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
 
 /**
@@ -1886,8 +1888,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertNotNull(resourceValue);
         assertTrue(resourceValue instanceof StyleResourceValue);
         StyleResourceValue srv = (StyleResourceValue)resourceValue;
-        assertEquals("android:Theme.Light", srv.getParentStyle());
-        ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
+        assertEquals("android:Theme.Light", srv.getParentStyleName());
+        ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
         assertNotNull(actionBarStyle);
         assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
         resetScanCounter();
@@ -1917,8 +1919,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertNotNull(resourceValue);
         assertTrue(resourceValue instanceof StyleResourceValue);
         StyleResourceValue srv = (StyleResourceValue)resourceValue;
-        assertEquals("android:Theme.Material", srv.getParentStyle());
-        ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
+        assertEquals("android:Theme.Material", srv.getParentStyleName());
+        ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
         assertNotNull(actionBarStyle);
         assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
       }
@@ -1938,7 +1940,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
+    ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -1963,7 +1965,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    actionBarStyle = srv.getItem("actionBarStyle", true);
+    actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/GreyActionBar", actionBarStyle.getValue());
     resetScanCounter();
@@ -1984,7 +1986,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    actionBarStyle = srv.getItem("actionBarStyle", true);
+    actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/LightActionBar", actionBarStyle.getValue());
 
@@ -2005,7 +2007,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
+    ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -2030,7 +2032,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    actionBarStyle = srv.getItem("nactionBarStyle", true);
+    actionBarStyle = srv.getItem(ANDROID, "nactionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
     resetScanCounter();
@@ -2051,7 +2053,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
     srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    actionBarStyle = srv.getItem("inactionBarStyle", true);
+    actionBarStyle = srv.getItem(ANDROID, "inactionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -2072,11 +2074,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
     StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background", "android:textColor");
-    ResourceValue background = srv.getItem("background", true);
+    checkDefinedItems(srv, "android:background", "android:textColor");
+    ResourceValue background = srv.getItem(ANDROID, "background");
     assertNotNull(background);
     assertEquals("@android:color/transparent", background.getValue());
-    ResourceValue textColor = srv.getItem("textColor", true);
+    ResourceValue textColor = srv.getItem(ANDROID, "textColor");
     assertNotNull(textColor);
     assertEquals("#008", textColor.getValue());
 
@@ -2102,8 +2104,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
     srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background", "android:textSize", "android:textColor");
-    ResourceValue textSize = srv.getItem("textSize", true);
+    checkDefinedItems(srv, "android:background", "android:textSize", "android:textColor");
+    ResourceValue textSize = srv.getItem(ANDROID, "textSize");
     assertNotNull(textSize);
     assertEquals("20sp", textSize.getValue());
     resetScanCounter();
@@ -2124,8 +2126,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
     srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background", "android:typeface", "android:textSize", "android:textColor");
-    ResourceValue typeface = srv.getItem("typeface", true);
+    checkDefinedItems(srv, "android:background", "android:typeface", "android:textSize", "android:textColor");
+    ResourceValue typeface = srv.getItem(ANDROID, "typeface");
     assertNotNull(typeface);
     assertEquals("monospace", typeface.getValue());
 
@@ -2146,11 +2148,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
     StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background", "android:textColor");
-    ResourceValue background = srv.getItem("background", true);
+    checkDefinedItems(srv, "android:background", "android:textColor");
+    ResourceValue background = srv.getItem(ANDROID, "background");
     assertNotNull(background);
     assertEquals("@android:color/transparent", background.getValue());
-    ResourceValue textColor = srv.getItem("textColor", true);
+    ResourceValue textColor = srv.getItem(ANDROID, "textColor");
     assertNotNull(textColor);
     assertEquals("#008", textColor.getValue());
 
@@ -2177,8 +2179,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
     srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background");
-    background = srv.getItem("background", true);
+    checkDefinedItems(srv, "android:background");
+    background = srv.getItem(ANDROID, "background");
     assertNotNull(background);
     assertEquals("@android:color/transparent", background.getValue());
     resetScanCounter();
@@ -2200,7 +2202,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
     srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertEmpty(srv.getNames());
+    checkDefinedItems(srv);
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
@@ -3196,7 +3198,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
         StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
         assertNotNull(srv);
-        ResourceValue actionBarStyle = srv.getItem("background", true);
+        ResourceValue actionBarStyle = srv.getItem(ANDROID, "background");
         assertNotNull(actionBarStyle);
         assertEquals("@android:color/transparent", actionBarStyle.getValue());
         //noinspection ConstantConditions
@@ -4254,5 +4256,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     }
     return null;
+  }
+
+  private static void checkDefinedItems(@NotNull StyleResourceValue style, @NotNull String... attributes) {
+    assertSameElements(Collections2.transform(style.getDefinedItems(), ItemResourceValue::getAttrName), attributes);
   }
 }

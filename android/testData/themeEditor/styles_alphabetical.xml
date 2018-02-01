@@ -1,7 +1,7 @@
 <resources>
   <style name="BTheme" parent="@android:style/Theme"></style>
-  <style name="aTheme" parent="Theme.Light"></style>
+  <style name="aTheme" parent="android:Theme.Light"></style>
   <style name="DTheme" parent="@android:style/Theme"></style>
-  <style name="cTheme" parent="Theme.Light"></style>
+  <style name="cTheme" parent="android:Theme.Light"></style>
 
 </resources>

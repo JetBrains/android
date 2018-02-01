@@ -39,6 +39,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 
 public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
 
@@ -82,11 +84,14 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
 
     FolderConfiguration defaultConfig = new FolderConfiguration();
     ConfiguredElement<ItemResourceValue> hasItem =
-      ConfiguredElement.create(defaultConfig, new ItemResourceValue("myColor", false, "?android:attr/colorBackground", false, null));
+      ConfiguredElement.create(defaultConfig,
+                               new ItemResourceValue(RES_AUTO, "myColor", "?android:attr/colorBackground", null));
     ConfiguredElement<ItemResourceValue> hasNotItem =
-      ConfiguredElement.create(defaultConfig, new ItemResourceValue("myHasNot", false, "?android:attr/colorBackground", false, null));
+      ConfiguredElement.create(defaultConfig,
+                               new ItemResourceValue(RES_AUTO, "myHasNot","?android:attr/colorBackground", null));
     ConfiguredElement<ItemResourceValue> hasInParent =
-      ConfiguredElement.create(defaultConfig, new ItemResourceValue("editTextStyle", true, "?android:attr/colorBackground", true, null));
+      ConfiguredElement.create(defaultConfig,
+                               new ItemResourceValue(ANDROID, "editTextStyle", "?android:attr/colorBackground", null));
     assertTrue(theme.hasItem(new EditedStyleItem(hasItem, theme)));
     assertFalse(theme.hasItem(new EditedStyleItem(hasNotItem, theme)));
     assertTrue(theme.getParent().hasItem(new EditedStyleItem(hasInParent, parent)));
@@ -204,7 +209,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle style = themeResolver.getTheme("AppTheme");
     assertNotNull(style);
-    style.setValue(ResolutionUtils.getQualifiedItemName(item), item.getValue());
+    style.setValue(ResolutionUtils.getQualifiedItemAttrName(item), item.getValue());
 
     // ResourceFolderRepository needs to rescan the files to pick up the changes.
     UIUtil.dispatchAllInvocationEvents();
@@ -232,7 +237,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port-v21/styles.xml");
 
-    ItemResourceValue item = new ItemResourceValue("colorAccent", false, "#000000", false, null);
+    ItemResourceValue item = new ItemResourceValue(RES_AUTO, "colorAccent", "#000000", null);
     checkSetValue(file, item, "", "v21", "night", "port", "port-v21");
   }
 
@@ -248,7 +253,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port-v21/styles.xml");
 
-    ItemResourceValue item = new ItemResourceValue("colorAccent", true, "#000000", false, null);
+    ItemResourceValue item = new ItemResourceValue(RES_AUTO, "android:colorAccent", "#000000", null);
     checkSetValue(file, item, "night-v21", "v21", "port-v21");
   }
 
@@ -264,7 +269,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_2.xml", "res/values-port-v21/styles.xml");
 
-    ItemResourceValue item = new ItemResourceValue("colorAccent", true, "?android:attr/colorAccent", false, null);
+    ItemResourceValue item = new ItemResourceValue(RES_AUTO, "android:colorAccent", "?android:attr/colorAccent", null);
     checkSetValue(file, item, "night-v21", "v21", "port-v21");
   }
 
@@ -280,7 +285,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v17/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_4.xml", "res/values-v19/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v22/styles.xml");
-    ItemResourceValue item = new ItemResourceValue("colorAccent", true, "#000000", false, null);
+    ItemResourceValue item = new ItemResourceValue(RES_AUTO, "android:colorAccent", "#000000", null);
     checkSetValue(file, item, "v21", "v22");
 
     myFixture.checkResultByFile("res/values-v21/styles.xml", "themeEditor/themeEditorStyle/styles_4_modified.xml", true);
@@ -298,7 +303,7 @@ public class ConfiguredThemeEditorStyleTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v17/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_4.xml", "res/values-v19/styles.xml");
     myFixture.copyFileToProject("themeEditor/themeEditorStyle/styles_3.xml", "res/values-v22/styles.xml");
-    ItemResourceValue item = new ItemResourceValue("colorBackgroundCacheHint", true, "#000000", false, null);
+    ItemResourceValue item = new ItemResourceValue(RES_AUTO, "android:colorBackgroundCacheHint", "#000000", null);
     checkSetValue(file, item, "", "v17", "v19", "v22");
   }
 

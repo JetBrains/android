@@ -192,7 +192,7 @@ public class ThemeEditorStyle {
           if (item.getConfiguration().equals(configuration)) {
             StyleResourceValue style = (StyleResourceValue)item.getResourceValue();
             if (style != null) {
-              return style.getValues();
+              return style.getDefinedItems();
             }
           }
         }
@@ -207,7 +207,7 @@ public class ThemeEditorStyle {
           // Style might be null if the value fails to parse.
           continue;
         }
-        return style.getValues();
+        return style.getDefinedItems();
       }
     }
     throw new IllegalArgumentException("bad folder config " + configuration);

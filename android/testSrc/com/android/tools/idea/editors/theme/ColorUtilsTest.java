@@ -51,11 +51,10 @@ public class ColorUtilsTest extends AndroidTestCase {
     ImmutableMap<String, Color> textColorContrastColors = ColorUtils.getContrastColorsWithDescription(context, "textColor");
     ImmutableMap<String, Color> colorPrimaryContrastColors = ColorUtils.getContrastColorsWithDescription(context, "colorPrimary");
 
-    assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
-      .getContrastWarningMessage(textColorContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("textColor")));
+    assertEquals("<html>Not enough contrast with <b>android:colorPrimary</b>", ColorUtils.getContrastWarningMessage(textColorContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("textColor")));
     assertEquals("<html>Not enough contrast with <b>colorBackground</b>",
                  ColorUtils.getContrastWarningMessage(textColorContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("textColor")));
-    assertEquals("<html>Not enough contrast with <b>textColor</b> and <b>textColorPrimary</b>",
+    assertEquals("<html>Not enough contrast with <b>android:textColor</b> and <b>android:textColorPrimary</b>",
                  ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("colorPrimary")));
     assertEquals("", ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("colorPrimary")));
 

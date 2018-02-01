@@ -65,7 +65,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
     if (!colors.isEmpty()) {
       Color color = Iterables.getLast(colors);
-      String attributeName = item.getName();
+      String attributeName = item.getAttrName();
       ImmutableMap<String, Color> contrastColorsWithDescription = ColorUtils.getContrastColorsWithDescription(context, attributeName);
       component.setWarning(
         ColorUtils.getContrastWarningMessage(contrastColorsWithDescription, color, ColorUtils.isBackgroundAttribute(attributeName)));
@@ -80,7 +80,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   protected EnumSet<ResourceType> getAllowedResourceTypes() {
     AttributeDefinition attrDefinition = ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
 
-    String attributeName = myItem.getName().toLowerCase(Locale.ENGLISH);
+    String attributeName = myItem.getAttrName().toLowerCase(Locale.ENGLISH);
     if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) {
       return COLORS_ONLY;
     }

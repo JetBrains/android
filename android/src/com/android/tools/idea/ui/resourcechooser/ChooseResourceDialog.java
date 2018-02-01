@@ -16,6 +16,8 @@
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
@@ -484,7 +486,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     for (ItemResourceValue item : ResolutionUtils.getThemeAttributes(resolver, themeName)) {
       ResourceType type = ResolutionUtils.getAttrType(item, configuration);
       if (type != null) {
-        attrs.putValue(type, ResolutionUtils.getQualifiedItemName(item));
+        attrs.putValue(type, ResolutionUtils.getQualifiedItemAttrName(item));
       }
     }
 
@@ -2219,11 +2221,15 @@ public class ChooseResourceDialog extends DialogWrapper {
       for (ResourceChooserGroup group : myGroups) {
         for (ResourceChooserItem item : group.getItems()) {
           if (isAttr) {
-            if (item.isAttr() &&
-                ((ItemResourceValue)value).isFrameworkAttr() == item.isFramework() &&
-                value.getName().equals(item.getName())) {
-              setSelectedItem(item);
-              return true;
+            if (item.isAttr()) {
+              ResourceReference attr = ((ItemResourceValue)value).getAttr();
+              if (attr != null &&
+                  // TODO: namespaces
+                  ((attr.getNamespace() == ResourceNamespace.ANDROID) == item.isFramework()) &&
+                  value.getName().equals(item.getName())) {
+                setSelectedItem(item);
+                return true;
+              }
             }
           }
           else {
