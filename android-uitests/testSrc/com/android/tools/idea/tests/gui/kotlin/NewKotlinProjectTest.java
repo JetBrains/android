@@ -140,7 +140,7 @@ public class NewKotlinProjectTest {
 
     newProjectWizard.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     // Build project after Gradle sync finished.
     guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(60));
