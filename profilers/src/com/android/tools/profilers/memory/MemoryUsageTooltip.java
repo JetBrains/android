@@ -26,7 +26,7 @@ public class MemoryUsageTooltip implements ProfilerTooltip {
   }
 
   public MemoryProfilerStage.MemoryStageLegends getLegends() {
-    return myStage.getLegends();
+    return myStage.getTooltipLegends();
   }
 
   public boolean useLiveAllocationTracking() {
