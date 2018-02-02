@@ -285,24 +285,16 @@ public class GuiTestRule implements TestRule {
     return importProjectAndWaitForProjectSyncToFinish("MultiModule");
   }
 
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String buildFilePath) throws IOException {
-    importProject(projectDirName, buildFilePath);
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
+    importProject(projectDirName);
     testSystem().waitForProjectSyncToFinish(ideFrame());
     return ideFrame();
   }
 
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
-  }
-
-  public IdeFrameFixture importProject(@NotNull String projectDirName, @Nullable String buildFilePath) throws IOException {
-    File testProjectDir = setUpProject(projectDirName);
-    testSystem().importProject(testProjectDir, robot(), buildFilePath);
-    return ideFrame();
-  }
-
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    return importProject(projectDirName, null);
+    File testProjectDir = setUpProject(projectDirName);
+    testSystem().importProject(testProjectDir, robot());
+    return ideFrame();
   }
 
   /**
