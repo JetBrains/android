@@ -15,7 +15,6 @@ iml_module(
         "//tools/idea/json",
         "//tools/idea/xml/relaxng",
         "//tools/idea/java/compiler/instrumentation-util-8",
-        "//tools/idea/plugins/maven:maven2-server-impl",
         "//tools/adt/idea/adt-branding",
     ],
     # do not sort: must match IML order
@@ -83,7 +82,6 @@ iml_module(
         "//tools/idea/platform/tasks-platform-impl",
         "//tools/idea/platform/credential-store",
         "//tools/idea/java/compiler/instrumentation-util-8",
-        "//tools/idea/plugins/maven:maven2-server-impl",
     ],
     test_srcs = ["testSrc"],
     test_tags = [

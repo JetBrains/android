@@ -4,8 +4,6 @@ iml_module(
     name = "android-test-framework",
     iml_files = ["android-test-framework.iml"],
     tags = ["managed"],
-    # do not sort: must match IML order
-    test_runtime_deps = ["//tools/idea/plugins/maven:maven2-server-impl"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
