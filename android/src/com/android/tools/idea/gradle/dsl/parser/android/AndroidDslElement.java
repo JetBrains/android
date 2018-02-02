@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +26,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   @NonNls public static final String ANDROID_BLOCK_NAME = "android";
 
   public AndroidDslElement(@NotNull GradleDslElement parent) {
-    super(parent, ANDROID_BLOCK_NAME);
+    super(parent, GradleNameElement.create(ANDROID_BLOCK_NAME));
   }
 
   @Override

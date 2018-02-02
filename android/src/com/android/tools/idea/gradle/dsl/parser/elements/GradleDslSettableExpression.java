@@ -29,7 +29,7 @@ public abstract class GradleDslSettableExpression extends GradleDslExpression {
 
   protected GradleDslSettableExpression(@Nullable GradleDslElement parent,
                                         @Nullable PsiElement psiElement,
-                                        @NotNull String name,
+                                        @NotNull GradleNameElement name,
                                         @Nullable PsiElement expression) {
     super(parent, psiElement, name, expression);
   }

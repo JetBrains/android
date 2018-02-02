@@ -188,6 +188,11 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  public void rename(@NotNull String name) {
+    myRealModel.rename(name);
+  }
+
+  @Override
   @NotNull
   public GradlePropertyModel getUnresolvedModel() {
     return myRealModel;

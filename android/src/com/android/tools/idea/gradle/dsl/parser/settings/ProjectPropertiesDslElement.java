@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.settings;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNewExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
   @NonNls private static final String PROJECT_DIR = "projectDir";
   @NonNls private static final String BUILD_FILE_NAME = "buildFileName";
 
-  public ProjectPropertiesDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  public ProjectPropertiesDslElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
 

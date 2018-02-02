@@ -23,8 +23,8 @@ import org.jetbrains.annotations.Nullable;
 public class DependenciesDslElement extends GradleDslBlockElement {
   @NonNls public static final String DEPENDENCIES_BLOCK_NAME = "dependencies";
 
-  public DependenciesDslElement(@Nullable GradleDslElement parent) {
-    super(parent, DEPENDENCIES_BLOCK_NAME);
+  public DependenciesDslElement(@NotNull GradleDslElement parent) {
+    super(parent, GradleNameElement.create(DEPENDENCIES_BLOCK_NAME));
   }
 
   @Override
@@ -50,7 +50,8 @@ public class DependenciesDslElement extends GradleDslBlockElement {
   private GradleDslElementList getOrCreateParsedElement(@NotNull String configurationName) {
     GradleDslElementList elementList = getPropertyElement(configurationName, GradleDslElementList.class);
     if (elementList == null) {
-      elementList = new GradleDslElementList(this, configurationName);
+      GradleNameElement name = GradleNameElement.create(configurationName);
+      elementList = new GradleDslElementList(this, name);
       super.addParsedElement(configurationName, elementList);
     }
     return elementList;

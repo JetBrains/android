@@ -31,7 +31,7 @@ import java.util.List;
 public final class GradleDslNewExpression extends GradleDslExpression {
   private final @NotNull List<GradleDslExpression> myArguments = Lists.newArrayList();
 
-  public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull PsiElement newExpression, @NotNull String name) {
+  public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull PsiElement newExpression, @NotNull GradleNameElement name) {
     super(parent, newExpression, name, newExpression);
   }
 
@@ -99,7 +99,7 @@ public final class GradleDslNewExpression extends GradleDslExpression {
 
   @Nullable
   private File getFileValue() {
-    if (!myName.equals("File")) {
+    if (!myName.name().equals("File")) {
       return null;
     }
 

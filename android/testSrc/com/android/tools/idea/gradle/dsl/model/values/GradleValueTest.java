@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.dsl.model.values;
 
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.ResValue;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel.BuildConfigField;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -221,7 +223,9 @@ public class GradleValueTest extends GradleFileModelTestCase {
                   "}";
 
     writeToBuildFile(text);
-    AndroidModel android = getGradleBuildModel().android();
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+
     assertNotNull(android);
 
     ProductFlavorModel defaultConfig = android.defaultConfig();

@@ -17,11 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
-
+import com.android.tools.idea.gradle.dsl.parser.elements.*
 
 private const val INDENT = 2
 private const val RESET = 0
@@ -48,17 +44,25 @@ fun GradleDslElement.print() {
   println(builder.toString())
 }
 
-private val String.blue get() = color(LIGHT_BLUE) + this + color(RESET)
-private val String.red get() = color(LIGHT_RED) + this + color(RESET)
-private val String.magenta get() = color(LIGHT_MAGENTA) + this + color(RESET)
-private val String.cyan get() = color(LIGHT_CYAN) + this + color(RESET)
+private val String.blue get() = if (isEmpty()) "" else color(LIGHT_BLUE) + this + color(RESET)
+private val String.red get() = if (isEmpty()) "" else color(LIGHT_RED) + this + color(RESET)
+private val String.magenta get() = if (isEmpty()) "" else color(LIGHT_MAGENTA) + this + color(RESET)
+private val String.cyan get() = if (isEmpty()) "" else color(LIGHT_CYAN) + this + color(RESET)
 
 private fun GradleDslElement.printElement(builder : StringBuilder, indent : Int) {
   when(this) {
     is GradleDslExpression -> builder.append("${javaClass.simpleName.red} : ${name.magenta} : ${value.toString().cyan}")
     is GradleDslExpressionList -> {
-      builder.append("${javaClass.simpleName.red} ->\n")
+      builder.append("${javaClass.simpleName.red} : ${name.magenta} ->\n")
       expressions.forEachIndexed { i, e ->
+        builder.append("${" ".repeat(indent)}${i} - ")
+        e.printElement(builder, indent + INDENT)
+        if (builder.last() != '\n') builder.append("\n")
+      }
+    }
+    is GradleDslElementList -> {
+      builder.append("${javaClass.simpleName.red} ->\n")
+      elements.forEachIndexed { i, e ->
         builder.append("${" ".repeat(indent)}${i} - ")
         e.printElement(builder, indent + INDENT)
         if (builder.last() != '\n') builder.append("\n")

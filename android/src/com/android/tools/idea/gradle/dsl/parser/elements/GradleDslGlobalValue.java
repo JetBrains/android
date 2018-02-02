@@ -29,7 +29,7 @@ public class GradleDslGlobalValue extends GradleDslExpression {
   @NotNull Object myFakeValue;
 
   public GradleDslGlobalValue(@NotNull GradleDslElement parent, @NotNull Object value) {
-    super(parent, null, "Fake value expression: " + value.toString(), null);
+    super(parent, null, GradleNameElement.fake("fakevalue"), null);
     myFakeValue = value;
   }
 

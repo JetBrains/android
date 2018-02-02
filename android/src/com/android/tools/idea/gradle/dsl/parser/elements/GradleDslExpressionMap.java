@@ -29,18 +29,18 @@ import java.util.Map;
  */
 public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
 
-  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull String name) {
+  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
 
-  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull String name, boolean isLiteralMap) {
+  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull GradleNameElement name, boolean isLiteralMap) {
     super(parent, null, name);
     myUseAssignment = isLiteralMap;
   }
 
   public GradleDslExpressionMap(@Nullable GradleDslElement parent,
                                 @NotNull PsiElement psiElement,
-                                @NotNull String name,
+                                @NotNull GradleNameElement name,
                                 boolean isLiteralMap) {
     super(parent, psiElement, name);
     myUseAssignment = isLiteralMap;
@@ -52,7 +52,8 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
       ((GradleDslLiteral)propertyElement).setValue(value);
       return;
     }
-    GradleDslLiteral gradleDslLiteral = new GradleDslLiteral(this, key);
+    GradleNameElement name = GradleNameElement.create(key);
+    GradleDslLiteral gradleDslLiteral = new GradleDslLiteral(this, name);
     setNewElement(key, gradleDslLiteral);
     gradleDslLiteral.setValue(value);
   }
@@ -81,6 +82,12 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
   @Nullable
   public PsiElement create() {
     return getDslFile().getWriter().createDslExpressionMap(this);
+  }
+
+  @Override
+  public void apply() {
+    getDslFile().getWriter().applyDslExpressionMap(this);
+    super.apply();
   }
 
   public boolean isLiteralMap() {

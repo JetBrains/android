@@ -34,12 +34,12 @@ import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLO
  * Provide Gradle specific abstraction over a {@link PsiElement}.
  */
 public abstract class GradleDslElement {
-  @NotNull protected final String myName;
+  @NotNull protected GradleNameElement myName;
 
   @Nullable protected GradleDslElement myParent;
+
   @NotNull protected List<GradlePropertiesDslElement> myHolders = new ArrayList<>();
 
-  @NotNull private final String myQualifiedName;
   @NotNull private final GradleDslFile myDslFile;
 
   @Nullable private PsiElement myPsiElement;
@@ -63,19 +63,13 @@ public abstract class GradleDslElement {
    * @param psiElement the {@link PsiElement} of this dsl element.
    * @param name       the name of this element.
    */
-  protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull String name) {
+  protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull GradleNameElement name) {
     assert parent != null || this instanceof GradleDslFile;
 
     myParent = parent;
     myPsiElement = psiElement;
     myName = name;
 
-    if (parent == null || parent instanceof GradleDslFile) {
-      myQualifiedName = name;
-    }
-    else {
-      myQualifiedName = parent.myQualifiedName + "." + name;
-    }
 
     if (parent == null) {
       myDslFile = (GradleDslFile)this;
@@ -98,9 +92,31 @@ public abstract class GradleDslElement {
     return myClosureElement;
   }
 
+  /**
+   * Returns the name of this element at the lowest scope. I.e the text after the last dot ('.').
+   */
   @NotNull
   public String getName() {
+    return myName.name();
+  }
+
+  @NotNull
+  public GradleNameElement getNameElement() {
     return myName;
+  }
+
+  public void rename(@NotNull String newName) {
+    myName.rename(newName);
+    setModified(true);
+  }
+
+  /**
+   * Returns the full name of the element. For elements where it makes sense, this will be the text of the
+   * PsiElement in the build file.
+   */
+  @NotNull
+  public String getFullName() {
+    return myName.fullName();
   }
 
   @Nullable
@@ -136,7 +152,12 @@ public abstract class GradleDslElement {
 
   @NotNull
   public String getQualifiedName() {
-    return myQualifiedName;
+    // Don't include the name of the parent if this element is a direct child of the file.
+    if (myParent == null || myParent instanceof GradleDslFile) {
+      return getName();
+    }
+
+    return myParent.getQualifiedName() + "." + getName();
   }
 
   @NotNull

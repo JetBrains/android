@@ -39,7 +39,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
                }""".trimIndent()
     writeToBuildFile(text)
 
-    val extModel = gradleBuildModel.ext()
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
 
     run {
       val propertyModel = extModel.findProperty("prop1")
@@ -3217,6 +3218,135 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     run {
       val propertyModel = extModel.findProperty("propList")
       verifyListProperty(propertyModel, listOf("3", "2", "3", "2", "2nd"), REGULAR, 5)
+    }
+  }
+
+  fun testRename() {
+    val text = """
+               ext {
+                 def var1 = "hello"
+
+                 prop1 = "${'$'}{var1} ${'$'}{var2}"
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello ${'$'}{var2}", STRING, REGULAR, 1, "prop1", "ext.prop1")
+      val varModel = propertyModel.dependencies[0]
+      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var1", "ext.var1")
+
+      // Rename the properties.
+      propertyModel.rename("prop2")
+      varModel.rename("var2")
+
+      // TODO: Names aren't updated until after a reparse
+      //verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
+      //verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2", "ext.var2")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop2")
+      val varModel = propertyModel.dependencies[0]
+      verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
+      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2", "ext.var2")
+    }
+  }
+
+  fun testRenameMapPropertyAndKeys() {
+    val text = """
+               ext {
+                 def map1 = [key1 : 'a', "key2" : 'b', key3 : 'c']
+                 map2 = [key4 : 4]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    run {
+      val firstMapModel = buildModel.ext().findProperty("map1")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "key2" to "b", "key3" to "c"), "map1", "ext.map1")
+      val secondMapModel = buildModel.ext().findProperty("map2")
+      verifyMapProperty(secondMapModel, mapOf("key4" to 4), "map2", "ext.map2")
+
+      // Rename the keys
+      val firstKeyModel = firstMapModel.getMapValue("key2")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "key2", "ext.map1.key2")
+      val secondKeyModel = secondMapModel.getMapValue("key4")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "key4", "ext.map2.key4")
+
+      firstKeyModel.rename("newKey1")
+      secondKeyModel.rename("newKey2")
+
+      // Rename the maps
+      firstMapModel.rename("newMap1")
+      secondMapModel.rename("newMap2")
+
+      // TODO: Names aren't updated until after a reparse
+      // verifyMapProperty(firstMapModel, mapOf("key1" to "a", "key2" to "b", "key3" to "c"), "map1", "ext.map1")
+      // verifyMapProperty(secondMapModel, mapOf("key4" to 4), "map2", "ext.map2")
+      // verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "key2", "ext.map1.key2")
+      // verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, REGULAR, 0, "key4", "ext.map2.key4")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstMapModel = buildModel.ext().findProperty("newMap1")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1", "ext.newMap1")
+      val secondMapModel = buildModel.ext().findProperty("newMap2")
+      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2", "ext.newMap2")
+
+      // Rename the keys
+      val firstKeyModel = firstMapModel.getMapValue("newKey1")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1", "ext.newMap1.newKey1")
+      val secondKeyModel = secondMapModel.getMapValue("newKey2")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2", "ext.newMap2.newKey2")
+    }
+  }
+
+  fun testRenameListValueThrows() {
+    val text = """
+               ext {
+                 def list1 = [1, 2, 3, 4]
+                 list2 = ['a', 'b', 'c', 'd']
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    run {
+      val firstListModel = buildModel.ext().findProperty("list1")
+      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "list1", "ext.list1")
+      val secondListModel = buildModel.ext().findProperty("list2")
+      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "list2", "ext.list2")
+
+      val listItem = secondListModel.getListValue("b")!!
+      try {
+        listItem.rename("listItemName")
+        fail()
+      } catch (e : IllegalStateException) {
+        // Expected
+      }
+
+      firstListModel.rename("varList")
+      secondListModel.rename("propertyList")
+
+      // TODO: Names aren't updated until after a reparse
+      // verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "varList", "ext.varList")
+      // verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "propertyList", "ext.propertyList")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstListModel = buildModel.ext().findProperty("varList")
+      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "varList", "ext.varList")
+      val secondListModel = buildModel.ext().findProperty("propertyList")
+      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "propertyList", "ext.propertyList")
     }
   }
 

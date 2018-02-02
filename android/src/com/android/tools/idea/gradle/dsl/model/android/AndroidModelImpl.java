@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -127,7 +128,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
     BuildTypeDslElement buildTypeElement = buildTypes.getPropertyElement(buildType, BuildTypeDslElement.class);
     if (buildTypeElement == null) {
-      buildTypeElement = new BuildTypeDslElement(buildTypes, buildType);
+      buildTypeElement = new BuildTypeDslElement(buildTypes, GradleNameElement.create(buildType));
       buildTypes.setNewElement(buildType, buildTypeElement);
     }
     return this;
@@ -197,7 +198,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   public ProductFlavorModel defaultConfig() {
     ProductFlavorDslElement defaultConfigElement = myDslElement.getPropertyElement(DEFAULT_CONFIG, ProductFlavorDslElement.class);
     if (defaultConfigElement == null) {
-      defaultConfigElement = new ProductFlavorDslElement(myDslElement, DEFAULT_CONFIG);
+      defaultConfigElement = new ProductFlavorDslElement(myDslElement, GradleNameElement.create(DEFAULT_CONFIG));
       myDslElement.setNewElement(DEFAULT_CONFIG, defaultConfigElement);
     }
     return new ProductFlavorModelImpl(defaultConfigElement);
@@ -341,7 +342,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
     ProductFlavorDslElement flavorElement = productFlavors.getPropertyElement(flavor, ProductFlavorDslElement.class);
     if (flavorElement == null) {
-      flavorElement = new ProductFlavorDslElement(productFlavors, flavor);
+      GradleNameElement name = GradleNameElement.create(flavor);
+      flavorElement = new ProductFlavorDslElement(productFlavors, name);
       productFlavors.setNewElement(flavor, flavorElement);
     }
     return this;
@@ -375,7 +377,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
     SigningConfigDslElement configElement = signingConfigs.getPropertyElement(config, SigningConfigDslElement.class);
     if (configElement == null) {
-      configElement = new SigningConfigDslElement(signingConfigs, config);
+      GradleNameElement name = GradleNameElement.create(config);
+      configElement = new SigningConfigDslElement(signingConfigs, name);
       signingConfigs.setNewElement(config, configElement);
     }
     return this;
@@ -409,7 +412,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
     SourceSetDslElement sourceSetElement = sourceSets.getPropertyElement(sourceSet, SourceSetDslElement.class);
     if (sourceSetElement == null) {
-      sourceSetElement = new SourceSetDslElement(sourceSets, sourceSet);
+      GradleNameElement name = GradleNameElement.create(sourceSet);
+      sourceSetElement = new SourceSetDslElement(sourceSets, name);
       sourceSets.setNewElement(sourceSet, sourceSetElement);
     }
     return this;

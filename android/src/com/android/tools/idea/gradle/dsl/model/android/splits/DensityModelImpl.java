@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -184,7 +185,7 @@ public class DensityModelImpl extends GradleDslBlockModel implements DensityMode
   @Override
   @NotNull
   public DensityModel addReset() {
-    GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, RESET, null);
+    GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, GradleNameElement.create(RESET), null);
     myDslElement.setNewElement(RESET, resetMethod); // TODO: reset include
     return this;
   }

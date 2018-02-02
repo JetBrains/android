@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  * Common base class for {@link BuildTypeDslElement} and {@link ProductFlavorDslElement}.
  */
 public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement {
-  protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
@@ -49,8 +49,9 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
 
       GradleDslElementList elementList = getPropertyElement("resValue", GradleDslElementList.class);
       if (elementList == null) {
-        elementList = new GradleDslElementList(this, "resValue");
-        setParsedElement("resValue", elementList);
+        GradleNameElement name = GradleNameElement.create("resValue");
+        elementList = new GradleDslElementList(this, name);
+        setParsedElement(name.name(), elementList);
       }
       elementList.addParsedElement(element);
       return;

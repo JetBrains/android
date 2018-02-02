@@ -21,10 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,8 +65,8 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   @NotNull
   public SigningConfigModel setStoreFile(@NotNull String storeFile) {
     if (myDslElement.getPropertyElement(STORE_FILE) == null) {
-      GradleDslMethodCall methodCall = new GradleDslMethodCall(myDslElement, "file", STORE_FILE);
-      GradleDslLiteral literal = new GradleDslLiteral(methodCall, "");
+      GradleDslMethodCall methodCall = new GradleDslMethodCall(myDslElement, GradleNameElement.create("file"), STORE_FILE);
+      GradleDslLiteral literal = new GradleDslLiteral(methodCall, GradleNameElement.fake(""));
       literal.setValue(storeFile);
       methodCall.addNewArgument(literal);
       myDslElement.setNewElement(STORE_FILE, methodCall);
@@ -191,7 +188,7 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
     }
 
     Type passwordType;
-    switch (passwordElement.getName()) {
+    switch (passwordElement.getFullName()) {
       case SYSTEM_GETENV:
         passwordType = ENVIRONMENT_VARIABLE;
         break;
@@ -251,15 +248,18 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
     }
 
     GradleDslMethodCall methodCall = null;
+    GradleNameElement name = null;
     if (type == ENVIRONMENT_VARIABLE) {
-      methodCall = new GradleDslMethodCall(myDslElement, SYSTEM_GETENV, property);
+      name = GradleNameElement.create(SYSTEM_GETENV);
+      methodCall = new GradleDslMethodCall(myDslElement, name, property);
     }
     else if (type == CONSOLE_READ) {
-      methodCall = new GradleDslMethodCall(myDslElement, SYSTEM_CONSOLE_READ_LINE, property);
+      name = GradleNameElement.create(SYSTEM_CONSOLE_READ_LINE);
+      methodCall = new GradleDslMethodCall(myDslElement, name, property);
     }
 
     if (methodCall != null) {
-      GradleDslLiteral argumentElement = new GradleDslLiteral(methodCall, methodCall.getName());
+      GradleDslLiteral argumentElement = new GradleDslLiteral(methodCall, name);
       argumentElement.setValue(text);
       methodCall.addNewArgument(argumentElement);
       myDslElement.setNewElement(property, methodCall);

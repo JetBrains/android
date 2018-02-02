@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.java;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
   @NonNls public static final String JAVA_BLOCK_NAME = "java";
 
   public JavaDslElement(@NotNull GradleDslElement parent) {
-    super(parent, JAVA_BLOCK_NAME);
+    super(parent, GradleNameElement.create(JAVA_BLOCK_NAME));
   }
 
   @Override

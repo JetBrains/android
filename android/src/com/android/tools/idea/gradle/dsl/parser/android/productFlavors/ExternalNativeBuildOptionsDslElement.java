@@ -17,12 +17,13 @@ package com.android.tools.idea.gradle.dsl.parser.android.productFlavors;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 
 public class ExternalNativeBuildOptionsDslElement extends GradleDslBlockElement {
   public ExternalNativeBuildOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, EXTERNAL_NATIVE_BUILD_BLOCK_NAME);
+    super(parent, GradleNameElement.create(EXTERNAL_NATIVE_BUILD_BLOCK_NAME));
   }
 }

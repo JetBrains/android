@@ -138,7 +138,8 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                  @NotNull String configurationName,
                                  @NotNull ArtifactDependencySpec dependency,
                                  @NotNull List<ArtifactDependencySpec> excludes) {
-    GradleDslLiteral literal = new GradleDslLiteral(list, configurationName);
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    GradleDslLiteral literal = new GradleDslLiteral(list, name);
     literal.setValue(dependency.compactNotation());
 
     if (!excludes.isEmpty()) {

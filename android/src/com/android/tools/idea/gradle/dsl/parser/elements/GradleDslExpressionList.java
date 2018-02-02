@@ -40,13 +40,13 @@ public final class GradleDslExpressionList extends GradleDslElement {
   // like "prop = ['value1', 'value2']" but can also be used for thing such as lint options "check 'check-id-1', 'check-id-2'"
   private boolean myIsLiteralList;
 
-  public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull String name, boolean isLiteralList) {
+  public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull GradleNameElement name, boolean isLiteralList) {
     super(parent, null, name);
     myAppendToArgumentListWithOneElement = false;
     myIsLiteralList = isLiteralList;
   }
 
-  public GradleDslExpressionList(@NotNull GradleDslElement parent, @NotNull PsiElement psiElement,  boolean isLiteralList, @NotNull String name) {
+  public GradleDslExpressionList(@NotNull GradleDslElement parent, @NotNull PsiElement psiElement,  boolean isLiteralList, @NotNull GradleNameElement name) {
     super(parent, psiElement, name);
     myAppendToArgumentListWithOneElement = false;
     myIsLiteralList = isLiteralList;
@@ -54,7 +54,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
 
   public GradleDslExpressionList(@NotNull GradleDslElement parent,
                                  @NotNull PsiElement psiElement,
-                                 @NotNull String name,
+                                 @NotNull GradleNameElement name,
                                  boolean appendToArgumentListWithOneElement) {
     super(parent, psiElement, name);
     myAppendToArgumentListWithOneElement = appendToArgumentListWithOneElement;
@@ -190,6 +190,8 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @Override
   protected void apply() {
     PsiElement psiElement = create();
+
+    getDslFile().getWriter().applyDslExpressionList(this);
 
     for (GradleDslExpression expression : myExpressions) {
       if (!myUnsavedExpressions.contains(expression)) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.dependencies;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 public class DependencyConfigurationDslElement extends GradleDslClosure {
   public DependencyConfigurationDslElement(@Nullable GradleDslElement parent,
                                            @Nullable PsiElement psiElement,
-                                           @NotNull String name) {
+                                           @NotNull GradleNameElement name) {
     super(parent, psiElement, name);
   }
 
@@ -34,7 +35,7 @@ public class DependencyConfigurationDslElement extends GradleDslClosure {
     if (property.equals("exclude")) {
       GradleDslElementList elementList = getPropertyElement(property, GradleDslElementList.class);
       if (elementList == null) {
-        elementList = new GradleDslElementList(this, property);
+        elementList = new GradleDslElementList(this, GradleNameElement.create(property));
         super.addParsedElement(property, elementList);
       }
       elementList.addParsedElement(element);

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslWriter;
@@ -58,7 +59,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull private final List<ApplyDslElement> myAppliedFiles;
 
   protected GradleDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    super(null, null, moduleName);
+    super(null, null, GradleNameElement.fake(moduleName));
     myFile = file;
     myProject = project;
     myAppliedFiles = new ArrayList<>();

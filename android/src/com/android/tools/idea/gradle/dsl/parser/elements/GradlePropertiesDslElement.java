@@ -26,12 +26,15 @@ import com.google.common.base.Splitter;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement.convertNameToKey;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -58,7 +61,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     APPLIED, // These properties come from another file. These elements are not updated with calls to apply/create/delete.
   }
 
-  protected GradlePropertiesDslElement(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull String name) {
+  protected GradlePropertiesDslElement(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull GradleNameElement name) {
     super(parent, psiElement, name);
   }
 
@@ -70,6 +73,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * @param element  the {@code GradleDslElement} for the property.
    */
   private void addPropertyInternal(@NotNull String property, @NotNull GradleDslElement element, @NotNull ElementState state) {
+    property = convertNameToKey(property);
     if (myProperties.containsKey(property)) {
       myProperties.get(property).addElement(element, state);
     }
@@ -173,7 +177,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     // (ex: flavorDimensions in android block). To support that, we create an expression list where appending to the arguments list is
     // supported even when there is only one element in it. This does not work in many other places like proguardFile elements where
     // only one argument is supported and for this cases we use addToParsedExpressionList method.
-    GradleDslExpressionList literalList = new GradleDslExpressionList(this, psiElement, property, true);
+    GradleDslExpressionList literalList = new GradleDslExpressionList(this, psiElement, GradleNameElement.create(property), true);
     if (expression instanceof GradleDslMethodCall) {
       // Make sure the psi is set to the argument list instead of the whole method call.
       literalList.setPsiElement(((GradleDslMethodCall)expression).getArgumentListPsiElement());
@@ -197,7 +201,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
     GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList == null) {
-      gradleDslExpressionList = new GradleDslExpressionList(this, psiElement, property, false);
+      gradleDslExpressionList = new GradleDslExpressionList(this, psiElement, GradleNameElement.create(property), false);
       addPropertyInternal(property, gradleDslExpressionList, ElementState.EXISTING);
     }
     else {
@@ -400,7 +404,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   private GradleDslElement setNewLiteralImpl(@NotNull String property, @NotNull Object value) {
     GradleDslLiteral literalElement = getPropertyElement(property, GradleDslLiteral.class);
     if (literalElement == null) {
-      literalElement = new GradleDslLiteral(this, property);
+      literalElement = new GradleDslLiteral(this, GradleNameElement.create(property));
       addPropertyInternal(property, literalElement, ElementState.TO_BE_ADDED);
     }
     literalElement.setValue(value);
@@ -416,7 +420,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   private GradlePropertiesDslElement addToNewLiteralListImpl(@NotNull String property, @NotNull Object value) {
     GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList == null) {
-      gradleDslExpressionList = new GradleDslExpressionList(this, property, false);
+      gradleDslExpressionList = new GradleDslExpressionList(this, GradleNameElement.create(property), false);
       addPropertyInternal(property, gradleDslExpressionList, ElementState.TO_BE_ADDED);
     }
     gradleDslExpressionList.addNewLiteral(value);

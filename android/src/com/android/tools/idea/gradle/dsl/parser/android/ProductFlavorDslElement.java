@@ -23,7 +23,7 @@ import java.util.Map;
 
 public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement {
 
-  public ProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  public ProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
@@ -80,7 +80,7 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
         getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        testInstrumentationRunnerArgumentsElement = new GradleDslExpressionMap(this, "testInstrumentationRunnerArguments");
+        testInstrumentationRunnerArgumentsElement = new GradleDslExpressionMap(this, GradleNameElement.create("testInstrumentationRunnerArguments"));
       }
       testInstrumentationRunnerArgumentsElement.setParsedElement(key, value);
       return;

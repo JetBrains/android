@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.apply;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -31,8 +32,8 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   // The file that is applied by the element. For apply statements that apply plugins, this is null.
   @Nullable private GradleBuildFile myAppliedBuildFile;
 
-  public ApplyDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, APPLY_BLOCK_NAME);
+  public ApplyDslElement(@NotNull GradleDslElement parent) {
+    super(parent, null, GradleNameElement.create(APPLY_BLOCK_NAME));
   }
 
   @Override

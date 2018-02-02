@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.repositories;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,9 +25,9 @@ public class MavenRepositoryDslElement extends GradleDslBlockElement {
   @NonNls public static final String MAVEN_BLOCK_NAME = "maven";
   @NonNls public static final String JCENTER_BLOCK_NAME = "jcenter";
 
-  public MavenRepositoryDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  public MavenRepositoryDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-    assert MAVEN_BLOCK_NAME.equals(name) || JCENTER_BLOCK_NAME.equals(name);
+    assert MAVEN_BLOCK_NAME.equals(name.name()) || JCENTER_BLOCK_NAME.equals(name.name());
   }
 
   @Override

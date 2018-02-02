@@ -17,13 +17,15 @@ package com.android.tools.idea.gradle.dsl.parser.build;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BuildScriptDslElement extends GradleDslBlockElement {
   @NonNls public static final String BUILDSCRIPT_BLOCK_NAME = "buildscript";
 
-  public BuildScriptDslElement(@Nullable GradleDslElement parent) {
-    super(parent, BUILDSCRIPT_BLOCK_NAME);
+  public BuildScriptDslElement(@NotNull GradleDslElement parent) {
+    super(parent, GradleNameElement.create(BUILDSCRIPT_BLOCK_NAME));
   }
 }

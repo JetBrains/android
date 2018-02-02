@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.android.BaseCompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +90,8 @@ public abstract class BaseCompileOptionsModelImpl extends GradleDslBlockModel im
   private BaseCompileOptionsModel setLanguageLevel(@NotNull String type, @NotNull LanguageLevel languageLevel) {
     JavaVersionDslElement element = myDslElement.getPropertyElement(type, JavaVersionDslElement.class);
     if (element == null) {
-      element = new JavaVersionDslElement(myDslElement, type, myUseAssignment);
+      GradleNameElement name = GradleNameElement.create(type);
+      element = new JavaVersionDslElement(myDslElement, name, myUseAssignment);
       myDslElement.setNewElement(type, element);
     }
     element.setVersion(languageLevel);

@@ -77,7 +77,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
                                  @NotNull String configurationName,
                                  @NotNull String path,
                                  @Nullable String config) {
-    String methodName = PROJECT;
+    GradleNameElement methodName = GradleNameElement.create(PROJECT);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
     GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
     mapArguments.setNewLiteral(PATH, path);
@@ -172,7 +172,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
     else {
       String path = path().value();
       if (myPath instanceof GradleDslLiteral) { // TODO: support copying non string literal path values into map form.
-        GradleDslExpressionMap newMapArgument = new GradleDslExpressionMap(myDslElement, PROJECT);
+        GradleDslExpressionMap newMapArgument = new GradleDslExpressionMap(myDslElement, GradleNameElement.create(PROJECT));
         newMapArgument.setNewLiteral(PATH, path);
         newMapArgument.setNewLiteral(CONFIGURATION, configuration);
         myDslElement.remove(myPath);

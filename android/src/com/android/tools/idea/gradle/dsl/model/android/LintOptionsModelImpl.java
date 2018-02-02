@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -649,7 +650,8 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   private void setFileValue(@NotNull String property, @NotNull File file) {
     GradleDslMethodCall fileElement = myDslElement.getPropertyElement(property, GradleDslMethodCall.class);
     if (fileElement == null) {
-      fileElement = new GradleDslMethodCall(myDslElement, "file", property);
+      GradleNameElement name = GradleNameElement.create("file");
+      fileElement = new GradleDslMethodCall(myDslElement, name, property);
       myDslElement.setNewElement(property, fileElement);
     }
     fileElement.setValue(file);
