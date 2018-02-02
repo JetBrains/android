@@ -27,10 +27,7 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/idea/plugins/maven:maven2-server-impl",
-        "//tools/vendor/intellij/cidr:doxygen",
-    ],
+    test_runtime_deps = ["//tools/vendor/intellij/cidr:doxygen"],
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
