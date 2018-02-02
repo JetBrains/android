@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectPathFixture;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +59,8 @@ public class ApkViewerTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void launchApkViewer() throws Exception {
-    List<String> apkEntries = guiTest.importSimpleLocalApplication()
+    List<String> apkEntries = guiTest.importProject("SimpleLocalApplication")
+      .waitForGradleImportProjectSync()
       .invokeMenuPath("Build", "Build APK(s)")
       .waitForBuildToFinish(BuildMode.ASSEMBLE)
       .openFromMenu(SelectPathFixture::find, "Build", "Analyze APK...")
