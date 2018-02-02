@@ -244,16 +244,6 @@ public class EditorFixture {
     robot.moveMouse(selectTarget.component, selectTarget.endPoint);
     robot.releaseMouseButtons();
 
-    // Input events are sent through the X server, which means the events are sent
-    // back to the IDE asynchronously. We should wait for the cursor position to be updated
-    Wait.seconds(1)
-      .expecting("text caret position to be at the end of the matched group")
-      .until(() -> GuiQuery.getNonNull(() ->
-          end == FileEditorManager.getInstance(myFrame.getProject())
-            .getSelectedTextEditor()
-            .getCaretModel()
-            .getOffset()
-      ));
     return this;
   }
 
