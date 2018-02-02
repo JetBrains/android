@@ -80,6 +80,7 @@ iml_module(
 
 java_test(
     name = "GuiTestRuleTest",
+    size = "large",
     data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
     tags = COMMON_TAGS,
@@ -89,6 +90,7 @@ java_test(
 
 java_test(
     name = "DataBindingTest",
+    size = "large",
     data = COMMON_DATA + ["//tools/data-binding:data_binding_runtime.zip"] + glob([
         "testData/DatabindingMethodsTest/**",
     ]),
@@ -100,6 +102,7 @@ java_test(
 
 java_test(
     name = "ApkViewerTest",
+    size = "large",
     data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
     tags = COMMON_TAGS + ["manual"],  # testFileHandleRelease fails after 2017.3.1 merge
@@ -109,6 +112,7 @@ java_test(
 
 java_test(
     name = "NewProjectTest",
+    size = "large",
     data = COMMON_DATA + ["//prebuilts/studio/layoutlib:data/res"],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NewProjectTest"],
     tags = COMMON_TAGS + ["manual"],  #sanity test passing, but latestSupportLibraryWhileDndLayouts failed for UI reason
@@ -118,6 +122,7 @@ java_test(
 
 java_test(
     name = "NewActivityTest",
+    size = "large",
     data = COMMON_DATA + ["//prebuilts/studio/layoutlib:data/res"] + glob([
         "testData/SimpleLocalApplication/**",
     ]),
@@ -129,6 +134,7 @@ java_test(
 
 java_test(
     name = "AddModuleTest",
+    size = "large",
     data = COMMON_DATA + ["//prebuilts/studio/layoutlib:data/res"] + glob([
         "testData/SimpleLocalApplication/**",
     ]),
@@ -140,6 +146,7 @@ java_test(
 
 java_test(
     name = "NlEditorTest",
+    size = "large",
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/sdk:tools/support-annotations",
@@ -174,6 +181,7 @@ java_test(
 
 java_test(
     name = "ConstraintLayoutTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
@@ -188,6 +196,7 @@ java_test(
 
 java_test(
     name = "GradleSyncTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
@@ -201,6 +210,7 @@ java_test(
 
 java_test(
     name = "NewModuleTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
@@ -214,6 +224,7 @@ java_test(
 
 java_test(
     name = "BuildTypesTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
@@ -227,6 +238,7 @@ java_test(
 
 java_test(
     name = "LayoutInspectorTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
@@ -240,6 +252,7 @@ java_test(
 
 java_test(
     name = "ConvertToWebpActionTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
