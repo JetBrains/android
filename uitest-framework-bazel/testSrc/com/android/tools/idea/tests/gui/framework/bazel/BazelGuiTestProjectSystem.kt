@@ -58,6 +58,7 @@ android_sdk_repository(
         """
 
     Files.append(androidSdkRepositoryInfo, File(targetTestDirectory, "WORKSPACE"), Charsets.UTF_8)
+    Files.append("startup --host_javabase=" + getJdkPath(), File(targetTestDirectory, ".bazelrc"), Charsets.UTF_8)
   }
 
   override fun importProject(targetTestDirectory: File, robot: Robot) {
@@ -91,6 +92,17 @@ android_sdk_repository(
   private fun getBazelBinaryPath(): String {
     val platformPath = getPlatformPathName() ?: throw RuntimeException("Running test on unsupported platform for bazel")
     return File(TestUtils.getWorkspaceRoot(), "prebuilts/tools/$platformPath/bazel/bazel-real").path
+  }
+
+  private fun getJdkPath(): String {
+    val subdir = when {
+      SystemInfo.isWindows -> "win64"
+      SystemInfo.isLinux -> "linux"
+      SystemInfo.isMac -> "mac/Contents/Home"
+      else -> throw RuntimeException("Running test on unsupported OS for bazel")
+    }
+
+    return File(TestUtils.getWorkspaceRoot(), "prebuilts/studio/jdk/$subdir").path
   }
 
   private fun getSdkPath(): String {

@@ -156,6 +156,23 @@ java_test(
 )
 
 java_test(
+    name = "BazelStartupSyncTest",
+    data = COMMON_DATA + [
+        # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
+        "//prebuilts/studio/sdk:tools/support-annotations",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
+        ":unzip_aswb",
+    ] + glob([
+        "testData/SimpleLocalApplication/**",
+    ]) + glob(["testData/LayoutLocalTest/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BazelStartupSyncTest"],
+    tags = COMMON_TAGS,
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":android-uitests_testlib"],
+)
+
+java_test(
     name = "ConstraintLayoutTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
