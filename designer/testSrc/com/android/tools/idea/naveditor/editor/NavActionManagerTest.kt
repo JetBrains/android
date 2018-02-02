@@ -22,9 +22,7 @@ import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.google.common.collect.ImmutableList
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
@@ -51,20 +49,6 @@ class NavActionManagerTest : NavTestCase() {
     surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
     surface.model = model
-  }
-
-  fun testGetDestinations() {
-    val actionManager = NavActionManager(surface)
-
-    val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main2.xml")
-    val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
-
-    val parent = model.components[0]
-    val expected1 = Destination.RegularDestination(parent, "fragment", null, "BlankFragment", "mytest.navtest.BlankFragment")
-    val expected2 = Destination.RegularDestination(parent, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
-        layoutFile = xmlFile)
-    val expected3 = Destination.IncludeDestination("navigation.xml", parent)
-    assertSameElements(actionManager.destinations, ImmutableList.of(expected1, expected2, expected3))
   }
 
   fun testAddElement() {

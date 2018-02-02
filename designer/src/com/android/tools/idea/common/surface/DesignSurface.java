@@ -95,7 +95,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private SceneManager mySceneManager;
   private final SelectionModel mySelectionModel;
   private final RenderListener myRenderListener = this::modelRendered;
-  private final ModelListener myModelListener = (model, animate) -> repaint();
+  private final ModelListener myModelListener = new ModelListener() {
+    @Override
+    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+      repaint();
+    }
+  };
 
   private final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
