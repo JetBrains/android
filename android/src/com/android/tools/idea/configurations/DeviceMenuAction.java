@@ -327,8 +327,10 @@ public class DeviceMenuAction extends DropDownAction {
                            @NotNull final Device device,
                            @Nullable Icon defaultIcon,
                            final boolean select) {
-      super(renderContext, title);
+      super(renderContext);
       myDevice = device;
+      // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
+      getTemplatePresentation().setText(title, false);
       if (select) {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
       }

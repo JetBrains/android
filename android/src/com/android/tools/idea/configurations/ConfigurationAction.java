@@ -46,11 +46,15 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   protected final ConfigurationHolder myRenderContext;
   private int myFlags;
 
-  public ConfigurationAction(@NotNull ConfigurationHolder renderContext, @NotNull String title) {
+  public ConfigurationAction(@NotNull ConfigurationHolder renderContext) {
+    this(renderContext, null, null);
+  }
+
+  public ConfigurationAction(@NotNull ConfigurationHolder renderContext, @Nullable String title) {
     this(renderContext, title, null);
   }
 
-  public ConfigurationAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @Nullable Icon icon) {
+  public ConfigurationAction(@NotNull ConfigurationHolder renderContext, @Nullable String title, @Nullable Icon icon) {
     super(title, null, icon);
     myRenderContext = renderContext;
   }
