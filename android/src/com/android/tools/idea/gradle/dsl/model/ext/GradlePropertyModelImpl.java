@@ -190,10 +190,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       GradleDslExpressionList list = (GradleDslExpressionList)myPropertyHolder;
       return myPropertyHolder.getQualifiedName() + "[" + String.valueOf(list.findIndexOf(myElement)) + "]";
     }
-    else if (myElement != null && myPropertyHolder instanceof GradleDslElementList) {
-      // Elements contained within a GradleDslElementList should not have their own names.
-      return myPropertyHolder.getQualifiedName();
-    }
 
     return myPropertyHolder.getQualifiedName() + "." + getName();
   }
@@ -218,11 +214,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
     else {
       GradleDslExpression newElement;
+      GradleNameElement name = GradleNameElement.create(myName);
       if (!isReference) {
-        newElement = new GradleDslLiteral(myPropertyHolder, myName);
+        newElement = new GradleDslLiteral(myPropertyHolder, name);
       }
       else {
-        newElement = new GradleDslReference(myPropertyHolder, myName);
+        newElement = new GradleDslReference(myPropertyHolder, name);
       }
       newElement.setValue(value);
       bindToNewElement(newElement);
@@ -297,7 +294,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     // Unlike maps, we don't create a placeholder element. This is since we need to retain and update order in the list.
     // This would be hard to create an intuitive api to do this, so instead we always create an empty string as the new item.
-    GradleDslLiteral literal = new GradleDslLiteral(myElement, "listItem");
+    GradleDslLiteral literal = new GradleDslLiteral(myElement, GradleNameElement.fake("listItem"));
     literal.setValue("");
 
     GradleDslExpressionList list = (GradleDslExpressionList)myElement;
@@ -344,7 +341,22 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     return myElement.getPsiElement();
   }
 
-  @Nullable
+  @Override
+  public void rename(@NotNull String name) {
+    // If we have no backing element then just alter the name that we will change.
+    if (myElement == null) {
+      myName = name;
+      return;
+    }
+
+    // Check that the element should actually be renamed.
+    if (myPropertyHolder instanceof GradleDslExpressionList) {
+      throw new IllegalStateException("Can't rename list values!");
+    }
+
+    myElement.rename(name);
+  }
+
   @Override
   public String toString() {
     return getValue(STRING_TYPE);
@@ -438,7 +450,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
         return null;
       }
       value = myElement.getPsiElement().getText();
-    } else {
+    }
+    else {
       GradleDslExpression expression = (GradleDslExpression)myElement;
 
       value = resolved ? expression.getValue() : expression.getUnresolvedValue();
@@ -459,11 +472,13 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   private void makeEmptyMap() {
-    bindToNewElement(new GradleDslExpressionMap(myPropertyHolder, myName, !myIsMethodCall));
+    GradleNameElement nameElement = GradleNameElement.create(myName);
+    bindToNewElement(new GradleDslExpressionMap(myPropertyHolder, nameElement, !myIsMethodCall));
   }
 
   private void makeEmptyList() {
-    bindToNewElement(new GradleDslExpressionList(myPropertyHolder, myName, !myIsMethodCall));
+    GradleNameElement nameElement = GradleNameElement.create(myName);
+    bindToNewElement(new GradleDslExpressionList(myPropertyHolder, nameElement, !myIsMethodCall));
   }
 
   private void bindToNewElement(@NotNull GradleDslElement element) {

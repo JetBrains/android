@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +25,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String PACKAGING_OPTIONS_BLOCK_NAME = "packagingOptions";
 
   public PackagingOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, PACKAGING_OPTIONS_BLOCK_NAME);
+    super(parent, GradleNameElement.create(PACKAGING_OPTIONS_BLOCK_NAME));
   }
 
   @Override

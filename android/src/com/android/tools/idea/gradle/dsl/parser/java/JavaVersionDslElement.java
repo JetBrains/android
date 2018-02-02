@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -33,14 +30,14 @@ public class JavaVersionDslElement extends GradleDslElement {
   private GradleDslExpression myInternalVersionElement;
   @Nullable private LanguageLevel myUnsavedValue;
 
-  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull GradleDslExpression dslElement, @NotNull String name) {
+  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull GradleDslExpression dslElement, @NotNull GradleNameElement name) {
     super(parent, null, name);
     assert dslElement instanceof GradleDslLiteral || dslElement instanceof GradleDslReference;
     setUseAssignment(dslElement.shouldUseAssignment());
     myInternalVersionElement = dslElement;
   }
 
-  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull String name, boolean useAssignment) {
+  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name, boolean useAssignment) {
     super(parent, null, name);
     setUseAssignment(useAssignment);
   }

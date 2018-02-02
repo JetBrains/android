@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 public class LintOptionsDslElement extends GradleDslBlockElement {
   public static final String LINT_OPTIONS_BLOCK_NAME = "lintOptions";
 
   public LintOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, LINT_OPTIONS_BLOCK_NAME);
+    super(parent, GradleNameElement.create(LINT_OPTIONS_BLOCK_NAME));
   }
 
   @Override

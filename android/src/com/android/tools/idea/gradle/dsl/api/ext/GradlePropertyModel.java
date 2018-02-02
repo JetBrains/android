@@ -247,4 +247,10 @@ public interface GradlePropertyModel {
    */
   @Nullable
   Map<String, GradlePropertyModel> toMap();
+
+  /**
+   * Renames a variable to the provided {@code name}. This method should do nothing if called on properties that have no
+   * explicit name, i.e list values. This method will rename keys if called on properties inside maps.
+   */
+  void rename(@NotNull String name);
 }

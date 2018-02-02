@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
 

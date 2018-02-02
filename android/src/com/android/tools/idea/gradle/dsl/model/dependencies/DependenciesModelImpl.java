@@ -221,7 +221,8 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   private GradleDslElementList getOrCreateGradleDslElementList(@NotNull String configurationName) {
     GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
     if (list == null) {
-      list = new GradleDslElementList(myDslElement, configurationName);
+      GradleNameElement name = GradleNameElement.create(configurationName);
+      list = new GradleDslElementList(myDslElement, name);
       myDslElement.setNewElement(configurationName, list);
     }
     return list;

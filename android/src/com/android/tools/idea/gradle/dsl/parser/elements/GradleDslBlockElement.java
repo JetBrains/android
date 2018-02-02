@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * Base class for all the {@link GradleDslElement}s that represent blocks like android, productFlavors, buildTypes etc.
  */
 public abstract class GradleDslBlockElement extends GradlePropertiesDslElement {
-  protected GradleDslBlockElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  protected GradleDslBlockElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
 

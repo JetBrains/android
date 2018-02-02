@@ -34,13 +34,13 @@ import java.util.List;
 public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Nullable private PsiElement myUnsavedConfigBlock;
 
-  public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull String name) {
+  public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name, null);
   }
 
   public GradleDslLiteral(@NotNull GradleDslElement parent,
                           @NotNull PsiElement psiElement,
-                          @NotNull String name,
+                          @NotNull GradleNameElement name,
                           @NotNull PsiElement literal) {
     super(parent, psiElement, name, literal);
   }

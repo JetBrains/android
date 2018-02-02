@@ -49,14 +49,14 @@ public final class GradleDslMethodCall extends GradleDslExpression {
    *                      use "compile" as statement name and "project" as method name, or {@code null} if the method needs to be added
    *                      without any application statement.
    */
-  public GradleDslMethodCall(@NotNull GradleDslElement parent, @NotNull String methodName, @Nullable String statementName) {
+  public GradleDslMethodCall(@NotNull GradleDslElement parent, @NotNull GradleNameElement methodName, @Nullable String statementName) {
     super(parent, null, methodName, null);
     myStatementName = statementName;
   }
 
   public GradleDslMethodCall(@NotNull GradleDslElement parent,
                              @NotNull PsiElement methodCall,
-                             @NotNull String name,
+                             @NotNull GradleNameElement name,
                              @NotNull PsiElement argumentListPsiElement) {
     super(parent, methodCall, name, methodCall);
     myArgumentListPsiElement = argumentListPsiElement;
@@ -193,7 +193,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Nullable
   private File getFileValue() {
-    if (!myName.equals("file")) {
+    if (!myName.name().equals("file")) {
       return null;
     }
 
@@ -226,7 +226,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   }
 
   private void setFileValue(@NotNull File file) {
-    if (!myName.equals("file")) {
+    if (!myName.name().equals("file")) {
       return;
     }
 

@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,10 +36,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaratio
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
@@ -105,7 +104,7 @@ public final class GroovyDslUtil {
     return null;
   }
 
-  private static GroovyPsiElementFactory getPsiElementFactory(@NotNull GradleDslElement element) {
+  static GroovyPsiElementFactory getPsiElementFactory(@NotNull GradleDslElement element) {
     GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
     if (psiElement == null) {
       return null;
@@ -577,5 +576,40 @@ public final class GroovyDslUtil {
     }
 
     return added;
+  }
+
+  @Nullable
+  static PsiElement createNameElement(@NotNull GradleDslElement context, @NotNull String name) {
+    GroovyPsiElementFactory factory = getPsiElementFactory(context);
+    if (factory == null) {
+      return null;
+    }
+
+    String str = name + " = 1";
+    GrExpression expression = factory.createExpressionFromText(str);
+    assert expression instanceof GrAssignmentExpression;
+    return ((GrAssignmentExpression)expression).getLValue();
+  }
+
+  static void maybeUpdateName(@NotNull GradleDslElement element) {
+    PsiElement oldName = element.getNameElement().getNamedPsiElement();
+    String newName = element.getNameElement().getUnsavedName();
+    PsiElement newElement;
+    if (newName == null || oldName == null) {
+      return;
+    }
+    if (oldName instanceof PsiNamedElement) {
+      PsiNamedElement namedElement = (PsiNamedElement)oldName;
+      namedElement.setName(newName);
+      newElement = namedElement;
+    }
+    else {
+      PsiElement psiElement = createNameElement(element, newName);
+      if (psiElement == null) {
+        throw new IllegalStateException("Can't create new GrExpression for name element");
+      }
+      newElement = oldName.replace(psiElement);
+    }
+    element.getNameElement().commitNameChange(newElement);
   }
 }

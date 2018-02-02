@@ -76,14 +76,15 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
                                  @Nullable List<String> includes,
                                  @Nullable List<String> excludes) {
     String methodName = FILE_TREE;
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
+    GradleNameElement name = GradleNameElement.create(methodName);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, name, configurationName);
     if ((includes == null || includes.isEmpty()) && (excludes == null || excludes.isEmpty())) {
-      GradleDslLiteral directory = new GradleDslLiteral(methodCall, methodName);
+      GradleDslLiteral directory = new GradleDslLiteral(methodCall, name);
       directory.setValue(dir);
       methodCall.addNewArgument(directory);
     }
     else {
-      GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
+      GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, name);
       mapArguments.setNewLiteral(DIR, dir);
       if (includes != null && !includes.isEmpty()) {
         if (includes.size() == 1) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android.productFlavors;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +25,7 @@ public class NdkOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String NDK_BLOCK_NAME = "ndk";
 
   public NdkOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, NDK_BLOCK_NAME);
+    super(parent, GradleNameElement.create(NDK_BLOCK_NAME));
   }
 
   @Override

@@ -17,11 +17,12 @@ package com.android.tools.idea.gradle.dsl.parser.android.sourceSets;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 
 public class SourceDirectoryDslElement extends GradleDslBlockElement {
-  public SourceDirectoryDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  public SourceDirectoryDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 

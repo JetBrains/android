@@ -18,11 +18,12 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
 
-  public BuildTypeDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  public BuildTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
@@ -39,8 +40,9 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
 
       GradleDslElementList elementList = getPropertyElement("buildConfigField", GradleDslElementList.class);
       if (elementList == null) {
-        elementList = new GradleDslElementList(this, "buildConfigField");
-        setParsedElement("buildConfigField", elementList);
+        GradleNameElement name = GradleNameElement.create("buildConfigField");
+        elementList = new GradleDslElementList(this, name);
+        setParsedElement(name.name(), elementList);
       }
       elementList.addParsedElement(element);
       return;

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -58,7 +59,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
       return null;
     }
 
-    GradlePropertyElement propertyElement = new GradlePropertyElement(this, property);
+    GradlePropertyElement propertyElement = new GradlePropertyElement(this, GradleNameElement.fake(property));
     propertyElement.setValue(value);
     return propertyElement;
   }
@@ -89,7 +90,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
   private static class GradlePropertyElement extends GradleDslExpression {
     @Nullable private Object myValue;
 
-    private GradlePropertyElement(@Nullable GradleDslElement parent, @NotNull String name) {
+    private GradlePropertyElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
       super(parent, null, name, null);
       setElementType(PROPERTIES_FILE);
     }

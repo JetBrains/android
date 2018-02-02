@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,7 +130,8 @@ public class AbiModelImpl extends GradleDslBlockModel implements AbiModel {
   @Override
   @NotNull
   public AbiModel addReset() {
-    GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, RESET, null);
+    GradleNameElement name = GradleNameElement.create(RESET);
+    GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, name, null);
     myDslElement.setNewElement(RESET, resetMethod); // TODO: reset include
     return this;
   }

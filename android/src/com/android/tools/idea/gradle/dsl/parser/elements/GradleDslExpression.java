@@ -53,7 +53,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
 
   protected GradleDslExpression(@Nullable GradleDslElement parent,
                                 @Nullable PsiElement psiElement,
-                                @NotNull String name,
+                                @NotNull GradleNameElement name,
                                 @Nullable PsiElement expression) {
     super(parent, psiElement, name);
     myExpression = expression;

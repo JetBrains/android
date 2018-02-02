@@ -17,10 +17,11 @@ package com.android.tools.idea.gradle.dsl.parser.android.productFlavors.external
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockElement {
-  protected AbstractBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  protected AbstractBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 

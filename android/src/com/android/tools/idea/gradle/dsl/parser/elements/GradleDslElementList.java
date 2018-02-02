@@ -32,7 +32,7 @@ public class GradleDslElementList extends GradleDslElement {
   @NotNull private final List<GradleDslElement> myToBeAddedElements = Lists.newArrayList();
   @NotNull private final List<GradleDslElement> myToBeRemovedElements = Lists.newArrayList();
 
-  public GradleDslElementList(@NotNull GradleDslElement parent, @NotNull String name) {
+  public GradleDslElementList(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
 
@@ -84,6 +84,22 @@ public class GradleDslElementList extends GradleDslElement {
   @Nullable
   public PsiElement getPsiElement() {
     return null; // This class just act as a group of elements and doesn't represent any real elements on the file.
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    return ""; // This is just a collection of elements and doesn't have a name.
+  }
+
+  @Override
+  @NotNull
+  public String getQualifiedName() {
+    if (myParent == null) {
+      return getName();
+    }
+
+    return myParent.getQualifiedName();
   }
 
   @Override

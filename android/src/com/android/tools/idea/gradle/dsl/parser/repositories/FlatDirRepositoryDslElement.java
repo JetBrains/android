@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.repositories;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +25,7 @@ public class FlatDirRepositoryDslElement extends GradleDslBlockElement {
   @NonNls public static final String FLAT_DIR_BLOCK_NAME = "flatDir";
 
   public FlatDirRepositoryDslElement(@NotNull GradleDslElement parent) {
-    super(parent, FLAT_DIR_BLOCK_NAME);
+    super(parent, GradleNameElement.create(FLAT_DIR_BLOCK_NAME));
   }
 
   @Override

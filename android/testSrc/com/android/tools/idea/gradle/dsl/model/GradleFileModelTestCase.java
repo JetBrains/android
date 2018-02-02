@@ -435,6 +435,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(name, model.getName());
   }
 
+  public static void verifyListProperty(GradlePropertyModel model,
+                                        List<Object> expectedValues,
+                                        PropertyType propertyType,
+                                        int dependencies,
+                                        String name,
+                                        String fullName) {
+    verifyListProperty(model, expectedValues, propertyType, dependencies, name);
+    assertEquals(fullName, model.getFullyQualifiedName());
+  }
+
   public static void verifyListProperty(@NotNull String message,
                                         @Nullable GradlePropertyModel model,
                                         @NotNull List<Object> expectedValues,
@@ -450,6 +460,14 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     }
   }
 
+  public static void verifyMapProperty(@Nullable GradlePropertyModel model,
+                                       @NotNull Map<String, Object> expectedValues,
+                                       @NotNull String name,
+                                       @NotNull String fullName) {
+    verifyMapProperty(model, expectedValues);
+    assertEquals(name, model.getName());
+    assertEquals(fullName, model.getFullyQualifiedName());
+  }
 
   public static void verifyMapProperty(@Nullable GradlePropertyModel model,
                                        @NotNull Map<String, Object> expectedValues) {

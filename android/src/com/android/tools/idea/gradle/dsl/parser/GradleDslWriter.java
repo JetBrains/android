@@ -65,7 +65,11 @@ public interface GradleDslWriter {
 
   PsiElement createDslExpressionList(@NotNull GradleDslExpressionList expressionList);
 
+  void applyDslExpressionList(@NotNull GradleDslExpressionList expressionList);
+
   PsiElement createDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap);
+
+  void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap);
 
   PsiElement createDslJavaVersionElement(@NotNull JavaVersionDslElement javaVersionDslElement);
 
@@ -108,7 +112,13 @@ public interface GradleDslWriter {
     public PsiElement createDslExpressionList(@NotNull GradleDslExpressionList expressionList) { return null; }
 
     @Override
+    public void applyDslExpressionList(@NotNull GradleDslExpressionList expressionList) { }
+
+    @Override
     public PsiElement createDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap) { return null; }
+
+    @Override
+    public void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap) { }
 
     @Override
     public PsiElement createDslJavaVersionElement(@NotNull JavaVersionDslElement javaVersionDslElement) { return null; }

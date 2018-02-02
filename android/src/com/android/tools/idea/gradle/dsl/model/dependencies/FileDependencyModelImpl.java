@@ -48,7 +48,7 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   static void createAndAddToList(@NotNull GradleDslElementList list,
                                  @NotNull String configurationName,
                                  @NotNull String file) {
-    String methodName = FILES;
+    GradleNameElement methodName = GradleNameElement.create(FILES);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
     GradleDslLiteral fileDslLiteral = new GradleDslLiteral(methodCall, methodName);
     fileDslLiteral.setValue(file);

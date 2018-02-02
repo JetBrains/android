@@ -25,7 +25,7 @@ import java.util.Collections;
 
 public class GradleDslUnknownElement extends GradleDslExpression {
 
-  public GradleDslUnknownElement(@NotNull GradleDslElement parent, @NotNull PsiElement expression, @NotNull String name) {
+  public GradleDslUnknownElement(@NotNull GradleDslElement parent, @NotNull PsiElement expression, @NotNull GradleNameElement name) {
     super(parent, expression, name, expression);
   }
 

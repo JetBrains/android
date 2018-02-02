@@ -31,12 +31,12 @@ import java.util.List;
 public final class GradleDslReference extends GradleDslSettableExpression {
   public GradleDslReference(@NotNull GradleDslElement parent,
                             @NotNull PsiElement psiElement,
-                            @NotNull String name,
+                            @NotNull GradleNameElement name,
                             @NotNull PsiElement reference) {
     super(parent, psiElement, name, reference);
   }
 
-  public GradleDslReference(@NotNull GradleDslElement parent, @NotNull String name) {
+  public GradleDslReference(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name, null);
   }
 

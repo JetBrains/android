@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 
 import java.util.List;
 
