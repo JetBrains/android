@@ -143,7 +143,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (themeUrl != null &&
         themeUrl.type == ResourceType.STYLE) {
       ResourceResolver resolver = myConfiguration.getResourceResolver();
-      if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.framework) == null) {
+      if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
         myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
       }
     }

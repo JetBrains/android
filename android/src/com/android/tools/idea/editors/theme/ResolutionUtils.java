@@ -234,7 +234,7 @@ public class ResolutionUtils {
       }
       return apiLookup.getFieldVersion("android/R$attr", name.substring(ANDROID_NS_NAME_PREFIX_LEN));
     } else {
-      if (!resUrl.framework) {
+      if (!resUrl.isFramework()) {
         // not an android value
         return -1;
       }

@@ -170,7 +170,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                   new DefaultJavaEvaluator(expression.getProject(), null),
                   expressions[0]);
 
-                if (resource == null || resource.framework || resource.type != ResourceType.STRING) {
+                if (resource == null || resource.isFramework() || resource.type != ResourceType.STRING) {
                   return;
                 }
 

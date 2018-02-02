@@ -134,10 +134,12 @@ class AppCompatStyleMigration {
               if (attributeValue.startsWith(PREFIX_THEME_REF)
                   && attributeValue.contains(PREFIX_ANDROID)) {
                 ResourceUrl url = ResourceUrl.parse(attributeValue);
-                if (url != null && url.framework && isAppCompatAttribute(url.name)) {
-                  ResourceUrl toChange = ResourceUrl.create(null, ResourceType.ATTR, url.name);
-                  if (url.theme) {
-                    toChange = toChange.asThemeUrl();
+                if (url != null && url.isFramework() && isAppCompatAttribute(url.name)) {
+                  ResourceUrl toChange;
+                  if (url.isTheme()) {
+                    toChange = ResourceUrl.createThemeReference(null, ResourceType.ATTR, url.name);
+                  } else {
+                    toChange = ResourceUrl.create(null, ResourceType.ATTR, url.name);
                   }
                   String newResource = toChange.toString();
 
@@ -165,7 +167,7 @@ class AppCompatStyleMigration {
       if (attrRes == null) {
         return;
       }
-      if (attrRes.framework) {
+      if (attrRes.isFramework()) {
         // example:
         // @android:style/TextAppearance.Material.Widget.Button =>
         // @style/TextAppearance.AppCompat.Widget.Button
@@ -239,11 +241,13 @@ class AppCompatStyleMigration {
           if (frameworkResources.hasResourceItem(tagValueText)) {
             ResourceUrl attrUrl = ResourceUrl.parse(tagValueText);
 
-            if (attrUrl != null && attrUrl.framework && isAppCompatAttribute(attrUrl.name)
+            if (attrUrl != null && attrUrl.isFramework() && isAppCompatAttribute(attrUrl.name)
                 && xmlItemTag.getValue().getTextElements().length == 1) {
-              ResourceUrl changeToStyleAttr = ResourceUrl.create(null, ResourceType.ATTR, attrUrl.name);
-              if (attrUrl.theme) {
-                changeToStyleAttr = changeToStyleAttr.asThemeUrl();
+              ResourceUrl changeToStyleAttr;
+              if (attrUrl.isTheme()) {
+                changeToStyleAttr = ResourceUrl.createThemeReference(null, ResourceType.ATTR, attrUrl.name);
+              } else {
+                changeToStyleAttr = ResourceUrl.create(null, ResourceType.ATTR, attrUrl.name);
               }
 
               String changedStyle = changeToStyleAttr.toString();

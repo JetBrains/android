@@ -1607,7 +1607,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         myReferenceComponent.addSwatchListener(e -> {
           String attributeValue = myReferenceComponent.getValueText();
           ResourceUrl attributeValueUrl = ResourceUrl.parse(attributeValue);
-          boolean isFrameworkValue = attributeValueUrl != null && attributeValueUrl.framework;
+          boolean isFrameworkValue = attributeValueUrl != null && attributeValueUrl.isFramework();
           String nameSuggestion = attributeValueUrl != null ? attributeValueUrl.name : null;
 
           ChooseResourceDialog dialog = builder()
