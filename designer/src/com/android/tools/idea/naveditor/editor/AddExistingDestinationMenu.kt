@@ -14,18 +14,26 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.annotations.VisibleForTesting
+import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.searches.ClassInheritorsSearch
+import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -34,44 +42,109 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
 import icons.StudioIcons
-
-import javax.swing.*
-import javax.swing.event.DocumentEvent
-import java.awt.*
+import org.jetbrains.android.AndroidGotoRelatedProvider
+import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.resourceManagers.LocalResourceManager
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.Image
+import java.awt.MediaTracker
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.util.*
+import javax.swing.BorderFactory
+import javax.swing.ImageIcon
+import javax.swing.JPanel
+import javax.swing.ListModel
+import javax.swing.event.DocumentEvent
 
 /**
  * "Add" popup menu in the navigation editor.
  */
 @VisibleForTesting
-class AddExistingDestinationMenu(
-  surface: NavDesignSurface,
-  @field:VisibleForTesting val destinations: List<Destination>
-) : NavToolbarMenu(surface, "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_EXISTING) {
+class AddExistingDestinationMenu(surface: NavDesignSurface) :
+    NavToolbarMenu(surface, "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_EXISTING) {
 
-  private var listModel: FilteringListModel<Destination> = FilteringListModel(CollectionListModel<Destination>(destinations))
-
-  @Suppress("UNCHECKED_CAST")
   @VisibleForTesting
-  var destinationsList = object : JBList<Destination>(listModel as ListModel<Destination>) {
-    override fun getPreferredScrollableViewportSize(): Dimension {
-      return Dimension(252, 300)
-    }
-  }
+  val destinations: List<Destination>
+    get() {
+      val model = surface.model!!
+      val classToDestination = LinkedHashMap<PsiClass, Destination>()
+      val module = model.module
+      val schema = surface.schema
 
-  private var mediaTracker = MediaTracker(destinationsList)
+      val scope = GlobalSearchScope.moduleWithDependenciesScope(module)
+      val project = model.project
+      val parent = surface.currentNavigation
+      for (superClassName in NavigationSchema.DESTINATION_SUPERCLASS_TO_TYPE.keys) {
+        val psiSuperClass = JavaPsiFacade.getInstance(project).findClass(superClassName, GlobalSearchScope.allScope(project)) ?: continue
+        val tag = schema.getTagForComponentSuperclass(superClassName) ?: continue
+        val query = ClassInheritorsSearch.search(psiSuperClass, scope, true)
+        for (psiClass in query) {
+          val destination = Destination.RegularDestination(parent, tag, null, psiClass.name, psiClass.qualifiedName)
+          classToDestination.put(psiClass, destination)
+        }
+      }
+
+      val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
+
+      for (resourceFile in resourceManager.findResourceFiles(ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
+        // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
+        val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, model.facet)
+        for (item in itemComputable?.compute() ?: continue) {
+          val element = item.element as? PsiClass ?: continue
+          val tag = schema.findTagForComponent(element) ?: continue
+          val destination =
+              Destination.RegularDestination(parent, tag, null, element.name, element.qualifiedName, layoutFile = resourceFile)
+          classToDestination.put(element, destination)
+        }
+      }
+
+      val result = classToDestination.values.toMutableList()
+
+      for (navPsi in resourceManager.findResourceFiles(ResourceFolderType.NAVIGATION).filterIsInstance<XmlFile>()) {
+        if (surface.model!!.file == navPsi) {
+          continue
+        }
+        result.add(Destination.IncludeDestination(navPsi.name, parent))
+      }
+
+      return result
+    }
+
+  @VisibleForTesting
+  lateinit var destinationsList: JBList<Destination>
 
   private var loadingPanel: JBLoadingPanel = JBLoadingPanel(BorderLayout(), surface)
 
   @VisibleForTesting
   var mySearchField = SearchTextField()
 
-  override val mainPanel = createSelectionPanel()
+  private var _mainPanel: JPanel? = null
+
+  override val mainPanel: JPanel
+    get() {
+      return _mainPanel ?: createSelectionPanel().also { _mainPanel = it}
+    }
+
+  init {
+    val listener = ResourceNotificationManager.ResourceChangeListener { _ -> _mainPanel = null }
+    val notificationManager = ResourceNotificationManager.getInstance(surface.project)
+    val facet = surface.model!!.facet
+    notificationManager.addListener(listener, facet, null, null)
+    Disposer.register(surface, Disposable { notificationManager.removeListener(listener, facet, null, null) })
+  }
 
   private fun createSelectionPanel(): JPanel {
-    listModel.setFilter { destination -> destination.label.toLowerCase().contains(mySearchField.text.toLowerCase()) }
+    val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
 
+    listModel.setFilter { destination -> destination.label.toLowerCase().contains(mySearchField.text.toLowerCase()) }
+    @Suppress("UNCHECKED_CAST")
+    destinationsList = object : JBList<Destination>(listModel as ListModel<Destination>) {
+      override fun getPreferredScrollableViewportSize(): Dimension {
+        return Dimension(252, 300)
+      }
+    }
     destinationsList.setCellRenderer { _, value, _, _, _ ->
       THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail.getScaledInstance(50, 64, Image.SCALE_SMOOTH))
       PRIMARY_TEXT_RENDERER.text = value.label
@@ -94,9 +167,9 @@ class AddExistingDestinationMenu(
         }
     )
 
-    val selectionPanel = AdtSecondaryPanel(VerticalLayout(5))
-    destinationsList.background = selectionPanel.background
-    selectionPanel.add(mySearchField)
+    val result = AdtSecondaryPanel(VerticalLayout(5))
+    destinationsList.background = result.background
+    result.add(mySearchField)
     mySearchField.addDocumentListener(
         object : DocumentAdapter() {
           override fun textChanged(e: DocumentEvent) {
@@ -107,7 +180,7 @@ class AddExistingDestinationMenu(
 
     val scrollPane = JBScrollPane(destinationsList)
     scrollPane.border = BorderFactory.createEmptyBorder()
-
+    val mediaTracker = MediaTracker(destinationsList)
     destinations.forEach { destination -> mediaTracker.addImage(destination.thumbnail, 0) }
     if (!mediaTracker.checkAll()) {
       loadingPanel.add(scrollPane, BorderLayout.CENTER)
@@ -122,9 +195,9 @@ class AddExistingDestinationMenu(
         }
       }
 
-      selectionPanel.add(loadingPanel)
+      result.add(loadingPanel)
     } else {
-      selectionPanel.add(scrollPane)
+      result.add(scrollPane)
     }
     destinationsList.addMouseListener(
         object : MouseAdapter() {
@@ -146,7 +219,7 @@ class AddExistingDestinationMenu(
           }
         }
     )
-    return selectionPanel
+    return result
   }
 
   companion object {

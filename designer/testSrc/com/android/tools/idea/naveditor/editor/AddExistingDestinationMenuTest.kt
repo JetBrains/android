@@ -16,9 +16,15 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.idea.common.SyncNlModel
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.common.collect.ImmutableList
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.psi.PsiManager
+import com.intellij.psi.xml.XmlFile
+import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseEvent
 
 // TODO: testing with custom navigators
@@ -51,8 +57,20 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     _surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
     surface.model = model
-    _menu = AddExistingDestinationMenu(surface, NavActionManager(surface).destinations)
+    _menu = AddExistingDestinationMenu(surface)
     menu.mainPanel
+  }
+
+  fun testContent() {
+    val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main2.xml")
+    val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
+
+    val parent = model.components[0]
+    val expected1 = Destination.RegularDestination(parent, "fragment", null, "BlankFragment", "mytest.navtest.BlankFragment")
+    val expected2 = Destination.RegularDestination(parent, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
+        layoutFile = xmlFile)
+    val expected3 = Destination.IncludeDestination("navigation.xml", parent)
+    assertSameElements(AddExistingDestinationMenu(surface).destinations, ImmutableList.of(expected1, expected2, expected3))
   }
 
   override fun tearDown() {
@@ -91,6 +109,21 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     searchField.text = "vig"
     assertEquals(1, gallery.itemsCount)
     assertEquals("navigation.xml", (gallery.model.getElementAt(0) as Destination).label)
+  }
+
+  fun testCaching() {
+    val group = DefaultActionGroup()
+    surface.actionManager.addActions(group, null, null, listOf<NlComponent>(), true)
+    val addExistingDestinationMenu = group.getChildren(null)[1] as AddExistingDestinationMenu
+    val panel = addExistingDestinationMenu.mainPanel
+    // get it again and check that it's the same instance
+    assertSame(panel, addExistingDestinationMenu.mainPanel)
+
+    myFixture.addClass("class Foo extends android.app.Fragment {}")
+    UIUtil.dispatchAllInvocationEvents()
+
+    assertNotSame(panel, addExistingDestinationMenu.mainPanel)
+    addExistingDestinationMenu.destinations.first { it.label == "Foo" }
   }
 
   fun testImageLoading() {

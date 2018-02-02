@@ -45,7 +45,7 @@ public interface ModelListener {
   default void modelLiveUpdate(@NotNull NlModel model, boolean animate) {}
 
   /** The model changed due to a layout pass */
-  void modelChangedOnLayout(@NotNull NlModel model, boolean animate);
+  default void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {}
 
   default void modelActivated(@NotNull NlModel model) {}
 
