@@ -204,7 +204,7 @@ public class NewCppProjectTest {
 
     newProjectWizard.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30));
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
     guiTest.waitForBackgroundTasks();
   }
 
