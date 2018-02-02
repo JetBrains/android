@@ -55,7 +55,6 @@ import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
-import static org.junit.Assert.assertEquals;
 
 /**
  * UI tests for the constraint layout
@@ -566,7 +565,6 @@ public class ConstraintLayoutTest {
     assertThat(layoutContents).doesNotContainMatch("<Button.*app:layout_constraintBottom_toBottomOf=\"parent\"");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/64152425
   @Test
   public void fileIsFormattedAfterSelectingMarginStart() {
     WizardUtils.createNewProject(guiTest, "Empty Activity");
@@ -606,10 +604,8 @@ public class ConstraintLayoutTest {
 
     Wait.seconds(10).expecting("the editor to update and reformat the XML file")
       .until(() -> expected.equals(editor.getCurrentFileContents()));
-    assertEquals(expected, editor.getCurrentFileContents());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/64152425
   @Test
   public void cleanUpAttributes() throws IOException {
     WizardUtils.createNewProject(guiTest);
@@ -659,6 +655,7 @@ public class ConstraintLayoutTest {
                       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                       "</android.support.constraint.ConstraintLayout>";
 
-    assertEquals(expected, editor.getCurrentFileContents());
+    Wait.seconds(10).expecting("the editor to update and reformat the XML file")
+      .until(() -> expected.equals(editor.getCurrentFileContents()));
   }
 }
