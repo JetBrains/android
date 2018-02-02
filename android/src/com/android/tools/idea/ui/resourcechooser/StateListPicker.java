@@ -229,7 +229,7 @@ public class StateListPicker extends JPanel {
 
       final String attributeValue = resourceComponent.getValueText();
       ResourceUrl attributeValueUrl = ResourceUrl.parse(attributeValue);
-      boolean isFrameworkValue = attributeValueUrl != null && attributeValueUrl.framework;
+      boolean isFrameworkValue = attributeValueUrl != null && attributeValueUrl.isFramework();
       String nameSuggestion = attributeValueUrl != null ? attributeValueUrl.name : attributeValue;
 
       EnumSet<ResourceType> allowedTypes;

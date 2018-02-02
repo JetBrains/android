@@ -135,7 +135,7 @@ public class GradleInstantRunContext implements InstantRunContext {
         String value = attribute.getNodeValue();
         if (value.startsWith(PREFIX_RESOURCE_REF)) {
           ResourceUrl url = ResourceUrl.parse(value);
-          if (url != null && !url.framework) {
+          if (url != null && !url.isFramework()) {
             refs.add(url);
           }
         }

@@ -304,7 +304,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       private void processPotentialReference(String text) {
         ResourceUrl url = ResourceUrl.parse(text);
         if (url != null) {
-          if (!url.framework && !url.create && url.type != ResourceType.ID) {
+          if (!url.isFramework() && !url.isCreate() && url.type != ResourceType.ID) {
             List<ResourceItem> matches = myResourceRepository.getResourceItem(url.type, url.name);
             if (matches != null) {
               for (ResourceItem match : matches) {

@@ -108,7 +108,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       //   <string name="my_alias">@string/my_string</string>
       // If the caret is on my_string, you expect to rename my_string, not my_alias (the XmlTag)
       ResourceUrl url = findResourceReferenceUnderCaret(editor, file);
-      if (url != null && !url.framework) {
+      if (url != null && !url.isFramework()) {
         performResourceReferenceRenaming(project, editor, dataContext, file, url);
       }
       else {
@@ -144,7 +144,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
                                                        DataContext dataContext,
                                                        PsiFile file,
                                                        ResourceUrl url) {
-    assert !url.framework;
+    assert !url.isFramework();
 
     final AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {

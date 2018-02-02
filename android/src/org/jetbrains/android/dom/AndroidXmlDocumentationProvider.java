@@ -94,7 +94,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       } else {
         boolean isFramework = false;
         if (originalUrl != null) {
-          isFramework = originalUrl.framework;
+          isFramework = originalUrl.isFramework();
         } else {
           // Figure out if this resource is a framework file.
           // We really should store that info in the ValueResourceInfo instances themselves.
