@@ -41,7 +41,7 @@ interface GuiTestProjectSystem {
    * Runs the build system specific import routine for a given project.  Implementations may choose to import
    * the project by performing UI actions with a FEST robot. (e.g. Click through the import project wizard.)
    */
-  fun importProject(targetTestDirectory: File, robot: Robot, buildPath: String? = null)
+  fun importProject(targetTestDirectory: File, robot: Robot)
 
   /**
    * Triggers a project sync by invoking a build system specific menu path.

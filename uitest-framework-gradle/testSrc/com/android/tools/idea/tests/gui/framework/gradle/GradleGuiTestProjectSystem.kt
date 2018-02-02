@@ -42,7 +42,7 @@ class GradleGuiTestProjectSystem : GuiTestProjectSystem {
     }
   }
 
-  override fun importProject(targetTestDirectory: File, robot: Robot, buildFilePath: String?) {
+  override fun importProject(targetTestDirectory: File, robot: Robot) {
     val toSelect = VfsUtil.findFileByIoFile(targetTestDirectory, true)
     ApplicationManager.getApplication().invokeAndWait { GradleProjectImporter.getInstance().importProject(toSelect!!) }
   }
