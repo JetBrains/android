@@ -197,8 +197,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   @Test
   public void testLoadingTooltipViewWithStrongReference() throws Exception {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    myStage.setTooltip(new MemoryUsageTooltip(myStage));
     ReferenceWalker referenceWalker = new ReferenceWalker(stageView);
-    referenceWalker.assertReachable(MemoryStageTooltipView.class);
+    referenceWalker.assertReachable(MemoryUsageTooltipView.class);
   }
 
   @Test

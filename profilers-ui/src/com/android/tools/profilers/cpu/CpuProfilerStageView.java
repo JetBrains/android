@@ -34,7 +34,7 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.ComboBox;
@@ -108,7 +108,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
-
+    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
+    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
 
@@ -260,7 +261,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
-    details.add(createTooltip(overlayPanel, overlay, myThreads), new TabularLayout.Constraint(1, 0, 2, 1));
+    RangeTooltipComponent tooltipComponent = createTooltip(overlayPanel, overlay, myThreads);
+    eventsView.registerTooltip(tooltipComponent, getStage());
+    details.add(tooltipComponent, new TabularLayout.Constraint(1, 0, 2, 1));
 
     // Double-clicking the chart should remove a capture selection if one exists.
     MouseAdapter doubleClick = new MouseAdapter() {
@@ -422,7 +425,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   @NotNull
-  private JComponent createTooltip(@NotNull JPanel overlayPanel,
+  private RangeTooltipComponent createTooltip(@NotNull JPanel overlayPanel,
                                    @NotNull JComponent overlay,
                                    @NotNull JBList<CpuThreadsModel.RangedCpuThread> threads) {
     ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
