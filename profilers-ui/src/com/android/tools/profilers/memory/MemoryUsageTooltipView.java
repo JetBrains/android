@@ -24,22 +24,22 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-class MemoryStageTooltipView extends ProfilerTooltipView {
-  @NotNull private final MemoryProfilerStage myStage;
+class MemoryUsageTooltipView extends ProfilerTooltipView {
+  @NotNull private final MemoryUsageTooltip myTooltip;
 
-  MemoryStageTooltipView(@NotNull MemoryProfilerStage stage) {
-    super(stage.getStudioProfilers().getTimeline(), "Memory");
-    myStage = stage;
+  MemoryUsageTooltipView(@NotNull MemoryProfilerStageView view, @NotNull MemoryUsageTooltip tooltip) {
+    super(view.getTimeline(), "Memory");
+    myTooltip = tooltip;
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    MemoryProfilerStage.MemoryStageLegends legends = myTooltip.getLegends();
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
 
-    if (myStage.useLiveAllocationTracking()) {
+    if (myTooltip.useLiveAllocationTracking()) {
       legend.configure(legends.getJavaLegend(), new LegendConfig(IconType.BOX, ProfilerColors.MEMORY_JAVA_CAPTURED));
       legend.configure(legends.getNativeLegend(), new LegendConfig(IconType.BOX, ProfilerColors.MEMORY_NATIVE_CAPTURED));
       legend.configure(legends.getGraphicsLegend(), new LegendConfig(IconType.BOX, ProfilerColors.MEMORY_GRAPHICS_CAPTURED));

@@ -21,15 +21,15 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,8 +63,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
   @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
-  @NotNull private final MemoryStageTooltipView myMemoryStageTooltipView = new MemoryStageTooltipView(getStage());
-
   @Nullable private CaptureObject myCaptureObject = null;
 
   @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
@@ -83,6 +81,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // Turns on the auto-capture selection functionality - this would select the latest user-triggered heap dump/allocation tracking
     // capture object if an existing one has not been selected.
     getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
+
+    getTooltipBinder().bind(MemoryUsageTooltip.class, MemoryUsageTooltipView::new);
+    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
+    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
 
     myMainSplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
     myChartCaptureSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
@@ -370,9 +372,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addCustomRenderer(heapDumpRenderer);
     overlay.addDurationDataRenderer(heapDumpRenderer);
 
+    overlay.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new MemoryUsageTooltip(getStage())));
+    overlayPanel.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new MemoryUsageTooltip(getStage())));
+
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                myMemoryStageTooltipView.createComponent(), ProfilerLayeredPane.class);
+                                getTooltipPanel(), ProfilerLayeredPane.class);
+    eventsView.registerTooltip(tooltip, getStage());
     // TODO: Probably this needs to be refactored.
     //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
     tooltip.registerListenersOn(overlay);
