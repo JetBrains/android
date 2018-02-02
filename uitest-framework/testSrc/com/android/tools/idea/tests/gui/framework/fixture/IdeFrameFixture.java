@@ -452,7 +452,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
 
-    waitForSync.expecting("Syncing project " + quote(project.getName()) + " to finish")
+    waitForSync.expecting("syncing project " + quote(project.getName()) + " to finish")
       .until(() -> {
         GradleSyncState syncState = GradleSyncState.getInstance(project);
         boolean syncFinished =
