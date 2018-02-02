@@ -62,14 +62,12 @@ abstract public class SceneManager implements Disposable {
 
     myScene = new Scene(this, myDesignSurface);
     myViewEditor = new ViewEditorImpl(myModel, myScene);
-
-    createSceneView();
-  }
+    }
 
   /**
    * Create the SceneView
    */
-  private void createSceneView() {
+  protected void createSceneView() {
     mySceneView = doCreateSceneView();
 
     myDesignSurface.addLayers(getLayers());

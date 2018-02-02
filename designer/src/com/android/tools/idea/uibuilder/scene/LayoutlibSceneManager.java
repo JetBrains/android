@@ -155,6 +155,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
     super(model, designSurface);
+    createSceneView();
     updateTrackingConfiguration();
 
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
