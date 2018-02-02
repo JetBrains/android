@@ -326,10 +326,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
 
     if (wait == null) {
-      // http://b.android.com/226797 - Most builds finish in 10 seconds, but GradleBuildTest.compileWithJack was failing.
-      wait = Wait.seconds(20);
+      // http://b/72834057 - If we keep tweaking this value we should consider a different way of waiting for this.
+      wait = Wait.seconds(60);
     }
-
     wait.expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
       .until(() -> {
         if (buildMode == SOURCE_GEN) {
