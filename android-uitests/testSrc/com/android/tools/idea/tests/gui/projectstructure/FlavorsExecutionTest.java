@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.FlavorsTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,7 +54,8 @@ public class FlavorsExecutionTest {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importProject("SimpleLocalApplication");
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
@@ -79,7 +81,7 @@ public class FlavorsExecutionTest {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/72654538
+  @RunIn(TestGroup.SANITY)
   @Test
   public void runBuildFlavors() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
