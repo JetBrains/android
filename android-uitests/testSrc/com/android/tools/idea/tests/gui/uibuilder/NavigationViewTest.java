@@ -55,6 +55,7 @@ public final class NavigationViewTest {
     myLayoutEditor.showOnlyDesignView();
   }
 
+  @Ignore("b/72574190")  // triggers IDE error
   @Test
   public void doubleClickHeaderLayout() {
     myLayoutEditor.getSurface().doubleClick(new Point(230, 170));
