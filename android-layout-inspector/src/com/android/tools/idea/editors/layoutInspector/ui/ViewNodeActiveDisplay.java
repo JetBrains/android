@@ -22,7 +22,7 @@ import com.android.tools.idea.ui.MaterialColors;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.ui.paint.LinePainter2D;
 import org.intellij.images.options.GridOptions;
 import com.intellij.ui.DoubleClickListener;
 import org.jetbrains.annotations.NotNull;
@@ -374,10 +374,10 @@ public class ViewNodeActiveDisplay extends JComponent {
     g.setColor(GridOptions.DEFAULT_LINE_COLOR);
     int lineSpan = GridOptions.DEFAULT_LINE_SPAN;
     for (int dx = lineSpan; dx < imageWidth; dx += lineSpan) {
-      UIUtil.drawLine(g, (int)((double)dx * zoomX), 0, (int)((double)dx * zoomX), size.height);
+      LinePainter2D.paint((Graphics2D)g, (int)((double)dx * zoomX), 0, (int)((double)dx * zoomX), size.height);
     }
     for (int dy = lineSpan; dy < imageHeight; dy += lineSpan) {
-      UIUtil.drawLine(g, 0, (int)((double)dy * zoomY), size.width, (int)((double)dy * zoomY));
+      LinePainter2D.paint((Graphics2D)g, 0, (int)((double)dy * zoomY), size.width, (int)((double)dy * zoomY));
     }
   }
 
