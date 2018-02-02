@@ -258,11 +258,8 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
           tail.next = head;
           head = tail;
         }
-
-        return head;
-      } else {
-        return head;
       }
+      return head;
     }
     return tail;
   }
