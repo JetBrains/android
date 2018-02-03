@@ -82,7 +82,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     // trigger initialization
     ModuleResourceRepository.getOrCreateInstance(myAndroidFacet);
 
-    File classesOut = new File(getProject().getBaseDir().getPath(), "/app/build/intermediates/classes/debug");
+    File classesOut = new File(getProject().getBaseDir().getPath(), "/app/build/intermediates/artifact_transform/javac/debug/classes");
     //noinspection unchecked
     Collection<File> classes = FileUtils.listFiles(classesOut, new String[]{"class"}, true);
     assertTrue("if we cannot find any class, something is wrong with the test", classes.size() > 0);
