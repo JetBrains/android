@@ -69,13 +69,14 @@ interface ModelSimpleProperty<in ModelT, PropertyT : Any> :
 /**
  * A UI descriptor of a collection property.
  */
-interface ModelCollectionProperty<in ModelT, CollectionT : Any, ValueT : Any>
+interface ModelCollectionProperty<in ModelT, CollectionT : Any, out ValueT : Any>
   : ModelProperty<ModelT, CollectionT>,
-    ModelPropertyContext<ModelT, ValueT> {
-  fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>>
-}
+    ModelPropertyContext<ModelT, ValueT>
 
 /**
  * A UI descriptor of a list property.
  */
-interface ModelListProperty<in ModelT, ValueT : Any> : ModelCollectionProperty<ModelT, List<ValueT>, ValueT>
+interface ModelListProperty<in ModelT, ValueT : Any> :
+  ModelCollectionProperty<ModelT, List<ValueT>, ValueT> {
+  fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>>
+}

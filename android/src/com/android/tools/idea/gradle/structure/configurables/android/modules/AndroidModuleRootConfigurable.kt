@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanel
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.listPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
@@ -48,6 +49,7 @@ fun defaultConfigPropertiesModel() =
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor),
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor),
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor),
+            uiProperty(PsAndroidModuleDefaultConfigDescriptors.proGuardFiles, listPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest,
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling,
