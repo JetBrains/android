@@ -75,7 +75,7 @@ class ModuleFactory {
   @NotNull
   private File getModuleImlFilePath(@NotNull GradleProject gradleProject, @NotNull GradleModuleModels moduleModels) {
     String modulePath = getModulePath(gradleProject, moduleModels);
-    String imlFileName = gradleProject.getName() + DOT_DEFAULT_EXTENSION;
+    String imlFileName = moduleModels.getModuleName() + DOT_DEFAULT_EXTENSION;
     return new File(modulePath, imlFileName);
   }
 
