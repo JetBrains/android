@@ -317,16 +317,33 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
    * Set map from project path to build directory for all modules.
    * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
    */
-  private void populateModuleBuildDirs(@NotNull IdeaProject ideaProject) {
-    for (IdeaModule ideaModule : ideaProject.getChildren()) {
+  private void populateModuleBuildDirs(@NotNull IdeaProject rootIdeaProject) {
+    // Set root build id.
+    for (IdeaModule ideaModule : rootIdeaProject.getChildren()) {
       GradleProject gradleProject = ideaModule.getGradleProject();
       if (gradleProject != null) {
-        try {
-          myDependenciesFactory.findAndAddBuildFolderPath(gradleProject.getPath(), gradleProject.getBuildDirectory());
-        }
-        catch (UnsupportedOperationException exception) {
-          // getBuildDirectory is available for Gradle versions older than 2.0.
-          // For older versions of gradle, there's no way to get build directory.
+        String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getAbsolutePath();
+        myDependenciesFactory.setRootBuildId(rootBuildId);
+        break;
+      }
+    }
+
+    // Set build folder for root and included projects.
+    List<IdeaProject> ideaProjects = new ArrayList<>();
+    ideaProjects.add(rootIdeaProject);
+    ideaProjects.addAll(resolverCtx.getModels().getIncludedBuilds());
+    for (IdeaProject ideaProject : ideaProjects) {
+      for (IdeaModule ideaModule : ideaProject.getChildren()) {
+        GradleProject gradleProject = ideaModule.getGradleProject();
+        if (gradleProject != null) {
+          try {
+            String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getAbsolutePath();
+            myDependenciesFactory.findAndAddBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
+          }
+          catch (UnsupportedOperationException exception) {
+            // getBuildDirectory is not available for Gradle older than 2.0.
+            // For older versions of gradle, there's no way to get build directory.
+          }
         }
       }
     }
