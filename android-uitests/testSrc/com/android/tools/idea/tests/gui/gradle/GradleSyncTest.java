@@ -604,7 +604,6 @@ public class GradleSyncTest {
     assertThat(buildTarget.getAdditionalLibraries()).hasSize(0);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72071969
   @Test
   public void gradleModelCache() throws IOException {
     guiTest.importSimpleLocalApplication();
