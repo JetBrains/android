@@ -29,17 +29,15 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface TargetBuildSystem {
   enum BuildSystem {
-    GRADLE(true),
-    BAZEL(false);
-
-    private final boolean myDefault;
-
-    BuildSystem(boolean isDefault) {
-      myDefault = isDefault;
-    }
+    GRADLE,
+    BAZEL;
 
     public boolean isDefault() {
-      return myDefault;
+      return this == GRADLE;
+    }
+
+    public static BuildSystem getDefault() {
+      return GRADLE;
     }
   }
 

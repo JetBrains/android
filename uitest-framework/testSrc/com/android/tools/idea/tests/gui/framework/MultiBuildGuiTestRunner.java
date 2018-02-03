@@ -17,8 +17,10 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem.BuildSystem;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 import org.junit.internal.runners.statements.Fail;
 import org.junit.runner.Runner;
 import org.junit.runners.Suite;
@@ -26,21 +28,18 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem.*;
 
 /**
  * {@link MultiBuildGuiTestRunner} allows ui-tests to run with multiple {@link TargetBuildSystem}'s.
- * When a ui-test is annotated to run with {@link MultiBuildGuiTestRunner}, an instance of {@link GuiTestRunner}
- * is created for each available build system defined in {@link TargetBuildSystem.BuildSystem}.
- * Then each test in the class is run with every {@link GuiTestRunner} instance that applies to it,
- * as determined by the {@link TargetBuildSystem} annotation.
- * Tests can specify required build systems using the {@link TargetBuildSystem} annotation.
+ * Tests using this runner can specify one or more build systems to target via the {@link BuildSystem} annotation.
+ * Each test is then run once per indicated build system by {@link BuildSpecificGuiTestRunner}.
  * <p>
- * Example of a test class containing tests containing different build systems:
+ * Example of a class containing tests to be run with multiple build systems:
  * <pre>
  * &#064;RunWith(MultiBuildGuiTestRunner.class)
  * public class MultiBuildSystemTest {
@@ -63,19 +62,38 @@ import java.util.stream.Collectors;
  * }
  * </pre>
  * <p>
- * If a test is not annotated with any build system, the default will be chosen.  Currently
- * the default is to run with only GRADLE as build system.
+ * If a test is not annotated with any build system, then {@link BuildSystem#getDefault()} will be used.
  */
 public class MultiBuildGuiTestRunner extends Suite {
   @NotNull private final List<Runner> myRunners;
 
   public MultiBuildGuiTestRunner(Class<?> klass, RunnerBuilder builder) throws InitializationError {
     super(klass, Collections.emptyList());
+    myRunners = runnersFor(klass, requiredBuildSystems(klass));
+  }
 
-    myRunners = new ArrayList<>();
-    for (BuildSystem buildSystem : BuildSystem.values()) {
-      myRunners.add(new BuildSpecificGuiTestRunner(klass, buildSystem));
+  @NotNull
+  private static Set<BuildSystem> requiredBuildSystems(@NotNull Class<?> klass) {
+    return Arrays.stream(klass.getMethods())
+      .filter(method -> method.getAnnotation(Test.class) != null)
+      .map(method -> method.getAnnotation(TargetBuildSystem.class))
+      .flatMap(targetBuildSystem -> {
+        if (targetBuildSystem == null) {
+          return Stream.of(BuildSystem.getDefault());
+        } else {
+          return Stream.of(targetBuildSystem.value());
+        }
+      })
+      .collect(Collectors.toSet());
+  }
+
+  @NotNull
+  private static List<Runner> runnersFor(@NotNull Class<?> klass, @NotNull Set<BuildSystem> buildSystems) throws InitializationError {
+    ImmutableList.Builder<Runner> builder = new ImmutableList.Builder<>();
+    for (BuildSystem system : buildSystems) {
+      builder.add(new BuildSpecificGuiTestRunner(klass, system));
     }
+    return builder.build();
   }
 
   @Override
@@ -84,7 +102,7 @@ public class MultiBuildGuiTestRunner extends Suite {
   }
 
   private static final class BuildSpecificGuiTestRunner extends GuiTestRunner {
-    public BuildSpecificGuiTestRunner(Class<?> testClass, @NotNull TargetBuildSystem.BuildSystem buildSystem) throws InitializationError {
+    public BuildSpecificGuiTestRunner(Class<?> testClass, @NotNull BuildSystem buildSystem) throws InitializationError {
       super(testClass, buildSystem);
     }
 
