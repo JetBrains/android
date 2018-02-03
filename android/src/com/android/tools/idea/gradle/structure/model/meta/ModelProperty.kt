@@ -25,6 +25,10 @@ interface ModelPropertyCore<in ModelT, PropertyT : Any> {
   fun setValue(model: ModelT, value: ParsedValue<PropertyT>)
 }
 
+// Do not require passing Unit value.
+fun <T: Any> ModelPropertyCore<Unit, T>.getValue() = getValue(Unit)
+fun <T: Any> ModelPropertyCore<Unit, T>.setValue(value: ParsedValue<T>) = setValue(Unit, value)
+
 /**
  * A UI descriptor a property of a model of type [ModelT].
  */
@@ -39,21 +43,39 @@ interface ModelProperty<in ModelT, PropertyT : Any> :
   fun getDefaultValue(model: ModelT): PropertyT?
 }
 
+interface ModelPropertyContext<in ModelT, out ValueT : Any> {
+  /**
+   * Parses the text representation of type [ValueT].
+   *
+   * This is up to the parser to decide whether [value] is valid, invalid or is a DSL expression.
+   */
+  fun parse(value: String): ParsedValue<ValueT>
+
+  /**
+   * Returns a list of well-known values (constants) with their short human-readable descriptions that are applicable to the property.
+   */
+  fun getKnownValues(model: ModelT): List<ValueDescriptor<ValueT>>?
+}
+
 /**
  * A UI descriptor of a simple-typed property.
  *
  * The simple-types property is a property whose value can be easily represented in the UI as text.
  */
-interface ModelSimpleProperty<in ModelT, PropertyT : Any> : ModelProperty<ModelT, PropertyT> {
-  /**
-   * Parses the text representation of type [PropertyT].
-   *
-   * This is up to the parser to decide whether [value] is valid, invalid or is a DSL expression.
-   */
-  fun parse(value: String): ParsedValue<PropertyT>
+interface ModelSimpleProperty<in ModelT, PropertyT : Any> :
+  ModelProperty<ModelT, PropertyT>,
+  ModelPropertyContext<ModelT, PropertyT>
 
-  /**
-   * Returns a list of well-known values (constants) with their short human-readable descriptions that are applicable to the property.
-   */
-  fun getKnownValues(model: ModelT): List<ValueDescriptor<PropertyT>>?
+/**
+ * A UI descriptor of a collection property.
+ */
+interface ModelCollectionProperty<in ModelT, CollectionT : Any, ValueT : Any>
+  : ModelProperty<ModelT, CollectionT>,
+    ModelPropertyContext<ModelT, ValueT> {
+  fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>>
 }
+
+/**
+ * A UI descriptor of a list property.
+ */
+interface ModelListProperty<in ModelT, ValueT : Any> : ModelCollectionProperty<ModelT, List<ValueT>, ValueT>

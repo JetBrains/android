@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Ignore
+import java.io.File
 
 class PsBuildTypeTest : AndroidGradleTestCase() {
 
@@ -53,6 +54,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
     val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
     val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
+    val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue() }
 
     assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("suffix"))
     assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("suffix"))
@@ -80,6 +82,26 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     assertThat(zipAlignEnabled.resolved.asTestValue(), equalTo(true))
     assertThat(zipAlignEnabled.parsedValue.asTestValue(), nullValue())
+
+    assertThat(proGuardFiles.size, equalTo(3))
+    assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
+    // TODO(b/72052622): assertThat(proGuardFiles[0].parsedValue, instanceOf(ParsedValue.Set.Parsed::class.java))
+    // TODO(b/72052622): assertThat(
+    //  (proGuardFiles[0].parsedValue as ParsedValue.Set.Parsed<File>).dslText?.mode,
+    //  equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT)
+    //)
+    // TODO(b/72052622): assertThat(
+    //  (proGuardFiles[0].parsedValue as ParsedValue.Set.Parsed<File>).dslText?.text,
+    //  equalTo("getDefaultProguardFile('proguard-android.txt')")
+    //)
+
+    // TODO(b/72814329): Resolved values are not yet supported on list properties.
+    assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
+    assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(File("proguard-rules.txt")))
+
+    // TODO(b/72814329): Resolved values are not yet supported on list properties.
+    assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
+    assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("proguard-rules2.txt")))
   }
 
   fun testProperties_defaultResolved() {
@@ -158,6 +180,9 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     buildType.renderscriptOptimLevel = 3.asParsed()
     buildType.versionNameSuffix = "new_vsuffix".asParsed()
     buildType.zipAlignEnabled = false.asParsed()
+    val editableProGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType)
+    editableProGuardFiles[1].setValue(File("a.txt").asParsed())
+    editableProGuardFiles[2].setValue(File("b.txt").asParsed())
 
     fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
       val applicationIdSuffix = PsBuildType.BuildTypeDescriptors.applicationIdSuffix.getValue(buildType)
@@ -172,6 +197,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
       val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
       val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
+      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue() }
 
       assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("new_suffix"))
       assertThat(debuggable.parsedValue.asTestValue(), equalTo(true))
@@ -183,6 +209,13 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("new_vsuffix"))
       assertThat(zipAlignEnabled.parsedValue.asTestValue(), equalTo(false))
 
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(File("a.txt")))
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("b.txt")))
+
       if (afterSync) {
         assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))
         assertThat(debuggable.parsedValue.asTestValue(), equalTo(debuggable.resolved.asTestValue()))
@@ -193,6 +226,63 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
         assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(renderscriptOptimLevel.resolved.asTestValue()))
         assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo(versionNameSuffix.resolved.asTestValue()))
         assertThat(zipAlignEnabled.parsedValue.asTestValue(), equalTo(zipAlignEnabled.resolved.asTestValue()))
+
+        // TODO(b/72814329): assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
+        // TODO(b/72814329): assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(proGuardFiles[2].resolved.asTestValue()))
+       }
+    }
+
+    verifyValues(buildType)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProject(resolvedProject)
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findBuildType("release")!!, afterSync = true)
+  }
+
+  @Ignore("b/72853928")
+  fun /*test*/SetListReferences() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProject(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val buildType = appModule.findBuildType("release")
+    assertThat(buildType, notNullValue()); buildType!!
+
+    PsBuildType.BuildTypeDescriptors.proGuardFiles.setValue(
+      buildType,
+      ParsedValue.Set.Parsed(
+        dslText = DslText(DslMode.REFERENCE, "varProGuardFiles"),
+        value = null
+      )
+    )
+
+    fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
+      val proGuardFilesValue = PsBuildType.BuildTypeDescriptors.proGuardFiles.getValue(buildType)
+      val parsedProGuardFilesValue = proGuardFilesValue.parsedValue as? ParsedValue.Set.Parsed
+      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue() }
+
+      assertThat(parsedProGuardFilesValue?.dslText?.mode, equalTo(DslMode.REFERENCE))
+      assertThat(parsedProGuardFilesValue?.dslText?.text, equalTo("varProGuardFiles"))
+
+      assertThat(proGuardFiles.size, equalTo(2))
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(File("proguard-rules.txt")))
+
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(File("proguard-rules2.txt")))
+
+      if (afterSync) {
+        // TODO(b/72814329): assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(proGuardFiles[0].resolved.asTestValue()))
+        // TODO(b/72814329): assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
       }
     }
 

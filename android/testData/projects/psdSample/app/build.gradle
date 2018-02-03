@@ -22,6 +22,7 @@ ext {
     varInt = 1
     varBool = true
     varRefString = variable1
+    varProGuardFiles = ['proguard-rules.txt', 'proguard-rules2.txt']
 }
 
 android {
@@ -55,7 +56,7 @@ android {
             minifyEnabled false
             renderscriptOptimLevel 2
             signingConfig signingConfigs.myConfig
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt', 'proguard-rules2.txt'
         }
     }
     flavorDimensions 'foo', 'bar'

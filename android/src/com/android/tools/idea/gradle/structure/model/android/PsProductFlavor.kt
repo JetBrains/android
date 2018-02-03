@@ -15,10 +15,12 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.ProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
+import java.io.File
 
 open class PsProductFlavor(
     parent: PsAndroidModule,
@@ -198,6 +200,16 @@ open class PsProductFlavor(
         clearParsedValue = { versionName().clear() },
         setParsedRawValue = { versionName().setDslText(it) },
         parse = { parseString(it) }
+    )
+
+    val proGuardFiles: ModelListProperty<PsProductFlavor, File> = listProperty(
+      "Proguard Files",
+      getResolvedValue = { proguardFiles.toList() },
+      getParsedCollection = { proguardFiles().asParsedListValue(ResolvedPropertyModel::asFile, { setValue(it.toString()) }) },
+      getParsedRawValue = { proguardFiles().dslText() },
+      clearParsedValue = { proguardFiles().delete() },
+      setParsedRawValue = { proguardFiles().setDslText(it)},
+      parse = { parseFile(it) }
     )
   }
 }
