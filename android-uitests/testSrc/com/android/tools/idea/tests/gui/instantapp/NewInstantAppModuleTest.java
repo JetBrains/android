@@ -118,7 +118,7 @@ public class NewInstantAppModuleTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-
+  @RunIn(TestGroup.UNRELIABLE)  // b/72887122
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {
     guiTest.importSimpleLocalApplication();
