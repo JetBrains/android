@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
-import com.google.common.collect.ImmutableSet;
+import org.jetbrains.annotations.NotNull;
 import org.junit.AssumptionViolatedException;
 import org.junit.internal.runners.statements.Fail;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -27,19 +27,17 @@ import org.junit.runners.model.TestClass;
 
 import java.awt.*;
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
-  private final TargetBuildSystem.BuildSystem myBuildSystem;
+  protected final TargetBuildSystem.BuildSystem myBuildSystem;
   private TestClass myTestClass;
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     this(testClass, TargetBuildSystem.BuildSystem.GRADLE);
   }
 
-  public GuiTestRunner(Class<?> aClass, TargetBuildSystem.BuildSystem buildSystem) throws InitializationError {
-    super(aClass);
+  protected GuiTestRunner(@NotNull Class<?> testClass, @NotNull TargetBuildSystem.BuildSystem buildSystem) throws InitializationError {
+    super(testClass);
     myBuildSystem = buildSystem;
   }
 
@@ -85,51 +83,5 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     }
 
     return myTestClass.getOnlyConstructor().newInstance();
-  }
-
-  @Override
-  protected List<FrameworkMethod> getChildren() {
-    return computeTestMethods()
-      .stream()
-      .filter(this::isMethodApplicable)
-      .collect(Collectors.toList());
-  }
-
-  private boolean isMethodApplicable(FrameworkMethod method) {
-    TargetBuildSystem annotation = method.getAnnotation(TargetBuildSystem.class);
-
-    // if there are no annotations on the method, we can run it only with the default build system
-    if (annotation == null) {
-      return myBuildSystem.isDefault();
-    }
-
-    // if the method is annotated, then one of the annotations must include the current build system
-    return ImmutableSet.copyOf(annotation.value()).contains(myBuildSystem);
-  }
-
-  /**
-   * Include information about the current build system as a part of the test's name to provide
-   * better tooling support when running tests from within IntelliJ.
-   */
-  @Override
-  protected String getName() {
-    // The test name needs to be enclosed in square brackets due to the way IntelliJ parses test names
-    // based on runners. Without square brackets the tests would show up in the Run window as:
-    //
-    //   > TestClassName
-    //     > Running with buildSystemOne
-    //       > TestClassName.testName
-    //     > Running with buildSystemTwo
-    //       > TestClassName.testName
-    //
-    // With square brackets they show as:
-    //
-    //   > TestClassName
-    //     > [Running with buildSystemOne]
-    //       > testName
-    //     > [Running with buildSystemTwo]
-    //       > testName
-    //
-    return "[Running with " + myBuildSystem.name().toLowerCase() + " based project]";
   }
 }
