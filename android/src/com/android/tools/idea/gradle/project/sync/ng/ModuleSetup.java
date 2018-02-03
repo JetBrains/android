@@ -300,14 +300,16 @@ abstract class ModuleSetup {
      * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
      */
     private void populateModuleBuildFolders(@NotNull SyncProjectModels projectModels) {
+      myDependenciesFactory.setRootBuildId(projectModels.getRootBuildId().getRootDir().getAbsolutePath());
       for (GradleModuleModels moduleModels : projectModels.getSyncModuleModels()) {
         GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
         if (gradleProject != null) {
           try {
-            myDependenciesFactory.findAndAddBuildFolderPath(gradleProject.getPath(), gradleProject.getBuildDirectory());
+            String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getAbsolutePath();
+            myDependenciesFactory.findAndAddBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
           }
           catch (UnsupportedOperationException exception) {
-            // getBuildDirectory is available for Gradle versions older than 2.0.
+            // getBuildDirectory is not available for Gradle older than 2.0.
             // For older versions of gradle, there's no way to get build directory.
           }
         }
