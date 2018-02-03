@@ -15,6 +15,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.buildvaria
 
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypeConfigPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.listPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
@@ -35,6 +36,7 @@ fun buildTypePropertiesModel() =
             uiProperty(PsBuildType.BuildTypeDescriptors.jniDebuggable, ::simplePropertyEditor),
             uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptDebuggable, ::simplePropertyEditor),
             uiProperty(PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel, ::simplePropertyEditor),
+            uiProperty(PsBuildType.BuildTypeDescriptors.proGuardFiles, listPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsBuildType.BuildTypeDescriptors.minifyEnabled, ::simplePropertyEditor),
             uiProperty(PsBuildType.BuildTypeDescriptors.multiDexEnabled, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsBuildType.BuildTypeDescriptors.pseudoLocalesEnabled,
