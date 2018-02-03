@@ -33,7 +33,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private TestClass myTestClass;
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
-    this(testClass, TargetBuildSystem.BuildSystem.GRADLE);
+    this(testClass, TargetBuildSystem.BuildSystem.getDefault());
   }
 
   protected GuiTestRunner(@NotNull Class<?> testClass, @NotNull TargetBuildSystem.BuildSystem buildSystem) throws InitializationError {
