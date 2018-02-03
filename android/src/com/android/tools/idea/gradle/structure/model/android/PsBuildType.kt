@@ -17,13 +17,12 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.BuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
-import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
-import com.android.tools.idea.gradle.structure.model.helpers.parseInt
-import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
+import java.io.File
 
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
 
@@ -51,6 +50,7 @@ open class PsBuildType(
   var zipAlignEnabled by BuildTypeDescriptors.zipAlignEnabled
   var multiDexEnabled by BuildTypeDescriptors.multiDexEnabled
   var debuggable by BuildTypeDescriptors.debuggable
+  var proguardFiles by BuildTypeDescriptors.proGuardFiles
 
   override fun getName(): String = name
   override fun getParent(): PsAndroidModule = super.getParent() as PsAndroidModule
@@ -207,8 +207,14 @@ open class PsBuildType(
         parse = { parseBoolean(it) },
         getKnownValues = { booleanValues() }
     )
+    val proGuardFiles: ModelListProperty<PsBuildType, File> = listProperty(
+      "Proguard Files",
+      getResolvedValue = { proguardFiles.toList() },
+      getParsedCollection = { proguardFiles().asParsedListValue(ResolvedPropertyModel::asFile, { setValue(it.toString()) }) },
+      getParsedRawValue = { proguardFiles().dslText() },
+      clearParsedValue = { proguardFiles().delete() },
+      setParsedRawValue = { proguardFiles().setDslText(it)},
+      parse = { parseFile(it) }
+    )
   }
 }
-
-
-

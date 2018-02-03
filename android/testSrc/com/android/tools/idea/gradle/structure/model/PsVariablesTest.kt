@@ -29,10 +29,10 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psProject = PsProject(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables.getModuleVariables()
-    assertThat(variables.size, equalTo(7))
+    assertThat(variables.size, equalTo(8))
     assertThat(
       variables.map { it.name },
-      hasItems("myVariable", "variable1", "anotherVariable", "moreVariable", "varInt", "varBool", "varRefString")
+      hasItems("myVariable", "variable1", "anotherVariable", "moreVariable", "varInt", "varBool", "varRefString", "varProGuardFiles")
     )
   }
 
