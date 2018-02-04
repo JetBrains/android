@@ -123,6 +123,7 @@ public class InstantAppRunTest {
   public void createAndRunInstantApp() throws Exception {
     String runConfigName = "instantapp";
     long deviceProvisioningSeconds = TimeUnit.MINUTES.toSeconds(3);
+    long projectSetupTime = TimeUnit.MINUTES.toSeconds(3);
     NewProjectWizardFixture newProj = guiTest.welcomeFrame().createNewProject();
 
     newProj.clickNext();
@@ -137,12 +138,13 @@ public class InstantAppRunTest {
       .clickFinish();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    guiTest.waitForBackgroundTasks();
 
     // TODO remove the following workaround waits for the project to be set up. See http://b/72666461
-    Wait.seconds(20)
+    // TODO Gradle distribution is retrieved from services.gradle.org rather than local filesystem. See http://b/72832198
+    Wait.seconds(projectSetupTime)
       .expecting("a file to be opened")
       .until(() -> ideFrame.getEditor().getCurrentFile() != null);
+
     guiTest.waitForBackgroundTasks();
 
     emulator.createAVD(
