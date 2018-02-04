@@ -74,6 +74,7 @@ public class RelativeLayoutTest {
                                  "        android:name=\"google.fragmentapplication.YourCustomFragment\"\n");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71938025
   @Test
   public void testDragImageViewFromPalette() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
