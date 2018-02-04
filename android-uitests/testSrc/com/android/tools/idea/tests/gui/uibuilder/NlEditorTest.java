@@ -107,6 +107,7 @@ public class NlEditorTest {
     assertThat(layoutFileContents).contains("<Button");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/72912068
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
@@ -132,6 +133,7 @@ public class NlEditorTest {
     assertThat(editorFixture.canInteractWithSurface()).isFalse();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/72912068
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void designEditorUnavailableIfLastBazelSyncFailed() throws Exception {
