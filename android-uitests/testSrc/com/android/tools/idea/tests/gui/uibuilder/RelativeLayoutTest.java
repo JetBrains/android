@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import org.junit.After;
@@ -71,6 +73,7 @@ public class RelativeLayoutTest {
                                  "        android:name=\"google.fragmentapplication.YourCustomFragment\"\n");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71938025
   @Test
   public void testDragImageViewFromPalette() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
