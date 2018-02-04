@@ -39,6 +39,7 @@ public class MultiModuleThemeEditorTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
+  @Ignore("b/63539615")
   @Test
   public void testMultipleModules() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
