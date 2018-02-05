@@ -249,10 +249,10 @@ public class StudioProfilersView extends AspectObserver {
     ProfilerContextMenu.createIfAbsent(myComponent).add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
 
     Runnable toggleToolButtons = () -> {
-      zoomOut.setEnabled(myProfiler.isProcessAlive());
-      zoomIn.setEnabled(myProfiler.isProcessAlive());
-      resetZoom.setEnabled(myProfiler.isProcessAlive());
-      myGoLive.setEnabled(myProfiler.isProcessAlive());
+      zoomOut.setEnabled(myProfiler.isSessionAlive());
+      zoomIn.setEnabled(myProfiler.isSessionAlive());
+      resetZoom.setEnabled(myProfiler.isSessionAlive());
+      myGoLive.setEnabled(myProfiler.isSessionAlive());
     };
     myProfiler.addDependency(this).onChange(ProfilerAspect.PROCESSES, toggleToolButtons);
     toggleToolButtons.run();

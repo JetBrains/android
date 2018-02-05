@@ -17,12 +17,11 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.profiler.proto.Common;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import static com.android.tools.profilers.StudioProfilers.INVALID_PROCESS_ID;
 
 public class StudioMonitorStage extends Stage {
 
@@ -44,8 +43,8 @@ public class StudioMonitorStage extends Stage {
     getStudioProfilers().getTimeline().getSelectionRange().clear();
 
     myMonitors.clear();
-    int processId = getStudioProfilers().getProcessId();
-    if (processId != INVALID_PROCESS_ID) {
+    Common.Session session = getStudioProfilers().getSession();
+    if (session != Common.Session.getDefaultInstance()) {
       for (StudioProfiler profiler : getStudioProfilers().getProfilers()) {
         myMonitors.add(profiler.newMonitor());
       }
