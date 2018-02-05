@@ -107,9 +107,34 @@ public class EmbeddedDistributionPaths {
 
     // Development build.
     String ideHomePath = getIdeHomePath();
-    String relativePath = toSystemDependentName("/../../out/gradle-dist-link");
+    String relativePath = toSystemDependentName("/../../tools/external/gradle");
     distributionPath = new File(toCanonicalPath(ideHomePath + relativePath));
-    return distributionPath.isDirectory() ? distributionPath : null;
+    if (distributionPath.isDirectory()) {
+      return distributionPath;
+    }
+
+    // Development build.
+    String localDistributionPath = System.getProperty("local.gradle.distribution.path");
+    if (localDistributionPath != null) {
+      distributionPath = new File(toCanonicalPath(localDistributionPath));
+      if (distributionPath.isDirectory()) {
+        return distributionPath;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public File findEmbeddedGradleDistributionFile(@NotNull String gradleVersion) {
+    File distributionPath = findEmbeddedGradleDistributionPath();
+    if (distributionPath != null) {
+      File distributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-bin.zip");
+      if (distributionFile.isFile() && distributionFile.exists()) {
+        return distributionFile;
+      }
+    }
+    return null;
   }
 
   @NotNull

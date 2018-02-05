@@ -20,6 +20,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.NullUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
@@ -322,7 +323,7 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
 
   protected static void createGradleWrapper(@NotNull File projectRoot) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File path = getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip");
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }

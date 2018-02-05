@@ -181,7 +181,14 @@ public final class GradleWrapper {
     return true;
   }
 
-  @TestOnly
+  /**
+   * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
+   *
+   * @param gradleDistribution A local gradle distribution file.
+   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
+   * correct value.
+   * @throws IOException if something goes wrong when saving the file.
+   */
   public void updateDistributionUrl(@NotNull File gradleDistribution) throws IOException {
     String path = gradleDistribution.getPath();
     if (!extensionEquals(path, "zip")) {
