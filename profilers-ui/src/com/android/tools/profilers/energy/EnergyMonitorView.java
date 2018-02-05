@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -36,7 +37,7 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
   /**
    * Energy data buckets' interval time, data unit is same as x axis which is micro seconds.
    */
-  public static final double CHART_INTERVAL_US = 200 * 1000;
+  public static final double CHART_INTERVAL_US = TimeUnit.MILLISECONDS.toMicros(200);
 
   public EnergyMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EnergyMonitor monitor) {
     super(monitor);

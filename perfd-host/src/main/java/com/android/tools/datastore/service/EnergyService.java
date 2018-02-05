@@ -15,16 +15,16 @@
  */
 package com.android.tools.datastore.service;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.EnergyTable;
+import com.android.tools.datastore.energy.BatteryModel;
 import com.android.tools.datastore.poller.EnergyDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
-import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.EnergyProfiler.*;
-import com.android.tools.profiler.proto.EnergyServiceGrpc;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,13 +37,20 @@ import java.util.function.Consumer;
 
 public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase implements ServicePassThrough {
 
+  private final BatteryModel myBatteryModel;
   private final EnergyTable myEnergyTable;
 
   @NotNull private final DataStoreService myService;
   private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Consumer<Runnable> myFetchExecutor;
 
-  public EnergyService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
+  public EnergyService(@NotNull DataStoreService service, @NotNull Consumer<Runnable> fetchExecutor) {
+    this(new BatteryModel(), service, fetchExecutor);
+  }
+
+  @VisibleForTesting
+  public EnergyService(@NotNull BatteryModel batteryModel, @NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
+    myBatteryModel = batteryModel;
     myService = service;
     myFetchExecutor = fetchExecutor;
     myEnergyTable = new EnergyTable();
@@ -54,13 +61,17 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
                                  StreamObserver<EnergyProfiler.EnergyStartResponse> responseObserver) {
     DeviceId deviceId = DeviceId.fromSession(request.getSession());
     EnergyServiceGrpc.EnergyServiceBlockingStub energyClient = myService.getEnergyClient(deviceId);
+    CpuServiceGrpc.CpuServiceBlockingStub cpuClient = myService.getCpuClient(deviceId);
+    NetworkServiceGrpc.NetworkServiceBlockingStub networkClient = myService.getNetworkClient(deviceId);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerClient = myService.getProfilerClient(deviceId);
 
     if (energyClient != null && profilerClient != null) {
       responseObserver.onNext(energyClient.startMonitoringApp(request));
       responseObserver.onCompleted();
       long sessionId = request.getSession().getSessionId();
-      myRunners.put(sessionId, new EnergyDataPoller(request.getSession(), myEnergyTable, profilerClient, energyClient));
+      myRunners
+        .put(sessionId, new EnergyDataPoller(request.getSession(), myBatteryModel, myEnergyTable, profilerClient, cpuClient, networkClient,
+                                             energyClient));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }
     else {
