@@ -50,9 +50,6 @@ import java.util.stream.Collectors;
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
-
-  public static final int INVALID_PROCESS_ID = -1;
-
   /**
    * The number of updates per second our simulated object models receive.
    */
@@ -83,7 +80,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private Common.Device myDevice;
 
   @NotNull
-  private Common.Session mySessionData;
+  private Common.Session mySession;
 
   @NotNull
   private Stage myStage;
@@ -93,8 +90,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private AxisComponentModel myViewAxis;
 
   private long myRefreshDevices;
-
-  private boolean myConnected;
 
   public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -127,12 +122,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     });
 
     myProcesses = Maps.newHashMap();
-    myConnected = false;
     myDevice = null;
     myProcess = null;
     // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
     // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
-    mySessionData = Common.Session.getDefaultInstance();
+    mySession = Common.Session.getDefaultInstance();
 
     myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
     myViewAxis.setGlobalRange(myTimeline.getDataRange());
@@ -187,11 +181,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     try {
       GetDevicesResponse response = myClient.getProfilerClient().getDevices(GetDevicesRequest.getDefaultInstance());
-      if (!myConnected) {
-        this.changed(ProfilerAspect.CONNECTION);
-      }
-
-      myConnected = true;
       Set<Common.Device> devices = new HashSet<>(response.getDeviceList());
       Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
       for (Common.Device device : devices) {
@@ -226,7 +215,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         if (myAgentStatus != agentStatus) {
           myAgentStatus = agentStatus;
           changed(ProfilerAspect.AGENT);
-          if (isProcessAlive() && myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
+          if (isSessionAlive() && myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
             getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
           }
         }
@@ -238,8 +227,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // the exception gets thrown due to startMonitor being called on a service the test didn't setup, this seems like an
       // unintentional side effect of the state of the test that sets this class up properly, if we handle the exception elsewhere
       // the test will fail as a different service will run and an UNIMPLEMENTED exception will be thrown.
-      myConnected = false;
-      this.changed(ProfilerAspect.CONNECTION);
       System.err.println("Cannot find profiler service, retrying...");
     }
   }
@@ -301,7 +288,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         endSession();
       }
 
-      mySessionData = Common.Session.getDefaultInstance();
+      mySession = Common.Session.getDefaultInstance();
 
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
@@ -352,7 +339,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           myProcess.getState() == Common.Process.State.ALIVE) {
         // Starts a new session.
         beginSession();
-        myTimeline.reset(mySessionData.getStartTimestamp());
+        myTimeline.reset(mySession.getStartTimestamp());
         myIdeServices.getFeatureTracker().trackProfilingStarted();
         if (myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
           getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
@@ -368,7 +355,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           for (int i = sessionsResponse.getSessionsCount() - 1; i >= 0; i--) {
             Common.Session session = sessionsResponse.getSessions(i);
             if (session.getDeviceId() == myDevice.getDeviceId() && session.getPid() == myProcess.getPid()) {
-              mySessionData = session;
+              mySession = session;
               break;
             }
           }
@@ -404,17 +391,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     BeginSessionResponse response = myClient.getProfilerClient().beginSession(requestBuilder.build());
-    mySessionData = response.getSession();
-    myProfilers.forEach(profiler -> profiler.startProfiling(mySessionData, myProcess));
+    mySession = response.getSession();
+    myProfilers.forEach(profiler -> profiler.startProfiling(mySession, myProcess));
   }
 
   private void endSession() {
     EndSessionResponse response = myClient.getProfilerClient().endSession(EndSessionRequest.newBuilder()
                                                                             .setDeviceId(myDevice.getDeviceId())
-                                                                            .setSessionId(mySessionData.getSessionId())
+                                                                            .setSessionId(mySession.getSessionId())
                                                                             .build());
     myProfilers.forEach(profiler -> profiler.stopProfiling(response.getSession(), myProcess));
-    mySessionData = Common.Session.getDefaultInstance();
+    mySession = Common.Session.getDefaultInstance();
   }
 
   /**
@@ -483,13 +470,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myClient;
   }
 
-  public int getProcessId() {
-    return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
-  }
-
   @NotNull
   public Common.Session getSession() {
-    return mySessionData;
+    return mySession;
   }
 
   public void setStage(@NotNull Stage stage) {
@@ -513,8 +496,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess;
   }
 
-  public boolean isProcessAlive() {
-    return myProcess != null && myProcess.getState() == Common.Process.State.ALIVE;
+  public boolean isSessionAlive() {
+    return mySession.getEndTimestamp() == Long.MAX_VALUE;
   }
 
   public boolean isLiveAllocationEnabled() {
