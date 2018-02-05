@@ -50,6 +50,8 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
@@ -285,14 +287,12 @@ public class NewProjectTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/63317962
   @Test // http://b.android.com/227918
   public void scrollingActivityFollowedByBasicActivity() throws Exception {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-      .createNewProject();
-
-    newProjectWizard.getConfigureAndroidProjectStep()
+    guiTest.welcomeFrame()
+      .createNewProject()
+      .getConfigureAndroidProjectStep()
       .enterApplicationName("My Test App")
-      .enterPackageName("com.test.project");
-
-    newProjectWizard
+      .enterPackageName("com.test.project")
+      .wizard()
       .clickNext()
       .clickNext() // Default Form Factor
       .chooseActivity("Scrolling Activity")
@@ -302,10 +302,9 @@ public class NewProjectTest {
       .clickNext()
       .clickFinish();
 
-    guiTest.ideFrame().getEditor()
-      .open("app/src/main/res/layout/content_main.xml")
-      .open("app/src/main/res/layout/activity_main.xml")
-      .open("app/src/main/java/com/test/project/MainActivity.java");
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "app/src/main/res/layout/content_main.xml")).isFile();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "app/src/main/res/layout/activity_main.xml")).isFile();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "app/src/main/java/com/test/project/MainActivity.java")).isFile();
   }
 
   /**
