@@ -212,8 +212,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
   // b/72764981
   public void ignore_testCommonRoots() throws Exception {
-    loadProject(
-      NAVIGATOR_PACKAGEVIEW_COMMONROOTS);
+    loadProject(NAVIGATOR_PACKAGEVIEW_COMMONROOTS);
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
