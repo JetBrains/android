@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.intellij.openapi.diagnostic.Logger;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -23,11 +24,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 class LogStartAndStop extends TestWatcher {
-
   private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+  private static final Logger LOG = Logger.getInstance(LogStartAndStop.class);
 
-  private void log(String s, Description description) {
+  private static void log(String s, Description description) {
     System.out.println(DATE_FORMAT.format(new Date()) + s + description.getDisplayName());
+    LOG.info(s + description.getDisplayName());
   }
 
   @Override
