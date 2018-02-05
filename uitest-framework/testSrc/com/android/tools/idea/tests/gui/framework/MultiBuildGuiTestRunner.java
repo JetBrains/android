@@ -36,7 +36,7 @@ import static com.android.tools.idea.tests.gui.framework.guitestprojectsystem.Ta
 
 /**
  * {@link MultiBuildGuiTestRunner} allows ui-tests to run with multiple {@link TargetBuildSystem}'s.
- * Tests using this runner can specify one or more build systems to target via the {@link BuildSystem} annotation.
+ * Tests using this runner can specify one or more build systems to target via the {@link TargetBuildSystem} annotation.
  * Each test is then run once per indicated build system by {@link BuildSpecificGuiTestRunner}.
  * <p>
  * Example of a class containing tests to be run with multiple build systems:
