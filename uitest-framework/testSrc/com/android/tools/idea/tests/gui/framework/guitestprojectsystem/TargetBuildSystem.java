@@ -33,7 +33,7 @@ public @interface TargetBuildSystem {
     BAZEL;
 
     public boolean isDefault() {
-      return this == GRADLE;
+      return this == getDefault();
     }
 
     public static BuildSystem getDefault() {
