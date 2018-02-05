@@ -18,6 +18,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
+import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -49,15 +50,13 @@ class MergeCaptureDataSeriesTest {
     val profilers = StudioProfilers(myGrpcChannel.client, services, timer)
     val stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
-    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>()
-    aTraceSeries.addCaptureSeriesData(
-        Range(
-            TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
-            TimeUnit.MILLISECONDS.toMicros(150).toDouble()
-        ), buildSeriesData(50, 150, 10)
-    )
+    val myParser = AtraceParser(1)
+    val capture = myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
+    capture.range.set(TimeUnit.MILLISECONDS.toMicros(50).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
+    stage.capture = capture;
+    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>(stage, {buildSeriesData(50, 150, 10)})
     val threadStateSeries = ThreadStateDataSeries(stage, ProfilersTestData.SESSION_DATA, 1)
-    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(threadStateSeries, aTraceSeries)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(stage, threadStateSeries, aTraceSeries)
     myCpuService.addAdditionalThreads(1, "Thread", buildThreadActivityData(1, 200, 20))
   }
 
