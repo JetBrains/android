@@ -36,6 +36,8 @@ public class TestProjectPathsGeneratorTest extends AndroidGradleTestCase {
     String javaFilePath = info.javaFilePath.getPath();
     String content = new String(Files.readAllBytes(Paths.get(javaFilePath)));
 
-    assertEquals("Please run TestProjectPathsGenerator to keep the file TestProjectPaths up to date", content, info.fileContents);
+    assertEquals("Please run TestProjectPathsGenerator to keep the file TestProjectPaths up to date",
+                 content.trim(),
+                 info.fileContents.trim());
   }
 }
