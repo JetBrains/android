@@ -18,6 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +33,22 @@ import java.util.List;
 public class MergeCaptureDataSeries<T> implements DataSeries<T> {
   // The {@link DataStore} data series that contains sampled data pulled from perfd. This series
   // is used when the request range does not overlap the Atrace data series.
+  @NotNull
   private final DataSeries<T> myDataStoreSeries;
+
   // The Atrace data series will contain thread state when an Atrace capture is parsed.
   // The series overrides any thread state data coming from perfd. As the Atrace capture
   // has more accurate data.
+  @NotNull
   private AtraceDataSeries<T> myAtraceDataSeries;
 
-  public MergeCaptureDataSeries(DataSeries<T> dataStoreSeries,
-                                AtraceDataSeries traceState) {
+  @NotNull
+  private final CpuProfilerStage myStage;
+
+  public MergeCaptureDataSeries(@NotNull CpuProfilerStage stage,
+                                @NotNull DataSeries<T> dataStoreSeries,
+                                @NotNull AtraceDataSeries traceState) {
+    myStage = stage;
     myAtraceDataSeries = traceState;
     myDataStoreSeries = dataStoreSeries;
   }
@@ -48,8 +58,8 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
     double minRangeUs = xRange.getMin();
     double maxRangeUs = xRange.getMax();
     List<SeriesData<T>> seriesData = new ArrayList<>();
-    Range traceRange = myAtraceDataSeries.getOverlapRange(xRange);
-    if (traceRange != null) {
+    if (myStage.getCapture() instanceof AtraceCpuCapture) {
+      Range traceRange = myStage.getCapture().getRange();
       if (traceRange.getMin() <= maxRangeUs && traceRange.getMax() >= minRangeUs) {
         // If the trace starts before our minimum requested range capture we pull all data from the trace.
         // [##] is the capture range and data.

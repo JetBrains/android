@@ -18,7 +18,9 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,11 +34,13 @@ public class AtraceCpuCapture extends CpuCapture {
   }
 
   /**
-   * @return A map of thread IDs, to thread state transitions for that thread. The thread states are computed from the
+   * @param threadId Thread Id of thread requesting states for. If thread id is not found an empty list is returned.
+   * @return Thread state transitions for the given thread. The thread states are computed from the
    * sched_switch trace line reported by an atrace capture. Atrace reports a sched_switch event each time the thread state changes,
    * because of this the thread states reported here are more accurate than the ones sampled via perfd.
    */
-  public Map<Integer, List<SeriesData<CpuProfilerStage.ThreadState>>> getThreadIdToThreadStates() {
-    return myParser.getThreadStateDataSeries();
+  @NotNull
+  public List<SeriesData<CpuProfilerStage.ThreadState>> getThreadStatesForThread(int threadId) {
+    return myParser.getThreadStateDataSeries().getOrDefault(threadId, new ArrayList<>());
   }
 }
