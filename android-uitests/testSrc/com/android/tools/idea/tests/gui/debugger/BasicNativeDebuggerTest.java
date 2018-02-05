@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
 import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -246,7 +247,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.SANITY)
   public void testDualDebuggerBreakpoints() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    guiTest.importProject("BasicCmakeAppForUI");
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
