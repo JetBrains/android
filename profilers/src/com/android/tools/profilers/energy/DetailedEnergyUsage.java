@@ -27,7 +27,7 @@ public class DetailedEnergyUsage extends LineChartModel {
   @NotNull private final Range myUsageRange;
 
   public DetailedEnergyUsage(@NotNull StudioProfilers profilers) {
-    myUsageRange = new Range(0, 100);
+    myUsageRange = new Range(0, 500);
     EnergyUsageDataSeries cpuDataSeries =
       new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getCpuUsage);
     myCpuUsageSeries = new RangedContinuousSeries("CPU", profilers.getTimeline().getViewRange(), myUsageRange, cpuDataSeries);

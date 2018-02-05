@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.EnergyService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyStartRequest">
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EnergyProfiler$EnergyStartRequest</clazz>
+        <functionCalled>profiler.proto.EnergyService/StartMonitoringApp</functionCalled>
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EnergyService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyStartResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.EnergyProfiler$EnergyStartResponse</clazz>
+        <functionCalled>profiler.proto.EnergyService/StartMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
+        <Message>device_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message>device_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
+        <Message>device_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message>device_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest">
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest</clazz>
+        <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataResponse</clazz>
+        <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest">
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
+        <Message>device_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message>device_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
+        <Message>timestamp_ns: 1000000000
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message>timestamp_ns: 1000000000
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest">
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+end_timestamp: 1000000000
+</Message>
+        <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest</clazz>
+        <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+end_timestamp: 1000000000
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataResponse">
+        <Message>data {
+  connectivity_data {
+    radio_state: HIGH
+    default_network_type: WIFI
+  }
+}
+data {
+  end_timestamp: 250000000
+  speed_data {
+    sent: 1234
+  }
+}
+data {
+  end_timestamp: 500000000
+  speed_data {
+    received: 4321
+  }
+}
+data {
+  end_timestamp: 750000000
+  speed_data {
+  }
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataResponse</clazz>
+        <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
+        <message>data {
+  connectivity_data {
+    radio_state: HIGH
+    default_network_type: WIFI
+  }
+}
+data {
+  end_timestamp: 250000000
+  speed_data {
+    sent: 1234
+  }
+}
+data {
+  end_timestamp: 500000000
+  speed_data {
+    received: 4321
+  }
+}
+data {
+  end_timestamp: 750000000
+  speed_data {
+  }
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest">
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+end_timestamp: 1000000000
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+end_timestamp: 1000000000
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuDataResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EnergyService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyStopRequest">
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.EnergyProfiler$EnergyStopRequest</clazz>
+        <functionCalled>profiler.proto.EnergyService/StopMonitoringApp</functionCalled>
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.EnergyService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyStopResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.EnergyProfiler$EnergyStopResponse</clazz>
+        <functionCalled>profiler.proto.EnergyService/StopMonitoringApp</functionCalled>
+        <message></message>
+    </GrpcCall>
+</GrpcList>
