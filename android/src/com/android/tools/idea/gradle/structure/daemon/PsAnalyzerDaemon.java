@@ -25,15 +25,11 @@ import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
-import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Ref;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -166,17 +162,12 @@ public class PsAnalyzerDaemon extends PsDaemon {
       LOG.info("Failed to find analyzer for model of type " + model.getClass().getName());
       return;
     }
-    RunResult<ActionCallback> result = new ReadAction<ActionCallback>() {
-      @Override
-      protected void run(@NotNull Result<ActionCallback> result) throws Throwable {
-        if (isStopped()) {
-          return;
-        }
+    ReadAction.run(() -> {
+      if (!isStopped()) {
         analyzer.analyze(model, myIssues);
-        result.setResult(ActionCallback.DONE);
       }
-    }.execute();
-    result.getResultObject().doWhenDone(() -> myResultsUpdaterQueue.queue(new IssuesComputed(model)));
+    });
+    myResultsUpdaterQueue.queue(new IssuesComputed(model));
   }
 
   @Override
