@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -28,12 +27,9 @@ import static com.android.tools.profilers.ProfilersTestData.SESSION_DATA;
 import static org.junit.Assert.*;
 
 public class NetworkProfilerTest {
-  private static final int FAKE_PID = 111;
-
   private final FakeNetworkService myService = FakeNetworkService.newBuilder().build();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerTest", myService);
 
-  private Common.Process FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private NetworkProfiler myProfiler;
 
   @Before
@@ -50,13 +46,13 @@ public class NetworkProfilerTest {
 
   @Test
   public void startMonitoring() {
-    myProfiler.startProfiling(SESSION_DATA, FAKE_PROCESS);
+    myProfiler.startProfiling(SESSION_DATA);
     assertEquals(SESSION_DATA, myService.getSession());
   }
 
   @Test
   public void stopMonitoring() {
-    myProfiler.stopProfiling(SESSION_DATA, FAKE_PROCESS);
+    myProfiler.stopProfiling(SESSION_DATA);
     assertEquals(SESSION_DATA, myService.getSession());
   }
 }

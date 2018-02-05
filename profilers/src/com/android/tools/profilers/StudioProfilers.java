@@ -392,7 +392,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     BeginSessionResponse response = myClient.getProfilerClient().beginSession(requestBuilder.build());
     mySession = response.getSession();
-    myProfilers.forEach(profiler -> profiler.startProfiling(mySession, myProcess));
+    myProfilers.forEach(profiler -> profiler.startProfiling(mySession));
   }
 
   private void endSession() {
@@ -400,7 +400,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                                                                             .setDeviceId(myDevice.getDeviceId())
                                                                             .setSessionId(mySession.getSessionId())
                                                                             .build());
-    myProfilers.forEach(profiler -> profiler.stopProfiling(response.getSession(), myProcess));
+    myProfilers.forEach(profiler -> profiler.stopProfiling(response.getSession()));
     mySession = Common.Session.getDefaultInstance();
   }
 

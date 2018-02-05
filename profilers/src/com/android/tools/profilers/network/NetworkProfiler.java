@@ -34,12 +34,12 @@ public class NetworkProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session, Common.Process process) {
+  public void startProfiling(Common.Session session) {
     myProfilers.getClient().getNetworkClient().startMonitoringApp(NetworkStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
-  public void stopProfiling(Common.Session session, Common.Process process) {
+  public void stopProfiling(Common.Session session) {
     myProfilers.getClient().getNetworkClient().stopMonitoringApp(NetworkStopRequest.newBuilder().setSession(session).build());
   }
 }
