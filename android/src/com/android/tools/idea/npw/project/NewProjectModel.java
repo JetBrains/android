@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.module.NewModuleModel;
@@ -64,6 +64,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -329,7 +330,13 @@ public class NewProjectModel extends WizardModel {
       File rootLocation = new File(projectLocation().get());
       File wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation);
       try {
-        GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(SdkConstants.GRADLE_LATEST_VERSION);
+        File gradleDistFile = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
+        if (gradleDistFile == null) {
+          GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(GRADLE_LATEST_VERSION);
+        }
+        else {
+          GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(gradleDistFile);
+        }
       }
       catch (IOException e) {
         // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".

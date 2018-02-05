@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
 import static com.android.tools.idea.gradle.eclipse.ImportSummary.*;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
@@ -3331,7 +3330,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   protected static void updateGradle(File projectRoot) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File path = getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip");
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }

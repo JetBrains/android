@@ -42,6 +42,7 @@ public class IdeaTestSuiteBase {
   private static void setProperties() {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
     System.setProperty("gradle.user.home", createTmpDir("home").toString());
+    System.setProperty("local.gradle.distribution.path", new File(getWorkspaceRoot(), "tools/external/gradle/").getAbsolutePath());
     // See AndroidLocation.java for more information on this system property.
     System.setProperty("ANDROID_SDK_HOME", createTmpDir(".android").toString());
     System.setProperty("layoutlib.thread.timeout", "60000");
