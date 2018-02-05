@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -73,7 +74,6 @@ public class RelativeLayoutTest {
                                  "        android:name=\"google.fragmentapplication.YourCustomFragment\"\n");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71938025
   @Test
   public void testDragImageViewFromPalette() throws Exception {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("FragmentApplication");
@@ -83,12 +83,15 @@ public class RelativeLayoutTest {
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
+
+    // Before dragging the component, make sure there is no other task running.
+    myGuiTest.robot().waitForIdle();
     layout.dragComponentToSurface("Widgets", "ImageView");
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
     assertThat(dialog.getTitle()).isEqualTo("Resources");
-    // This should jump to the project list and select the first one: ic_launcher
-    dialog.getSearchField().pressAndReleaseKeys(KeyEvent.VK_DOWN).enterText("ic_launcher");
+    dialog.expandList("Project").getList("Project").selectItem("ic_launcher");
+
     dialog.clickOK();
 
     editor.switchToTab("Text");
