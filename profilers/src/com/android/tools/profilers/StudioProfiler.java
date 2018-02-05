@@ -27,7 +27,7 @@ public abstract class StudioProfiler {
 
   abstract public ProfilerMonitor newMonitor();
 
-  public abstract void startProfiling(Common.Session session, Common.Process process);
+  public abstract void startProfiling(Common.Session session);
 
-  public abstract void stopProfiling(Common.Session session, Common.Process process);
+  public abstract void stopProfiling(Common.Session session);
 }

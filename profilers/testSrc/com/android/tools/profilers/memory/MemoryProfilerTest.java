@@ -49,7 +49,6 @@ public class MemoryProfilerTest {
     new FakeGrpcChannel("MemoryProfilerTest", myMemoryService, myProfilerService, new FakeEventService(), new FakeCpuService(),
                         FakeNetworkService.newBuilder().build());
 
-  private Common.Process FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private StudioProfilers myStudioProfiler;
   private FakeIdeProfilerServices myIdeProfilerServices;
   private FakeTimer myTimer;
@@ -64,7 +63,7 @@ public class MemoryProfilerTest {
   @Test
   public void testStartMonitoring() {
     MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
-    memoryProfiler.startProfiling(TEST_SESSION, FAKE_PROCESS);
+    memoryProfiler.startProfiling(TEST_SESSION);
     Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
   }
@@ -72,7 +71,7 @@ public class MemoryProfilerTest {
   @Test
   public void testStopMonitoring() {
     MemoryProfiler memoryProfiler = new MemoryProfiler(myStudioProfiler);
-    memoryProfiler.stopProfiling(TEST_SESSION, FAKE_PROCESS);
+    memoryProfiler.stopProfiling(TEST_SESSION);
     Truth.assertThat(myMemoryService.getProcessId()).isEqualTo(FAKE_PID);
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
   }

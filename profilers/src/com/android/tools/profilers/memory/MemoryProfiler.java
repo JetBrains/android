@@ -49,13 +49,13 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session, Common.Process process) {
+  public void startProfiling(Common.Session session) {
     myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
                                                                    .setSession(session).build());
   }
 
   @Override
-  public void stopProfiling(Common.Session session, Common.Process process) {
+  public void stopProfiling(Common.Session session) {
     try {
       if (myProfilers.isLiveAllocationEnabled()) {
         AllocationInfosDataSeries allocationSeries = new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session,

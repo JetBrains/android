@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.energy
 
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
@@ -31,7 +30,6 @@ class EnergyProfilerTest {
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("NetworkProfilerTest", myService)
 
-  private val FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build()
   private lateinit var myProfiler: EnergyProfiler
 
   @Before
@@ -49,13 +47,13 @@ class EnergyProfilerTest {
 
   @Test
   fun startMonitoring() {
-    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS)
+    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA)
     // TODO: Add asserts once EnergyProfiler#startMonitoring is implemented
   }
 
   @Test
   fun stopMonitoring() {
-    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS)
+    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA)
     // TODO: Add asserts once EnergyProfiler#stopMonitoring is implemented
   }
 

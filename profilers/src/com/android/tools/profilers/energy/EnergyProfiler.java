@@ -31,12 +31,12 @@ public class EnergyProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session, Common.Process process) {
+  public void startProfiling(Common.Session session) {
     // TODO: Call real start profiling api and add test
   }
 
   @Override
-  public void stopProfiling(Common.Session session, Common.Process process) {
+  public void stopProfiling(Common.Session session) {
     // TODO: Call real stop profiling api and add test
   }
 }

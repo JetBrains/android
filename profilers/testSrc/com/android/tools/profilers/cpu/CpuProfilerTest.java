@@ -34,15 +34,13 @@ public class CpuProfilerTest {
 
   private final FakeCpuService myService = new FakeCpuService();
 
-  private Common.Process FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
-
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuProfilerTest", myService);
 
   private CpuProfiler myCpuProfiler;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     myCpuProfiler = new CpuProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
   }
 
@@ -54,15 +52,15 @@ public class CpuProfilerTest {
   }
 
   @Test
-  public void startProfilingCallStartMonitoringAppId() throws InterruptedException {
-    myCpuProfiler.startProfiling(FAKE_SESSION, FAKE_PROCESS);
+  public void startProfilingCallStartMonitoringAppId() {
+    myCpuProfiler.startProfiling(FAKE_SESSION);
     // Make sure the session of the service was set to FAKE_SESSION by the start monitoring request
     assertEquals(FAKE_SESSION, myService.getSession());
   }
 
   @Test
-  public void stopProfilingCallStopMonitoringAppId() throws InterruptedException {
-    myCpuProfiler.stopProfiling(FAKE_SESSION, FAKE_PROCESS);
+  public void stopProfilingCallStopMonitoringAppId() {
+    myCpuProfiler.stopProfiling(FAKE_SESSION);
     // Make sure the session of the service was set to FAKE_SESSION by the stop monitoring request
     assertEquals(FAKE_SESSION, myService.getSession());
   }
