@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.widget
 
 import com.google.common.collect.HashBiMap
+import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
@@ -23,6 +24,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
 import javax.swing.*
+import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 import javax.swing.event.ListSelectionListener
 
@@ -64,6 +66,18 @@ class SectionList(private val model: SectionListModel) {
   val sectionsComponent = sectionList
 
   init {
+    model.addListDataListener(object : ListDataListener {
+      override fun contentsChanged(e: ListDataEvent?) {
+        sectionToComponentMap.clear()
+        allInnerLists.clear()
+        content = createMultiListPanel(sectionToComponentMap, allInnerLists, innerListSelectionListener)
+        scrollView.setViewportView(content)
+      }
+
+      override fun intervalRemoved(e: ListDataEvent?) {}
+
+      override fun intervalAdded(e: ListDataEvent?) {}
+    })
     sectionList.selectionMode = ListSelectionModel.SINGLE_SELECTION
     sectionList.selectedIndex = 0
     sectionList.cellRenderer = createSectionCellRenderer()
@@ -138,7 +152,7 @@ class SectionList(private val model: SectionListModel) {
     allInnerLists: MutableList<JList<*>>,
     selectionListener: ListSelectionListener
   ): JComponent {
-    return Box.createVerticalBox().apply {
+    return JPanel(VerticalFlowLayout()).apply {
       for (section in model.sections) {
         sectionToComponent[section] = section.header
         allInnerLists += section.list
@@ -154,17 +168,25 @@ class SectionList(private val model: SectionListModel) {
 class SectionListModel : ListModel<Section<*>> {
 
   val sections: MutableList<Section<*>> = mutableListOf()
+  private val dataListeners = mutableListOf<ListDataListener>()
 
   override fun getElementAt(index: Int) = sections[index]
 
   override fun getSize() = sections.size
 
-  override fun addListDataListener(l: ListDataListener?) {}
+  override fun addListDataListener(listener: ListDataListener?) {
+    if (!dataListeners.contains(listener ?: return)) {
+      dataListeners.add(listener)
+    }
+  }
 
-  override fun removeListDataListener(l: ListDataListener?) {}
+  override fun removeListDataListener(listener: ListDataListener?) {
+    dataListeners.remove(listener ?: return)
+  }
 
   fun addSection(section: Section<*>) {
     sections += section
+    dataListeners.forEach { it.contentsChanged(ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, sections.size)) }
   }
 }
 
