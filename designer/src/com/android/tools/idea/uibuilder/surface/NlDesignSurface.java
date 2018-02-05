@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBUI;
@@ -50,7 +51,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.resources.Density.DEFAULT_DENSITY;
@@ -476,18 +476,19 @@ public class NlDesignSurface extends DesignSurface {
           return;
         }
 
-        Project project = getProject();
+        ReadAction.run(() -> {
+          Project project = getProject();
+          if (project.isDisposed()) {
+            return;
+          }
 
-        if (!project.isOpen()) {
-          return;
-        }
-
-        BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
-        RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
-                                 ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
-                                 : RenderErrorModelFactory
-                                   .createErrorModel(result, DataManager.getInstance().getDataContext(getIssuePanel()));
-        getIssueModel().setRenderErrorModel(model);
+          BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
+          RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
+                                   ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
+                                   : RenderErrorModelFactory
+                                     .createErrorModel(result, DataManager.getInstance().getDataContext(getIssuePanel()));
+          getIssueModel().setRenderErrorModel(model);
+        });
       }
 
       @Override
