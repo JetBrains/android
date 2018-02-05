@@ -23,6 +23,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ConfigureAvdOptionsStepFixture;
+import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +34,12 @@ public class AvdListDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Before
+  public void setUp() throws Exception {
+    guiTest.importProject("SimpleLocalApplication");
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+  }
+
   /**
    * TT ID: TODO need to add a test tracker ID
    *
@@ -39,7 +47,6 @@ public class AvdListDialogTest {
   @RunIn(TestGroup.QA)
   @Test
   public void testCreateAvd() throws Exception {
-    guiTest.importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
@@ -74,8 +81,6 @@ public class AvdListDialogTest {
   @RunIn(TestGroup.QA)
   @Test
   public void testEditAvd() throws Exception {
-    guiTest.importSimpleApplication();
-
     makeNexus5();
 
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
