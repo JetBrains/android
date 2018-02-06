@@ -34,6 +34,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -260,6 +261,71 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCapture()).isNotNull();
     assertThat(myStage.getCapture()).isEqualTo(myStage.getCaptureFuture(1).get());
     assertThat(myCaptureDetailsCalled).isTrue();
+  }
+
+  @Test
+  public void rangeIntersectionReturnsASingleTraceId() {
+    int traceId1 = 1;
+    String fileName1 = "This random file name";
+
+    int traceId2 = 2;
+    String fileName2 = "This other random file name";
+
+    CpuProfiler.TraceInfo traceInfo1 = CpuProfiler.TraceInfo.newBuilder()
+      .setTraceId(traceId1)
+      .setTraceFilePath(fileName1)
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(10))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(20))
+      .build();
+
+    CpuProfiler.TraceInfo traceInfo2 = CpuProfiler.TraceInfo.newBuilder()
+      .setTraceId(traceId2)
+      .setTraceFilePath(fileName2)
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos(30))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos(40))
+      .build();
+
+    myCpuService.addTraceInfo(traceInfo1);
+    myCpuService.addTraceInfo(traceInfo2);
+
+    // No intersection.
+    CpuTraceInfo traceInfo = myStage.getIntersectingTraceInfo(new Range(0, 5));
+    assertThat(traceInfo).isNull();
+
+    // Intersecting only with trace 1.
+    traceInfo = myStage.getIntersectingTraceInfo(new Range(5, 15));
+    assertThat(traceInfo).isNotNull();
+    assertThat(traceInfo.getTraceId()).isEqualTo(traceId1);
+    assertThat(traceInfo.getTraceFilePath()).isEqualTo(fileName1);
+
+    // Intersecting only with trace 2.
+    traceInfo = myStage.getIntersectingTraceInfo(new Range(25, 35));
+    assertThat(traceInfo).isNotNull();
+    assertThat(traceInfo.getTraceId()).isEqualTo(traceId2);
+    assertThat(traceInfo.getTraceFilePath()).isEqualTo(fileName2);
+
+    // Intersecting with both traces. First trace is returned.
+    traceInfo = myStage.getIntersectingTraceInfo(new Range(0, 50));
+    assertThat(traceInfo).isNotNull();
+    assertThat(traceInfo.getTraceId()).isEqualTo(traceId1);
+    assertThat(traceInfo.getTraceFilePath()).isEqualTo(fileName1);
+  }
+
+  @Test
+  public void traceFilesGeneratedPerTrace() {
+    int firstTraceId = 30;
+    int secondTraceId = 39;
+
+    myCpuService.setTraceId(firstTraceId);
+    captureSuccessfully();
+
+    myCpuService.setTraceId(secondTraceId);
+    captureSuccessfully();
+
+    List<String> paths = myCpuService.getTraceFilePaths();
+    assertThat(paths).hasSize(2);
+    assertThat(paths.get(0)).endsWith("cpu_trace_30.trace");
+    assertThat(paths.get(1)).endsWith("cpu_trace_39.trace");
   }
 
   @Test

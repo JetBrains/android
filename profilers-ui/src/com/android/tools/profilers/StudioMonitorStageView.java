@@ -128,7 +128,6 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       });
 
       // Configure Context Menu
-      ProfilerContextMenu contextMenu = getProfilersView().getTimelineContextMenu();
       IdeProfilerComponents ideProfilerComponents = getIdeComponents();
       ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
@@ -140,9 +139,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       ProfilerContextMenu.createIfAbsent(component).add(action);
       contextMenuInstaller.installGenericContextMenu(component, action);
       contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
-      for (ContextMenuItem item : contextMenu.getContextMenuItems()) {
-        contextMenuInstaller.installGenericContextMenu(component, item);
-      }
+      profilersView.installCommonMenuItems(component);
 
       int weight = (int)(view.getVerticalWeight() * 100f);
       layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit");

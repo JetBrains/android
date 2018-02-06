@@ -340,8 +340,14 @@ public class StudioProfilersView extends AspectObserver {
     return mySplitter;
   }
 
-  public ProfilerContextMenu getTimelineContextMenu() {
-    return ProfilerContextMenu.createIfAbsent(myStageComponent);
+  /**
+   * Installs the {@link ContextMenuItem} common to all profilers.
+   * @param component
+   */
+  public void installCommonMenuItems(@NotNull JComponent component) {
+    ContextMenuInstaller contextMenuInstaller = getIdeProfilerComponents().createContextMenuInstaller();
+    ProfilerContextMenu.createIfAbsent(myStageComponent).getContextMenuItems()
+      .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
   }
 
   @VisibleForTesting

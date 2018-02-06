@@ -94,6 +94,11 @@ public final class StudioFlags {
     "Simpleperf is a native profiler tool built for Android.",
     true);
 
+  public static final Flag<Boolean> PROFILER_EXPORT_CPU_TRACE = Flag.create(
+    PROFILER, "cpu.export.trace", "Enable CPU trace exporting",
+    "Add the option to export CPU trace files when right-clicking a CPU capture.",
+    false);
+
   public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
     PROFILER, "threads.view", "Show network threads view",
     "Show a view in the network profiler that groups connections by their creation thread.",

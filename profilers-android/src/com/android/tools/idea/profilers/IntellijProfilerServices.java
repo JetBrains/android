@@ -218,6 +218,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isSimplePerfEnabled() {
         return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
       }
+
+      @Override
+      public boolean isExportCpuTraceEnabled() {
+        return StudioFlags.PROFILER_EXPORT_CPU_TRACE.get();
+      }
     };
   }
 

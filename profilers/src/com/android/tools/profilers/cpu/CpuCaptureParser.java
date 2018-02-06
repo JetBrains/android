@@ -25,7 +25,6 @@ import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +32,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -54,6 +54,11 @@ public class CpuCaptureParser {
   private final Map<Integer, CompletableFuture<CpuCapture>> myCaptures;
 
   /**
+   * Maps a trace id to the path of a temporary file containing the trace content.
+   */
+  private final Map<Integer, String> myTraceFiles;
+
+  /**
    * Services containing the {@link java.util.concurrent.Executor} responsible for parsing the capture.
    * This is also used for determining if large trace files should be parsed.
    */
@@ -63,6 +68,7 @@ public class CpuCaptureParser {
   public CpuCaptureParser(@NotNull IdeProfilerServices services) {
     myServices = services;
     myCaptures = new HashMap<>();
+    myTraceFiles = new HashMap<>();
   }
 
   private static Logger getLogger() {
@@ -75,6 +81,11 @@ public class CpuCaptureParser {
   @Nullable
   public CompletableFuture<CpuCapture> getCapture(int traceId) {
     return myCaptures.get(traceId);
+  }
+
+  @Nullable
+  String getTraceFilePath(int traceId) {
+    return myTraceFiles.get(traceId);
   }
 
   /**
@@ -91,13 +102,13 @@ public class CpuCaptureParser {
       // Trace is not being parsed nor is already parsed. We need to start parsing it.
       if (traceData.size() <= MAX_SUPPORTED_TRACE_SIZE) {
         // Trace size is supported. Start parsing normally and create the future object corresponding to the capture.
-        myCaptures.put(traceId, createCaptureFuture(session, traceData, profilerType));
+        myCaptures.put(traceId, createCaptureFuture(session, traceId, traceData, profilerType));
       }
       else {
         Runnable yesCallback = () -> {
           getLogger().warn(String.format("Parsing long (%d bytes) trace file.", traceData.size()));
           // User decided to proceed with capture. Start parsing and create the future object corresponding to the capture.
-          myCaptures.put(traceId, createCaptureFuture(session, traceData, profilerType));
+          myCaptures.put(traceId, createCaptureFuture(session, traceId, traceData, profilerType));
         };
 
         Runnable noCallback = () -> {
@@ -114,21 +125,21 @@ public class CpuCaptureParser {
     return myCaptures.get(traceId);
   }
 
-  private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session,
-                                                            ByteString traceBytes,
+  private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, int traceId, ByteString traceBytes,
                                                             CpuProfilerType profilerType) {
-    return CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceBytes, profilerType), myServices.getPoolExecutor());
+    return CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceId, traceBytes, profilerType),
+                                         myServices.getPoolExecutor());
   }
 
-  private CpuCapture traceBytesToCapture(@NotNull Common.Session session,
-                                         @NotNull ByteString traceData,
+  private CpuCapture traceBytesToCapture(@NotNull Common.Session session, int traceId, @NotNull ByteString traceData,
                                          CpuProfilerType profilerType) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
-      File trace = FileUtil.createTempFile("cpu_trace", ".trace", true);
+      File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", traceId), ".trace", true);
       try (FileOutputStream out = new FileOutputStream(trace)) {
         out.write(traceData.toByteArray());
       }
+      myTraceFiles.put(traceId, trace.getAbsolutePath());
 
       TraceParser parser;
       if (profilerType == CpuProfilerType.ART) {

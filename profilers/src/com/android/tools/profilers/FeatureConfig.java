@@ -32,6 +32,7 @@ public interface FeatureConfig {
   boolean isNetworkThreadViewEnabled();
   boolean isSessionsEnabled();
   boolean isSimplePerfEnabled();
+  boolean isExportCpuTraceEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }

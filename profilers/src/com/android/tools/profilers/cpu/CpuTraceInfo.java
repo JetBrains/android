@@ -27,10 +27,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class CpuTraceInfo implements ConfigurableDurationData {
   private final int myTraceId;
+  /**
+   * Path of the file where the trace content is saved to. This file is temporary and will be deleted once the user exit Android Studio.
+   */
+  @NotNull private final String myTraceFilePath;
   @NotNull private final Range myRange;
 
   public CpuTraceInfo(CpuProfiler.TraceInfo traceInfo) {
     myTraceId = traceInfo.getTraceId();
+    myTraceFilePath = traceInfo.getTraceFilePath();
     myRange = new Range(TimeUnit.NANOSECONDS.toMicros(traceInfo.getFromTimestamp()),
                         TimeUnit.NANOSECONDS.toMicros(traceInfo.getToTimestamp()));
   }
@@ -47,6 +52,11 @@ public class CpuTraceInfo implements ConfigurableDurationData {
 
   public int getTraceId() {
     return myTraceId;
+  }
+
+  @NotNull
+  public String getTraceFilePath() {
+    return myTraceFilePath;
   }
 
   @Override
