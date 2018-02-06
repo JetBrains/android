@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.SdkConstants;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -46,9 +45,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.io.IOException;
 
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
@@ -280,8 +279,7 @@ public class NewProjectTest {
     Assume.assumeTrue("Is Unix", SystemInfo.isUnix);
     newProject("Test Application").withBriefNames().create(guiTest);
 
-    File gradleFile = new File(guiTest.getProjectPath(), SdkConstants.FN_GRADLE_WRAPPER_UNIX);
-    assertTrue(gradleFile.canExecute());
+    assertTrue(guiTest.getProjectPath(FN_GRADLE_WRAPPER_UNIX).canExecute());
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/63317962
@@ -302,9 +300,9 @@ public class NewProjectTest {
       .clickNext()
       .clickFinish();
 
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "app/src/main/res/layout/content_main.xml")).isFile();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "app/src/main/res/layout/activity_main.xml")).isFile();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "app/src/main/java/com/test/project/MainActivity.java")).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/content_main.xml")).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/activity_main.xml")).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/java/com/test/project/MainActivity.java")).isFile();
   }
 
   /**
