@@ -19,7 +19,7 @@ import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
-import com.android.tools.idea.resourceExplorer.importer.EnumBasedMapper
+import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
 import org.jetbrains.android.AndroidTestBase
@@ -41,14 +41,14 @@ fun getExternalResourceDirectory(vararg files: String): VirtualFile {
 
 fun getTestDataDirectory() = AndroidTestBase.getTestDataPath() + "/resourceExplorer"
 
-val densityMapper = EnumBasedMapper.builder<DensityQualifier, Density>()
-    .withPrefix("@")
-    .withSuffix("x")
-    .withDefault(Density.MEDIUM)
-    .map("2" to Density.XHIGH)
-    .map("3" to Density.XXHIGH)
-    .map("4" to Density.XXXHIGH).build()
+val densityMapper = StaticStringMapper(
+  mapOf(
+    "@2x" to DensityQualifier(Density.XHIGH),
+    "@3x" to DensityQualifier(Density.XXHIGH),
+    "@4x" to DensityQualifier(Density.XXXHIGH)
+  ), DensityQualifier(Density.MEDIUM)
+)
 
-val nightModeMapper = EnumBasedMapper.builder<NightModeQualifier, NightMode>()
-    .withPrefix("_")
-    .map("dark" to NightMode.NIGHT).build()
+val nightModeMapper = StaticStringMapper(
+  mapOf("_dark" to NightModeQualifier(NightMode.NIGHT))
+)

@@ -21,4 +21,8 @@
   <extensions defaultExtensionNs="com.android">
     <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.RasterResourceImporter"/>
   </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.resourceExplorer.importer.ImportConfigurationManager"/>
+  </extensions>
 </idea-plugin>

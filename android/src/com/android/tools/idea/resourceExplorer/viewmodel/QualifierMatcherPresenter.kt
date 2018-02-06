@@ -17,28 +17,36 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.ide.common.resources.configuration.*
 import com.android.resources.*
-import com.android.tools.idea.resourceExplorer.importer.EnumBasedMapper
+import com.android.tools.idea.resourceExplorer.importer.ImportConfigurationManager
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
+import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
+import com.android.tools.idea.resourceExplorer.model.MatcherEntry
 
 /**
  * Presenter class to interact with the [QualifierMatcher]
  *
  * @param matcherConsumer function that will be called with new [QualifierMatcher] when it will been created.
+ * @param configurationManager [ImportConfigurationManager] to handle saving and loading the state of this
+ * [QualifierMatcherPresenter]
  */
-class QualifierMatcherPresenter(private val matcherConsumer: (QualifierMatcher) -> Unit) {
+class QualifierMatcherPresenter(
+  private val matcherConsumer: (QualifierMatcher) -> Unit,
+  private val configurationManager: ImportConfigurationManager
+) {
 
-  private val supportedQualifiers = mapOf<ResourceQualifier, Array<out ResourceEnum>>(
-      qualifierToParameters<DensityQualifier, Density>(),
-      qualifierToParameters<NightModeQualifier, NightMode>(),
-      qualifierToParameters<ScreenOrientationQualifier, ScreenOrientation>(),
-      qualifierToParameters<HighDynamicRangeQualifier, HighDynamicRange>(),
-      qualifierToParameters<KeyboardStateQualifier, KeyboardState>(),
-      qualifierToParameters<LayoutDirectionQualifier, LayoutDirection>()
+  private val supportedQualifiers = mapOf<ResourceQualifier, List<ResourceQualifier>>(
+    qualifierToParameters<DensityQualifier, Density>(),
+    qualifierToParameters<NightModeQualifier, NightMode>(),
+    qualifierToParameters<ScreenOrientationQualifier, ScreenOrientation>(),
+    qualifierToParameters<HighDynamicRangeQualifier, HighDynamicRange>(),
+    qualifierToParameters<KeyboardStateQualifier, KeyboardState>(),
+    qualifierToParameters<LayoutDirectionQualifier, LayoutDirection>()
   )
 
-  private inline fun <reified R : ResourceQualifier, reified V : Enum<V>> qualifierToParameters(): Pair<R, Array<V>> {
+  private inline fun <reified R : ResourceQualifier, reified V : Enum<V>> qualifierToParameters(): Pair<R, List<R>> {
     val enumValues = enumValues<V>()
-    return R::class.java.getConstructor(V::class.java).newInstance(enumValues[0]) to enumValues
+    val constructor = R::class.java.getConstructor(V::class.java)
+    return constructor.newInstance(enumValues[0]) to enumValues.map { constructor.newInstance(it) }
   }
 
   fun getAvailableQualifiers(): Set<ResourceQualifier> = supportedQualifiers.keys
@@ -47,20 +55,21 @@ class QualifierMatcherPresenter(private val matcherConsumer: (QualifierMatcher) 
 
   fun setMatcherEntries(entries: List<Pair<ResourceQualifier, List<MatcherEntry>>>) {
     val mappers = entries
-      .map { (qualifier, matcherEntry) ->
-        EnumBasedMapper(
-          qualifierClass = qualifier::class.java,
-          stringToParam = matcherEntry.associate { (string, resourceEnum) -> string to resourceEnum }
+      .map { (_, matcherEntry) ->
+        StaticStringMapper(
+          matchers = matcherEntry.associate { (string, resourceEnum) -> string to resourceEnum }
         )
       }
       .toSet()
     matcherConsumer(QualifierMatcher(mappers))
+    saveConfiguration(mappers)
   }
 
-  /**
-   * Data class that represents the mapping from a string to a [ResourceEnum].
-   *
-   * This is used for readability to avoid using a Pair
-   */
-  data class MatcherEntry(val matchingString: String, val matchedResourceEnum: ResourceEnum)
+  private fun saveConfiguration(entries: Set<StaticStringMapper>) {
+    configurationManager.saveMappers(entries)
+  }
+
+  fun getConfiguration(): Set<StaticStringMapper> {
+    return configurationManager.loadMappers()
+  }
 }

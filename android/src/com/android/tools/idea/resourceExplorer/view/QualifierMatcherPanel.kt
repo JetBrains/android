@@ -16,8 +16,9 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.ide.common.resources.configuration.ResourceQualifier
-import com.android.resources.ResourceEnum
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
+import com.android.tools.idea.resourceExplorer.model.MatcherEntry
 import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
@@ -36,19 +37,40 @@ import javax.swing.*
  * This is mostly for test now and not a supposed to be a final version.
  */
 class QualifierMatcherPanel(
-    private val presenter: QualifierMatcherPresenter
-)
-  : JPanel(BorderLayout()) {
+  private val presenter: QualifierMatcherPresenter
+) : JPanel(BorderLayout()) {
 
   private val qualifierEntries = JPanel(VerticalFlowLayout())
 
   init {
     preferredSize = JBUI.size(300, 500)
     background = JBColor.WHITE
-    addQualifierEntry()
     add(ScrollPaneFactory.createScrollPane(qualifierEntries))
     add(createControlPanel(), BorderLayout.SOUTH)
     background = JBColor.DARK_GRAY
+    loadConfiguration(presenter.getConfiguration())
+  }
+
+  private fun loadConfiguration(mappers: Set<StaticStringMapper>) {
+    if (mappers.isEmpty()) {
+      addQualifierEntry()
+    } else {
+      var mapperEntryQualifier : ResourceQualifier? = null
+      mappers.forEach { mapper ->
+        val mapperEntryView = MapperEntryView(presenter)
+        mapper.matchers.forEach { matchingString, matchedQualifier ->
+          mapperEntryView.addMatcher(matchingString, matchedQualifier)
+          if (mapperEntryQualifier == null) {
+            mapperEntryQualifier = matchedQualifier
+          }
+        }
+        mapperEntryQualifier?.let {
+          mapperEntryView.setQualifier(it)
+          qualifierEntries.add(mapperEntryView)
+        }
+      }
+      updatePresenter()
+    }
   }
 
   private fun createControlPanel(): JPanel {
@@ -60,7 +82,10 @@ class QualifierMatcherPanel(
 
   private fun addQualifierEntry() {
     with(qualifierEntries) {
-      add(MapperEntry(presenter))
+      val mapperEntry = MapperEntryView(presenter)
+      mapperEntry.addMatcher("", mapperEntry.getQualifier())
+
+      add(mapperEntry)
       revalidate()
       repaint()
     }
@@ -68,21 +93,20 @@ class QualifierMatcherPanel(
 
   private fun updatePresenter() {
     qualifierEntries.components
-        .filterIsInstance<MapperEntry>()
-        .map { it.getQualifier() to it.getMatcherEntries() }
-        .let { presenter.setMatcherEntries(it) }
+      .filterIsInstance<MapperEntryView>()
+      .map { it.getQualifier() to it.getMatcherEntries() }
+      .let { presenter.setMatcherEntries(it) }
   }
 
   /**
-   * Representation of a [com.android.tools.idea.resourceExplorer.importer.Mapper]
+   * Representation of an [com.android.tools.idea.resourceExplorer.model.StaticStringMapper]
    */
-  private class MapperEntry(val presenter: QualifierMatcherPresenter) : JPanel(VerticalFlowLayout()) {
+  private class MapperEntryView(val presenter: QualifierMatcherPresenter) : JPanel(VerticalFlowLayout()) {
 
     private val matchers = JPanel(VerticalFlowLayout())
     private val qualifierCombo = createQualifierCombo()
 
     init {
-      matchers.add(MatcherEntryView(presenter, qualifierCombo))
       val topPanel = JPanel(FlowLayout(FlowLayout.TRAILING))
       topPanel.add(JLabel("Mapper for: "))
       topPanel.add(qualifierCombo)
@@ -100,7 +124,7 @@ class QualifierMatcherPanel(
       add(matchers)
       add(JButton("Add Matcher").also {
         it.addActionListener {
-          matchers.add(MatcherEntryView(presenter, qualifierCombo))
+          matchers.add(MatcherEntryView(presenter, qualifierCombo, qualifierCombo.getItemAt(0)))
           revalidate()
           repaint()
         }
@@ -112,7 +136,13 @@ class QualifierMatcherPanel(
       qualifierCombo.model = DefaultComboBoxModel(presenter.getAvailableQualifiers().toTypedArray())
       qualifierCombo.model.selectedItem = qualifierCombo.model.getElementAt(0)
       qualifierCombo.renderer = object : DefaultListCellRenderer() {
-        override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
+        override fun getListCellRendererComponent(
+          list: JList<*>?,
+          value: Any?,
+          index: Int,
+          isSelected: Boolean,
+          cellHasFocus: Boolean
+        ): Component {
           if (value is ResourceQualifier) {
             icon = DeviceConfiguratorPanel.getResourceIcon(value)
             text = value.name
@@ -123,23 +153,42 @@ class QualifierMatcherPanel(
       return qualifierCombo
     }
 
-    internal fun getMatcherEntries(): List<QualifierMatcherPresenter.MatcherEntry> {
+    internal fun getMatcherEntries(): List<MatcherEntry> {
       return matchers.components
         .filterIsInstance<MatcherEntryView>()
-        .map { it.getMatcherEntry() }
+        .mapNotNull { it.getMatcherEntry() }
     }
 
     internal fun getQualifier(): ResourceQualifier {
       return qualifierCombo.selectedItem as ResourceQualifier
     }
 
+    fun setQualifier(qualifier: ResourceQualifier) {
+      val comboBoxModel = qualifierCombo.model
+      for (i in 0 until comboBoxModel.size) {
+        val itemQualifier = comboBoxModel.getElementAt(i)
+        if (itemQualifier::class == qualifier::class) {
+          qualifierCombo.selectedItem = itemQualifier
+        }
+      }
+    }
+
+    fun addMatcher(matchingString: String, matchedQualifier: ResourceQualifier) {
+      matchers.add(MatcherEntryView(presenter, qualifierCombo, matchedQualifier, matchingString))
+    }
+
   }
 
-  private class MatcherEntryView(private val presenter: QualifierMatcherPresenter, qualifierCombo: JComboBox<ResourceQualifier>) :
+  private class MatcherEntryView(
+    private val presenter: QualifierMatcherPresenter,
+    qualifierCombo: JComboBox<ResourceQualifier>,
+    defaultResourceEnum: ResourceQualifier,
+    matchStringValue: String = ""
+  ) :
     JPanel(null) {
 
-    private val matchString = JTextField()
-    private val matchParameterCombo = createParameterCombo(qualifierCombo)
+    private val matchString = JTextField(matchStringValue)
+    private val matchParameterCombo = createParameterCombo(qualifierCombo, defaultResourceEnum)
 
     init {
       val boxLayout = BoxLayout(this, BoxLayout.X_AXIS)
@@ -147,22 +196,32 @@ class QualifierMatcherPanel(
       add(matchString)
       add(matchParameterCombo)
       add(
-          CommonButton(AllIcons.Actions.Delete).also {
-        it.addActionListener {
-          val grandParent = parent.parent
-          parent.remove(this)
-          grandParent.revalidate()
-          grandParent.repaint()
-        }
-      })
+        CommonButton(AllIcons.Actions.Delete).also {
+          it.addActionListener {
+            val grandParent = parent.parent
+            parent.remove(this)
+            grandParent.revalidate()
+            grandParent.repaint()
+          }
+        })
     }
 
-    private fun createParameterCombo(qualifierCombo: JComboBox<ResourceQualifier>): JComboBox<ResourceEnum> {
-      val parameterCombo = ComboBox<ResourceEnum>()
-      parameterCombo.model = DefaultComboBoxModel(presenter.getValuesForQualifier(qualifierCombo.selectedItem as ResourceQualifier))
+    private fun createParameterCombo(
+      qualifierCombo: JComboBox<ResourceQualifier>,
+      selectedQualifier: ResourceQualifier
+    ): JComboBox<ResourceQualifier> {
+      val parameterCombo = ComboBox<ResourceQualifier>()
+      parameterCombo.model = DefaultComboBoxModel(presenter.getValuesForQualifier(qualifierCombo.selectedItem as ResourceQualifier)?.toTypedArray())
+      parameterCombo.selectedItem = selectedQualifier
       parameterCombo.renderer = object : DefaultListCellRenderer() {
-        override fun getListCellRendererComponent(list: JList<*>?, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
-          if (value is ResourceEnum) {
+        override fun getListCellRendererComponent(
+          list: JList<*>?,
+          value: Any?,
+          index: Int,
+          isSelected: Boolean,
+          cellHasFocus: Boolean
+        ): Component {
+          if (value is ResourceQualifier) {
             text = value.longDisplayValue
           }
           return this
@@ -171,12 +230,17 @@ class QualifierMatcherPanel(
       qualifierCombo.addActionListener { event ->
         val box = event.source as JComboBox<*>
         val selectedQualifier = box.selectedItem as ResourceQualifier
-        parameterCombo.model = DefaultComboBoxModel(presenter.getValuesForQualifier(selectedQualifier))
+        parameterCombo.model = DefaultComboBoxModel(presenter.getValuesForQualifier(selectedQualifier)?.toTypedArray())
       }
       return parameterCombo
     }
 
-    internal fun getMatcherEntry() =
-      QualifierMatcherPresenter.MatcherEntry(matchString.text, matchParameterCombo.selectedItem as ResourceEnum)
+    internal fun getMatcherEntry(): MatcherEntry? {
+      val selectedItem = matchParameterCombo.selectedItem
+      if (selectedItem is ResourceQualifier) {
+        return MatcherEntry(matchString.text, selectedItem)
+      }
+      return null
+    }
   }
 }

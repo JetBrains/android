@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.editor
 
+import com.android.tools.idea.resourceExplorer.importer.ImportConfigurationManager
 import com.android.tools.idea.resourceExplorer.view.DesignAssetDetailView
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
@@ -26,6 +27,7 @@ import com.android.tools.idea.resourceExplorer.viewmodel.InternalBrowserViewMode
 import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceFileHelper
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
@@ -48,9 +50,10 @@ class ResourceExplorerEditor(facet: AndroidFacet) : UserDataHolderBase(), FileEd
     val synchronizationManager = SynchronizationManager(facet)
     val fileHelper = ResourceFileHelper.ResourceFileHelperImpl()
     val importersProvider = ImportersProvider()
+    val configurationManager = ServiceManager.getService(facet.module.project, ImportConfigurationManager::class.java)
 
     val externalResourceBrowserViewModel = ExternalBrowserViewModel(facet, fileHelper, importersProvider, synchronizationManager)
-    val qualifierPanelPresenter = QualifierMatcherPresenter(externalResourceBrowserViewModel::consumeMatcher)
+    val qualifierPanelPresenter = QualifierMatcherPresenter(externalResourceBrowserViewModel::consumeMatcher, configurationManager)
     val qualifierParserPanel = QualifierMatcherPanel(qualifierPanelPresenter)
     val externalResourceBrowser = ExternalResourceBrowser(facet, externalResourceBrowserViewModel, qualifierParserPanel)
 
