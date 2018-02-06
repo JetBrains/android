@@ -297,6 +297,10 @@ public class StudioProfilersView extends AspectObserver {
     return myComponent;
   }
 
+  public ProfilerContextMenu getTimelineContextMenu() {
+    return ProfilerContextMenu.createIfAbsent(myComponent);
+  }
+
   @VisibleForTesting
   public static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Common.Device> {
 
