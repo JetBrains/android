@@ -107,8 +107,8 @@ public class NlEditorTest {
     assertThat(layoutFileContents).contains("<Button");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72912068
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
+  @RunIn(TestGroup.UNRELIABLE) // b/73120444
   @Test
   public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
     // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
@@ -116,8 +116,7 @@ public class NlEditorTest {
       .getEditor()
       .open("../SimpleLocalApplication/app/BUILD")
       .moveBetween("deps = [", "")
-      .enterText("\n\":bogus_dependency\",")
-      .close();
+      .enterText("\n\":bogus_dependency\",");
 
     guiTest.testSystem().requestProjectSync(guiTest.ideFrame());
 
@@ -133,8 +132,8 @@ public class NlEditorTest {
     assertThat(editorFixture.canInteractWithSurface()).isFalse();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72912068
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
+  @RunIn(TestGroup.UNRELIABLE) // b/73120444
   @Test
   public void designEditorUnavailableIfLastBazelSyncFailed() throws Exception {
     // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
@@ -142,8 +141,7 @@ public class NlEditorTest {
       .getEditor()
       .open("../SimpleLocalApplication/app/BUILD")
       .moveBetween("deps = [", "")
-      .enterText("\n\":bogus_dependency\",")
-      .close();
+      .enterText("\n\":bogus_dependency\",");
 
     guiTest.testSystem()
       .requestProjectSync(guiTest.ideFrame())

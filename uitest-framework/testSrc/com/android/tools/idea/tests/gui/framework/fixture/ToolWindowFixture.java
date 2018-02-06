@@ -95,11 +95,11 @@ public abstract class ToolWindowFixture {
     return contentRef.get();
   }
 
-  private void activateAndWaitUntilIsVisible() {
+  protected final void activateAndWaitUntilIsVisible() {
     activateAndWaitUntilIsVisible(SECONDS_TO_WAIT);
   }
 
-  private void activateAndWaitUntilIsVisible(long secondsToWait) {
+  protected final void activateAndWaitUntilIsVisible(long secondsToWait) {
     long startTime = System.currentTimeMillis();
     activate();
     long secondsRemaining = secondsToWait - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
