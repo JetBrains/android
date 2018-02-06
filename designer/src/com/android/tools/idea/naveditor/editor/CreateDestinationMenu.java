@@ -27,10 +27,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.psi.PsiClass;
 import com.intellij.ui.components.panels.VerticalLayout;
@@ -59,7 +55,7 @@ public class CreateDestinationMenu extends NavToolbarMenu {
   @VisibleForTesting
   public ComboBox<Pair<String, PsiClass>> myKindPopup;
   @VisibleForTesting
-  JTextField myLabelField;
+  public JTextField myLabelField;
   @VisibleForTesting
   JLabel myLabelLabel;
   JTextField myIdField;
@@ -113,13 +109,8 @@ public class CreateDestinationMenu extends NavToolbarMenu {
       @Override
       public void mouseClicked(MouseEvent event) {
         if (validate()) {
-          AnAction action = new AnAction() {
-            @Override
-            public void actionPerformed(AnActionEvent e) {
-              createDestination();
-            }
-          };
-          ActionManager.getInstance().tryToExecute(action, event, (JComponent)event.getSource(), ActionPlaces.TOOLBAR, true);
+          createDestination();
+          getBalloon().hide();
         }
       }
     });
