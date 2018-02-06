@@ -30,7 +30,6 @@ import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.network.details.ConnectionDetailsView;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
@@ -261,9 +260,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     tooltip.registerListenersOn(selection);
     tooltip.registerListenersOn(radioComponent);
 
-    ContextMenuInstaller contextMenuInstaller = getIdeComponents().createContextMenuInstaller();
-    getProfilersView().getTimelineContextMenu().getContextMenuItems()
-      .forEach(item -> contextMenuInstaller.installGenericContextMenu(selection, item));
+    getProfilersView().installCommonMenuItems(selection);
 
     if (!getStage().hasUserUsedNetworkSelection()) {
       installProfilingInstructions(monitorPanel);

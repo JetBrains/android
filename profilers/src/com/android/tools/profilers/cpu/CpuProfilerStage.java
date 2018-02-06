@@ -534,6 +534,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setFromTimestamp(captureFrom)
       .setToTimestamp(captureTo)
       .setProfilerType(myProfilerModel.getActiveConfig().getProfilerType())
+      .setTraceFilePath(myCaptureParser.getTraceFilePath(traceId))
       .addAllThreads(threads).build();
 
     SaveTraceInfoRequest request = SaveTraceInfoRequest.newBuilder()
@@ -580,19 +581,31 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   private void selectionChanged() {
-    Range range = getStudioProfilers().getTimeline().getSelectionRange();
+    CpuTraceInfo intersectingTraceInfo = getIntersectingTraceInfo(getStudioProfilers().getTimeline().getSelectionRange());
+    if (intersectingTraceInfo == null) {
+      // Didn't find anything, so set the capture to null.
+      setCapture(null);
+    }
+    else {
+      // Otherwise, set the capture to the trace found
+      setCapture(intersectingTraceInfo.getTraceId());
+    }
+  }
 
+  /**
+   * Returns the trace ID of a capture whose range overlaps with a given range. If multiple captures overlap with it,
+   * the first trace ID found is returned.
+   */
+  @Nullable
+  CpuTraceInfo getIntersectingTraceInfo(Range range) {
     List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
     for (SeriesData<CpuTraceInfo> info : infoList) {
       Range captureRange = info.value.getRange();
       if (!captureRange.getIntersection(range).isEmpty()) {
-        setCapture(info.value.getTraceId());
-        return; // No need to check other captures if one is already selected
+        return info.value;
       }
     }
-
-    // Didn't find anything, so set it to null.
-    setCapture(null);
+    return null;
   }
 
   private long currentTimeNs() {

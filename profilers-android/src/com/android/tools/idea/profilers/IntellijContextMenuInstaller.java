@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.profilers.actions.NavigateToCodeAction;
 import com.android.tools.profilers.ContextMenuInstaller;
-import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
@@ -28,13 +27,21 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
+import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 import java.util.function.Supplier;
 
 public class IntellijContextMenuInstaller implements ContextMenuInstaller {
   private static final String COMPONENT_CONTEXT_MENU = "ComponentContextMenu";
 
+  /**
+   * Cache of the X mouse coordinate where the {@link JPopupMenu} is opened.
+   */
+  private int myCachedX = -1;
+
   @Override
-  public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+  public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem,
+                                        @NotNull IntPredicate itemEnabled, @NotNull IntConsumer callback) {
     DefaultActionGroup popupGroup = createOrGetActionGroup(component);
     if (contextMenuItem.equals(ContextMenuItem.SEPARATOR)) {
       popupGroup.addSeparator();
@@ -48,12 +55,12 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
 
         Presentation presentation = e.getPresentation();
         presentation.setText(contextMenuItem.getText());
-        presentation.setEnabled(contextMenuItem.isEnabled());
+        presentation.setEnabled(itemEnabled.test(myCachedX));
       }
 
       @Override
       public void actionPerformed(AnActionEvent e) {
-        contextMenuItem.run();
+        callback.accept(myCachedX);
       }
     };
 
@@ -77,7 +84,7 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
   }
 
   @NotNull
-  private static DefaultActionGroup createOrGetActionGroup(@NotNull JComponent component) {
+  private DefaultActionGroup createOrGetActionGroup(@NotNull JComponent component) {
     DefaultActionGroup actionGroup = (DefaultActionGroup)component.getClientProperty(COMPONENT_CONTEXT_MENU);
     if (actionGroup == null) {
       final DefaultActionGroup newActionGroup = new DefaultActionGroup();
@@ -85,6 +92,7 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
       component.addMouseListener(new PopupHandler() {
         @Override
         public void invokePopup(Component comp, int x, int y) {
+          myCachedX = x;
           ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, newActionGroup).getComponent().show(comp, x, y);
         }
       });

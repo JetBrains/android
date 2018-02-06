@@ -27,7 +27,10 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -74,9 +77,9 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Override
   public ContextMenuInstaller createContextMenuInstaller() {
     return new ContextMenuInstaller() {
-
       @Override
-      public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+      public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem,
+                                            @NotNull IntPredicate itemEnabled, @NotNull IntConsumer callback) {
         List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
         menus.add(contextMenuItem);
       }
@@ -112,6 +115,15 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Nullable
   public List<ContextMenuItem> getComponentContextMenus(@NotNull JComponent component) {
     return myComponentContextMenus.get(component);
+  }
+
+  @NotNull
+  public List<ContextMenuItem> getAllContextMenuItems() {
+    return myComponentContextMenus.values().stream().flatMap(List::stream).collect(Collectors.toList());
+  }
+
+  public void clearContextMenuItems() {
+    myComponentContextMenus.clear();
   }
 
   @NotNull

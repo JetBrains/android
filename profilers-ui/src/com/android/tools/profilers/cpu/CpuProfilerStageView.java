@@ -23,7 +23,6 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
-import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
@@ -33,13 +32,17 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -61,6 +64,7 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,6 +73,7 @@ import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
+
   private final CpuProfilerStage myStage;
 
   private final JButton myCaptureButton;
@@ -93,6 +98,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * Panel to let user know to take a capture.
    */
   @NotNull private final JPanel myHelpTipPanel;
+
+  @NotNull private final SelectionComponent mySelection;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
@@ -144,13 +151,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
-    selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    mySelection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
+    mySelection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final OverlayComponent overlay = new OverlayComponent(selection);
+    final OverlayComponent overlay = new OverlayComponent(mySelection);
     overlayPanel.add(overlay, BorderLayout.CENTER);
+    installContextMenu();
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -226,7 +234,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(mySelection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
     CpuThreadsModel model = myStage.getThreadStates();
@@ -370,8 +378,70 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     updateCaptureState();
   }
 
+  private static Logger getLogger() {
+    return Logger.getInstance(CpuProfilerStageView.class);
+  }
+
   private void clearSelection() {
     getStage().getStudioProfilers().getTimeline().getSelectionRange().clear();
+  }
+
+  /**
+   * Installs a context menu on {@link #mySelection}.
+   */
+  private void installContextMenu() {
+    ContextMenuInstaller contextMenuInstaller = getIdeComponents().createContextMenuInstaller();
+    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isExportCpuTraceEnabled()) {
+      installExportTraceMenuItem(contextMenuInstaller);
+    }
+    // TODO(b/72982718): add other actions specific to CPU profiler
+
+    // Add the profilers common menu items
+    getProfilersView().installCommonMenuItems(mySelection);
+  }
+
+  /**
+   * Install the {@link ContextMenuItem} corresponding to the "Export Trace" feature on {@link #mySelection}.
+   */
+  private void installExportTraceMenuItem(ContextMenuInstaller contextMenuInstaller) {
+    // Add the item to export a trace file.
+    ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(StudioIcons.Common.EXPORT).build();
+    contextMenuInstaller.installGenericContextMenu(
+      mySelection, exportTrace,
+      x -> getTraceIntersectingWithMouseX(x) != null,
+      x -> getIdeComponents().createExportDialog().open(
+        () -> "Export trace as",
+        () -> "trace",
+        file -> getStage().getStudioProfilers().getIdeServices().saveFile(
+          file,
+          (output) -> exportTraceFile(output, getTraceIntersectingWithMouseX(x)),
+          null)));
+    contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
+  }
+
+  /**
+   * Copies the content of the trace file corresponding to a {@link CpuTraceInfo} to a given {@link FileOutputStream}.
+   */
+  private static void exportTraceFile(FileOutputStream output, CpuTraceInfo traceInfo) {
+    // Export trace file action is only called when "Export trace..." is enabled and that only happens with non-null traces
+    assert traceInfo != null;
+
+    // Copy temp trace file to the output stream.
+    try (FileInputStream input = new FileInputStream(traceInfo.getTraceFilePath())) {
+      FileUtil.copy(input, output);
+    }
+    catch (IOException e) {
+      getLogger().warn("Failed to export CPU trace file:\n" + e);
+    }
+  }
+
+  /**
+   * Returns the trace ID of a capture that intersects with the mouse X coordinate within {@link #mySelection}.
+   */
+  private CpuTraceInfo getTraceIntersectingWithMouseX(int mouseXLocation) {
+    Range range = getTimeline().getViewRange();
+    double pos = mouseXLocation / mySelection.getSize().getWidth() * range.getLength() + range.getMin();
+    return getStage().getIntersectingTraceInfo(new Range(pos, pos));
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {

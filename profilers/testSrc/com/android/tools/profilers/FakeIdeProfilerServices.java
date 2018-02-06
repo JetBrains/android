@@ -104,6 +104,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean mySimplePerfEnabled = false;
 
   /**
+   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myExportCpuTraceEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -235,6 +240,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isSimplePerfEnabled() {
         return mySimplePerfEnabled;
       }
+
+      @Override
+      public boolean isExportCpuTraceEnabled() {
+        return myExportCpuTraceEnabled;
+      }
     };
   }
 
@@ -359,5 +369,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableSimplePerf(boolean enabled) {
     mySimplePerfEnabled = enabled;
+  }
+
+  public void enableExportTrace(boolean enabled) {
+    myExportCpuTraceEnabled = enabled;
   }
 }

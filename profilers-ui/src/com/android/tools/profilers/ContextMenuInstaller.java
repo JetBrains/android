@@ -21,13 +21,30 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 import java.util.function.Supplier;
 
 public interface ContextMenuInstaller {
   /**
-   * Installs a generic IntelliJ context menu on a {@code component}.
+   * Simplified version of {@link #installGenericContextMenu(JComponent, ContextMenuItem, IntPredicate, IntConsumer)} that delegates the
+   * implementation of the callback and enabled status to the {@link ContextMenuItem} itself.
    */
-  void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem);
+  default void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+    installGenericContextMenu(component, contextMenuItem, x -> contextMenuItem.isEnabled(), x -> contextMenuItem.run());
+  }
+
+  /**
+   * Installs a generic IntelliJ context menu item on a popup menu that will be displayed when clicking a target component.
+   *
+   * @param component       Target {@link JComponent} that triggers the popup menu when is clicked.
+   * @param contextMenuItem {@link ContextMenuItem} to be added to the popup menu.
+   * @param itemEnabled     {@link IntPredicate} that receives the mouse X coordinate within {@code component} when the popup is triggered
+                            and decides whether {@code contextMenuItem} should be enabled.
+   * @param callback        {@link IntConsumer} that runs an action depending on the mouse X coordinate when the popup is triggered.
+   */
+  void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem, @NotNull IntPredicate itemEnabled,
+                                 @NotNull IntConsumer callback);
 
   /**
    * Installs an IntelliJ context menu on a {@link JComponent} which, when clicked, will navigate

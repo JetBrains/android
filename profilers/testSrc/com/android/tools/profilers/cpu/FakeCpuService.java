@@ -83,6 +83,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private List<CpuProfiler.TraceInfo> myAdditionalTraceInfos = new ArrayList<>();
 
+  private List<String> myTraceFilePaths = new ArrayList<>();
+
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
@@ -306,8 +308,13 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   @Override
   public void saveTraceInfo(CpuProfiler.SaveTraceInfoRequest request, StreamObserver<CpuProfiler.EmptyCpuReply> responseObserver) {
+    myTraceFilePaths.add(request.getTraceInfo().getTraceFilePath());
     responseObserver.onNext(CpuProfiler.EmptyCpuReply.getDefaultInstance());
     responseObserver.onCompleted();
+  }
+
+  public List<String> getTraceFilePaths() {
+    return myTraceFilePaths;
   }
 
   /**
