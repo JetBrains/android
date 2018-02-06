@@ -125,9 +125,9 @@ class ModelListPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
 fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): List<ModelPropertyCore<Unit, T>> {
+): List<ModelPropertyCore<Unit, T>>? {
   return if (this == null) {
-    listOf()
+    null
   } else {
     if (this.valueType == GradlePropertyModel.ValueType.LIST) {
       val value = getValue(LIST_TYPE)
@@ -165,9 +165,9 @@ fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
             }
           }
         }
-      } ?: listOf()
+      }
     } else {
-      listOf()
+      null
     }
   }
 }
