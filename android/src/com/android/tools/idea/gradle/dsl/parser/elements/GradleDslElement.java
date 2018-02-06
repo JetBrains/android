@@ -37,6 +37,7 @@ public abstract class GradleDslElement {
   @NotNull protected final String myName;
 
   @Nullable protected GradleDslElement myParent;
+  @NotNull protected List<GradlePropertiesDslElement> myHolders = new ArrayList<>();
 
   @NotNull private final String myQualifiedName;
   @NotNull private final GradleDslFile myDslFile;

@@ -181,7 +181,13 @@ public class GroovyDslWriter implements GradleDslWriter {
     }
     else {
       PsiElement added;
-      if (psiElement instanceof GrListOrMap || // Entries in [].
+      if (psiElement instanceof GrListOrMap && literal.getParent() instanceof GradleDslExpressionList &&
+        ((GradleDslExpressionList)literal.getParent()).isLiteralList()) {
+        // Add to the front when we are inserting the first element into a literal list
+        emplaceElementToFrontOfList((GrListOrMap)psiElement, newLiteral);
+        added = newLiteral;
+      }
+      else if (psiElement instanceof GrListOrMap || // Entries in [].
           (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList))) { // Method call arguments in ().
         added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before ) or ]
 

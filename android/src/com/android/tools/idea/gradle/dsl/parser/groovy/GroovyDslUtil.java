@@ -512,4 +512,11 @@ public final class GroovyDslUtil {
     node.addLeaf(mCOMMA, ",", newElement.getNode());
   }
 
+  static void emplaceElementToFrontOfList(@NotNull GrListOrMap list, @NotNull PsiElement newElement) {
+    final ASTNode node = list.getNode();
+    final ASTNode anchor = list.getLBrack().getNode().getTreeNext();
+    node.addLeaf(mCOMMA, ",", anchor);
+    // We want to anchor this off the added mCOMMA node.
+    node.addChild(newElement.getNode(), list.getLBrack().getNode().getTreeNext());
+  }
 }

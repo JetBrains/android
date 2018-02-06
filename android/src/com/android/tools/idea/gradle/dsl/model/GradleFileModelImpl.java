@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
-import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -28,7 +27,11 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class GradleFileModelImpl implements GradleFileModel {
   @NotNull protected GradleDslFile myGradleDslFile;
@@ -69,13 +72,30 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     return myGradleDslFile.getFile();
   }
 
+  public Set<GradleDslFile> getInvolvedFiles() {
+    Set<GradleDslFile> files = new HashSet<>();
+    files.add(myGradleDslFile);
+    List<GradleDslFile> currentFiles = new ArrayList<>();
+    currentFiles.add(myGradleDslFile);
+    // TODO: Generalize cycle detection in GradleDslExpression and reuse here.
+    // Attempting to parse a cycle of applied files will fail in GradleDslFile#mergeAppliedFiles;
+    while (!currentFiles.isEmpty()) {
+      GradleDslFile currentFile = currentFiles.remove(0);
+      files.addAll(currentFile.getAppliedFiles());
+      currentFiles.addAll(currentFile.getAppliedFiles());
+    }
+    return files;
+  }
+
   private void saveAllRelatedFiles() {
     Set<PsiElement> relatedPsiElements = new HashSet<>();
     relatedPsiElements.add(myGradleDslFile.getPsiElement());
+    // Add all applied dsl files.
+    relatedPsiElements.addAll(getInvolvedFiles().stream().map(GradleDslFile::getPsiElement).collect(Collectors.toList()));
 
     // Add all parent dsl files.
     GradleDslFile file = myGradleDslFile.getParentModuleDslFile();
-    while (file!= null) {
+    while (file != null) {
       relatedPsiElements.add(file.getPsiElement());
       file = file.getParentModuleDslFile();
     }

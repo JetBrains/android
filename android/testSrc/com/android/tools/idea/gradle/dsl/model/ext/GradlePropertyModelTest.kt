@@ -21,7 +21,10 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.collect.ImmutableMap
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.PlatformTestCase
+import java.io.File
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testProperties() {
@@ -2414,9 +2417,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(secondModel, INTEGER_TYPE, 77, INTEGER, REGULAR, 0)
 
       // TODO: This is not currently parsed.
-      /*val thirdModel = buildModel.ext().findProperty("prop3")
-      verifyPropertyModel(thirdModel, STRING_TYPE, "prop1[1]", STRING, REGULAR, 1)
-      verifyPropertyModel(thirdModel.dependencies[0], STRING_TYPE, "true", STRING, DERIVED, 0)*/
+      val thirdModel = buildModel.ext().findProperty("prop3")
+      verifyPropertyModel(thirdModel, STRING_TYPE, "prop1[1]", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(thirdModel.dependencies[0], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
     }
   }
 
@@ -2782,7 +2785,166 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     }
   }
+  
+  fun testVariablesFromNestedApply() {
+    val firstApplyFileText = """
+                             def var1 = "1"
+                             def var2 = true
+                             def var3 = 1
 
+                             ext {
+                               prop1 = [var1, var2, var3]
+                               prop2 = true
+                             }""".trimIndent()
+    val secondApplyFileText = """
+                              ext {
+                                prop2 = false
+                                prop3 = "hello"
+                                prop4 = "boo"
+                              }
+
+                              apply from: "b.gradle"
+                              """.trimIndent()
+    val text = """
+               apply from: "a.gradle"
+
+               ext {
+                 prop3 = "goodbye"
+                 prop4 = prop1[0]
+                 prop5 = 5
+               }""".trimIndent()
+    writeToNewProjectFile("b.gradle", firstApplyFileText)
+    writeToNewProjectFile("a.gradle", secondApplyFileText)
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val properties = buildModel.ext().inScopeProperties
+      assertSize(5, properties.values)
+      verifyPropertyModel(properties["prop2"], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop2", "ext.prop2")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "b.gradle"), properties["prop2"]!!.gradleFile)
+      verifyListProperty(properties["prop1"], listOf("var1", "var2", "var3"), false)
+      verifyListProperty(properties["prop1"], listOf("1", true, 1), REGULAR, 3)
+      verifyFilePathsAreEqual(File(myProjectBasePath, "b.gradle"), properties["prop1"]!!.gradleFile)
+      // TODO: This is currently picking up the wrong element. Once ordering is complete they should be correct.
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "boo", STRING, REGULAR, 0, "prop4", "ext.prop4")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "a.gradle"), properties["prop4"]!!.gradleFile)
+      // TODO: This is currently picking up the wrong element. Once ordering is complete they should be correct.
+      verifyPropertyModel(properties["prop3"], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop3", "ext.prop3")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "a.gradle"), properties["prop3"]!!.gradleFile)
+      verifyPropertyModel(properties["prop5"], INTEGER_TYPE, 5, INTEGER, REGULAR, 0, "prop5", "ext.prop5")
+
+      // Check we can actually make changes to all the files.
+      properties["prop5"]!!.setValue(ReferenceTo("prop2"))
+      properties["prop1"]!!.getValue(LIST_TYPE)!![1].dependencies[0].setValue(false)
+      properties["prop1"]!!.getValue(LIST_TYPE)!![0].setValue(2)
+      properties["prop2"]!!.setValue("true")
+
+      verifyPropertyModel(properties["prop2"], STRING_TYPE, "true", STRING, REGULAR, 0, "prop2", "ext.prop2")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "b.gradle"), properties["prop2"]!!.gradleFile)
+      verifyListProperty(properties["prop1"], listOf(2, "var2", "var3"), false)
+      verifyListProperty(properties["prop1"], listOf(2, false, 1), REGULAR, 2)
+      verifyFilePathsAreEqual(File(myProjectBasePath, "b.gradle"), properties["prop1"]!!.gradleFile)
+    }
+
+    applyChangesAndReparse(buildModel)
+    ApplicationManager.getApplication().runWriteAction { myProject.baseDir.fileSystem.refresh(false) }
+    println(String(PlatformTestCase.getVirtualFile(myBuildFile).contentsToByteArray()))
+    println(String(PlatformTestCase.getVirtualFile(File(myBuildFile.parentFile, "a.gradle")).contentsToByteArray()))
+    println(String(PlatformTestCase.getVirtualFile(File(myBuildFile.parentFile, "b.gradle")).contentsToByteArray()))
+
+    run {
+      val properties = buildModel.ext().inScopeProperties
+      verifyPropertyModel(properties["prop2"], STRING_TYPE, "true", STRING, REGULAR, 0, "prop2", "ext.prop2")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "b.gradle"), properties["prop2"]!!.gradleFile)
+      verifyListProperty(properties["prop1"], listOf(2, "var2", "var3"), false)
+      verifyListProperty(properties["prop1"], listOf(2, false, 1), REGULAR, 2)
+      verifyFilePathsAreEqual(File(myProjectBasePath, "b.gradle"), properties["prop1"]!!.gradleFile)
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "boo", STRING, REGULAR, 0, "prop4", "ext.prop4")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "a.gradle"), properties["prop4"]!!.gradleFile)
+      verifyPropertyModel(properties["prop3"], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop3", "ext.prop3")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "a.gradle"), properties["prop3"]!!.gradleFile)
+    }
+  }
+
+  fun /*test*/ApplicationCycle() {
+    val applyFileText = """
+                        ext {
+                          prop1 = "hello"
+                        }
+
+                        apply from: "build.gradle"
+                        """.trimIndent()
+    val text = """
+               ext {
+                 prop2 = "true"
+               }
+
+               apply from: "a.gradle"
+               """.trimIndent()
+    writeToNewProjectFile("a.gradle", applyFileText)
+    writeToBuildFile(text)
+
+    // Make sure we don't blow up.
+    val buildModel = gradleBuildModel
+
+    run {
+      val properties = buildModel.ext().inScopeProperties
+      assertSize(2, properties.values)
+    }
+  }
+
+  fun testVariablesFromApply() {
+    val applyFileText = """
+                        def var1 = "Hello"
+                        def var2 = var1
+                        def var3 = true
+
+                        ext {
+                          prop1 = var2
+                          prop2 = "${'$'}{prop1} world!"
+                          prop3 = var3
+                        }
+                        """.trimIndent()
+    val text = """
+               apply from: "vars.gradle"
+               ext {
+                 prop4 = "${'$'}{prop1} : ${'$'}{prop2} : ${'$'}{prop3}"
+               }
+               """.trimIndent()
+    writeToNewProjectFile("vars.gradle", applyFileText)
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop4")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "Hello : Hello world! : true", STRING, REGULAR, 3)
+
+      val deps = propertyModel.dependencies
+      verifyPropertyModel(deps[0], STRING_TYPE, "var2", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(deps[1], STRING_TYPE, "Hello world!", STRING, REGULAR, 1)
+      verifyPropertyModel(deps[2], STRING_TYPE, "var3", REFERENCE, REGULAR, 1)
+
+      // Lets delete one of the variables
+      verifyPropertyModel(deps[0].dependencies[0], STRING_TYPE, "var1", REFERENCE, VARIABLE, 1)
+      deps[0].dependencies[0].delete()
+      // And edit one of the properties
+      deps[0].setValue(72)
+
+      buildModel.ext().inScopeProperties
+      verifyPropertyModel(propertyModel, STRING_TYPE, "72 : 72 world! : true", STRING, REGULAR, 3)
+    }
+
+    applyChangesAndReparse(buildModel)
+    ApplicationManager.getApplication().runWriteAction { myProject.baseDir.fileSystem.refresh(false) }
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop4")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "72 : 72 world! : true", STRING, REGULAR, 3)
+    }
+  }
 
   private fun runSetPropertyTest(text: String, type: PropertyType) {
     writeToBuildFile(text)
