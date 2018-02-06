@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -62,13 +63,17 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
 
   protected void clickFinish(@NotNull Wait waitForDialogDisappear) {
     findAndClickButtonWhenEnabled(this, "Finish");
-    waitForDialogDisappear.expecting("dialog to disappear").until(() -> !target().isShowing());
+    waitForDialogDisappear.expecting("dialog to disappear").until(
+      () -> GuiQuery.getNonNull(() -> !target().isShowing())
+    );
   }
 
   @NotNull
   public S clickCancel() {
     findAndClickCancelButton(this);
-    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    Wait.seconds(5).expecting("dialog to disappear").until(
+      () -> GuiQuery.getNonNull(() ->!target().isShowing())
+    );
     return myself();
   }
 
