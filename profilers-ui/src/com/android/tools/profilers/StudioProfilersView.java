@@ -199,7 +199,8 @@ public class StudioProfilersView extends AspectObserver {
     ProfilerAction zoomInAction =
       new ProfilerAction.Builder("Zoom in").setContainerComponent(myComponent)
         .setActionRunnable(() -> zoomIn.doClick())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                       KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
                        KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
     zoomIn.setToolTipText(zoomInAction.getDefaultToolTipText());
     rightToolbar.add(zoomIn);
