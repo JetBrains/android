@@ -18,19 +18,32 @@ package com.android.tools.idea.gradle.structure.model.meta
 import kotlin.properties.ReadWriteProperty
 
 /**
- * A UI core descriptor of a model of type [ModelT].
+ * Core methods of a UI property descriptor manipulating parsed values.
  */
-interface ModelPropertyCore<in ModelT, PropertyT : Any> {
+interface ModelPropertyParsedCore<in ModelT, PropertyT : Any> {
   fun getParsedValue(model: ModelT): ParsedValue<PropertyT>
   fun setParsedValue(model: ModelT, value: ParsedValue<PropertyT>)
+}
+
+/**
+ * Core methods of a UI property descriptor manipulating resolved values.
+ */
+interface ModelPropertyResolvedCore<in ModelT, out PropertyT : Any> {
   fun getResolvedValue(model: ModelT): ResolvedValue<PropertyT>
 }
+
+/**
+ * A UI core descriptor of a property of a model of type [ModelT].
+ */
+interface ModelPropertyCore<in ModelT, PropertyT : Any>:
+    ModelPropertyParsedCore<ModelT, PropertyT>,
+    ModelPropertyResolvedCore<ModelT, PropertyT>
 
 fun <ModelT, PropertyT: Any> ModelPropertyCore<ModelT, PropertyT>.getValue(model: ModelT): PropertyValue<PropertyT> =
     PropertyValue(parsedValue = getParsedValue(model), resolved = getResolvedValue(model))
 
 /**
- * A UI descriptor a property of a model of type [ModelT].
+ * A UI descriptor of a property of a model of type [ModelT].
  */
 interface ModelProperty<in ModelT, PropertyT : Any> :
   ModelPropertyCore<ModelT, PropertyT>,
@@ -80,3 +93,12 @@ interface ModelListProperty<in ModelT, ValueT : Any> :
   ModelCollectionProperty<ModelT, List<ValueT>, ValueT> {
   fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>>
 }
+
+/**
+ * A UI descriptor of a map property.
+ */
+interface ModelMapProperty<in ModelT, ValueT : Any> :
+  ModelCollectionProperty<ModelT, Map<String, ValueT>, ValueT> {
+  fun getEditableValues(model: ModelT): Map<String, ModelPropertyCore<Unit, ValueT>>
+}
+

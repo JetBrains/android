@@ -51,14 +51,20 @@ abstract class ModelCollectionPropertyBase<in ModelT, out ResolvedT, ParsedT, in
   fun getKnownValues(model: ModelT): List<ValueDescriptor<ValueT>>? = knownValuesGetter(model)
 
   protected fun makeSetModifiedAware(
-    it: ModelPropertyCore<Unit, ValueT>,
+    it: ModelPropertyParsedCore<Unit, ValueT>,
     updatedModel: ModelT
   ) =
-    object : ModelPropertyCore<Unit, ValueT> by it {
+    object : ModelPropertyParsedCore<Unit, ValueT> by it {
       override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) {
         it.setParsedValue(Unit, value)
         modelDescriptor.setModified(updatedModel)
       }
+    }
+
+  protected fun makePropertyCore(it: ModelPropertyParsedCore<Unit, ValueT>, resolvedValueGetter: () -> ValueT?): ModelPropertyCore<Unit, ValueT> =
+    object : ModelPropertyCore<Unit, ValueT>, ModelPropertyParsedCore<Unit, ValueT> by it {
+      override fun getResolvedValue(model: Unit): ResolvedValue<ValueT> =
+        resolvedValueGetter().let { if (it != null) ResolvedValue.Set(it) else ResolvedValue.NotResolved() }
     }
 }
 

@@ -51,6 +51,7 @@ open class PsBuildType(
   var multiDexEnabled by BuildTypeDescriptors.multiDexEnabled
   var debuggable by BuildTypeDescriptors.debuggable
   var proguardFiles by BuildTypeDescriptors.proGuardFiles
+  var manifestPlaceholders by BuildTypeDescriptors.manifestPlaceholders
 
   override fun getName(): String = name
   override fun getParent(): PsAndroidModule = super.getParent() as PsAndroidModule
@@ -215,6 +216,15 @@ open class PsBuildType(
       clearParsedValue = { proguardFiles().delete() },
       setParsedRawValue = { proguardFiles().setDslText(it)},
       parse = { parseFile(it) }
+    )
+    val manifestPlaceholders: ModelMapProperty<PsBuildType, String> = mapProperty(
+      "Manifest Placeholders",
+      getResolvedValue = { manifestPlaceholders.mapValues { it.value.toString() } },
+      getParsedCollection = { manifestPlaceholders().asParsedMapValue(ResolvedPropertyModel::asString, { setValue(it) }) },
+      getParsedRawValue = { manifestPlaceholders().dslText() },
+      clearParsedValue = { manifestPlaceholders().delete() },
+      setParsedRawValue = { manifestPlaceholders().setDslText(it)},
+      parse = { parseString(it) }
     )
   }
 }
