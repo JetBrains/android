@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -28,7 +30,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.NlDependencyManager;
+import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;

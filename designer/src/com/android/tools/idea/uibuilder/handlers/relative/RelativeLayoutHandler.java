@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -26,9 +28,7 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.model.TextDirection;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,7 +115,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
           .stream()
           .filter(component -> component.getParent() != layout.getNlComponent())
           .collect(Collectors.toList());
-        editor.getModel().addComponents(added, layout.getNlComponent(), null, insertType, editor);
+        editor.getModel().addComponents(added, layout.getNlComponent(), null, insertType, layout.getScene().getDesignSurface());
       }
     };
   }

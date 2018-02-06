@@ -23,10 +23,13 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceType
 import com.android.support.AndroidxName
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.api.*
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
@@ -368,7 +371,8 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
 fun NlComponent.createChild(editor: ViewEditor,
                             fqcn: String,
                             before: NlComponent?,
-                            insertType: InsertType): NlComponent? {
+                            insertType: InsertType
+): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   val tag = tag.createChildTag(tagName, null, null, false)
 
@@ -437,6 +441,67 @@ class NlComponentMixin(component: NlComponent)
     component.id?.let { return it }
     val str = component.componentClassName ?: return null
     return str.substring(str.lastIndexOf('.') + 1)
+  }
+
+  override fun canAddTo(receiver: NlComponent): Boolean {
+    if (!receiver.hasNlComponentInfo) {
+      return false
+    }
+    val parentHandler = receiver.viewHandler as? ViewGroupHandler ?: return false
+
+    if (!parentHandler.acceptsChild(receiver, component)) {
+      return false
+    }
+
+    val handler = ViewHandlerManager.get(component.model.project).getHandler(component)
+
+    if (handler != null && !handler.acceptsParent(receiver, component)) {
+      return false
+    }
+    return true
+  }
+
+  /**
+   * Find the Gradle dependency for the given component and return them as a list of String
+   */
+  override fun getDependencies(): Set<String> {
+    val artifacts = mutableSetOf<String>()
+    val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
+    val artifactId = handler.getGradleCoordinateId(component.tag.name)
+    if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
+      artifacts.add(artifactId)
+    }
+    component.children.flatMap { it.dependencies }.toCollection(artifacts)
+
+    return artifacts.toSet()
+  }
+
+  override fun beforeMove(insertType: InsertType, receiver: NlComponent, ids: MutableSet<String>) {
+    var realInsertType = insertType
+    if (insertType.isMove) {
+      realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
+    }
+
+    // AssignId
+    if (component.needsDefaultId() && !realInsertType.isMove) {
+      val id = component.id
+      if (id == null || id.isEmpty()) {
+        ids.add(component.assignId(ids))
+      } else {
+        val baseName = component.getBaseIdName()
+        if (baseName != null && !baseName.isEmpty()) {
+          ids.add(component.assignId(baseName, ids))
+        }
+      }
+    }
+  }
+
+  override fun afterMove(insertType: InsertType, receiver: NlComponent, surface: DesignSurface?) {
+    var realInsertType = insertType
+    if (insertType.isMove) {
+      realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
+    }
+    receiver.viewGroupHandler?.onChildInserted(ViewEditorImpl(component.model, surface?.scene), receiver, component, realInsertType)
   }
 }
 

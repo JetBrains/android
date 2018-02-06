@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
+import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlComponent
@@ -30,7 +32,8 @@ import com.intellij.openapi.diagnostic.Logger
 class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
                              layout: SceneComponent,
                              components: List<NlComponent>,
-                             type: DragType) : DragHandler(editor, handler, layout, components, type) {
+                             type: DragType
+) : DragHandler(editor, handler, layout, components, type) {
   private var sceneComponent: SceneComponent
   private val dragTarget = CoordinatorDragTarget()
   private val snapTargets = mutableListOf<CoordinatorSnapTarget>()

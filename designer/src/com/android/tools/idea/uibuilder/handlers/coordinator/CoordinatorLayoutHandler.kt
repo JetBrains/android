@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.DragType
+import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler
 import com.android.tools.idea.common.model.NlComponent
@@ -50,7 +50,8 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
   override fun createDragHandler(editor: ViewEditor,
                                  layout: SceneComponent,
                                  components: List<NlComponent>,
-                                 type: DragType): DragHandler? {
+                                 type: DragType
+  ): DragHandler? {
     // The {@link CoordinatorDragHandler} handles the logic for anchoring a
     // single component to an existing component in the CoordinatorLayout.
     // If we are moving several components we probably don't want them to be

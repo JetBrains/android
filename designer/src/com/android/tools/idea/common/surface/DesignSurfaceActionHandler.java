@@ -19,8 +19,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -237,7 +237,7 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
       return true;
     }
     transferItem.consumeCut();
-    model.addComponents(pasted, receiver, before, insertType, ViewEditorImpl.getOrCreate(sceneView));
+    model.addComponents(pasted, receiver, before, insertType, sceneView.getSurface());
     return true;
   }
 

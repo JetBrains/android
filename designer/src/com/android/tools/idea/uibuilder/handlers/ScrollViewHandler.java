@@ -18,12 +18,11 @@ package com.android.tools.idea.uibuilder.handlers;
 import android.view.View;
 import android.view.ViewGroup;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -71,7 +70,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
       // fill parent attributes, its id, etc.
-      NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.VIEW_HANDLER);
+      NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.PROGRAMMATIC);
       linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
     }
 

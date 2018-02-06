@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
@@ -207,8 +210,8 @@ public class NlDropListener extends DropTargetAdapter {
   private void performNormalDrop(@NotNull DropTargetDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
       Scene scene = myTree.getScene();
-      ViewEditor editor = scene != null ? ViewEditorImpl.getOrCreate(scene) : null;
-      model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, editor);
+      DesignSurface surface = scene != null ? scene.getDesignSurface() : null;
+      model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, surface);
 
       // This determines how the DnD source acts to a completed drop.
       // If we set the accepted drop action to DndConstants.ACTION_MOVE then the source should delete the source component.

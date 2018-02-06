@@ -31,12 +31,11 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlDependencyManager;
+import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiAnnotation;
@@ -265,7 +264,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
-    getModel().addComponents(children, parent, getChild(parent, index), insertType, this);
+    getModel().addComponents(children, parent, getChild(parent, index), insertType, this.myScene.getDesignSurface());
   }
 
   @NotNull

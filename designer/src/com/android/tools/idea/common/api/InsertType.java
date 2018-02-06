@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.api;
+package com.android.tools.idea.common.api;
 
 /**
  * An enumerated type of different insertion events, such as an insertion from a
@@ -24,45 +24,44 @@ package com.android.tools.idea.uibuilder.api;
  */
 // TODO: Combine with DragType
 public enum InsertType {
-  /** The view is newly created (by for example a palette drag) */
+  /** The component is newly created (by for example a palette drag) */
   CREATE,
 
   /**
-   * Same as {@link #CREATE} but when the views are constructed for previewing, for
+   * Same as {@link #CREATE} but when the components are constructed for previewing, for
    * example as part of a palette static image render, or a palette drag initial
    * drag preview image. (This is useful to for example skip interactive operations,
    * such as querying the user to choose a drawable resource for an ImageButton
-   * via {@link ViewEditor#displayResourceInput})
    */
   CREATE_PREVIEW,
 
-  /** The view is being inserted here because it was moved from somewhere else within
-   * the same layout */
+  /** The component is being inserted here because it was moved from somewhere else within
+   * the same model */
   MOVE_WITHIN,
 
-  /** The view is being inserted here because it was moved from some other layout */
+  /** The component is being inserted here because it was moved from some other model */
   MOVE_INTO,
 
   /**
-   * The view is being inserted here as a result of a copy/paste from elsewhere
+   * The component is being inserted here as a result of a copy/paste from elsewhere
    */
   PASTE,
 
   /**
-   * The view is being inserted here as a result of a move with a modifier key.
+   * The component is being inserted here as a result of a move with a modifier key.
    * This is functionally the same as a PASTE (with a different user feedback)
    */
   COPY,
 
   /**
-   * The view is created programmatically from a view handler
+   * The view is created programmatically
    */
-  VIEW_HANDLER;
+  PROGRAMMATIC;
 
   /**
-   * Returns true if this insert type is for a newly created view (for example a by
+   * Returns true if this insert type is for a newly created component (for example by a
    * palette drag). Note that this includes both normal create events as well as well as
-   * views created as part of previewing operations.
+   * components created as part of previewing operations.
    *
    * @return true if this {@link InsertType} is for a newly created view
    */
@@ -88,7 +87,7 @@ public enum InsertType {
     switch (this) {
       case CREATE:
       case CREATE_PREVIEW:
-      case VIEW_HANDLER:
+      case PROGRAMMATIC:
         return DragType.CREATE;
       case MOVE_INTO:
       case MOVE_WITHIN:

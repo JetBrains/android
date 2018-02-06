@@ -22,8 +22,8 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.DragType
-import com.android.tools.idea.uibuilder.api.InsertType
+import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTarget
 import com.android.tools.idea.uibuilder.model.h
@@ -37,7 +37,8 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
                                      handler: RelativeLayoutHandlerKt,
                                      layout: SceneComponent,
                                      components: List<NlComponent>,
-                                     type: DragType) : DragHandler(editor, handler, layout, components, type) {
+                                     type: DragType
+) : DragHandler(editor, handler, layout, components, type) {
 
   private val component: SceneComponent
   private val dragTarget = RelativeDragTarget()
