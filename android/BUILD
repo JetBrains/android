@@ -201,7 +201,6 @@ iml_module(
         "//tools/adt/idea/observable[module, test]",
         "//tools/idea/java/compiler/openapi:compiler-openapi[module, test]",
         "//tools/base/common:studio.common[module, test]",
-        "//tools/idea/plugins/gradle/lib:commons-io-2.2[test]",
         "//tools/idea/plugins/gradle/tooling-extension-api:gradle-tooling-extension-api[module, test]",
         "//tools/base/build-system:studio.manifest-merger[module, test]",
         "//tools/idea/.idea/libraries:Eclipse[test]",
