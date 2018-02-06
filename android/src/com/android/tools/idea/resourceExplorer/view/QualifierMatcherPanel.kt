@@ -17,8 +17,8 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceEnum
-import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.resourceExplorer.viewmodel.QualifierMatcherPresenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -82,7 +82,7 @@ class QualifierMatcherPanel(
     private val qualifierCombo = createQualifierCombo()
 
     init {
-      matchers.add(MatcherEntry(presenter, qualifierCombo))
+      matchers.add(MatcherEntryView(presenter, qualifierCombo))
       val topPanel = JPanel(FlowLayout(FlowLayout.TRAILING))
       topPanel.add(JLabel("Mapper for: "))
       topPanel.add(qualifierCombo)
@@ -100,7 +100,7 @@ class QualifierMatcherPanel(
       add(matchers)
       add(JButton("Add Matcher").also {
         it.addActionListener {
-          matchers.add(MatcherEntry(presenter, qualifierCombo))
+          matchers.add(MatcherEntryView(presenter, qualifierCombo))
           revalidate()
           repaint()
         }
@@ -123,10 +123,10 @@ class QualifierMatcherPanel(
       return qualifierCombo
     }
 
-    internal fun getMatcherEntries(): List<Pair<String, ResourceEnum>> {
+    internal fun getMatcherEntries(): List<QualifierMatcherPresenter.MatcherEntry> {
       return matchers.components
-          .filterIsInstance<MatcherEntry>()
-          .map { it.getMatcherPair() }
+        .filterIsInstance<MatcherEntryView>()
+        .map { it.getMatcherEntry() }
     }
 
     internal fun getQualifier(): ResourceQualifier {
@@ -135,7 +135,8 @@ class QualifierMatcherPanel(
 
   }
 
-  private class MatcherEntry(private val presenter: QualifierMatcherPresenter, qualifierCombo: JComboBox<ResourceQualifier>) : JPanel(null) {
+  private class MatcherEntryView(private val presenter: QualifierMatcherPresenter, qualifierCombo: JComboBox<ResourceQualifier>) :
+    JPanel(null) {
 
     private val matchString = JTextField()
     private val matchParameterCombo = createParameterCombo(qualifierCombo)
@@ -175,6 +176,7 @@ class QualifierMatcherPanel(
       return parameterCombo
     }
 
-    internal fun getMatcherPair() = matchString.text to matchParameterCombo.selectedItem as ResourceEnum
+    internal fun getMatcherEntry() =
+      QualifierMatcherPresenter.MatcherEntry(matchString.text, matchParameterCombo.selectedItem as ResourceEnum)
   }
 }
