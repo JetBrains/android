@@ -99,6 +99,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   }
 
   protected abstract void saveConfiguredFilterName(String filterName);
+
   protected abstract void saveLogLevel(String logLevelName);
 
   @Override

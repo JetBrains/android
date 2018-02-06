@@ -38,10 +38,14 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
 
   private final LogCatMessageParser myParser = new LogCatMessageParser();
 
-  /** Prefix to use for stack trace lines. */
+  /**
+   * Prefix to use for stack trace lines.
+   */
   private static final String STACK_TRACE_LINE_PREFIX = StringUtil.repeatSymbol(' ', 4);
 
-  /** Prefix to use for the stack trace "Caused by:" lines. */
+  /**
+   * Prefix to use for the stack trace "Caused by:" lines.
+   */
   private static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
 
   private volatile boolean myCanceled = false;
