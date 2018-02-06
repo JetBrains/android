@@ -437,6 +437,29 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertNull("density-include", splits.density().include());
   }
 
+  public void testResetNoneExisting() throws Exception {
+    String text = "android {\n" +
+                  "  splits {\n" +
+                  "    abi {\n" +
+                  "      reset()\n" +
+                  "      include 'abi-include-2', 'abi-include-3'\n" +
+                  "    }\n" +
+                  "    density {\n" +
+                  "      include 'density-include-1', 'density-include-2'\n" +
+                  "      reset()\n" +
+                  "      include 'density-include-3'\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+    SplitsModel splits = android.splits();
+    assertEquals("abi-include", ImmutableList.of("abi-include-2", "abi-include-3"), splits.abi().include());
+    assertEquals("density-include", ImmutableList.of("density-include-3"), splits.density().include());
+  }
+
   public void testResetAndInitialize() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +

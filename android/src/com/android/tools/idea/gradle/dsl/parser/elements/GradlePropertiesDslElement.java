@@ -90,7 +90,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   private void hidePropertyInternal(@NotNull String property) {
-    myProperties.get(property).hideAll();
+    ElementList list = myProperties.get(property);
+    if (list != null) {
+      list.hideAll();
+    }
   }
 
   /**
