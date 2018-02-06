@@ -419,6 +419,11 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
+  public File getProjectPath(@NotNull String child) {
+    return new File(ideFrame().getProjectPath(), child);
+  }
+
+  @NotNull
   public WelcomeFrameFixture welcomeFrame() {
     return WelcomeFrameFixture.find(robot());
   }

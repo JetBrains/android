@@ -24,8 +24,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -64,8 +62,8 @@ public class NewModuleTest {
       .open("somelibrary/build.gradle")
       .getCurrentFileContents();
     assertThat(gradleFileContents).doesNotContain("testCompile");
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/main")).isDirectory();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/test")).doesNotExist();
+    assertAbout(file()).that(guiTest.getProjectPath("somelibrary/src/main")).isDirectory();
+    assertAbout(file()).that(guiTest.getProjectPath("somelibrary/src/test")).doesNotExist();
   }
 
   @Test
@@ -120,7 +118,7 @@ public class NewModuleTest {
       .chooseActivity("Add No Activity")
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "application-module")).isDirectory();
+    assertAbout(file()).that(guiTest.getProjectPath("application-module")).isDirectory();
   }
 
   /**
@@ -147,7 +145,7 @@ public class NewModuleTest {
       .setModuleName("library-module")
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "library-module")).isDirectory();
+    assertAbout(file()).that(guiTest.getProjectPath("library-module")).isDirectory();
   }
 
   @Test
@@ -163,8 +161,8 @@ public class NewModuleTest {
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/src/main/java/my/test/MyClass.java")).isFile();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/.gitignore")).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.java")).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).isFile();
   }
 
   @Test
@@ -181,7 +179,7 @@ public class NewModuleTest {
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/src/main/java/my/test/MyJavaClass.java")).isFile();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylib/.gitignore")).doesNotExist();
+    assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyJavaClass.java")).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).doesNotExist();
   }
 }

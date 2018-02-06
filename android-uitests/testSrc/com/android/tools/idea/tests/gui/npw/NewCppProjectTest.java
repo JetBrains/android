@@ -34,7 +34,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -141,7 +140,7 @@ public class NewCppProjectTest {
     ideFixture
       .openFromMenu(LinkCppProjectFixture::find, "File", "Link C++ Project with Gradle")
       .selectCMakeBuildSystem()
-      .enterCMakeListsPath(getCMakeListsPath())
+      .enterCMakeListsPath(guiTest.getProjectPath("app/CMakeLists.txt").getAbsolutePath())
       .clickOk()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
@@ -229,12 +228,6 @@ public class NewCppProjectTest {
            ".*    path.*\n" +           //     path "CMakeLists.txt"
            ".*\n" +                     //   }
            ".*)";
-  }
-
-  @NotNull
-  private String getCMakeListsPath() {
-    File appPath = new File(guiTest.getProjectPath(), "app");
-    return new File(appPath, "CMakeLists.txt").getAbsolutePath();
   }
 
   private void assertAndroidPanePath(boolean expectedToExist, @NotNull String... path) {
