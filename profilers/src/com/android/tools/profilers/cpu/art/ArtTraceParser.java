@@ -52,6 +52,6 @@ public class ArtTraceParser implements TraceParser {
 
   @Override
   public boolean supportsDualClock() {
-    return false;
+    return true;
   }
 }
