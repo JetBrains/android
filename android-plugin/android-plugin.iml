@@ -16,5 +16,6 @@
     <orderEntry type="module" module-name="sdk-updates" />
     <orderEntry type="module" module-name="designer" />
     <orderEntry type="module" module-name="profilers-android" />
+    <orderEntry type="module" module-name="android-layout-inspector" />
   </component>
 </module>

@@ -197,7 +197,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     group.add(new Separator());
 
     group.add(new TerminateVMAction(deviceContext));
-    group.add(new LayoutInspectorAction(project, deviceContext));
+    //group.add(new LayoutInspectorAction(project, deviceContext));
     group.add(new Separator());
     group.add(new BrowserHelpAction("Android Monitor", "http://developer.android.com/r/studio-ui/android-monitor.html"));
 
