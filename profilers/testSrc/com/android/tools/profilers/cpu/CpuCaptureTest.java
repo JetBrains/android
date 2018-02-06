@@ -19,6 +19,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeTraceParser;
+import com.android.tools.profilers.cpu.art.ArtTraceParser;
+import com.android.tools.profilers.cpu.atrace.AtraceParser;
+import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
@@ -150,5 +153,17 @@ public class CpuCaptureTest {
     TraceParser parser = new FakeTraceParser(range, captureTrees, false);
     capture = new CpuCapture(parser);
     assertThat(capture.isDualClock()).isFalse();
+  }
+
+  @Test
+  public void dualClockSupportDiffersFromParser() {
+    ArtTraceParser artParser = new ArtTraceParser();
+    assertThat(artParser.supportsDualClock()).isTrue();
+
+    SimpleperfTraceParser simpleperfTraceParser = new SimpleperfTraceParser("any.id");
+    assertThat(simpleperfTraceParser.supportsDualClock()).isFalse();
+
+    AtraceParser atraceParser = new AtraceParser(123);
+    assertThat(atraceParser.supportsDualClock()).isFalse();
   }
 }

@@ -72,7 +72,7 @@ public class AtraceParser implements TraceParser {
 
   @Override
   public boolean supportsDualClock() {
-    return true;
+    return false;
   }
 
   /**
