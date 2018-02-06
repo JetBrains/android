@@ -43,7 +43,6 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -551,25 +550,22 @@ public class GradleSyncTest {
     // Verify that the module depends on the library
     Module appModule = ideFrame.getModule("app");
     AtomicBoolean dependencyFound = new AtomicBoolean();
-    new ReadAction() {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(appModule).getModifiableModel();
-        try {
-          for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
-            if (orderEntry instanceof LibraryOrderEntry) {
-              LibraryOrderEntry libraryDependency = (LibraryOrderEntry)orderEntry;
-              if (libraryDependency.getLibrary() == library) {
-                dependencyFound.set(true);
-              }
+    ReadAction.run(() -> {
+      ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(appModule).getModifiableModel();
+      try {
+        for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+          if (orderEntry instanceof LibraryOrderEntry) {
+            LibraryOrderEntry libraryDependency = (LibraryOrderEntry)orderEntry;
+            if (libraryDependency.getLibrary() == library) {
+              dependencyFound.set(true);
             }
           }
         }
-        finally {
-          modifiableModel.dispose();
-        }
       }
-    }.execute();
+      finally {
+        modifiableModel.dispose();
+      }
+    });
     assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
   }
 
