@@ -1,0 +1,12 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+repositories {
+}
+
+group = 'com.test.composite2'
+version = '1.0'
+
+dependencies {
+}
+

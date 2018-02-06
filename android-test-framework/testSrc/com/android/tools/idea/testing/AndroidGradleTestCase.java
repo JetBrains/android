@@ -308,22 +308,30 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
     }
-    assertTrue(root.getPath(), root.exists());
-
-    File build = new File(root, FN_BUILD_GRADLE);
-    File settings = new File(root, FN_SETTINGS_GRADLE);
-    assertTrue("Couldn't find build.gradle or settings.gradle in " + root.getPath(), build.exists() || settings.exists());
 
     // Sync the model
     Project project = myFixture.getProject();
     File projectRoot = virtualToIoFile(project.getBaseDir());
-    copyDir(root, projectRoot);
+    prepareProjectForImport(root, projectRoot);
+    return projectRoot;
+  }
+
+  @NotNull
+  protected File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
+    assertTrue(srcRoot.getPath(), srcRoot.exists());
+
+    File build = new File(srcRoot, FN_BUILD_GRADLE);
+    File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
+    assertTrue("Couldn't find build.gradle or settings.gradle in " + srcRoot.getPath(), build.exists() || settings.exists());
+
+
+    copyDir(srcRoot, projectRoot);
 
     // We need the wrapper for import to succeed
     createGradleWrapper(projectRoot);
 
     // Override settings just for tests (e.g. sdk.dir)
-    updateLocalProperties();
+    updateLocalProperties(projectRoot);
 
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateVersionAndDependencies(projectRoot);
@@ -374,8 +382,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return result;
   }
 
-  private void updateLocalProperties() throws IOException {
-    LocalProperties localProperties = new LocalProperties(getProject());
+  private void updateLocalProperties(@NotNull File projectRoot) throws IOException {
+    LocalProperties localProperties = new LocalProperties(projectRoot);
     File sdkPath = findSdkPath();
     assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
     localProperties.setAndroidSdkPath(sdkPath.getPath());

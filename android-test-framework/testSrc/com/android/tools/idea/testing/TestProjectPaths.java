@@ -9,6 +9,8 @@ public final class TestProjectPaths {
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
   public static final String CIRCULAR_MODULE_DEPS = "projects/circularModuleDeps";
+  public static final String COMPOSITE_BUILD = "projects/compositeBuild";
+  public static final String COMPOSITE_BUILD_ROOT_PROJECT = "projects/compositeBuild/TestCompositeApp";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String EXPERIMENTAL_PLUGIN = "projects/experimentalPlugin";
   public static final String HELLO_JNI = "projects/helloJni";
