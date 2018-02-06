@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.*
@@ -50,6 +51,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     val testInstrumentationRunner = PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner.getValue(defaultConfig)
     val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.getValue(defaultConfig)
     val versionName = PsAndroidModuleDefaultConfigDescriptors.versionName.getValue(defaultConfig)
+    val proGuardFiles = PsAndroidModuleDefaultConfigDescriptors.proGuardFiles.getValue(defaultConfig)
 
     assertThat(applicationId.resolved.asTestValue(), equalTo("com.example.psd.sample.app.default"))
     assertThat(applicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.default"))
@@ -77,6 +79,9 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(versionName.resolved.asTestValue(), equalTo("1.0"))
     assertThat(versionName.parsedValue.asTestValue(), equalTo("1.0"))
+
+    assertThat(proGuardFiles.resolved.asTestValue(), equalTo(listOf()))
+    assertThat(proGuardFiles.parsedValue.asTestValue(), nullValue())
   }
 
   fun testSetProperties() {
