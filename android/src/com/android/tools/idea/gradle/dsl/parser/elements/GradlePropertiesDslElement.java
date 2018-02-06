@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.intellij.psi.PsiElement;
@@ -53,6 +54,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     TO_BE_REMOVED, // Exists on file but should be deleted.
     EXISTING, // Exists on file and should stay there.
     HIDDEN, // Exists on file but invisible to the model.
+    APPLIED, // These properties come from another file. These elements are not updated with calls to apply/create/delete.
   }
 
   protected GradlePropertiesDslElement(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull String name) {
@@ -77,22 +79,53 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     }
   }
 
+  private void addAppliedProperty(@NotNull String property, @NotNull GradleDslElement element) {
+    element.myHolders.add(this);
+    addPropertyInternal(property, element, ElementState.APPLIED);
+  }
+
   private void removePropertyInternal(@NotNull String property) {
     if (myProperties.containsKey(property)) {
       myProperties.get(property).removeAll();
     }
   }
 
-  private void removePropertyInternal(@NotNull GradleDslElement element) {
+  /**
+   * Removes the property by the given element. Returns the OLD ElementItem that was used to
+   * store the element.
+   */
+  private ElementState removePropertyInternal(@NotNull GradleDslElement element) {
     if (myProperties.containsKey(element.getName())) {
-      myProperties.get(element.getName()).remove(element);
+      return myProperties.get(element.getName()).remove(element);
     }
+    return null;
   }
 
   private void hidePropertyInternal(@NotNull String property) {
     ElementList list = myProperties.get(property);
     if (list != null) {
       list.hideAll();
+    }
+  }
+
+  public void addAppliedModelProperties(@NotNull GradleDslFile file) {
+    // Here we need to merge the properties into from the applied file into this element.
+    mergePropertiesFrom(file);
+  }
+
+  private void mergePropertiesFrom(@NotNull GradlePropertiesDslElement other) {
+    for (Map.Entry<String, GradleDslElement> entry : other.getPropertyElements().entrySet()) {
+      if (myProperties.containsKey(entry.getKey())) {
+        GradleDslElement newProperty  = entry.getValue();
+        GradleDslElement existingProperty = getElementWhere(entry.getKey(), PROPERTY_FILTER);
+        // If they are both block elements, merge them.
+        if (newProperty instanceof GradleDslBlockElement && existingProperty instanceof GradleDslBlockElement) {
+          ((GradlePropertiesDslElement)existingProperty).mergePropertiesFrom((GradlePropertiesDslElement)newProperty);
+          continue;
+        }
+      }
+      // Otherwise just add the new property.
+      addAppliedProperty(entry.getKey(), entry.getValue());
     }
   }
 
@@ -332,6 +365,24 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   @NotNull
+  public GradleDslElement replaceElement(@NotNull String property, @NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    List<GradlePropertiesDslElement> holders = new ArrayList<>();
+    holders.add(this);
+    holders.addAll(oldElement.myHolders);
+    for (GradlePropertiesDslElement holder : holders) {
+      ElementState state = holder.removePropertyInternal(oldElement);
+      if (state != null) {
+        if (state == ElementState.APPLIED) {
+          holder.addPropertyInternal(property, newElement, ElementState.APPLIED);
+        } else {
+          setNewElement(property, newElement);
+        }
+      }
+    }
+    return newElement;
+  }
+
+  @NotNull
   public GradleDslElement setNewLiteral(@NotNull String property, @NotNull Object value) {
     return setNewLiteralImpl(property, value);
   }
@@ -507,8 +558,15 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       myElements.push(new ElementItem(newElement, state));
     }
 
-    private void remove(@NotNull GradleDslElement element) {
-      myElements.stream().filter(e -> element == e.myElement).findFirst().ifPresent(e -> e.myElementState = ElementState.TO_BE_REMOVED);
+    @Nullable
+    private ElementState remove(@NotNull GradleDslElement element) {
+      ElementItem item = myElements.stream().filter(e -> element == e.myElement).findFirst().orElseGet(null);
+      if (item == null) {
+        return null;
+      }
+      ElementState oldState =  item.myElementState;
+      item.myElementState = ElementState.TO_BE_REMOVED;
+      return oldState;
     }
 
     private void removeAll() {
@@ -573,7 +631,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
      * Runs {@code func} across all of the elements stored in this list.
      */
     private void applyElements(@NotNull Consumer<GradleDslElement> func) {
-      myElements.stream().map(e -> e.myElement).forEach(func);
+      myElements.stream().filter(e -> e.myElementState != ElementState.APPLIED).map(e -> e.myElement).forEach(func);
     }
   }
 }

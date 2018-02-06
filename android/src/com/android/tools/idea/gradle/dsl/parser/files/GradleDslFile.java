@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
+import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslWriter;
@@ -33,8 +34,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -51,10 +55,13 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @Nullable private GradleDslFile myParentModuleDslFile;
   @Nullable private GradleDslFile mySiblingDslFile;
 
+  @NotNull private final List<ApplyDslElement> myAppliedFiles;
+
   protected GradleDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     super(null, null, moduleName);
     myFile = file;
     myProject = project;
+    myAppliedFiles = new ArrayList<>();
 
     Application application = ApplicationManager.getApplication();
     PsiFile psiFile = application.runReadAction((Computable<PsiFile>)() -> PsiManager.getInstance(myProject).findFile(myFile));
@@ -88,6 +95,8 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
   public void parse() {
     myGradleDslParser.parse();
+    // Apply all of the files.
+    mergeAppliedFiles();
   }
 
   @NotNull
@@ -103,6 +112,11 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull
   public File getDirectoryPath() {
     return virtualToIoFile(getFile().getParent());
+  }
+
+  @NotNull
+  public List<GradleDslFile> getAppliedFiles() {
+    return myAppliedFiles.stream().map(ApplyDslElement::getAppliedFile).collect(Collectors.toList());
   }
 
   public void setParentModuleDslFile(@NotNull GradleDslFile parentModuleDslFile) {
@@ -147,5 +161,38 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @NotNull
   public GradleDslParser getParser() {
     return myGradleDslParser;
+  }
+
+  @Override
+  protected void apply() {
+    // First make sure we update all our applied files.
+    for (ApplyDslElement applyElement : myAppliedFiles) {
+      if (applyElement.getAppliedFile() != null) {
+        applyElement.getAppliedFile().apply();
+      }
+    }
+
+    // And update us.
+    super.apply();
+  }
+
+  public void registerAppliedFile(@NotNull ApplyDslElement applyElement) {
+    myAppliedFiles.add(applyElement);
+  }
+
+  // TODO: Fix cycle here.
+  private void mergeAppliedFiles() {
+    for (ApplyDslElement applyElement : myAppliedFiles) {
+      GradleDslFile file = applyElement.getAppliedFile();
+      // Don't apply if the file is null.
+      if (file == null) {
+        return;
+      }
+
+      // Parse the file
+      file.parse();
+
+      addAppliedModelProperties(file);
+    }
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.TypeNameValueElement;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -27,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleValueImpl;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
@@ -65,23 +65,26 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected File mySubModuleBuildFile;
   protected File mySubModulePropertiesFile;
 
+  protected File myModuleDirPath;
+  protected File myProjectBasePath;
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
     String basePath = myProject.getBasePath();
     assertNotNull(basePath);
-    File projectBasePath = new File(basePath);
-    assertAbout(file()).that(projectBasePath).isDirectory();
-    mySettingsFile = new File(projectBasePath, FN_SETTINGS_GRADLE);
+    myProjectBasePath = new File(basePath);
+    assertAbout(file()).that(myProjectBasePath).isDirectory();
+    mySettingsFile = new File(myProjectBasePath, FN_SETTINGS_GRADLE);
     assertTrue(ensureCanCreateFile(mySettingsFile));
 
     File moduleFilePath = new File(myModule.getModuleFilePath());
-    File moduleDirPath = moduleFilePath.getParentFile();
-    assertAbout(file()).that(moduleDirPath).isDirectory();
-    myBuildFile = new File(moduleDirPath, FN_BUILD_GRADLE);
+    myModuleDirPath = moduleFilePath.getParentFile();
+    assertAbout(file()).that(myModuleDirPath).isDirectory();
+    myBuildFile = new File(myModuleDirPath, FN_BUILD_GRADLE);
     assertTrue(ensureCanCreateFile(myBuildFile));
-    myPropertiesFile = new File(moduleDirPath, FN_GRADLE_PROPERTIES);
+    myPropertiesFile = new File(myModuleDirPath, FN_GRADLE_PROPERTIES);
     assertTrue(ensureCanCreateFile(myPropertiesFile));
 
     File subModuleFilePath = new File(mySubModule.getModuleFilePath());
@@ -125,6 +128,20 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void writeToBuildFile(@NotNull String text) throws IOException {
     writeToFile(myBuildFile, text);
+  }
+
+  protected void writeToNewSubModuleFile(@NotNull String fileName, @NotNull String text) throws IOException {
+    File newFile = new File(myModuleDirPath, fileName);
+    if (!newFile.createNewFile()) {
+      return;
+    }
+    writeToFile(newFile, text);
+  }
+
+  protected void writeToNewProjectFile(@NotNull String fileName, @NotNull String text) throws IOException {
+    File newFile = new File(myProjectBasePath, fileName);
+    writeToFile(newFile, text);
+    ApplicationManager.getApplication().runWriteAction(() -> myProject.getBaseDir().getFileSystem().refresh(false));
   }
 
   @NotNull
@@ -336,6 +353,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   public static void verifyPropertyModel(@NotNull String message, @NotNull GradlePropertyModel model, @NotNull Object expected) {
+    verifyPropertyModel(message, model, expected, true);
+  }
+
+  public static void verifyPropertyModel(@NotNull String message, @NotNull GradlePropertyModel model, @NotNull Object expected, boolean resolve) {
     switch (model.getValueType()) {
       case INTEGER:
         assertEquals(message, expected, model.getValue(INTEGER_TYPE));
@@ -347,7 +368,11 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
         assertEquals(message, expected, model.getValue(BOOLEAN_TYPE));
         break;
       case REFERENCE:
-        assertEquals(message, expected, model.resolve().getValue(STRING_TYPE));
+        if (resolve) {
+          verifyPropertyModel(message, model.resolve().getResultModel(), expected);
+        } else {
+          assertEquals(message, expected, model.getValue(STRING_TYPE));
+        }
         break;
       default:
         fail("Type for model: " + model + " was unexpected, " + model.getValueType());
@@ -361,9 +386,32 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(name, model.getFullyQualifiedName());
   }
 
+  public static void verifyListProperty(@Nullable GradlePropertyModel model,
+                                        @NotNull List<Object> expectedValues,
+                                        boolean resolveItem) {
+    verifyListProperty("verifyListProperty", model, expectedValues, resolveItem);
+  }
+
   public static void verifyListProperty(@NotNull String message,
                                         @Nullable GradlePropertyModel model,
                                         @NotNull List<Object> expectedValues) {
+    verifyListProperty(message, model, expectedValues, true);
+  }
+
+  // This method is not suitable for lists or maps in lists, these must be verified manually.
+  public static void verifyListProperty(GradlePropertyModel model,
+                                        List<Object> expectedValues,
+                                        PropertyType propertyType,
+                                        int dependencies) {
+    verifyListProperty("verifyListProperty", model, expectedValues);
+    assertEquals(propertyType, model.getPropertyType());
+    assertEquals(dependencies, model.getDependencies().size());
+  }
+
+  public static void verifyListProperty(@NotNull String message,
+                                        @Nullable GradlePropertyModel model,
+                                        @NotNull List<Object> expectedValues,
+                                        boolean resolveItems) {
     assertNotNull(message, model);
     assertEquals(message, LIST, model.getValueType());
     List<GradlePropertyModel> actualValues = model.getValue(LIST_TYPE);
@@ -371,9 +419,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(message, expectedValues.size(), actualValues.size());
     for (int i = 0; i < actualValues.size(); i++) {
       GradlePropertyModel tempModel = actualValues.get(i);
-      verifyPropertyModel(message, tempModel, expectedValues.get(i));
+      verifyPropertyModel(message, tempModel, expectedValues.get(i), resolveItems);
     }
   }
+
 
   public static void verifyMapProperty(@Nullable GradlePropertyModel model,
                                        @NotNull Map<String, Object> expectedValues) {
@@ -396,16 +445,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     }
   }
 
-  // This method is not suitable for lists or maps in lists, these must be verified manually.
-  public static void verifyListProperty(GradlePropertyModel model,
-                                        List<Object> expectedValues,
-                                        PropertyType propertyType,
-                                        int dependencies) {
-    verifyListProperty("verifyListProperty", model, expectedValues);
-    assertEquals(propertyType, model.getPropertyType());
-    assertEquals(dependencies, model.getDependencies().size());
-  }
-
   public static <T> void verifyPropertyModel(GradlePropertyModel model,
                                              TypeReference<T> type,
                                              T value,
@@ -417,5 +456,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     verifyPropertyModel(model, type, value, valueType, propertyType, dependencies);
     assertEquals(name, model.getName());
     assertEquals(fullName, model.getFullyQualifiedName());
+  }
+
+  public static void verifyFilePathsAreEqual(@NotNull File expected, @NotNull VirtualFile actual) {
+    assertEquals(expected.getAbsolutePath(), actual.getPath());
   }
 }

@@ -16,7 +16,11 @@
 package com.android.tools.idea.gradle.dsl.parser.apply;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class ApplyDslElement extends GradlePropertiesDslElement {
   @NonNls public static final String APPLY_BLOCK_NAME = "apply";
+  // The file that is applied by the element. For apply statements that apply plugins, this is null.
+  @Nullable private GradleBuildFile myAppliedBuildFile;
 
   public ApplyDslElement(@Nullable GradleDslElement parent) {
     super(parent, null, APPLY_BLOCK_NAME);
@@ -35,6 +41,19 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
       addToParsedExpressionList("plugin", element);
       return;
     }
+    if (property.equals("from")) {
+      // Try and find the given file.
+      String fileName = attemptToExtractFileName(element);
+      if (fileName != null) {
+        VirtualFile file = getDslFile().getFile().getParent().findChild(fileName);
+        if (file != null) {
+          myAppliedBuildFile = new GradleBuildFile(file, getDslFile().getProject(), fileName);
+          // Register the applied file.
+          getDslFile().registerAppliedFile(this);
+        }
+      }
+    }
+
     super.addParsedElement(property, element);
   }
 
@@ -52,5 +71,19 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
 
   @Override
   public void setPsiElement(@Nullable PsiElement psiElement) {
+  }
+
+  @Nullable
+  public GradleDslFile getAppliedFile() {
+    return myAppliedBuildFile;
+  }
+
+  @Nullable
+  private static String attemptToExtractFileName(@NotNull GradleDslElement element) {
+    if (element instanceof GradleDslLiteral) {
+      return ((GradleDslLiteral)element).getValue(String.class);
+    }
+
+    return null;
   }
 }

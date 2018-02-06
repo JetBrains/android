@@ -216,9 +216,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       myValueType = extractAndGetValueType(myElement);
     }
     else {
-      // We can't reuse, need to delete and create a new one.
-      int index = deleteInternal();
-
       GradleDslExpression newElement;
       if (!isReference) {
         newElement = new GradleDslLiteral(myPropertyHolder, myName);
@@ -227,7 +224,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
         newElement = new GradleDslReference(myPropertyHolder, myName);
       }
       newElement.setValue(value);
-      bindToNewElement(newElement, index);
+      bindToNewElement(newElement);
     }
   }
 
@@ -395,24 +392,23 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   private void makeEmptyMap() {
-    // Makes this property a map, first remove the old property.
-    int index = deleteInternal();
-
-    bindToNewElement(new GradleDslExpressionMap(myPropertyHolder, myName, !myIsMethodCall), index);
+    bindToNewElement(new GradleDslExpressionMap(myPropertyHolder, myName, !myIsMethodCall));
   }
 
   private void makeEmptyList() {
-    // Remove the old property.
-    int index = deleteInternal();
-
-    bindToNewElement(new GradleDslExpressionList(myPropertyHolder, myName, !myIsMethodCall), index);
+    bindToNewElement(new GradleDslExpressionList(myPropertyHolder, myName, !myIsMethodCall));
   }
 
-  private void bindToNewElement(@NotNull GradleDslElement element, int index) {
+  private void bindToNewElement(@NotNull GradleDslElement element) {
     if (myPropertyHolder instanceof GradlePropertiesDslElement) {
-      myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewElement(myName, element);
+      if (myElement != null) {
+        myElement = ((GradlePropertiesDslElement)myPropertyHolder).replaceElement(myName, myElement, element);
+      } else {
+        myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewElement(myName, element);
+      }
     }
     else if (myPropertyHolder instanceof GradleDslExpressionList) {
+      int index = deleteInternal();
       GradleDslExpressionList list = (GradleDslExpressionList)myPropertyHolder;
       assert index != -1; // Can't bind with an invalid index.
       // TODO: Remove this assertion
@@ -421,6 +417,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       myElement = element;
     }
     else if (myPropertyHolder instanceof GradleDslElementList) {
+      deleteInternal();
       GradleDslElementList list = (GradleDslElementList)myPropertyHolder;
       list.addNewElement(element);
       myElement = element;

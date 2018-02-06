@@ -190,6 +190,13 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @Override
   protected void apply() {
     PsiElement psiElement = create();
+
+    for (GradleDslExpression expression : myExpressions) {
+      if (!myUnsavedExpressions.contains(expression)) {
+        expression.delete();
+      }
+    }
+
     if (psiElement != null) {
       for (int i = 0; i < myUnsavedExpressions.size(); i++) {
         GradleDslExpression expression = myUnsavedExpressions.get(i);
@@ -205,12 +212,6 @@ public final class GradleDslExpressionList extends GradleDslElement {
             expression.setPsiElement(psiElement);
           }
         }
-      }
-    }
-
-    for (GradleDslExpression expression : myExpressions) {
-      if (!myUnsavedExpressions.contains(expression)) {
-        expression.delete();
       }
     }
     saveExpressions();
