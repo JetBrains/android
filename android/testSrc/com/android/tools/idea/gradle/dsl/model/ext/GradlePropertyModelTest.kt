@@ -278,6 +278,25 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(variables[2], STRING_TYPE, "crane", STRING, VARIABLE, 0, "var3", "ext.var3")
   }
 
+  fun testGetNonQuotedListIndex() {
+    val text = """
+               ext {
+                 prop1 = [1, "two", "3", 4]
+                 prop2 = prop1[0]
+                 prop3 = prop1[1]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    val firstModel = extModel.findProperty("prop2")
+    verifyPropertyModel(firstModel.resolve(), INTEGER_TYPE, 1, INTEGER, REGULAR, 1)
+    verifyPropertyModel(firstModel, STRING_TYPE, "prop1[0]", REFERENCE, REGULAR, 1)
+    val secondModel = extModel.findProperty("prop3")
+    verifyPropertyModel(secondModel.resolve(), STRING_TYPE, "two", STRING, REGULAR, 1)
+    verifyPropertyModel(secondModel, STRING_TYPE, "prop1[1]", REFERENCE, REGULAR, 1)
+  }
+
   fun testReferencePropertyDependency() {
     val text = """
                ext {
@@ -2257,7 +2276,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals(LIST, thirdModel.valueType)
       val thirdList = thirdModel.getValue(LIST_TYPE)!!
       assertSize(1, thirdList)
-      verifyPropertyModel(thirdList[0], STRING_TYPE, "prop2", REFERENCE, DERIVED, 0 /* 1 TODO: Statement order */)
+      verifyPropertyModel(thirdList[0], STRING_TYPE, "prop2", REFERENCE, DERIVED,  1)
 
       val fourthModel = buildModel.ext().findProperty("prop4")
       assertEquals(MAP, fourthModel.valueType)
