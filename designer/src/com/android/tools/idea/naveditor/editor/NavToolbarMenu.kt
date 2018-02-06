@@ -26,17 +26,21 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) : AnAction("", description, icon) {
+  var balloon: Balloon? = null
+
   override fun actionPerformed(e: AnActionEvent) {
     val balloonBuilder = JBPopupFactory.getInstance()
       .createBalloonBuilder(mainPanel)
       .setShadow(true)
-      .setHideOnAction(true)
+      .setHideOnAction(false)
       .setAnimationCycle(200)
     surface.currentSceneView?.colorSet?.subduedBackground?.let {
       balloonBuilder.setBorderColor(it)
       balloonBuilder.setFillColor(it)
     }
-    balloonBuilder.createBalloon().show(RelativePoint.getSouthOf(e.inputEvent.source as JComponent), Balloon.Position.below)
+    balloon = balloonBuilder.createBalloon().also {
+      it.show(RelativePoint.getSouthOf(e.inputEvent.source as JComponent), Balloon.Position.below)
+    }
   }
 
   abstract val mainPanel: JPanel

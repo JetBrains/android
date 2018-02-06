@@ -17,15 +17,22 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor
 
 import com.android.tools.idea.naveditor.editor.CreateDestinationMenu
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JButtonFixture
 import org.fest.swing.fixture.JComboBoxFixture
+import org.fest.swing.fixture.JTextComponentFixture
 import javax.swing.JPanel
+import javax.swing.JTextField
 
 class CreateDestinationMenuFixture(private val robot: Robot, private val menu: CreateDestinationMenu) :
     ComponentFixture<CreateDestinationMenuFixture, JPanel>(CreateDestinationMenuFixture::class.java, robot, menu.mainPanel) {
 
   fun selectKind(tag: String): CreateDestinationMenuFixture = apply { JComboBoxFixture(robot, menu.myKindPopup).selectItem(tag) }
+
+  fun setLabel(label: String) {
+    JTextComponentFixture(robot(), menu.myLabelField).deleteText().enterText(label)
+  }
 
   fun clickCreate() = JButtonFixture(robot, menu.myCreateButton).click()
 }

@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.CreateDestinationMenuFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import org.fest.swing.driver.BasicJListCellReader;
@@ -32,6 +33,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LABEL;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -87,6 +90,27 @@ public class NavNlEditorTest {
     guiTest.robot().type('\b');
 
     layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)  // b/72238573
+  @Test
+  public void testCreateNew() throws Exception {
+    IdeFrameFixture frame = guiTest.importProject("Navigation");
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layout = editor.getLayoutEditor(true);
+
+    // This is separate to catch the case where we have a problem opening the file before sync is complete.
+    frame.waitForGradleProjectSyncToFinish();
+    layout.waitForRenderToFinish();
+
+    CreateDestinationMenuFixture fixture = ((NavDesignSurfaceFixture)layout.getSurface()).openNewDestinationMenu();
+    fixture.setLabel("my label");
+    fixture.clickCreate();
+
+    assertEquals(1, layout.getSelection().size());
+    assertEquals("my label", layout.getSelection().get(0).getAttribute(ANDROID_URI, ATTR_LABEL));
   }
 
   @Test

@@ -21,10 +21,6 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
@@ -202,20 +198,16 @@ class AddExistingDestinationMenu(surface: NavDesignSurface) :
     destinationsList.addMouseListener(
         object : MouseAdapter() {
           override fun mouseClicked(event: MouseEvent) {
-            val action = object : AnAction() {
-              override fun actionPerformed(e: AnActionEvent) {
-                val element = destinationsList.selectedValue
-                if (element != null) {
-                  element.addToGraph()
-                  // explicitly update so the new SceneComponent is created
-                  surface.sceneManager!!.update()
-                  val component = element.component
-                  surface.selectionModel.setSelection(ImmutableList.of(component!!))
-                  surface.scrollToCenter(ImmutableList.of(component))
-                }
-              }
+            val element = destinationsList.selectedValue
+            if (element != null) {
+              element.addToGraph()
+              // explicitly update so the new SceneComponent is created
+              surface.sceneManager!!.update()
+              val component = element.component
+              surface.selectionModel.setSelection(ImmutableList.of(component!!))
+              surface.scrollToCenter(ImmutableList.of(component))
+              balloon?.hide()
             }
-            ActionManager.getInstance().tryToExecute(action, event, event.component, ActionPlaces.TOOLBAR, true)
           }
         }
     )
