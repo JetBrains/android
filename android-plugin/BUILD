@@ -27,5 +27,6 @@ iml_module(
         "//tools/adt/idea/sdk-updates[module]",
         "//tools/adt/idea/designer[module]",
         "//tools/adt/idea/profilers-android[module]",
+        "//tools/adt/idea/android-layout-inspector[module]",
     ],
 )

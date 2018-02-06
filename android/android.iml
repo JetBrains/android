@@ -89,7 +89,6 @@
     <orderEntry type="module" module-name="smali" />
     <orderEntry type="module" module-name="java-lib-model" />
     <orderEntry type="module" module-name="java-lib-model-builder" />
-    <orderEntry type="module" module-name="layoutinspector" />
     <orderEntry type="module" module-name="sdk-common" />
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="module" module-name="lang-api" />
