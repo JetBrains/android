@@ -42,31 +42,20 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
       { if (getKnownValues != null) getKnownValues(it) else null }
     )
 
-class ModelListPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
-  private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
+class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
+  override val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   private val getResolvedValue: ResolvedT.() -> List<ValueT>?,
   private val getParsedCollection: ParsedT.() -> List<ModelPropertyCore<Unit, ValueT>>?,
   private val getParsedRawValue: ParsedT.() -> DslText?,
-  private val clearParsedValue: ParsedT.() -> Unit,
-  private val setParsedRawValue: (ParsedT.(DslText) -> Unit),
-  private val parser: (String) -> ParsedValue<ValueT>,
-  private val knownValuesGetter: (ModelT) -> List<ValueDescriptor<ValueT>>?
-) : ModelListProperty<ModelT, ValueT> {
+  override val clearParsedValue: ParsedT.() -> Unit,
+  override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
+  override val parser: (String) -> ParsedValue<ValueT>,
+  override val knownValuesGetter: (ModelT) -> List<ValueDescriptor<ValueT>>?
+) : ModelCollectionPropertyBase<ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ModelT, ValueT> {
 
   override fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>> =
     modelDescriptor.getParsed(model)?.let { getParsedCollection(it)?.map { makeSetModifiedAware(it, model) } } ?: listOf()
-
-  private fun makeSetModifiedAware(
-    it: ModelPropertyCore<Unit, ValueT>,
-    updatedModel: ModelT
-  ) =
-    object : ModelPropertyCore<Unit, ValueT> by it {
-      override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) {
-        it.setParsedValue(Unit, value)
-        modelDescriptor.setModified(updatedModel)
-      }
-    }
 
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef)
 
@@ -96,82 +85,15 @@ class ModelListPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
     }
   }
 
-  override fun setParsedValue(model: ModelT, value: ParsedValue<List<ValueT>>) {
-    val parsedModel = modelDescriptor.getParsed(model) ?: throw IllegalStateException()
-    when (value) {
-      is ParsedValue.NotSet -> parsedModel.clearParsedValue()
-      is ParsedValue.Set.Parsed -> {
-        val dsl = value.dslText
-        when (dsl?.mode) {
-          // Dsl modes.
-          DslMode.REFERENCE -> parsedModel.setParsedRawValue(dsl)
-          DslMode.INTERPOLATED_STRING -> parsedModel.setParsedRawValue(dsl)
-          DslMode.OTHER_UNPARSED_DSL_TEXT -> parsedModel.setParsedRawValue(dsl)
-          // Literal modes are not supported. getEditableValues() should be used.
-          DslMode.LITERAL -> UnsupportedOperationException()
-          null -> UnsupportedOperationException()
-        }
-      }
-      is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
-    }
-    modelDescriptor.setModified(model)
-  }
-
   override fun getDefaultValue(model: ModelT): List<ValueT>? = listOf()
-
-  override fun parse(value: String): ParsedValue<ValueT> = parser(value)
-
-  override fun getKnownValues(model: ModelT): List<ValueDescriptor<ValueT>>? = knownValuesGetter(model)
 }
 
 fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): List<ModelPropertyCore<Unit, T>>? {
-  return if (this == null) {
-    null
-  } else {
-    if (this.valueType == GradlePropertyModel.ValueType.LIST) {
-      val value = getValue(LIST_TYPE)
-      value
-      ?.map {it.resolve()}
-      ?.map {
-        object : ModelPropertyCore<Unit, T> {
-          override fun getParsedValue(model: Unit): ParsedValue<T> {
-            val parsed: T? = it.getTypedValue()
-            val dslText: DslText? = it.dslText()
-            return when {
-              (parsed == null && dslText == null) -> ParsedValue.NotSet<T>()
-              parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
-              else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText)
-            }
-          }
-
-          override fun getResolvedValue(model: Unit): ResolvedValue<T> = ResolvedValue.NotResolved()
-
-          override fun setParsedValue(model: Unit, value: ParsedValue<T>) {
-            when (value) {
-              is ParsedValue.NotSet -> it.delete()
-              is ParsedValue.Set.Parsed -> {
-                val dsl = value.dslText
-                when (dsl?.mode) {
-                // Dsl modes.
-                  DslMode.REFERENCE -> it.setDslText(dsl)
-                  DslMode.INTERPOLATED_STRING -> it.setDslText(dsl)
-                  DslMode.OTHER_UNPARSED_DSL_TEXT -> it.setDslText(dsl)
-                // Literal modes.
-                  DslMode.LITERAL -> it.setTypedValue(value.value!!)
-                  null -> it.setTypedValue(value.value!!)
-                }
-              }
-              is ParsedValue.Set.Invalid -> throw IllegalArgumentException()
-            }
-          }
-        }
-      }
-    } else {
-      null
-    }
-  }
-}
-
+): List<ModelPropertyCore<Unit, T>>? =
+  this
+    ?.takeIf { valueType == GradlePropertyModel.ValueType.LIST }
+    ?.getValue(LIST_TYPE)
+    ?.map { it.resolve() }
+    ?.map { makeItemProperty(it, getTypedValue, setTypedValue) }
