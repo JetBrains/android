@@ -21,7 +21,6 @@ import com.android.ddmlib.IShellEnabledDevice;
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.logcat.LogCatTimestamp;
 import com.android.tools.idea.run.LoggingReceiver;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.execution.impl.ConsoleBuffer;
@@ -40,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -136,7 +136,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
                        "the device will be stopped and the listeners will be notified with the exception message as the last message.";
 
       getLog().info(message, exception);
-      receiver.notifyLine(new LogCatHeader(LogLevel.ERROR, 0, 0, "?", "Internal", LogCatTimestamp.ZERO), exception.getMessage());
+      receiver.notifyLine(new LogCatHeader(LogLevel.ERROR, 0, 0, "?", "Internal", Instant.MIN), exception.getMessage());
     }
   }
 
