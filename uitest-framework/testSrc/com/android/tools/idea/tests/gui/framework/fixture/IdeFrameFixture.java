@@ -42,7 +42,6 @@ import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -596,12 +595,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Module module = getModule(moduleName);
     VirtualFile buildFile = getGradleBuildFile(module);
     Ref<GradleBuildModel> buildModelRef = new Ref<>();
-    new ReadAction() {
-      @Override
-      protected void run(@NotNull Result result) {
-        buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
-      }
-    }.execute();
+    ReadAction.run(() -> {
+      buildModelRef.set(GradleBuildModel.parseBuildFile(buildFile, getProject()));
+    });
     return new GradleBuildModelFixture(buildModelRef.get());
   }
 
