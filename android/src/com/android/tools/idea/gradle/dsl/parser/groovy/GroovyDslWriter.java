@@ -24,7 +24,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -45,7 +44,6 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
 import static com.android.tools.idea.gradle.dsl.parser.java.LanguageLevelUtil.convertToGradleString;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
-import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
 
 public class GroovyDslWriter implements GradleDslWriter {
   @Override

@@ -67,6 +67,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrIndexProperty;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
@@ -532,6 +533,10 @@ public class GroovyDslParser implements GradleDslParser {
       }
     }
 
+    if (propertyExpression instanceof GrIndexProperty) {
+      return new GradleDslReference(parentElement, psiElement, propertyName, propertyExpression);
+    }
+
     if (propertyExpression instanceof GrNewExpression) {
       GrNewExpression newExpression = (GrNewExpression)propertyExpression;
       GrCodeReferenceElement referenceElement = newExpression.getReferenceElement();
@@ -688,6 +693,7 @@ public class GroovyDslParser implements GradleDslParser {
     return closureElement;
   }
 
+  @Nullable
   private static GradlePropertiesDslElement getBlockElement(@NotNull List<String> qualifiedName,
                                                             @NotNull GradlePropertiesDslElement parentElement) {
     GradlePropertiesDslElement resultElement = parentElement;
