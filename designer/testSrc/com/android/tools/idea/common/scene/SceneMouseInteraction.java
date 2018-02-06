@@ -89,7 +89,7 @@ public class SceneMouseInteraction {
   }
 
   /**
-   * Simulate a click on a given anchor of the {@link SceneComponent} component
+   * Simulate a click on a given {@link AnchorTarget} of the {@link SceneComponent} component
    *
    * @param component   the component we want to click on
    * @param type        the type of anchor we want to click on
@@ -102,7 +102,7 @@ public class SceneMouseInteraction {
   }
 
   /**
-   * Simulate a click on a given anchor of the component with componentId
+   * Simulate a click on a given {@link AnchorTarget} of the component with componentId
    *
    * @param componentId the id of the component we want to click on
    * @param type        the type of anchor we want to click on
@@ -178,7 +178,7 @@ public class SceneMouseInteraction {
   }
 
   /**
-   * Simulate releasing the mouse above the given anchor of the component
+   * Simulate releasing the mouse above the given {@link AnchorTarget} of the component
    * with the given componentId
    *
    * @param componentId the id of the component we will release the mouse above

@@ -34,6 +34,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -114,7 +115,7 @@ public class Scene implements SelectionListener, Disposable {
   private boolean myIsAltDown;
   private boolean myShowAllConstraints = false;
 
-  private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
+  public enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
   private FilterType myFilterTarget = FilterType.NONE;
 
@@ -445,6 +446,7 @@ public class Scene implements SelectionListener, Disposable {
 
   /**
    * Decides which target type we should display
+   * TODO: this function needs refactor.
    *
    * @param target
    * @return true if the target will be displayed
@@ -493,6 +495,12 @@ public class Scene implements SelectionListener, Disposable {
         return true;
       }
       if (myFilterTarget == FilterType.ANCHOR) {
+        return true;
+      }
+    }
+    if (target instanceof RelativeAnchorTarget) {
+      RelativeAnchorTarget anchor = (RelativeAnchorTarget) target;
+      if (anchor.isConnectible(myFilterTarget)) {
         return true;
       }
     }
@@ -703,6 +711,10 @@ public class Scene implements SelectionListener, Disposable {
         if (anchor.getType() == AnchorTarget.Type.BASELINE) {
           myFilterTarget = FilterType.BASELINE_ANCHOR;
         }
+      }
+      else if (myHitTarget instanceof RelativeAnchorTarget) {
+        RelativeAnchorTarget anchor = (RelativeAnchorTarget)myHitTarget;
+        myFilterTarget = anchor.getPreferredFilterType();
       }
       myHitTarget.mouseDown(x, y);
       if (myHitTarget instanceof MultiComponentTarget) {
@@ -937,6 +949,10 @@ public class Scene implements SelectionListener, Disposable {
 
   public void setRoot(SceneComponent root) {
     myRoot = root;
+  }
+
+  public FilterType getFilterType() {
+    return myFilterTarget;
   }
 
   @Nullable

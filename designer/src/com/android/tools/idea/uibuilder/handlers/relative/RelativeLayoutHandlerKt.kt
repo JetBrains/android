@@ -21,12 +21,10 @@ import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTarget
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeParentTarget
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeResizeTarget
-import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeWidgetTarget
+import com.android.tools.idea.uibuilder.handlers.relative.targets.*
 import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
@@ -54,22 +52,30 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.Builder<Target>()
     RelativeParentTarget.Type.values().forEach { listBuilder.add(RelativeParentTarget(it)) }
+    AnchorTarget.Type.values()
+      .filterNot { it == AnchorTarget.Type.BASELINE }
+      .forEach { listBuilder.add(RelativeAnchorTarget(it, true)) }
     return listBuilder.build()
   }
 
   override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
     listBuilder.add(RelativeDragTarget())
-    createResizeTarget(listBuilder)
-    createWidgetTargets(listBuilder, childComponent)
+
+    RESIZE_TARGETS.forEach { listBuilder.add(RelativeResizeTarget(it)) }
+    AnchorTarget.Type.values()
+      .filterNot { it == AnchorTarget.Type.BASELINE }
+      .forEach { listBuilder.add(RelativeAnchorTarget(it, false)) }
+    RelativeWidgetTarget.Type.values()
+      .filter { it !== RelativeWidgetTarget.Type.BASELINE || childComponent.nlComponent.getBaseline() != -1 }
+      .forEach { listBuilder.add(RelativeWidgetTarget(it)) }
     return listBuilder.build()
   }
-
-  private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) =
-      ResizeBaseTarget.Type.values().forEach { listBuilder.add(RelativeResizeTarget(it)) }
-
-  private fun createWidgetTargets(listBuilder: ImmutableList.Builder<Target>, sceneComponent: SceneComponent) =
-      RelativeWidgetTarget.Type.values()
-          .filter { it !== RelativeWidgetTarget.Type.BASELINE || sceneComponent.nlComponent.getBaseline() != -1 }
-          .forEach { listBuilder.add(RelativeWidgetTarget(it)) }
 }
+
+private val RESIZE_TARGETS = listOf(
+  ResizeBaseTarget.Type.LEFT_TOP,
+  ResizeBaseTarget.Type.LEFT_BOTTOM,
+  ResizeBaseTarget.Type.RIGHT_TOP,
+  ResizeBaseTarget.Type.RIGHT_BOTTOM
+)

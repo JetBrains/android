@@ -37,7 +37,7 @@ abstract public class AnchorTarget extends BaseTarget {
   private static final int ANCHOR_SIZE = 3;
   private static final int EXPANDED_SIZE = 200;
 
-  protected final Type myType;
+  @NotNull protected final Type myType;
   @AndroidDpCoordinate protected int myLastX = -1;
   @AndroidDpCoordinate protected int myLastY = -1;
   private boolean myExpandArea = false;
@@ -69,7 +69,7 @@ abstract public class AnchorTarget extends BaseTarget {
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public AnchorTarget(Type type) {
+  public AnchorTarget(@NotNull Type type) {
     myType = type;
   }
 
@@ -78,6 +78,7 @@ abstract public class AnchorTarget extends BaseTarget {
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
 
+  @NotNull
   public Type getType() {
     return myType;
   }
@@ -285,13 +286,15 @@ abstract public class AnchorTarget extends BaseTarget {
     }
   }
 
+  @NotNull
   protected abstract DrawAnchor.Mode getDrawMode();
 
+  @NotNull
   private DrawAnchor.Type getDrawType() {
     return myType == Type.BASELINE? DrawAnchor.Type.BASELINE : DrawAnchor.Type.NORMAL;
   }
 
-  private boolean  getDrawAsConnected() {
+  private boolean getDrawAsConnected() {
     return isConnected() && !isTargeted();
   }
 
@@ -340,7 +343,7 @@ abstract public class AnchorTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Nullable
-  public static AnchorTarget findAnchorTarget(@NotNull SceneComponent component, AnchorTarget.Type type) {
+  public static AnchorTarget findAnchorTarget(@NotNull SceneComponent component, @NotNull AnchorTarget.Type type) {
     for (Target target : component.getTargets()) {
       if (target instanceof AnchorTarget && ((AnchorTarget)target).myType == type) {
         return (AnchorTarget) target;
