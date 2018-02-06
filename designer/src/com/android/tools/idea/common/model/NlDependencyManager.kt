@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.model
+package com.android.tools.idea.common.model
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.module.Module
@@ -38,7 +35,9 @@ class NlDependencyManager private constructor(private val dependencyManager: Dep
 
   companion object {
     @JvmOverloads
-    fun get(dependencyManager: DependencyManager = GradleManager()) = NlDependencyManager(dependencyManager)
+    fun get(dependencyManager: DependencyManager = GradleManager()) = NlDependencyManager(
+        dependencyManager
+    )
   }
 
   /**
@@ -101,24 +100,9 @@ class NlDependencyManager private constructor(private val dependencyManager: Dep
    */
   private fun collectDependencies(components: Iterable<NlComponent>): Iterable<GradleCoordinate> {
     return components
-        .flatMap(this::getDependencies)
+        .flatMap { it.dependencies}
         .mapNotNull { artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+") }
         .toList()
-  }
-
-  /**
-   * Find the Gradle dependency for the given component and return them as a list of String
-   */
-  private fun getDependencies(component: NlComponent): Set<String> {
-    val artifacts = mutableSetOf<String>()
-    val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
-    val artifactId = handler.getGradleCoordinateId(component.tag.name)
-    if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
-      artifacts.add(artifactId)
-    }
-    component.children.flatMap { getDependencies(it) }.toCollection(artifacts)
-
-    return artifacts.toSet()
   }
 
   /**

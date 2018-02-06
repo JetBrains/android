@@ -18,10 +18,9 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
@@ -196,7 +195,7 @@ public abstract class WidgetCreator {
     }
     transaction.commit();
     myModel.addComponents(Collections.singletonList(myComponent), myMockup.getComponent(), null, InsertType.CREATE_PREVIEW,
-                          ViewEditorImpl.getOrCreate(myScreenView));
+                          myScreenView.getSurface());
     return myComponent;
   }
 

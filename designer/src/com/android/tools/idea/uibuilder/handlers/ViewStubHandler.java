@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
-import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;

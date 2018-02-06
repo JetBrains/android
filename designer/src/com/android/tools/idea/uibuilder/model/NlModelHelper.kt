@@ -20,10 +20,12 @@ import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.editor.NlEditor
 import com.android.tools.idea.common.editor.NlEditorProvider
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.surface.SceneView
@@ -157,31 +159,6 @@ fun NlModel.overrideConfigurationDensity(density: Density) {
   configuration.setEffectiveDevice(device, device.defaultState)
 }
 
-fun NlModel.canAddComponents(receiver: NlComponent, toAdd: List<NlComponent>): Boolean {
-  if (!receiver.hasNlComponentInfo) {
-    return false
-  }
-  val parentHandler = receiver.viewHandler as? ViewGroupHandler ?: return false
-
-  for (component in toAdd) {
-    if (!parentHandler.acceptsChild(receiver, component)) {
-      return false
-    }
-
-    val handler = ViewHandlerManager.get(project).getHandler(component)
-
-    if (handler != null && !handler.acceptsParent(receiver, component)) {
-      return false
-    }
-  }
-  return true
-}
-
-fun NlModel.checkIfUserWantsToAddDependencies(toAdd: List<NlComponent>): Boolean {
-  // May bring up a dialog such that the user can confirm the addition of the new dependencies:
-  return NlDependencyManager.get().checkIfUserWantsToAddDependencies(toAdd, facet)
-}
-
 /**
  * Creates a new component of the given type. It will optionally insert it as a child of the given parent (and optionally
  * right before the given sibling or null to append at the end.)
@@ -203,7 +180,8 @@ fun NlModel.createComponent(editor: ViewEditor,
                             tag: XmlTag,
                             parent: NlComponent?,
                             before: NlComponent?,
-                            insertType: InsertType): NlComponent? {
+                            insertType: InsertType
+): NlComponent? {
   val child = createComponent(tag, parent, before)
   val realTag = child.tag
   if (parent != null) {
@@ -251,11 +229,13 @@ fun NlModel.createComponent(editor: ViewEditor,
 @Deprecated("This function is going to be removed.", ReplaceWith("NlModel.createComponents(Scene, DnDTransferItem, InsertType)"))
 fun NlModel.createComponents(sceneView: SceneView,
                              item: DnDTransferItem,
-                             insertType: InsertType) = createComponents(sceneView.scene, item, insertType)
+                             insertType: InsertType
+) = createComponents(sceneView.scene, item, insertType)
 
 fun NlModel.createComponents(scene: Scene,
                              item: DnDTransferItem,
-                             insertType: InsertType): List<NlComponent> {
+                             insertType: InsertType
+): List<NlComponent> {
   val components = ArrayList<NlComponent>(item.components.size)
   for (dndComponent in item.components) {
     val tag = createTag(project, dndComponent.representation)

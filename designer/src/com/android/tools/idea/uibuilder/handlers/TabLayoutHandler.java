@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.common.GenericLinearDragHandler;
 import com.android.tools.idea.common.model.NlComponent;
@@ -55,9 +55,9 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
       String tabItemName = node.getTagName().startsWith(ANDROIDX_PKG_PREFIX) ? CLASS_TAB_ITEM.newName() : CLASS_TAB_ITEM.oldName();
 
       // Insert a couple of TabItems:
-      NlComponent tab1 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.VIEW_HANDLER);
-      NlComponent tab2 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.VIEW_HANDLER);
-      NlComponent tab3 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.VIEW_HANDLER);
+      NlComponent tab1 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.PROGRAMMATIC);
+      NlComponent tab2 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.PROGRAMMATIC);
+      NlComponent tab3 = NlComponentHelperKt.createChild(node, editor, tabItemName, null, InsertType.PROGRAMMATIC);
 
       tab1.setAndroidAttribute(ATTR_TEXT, "Left");
       tab2.setAndroidAttribute(ATTR_TEXT, "Center");

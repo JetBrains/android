@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;

@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;

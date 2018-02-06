@@ -17,15 +17,19 @@ package com.android.tools.idea.common.model;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph;
 import com.android.tools.idea.uibuilder.model.AttributesHelperKt;
 import com.android.tools.idea.uibuilder.model.QualifiedName;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
@@ -37,6 +41,8 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -646,6 +652,137 @@ public class NlComponent implements NlAttributesHolder {
     return null;
   }
 
+  public boolean canAddTo(NlComponent receiver) {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      return mixin.canAddTo(receiver);
+    }
+    return true;
+  }
+
+  public void moveTo(@NotNull NlComponent receiver, @Nullable NlComponent before, @NotNull InsertType type, @NotNull Set<String> ids,
+                     @Nullable DesignSurface surface) {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      mixin.beforeMove(type, receiver, ids);
+    }
+    addTags(receiver, before, type);
+    if (mixin != null) {
+      mixin.afterMove(type, receiver, surface);
+    }
+  }
+
+  public void addTags(@NotNull NlComponent receiver, @Nullable NlComponent before, @NotNull InsertType type) {
+    NlComponent parent = getParent();
+    if (parent != null) {
+      parent.removeChild(this);
+    }
+    receiver.addChild(this, before);
+    if (receiver.getTag() != getTag()) {
+      transferNamespaces();
+      XmlTag prev = getTag();
+      if (before != null) {
+        setTag((XmlTag)receiver.getTag().addBefore(getTag(), before.getTag()));
+      }
+      else {
+        setTag(receiver.getTag().addSubTag(getTag(), false));
+      }
+      if (type.isMove()) {
+        prev.delete();
+      }
+    }
+    removeNamespaceAttributes();
+  }
+
+
+  /**
+   * Given a root tag which is not yet part of the current document, (1) look up any namespaces defined on that root tag, transfer
+   * those to the current document, and (2) update all attribute prefixes for namespaces to match those in the current document
+   */
+  private void transferNamespaces() {
+    // Transfer namespace attributes
+    XmlFile file = getModel().getFile();
+    XmlDocument xmlDocument = file.getDocument();
+    assert xmlDocument != null;
+    XmlTag rootTag = xmlDocument.getRootTag();
+    assert rootTag != null;
+    Map<String, String> prefixToNamespace = rootTag.getLocalNamespaceDeclarations();
+    Map<String, String> namespaceToPrefix = Maps.newHashMap();
+    for (Map.Entry<String, String> entry : prefixToNamespace.entrySet()) {
+      namespaceToPrefix.put(entry.getValue(), entry.getKey());
+    }
+    Map<String, String> oldPrefixToPrefix = Maps.newHashMap();
+
+    for (Map.Entry<String, String> entry : getTag().getLocalNamespaceDeclarations().entrySet()) {
+      String namespace = entry.getValue();
+      String prefix = entry.getKey();
+      String currentPrefix = namespaceToPrefix.get(namespace);
+      if (currentPrefix == null) {
+        // The namespace isn't used in the document. Import it.
+        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(file, namespace, prefix);
+        if (!prefix.equals(newPrefix)) {
+          // We imported the namespace, but the prefix used in the new document isn't available
+          // so we need to update all attribute references to the new name
+          oldPrefixToPrefix.put(prefix, newPrefix);
+          namespaceToPrefix.put(namespace, newPrefix);
+        }
+      }
+      else if (!prefix.equals(currentPrefix)) {
+        // The namespace is already imported, but using a different prefix. We need
+        // to switch the prefixes.
+        oldPrefixToPrefix.put(prefix, currentPrefix);
+      }
+    }
+
+    if (!oldPrefixToPrefix.isEmpty()) {
+      updatePrefixes(getTag(), oldPrefixToPrefix);
+    }
+  }
+
+  /**
+   * Recursively update all attributes such that XML attributes with prefixes in the {@code oldPrefixToPrefix} key set
+   * are replaced with the corresponding values
+   */
+  private static void updatePrefixes(@NotNull XmlTag tag, @NotNull Map<String, String> oldPrefixToPrefix) {
+    for (XmlAttribute attribute : tag.getAttributes()) {
+      String prefix = attribute.getNamespacePrefix();
+      if (!prefix.isEmpty()) {
+        if (prefix.equals(XMLNS)) {
+          String newPrefix = oldPrefixToPrefix.get(attribute.getLocalName());
+          if (newPrefix != null) {
+            attribute.setName(XMLNS_PREFIX + newPrefix);
+          }
+        }
+        else {
+          String newPrefix = oldPrefixToPrefix.get(prefix);
+          if (newPrefix != null) {
+            attribute.setName(newPrefix + ':' + attribute.getLocalName());
+          }
+        }
+      }
+    }
+
+    for (XmlTag child : tag.getSubTags()) {
+      updatePrefixes(child, oldPrefixToPrefix);
+    }
+  }
+
+  private void removeNamespaceAttributes() {
+    for (XmlAttribute attribute : getTag().getAttributes()) {
+      if (attribute.getName().startsWith(XMLNS_PREFIX)) {
+        attribute.delete();
+      }
+    }
+  }
+
+  public Set<String> getDependencies() {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      return mixin.getDependencies();
+    }
+    return ImmutableSet.of();
+  }
+
   public abstract static class XmlModelComponentMixin {
     private final NlComponent myComponent;
 
@@ -672,5 +809,16 @@ public class NlComponent implements NlAttributesHolder {
     public String getTooltipText() {
       return null;
     }
+
+    public boolean canAddTo(@NotNull NlComponent receiver) {
+      return true;
+    }
+
+    public Set<String> getDependencies() {
+      return ImmutableSet.of();
+    }
+
+    public void beforeMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @NotNull Set<String> ids) {}
+    public void afterMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @Nullable DesignSurface surface) {}
   }
 }

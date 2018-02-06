@@ -28,8 +28,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
@@ -550,7 +550,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         return false;
       }
       if (!checkOnly) {
-        model.addComponents(toAdd, root, null, insertType, sceneView.getSceneManager().getViewEditor());
+        model.addComponents(toAdd, root, null, insertType, sceneView.getSurface());
         myDesignSurface.getSelectionModel().setSelection(toAdd);
         myDesignSurface.getLayeredPane().requestFocus();
       }

@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import android.view.View;
 import android.view.ViewGroup;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ScrollViewScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -60,7 +60,7 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
       // fill parent attributes, its id, etc.
-      NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.VIEW_HANDLER);
+      NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.PROGRAMMATIC);
       linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
     }
 

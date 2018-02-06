@@ -21,6 +21,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
@@ -29,8 +30,12 @@ import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.uibuilder.model.DnDTransferItem;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModelHelper;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
@@ -46,12 +51,9 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +62,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
 
 /**
  * Model for an XML file
@@ -875,7 +878,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (toAdd.isEmpty()) {
       return false;
     }
-    if (!NlModelHelperKt.canAddComponents(this, receiver, toAdd)) {
+    if (toAdd.stream().anyMatch(c -> !c.canAddTo(receiver))) {
       return false;
     }
 
@@ -889,7 +892,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         same = same.getParent();
       }
     }
-    return ignoreMissingDependencies || NlModelHelperKt.checkIfUserWantsToAddDependencies(this, toAdd);
+    return ignoreMissingDependencies || checkIfUserWantsToAddDependencies(toAdd);
+  }
+
+  private boolean checkIfUserWantsToAddDependencies(List<NlComponent> toAdd) {
+    // May bring up a dialog such that the user can confirm the addition of the new dependencies:
+    return NlDependencyManager.Companion.get().checkIfUserWantsToAddDependencies(toAdd, getFacet());
   }
 
   /**
@@ -900,13 +908,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
-                            @Nullable ViewEditor editor) {
+                            @Nullable DesignSurface surface) {
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
 
     NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType),
-                             () -> handleAddition(toAdd, receiver, before, insertType, editor));
+                             () -> handleAddition(toAdd, receiver, before, insertType, surface));
 
     notifyModified(ChangeType.ADD_COMPONENTS);
   }
@@ -931,25 +939,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                       final @NotNull InsertType insertType) {
     NlWriteCommandAction.run(added, generateAddComponentsDescription(added, insertType), () -> {
       for (NlComponent component : added) {
-        NlComponent parent = component.getParent();
-        if (parent != null) {
-          parent.removeChild(component);
-        }
-        receiver.addChild(component, before);
-        if (receiver.getTag() != component.getTag()) {
-          XmlTag prev = component.getTag();
-          transferNamespaces(prev);
-          if (before != null) {
-            component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
-          }
-          else {
-            component.setTag(receiver.getTag().addSubTag(component.getTag(), false));
-          }
-          if (insertType.isMove()) {
-            prev.delete();
-          }
-        }
-        removeNamespaceAttributes(component);
+        component.addTags(receiver, before, insertType);
       }
     });
 
@@ -976,145 +966,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
                               @NotNull InsertType insertType,
-                              @Nullable ViewEditor editor) {
+                              @Nullable DesignSurface surface) {
     NlDependencyManager.Companion.get().addDependencies(added, getFacet());
 
-    InsertType realInsertType = insertType;
     Set<String> ids = getIds();
 
     for (NlComponent component : added) {
-
-      if (insertType.isMove()) {
-        realInsertType = component.getParent() == receiver ? InsertType.MOVE_WITHIN : InsertType.MOVE_INTO;
-      }
-
-      // AssignId
-      if (NlComponentHelperKt.needsDefaultId(component) && !realInsertType.isMove()) {
-        String id = component.getId();
-        if (id == null || id.isEmpty()) {
-          ids.add(component.assignId(ids));
-        }
-        else {
-          String baseName = NlComponentHelperKt.getBaseIdName(component);
-          if (baseName != null && !baseName.isEmpty()) {
-            ids.add(component.assignId(baseName, ids));
-          }
-        }
-      }
-
-      NlComponent parent = component.getParent();
-      if (parent != null) {
-        parent.removeChild(component);
-      }
-      receiver.addChild(component, before);
-      if (receiver.getTag() != component.getTag()) {
-        XmlTag prev = component.getTag();
-        transferNamespaces(prev);
-        if (before != null) {
-          component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
-        }
-        else {
-          component.setTag(receiver.getTag().addSubTag(component.getTag(), false));
-        }
-        if (insertType.isMove()) {
-          prev.delete();
-        }
-      }
-
-      if (editor != null) {
-        notifyViewHandler(receiver, realInsertType, component, editor);
-      }
-      removeNamespaceAttributes(component);
-    }
-  }
-
-  private static void notifyViewHandler(@NotNull NlComponent receiver,
-                                        @NotNull InsertType insertType,
-                                        @NotNull NlComponent component,
-                                        @NotNull ViewEditor editor) {
-    ViewGroupHandler groupHandler = NlComponentHelperKt.getViewGroupHandler(receiver);
-    if (groupHandler != null) {
-      groupHandler.onChildInserted(editor, receiver, component, insertType);
-    }
-  }
-
-  /**
-   * Given a root tag which is not yet part of the current document, (1) look up any namespaces defined on that root tag, transfer
-   * those to the current document, and (2) update all attribute prefixes for namespaces to match those in the current document
-   */
-  private void transferNamespaces(@NotNull XmlTag tag) {
-    // Transfer namespace attributes
-    XmlFile file = getFile();
-    XmlDocument xmlDocument = file.getDocument();
-    assert xmlDocument != null;
-    XmlTag rootTag = xmlDocument.getRootTag();
-    assert rootTag != null;
-    Map<String, String> prefixToNamespace = rootTag.getLocalNamespaceDeclarations();
-    Map<String, String> namespaceToPrefix = Maps.newHashMap();
-    for (Map.Entry<String, String> entry : prefixToNamespace.entrySet()) {
-      namespaceToPrefix.put(entry.getValue(), entry.getKey());
-    }
-    Map<String, String> oldPrefixToPrefix = Maps.newHashMap();
-
-    for (Map.Entry<String, String> entry : tag.getLocalNamespaceDeclarations().entrySet()) {
-      String namespace = entry.getValue();
-      String prefix = entry.getKey();
-      String currentPrefix = namespaceToPrefix.get(namespace);
-      if (currentPrefix == null) {
-        // The namespace isn't used in the document. Import it.
-        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(file, namespace, prefix);
-        if (!prefix.equals(newPrefix)) {
-          // We imported the namespace, but the prefix used in the new document isn't available
-          // so we need to update all attribute references to the new name
-          oldPrefixToPrefix.put(prefix, newPrefix);
-          namespaceToPrefix.put(namespace, newPrefix);
-        }
-      }
-      else if (!prefix.equals(currentPrefix)) {
-        // The namespace is already imported, but using a different prefix. We need
-        // to switch the prefixes.
-        oldPrefixToPrefix.put(prefix, currentPrefix);
-      }
-    }
-
-    if (!oldPrefixToPrefix.isEmpty()) {
-      updatePrefixes(tag, oldPrefixToPrefix);
-    }
-  }
-
-  /**
-   * Recursively update all attributes such that XML attributes with prefixes in the {@code oldPrefixToPrefix} key set
-   * are replaced with the corresponding values
-   */
-  private static void updatePrefixes(@NotNull XmlTag tag, @NotNull Map<String, String> oldPrefixToPrefix) {
-    for (XmlAttribute attribute : tag.getAttributes()) {
-      String prefix = attribute.getNamespacePrefix();
-      if (!prefix.isEmpty()) {
-        if (prefix.equals(XMLNS)) {
-          String newPrefix = oldPrefixToPrefix.get(attribute.getLocalName());
-          if (newPrefix != null) {
-            attribute.setName(XMLNS_PREFIX + newPrefix);
-          }
-        }
-        else {
-          String newPrefix = oldPrefixToPrefix.get(prefix);
-          if (newPrefix != null) {
-            attribute.setName(newPrefix + ':' + attribute.getLocalName());
-          }
-        }
-      }
-    }
-
-    for (XmlTag child : tag.getSubTags()) {
-      updatePrefixes(child, oldPrefixToPrefix);
-    }
-  }
-
-  private static void removeNamespaceAttributes(NlComponent component) {
-    for (XmlAttribute attribute : component.getTag().getAttributes()) {
-      if (attribute.getName().startsWith(XMLNS_PREFIX)) {
-        attribute.delete();
-      }
+      component.moveTo(receiver, before, insertType, ids, surface);
     }
   }
 

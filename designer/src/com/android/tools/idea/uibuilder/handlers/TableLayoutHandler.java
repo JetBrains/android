@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
@@ -62,7 +62,7 @@ public class TableLayoutHandler extends LinearLayoutHandler {
     if (insertType.isCreate()) {
       // Start the table with 4 rows
       for (int i = 0; i < 4; i++) {
-        NlComponentHelperKt.createChild(node, editor, FQCN_TABLE_ROW, null, InsertType.VIEW_HANDLER);
+        NlComponentHelperKt.createChild(node, editor, FQCN_TABLE_ROW, null, InsertType.PROGRAMMATIC);
       }
     }
 

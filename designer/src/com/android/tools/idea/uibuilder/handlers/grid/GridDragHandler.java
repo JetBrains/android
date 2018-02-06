@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;

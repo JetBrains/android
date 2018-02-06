@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -29,8 +30,6 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -75,7 +74,7 @@ public class NlModelTest extends LayoutTestCase {
   private final NlTreeDumper myTreeDumper = new NlTreeDumper();
 
   @SuppressWarnings("ConstantConditions")
-  public void testSync() throws Exception {
+  public void testSync() {
     // Whether we include id's in the components or not. Id's help
     // associate id's with before/after versions; they're conditionally
     // added such that we can test the model handler with and without this
@@ -99,7 +98,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testRemoveFirstChild() throws Exception {
+  public void testRemoveFirstChild() {
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     NlModel model = modelBuilder.build();
 
@@ -119,7 +118,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testRemoveLastChild() throws Exception {
+  public void testRemoveLastChild() {
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     NlModel model = modelBuilder.build();
 
@@ -139,7 +138,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testTransposeChildren() throws Exception {
+  public void testTransposeChildren() {
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     NlModel model = modelBuilder.build();
 
@@ -164,7 +163,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testAddChild() throws Exception {
+  public void testAddChild() {
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     NlModel model = modelBuilder.build();
 
@@ -189,7 +188,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testMoveInHierarchy() throws Exception {
+  public void testMoveInHierarchy() {
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     NlModel model = modelBuilder.build();
 
@@ -216,7 +215,7 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   @SuppressWarnings("ConstantConditions")
-  public void testChangedPropertiesWithIds() throws Exception {
+  public void testChangedPropertiesWithIds() {
     // We include id's in the tags here since (due to attribute
     // changes between the two elements
     boolean includeIds = true;
@@ -247,7 +246,7 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   @SuppressWarnings("ConstantConditions")
-  public void testChangeSingleProperty() throws Exception {
+  public void testChangeSingleProperty() {
     boolean includeIds = false;
 
     ModelBuilder modelBuilder = createDefaultModelBuilder(includeIds);
@@ -271,7 +270,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testAddRemove() throws Exception {
+  public void testAddRemove() {
     // Test removing one child and adding another one. Check that we don't
     // preserve component identity across two separate tag names.
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
@@ -303,7 +302,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testCanAdd() throws Exception {
+  public void testCanAdd() {
     NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
@@ -372,10 +371,10 @@ public class NlModelTest extends LayoutTestCase {
       ),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
-    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull()))
       .thenReturn(true);
 
-    verify(gradleDependencyManager, atLeastOnce()).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    verify(gradleDependencyManager, atLeastOnce()).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull());
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
@@ -406,16 +405,16 @@ public class NlModelTest extends LayoutTestCase {
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
     when(gradleDependencyManager.userWantToAddDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(true);
     when(gradleDependencyManager.findMissingDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(expectedDependencies);
-    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
+    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull()))
       .thenReturn(true);
 
     XmlTag recyclerViewTag =
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
     NlComponent recyclerView =
       NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, null, null, InsertType.CREATE);
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, new ViewEditorImpl(screen(model).getScreen()));
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, model.getSurface());
 
-    verify(gradleDependencyManager).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
+    verify(gradleDependencyManager).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull());
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
@@ -448,7 +447,7 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, new ViewEditorImpl(screen(model).getScreen()));
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, model.getSurface());
     verifyZeroInteractions(gradleDependencyManager);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
@@ -457,7 +456,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testMoveInHierarchyWithWrongXmlTags() throws Exception {
+  public void testMoveInHierarchyWithWrongXmlTags() {
     ModelBuilder modelBuilder = model("linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
@@ -648,7 +647,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("android.widget.SearchView", NlComponentHelperKt.getViewInfo(searchViewComponent).getClassName());
   }
 
-  public void testLayoutListenersModifyListenerList() throws Exception {
+  public void testLayoutListenersModifyListenerList() {
     XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
                                                            "<LinearLayout" +
                                                            "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
@@ -678,7 +677,7 @@ public class NlModelTest extends LayoutTestCase {
 
   private static void notifyAndCheckListeners(@NotNull NlModel model,
                                               @NotNull Consumer<NlModel> notifyMethod,
-                                              @NotNull Consumer<ModelListener> verifyMethod) throws Exception {
+                                              @NotNull Consumer<ModelListener> verifyMethod) {
     ModelListener listener1 = mock(ModelListener.class);
     ModelListener remove1 = mock(ModelListener.class, invocation -> {
       model.removeListener((ModelListener)invocation.getMock());
@@ -701,7 +700,7 @@ public class NlModelTest extends LayoutTestCase {
     model.removeListener(listener2);
   }
 
-  public void testListenersModifyListenerList() throws Exception {
+  public void testListenersModifyListenerList() {
     XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
                                                            "<LinearLayout" +
                                                            "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
@@ -714,7 +713,7 @@ public class NlModelTest extends LayoutTestCase {
     notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
   }
 
-  public void testActivateDeactivateListeners() throws Exception {
+  public void testActivateDeactivateListeners() {
     XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
                                                            "<LinearLayout" +
                                                            "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
@@ -749,7 +748,7 @@ public class NlModelTest extends LayoutTestCase {
     verifyNoMoreInteractions(remove1);
   }
 
-  public void testMultiActivateDeactivateListeners() throws Exception {
+  public void testMultiActivateDeactivateListeners() {
     XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
                                                            "<LinearLayout" +
                                                            "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
@@ -780,7 +779,6 @@ public class NlModelTest extends LayoutTestCase {
     // Regression test for b/37324684
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     SyncNlModel model = modelBuilder.build();
-    SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
     XmlFile file = model.getFile();
     XmlTag oldTag = file.getRootTag();
 

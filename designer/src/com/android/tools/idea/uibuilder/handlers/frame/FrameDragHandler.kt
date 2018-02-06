@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.frame
 
+import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlComponent
@@ -28,7 +30,8 @@ class FrameDragHandler(editor: ViewEditor,
                        handler: ViewGroupHandler,
                        layout: SceneComponent,
                        components: List<NlComponent>,
-                       type: DragType) : DragHandler(editor, handler, layout, components, type) {
+                       type: DragType
+) : DragHandler(editor, handler, layout, components, type) {
 
   private val component: SceneComponent?
   private val dragTarget = FrameDragTarget()

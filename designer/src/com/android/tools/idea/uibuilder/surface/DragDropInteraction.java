@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -225,7 +227,7 @@ public class DragDropInteraction extends Interaction {
         String error = null;
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
         for (NlComponent component : myDraggedComponents) {
-          if ((component.getTagName().equals(SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE))
+          if ((component.getTagName().equals(SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.defaultName()))
               && (!(myCurrentHandler instanceof ConstraintLayoutHandler))) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());

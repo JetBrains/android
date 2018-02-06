@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
+import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -28,7 +29,6 @@ import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

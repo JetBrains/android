@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
