@@ -1,0 +1,133 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.structure.model.meta
+
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
+
+class ModelMapPropertyImplTest : GradleFileModelTestCase() {
+
+  object Model : ModelDescriptor<Model, Model, Model> {
+    override fun getResolved(model: Model): Model? = null
+    override fun getParsed(model: Model): Model? = this
+    override fun setModified(model: Model) = Unit
+  }
+
+  private fun <T : Any> GradlePropertyModel.wrap(
+    parse: (String) -> ParsedValue<T>,
+    caster: ResolvedPropertyModel.() -> T?
+  ): ModelMapProperty<Model, T> {
+    val resolved = ResolvedPropertyModelImpl(this)
+    return Model.mapProperty(
+      "description",
+      getResolvedValue = { null },
+      getParsedCollection = { resolved.asParsedMapValue({ caster() }, { setValue(it) }) },
+      getParsedRawValue = { resolved.dslText() },
+      clearParsedValue = { resolved.clear() },
+      setParsedRawValue = { resolved.setDslText(it) },
+      parse = { parse(it) }
+    )
+  }
+
+  private fun <T : Any> ModelPropertyCore<Unit, T>.testValue() = (getParsedValue(Unit) as? ParsedValue.Set.Parsed<T>)?.value
+  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetValue(value: T?) =
+    setParsedValue(Unit, if (value != null) ParsedValue.Set.Parsed(value = value) else ParsedValue.NotSet())
+
+  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetReference(value: String) =
+    setParsedValue(Unit, ParsedValue.Set.Parsed(dslText = DslText(DslMode.REFERENCE, value), value = null))
+
+  private fun <T : Any> ModelPropertyCore<Unit, T>.testSetInterpolatedString(value: String) =
+    setParsedValue(Unit, ParsedValue.Set.Parsed(dslText = DslText(DslMode.INTERPOLATED_STRING, value), value = null))
+
+  fun testPropertyValues() {
+    // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
+    val text = """
+               ext {
+                 propB = "2"
+                 propC = "3"
+                 propRef = propB
+                 propInterpolated = "${'$'}{propB}nd"
+                 propMap = [one: "1", "B": propB, "propC1": propC, propRef1: propRef, interpolated: propInterpolated]
+                 propMapRef = propMap
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    val propMap = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
+    val propMapRef = extModel.findProperty("propMapRef").wrap(::parseString, ResolvedPropertyModel::asString)
+
+    fun validateValues(map: ModelMapProperty<Model, String>) {
+      val editableValues = map.getEditableValues(Model)
+      val propOne = editableValues["one"]
+      val propB = editableValues["B"]
+      val propC = editableValues["propC1"]
+      val propRef = editableValues["propRef1"]
+      val propInterpolated = editableValues["interpolated"]
+
+      assertThat(propOne?.testValue(), equalTo("1"))
+      assertThat(propB?.testValue(), equalTo("2"))
+      assertThat(propC?.testValue(), equalTo("3"))
+      assertThat(propRef?.testValue(), equalTo("2"))
+      assertThat(propInterpolated?.testValue(), equalTo("2nd"))
+    }
+
+    validateValues(propMap)
+    validateValues(propMapRef)
+  }
+
+  fun testWritePropertyValues() {
+    // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
+    val text = """
+               ext {
+                 propB = "2"
+                 propC1 = "3"
+                 propRef1 = propB
+                 propInterpolated = "${'$'}{propB}nd"
+                 propMap = [one: "1", "B": propB, "propC": propC1, propRef: propRef1, interpolated: propInterpolated]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    val map = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
+    var editableValues = map.getEditableValues(Model)
+
+    editableValues["one"]?.testSetValue("A")
+    editableValues["B"]?.testSetReference("propC1")
+    editableValues["propC"]?.testSetInterpolatedString("${'$'}{propC1}rd")
+    editableValues["propRef"]?.testSetValue("D")
+    editableValues["interpolated"]?.testSetValue("E")
+
+    editableValues = map.getEditableValues(Model)
+    val propA = editableValues["one"]
+    val prop3 = editableValues["B"]
+    val prop3rd = editableValues["propC"]
+    val propD = editableValues["propRef"]
+    val propE = editableValues["interpolated"]
+
+    assertThat(propA?.testValue(), equalTo("A"))
+    assertThat(prop3?.testValue(), equalTo("3"))
+    assertThat(prop3rd?.testValue(), equalTo("3rd"))
+    assertThat(propD?.testValue(), equalTo("D"))
+    assertThat(propE?.testValue(), equalTo("E"))
+  }
+}

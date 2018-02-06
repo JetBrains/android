@@ -16,21 +16,21 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import kotlin.reflect.KProperty
 
-fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any> T.listProperty(
+
+fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any> T.mapProperty(
   description: String,
-  getResolvedValue: ResolvedT.() -> List<ValueT>?,
-  getParsedCollection: ParsedT.() -> List<ModelPropertyCore<Unit, ValueT>>?,
+  getResolvedValue: ResolvedT.() -> Map<String, ValueT>?,
+  getParsedCollection: ParsedT.() -> Map<String, ModelPropertyCore<Unit, ValueT>>?,
   getParsedRawValue: ParsedT.() -> DslText?,
   clearParsedValue: ParsedT.() -> Unit,
   setParsedRawValue: (ParsedT.(DslText) -> Unit),
   parse: (String) -> ParsedValue<ValueT>,
   getKnownValues: ((ModelT) -> List<ValueDescriptor<ValueT>>)? = null
 ) =
-    ModelListPropertyImpl(
+    ModelMapPropertyImpl(
       this,
       description,
       getResolvedValue,
@@ -42,35 +42,41 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT
       { if (getKnownValues != null) getKnownValues(it) else null }
     )
 
-class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
+class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
   override val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
-  private val getResolvedValue: ResolvedT.() -> List<ValueT>?,
-  private val getParsedCollection: ParsedT.() -> List<ModelPropertyParsedCore<Unit, ValueT>>?,
+  val getResolvedValue: ResolvedT.() -> Map<String, ValueT>?,
+  private val getParsedCollection: ParsedT.() -> Map<String, ModelPropertyParsedCore<Unit, ValueT>>?,
   private val getParsedRawValue: ParsedT.() -> DslText?,
   override val clearParsedValue: ParsedT.() -> Unit,
   override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
   override val parser: (String) -> ParsedValue<ValueT>,
   override val knownValuesGetter: (ModelT) -> List<ValueDescriptor<ValueT>>?
-) : ModelCollectionPropertyBase<ModelT, ResolvedT, ParsedT, List<ValueT>, ValueT>(), ModelListProperty<ModelT, ValueT> {
+) : ModelCollectionPropertyBase<ModelT, ResolvedT, ParsedT, Map<String, ValueT>, ValueT>(), ModelMapProperty<ModelT, ValueT> {
 
-  override fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>> =
-    modelDescriptor
+  override fun getEditableValues(model: ModelT): Map<String, ModelPropertyCore<Unit, ValueT>> {
+    fun getResolvedValue(key: String): ValueT? = modelDescriptor.getResolved(model)?.getResolvedValue()?.get(key)
+    return modelDescriptor
       .getParsed(model)
       ?.getParsedCollection()
-      ?.map { makeSetModifiedAware(it, model) }
-      // TODO(b/72814329): Replace [null] with the matched value.
-      ?.map { makePropertyCore(it, { null }) }
-        ?: listOf()
+      ?.mapValues { makeSetModifiedAware(it.value, model) }
+      ?.mapValues { makePropertyCore(it.value, resolvedValueGetter = { getResolvedValue(it.key) }) }
+        ?: mapOf()
+  }
 
-  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef)
+  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<Map<String, ValueT>> = getParsedValue(thisRef)
 
-  override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<List<ValueT>>) = setParsedValue(thisRef, value)
+  override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<Map<String, ValueT>>) = setParsedValue(thisRef, value)
 
-  override fun getParsedValue(model: ModelT): ParsedValue<List<ValueT>> {
+  override fun getParsedValue(model: ModelT): ParsedValue<Map<String, ValueT>> {
     val parsedModel = modelDescriptor.getParsed(model)
-    val parsedGradleValue: List<ModelPropertyParsedCore<Unit, ValueT>>? = parsedModel?.getParsedCollection()
-    val parsed = parsedGradleValue?.mapNotNull { (it.getParsedValue(Unit) as? ParsedValue.Set.Parsed<ValueT>)?.value }
+    val parsedGradleValue: Map<String, ModelPropertyParsedCore<Unit, ValueT>>? = parsedModel?.getParsedCollection()
+    val parsed: Map<String, ValueT>? =
+      parsedGradleValue
+        ?.mapNotNull {
+          (it.value.getParsedValue(Unit) as? ParsedValue.Set.Parsed<ValueT>)?.value?.let { v -> it.key to v }
+        }
+        ?.toMap()
     val dslText: DslText? = parsedModel?.getParsedRawValue()
     return when {
       parsedGradleValue == null || (parsed == null && dslText == null) -> ParsedValue.NotSet()
@@ -82,24 +88,24 @@ class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
     }
   }
 
-  override fun getResolvedValue(model: ModelT): ResolvedValue<List<ValueT>> {
+  override fun getResolvedValue(model: ModelT): ResolvedValue<Map<String, ValueT>> {
     val resolvedModel = modelDescriptor.getResolved(model)
-    val resolved: List<ValueT>? = resolvedModel?.getResolvedValue()
+    val resolved: Map<String, ValueT>? = resolvedModel?.getResolvedValue()
     return when (resolvedModel) {
       null -> ResolvedValue.NotResolved()
       else -> ResolvedValue.Set(resolved)
     }
   }
 
-  override fun getDefaultValue(model: ModelT): List<ValueT>? = listOf()
+  override fun getDefaultValue(model: ModelT): Map<String, ValueT>? = mapOf()
 }
 
-fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
+fun <T : Any> ResolvedPropertyModel?.asParsedMapValue(
   getTypedValue: ResolvedPropertyModel.() -> T?,
   setTypedValue: ResolvedPropertyModel.(T) -> Unit
-): List<ModelPropertyCore<Unit, T>>? =
+): Map<String, ModelPropertyCore<Unit, T>>? =
   this
-    ?.takeIf { valueType == GradlePropertyModel.ValueType.LIST }
-    ?.getValue(LIST_TYPE)
-    ?.map { it.resolve() }
-    ?.map { makeItemProperty(it, getTypedValue, setTypedValue) }
+    ?.takeIf { valueType == GradlePropertyModel.ValueType.MAP }
+    ?.getValue(GradlePropertyModel.MAP_TYPE)
+    ?.mapValues { it.value.resolve() }
+    ?.mapValues { makeItemProperty(it.value, getTypedValue, setTypedValue) }
