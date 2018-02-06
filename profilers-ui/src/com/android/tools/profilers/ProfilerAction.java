@@ -78,13 +78,7 @@ public class ProfilerAction implements ContextMenuItem {
 
   @Override
   public boolean isEnabled() {
-    try {
-      return myEnableBooleanSupplier.getAsBoolean();
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    }
+    return myEnableBooleanSupplier.getAsBoolean();
   }
 
   @Override

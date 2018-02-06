@@ -484,10 +484,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     contextMenuInstaller.installGenericContextMenu(component, myHeapDumpAction);
     contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
 
-    ProfilerContextMenu contextMenu = ProfilerContextMenu.createIfAbsent(getProfilersView().getComponent());
-    for (ContextMenuItem item : contextMenu.getContextMenuItems()) {
-      contextMenuInstaller.installGenericContextMenu(component, item);
-    }
+    getProfilersView().getTimelineContextMenu().getContextMenuItems()
+      .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {
