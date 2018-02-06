@@ -51,15 +51,15 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     )
   }
 
-  private fun <T : Any> ModelSimpleProperty<Model, T>.testValue() = (getValue(Model).parsedValue as? ParsedValue.Set.Parsed<T>)?.value
+  private fun <T : Any> ModelSimpleProperty<Model, T>.testValue() = (getParsedValue(Model) as? ParsedValue.Set.Parsed<T>)?.value
   private fun <T : Any> ModelSimpleProperty<Model, T>.testSetValue(value: T?) =
-      setValue(Model, if (value != null) ParsedValue.Set.Parsed(value = value) else ParsedValue.NotSet())
+      setParsedValue(Model, if (value != null) ParsedValue.Set.Parsed(value = value) else ParsedValue.NotSet())
 
   private fun <T : Any> ModelSimpleProperty<Model, T>.testSetReference(value: String) =
-      setValue(Model, ParsedValue.Set.Parsed(dslText = DslText(DslMode.REFERENCE, value), value = null))
+      setParsedValue(Model, ParsedValue.Set.Parsed(dslText = DslText(DslMode.REFERENCE, value), value = null))
 
   private fun <T : Any> ModelSimpleProperty<Model, T>.testSetInterpolatedString(value: String) =
-      setValue(Model, ParsedValue.Set.Parsed(dslText = DslText(DslMode.INTERPOLATED_STRING, value), value = null))
+      setParsedValue(Model, ParsedValue.Set.Parsed(dslText = DslText(DslMode.INTERPOLATED_STRING, value), value = null))
 
   fun testPropertyValues() {
     val text = """

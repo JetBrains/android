@@ -54,7 +54,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
     val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
     val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
-    val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue() }
+    val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue(Unit) }
 
     assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("suffix"))
     assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("suffix"))
@@ -181,8 +181,8 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     buildType.versionNameSuffix = "new_vsuffix".asParsed()
     buildType.zipAlignEnabled = false.asParsed()
     val editableProGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType)
-    editableProGuardFiles[1].setValue(File("a.txt").asParsed())
-    editableProGuardFiles[2].setValue(File("b.txt").asParsed())
+    editableProGuardFiles[1].setParsedValue(Unit, File("a.txt").asParsed())
+    editableProGuardFiles[2].setParsedValue(Unit, File("b.txt").asParsed())
 
     fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
       val applicationIdSuffix = PsBuildType.BuildTypeDescriptors.applicationIdSuffix.getValue(buildType)
@@ -197,7 +197,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
       val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
       val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
-      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue() }
+      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue(Unit) }
 
       assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("new_suffix"))
       assertThat(debuggable.parsedValue.asTestValue(), equalTo(true))
@@ -255,7 +255,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     val buildType = appModule.findBuildType("release")
     assertThat(buildType, notNullValue()); buildType!!
 
-    PsBuildType.BuildTypeDescriptors.proGuardFiles.setValue(
+    PsBuildType.BuildTypeDescriptors.proGuardFiles.setParsedValue(
       buildType,
       ParsedValue.Set.Parsed(
         dslText = DslText(DslMode.REFERENCE, "varProGuardFiles"),
@@ -266,7 +266,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
       val proGuardFilesValue = PsBuildType.BuildTypeDescriptors.proGuardFiles.getValue(buildType)
       val parsedProGuardFilesValue = proGuardFilesValue.parsedValue as? ParsedValue.Set.Parsed
-      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue() }
+      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue(Unit) }
 
       assertThat(parsedProGuardFilesValue?.dslText?.mode, equalTo(DslMode.REFERENCE))
       assertThat(parsedProGuardFilesValue?.dslText?.text, equalTo("varProGuardFiles"))

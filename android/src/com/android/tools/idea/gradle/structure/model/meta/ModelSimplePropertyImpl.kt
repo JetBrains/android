@@ -78,29 +78,31 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     private val parser: (String) -> ParsedValue<PropertyT>,
     private val knownValuesGetter: (ModelT) -> List<ValueDescriptor<PropertyT>>?
 ) : ModelSimpleProperty<ModelT, PropertyT> {
-  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> = getValue(thisRef).parsedValue
+  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<PropertyT> = getParsedValue(thisRef)
 
-  override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) = setValue(thisRef, value)
+  override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) = setParsedValue(thisRef, value)
 
-  override fun getValue(model: ModelT): PropertyValue<PropertyT> {
-    val resolvedModel = modelDescriptor.getResolved(model)
-    val resolved: PropertyT? = resolvedModel?.getResolvedValue()
+  override fun getParsedValue(model: ModelT): ParsedValue<PropertyT> {
     val parsedModel = modelDescriptor.getParsed(model)
     val parsed: PropertyT? = parsedModel?.getParsedValue()
     val dslText: DslText? = parsedModel?.getParsedRawValue()
-    val parsedValue = when {
+    return when {
       (parsed == null && dslText == null) -> ParsedValue.NotSet<PropertyT>()
       parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
       else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText)
     }
-    val resolvedValue = when (resolvedModel) {
-      null -> ResolvedValue.NotResolved<PropertyT>()
-      else -> ResolvedValue.Set(resolved)
-    }
-    return PropertyValue(parsedValue, resolvedValue)
   }
 
-  override fun setValue(model: ModelT, value: ParsedValue<PropertyT>) {
+  override fun getResolvedValue(model: ModelT): ResolvedValue<PropertyT> {
+    val resolvedModel = modelDescriptor.getResolved(model)
+    val resolved: PropertyT? = resolvedModel?.getResolvedValue()
+    return when (resolvedModel) {
+      null -> ResolvedValue.NotResolved()
+      else -> ResolvedValue.Set(resolved)
+    }
+  }
+
+  override fun setParsedValue(model: ModelT, value: ParsedValue<PropertyT>) {
     val parsedModel = modelDescriptor.getParsed(model) ?: throw IllegalStateException()
     when (value) {
       is ParsedValue.NotSet -> parsedModel.setParsedValue(null)

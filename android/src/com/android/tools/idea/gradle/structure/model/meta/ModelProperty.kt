@@ -21,13 +21,13 @@ import kotlin.properties.ReadWriteProperty
  * A UI core descriptor of a model of type [ModelT].
  */
 interface ModelPropertyCore<in ModelT, PropertyT : Any> {
-  fun getValue(model: ModelT): PropertyValue<PropertyT>
-  fun setValue(model: ModelT, value: ParsedValue<PropertyT>)
+  fun getParsedValue(model: ModelT): ParsedValue<PropertyT>
+  fun setParsedValue(model: ModelT, value: ParsedValue<PropertyT>)
+  fun getResolvedValue(model: ModelT): ResolvedValue<PropertyT>
 }
 
-// Do not require passing Unit value.
-fun <T: Any> ModelPropertyCore<Unit, T>.getValue() = getValue(Unit)
-fun <T: Any> ModelPropertyCore<Unit, T>.setValue(value: ParsedValue<T>) = setValue(Unit, value)
+fun <ModelT, PropertyT: Any> ModelPropertyCore<ModelT, PropertyT>.getValue(model: ModelT): PropertyValue<PropertyT> =
+    PropertyValue(parsedValue = getParsedValue(model), resolved = getResolvedValue(model))
 
 /**
  * A UI descriptor a property of a model of type [ModelT].

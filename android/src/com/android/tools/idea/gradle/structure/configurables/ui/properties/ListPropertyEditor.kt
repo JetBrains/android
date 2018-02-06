@@ -50,7 +50,7 @@ class ListPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelListPro
     val tableModel = DefaultTableModel()
     tableModel.addColumn("item")
     for (item in property.getEditableValues(model)) {
-      tableModel.addRow(arrayOf(item.getValue().parsedValue.getText(valueToText)))
+      tableModel.addRow(arrayOf(item.getParsedValue(Unit).getText(valueToText)))
     }
     return tableModel
   }
