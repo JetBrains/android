@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -31,11 +30,9 @@ import java.awt.Container
 import javax.swing.JButton
 
 class NavSetStartProviderTest : NavTestCase() {
-  lateinit var model: SyncNlModel
 
-  override fun setUp() {
-    super.setUp()
-    model = model("nav.xml") {
+  private fun createModel() =
+    model("nav.xml") {
       navigation("root", startDestination = "f1") {
         fragment("f1")
         navigation("subnav", startDestination = "activity") {
@@ -44,9 +41,9 @@ class NavSetStartProviderTest : NavTestCase() {
         }
       }
     }
-  }
 
   fun testIsApplicable() {
+    val model = createModel()
     val provider = NavSetStartProvider()
     assertFalse(isApplicable(provider, model, "root"))
     assertTrue(isApplicable(provider, model, "f1"))
@@ -61,6 +58,7 @@ class NavSetStartProviderTest : NavTestCase() {
       provider.isApplicable(ids.map { model.find(it)!! }, mapOf(), mock(NavPropertiesManager::class.java))
 
   fun testButtonEnabled() {
+    val model = createModel()
     val manager = Mockito.mock(NavPropertiesManager::class.java)
     val navInspectorProviders = Mockito.spy(NavInspectorProviders(manager, myRootDisposable))
     Mockito.`when`(navInspectorProviders.providers).thenReturn(listOf(NavSetStartProvider()))
