@@ -22,6 +22,7 @@ import com.android.resources.Density
 import com.android.resources.NightMode
 import com.android.tools.idea.resourceExplorer.densityMapper
 import com.android.tools.idea.resourceExplorer.getExternalResourceDirectory
+import com.android.tools.idea.resourceExplorer.model.Mapper
 import com.android.tools.idea.resourceExplorer.model.getAssetSets
 import com.android.tools.idea.resourceExplorer.nightModeMapper
 import com.intellij.ide.IdeEventQueue
@@ -34,6 +35,8 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.util.regex.MatchResult
+import java.util.regex.Pattern
 
 
 class ImporterTest {
@@ -59,12 +62,12 @@ class ImporterTest {
   @Test
   fun getCreateAsset() {
     val directory = getExternalResourceDirectory(
-        "icon.png",
-        "icon@2x.png",
-        "icon@3x.jpg",
-        "image.jpg",
-        "image@4x.jpg",
-        "image@4x_dark.jpg"
+      "icon.png",
+      "icon@2x.png",
+      "icon@3x.jpg",
+      "image.jpg",
+      "image@4x.jpg",
+      "image@4x_dark.jpg"
     )
 
     val assetSets = getAssetSets(
@@ -112,11 +115,14 @@ class ImporterTest {
       createChildData(this, "icon@3x.jpg")
     }
 
-    val localeMapper = object : BaseMapper<LocaleQualifier>("[a-z]{2}?", suffix = "/") {
+    val localeMapper = object : Mapper<LocaleQualifier> {
+      override val pattern: Pattern = Pattern.compile("([a-z]{2}?)/")
+
+      override val defaultQualifier: LocaleQualifier? = null
+
       override fun getQualifier(value: String?) = if (value != null) LocaleQualifier(value) else null
 
-//    val localeMapper = object : BaseMapper<LocaleQualifier>("en|fr", suffix = "/") {
-//      override fun getQualifier(value: String?) = if (value != null) LocaleQualifier(value) else null
+      override fun getValue(matcher: MatchResult): String? = matcher.group(1)
     }
     val assetSets = getAssetSets(
       directory, supportedTypes, QualifierMatcher(

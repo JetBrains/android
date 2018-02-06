@@ -20,6 +20,7 @@ import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
+import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -38,11 +39,13 @@ class QualifierMatcherTest {
   @Test
   fun parsePathWithFileNameMappers() {
     val mappers = setOf(
-        EnumBasedMapper("", "", DensityQualifier::class.java,
-            mapOf(
-                "@2x" to Density.XHIGH,
-                "@3x" to Density.XXHIGH
-            ), Density.MEDIUM))
+        StaticStringMapper(
+          mapOf(
+              "@2x" to DensityQualifier(Density.XHIGH),
+              "@3x" to DensityQualifier(Density.XXHIGH)
+          ),
+          DensityQualifier(Density.MEDIUM))
+    )
     val qualifierLexer = QualifierMatcher(mappers)
     checkResult(qualifierLexer.parsePath("icon@2x.png"), "icon", DensityQualifier(Density.XHIGH))
     checkResult(qualifierLexer.parsePath("icon@3x.png"), "icon", DensityQualifier(Density.XXHIGH))
@@ -52,13 +55,14 @@ class QualifierMatcherTest {
   @Test
   fun parsePathWithIncompleteMapper() {
     val mappers = setOf(
-        EnumBasedMapper("", "", DensityQualifier::class.java,
-            mapOf(
-                "@2x" to Density.XHIGH,
-                "@3x" to Density.XXHIGH
-            ), Density.MEDIUM),
-        EnumBasedMapper("", "", NightModeQualifier::class.java, mapOf(
-            "_dark" to NightMode.NIGHT
+        StaticStringMapper(
+          mapOf(
+              "@2x" to DensityQualifier(Density.XHIGH),
+              "@3x" to DensityQualifier(Density.XXHIGH)
+          ),
+          DensityQualifier(Density.MEDIUM)),
+        StaticStringMapper(mapOf(
+            "_dark" to NightModeQualifier(NightMode.NIGHT)
         )))
     val qualifierLexer = QualifierMatcher(mappers)
     checkResult(qualifierLexer.parsePath("icon@2x_dark.png"), "icon", DensityQualifier(Density.XHIGH), NightModeQualifier(NightMode.NIGHT))
@@ -69,13 +73,12 @@ class QualifierMatcherTest {
   @Test
   fun parsePathEmptyStringMapper() {
     val mappers = setOf(
-        EnumBasedMapper("", "", DensityQualifier::class.java,
-            mapOf(
-                "@2x" to Density.XHIGH,
-                "@3x" to Density.XXHIGH,
-                "" to Density.MEDIUM)),
-        EnumBasedMapper("", "", NightModeQualifier::class.java, mapOf(
-            "_dark" to NightMode.NIGHT
+        StaticStringMapper(mapOf(
+                "@2x" to DensityQualifier(Density.XHIGH),
+                "@3x" to DensityQualifier(Density.XXHIGH),
+                "" to DensityQualifier(Density.MEDIUM))),
+        StaticStringMapper(mapOf(
+            "_dark" to NightModeQualifier(NightMode.NIGHT)
         )))
     val qualifierLexer = QualifierMatcher(mappers)
     checkResult(qualifierLexer.parsePath("icon@2x_dark.png"), "icon", DensityQualifier(Density.XHIGH), NightModeQualifier(NightMode.NIGHT))
