@@ -62,24 +62,22 @@ class ModelListPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
     updatedModel: ModelT
   ) =
     object : ModelPropertyCore<Unit, ValueT> by it {
-      override fun setValue(model: Unit, value: ParsedValue<ValueT>) {
-        it.setValue(value)
+      override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) {
+        it.setParsedValue(Unit, value)
         modelDescriptor.setModified(updatedModel)
       }
     }
 
-  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getValue(thisRef).parsedValue
+  override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef)
 
-  override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<List<ValueT>>) = setValue(thisRef, value)
+  override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<List<ValueT>>) = setParsedValue(thisRef, value)
 
-  override fun getValue(model: ModelT): PropertyValue<List<ValueT>> {
-    val resolvedModel = modelDescriptor.getResolved(model)
-    val resolved: List<ValueT>? = resolvedModel?.getResolvedValue()
+  override fun getParsedValue(model: ModelT): ParsedValue<List<ValueT>> {
     val parsedModel = modelDescriptor.getParsed(model)
     val parsedGradleValue: List<ModelPropertyCore<Unit, ValueT>>? = parsedModel?.getParsedCollection()
-    val parsed = parsedGradleValue?.mapNotNull { (it.getValue().parsedValue as? ParsedValue.Set.Parsed<ValueT>)?.value}
+    val parsed = parsedGradleValue?.mapNotNull { (it.getParsedValue(Unit) as? ParsedValue.Set.Parsed<ValueT>)?.value }
     val dslText: DslText? = parsedModel?.getParsedRawValue()
-    val parsedValue: ParsedValue<List<ValueT>> = when {
+    return when {
       parsedGradleValue == null || (parsed == null && dslText == null) -> ParsedValue.NotSet()
       parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
       else -> ParsedValue.Set.Parsed(
@@ -87,14 +85,18 @@ class ModelListPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
         dslText = dslText
       )
     }
-    val resolvedValue = when (resolvedModel) {
-      null -> ResolvedValue.NotResolved<List<ValueT>>()
-      else -> ResolvedValue.Set(resolved)
-    }
-    return PropertyValue(parsedValue, resolvedValue)
   }
 
-  override fun setValue(model: ModelT, value: ParsedValue<List<ValueT>>) {
+  override fun getResolvedValue(model: ModelT): ResolvedValue<List<ValueT>> {
+    val resolvedModel = modelDescriptor.getResolved(model)
+    val resolved: List<ValueT>? = resolvedModel?.getResolvedValue()
+    return when (resolvedModel) {
+      null -> ResolvedValue.NotResolved()
+      else -> ResolvedValue.Set(resolved)
+    }
+  }
+
+  override fun setParsedValue(model: ModelT, value: ParsedValue<List<ValueT>>) {
     val parsedModel = modelDescriptor.getParsed(model) ?: throw IllegalStateException()
     when (value) {
       is ParsedValue.NotSet -> parsedModel.clearParsedValue()
@@ -135,18 +137,19 @@ fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
       ?.map {it.resolve()}
       ?.map {
         object : ModelPropertyCore<Unit, T> {
-          override fun getValue(model: Unit): PropertyValue<T> {
+          override fun getParsedValue(model: Unit): ParsedValue<T> {
             val parsed: T? = it.getTypedValue()
             val dslText: DslText? = it.dslText()
-            val parsedValue = when {
+            return when {
               (parsed == null && dslText == null) -> ParsedValue.NotSet<T>()
               parsed == null -> ParsedValue.Set.Invalid(dslText?.text.orEmpty(), "Unknown")
               else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText)
             }
-            return PropertyValue(parsedValue, ResolvedValue.NotResolved())
           }
 
-          override fun setValue(model: Unit, value: ParsedValue<T>) {
+          override fun getResolvedValue(model: Unit): ResolvedValue<T> = ResolvedValue.NotResolved()
+
+          override fun setParsedValue(model: Unit, value: ParsedValue<T>) {
             when (value) {
               is ParsedValue.NotSet -> it.delete()
               is ParsedValue.Set.Parsed -> {

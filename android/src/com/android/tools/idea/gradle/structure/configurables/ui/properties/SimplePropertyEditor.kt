@@ -159,7 +159,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   private fun applyChanges(value: ParsedValue<PropertyT>) {
     when (value) {
       is ParsedValue.Set.Invalid -> Unit
-      else -> property.setValue(model!!, value)
+      else -> property.setParsedValue(model!!, value)
     }
   }
 

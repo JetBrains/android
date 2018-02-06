@@ -106,18 +106,19 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
 
     inner class BindingProperty : ModelSimpleProperty<Unit, ValueT> {
       override val description: String = "Binding Property"
-      override fun getValue(model: Unit): PropertyValue<ValueT> = currentProperty?.getValue() ?: PropertyValue()
-      override fun setValue(model: Unit, value: ParsedValue<ValueT>) = currentProperty?.setValue(value) ?: Unit
+      override fun getParsedValue(model: Unit): ParsedValue<ValueT> = currentProperty?.getParsedValue(Unit) ?: ParsedValue.NotSet()
+      override fun getResolvedValue(model: Unit): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
+      override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) = currentProperty?.setParsedValue(Unit, value) ?: Unit
       override fun getDefaultValue(model: Unit): ValueT? = null
       override fun parse(value: String): ParsedValue<ValueT> = property.parse(value)
       override fun getKnownValues(model: Unit): List<ValueDescriptor<ValueT>>? =
         property.getKnownValues(this@CollectionPropertyEditor.model)
 
       override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> =
-        getValue(thisRef).parsedValue
+        getParsedValue(thisRef)
 
       override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<ValueT>) =
-        setValue(thisRef, value)
+        setParsedValue(thisRef, value)
     }
   }
 }
