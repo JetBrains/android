@@ -45,13 +45,22 @@ class QualifierMatcherPresenter(private val matcherConsumer: (QualifierMatcher) 
 
   fun getValuesForQualifier(qualifier: ResourceQualifier) = supportedQualifiers[qualifier]
 
-  fun setMatcherEntries(entries: List<Pair<ResourceQualifier, List<Pair<String, ResourceEnum>>>>) {
+  fun setMatcherEntries(entries: List<Pair<ResourceQualifier, List<MatcherEntry>>>) {
     val mappers = entries
-        .map { (qualifier, matcherPair) ->
-          EnumBasedMapper(qualifierClass = qualifier::class.java,
-              stringToParam = mapOf(*matcherPair.toTypedArray()))
-        }
-        .toSet()
+      .map { (qualifier, matcherEntry) ->
+        EnumBasedMapper(
+          qualifierClass = qualifier::class.java,
+          stringToParam = matcherEntry.associate { (string, resourceEnum) -> string to resourceEnum }
+        )
+      }
+      .toSet()
     matcherConsumer(QualifierMatcher(mappers))
   }
+
+  /**
+   * Data class that represents the mapping from a string to a [ResourceEnum].
+   *
+   * This is used for readability to avoid using a Pair
+   */
+  data class MatcherEntry(val matchingString: String, val matchedResourceEnum: ResourceEnum)
 }
