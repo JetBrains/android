@@ -142,9 +142,10 @@ public class AddModuleTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   public void addInstantModule() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication");
+    IdeFrameFixture ideFrame = guiTest.importProject("SimpleLocalApplication");
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
