@@ -59,6 +59,7 @@ public class InstantRunTest {
     Pattern.compile(".*adb shell am start .*google\\.basiccmake.*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern HOT_SWAP_OUTPUT =
     Pattern.compile(".*Hot swapped changes, activity restarted.*", Pattern.DOTALL);
+  private static final int OUTPUT_RESET_TIMEOUT = 30;
 
   /**
    * Verifies that instant run hot swap works as expected.
@@ -164,7 +165,7 @@ public class InstantRunTest {
       .click();
 
     // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(30).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    Wait.seconds(OUTPUT_RESET_TIMEOUT).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
@@ -215,7 +216,7 @@ public class InstantRunTest {
       .click();
 
     // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    Wait.seconds(OUTPUT_RESET_TIMEOUT).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
@@ -271,7 +272,7 @@ public class InstantRunTest {
       .click();
 
     // Studio takes a few seconds to reset Run tool window contents.
-    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    Wait.seconds(OUTPUT_RESET_TIMEOUT).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
     // (Cold swap) Verify the inequality of PIDs before and after IR
@@ -316,7 +317,7 @@ public class InstantRunTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    Wait.seconds(OUTPUT_RESET_TIMEOUT).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
   }
 
