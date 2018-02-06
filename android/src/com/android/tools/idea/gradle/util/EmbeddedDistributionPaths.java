@@ -129,9 +129,14 @@ public class EmbeddedDistributionPaths {
   public File findEmbeddedGradleDistributionFile(@NotNull String gradleVersion) {
     File distributionPath = findEmbeddedGradleDistributionPath();
     if (distributionPath != null) {
-      File distributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-bin.zip");
-      if (distributionFile.isFile() && distributionFile.exists()) {
-        return distributionFile;
+      File allDistributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-all.zip");
+      if (allDistributionFile.isFile() && allDistributionFile.exists()) {
+        return allDistributionFile;
+      }
+
+      File binDistributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-bin.zip");
+      if (binDistributionFile.isFile() && binDistributionFile.exists()) {
+        return binDistributionFile;
       }
     }
     return null;
