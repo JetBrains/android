@@ -17,6 +17,7 @@ package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -98,11 +99,15 @@ public final class EnergyEventsView {
   @NotNull private final EventsTableModel myTableModel;
   @NotNull private final JBTable myEventsTable;
 
+  // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
+  @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
+
   public EnergyEventsView(EnergyProfilerStageView stageView) {
     myStage = stageView.getStage();
     myTableModel = new EventsTableModel(myStage.getEnergyEventsFetcher());
     myEventsTable = new HoverRowTable(myTableModel, ProfilerColors.DEFAULT_HOVER_COLOR);
     buildEventsTable();
+    myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection);
   }
 
   private void buildEventsTable() {
@@ -131,6 +136,32 @@ public final class EnergyEventsView {
         }
       }
     });
+    myEventsTable.getSelectionModel().addListSelectionListener(e -> {
+      if (e.getValueIsAdjusting()) {
+        return; // Only handle listener on last event, not intermediate events
+      }
+      int row = myEventsTable.getSelectedRow();
+      if (row >= 0 && row < myEventsTable.getRowCount()) {
+        myStage.setSelectedDuration(myTableModel.getValue(myEventsTable.convertRowIndexToModel(row)));
+      }
+    });
+  }
+
+  private void updateTableSelection() {
+    EventDuration duration = myStage.getSelectedDuration();
+    if (duration != null) {
+      int id = duration.getEventList().get(0).getEventId();
+      for (int i = 0; i < myTableModel.getRowCount(); ++i) {
+        if (id == myTableModel.getValue(i).getEventList().get(0).getEventId()) {
+          int row = myEventsTable.convertRowIndexToView(i);
+          myEventsTable.setRowSelectionInterval(row, row);
+          return;
+        }
+      }
+    }
+    else {
+      myEventsTable.clearSelection();
+    }
   }
 
   public JComponent getComponent() {

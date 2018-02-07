@@ -106,7 +106,8 @@ public final class EnergyDataPoller extends PollRunner {
       long timeEndNs = timeStartNs + TimeUnit.MILLISECONDS.toNanos(random.nextInt(FAKE_WAKE_LOCK_DURATION_MS) + 1);
 
       EnergyProfiler.WakeLockAcquired wakeLockAcquired = EnergyProfiler.WakeLockAcquired.newBuilder()
-        .setLevelAndFlags(1)
+        .setLevel(EnergyProfiler.WakeLockAcquired.Level.SCREEN_DIM_WAKE_LOCK)
+        .addFlags(EnergyProfiler.WakeLockAcquired.CreationFlag.ACQUIRE_CAUSES_WAKEUP)
         .setTag(String.valueOf(timeRangeMs.getFirst()))
         .build();
 

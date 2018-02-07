@@ -23,7 +23,7 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 class EnergyEventsViewTest {
-  private val wakeLockAcquired = EnergyProfiler.WakeLockAcquired.newBuilder().setTag("tag").setLevelAndFlags(1).build()
+  private val wakeLockAcquired = EnergyProfiler.WakeLockAcquired.newBuilder().setTag("tag").build()
   private val wakeLockAcquire = EnergyEvent.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(1000))
     .setWakeLockAcquired(wakeLockAcquired)

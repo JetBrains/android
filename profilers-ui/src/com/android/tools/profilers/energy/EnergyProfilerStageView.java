@@ -16,25 +16,27 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
   @NotNull private final EnergyStageTooltipView myTooltipView = new EnergyStageTooltipView(getStage());
   @NotNull private final JBScrollPane myEventsComponent;
+  @NotNull private final EnergyDetailsView myDetailsView;
 
   public EnergyProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull EnergyProfilerStage energyProfilerStage) {
     super(profilersView, energyProfilerStage);
@@ -47,7 +49,19 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     myEventsComponent.setVisible(false);
     verticalSplitter.setSecondComponent(myEventsComponent);
 
-    getComponent().add(verticalSplitter, BorderLayout.CENTER);
+    myDetailsView = new EnergyDetailsView(this);
+    myDetailsView.setMinimumSize(new Dimension(JBUI.scale(450), (int) myDetailsView.getMinimumSize().getHeight()));
+    myDetailsView.setVisible(false);
+    JBSplitter splitter = new JBSplitter(false, 0.6f);
+    splitter.setFirstComponent(verticalSplitter);
+    splitter.setSecondComponent(myDetailsView);
+    splitter.setHonorComponentsMinimumSize(true);
+    splitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
+
+    getComponent().add(splitter, BorderLayout.CENTER);
+
+    getStage().getAspect().addDependency(this)
+      .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
   }
 
   @NotNull
@@ -163,5 +177,9 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
   @Override
   public JComponent getToolbar() {
     return new JPanel();
+  }
+
+  private void updateSelectedDurationView() {
+    myDetailsView.setDuration(getStage().getSelectedDuration());
   }
 }
