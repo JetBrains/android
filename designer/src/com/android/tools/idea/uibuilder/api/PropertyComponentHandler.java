@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,15 +26,37 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.SdkConstants.ANDROID_SUPPORT_DESIGN_PKG;
-import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.*;
 
 /**
  * Methods for handling of a component's properties.
  */
 public abstract class PropertyComponentHandler extends PaletteComponentHandler {
+
+  /**
+   * Return a map from prefix to the full URI of an XML namespace.
+   *
+   * The prefixes may be used in the methods:
+   * <ul>
+   * <li>{@link #getInspectorProperties}</li>
+   * <li>{@link #getLayoutInspectorProperties}</li>
+   * <li>{@link #getEnumPropertyValues}</li>
+   * <li>{@link #getPreferredProperty}</li>
+   * <li>{@link #getBaseStyles}</li>
+   * </ul>
+   * @return map from prefix name to namespace URI
+   */
+  @NotNull
+  public Map<String, String> getPrefixToNamespaceMap() {
+    return ImmutableMap.of(
+      PREFIX_ANDROID, ANDROID_URI,
+      TOOLS_NS_NAME_PREFIX, TOOLS_URI,
+      PREFIX_APP, AUTO_URI);
+  }
+
   /**
    * Return the properties that should be shown in the inspector for this component.
+   *
    * If a property is prefixed with "tools:" then the property must be in the
    * {@link SdkConstants#TOOLS_URI} namespace.
    * Otherwise the following namespaces are checked in order:
@@ -114,7 +137,7 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
       return ImmutableList.of("Widget.Design." + simpleTagName);
     }
     if (tagName.equals(simpleTagName)) {
-      return ImmutableList.of("Widget." + simpleTagName, "Widget.Material." + simpleTagName);
+      return ImmutableList.of(PREFIX_ANDROID + "Widget." + simpleTagName, PREFIX_ANDROID + "Widget.Material." + simpleTagName);
     }
     return ImmutableList.of();
   }
