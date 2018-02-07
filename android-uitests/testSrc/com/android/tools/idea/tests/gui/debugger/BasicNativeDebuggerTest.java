@@ -26,16 +26,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDial
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
-import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -201,8 +197,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     // Add a new Android Library.  Note that this needs the path to Kotlin defined in the test's
     // JVM arguments.  See go/studio-testing-pitfalls for information.
     projectFrame.invokeMenuPath("File", "New", "New Module...");
-    NewModuleDialogFixture newModuleDialogFixture = NewModuleDialogFixture.find(guiTest.ideFrame());
-    newModuleDialogFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+    NewModuleWizardFixture newModuleWizardFixture = NewModuleWizardFixture.find(guiTest.ideFrame());
+    newModuleWizardFixture.chooseModuleType("Android Library").clickNext().clickFinish();
 
     MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Cancel and check that the debugging session is still happening.
@@ -217,8 +213,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     waitForSessionStart(debugToolWindowFixture);
 
     projectFrame.invokeMenuPath("File", "New", "New Module...");
-    newModuleDialogFixture = NewModuleDialogFixture.find(guiTest.ideFrame());
-    newModuleDialogFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+    newModuleWizardFixture = NewModuleWizardFixture.find(guiTest.ideFrame());
+    newModuleWizardFixture.chooseModuleType("Android Library").clickNext().clickFinish();
 
     messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Click okay and check that the debugger has been killed.

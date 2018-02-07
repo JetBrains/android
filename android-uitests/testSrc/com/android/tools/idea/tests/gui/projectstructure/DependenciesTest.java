@@ -28,7 +28,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.DependencyTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
@@ -111,7 +111,7 @@ public class DependenciesTest {
   public void transitiveDependenciesResolve() throws Exception {
     IdeFrameFixture ideFrame = createNewProject(APP_NAME, MIN_SDK);
 
-    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType(ANDROID_LIBRARY)
       .clickNextToStep(ANDROID_LIBRARY)
       .setModuleName("library-module")
@@ -201,7 +201,7 @@ public class DependenciesTest {
   public void transitiveJavaDependenciesResolve() throws Exception {
     IdeFrameFixture ideFrame = createNewProject(APP_NAME, MIN_SDK);
 
-    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
       .clickNextToStep("Java Library")
       .clickFinish()
@@ -319,7 +319,7 @@ public class DependenciesTest {
   }
 
   private void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
-    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType(JAVA_LIBRARY)
       .clickNextToStep(JAVA_LIBRARY)
       .clickFinish() // Use default Java Module name.
@@ -352,7 +352,7 @@ public class DependenciesTest {
 
   private void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                     @NotNull String moduleName) {
-    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType(ANDROID_LIBRARY)
       .clickNextToStep(ANDROID_LIBRARY)
       .setModuleName(moduleName)

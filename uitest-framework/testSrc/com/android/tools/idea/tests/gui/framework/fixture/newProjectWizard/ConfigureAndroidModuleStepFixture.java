@@ -25,7 +25,7 @@ import javax.swing.text.JTextComponent;
 public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureAndroidModuleStepFixture, W> {
 
-  protected ConfigureAndroidModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+  public ConfigureAndroidModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
     super(ConfigureAndroidModuleStepFixture.class, wizard, target);
   }
 
