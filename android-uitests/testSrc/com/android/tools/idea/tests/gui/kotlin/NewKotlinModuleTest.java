@@ -22,7 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;

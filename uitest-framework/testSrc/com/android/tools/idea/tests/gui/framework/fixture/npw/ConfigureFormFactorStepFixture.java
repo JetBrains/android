@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -29,7 +29,7 @@ import javax.swing.*;
 public class ConfigureFormFactorStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureFormFactorStepFixture, W> {
 
-  protected ConfigureFormFactorStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+  ConfigureFormFactorStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
     super(ConfigureFormFactorStepFixture.class, wizard, target);
   }
 

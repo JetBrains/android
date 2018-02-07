@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
@@ -26,7 +26,7 @@ import javax.swing.*;
 public class ConfigureJavaLibraryStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureJavaLibraryStepFixture, W> {
 
-  public ConfigureJavaLibraryStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+  ConfigureJavaLibraryStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
     super(ConfigureJavaLibraryStepFixture.class, wizard, target);
   }
 

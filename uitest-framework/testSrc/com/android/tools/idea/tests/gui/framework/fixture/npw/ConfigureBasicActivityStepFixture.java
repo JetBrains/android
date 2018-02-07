@@ -53,7 +53,7 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
     }
   }
 
-  public ConfigureBasicActivityStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+  ConfigureBasicActivityStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
     super(ConfigureBasicActivityStepFixture.class, wizard, target);
   }
 

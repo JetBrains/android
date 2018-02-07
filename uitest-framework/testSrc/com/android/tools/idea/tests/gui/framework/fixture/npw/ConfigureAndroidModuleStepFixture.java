@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
@@ -25,7 +25,7 @@ import javax.swing.text.JTextComponent;
 public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureAndroidModuleStepFixture, W> {
 
-  public ConfigureAndroidModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+  ConfigureAndroidModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
     super(ConfigureAndroidModuleStepFixture.class, wizard, target);
   }
 

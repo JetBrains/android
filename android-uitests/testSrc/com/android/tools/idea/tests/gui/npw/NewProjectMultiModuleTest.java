@@ -21,7 +21,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.instantapp.SdkReplacer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;

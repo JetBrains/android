@@ -19,7 +19,7 @@ import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;

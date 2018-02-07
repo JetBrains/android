@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
-public class ConfigureInstantModuleStepFixture<W extends AbstractWizardFixture>
-  extends AbstractWizardStepFixture<ConfigureInstantModuleStepFixture, W> {
-
-  protected ConfigureInstantModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
-    super(ConfigureInstantModuleStepFixture.class, wizard, target);
+public class ConfigureCppStepFixture<W extends AbstractWizardFixture> extends AbstractWizardStepFixture<ConfigureCppStepFixture, W> {
+  ConfigureCppStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureCppStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureInstantModuleStepFixture<W> enterFeatureModuleName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Module Name");
-    replaceText(textField, text);
+  public ConfigureCppStepFixture<W> setExceptionsSupport(boolean select) {
+    selectCheckBoxWithText("Exceptions Support (-fexceptions)", select);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureCppStepFixture<W> setRuntimeInformationSupport(boolean select) {
+    selectCheckBoxWithText("Runtime Type Information Support (-frtti)", select);
     return this;
   }
 }

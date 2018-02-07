@@ -35,7 +35,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture.SystemImage;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.timing.Wait;
