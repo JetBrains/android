@@ -164,7 +164,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
       private boolean myWillBeDestroyed = true;
 
       @Override
-      public void processWillTerminate(ProcessEvent event, boolean willBeDestroyed) {
+      public void processWillTerminate(@NotNull ProcessEvent event, boolean willBeDestroyed) {
         Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger-processWillTerminate: " + pkgName +
                                                                ", willBeDestroyed=" + willBeDestroyed);
         myWillBeDestroyed = willBeDestroyed;
@@ -172,7 +172,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
       }
 
       @Override
-      public void processTerminated(ProcessEvent event) {
+      public void processTerminated(@NotNull ProcessEvent event) {
         Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger-processTerminated: " + pkgName);
         processTerminationCallback();
       }
@@ -251,7 +251,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     // Remove listener when process is terminated
     debugProcessHandler.addProcessListener(new ProcessAdapter() {
       @Override
-      public void processTerminated(ProcessEvent event) {
+      public void processTerminated(@NotNull ProcessEvent event) {
         Logger.getInstance(ConnectJavaDebuggerTask.class)
           .info(String.format("captureLogcatOutput(\"%s\"): remove listener", device.getName()));
         AndroidLogcatService.getInstance().removeListener(device, logListener);

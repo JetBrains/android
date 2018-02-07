@@ -28,7 +28,8 @@ abstract class FormattedLogcatReceiver implements AndroidLogcatService.LogcatLis
       myActiveHeader = line.getHeader();
       String message = AndroidLogcatFormatter.formatMessageFull(myActiveHeader, line.getMessage());
       receiveFormattedLogLine(message);
-    } else {
+    }
+    else {
       String message = AndroidLogcatFormatter.formatContinuation(line.getMessage());
       receiveFormattedLogLine(message);
     }
