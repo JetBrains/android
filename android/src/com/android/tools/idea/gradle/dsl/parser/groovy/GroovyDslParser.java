@@ -275,6 +275,7 @@ public class GroovyDslParser implements GradleDslParser {
       if (closureArguments.length > 0) {
         methodCall.setParsedClosureElement(getClosureElement(methodCall, closureArguments[0], name));
       }
+      methodCall.setElementType(REGULAR);
       dslElement.addParsedElement(name, methodCall);
       return true;
     }
@@ -282,7 +283,9 @@ public class GroovyDslParser implements GradleDslParser {
     if (argumentList.getAllArguments().length == 0 && closureArguments.length == 0) {
       // This element is a pure method call, i.e a method call with no arguments and no closure arguments.
       // ex: jcenter()
-      dslElement.addParsedElement(name, new GradleDslMethodCall(dslElement, expression, name));
+      GradleDslMethodCall methodCall = new GradleDslMethodCall(dslElement, expression, name, expression.getArgumentList());
+      methodCall.setElementType(REGULAR);
+      dslElement.addParsedElement(name, methodCall);
       return true;
     }
 
@@ -503,7 +506,7 @@ public class GroovyDslParser implements GradleDslParser {
     return true;
   }
 
-  @Nullable
+  @NotNull
   private static GradleDslExpression getExpressionElement(@NotNull GradleDslElement parentElement,
                                                           @NotNull GroovyPsiElement psiElement,
                                                           @NotNull String propertyName,
@@ -527,7 +530,7 @@ public class GroovyDslParser implements GradleDslParser {
             return getMethodCall(parentElement, methodCall, referenceName, argumentList);
           }
           else {
-            return new GradleDslMethodCall(parentElement, methodCall, referenceName);
+            return new GradleDslMethodCall(parentElement, propertyExpression, referenceName, methodCall.getArgumentList());
           }
         }
       }
@@ -552,7 +555,9 @@ public class GroovyDslParser implements GradleDslParser {
         }
       }
     }
-    return null;
+
+    // We have no idea what it is.
+    return new GradleDslUnknownElement(parentElement, propertyExpression, propertyName);
   }
 
   @NotNull
@@ -560,7 +565,7 @@ public class GroovyDslParser implements GradleDslParser {
                                                    @NotNull GrMethodCallExpression psiElement,
                                                    @NotNull String propertyName,
                                                    @NotNull GrArgumentList argumentList) {
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(parentElement, psiElement.getArgumentList(), propertyName);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parentElement, psiElement, propertyName, argumentList);
 
     for (GrExpression expression : argumentList.getExpressionArguments()) {
       if (expression instanceof GrListOrMap) {
@@ -573,9 +578,7 @@ public class GroovyDslParser implements GradleDslParser {
         else {
           for (GrExpression grExpression : listOrMap.getInitializers()) {
             GradleDslExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, grExpression);
-            if (dslExpression != null) {
-              methodCall.addParsedExpression(dslExpression);
-            }
+            methodCall.addParsedExpression(dslExpression);
           }
         }
       }
@@ -584,9 +587,7 @@ public class GroovyDslParser implements GradleDslParser {
       }
       else {
         GradleDslExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, expression);
-        if (dslExpression != null) {
-          methodCall.addParsedExpression(dslExpression);
-        }
+        methodCall.addParsedExpression(dslExpression);
       }
     }
 
@@ -612,17 +613,13 @@ public class GroovyDslParser implements GradleDslParser {
         if (!listOrMap.isMap()) {
           for (GrExpression grExpression : listOrMap.getInitializers()) {
             GradleDslExpression dslExpression = getExpressionElement(newExpression, expression, propertyName, grExpression);
-            if (dslExpression != null) {
-              newExpression.addParsedExpression(dslExpression);
-            }
+            newExpression.addParsedExpression(dslExpression);
           }
         }
       }
       else {
         GradleDslExpression dslExpression = getExpressionElement(newExpression, expression, propertyName, expression);
-        if (dslExpression != null) {
-          newExpression.addParsedExpression(dslExpression);
-        }
+        newExpression.addParsedExpression(dslExpression);
       }
     }
 
@@ -638,9 +635,7 @@ public class GroovyDslParser implements GradleDslParser {
     GradleDslExpressionList expressionList = new GradleDslExpressionList(parentElement, listPsiElement, isLiteral, propertyName);
     for (GrExpression expression : propertyExpressions) {
       GradleDslExpression expressionElement = getExpressionElement(expressionList, listPsiElement, propertyName, expression);
-      if (expressionElement != null) {
-        expressionList.addParsedExpression(expressionElement);
-      }
+      expressionList.addParsedExpression(expressionElement);
     }
     return expressionList;
   }
@@ -662,7 +657,7 @@ public class GroovyDslParser implements GradleDslParser {
         continue;
       }
       GradleDslElement valueElement = getExpressionElement(expressionMap, mapPsiElement, argName, valueExpression);
-      if (valueElement == null && valueExpression instanceof GrListOrMap) {
+      if (valueElement instanceof GradleDslUnknownElement && valueExpression instanceof GrListOrMap) {
         GrListOrMap listOrMap = (GrListOrMap)valueExpression;
         if (listOrMap.isMap()) {
           valueElement = getExpressionMap(expressionMap, listOrMap, argName, Arrays.asList(listOrMap.getNamedArguments()), true);
@@ -671,9 +666,7 @@ public class GroovyDslParser implements GradleDslParser {
           valueElement = getExpressionList(expressionMap, listOrMap, argName, Arrays.asList(listOrMap.getInitializers()), true);
         }
       }
-      if (valueElement != null) {
-        expressionMap.setParsedElement(argName, valueElement);
-      }
+      expressionMap.setParsedElement(argName, valueElement);
     }
     return expressionMap;
   }

@@ -189,7 +189,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (myElement != null && myPropertyHolder instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)myPropertyHolder;
       return myPropertyHolder.getQualifiedName() + "[" + String.valueOf(list.findIndexOf(myElement)) + "]";
-    } else if (myElement != null && myPropertyHolder instanceof GradleDslElementList) {
+    }
+    else if (myElement != null && myPropertyHolder instanceof GradleDslElementList) {
       // Elements contained within a GradleDslElementList should not have their own names.
       return myPropertyHolder.getQualifiedName();
     }
@@ -336,6 +337,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     else if (element instanceof GradleDslReference) {
       return REFERENCE;
     }
+    else if ((element instanceof GradleDslMethodCall &&
+              (element.shouldUseAssignment() || element.getElementType() == PropertyType.DERIVED)) ||
+             element instanceof GradleDslUnknownElement) {
+      // This check ensures that methods we care about, i.e targetSdkVersion(12) are not classed as unknown.
+      return UNKNOWN;
+    }
     else if (element instanceof GradleDslExpression) {
       GradleDslExpression expression = (GradleDslExpression)element;
       Object value = expression.getValue();
@@ -380,6 +387,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       String refText = ref.getReferenceText();
       return refText == null ? null : typeReference.castTo(refText);
     }
+    else if (myValueType == UNKNOWN) {
+      if (myElement.getPsiElement() == null) {
+        return null;
+      }
+      return typeReference.castTo(myElement.getPsiElement().getText());
+    }
 
     GradleDslExpression expression = (GradleDslExpression)myElement;
 
@@ -403,7 +416,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (myPropertyHolder instanceof GradlePropertiesDslElement) {
       if (myElement != null) {
         myElement = ((GradlePropertiesDslElement)myPropertyHolder).replaceElement(myName, myElement, element);
-      } else {
+      }
+      else {
         myElement = ((GradlePropertiesDslElement)myPropertyHolder).setNewElement(myName, element);
       }
     }
@@ -446,7 +460,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       GradleDslExpressionList list = (GradleDslExpressionList)myPropertyHolder;
       index = list.findIndexOf(myElement);
       ((GradleDslExpressionList)myPropertyHolder).removeElement(myElement);
-    } else {
+    }
+    else {
       assert myPropertyHolder instanceof GradleDslElementList;
       GradleDslElementList elementList = (GradleDslElementList)myPropertyHolder;
       elementList.removeElement(myElement);
