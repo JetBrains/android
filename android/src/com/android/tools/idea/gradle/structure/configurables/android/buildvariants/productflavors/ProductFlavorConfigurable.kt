@@ -18,6 +18,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.ChildModelC
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorConfigPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.listPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.mapPropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -67,8 +68,10 @@ fun productFlavorPropertiesModel() =
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.targetSdkVersion, ::simplePropertyEditor),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.maxSdkVersion, ::simplePropertyEditor),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.proGuardFiles, listPropertyEditor(::simplePropertyEditor)),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders, mapPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.multiDexEnabled, ::simplePropertyEditor),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunner, ::simplePropertyEditor),
+            uiProperty(PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments, mapPropertyEditor(::simplePropertyEditor)),
             uiProperty(PsProductFlavor.ProductFlavorDescriptors.testApplicationId, ::simplePropertyEditor),
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testFunctionalTest,
 // TODO(b/70501607): Decide on PsProductFlavor.ProductFlavorDescriptors.testHandleProfiling,
