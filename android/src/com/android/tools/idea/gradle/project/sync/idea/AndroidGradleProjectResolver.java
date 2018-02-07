@@ -352,21 +352,30 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   /**
    * Find and set global library map.
    */
-  private void populateGlobalLibraryMap(@NotNull IdeaProject ideaProject) {
-    GlobalLibraryMap globalLibraryMap = null;
-    // Since GlobalLibraryMap is requested on each module, we need to find the map that was
-    // requested at the last, which is the one that contains the most of items.
-    for (IdeaModule ideaModule : ideaProject.getChildren()) {
-      GlobalLibraryMap moduleMap = resolverCtx.getExtraProject(ideaModule, GlobalLibraryMap.class);
-      if (globalLibraryMap == null ||
-          (moduleMap != null && moduleMap.getLibraries().size() > globalLibraryMap.getLibraries().size())) {
-        globalLibraryMap = moduleMap;
+  private void populateGlobalLibraryMap(@NotNull IdeaProject rootIdeaProject) {
+    List<GlobalLibraryMap> globalLibraryMaps = new ArrayList<>();
+
+    // Request GlobalLibraryMap for root and included projects.
+    List<IdeaProject> ideaProjects = new ArrayList<>();
+    ideaProjects.add(rootIdeaProject);
+    ideaProjects.addAll(resolverCtx.getModels().getIncludedBuilds());
+
+    for (IdeaProject ideaProject : ideaProjects) {
+      GlobalLibraryMap mapOfCurrentBuild = null;
+      // Since GlobalLibraryMap is requested on each module, we need to find the map that was
+      // requested at the last, which is the one that contains the most of items.
+      for (IdeaModule ideaModule : ideaProject.getChildren()) {
+        GlobalLibraryMap moduleMap = resolverCtx.getExtraProject(ideaModule, GlobalLibraryMap.class);
+        if (mapOfCurrentBuild == null ||
+            (moduleMap != null && moduleMap.getLibraries().size() > mapOfCurrentBuild.getLibraries().size())) {
+          mapOfCurrentBuild = moduleMap;
+        }
+      }
+      if (mapOfCurrentBuild != null) {
+        globalLibraryMaps.add(mapOfCurrentBuild);
       }
     }
-    // GlobalLibraryMap will be null for pre 3.0 plugins, or for 3.0 plugin with VERSION_3 model.
-    if (globalLibraryMap != null) {
-      myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMap);
-    }
+    myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMaps);
   }
 
   @Override

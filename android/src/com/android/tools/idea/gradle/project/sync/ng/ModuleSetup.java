@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
-import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -246,11 +245,8 @@ abstract class ModuleSetup {
       notifyModuleConfigurationStarted(indicator);
       CachedProjectModels cache = myCachedProjectModelsFactory.createNew();
       myCompositeBuildDataSetup.setupCompositeBuildData(projectModels, cache, myProject);
+      myDependenciesFactory.setUpGlobalLibraryMap(projectModels.getGlobalLibraryMap());
 
-      GlobalLibraryMap globalLibraryMap = projectModels.getGlobalLibraryMap();
-      if (globalLibraryMap != null) {
-        myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMap);
-      }
       createAndSetUpModules(projectModels, cache);
       myProjectDataNodeSetup.setupProjectDataNode(projectModels, myProject);
       myAndroidModuleProcessor.processAndroidModels(myAndroidModules);
