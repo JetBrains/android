@@ -90,7 +90,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     @NotNull
     public String getOutput() {
       ConsoleViewImpl consoleView;
-      while ((consoleView = findConsoleView()) == null || consoleView.getEditor() == null) {
+      while ((consoleView = findVisibleConsoleView()) == null || consoleView.getEditor() == null) {
         // If our handle has been replaced, find it again.
         JComponent consoleComponent = getTabComponent("Console");
         myRobot.click(consoleComponent);
@@ -98,11 +98,11 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return consoleView.getEditor().getDocument().getText();
     }
 
-    // Returns the console or null if it is not found.
+    // Returns the currently visible console or null if it is not found.
     @Nullable
-    private ConsoleViewImpl findConsoleView() {
+    private ConsoleViewImpl findVisibleConsoleView() {
       try {
-        return myRobot.finder().findByType(myParentToolWindow.myToolWindow.getComponent(), ConsoleViewImpl.class, false);
+        return myRobot.finder().findByType(myParentToolWindow.myToolWindow.getComponent(), ConsoleViewImpl.class, true);
       } catch (ComponentLookupException e) {
         return null;
       }
@@ -342,7 +342,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     private List<ActionButton> getConsoleToolbarButtons() {
-      ConsoleViewImpl consoleView = checkNotNull(findConsoleView());
+      ConsoleViewImpl consoleView = checkNotNull(findVisibleConsoleView());
       Container commonAncestor = SwingUtilities.getAncestorOfClass(JBTabs.class, consoleView);
       Container actionToolbar = myRobot.finder().find(commonAncestor, Matchers.byType(ActionToolbarImpl.class));
       return Lists.newArrayList(myRobot.finder().findAll(actionToolbar, Matchers.byType(ActionButton.class)));
