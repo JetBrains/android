@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
@@ -26,7 +26,7 @@ import javax.swing.*;
 public class ChooseOptionsForNewFileStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ChooseOptionsForNewFileStepFixture, W> {
 
-  protected ChooseOptionsForNewFileStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+  ChooseOptionsForNewFileStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
     super(ChooseOptionsForNewFileStepFixture.class, wizard, target);
   }
 

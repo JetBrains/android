@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
@@ -22,16 +22,16 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-public class ConfigureAndroidSampleProjectStepFixture<W extends AbstractWizardFixture>
-  extends AbstractWizardStepFixture<ConfigureAndroidSampleProjectStepFixture, W> {
+public class ConfigureInstantModuleStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureInstantModuleStepFixture, W> {
 
-  protected ConfigureAndroidSampleProjectStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
-    super(ConfigureAndroidSampleProjectStepFixture.class, wizard, target);
+  ConfigureInstantModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureInstantModuleStepFixture.class, wizard, target);
   }
 
   @NotNull
-  public ConfigureAndroidSampleProjectStepFixture enterApplicationName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Application name:");
+  public ConfigureInstantModuleStepFixture<W> enterFeatureModuleName(@NotNull String text) {
+    JTextComponent textField = findTextFieldWithLabel("Module Name");
     replaceText(textField, text);
     return this;
   }

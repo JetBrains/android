@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.BasicJComboBoxCellReader;
@@ -29,7 +29,7 @@ public class ApiLevelComboBoxFixture {
   private final Robot myRobot;
   private final JComboBox myTarget;
 
-  public ApiLevelComboBoxFixture(@NotNull Robot robot, @NotNull JComboBox target) {
+  ApiLevelComboBoxFixture(@NotNull Robot robot, @NotNull JComboBox target) {
     myRobot = robot;
     myTarget = target;
   }

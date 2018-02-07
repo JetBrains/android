@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.util;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
 
 public final class WizardUtils {
