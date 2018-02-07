@@ -74,12 +74,15 @@ class NavActionsInspectorProviderTest : NavTestCase() {
 
     val manager = mock(NavPropertiesManager::class.java)
     val navInspectorProviders = spy(NavInspectorProviders(manager, myRootDisposable))
-    `when`(navInspectorProviders.providers).thenReturn(listOf(NavActionsInspectorProvider()))
+    val provider = NavActionsInspectorProvider()
+    `when`(navInspectorProviders.providers).thenReturn(listOf(provider))
     `when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
     `when`(manager.facet).thenReturn(myFacet)
 
     val panel = NavInspectorPanel(myRootDisposable)
-    panel.setComponent(listOf(model.find("f1")!!), HashBasedTable.create<String, String, NlProperty>(), manager)
+    val f1 = model.find("f1")
+    val f2 = model.find("f2")
+    panel.setComponent(listOf(f1!!), HashBasedTable.create<String, String, NlProperty>(), manager)
 
     @Suppress("UNCHECKED_CAST")
     val actionsList = flatten(panel).find { it.name == NAV_LIST_COMPONENT_NAME }!! as JBList<NlProperty>
@@ -88,6 +91,18 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     val propertiesList = listOf(actionsList.model.getElementAt(0), actionsList.model.getElementAt(1))
     assertSameElements(propertiesList.map { it.components[0].id }, listOf("a1", "a2"))
     assertSameElements(propertiesList.map { it.name }, listOf("f2", "activity"))
+
+    panel.setComponent(listOf(f2), HashBasedTable.create<String, String, NlProperty>(), manager)
+    assertEquals(0, actionsList.itemsCount)
+
+    val dialog = mock(AddActionDialog::class.java)
+    `when`(dialog.destination).thenReturn(f1)
+    `when`(dialog.source).thenReturn(f2)
+    `when`(dialog.showAndGet()).thenReturn(true)
+
+    provider.showAndUpdateFromDialog(dialog)
+
+    assertEquals(1, actionsList.itemsCount)
   }
 
   fun testPopupContents() {
@@ -110,11 +125,11 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     `when`(manager.facet).thenReturn(myFacet)
 
     @Suppress("UNCHECKED_CAST")
-    val answer = object: Answer<NavListInspectorProvider.NavListInspectorComponent<NavActionsProperty>> {
-      var result: NavListInspectorProvider.NavListInspectorComponent<NavActionsProperty>? = null
+    val answer = object: Answer<NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent> {
+      var result: NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent? = null
 
-      override fun answer(invocation: InvocationOnMock?): NavListInspectorProvider.NavListInspectorComponent<NavActionsProperty> =
-          (invocation?.callRealMethod() as NavListInspectorProvider.NavListInspectorComponent<NavActionsProperty>).also { result = it }
+      override fun answer(invocation: InvocationOnMock?): NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent =
+          (invocation?.callRealMethod() as NavListInspectorProvider<NavActionsProperty>.NavListInspectorComponent).also { result = it }
     }
     doAnswer(answer).`when`(provider).createCustomInspector(any(), any(), any())
     val panel = NavInspectorPanel(myRootDisposable)

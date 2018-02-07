@@ -25,7 +25,7 @@ import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 
 class NavDeeplinkInspectorProvider : NavListInspectorProvider<NavDeeplinkProperty>(NavDeeplinkProperty::class.java, DEEPLINK) {
 
-  override fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
+  override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
     assert(parents.size == 1)
 
     val deeplinkDialog = AddDeeplinkDialog(existing)
