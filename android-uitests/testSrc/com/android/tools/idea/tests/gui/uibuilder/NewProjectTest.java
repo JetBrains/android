@@ -282,7 +282,6 @@ public class NewProjectTest {
     assertTrue(guiTest.getProjectPath(FN_GRADLE_WRAPPER_UNIX).canExecute());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63317962
   @Test // http://b.android.com/227918
   public void scrollingActivityFollowedByBasicActivity() throws Exception {
     guiTest.welcomeFrame()
