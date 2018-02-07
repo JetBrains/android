@@ -72,11 +72,6 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
         public boolean isCancellable() {
           return false;
         }
-
-        @Override
-        public String getProcessId() {
-          return null;
-        }
       };
 
       myProgressIndicator = new InlineProgressIndicator(true, taskInfo) {
