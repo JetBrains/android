@@ -38,7 +38,6 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
 
   private final Project myProject;
   private final DeviceStateCache<CompletableFuture> myCache;
-  private boolean mUseEmuScreenRecording = false;
 
   public ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context) {
     super(context,
@@ -50,6 +49,17 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
     myCache = new DeviceStateCache<>(project);
   }
 
+  boolean isEmulatorAndSupportsEmuRecording(@NotNull IDevice device) {
+    if (device.isEmulator()) {
+      AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+      return EmulatorAdvFeatures.emulatorSupportsScreenRecording(
+        handler,
+        new StudioLoggerProgressIndicator(ScreenRecorderAction.class),
+        new LogWrapper(Logger.getInstance(ScreenRecorderAction.class)));
+    }
+    return false;
+  }
+
   @Override
   protected boolean isEnabled() {
     if (!super.isEnabled()) {
@@ -59,15 +69,8 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
     IDevice device = myDeviceContext.getSelectedDevice();
 
     // Use emulator recording feature if it is supported.
-    if (device.isEmulator()) {
-      AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-      mUseEmuScreenRecording = EmulatorAdvFeatures.emulatorSupportsScreenRecording(
-                                            handler,
-                                            new StudioLoggerProgressIndicator(ScreenRecorderAction.class),
-                                            new LogWrapper(Logger.getInstance(ScreenRecorderAction.class)));
-      if (mUseEmuScreenRecording) {
-        return true;
-      }
+    if (isEmulatorAndSupportsEmuRecording(device)) {
+      return true;
     }
 
     CompletableFuture<Boolean> cf = myCache.get(device, PKG_NAME);
@@ -83,6 +86,7 @@ public class ScreenRecorderAction extends AbstractDeviceAction {
 
   @Override
   protected void performAction(@NotNull IDevice device) {
-    new com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction(myProject, device, mUseEmuScreenRecording).performAction();
+    boolean useEmuScreenRecording = isEmulatorAndSupportsEmuRecording(device);
+    new com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction(myProject, device, useEmuScreenRecording).performAction();
   }
 }
