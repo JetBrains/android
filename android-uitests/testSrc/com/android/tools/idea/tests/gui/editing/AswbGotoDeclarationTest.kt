@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.editing
 
+import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.MultiBuildGuiTestRunner
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
@@ -29,12 +29,21 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import java.util.*
 
 @RunIn(TestGroup.EDITING)
-@RunWith(MultiBuildGuiTestRunner::class)
+@RunWith(Parameterized::class)
+@Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory::class)
 class AswbGotoDeclarationTest {
   @get:Rule
   val guiTest = GuiTestRule()
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "{0}")
+    fun data(): List<TargetBuildSystem.BuildSystem> = Collections.singletonList(TargetBuildSystem.BuildSystem.BAZEL)
+  }
 
   @Before
   fun setUp() {

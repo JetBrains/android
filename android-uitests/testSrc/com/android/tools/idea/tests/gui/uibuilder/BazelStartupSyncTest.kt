@@ -15,16 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder
 
+import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.MultiBuildGuiTestRunner
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import java.util.*
 
-@RunWith(MultiBuildGuiTestRunner::class)
+@RunWith(Parameterized::class)
+@Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory::class)
 class BazelStartupSyncTest {
-  @Rule @JvmField val guiTest = GuiTestRule()
+  @get:Rule
+  val guiTest = GuiTestRule()
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "{0}")
+    fun data(): List<TargetBuildSystem.BuildSystem> = Collections.singletonList(TargetBuildSystem.BuildSystem.BAZEL)
+  }
 
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)

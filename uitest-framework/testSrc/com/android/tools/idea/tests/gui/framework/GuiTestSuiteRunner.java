@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.UseParametersRunnerFactory;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
@@ -108,9 +110,20 @@ public class GuiTestSuiteRunner extends Suite {
 
     String runWithClassName = runWith.value().getSimpleName();
 
-    // either the test is run via GuiTestRunner or MultiBuildGuiTestRunner
-    return runWithClassName.equals(GuiTestRunner.class.getSimpleName()) ||
-           runWithClassName.equals(MultiBuildGuiTestRunner.class.getSimpleName());
+    // True if running with GuiTestRunner
+    if (runWithClassName.equals(GuiTestRunner.class.getSimpleName())) {
+      return true;
+    }
+
+    // True if running with Parameterized and using BuildSpecificGuiTestRunner.Factory
+    if (runWithClassName.equals(Parameterized.class.getSimpleName())) {
+      UseParametersRunnerFactory factory = testClass.getAnnotation(UseParametersRunnerFactory.class);
+      if (factory != null && factory.value().getSimpleName().equals(BuildSpecificGuiTestRunner.Factory.class.getSimpleName())) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static void findPotentialGuiTestClassFiles(@NotNull File directory, @NotNull List<File> guiTestClassFiles) {
