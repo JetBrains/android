@@ -45,7 +45,7 @@ public class CollapsingToolbarLayoutHandler extends FrameLayoutHandler {
   @NotNull
   public List<String> getBaseStyles(@NotNull String tagName) {
     if (COLLAPSING_TOOLBAR_LAYOUT.isEquals(tagName)) {
-      return ImmutableList.of("Widget.Design.CollapsingToolbar");  // Notice the missing "Layout"
+      return ImmutableList.of(PREFIX_APP + "Widget.Design.CollapsingToolbar");  // Notice the missing "Layout"
     }
     return super.getBaseStyles(tagName);
   }

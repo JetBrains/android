@@ -60,7 +60,11 @@ public class EnumSupportFactory {
       case ATTR_STYLE:
         String tagName = property.getTagName();
         ResourceResolver resolver = property.getResolver();
-        return tagName != null && resolver != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), resolver, tagName);
+        if (tagName == null || resolver == null) {
+          return false;
+        }
+        StyleFilter filter = new StyleFilter(property.getModel().getFacet(), resolver);
+        return filter.hasWidgetStyles(tagName);
       default:
         if (property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
           return true;
