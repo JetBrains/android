@@ -15,25 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
+import com.intellij.mock.MockApplication;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 
+import java.util.Collections;
 import java.util.regex.Matcher;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.support.StyleEnumSupportTest.createFrameworkStyle;
 import static com.android.tools.idea.uibuilder.property.editors.support.StyleEnumSupportTest.createStyle;
 import static com.android.tools.idea.uibuilder.property.editors.support.TextAppearanceEnumSupport.TEXT_APPEARANCE_PATTERN;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -50,23 +62,73 @@ public class TextAppearanceEnumSupportTest {
   @Mock
   private NlProperty myProperty;
   @Mock
+  private NlComponent myComponent;
+  @Mock
+  private XmlTag myTag;
+  @Mock
   private ResourceResolver myResolver;
   @Mock
   private StyleFilter myStyleFilter;
+  @Mock
+  private ResourceRepositoryManager myResourceRepositoryManager;
 
   private TextAppearanceEnumSupport mySupport;
+  private Disposable myDisposable;
 
   @Before
   public void setUp() {
     initMocks(this);
+    myDisposable = Disposer.newDisposable();
+    ApplicationManager.setApplication(new MockApplication(myDisposable), myDisposable);
     when(myProperty.getResolver()).thenReturn(myResolver);
     when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
     when(myProperty.resolveValue("?attr/textAppearanceSmall")).thenReturn("@android:style/TextAppearance.Material.Small");
-    when(myResolver.getStyle("TextAppearance.Material.Small", true)).thenReturn(MATERIAL_SMALL_STYLE);
-    when(myResolver.getStyle("TextAppearance.AppCompat", false)).thenReturn(APPCOMPAT_STYLE);
-    when(myResolver.getStyle("TextAppearance.MyOwnStyle.Medium", false)).thenReturn(APPLICATION_STYLE);
+    when(myProperty.getComponents()).thenReturn(Collections.singletonList(myComponent));
+    when(myComponent.getTag()).thenReturn(myTag);
+    when(myTag.knownNamespaces()).thenReturn(new String[]{ANDROID_URI, TOOLS_URI});
+    when(myResolver.getStyle(any())).thenAnswer(invocation -> resolveStyle(invocation.getArgument(0)));
+    when(myResourceRepositoryManager.getNamespace()).thenReturn(ResourceNamespace.TODO);
 
-    mySupport = new TextAppearanceEnumSupport(myProperty, myStyleFilter);
+    mySupport = new TextAppearanceEnumSupport(myProperty, myStyleFilter, myResourceRepositoryManager);
+  }
+
+  @After
+  public void tearDown() {
+    Disposer.dispose(myDisposable);
+    myProperty = null;
+    myComponent = null;
+    myTag = null;
+    myResolver = null;
+    myStyleFilter = null;
+    myResourceRepositoryManager = null;
+    mySupport = null;
+    myDisposable = null;
+  }
+
+  private static StyleResourceValue resolveStyle(@NotNull ResourceReference reference) {
+    if (reference.getNamespace().equals(ResourceNamespace.ANDROID)) {
+      switch (reference.getName()) {
+        case "TextAppearance":
+          return TEXT_APPEARANCE_STYLE;
+        case "TextAppearance.Material":
+          return MATERIAL_STYLE;
+        case "TextAppearance.Material.Small":
+          return MATERIAL_SMALL_STYLE;
+        default:
+          return null;
+      }
+    }
+    else if (reference.getNamespace().equals(ResourceNamespace.RES_AUTO)) {
+      switch (reference.getName()) {
+        case "TextAppearance.AppCompat":
+          return APPCOMPAT_STYLE;
+        case "TextAppearance.MyOwnStyle.Medium":
+          return APPLICATION_STYLE;
+        default:
+          return null;
+      }
+    }
+    return null;
   }
 
   @Test
@@ -88,7 +150,7 @@ public class TextAppearanceEnumSupportTest {
 
   @Test
   public void testFindPossibleValues() {
-    when(myStyleFilter.getStylesDerivedFrom("TextAppearance", true)).thenReturn(ImmutableList.of(
+    when(myStyleFilter.getStylesDerivedFrom(TEXT_APPEARANCE_STYLE)).thenReturn(ImmutableList.of(
       TEXT_APPEARANCE_STYLE, MATERIAL_STYLE, MATERIAL_SMALL_STYLE, APPCOMPAT_STYLE, APPCOMPAT_SMALL_STYLE, APPLICATION_STYLE));
     assertThat(mySupport.getAllValues()).containsExactly(
       new ValueWithDisplayString("TextAppearance", "@android:style/TextAppearance"),

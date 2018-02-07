@@ -16,11 +16,18 @@
 package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,15 +39,21 @@ import static com.android.SdkConstants.*;
 public class StyleEnumSupport extends EnumSupport {
 
   protected final StyleFilter myStyleFilter;
+  protected final ResourceRepositoryManager myResourceManager;
 
   public StyleEnumSupport(@NotNull NlProperty property) {
-    this(property, new StyleFilter(property.getModel().getProject(), property.getResolver()));
+    this(property.getModel().getFacet(), property);
+  }
+
+  private StyleEnumSupport(@NotNull AndroidFacet facet, @NotNull NlProperty property) {
+    this(property, new StyleFilter(facet, property.getResolver()), ResourceRepositoryManager.getOrCreateInstance(facet));
   }
 
   @VisibleForTesting
-  StyleEnumSupport(@NotNull NlProperty property, @NotNull StyleFilter styleFilter) {
+  StyleEnumSupport(@NotNull NlProperty property, @NotNull StyleFilter styleFilter, @NotNull ResourceRepositoryManager resourceManager) {
     super(property);
     myStyleFilter = styleFilter;
+    myResourceManager = resourceManager;
   }
 
   @Override
@@ -54,19 +67,63 @@ public class StyleEnumSupport extends EnumSupport {
   @Override
   @NotNull
   protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
-    if (value != null &&
-        !value.startsWith(STYLE_RESOURCE_PREFIX) &&
-        !value.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) &&
-        !value.startsWith(ATTR_REF_PREFIX)) {
-      ResourceResolver resolver = myProperty.getResolver();
-      ResourceValue resource = resolver.getStyle(value, true);
-      String prefix = resource != null ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX;
-      value = prefix + value;
+    if (value != null && !value.startsWith(PREFIX_RESOURCE_REF) && !value.startsWith(PREFIX_THEME_REF)) {
+      // The user did not specify a proper style value.
+      // Lookup the value specified to see if there is a matching style.
+      ResourceNamespace currentNamespace = myResourceManager.getNamespace();
+
+      // Prefer the users styles:
+      StyleResourceValue styleFound = resolve(currentNamespace, value);
+
+      // Otherwise try each of the namespaces defined in the XML file:
+      if (styleFound == null) {
+        for (String namespaceUri : findKnownNamespaces()) {
+          ResourceNamespace namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
+          if (namespace == null) {
+            continue;
+          }
+          StyleResourceValue resource = resolve(namespace, value);
+          if (resource != null) {
+            styleFound = resource;
+            break;
+          }
+        }
+      }
+
+      value = styleFound != null ?
+              styleFound.asReference().getRelativeResourceUrl(currentNamespace, getResolver()).toString() : STYLE_RESOURCE_PREFIX + value;
     }
-    String display = resolvedValue;
-    display = StringUtil.trimStart(display, ANDROID_STYLE_RESOURCE_PREFIX);
-    display = StringUtil.trimStart(display, STYLE_RESOURCE_PREFIX);
+    String shortDisplay = StringUtil.substringAfter(resolvedValue, REFERENCE_STYLE);
+    String display = shortDisplay != null ? shortDisplay : resolvedValue;
     return new ValueWithDisplayString(display, value, generateHint(display, value));
+  }
+
+  @NotNull
+  protected String[] findKnownNamespaces() {
+    XmlTag tag = getTagOfFirstComponent();
+    return tag != null ? tag.knownNamespaces() : new String[0];
+  }
+
+  @NotNull
+  protected ResourceNamespace.Resolver getResolver() {
+    XmlTag tag = getTagOfFirstComponent();
+    return tag != null ? ResourceHelper.getNamespaceResolver(tag) : ResourceNamespace.Resolver.EMPTY_RESOLVER;
+  }
+
+  @Nullable
+  private XmlTag getTagOfFirstComponent() {
+    List<NlComponent> components = myProperty.getComponents();
+    return !components.isEmpty() ? components.get(0).getTag() : null;
+  }
+
+  @Nullable
+  protected StyleResourceValue resolve(@NotNull ResourceNamespace namespace, @NotNull String styleName) {
+    ResourceResolver resolver = myProperty.getResolver();
+    if (resolver == null) {
+      return null;
+    }
+    ResourceReference reference = new ResourceReference(namespace, ResourceType.STYLE, styleName);
+    return resolver.getStyle(reference);
   }
 
   @Nullable
@@ -85,13 +142,14 @@ public class StyleEnumSupport extends EnumSupport {
     List<ValueWithDisplayString> values = new ArrayList<>();
     StyleResourceValue previousStyle = null;
     for (StyleResourceValue style : styles) {
-      if (previousStyle != null && (previousStyle.isFramework() != style.isFramework() ||
+      if (previousStyle != null && (!previousStyle.getNamespace().equals(style.getNamespace()) ||
                                     previousStyle.isUserDefined() != style.isUserDefined())) {
         values.add(ValueWithDisplayString.SEPARATOR);
       }
       previousStyle = style;
-      String prefix = style.isFramework() ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX;
-      values.add(createFromResolvedValue(style.getName(), prefix + style.getName(), null));
+      values.add(createFromResolvedValue(
+        style.getName(),
+        style.asReference().getRelativeResourceUrl(ResourceNamespace.TODO, getResolver()).toString(), null));
     }
     return values;
   }

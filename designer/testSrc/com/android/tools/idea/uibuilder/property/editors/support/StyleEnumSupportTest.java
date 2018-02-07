@@ -20,19 +20,29 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
+import com.intellij.mock.MockApplication;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.CHECK_BOX;
+import java.util.Collections;
+
+import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -47,23 +57,69 @@ public class StyleEnumSupportTest {
   @Mock
   private NlProperty myProperty;
   @Mock
+  private NlComponent myComponent;
+  @Mock
+  private XmlTag myTag;
+  @Mock
   private ResourceResolver myResolver;
   @Mock
   private StyleFilter myStyleFilter;
+  @Mock
+  private ResourceRepositoryManager myResourceRepositoryManager;
 
   private StyleEnumSupport mySupport;
+  private Disposable myDisposable;
 
   @Before
   public void setUp() {
     initMocks(this);
+    myDisposable = Disposer.newDisposable();
+    ApplicationManager.setApplication(new MockApplication(myDisposable), myDisposable);
     when(myProperty.getResolver()).thenReturn(myResolver);
-    when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
-    when(myResolver.getStyle("Widget.CompoundButton.CheckBox", true)).thenReturn(CHECKBOX_STYLE);
-    when(myResolver.getStyle("Widget.Material.CompoundButton.CheckBox", true)).thenReturn(MATERIAL_STYLE);
-    when(myResolver.getStyle("Widget.AppCompat.CompoundButton.CheckBox", false)).thenReturn(APPCOMPAT_STYLE);
-    when(myResolver.getStyle("MyCheckBox", false)).thenReturn(APPLICATION_STYLE);
+    when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(myProperty.getComponents()).thenReturn(Collections.singletonList(myComponent));
+    when(myComponent.getTag()).thenReturn(myTag);
+    when(myTag.knownNamespaces()).thenReturn(new String[]{ANDROID_URI, TOOLS_URI});
+    when(myResolver.getStyle(any())).thenAnswer(invocation -> resolveStyle(invocation.getArgument(0)));
+    when(myResourceRepositoryManager.getNamespace()).thenReturn(ResourceNamespace.TODO);
+    mySupport = new StyleEnumSupport(myProperty, myStyleFilter, myResourceRepositoryManager);
+  }
 
-    mySupport = new StyleEnumSupport(myProperty, myStyleFilter);
+  @After
+  public void tearDown() {
+    Disposer.dispose(myDisposable);
+    myProperty = null;
+    myComponent = null;
+    myTag = null;
+    myResolver = null;
+    myStyleFilter = null;
+    myResourceRepositoryManager = null;
+    mySupport = null;
+    myDisposable = null;
+  }
+
+  private static StyleResourceValue resolveStyle(@NotNull ResourceReference reference) {
+    if (reference.getNamespace().equals(ResourceNamespace.ANDROID)) {
+      switch (reference.getName()) {
+        case "Widget.CompoundButton.CheckBox":
+          return CHECKBOX_STYLE;
+        case "Widget.Material.CompoundButton.CheckBox":
+          return MATERIAL_STYLE;
+        default:
+          return null;
+      }
+    }
+    else if (reference.getNamespace().equals(ResourceNamespace.RES_AUTO)) {
+      switch (reference.getName()) {
+        case "Widget.AppCompat.CompoundButton.CheckBox":
+          return APPCOMPAT_STYLE;
+        case "MyCheckBox":
+          return APPLICATION_STYLE;
+        default:
+          return null;
+      }
+    }
+    return null;
   }
 
   @Test

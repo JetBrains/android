@@ -46,6 +46,6 @@ public class SwitchHandler extends ButtonHandler {
   @Override
   @NotNull
   public List<String> getBaseStyles(@NotNull String tagName) {
-    return ImmutableList.of("Widget.CompoundButton." + tagName);
+    return ImmutableList.of(PREFIX_ANDROID + "Widget.CompoundButton." + tagName);
   }
 }

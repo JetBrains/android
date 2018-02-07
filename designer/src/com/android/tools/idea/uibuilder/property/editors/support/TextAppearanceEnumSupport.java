@@ -16,14 +16,17 @@
 package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,42 +41,57 @@ public class TextAppearanceEnumSupport extends StyleEnumSupport {
   }
 
   @VisibleForTesting
-  TextAppearanceEnumSupport(@NotNull NlProperty property, @NotNull StyleFilter styleFilter) {
-    super(property, styleFilter);
+  TextAppearanceEnumSupport(@NotNull NlProperty property,
+                            @NotNull StyleFilter styleFilter,
+                            @NotNull ResourceRepositoryManager resourceManager) {
+    super(property, styleFilter, resourceManager);
   }
 
   @Override
   @NotNull
   public List<ValueWithDisplayString> getAllValues() {
-    return convertStylesToDisplayValues(myStyleFilter.getStylesDerivedFrom(TEXT_APPEARANCE, true));
+    StyleResourceValue style = resolve(ResourceNamespace.ANDROID, TEXT_APPEARANCE);
+    if (style == null) {
+      return Collections.emptyList();
+    }
+    return convertStylesToDisplayValues(myStyleFilter.getStylesDerivedFrom(style));
   }
 
+  /**
+   * Guess the correct prefix if it is missing.
+   *
+   * @TODO: The code here should really look at the prefixes used in XML.
+   */
   @Override
   @NotNull
   protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
-    if (value != null &&
-        !value.startsWith(STYLE_RESOURCE_PREFIX) &&
-        !value.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) &&
-        !value.startsWith(ATTR_REF_PREFIX)) {
-      ResourceResolver resolver = myProperty.getResolver();
-      ResourceValue resource = resolver.getStyle(value, true);
-      if (resource == null) {
-        resource = resolver.getStyle(value, false);
+    if (value != null && !value.startsWith(PREFIX_RESOURCE_REF) && !value.startsWith(PREFIX_THEME_REF)) {
+      // The user did not specify a proper style value.
+      // Lookup the value specified to see if there is a matching style.
+      ResourceNamespace currentNamespace = myResourceManager.getNamespace();
+
+      // Prefer the users styles:
+      StyleResourceValue styleFound = resolve(currentNamespace, value);
+
+      // Otherwise try each of the namespaces defined in the XML file:
+      if (styleFound == null) {
+        for (String namespaceUri : findKnownNamespaces()) {
+          ResourceNamespace namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
+          if (namespace == null) {
+            continue;
+          }
+          StyleResourceValue resource = resolve(namespace, value);
+          if (resource != null) {
+            styleFound = resource;
+            break;
+          }
+        }
       }
-      if (resource == null && !value.startsWith(TEXT_APPEARANCE)) {
-        resource = resolver.getStyle(TEXT_APPEARANCE + "." + value, true);
-      }
-      if (resource == null && !value.startsWith(TEXT_APPEARANCE)) {
-        resource = resolver.getStyle(TEXT_APPEARANCE + "." + value, false);
-      }
-      if (resource == null) {
-        value = STYLE_RESOURCE_PREFIX + value;
-      }
-      else {
-        value = (resource.isFramework() ? ANDROID_STYLE_RESOURCE_PREFIX : STYLE_RESOURCE_PREFIX) + resource.getName();
-      }
+
+      value = styleFound != null ?
+              styleFound.asReference().getRelativeResourceUrl(currentNamespace, getResolver()).toString() : STYLE_RESOURCE_PREFIX + value;
     }
-    String display = resolvedValue;
+    String display;
     Matcher matcher = TEXT_APPEARANCE_PATTERN.matcher(resolvedValue);
     if (matcher.matches()) {
       display = matcher.group(5);
@@ -82,9 +100,19 @@ public class TextAppearanceEnumSupport extends StyleEnumSupport {
       }
     }
     else {
-      display = StringUtil.trimStart(display, ANDROID_STYLE_RESOURCE_PREFIX);
-      display = StringUtil.trimStart(display, STYLE_RESOURCE_PREFIX);
+      String shortDisplay = StringUtil.substringAfter(resolvedValue, REFERENCE_STYLE);
+      display = shortDisplay != null ? shortDisplay : resolvedValue;
     }
     return new ValueWithDisplayString(display, value, generateHint(display, value));
+  }
+
+  @Nullable
+  @Override
+  protected StyleResourceValue resolve(@NotNull ResourceNamespace namespace, @NotNull String styleName) {
+    StyleResourceValue value = super.resolve(namespace, styleName);
+    if (value != null) {
+      return value;
+    }
+    return super.resolve(namespace, TEXT_APPEARANCE + "." + styleName);
   }
 }

@@ -134,7 +134,7 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   public List<String> getBaseStyles(@NotNull String tagName) {
     String simpleTagName = getSimpleTagName(tagName);
     if (tagName.startsWith(ANDROID_SUPPORT_DESIGN_PKG)) {
-      return ImmutableList.of("Widget.Design." + simpleTagName);
+      return ImmutableList.of(PREFIX_APP + "Widget.Design." + simpleTagName);
     }
     if (tagName.equals(simpleTagName)) {
       return ImmutableList.of(PREFIX_ANDROID + "Widget." + simpleTagName, PREFIX_ANDROID + "Widget.Material." + simpleTagName);
