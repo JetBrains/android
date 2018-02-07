@@ -484,7 +484,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> items = multimap.get(name);
     assertThat(items).named(fullName).hasSize(1);
 
-    ResourceValue resourceValue = Iterables.getOnlyElement(items).getResourceValue(false);
+    ResourceValue resourceValue = Iterables.getOnlyElement(items).getResourceValue();
     assertThat((resourceValue)).named(fullName).isNotNull();
     return resourceValue;
   }

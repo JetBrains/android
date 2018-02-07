@@ -306,7 +306,7 @@ public final class StringResource {
 
     private ResourceItemEntry(@NotNull ResourceItem resourceItem) {
       myResourceItem = resourceItem;
-      ResourceValue value = resourceItem.getResourceValue(false);
+      ResourceValue value = resourceItem.getResourceValue();
 
       if (value == null) {
         myString = "";

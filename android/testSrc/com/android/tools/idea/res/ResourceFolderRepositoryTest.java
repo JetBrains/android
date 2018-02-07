@@ -157,7 +157,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     ResourceItem label = labelList.get(0);
-    ResourceValue resourceValue = label.getResourceValue(false);
+    ResourceValue resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Lorem Ipsum", resourceValue.getValue()); // In the file, there's whitespace unlike example above
 
@@ -166,7 +166,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     label = labelList.get(0);
-    resourceValue = label.getResourceValue(false);
+    resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Here it is: \u2026!", resourceValue.getValue());
 
@@ -184,13 +184,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     assertEquals("Share your score of (1337) with (Bluetooth)!",
-                 resources.getResourceItem(ResourceType.STRING, "share_with_application").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "share_with_application").get(0).getResourceValue().getValue());
     assertEquals("Call ${name}",
-                 resources.getResourceItem(ResourceType.STRING, "description_call").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "description_call").get(0).getResourceValue().getValue());
     assertEquals("(42) mins (28) secs",
-                 resources.getResourceItem(ResourceType.STRING, "callDetailsDurationFormat").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "callDetailsDurationFormat").get(0).getResourceValue().getValue());
     assertEquals("${number_of_sessions} sessions removed from your schedule",
-                 resources.getResourceItem(ResourceType.STRING, "other").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "other").get(0).getResourceValue().getValue());
   }
 
   public void testInitialCreate() throws Exception {
@@ -410,8 +410,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "foo2"));
     assertFalse(resources.hasResourceItem(ResourceType.DRAWABLE, "foo3"));
     ResourceItem item = getOnlyItem(resources, ResourceType.DRAWABLE, "foo2");
-    assertTrue(item.getResourceValue(false) instanceof DensityBasedResourceValue);
-    DensityBasedResourceValue rv = (DensityBasedResourceValue)item.getResourceValue(false);
+    assertTrue(item.getResourceValue() instanceof DensityBasedResourceValue);
+    DensityBasedResourceValue rv = (DensityBasedResourceValue)item.getResourceValue();
     assertNotNull(rv);
     assertSame(Density.XHIGH, rv.getResourceDensity());
 
@@ -564,7 +564,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("en", item.getSource().getQualifiers());
     assertEquals("en", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
-    assertEquals("Animations Demo", item.getResourceValue(false).getValue());
+    assertEquals("Animations Demo", item.getResourceValue().getValue());
 
     long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -584,7 +584,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("no", item.getSource().getQualifiers());
     assertEquals("no", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
-    assertEquals("Animations Demo", item.getResourceValue(false).getValue());
+    assertEquals("Animations Demo", item.getResourceValue().getValue());
   }
 
   public void testMoveResourceFileBetweenDensityFolders() throws Exception {
@@ -604,7 +604,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFile source = item.getSource();
     assertNotNull(source);
     assertEquals("mdpi", source.getQualifiers());
-    ResourceValue resourceValue = item.getResourceValue(false);
+    ResourceValue resourceValue = item.getResourceValue();
     assertNotNull(resourceValue);
     String valuePath = resourceValue.getValue().replace(File.separatorChar, '/');
     assertTrue(valuePath, valuePath.endsWith("res/drawable-mdpi/picture.png"));
@@ -628,7 +628,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     source = item.getSource();
     assertNotNull(source);
     assertEquals("hdpi", source.getQualifiers());
-    resourceValue = item.getResourceValue(false);
+    resourceValue = item.getResourceValue();
     assertNotNull(resourceValue);
     valuePath = resourceValue.getValue().replace(File.separatorChar, '/');
     assertTrue(valuePath, valuePath.endsWith("res/drawable-hdpi/picture.png"));
@@ -1150,7 +1150,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Also check that for IDs the ResourceValue is nothing of consequence.
     ResourceItem idItem = getOnlyItem(resources, ResourceType.ID, "note23Area");
-    ResourceValue idValue = idItem.getResourceValue(false);
+    ResourceValue idValue = idItem.getResourceValue();
     assertNotNull(idValue);
     assertEquals("", idValue.getValue());
 
@@ -1343,7 +1343,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     ResourceItem slideLabel = labelList.get(0);
-    ResourceValue resourceValue = slideLabel.getResourceValue(false);
+    ResourceValue resourceValue = slideLabel.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Screeeen Slide", resourceValue.getValue());
 
@@ -1355,7 +1355,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(generation2 < resources.getModificationCount());
-    resourceValue = slideLabel.getResourceValue(false);
+    resourceValue = slideLabel.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Scrn Slide", resourceValue.getValue());
 
@@ -1377,7 +1377,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     ResourceItem label = labelList.get(0);
-    ResourceValue resourceValue = label.getResourceValue(false);
+    ResourceValue resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Lorem Ipsum", resourceValue.getValue());
 
@@ -1406,7 +1406,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     label = labelList.get(0);
-    resourceValue = label.getResourceValue(false);
+    resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Llorem Ipsum", resourceValue.getValue());
     resetScanCounter();
@@ -1427,7 +1427,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(labelList2);
     assertEquals(1, labelList2.size());
     final ResourceItem label2 = labelList2.get(0);
-    resourceValue = label2.getResourceValue(false);
+    resourceValue = label2.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Lllorem Ipsum", resourceValue.getValue());
 
@@ -1533,7 +1533,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertTrue(generation < resources.getModificationCount());
         assertTrue(resources.hasResourceItem(ResourceType.STRING, "new_string"));
         //noinspection ConstantConditions
-        assertEquals("New String", resources.getResourceItem(ResourceType.STRING, "new_string").get(0).getResourceValue(false).getValue());
+        assertEquals("New String", resources.getResourceItem(ResourceType.STRING, "new_string").get(0).getResourceValue().getValue());
       }
     });
   }
@@ -1882,7 +1882,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         ensureSingleScan();
         assertTrue(generation < resources.getModificationCount());
         ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-        ResourceValue resourceValue = style.getResourceValue(false);
+        ResourceValue resourceValue = style.getResourceValue();
         assertNotNull(resourceValue);
         assertTrue(resourceValue instanceof StyleResourceValue);
         StyleResourceValue srv = (StyleResourceValue)resourceValue;
@@ -1913,7 +1913,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         ensureSingleScan();
         assertTrue(generation2 < resources.getModificationCount());
         ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-        ResourceValue resourceValue = style.getResourceValue(false);
+        ResourceValue resourceValue = style.getResourceValue();
         assertNotNull(resourceValue);
         assertTrue(resourceValue instanceof StyleResourceValue);
         StyleResourceValue srv = (StyleResourceValue)resourceValue;
@@ -1936,7 +1936,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
     assertNotNull(actionBarStyle);
@@ -1961,7 +1961,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     actionBarStyle = srv.getItem("actionBarStyle", true);
     assertNotNull(actionBarStyle);
@@ -1982,7 +1982,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
 
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     actionBarStyle = srv.getItem("actionBarStyle", true);
     assertNotNull(actionBarStyle);
@@ -2003,7 +2003,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
     assertNotNull(actionBarStyle);
@@ -2028,7 +2028,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     actionBarStyle = srv.getItem("nactionBarStyle", true);
     assertNotNull(actionBarStyle);
@@ -2049,7 +2049,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation2 < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     actionBarStyle = srv.getItem("inactionBarStyle", true);
     assertNotNull(actionBarStyle);
@@ -2070,7 +2070,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertSameElements(srv.getNames(), "android:background", "android:textColor");
     ResourceValue background = srv.getItem("background", true);
@@ -2100,7 +2100,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertSameElements(srv.getNames(), "android:background", "android:textSize", "android:textColor");
     ResourceValue textSize = srv.getItem("textSize", true);
@@ -2122,7 +2122,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation2 < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertSameElements(srv.getNames(), "android:background", "android:typeface", "android:textSize", "android:textColor");
     ResourceValue typeface = srv.getItem("typeface", true);
@@ -2144,7 +2144,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertSameElements(srv.getNames(), "android:background", "android:textColor");
     ResourceValue background = srv.getItem("background", true);
@@ -2175,7 +2175,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertSameElements(srv.getNames(), "android:background");
     background = srv.getItem("background", true);
@@ -2198,7 +2198,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation2 < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEmpty(srv.getNames());
 
@@ -2219,7 +2219,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-    DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2275,7 +2275,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     assertFalse(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
     style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomerView");
-    srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    srv = (DeclareStyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2301,7 +2301,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Fetch resource value to ensure it gets replaced after update
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-    DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2351,7 +2351,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "wwatchType"));
     style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-    srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    srv = (DeclareStyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     watchType = findAttr(srv.getAllAttributes(), "wwatchType");
@@ -2385,7 +2385,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertFalse(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
         assertTrue(resources.hasResourceItem(ResourceType.ATTR, "wwatchType"));
         ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-        DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+        DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue();
         assertNotNull(srv);
         assertEquals(5, srv.getAllAttributes().size());
         AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "wwatchType");
@@ -2418,7 +2418,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
     assertFalse(resources.hasResourceItem(ResourceType.ATTR, "ignore_no_format"));
     final ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-    final DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    final DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     final AttrResourceValue flagType = findAttr(srv.getAllAttributes(), "flagType");
@@ -2450,7 +2450,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
         assertTrue(resources.hasResourceItem(ResourceType.ATTR, "flagType"));
         ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-        DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+        DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue();
         assertNotNull(srv);
         assertEquals(5, srv.getAllAttributes().size());
         AttrResourceValue flagType = findAttr(srv.getAllAttributes(), "flagType");
@@ -2479,7 +2479,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
         assertTrue(resources.hasResourceItem(ResourceType.ATTR, "flagType"));
         style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-        srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+        srv = (DeclareStyleableResourceValue)style.getResourceValue();
         assertNotNull(srv);
         assertEquals(5, srv.getAllAttributes().size());
         flagType = findAttr(srv.getAllAttributes(), "flagType");
@@ -2508,7 +2508,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Test that our tools:quantity works correctly for getResourceValue()
     assertTrue(resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
     ResourceItem plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    ResourceValue resourceValue = plural.getResourceValue(false);
+    ResourceValue resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("@string/hello_two", resourceValue.getValue());
 
@@ -2533,7 +2533,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("@string/hallo_two", resourceValue.getValue());
     assertTrue(generation < resources.getModificationCount());
@@ -2551,7 +2551,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("@string/hillo_two", resourceValue.getValue());
     assertTrue(generation2 < resources.getModificationCount());
@@ -2570,7 +2570,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
     ResourceItem plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    ResourceValue resourceValue = plural.getResourceValue(false);
+    ResourceValue resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     PluralsResourceValue prv = (PluralsResourceValue)resourceValue;
@@ -2595,7 +2595,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     prv = (PluralsResourceValue)resourceValue;
@@ -2617,7 +2617,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
     assertTrue(resources.getModificationCount() > generation2);
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     prv = (PluralsResourceValue)resourceValue;
@@ -2638,7 +2638,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
     ResourceItem plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    ResourceValue resourceValue = plural.getResourceValue(false);
+    ResourceValue resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     PluralsResourceValue prv = (PluralsResourceValue)resourceValue;
@@ -2664,7 +2664,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     prv = (PluralsResourceValue)resourceValue;
@@ -2685,7 +2685,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     prv = (PluralsResourceValue)resourceValue;
@@ -2710,13 +2710,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // for getResourceValue()
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 4", resourceValue.getValue());
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("10", resourceValue.getValue());
 
@@ -2737,7 +2737,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("QQuestion 4", resourceValue.getValue());
     resetScanCounter();
@@ -2755,7 +2755,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("QQQuestion 4", resourceValue.getValue());
 
@@ -2777,7 +2777,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 4", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2800,7 +2800,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 3", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2823,7 +2823,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 2.75", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2852,7 +2852,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 4", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2874,7 +2874,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 4", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2895,7 +2895,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 5", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2920,7 +2920,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("10", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2942,7 +2942,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("5", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2964,7 +2964,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("2", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2993,7 +2993,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("10", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -3016,7 +3016,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertTrue(resourceValue instanceof ArrayResourceValue);
     arv = (ArrayResourceValue)resourceValue;
@@ -3036,7 +3036,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertTrue(resourceValue instanceof ArrayResourceValue);
     arv = (ArrayResourceValue)resourceValue;
@@ -3060,7 +3060,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "my_colors"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "my_colors");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("#FFFF0000", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -3083,7 +3083,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "my_colors"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "my_colors");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("#FFFFFF00", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -3105,7 +3105,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
     assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "my_colors"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "my_colors");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("#FFFFFFFF", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -3194,13 +3194,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
         assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
         ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-        StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+        StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
         assertNotNull(srv);
         ResourceValue actionBarStyle = srv.getItem("background", true);
         assertNotNull(actionBarStyle);
         assertEquals("@android:color/transparent", actionBarStyle.getValue());
         //noinspection ConstantConditions
-        assertEquals("Zoom", getOnlyItem(resources, ResourceType.STRING, "title_zoom").getResourceValue(false).getValue());
+        assertEquals("Zoom", getOnlyItem(resources, ResourceType.STRING, "title_zoom").getResourceValue().getValue());
       }
     });
   }
@@ -3419,7 +3419,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
     //noinspection ConstantConditions
     assertEquals("My Application 574",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -3478,10 +3478,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     //noinspection ConstantConditions
     assertEquals("New Value",
-                 resources.getResourceItem(ResourceType.STRING, "new_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "new_name").get(0).getResourceValue().getValue());
     //noinspection ConstantConditions
     assertEquals("My Application 574",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     // Replace the second duplicate.
     long generation4 = resources.getModificationCount();
@@ -3501,13 +3501,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     //noinspection ConstantConditions
     assertEquals("New Value",
-                 resources.getResourceItem(ResourceType.STRING, "new_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "new_name").get(0).getResourceValue().getValue());
     //noinspection ConstantConditions
     assertEquals("Another Value",
-                 resources.getResourceItem(ResourceType.STRING, "new_name2").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "new_name2").get(0).getResourceValue().getValue());
     //noinspection ConstantConditions
     assertEquals("My Application 574",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
     ensureIncremental();
   }
 
@@ -3524,7 +3524,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.STRING, "dupe_name"));
     //noinspection ConstantConditions
     assertEquals("Animations Demo",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -3549,10 +3549,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
     //noinspection ConstantConditions
     assertEquals("Duplicate Demo",
-                 resources.getResourceItem(ResourceType.STRING, "dupe_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "dupe_name").get(0).getResourceValue().getValue());
     //noinspection ConstantConditions
     assertEquals("Animations Demo",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     // Try editting something else, like the ID item.
     assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
@@ -3585,7 +3585,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "app*name"));
     //noinspection ConstantConditions
     assertEquals("Animations Demo",
-                 resources.getResourceItem(ResourceType.STRING, "app*name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "app*name").get(0).getResourceValue().getValue());
 
     long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -3608,7 +3608,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
     //noinspection ConstantConditions
     assertEquals("Fixed Animations Demo",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     ensureIncremental();
   }
@@ -3876,7 +3876,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "title_zoom");
     //noinspection ConstantConditions
-    assertEquals("Zoom", item.getResourceValue(false).getValue());
+    assertEquals("Zoom", item.getResourceValue().getValue());
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {

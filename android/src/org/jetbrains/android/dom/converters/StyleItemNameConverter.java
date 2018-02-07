@@ -96,7 +96,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
         int i = 0;
         while (!toExplore.isEmpty() && i++ < MAX_RESOURCE_INDIRECTION) {
           ResourceItem parentItem = toExplore.pop();
-          StyleResourceValue parentValue = (StyleResourceValue)parentItem.getResourceValue(false);
+          StyleResourceValue parentValue = (StyleResourceValue)parentItem.getResourceValue();
           if (parentValue == null || parentValue.isFramework()) {
             // No parent or the parent is a framework style
             continue;

@@ -152,7 +152,7 @@ public class NlXmlPropertyBuilder {
       return null;
     }
     for (ResourceItem item : items) {
-      if (item.getResourceValue(false) == resource) {
+      if (item.getResourceValue() == resource) {
         return item;
       }
     }

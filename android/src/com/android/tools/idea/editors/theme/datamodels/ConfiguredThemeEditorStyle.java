@@ -109,7 +109,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
       List<ResourceItem> styleItems =
           frameworkResources.getResourceItems(ResourceNamespace.ANDROID, ResourceType.STYLE, myStyleResourceValue.getName());
       for (ResourceItem item : styleItems) {
-        ResourceValue styleResourceValue = item.getResourceValue(true);
+        ResourceValue styleResourceValue = item.getResourceValue();
 
         if (styleResourceValue instanceof StyleResourceValue) {
           FolderConfiguration folderConfiguration = item.getConfiguration();
@@ -121,7 +121,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
     }
     else {
       for (ResourceItem styleDefinition : getStyleResourceItems()) {
-        ResourceValue styleResourceValue = styleDefinition.getResourceValue(false);
+        ResourceValue styleResourceValue = styleDefinition.getResourceValue();
         FolderConfiguration folderConfiguration = styleDefinition.getConfiguration();
 
         if (styleResourceValue instanceof StyleResourceValue) {
@@ -153,7 +153,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
 
     ImmutableList.Builder<ConfiguredElement<String>> parents = ImmutableList.builder();
     for (ResourceItem styleItem : getStyleResourceItems()) {
-      StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue(false);
+      StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue();
       assert style != null;
       String parentName = ResolutionUtils.getParentQualifiedName(style);
       if (parentName != null) {

@@ -112,7 +112,7 @@ public class ThemeHelper {
     if (items == null || items.isEmpty()) {
       return null;
     }
-    return (StyleResourceValue)items.get(0).getResourceValue(false);
+    return (StyleResourceValue)items.get(0).getResourceValue();
   }
 
   private boolean isAppCompatTheme(@NotNull String themeName, @Nullable StyleResourceValue localTheme) {

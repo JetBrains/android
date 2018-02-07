@@ -190,7 +190,7 @@ public class ThemeEditorStyle {
 
         for (ResourceItem item : styleItems) {
           if (item.getConfiguration().equals(configuration)) {
-            StyleResourceValue style = (StyleResourceValue)item.getResourceValue(true);
+            StyleResourceValue style = (StyleResourceValue)item.getResourceValue();
             if (style != null) {
               return style.getValues();
             }
@@ -202,7 +202,7 @@ public class ThemeEditorStyle {
 
     for (ResourceItem styleItem : getStyleResourceItems()) {
       if (configuration.equals(styleItem.getConfiguration())) {
-        StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue(false);
+        StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue();
         if (style == null) {
           // Style might be null if the value fails to parse.
           continue;
@@ -230,7 +230,7 @@ public class ThemeEditorStyle {
 
         for (ResourceItem item : styleItems) {
           if (item.getConfiguration().equals(configuration)) {
-            StyleResourceValue style = (StyleResourceValue)item.getResourceValue(true);
+            StyleResourceValue style = (StyleResourceValue)item.getResourceValue();
             if (style != null) {
               return ResolutionUtils.getParentQualifiedName(style);
             }
@@ -242,7 +242,7 @@ public class ThemeEditorStyle {
 
     for (final ResourceItem styleItem : getStyleResourceItems()) {
       if (configuration.equals(styleItem.getConfiguration())) {
-        StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue(false);
+        StyleResourceValue style = (StyleResourceValue)styleItem.getResourceValue();
         assert style != null;
         return ResolutionUtils.getParentQualifiedName(style);
       }

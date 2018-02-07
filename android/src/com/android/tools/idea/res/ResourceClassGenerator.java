@@ -178,7 +178,7 @@ public class ResourceClassGenerator {
   @NotNull
   private static List<AttrResourceValue> getStyleableAttributes(@NotNull ResourceItem item) {
     ResourceValue resourceValue = ApplicationManager.getApplication().runReadAction(
-      (Computable<ResourceValue>)() -> item.getResourceValue(false));
+      (Computable<ResourceValue>)() -> item.getResourceValue());
     assert resourceValue instanceof DeclareStyleableResourceValue;
     DeclareStyleableResourceValue dv = (DeclareStyleableResourceValue)resourceValue;
     return dv.getAllAttributes();

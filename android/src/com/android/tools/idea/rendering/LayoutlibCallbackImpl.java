@@ -157,7 +157,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myFontCacheService = DownloadableFontCacheService.getInstance();
     myFontFamilies = projectRes.getAllResourceItems().stream()
       .filter(r -> r.getType() == ResourceType.FONT)
-      .map(r -> r.getResourceValue(false))
+      .map(r -> r.getResourceValue())
       .filter(value -> value.getRawXmlValue().endsWith(DOT_XML))
       .collect(Collectors.toMap(ResourceValue::getRawXmlValue, (ResourceValue value) -> value));
   }

@@ -285,10 +285,10 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
 
   @Nullable
   @Override
-  public ResourceValue getResourceValue(boolean isFrameworks) {
+  public ResourceValue getResourceValue() {
     byte[] content = getContent(this::wasTouched);
     if (mResourceValue == null) {
-      mResourceValue = new SampleDataResourceValue(getReferenceToSelf(isFrameworks), content);
+      mResourceValue = new SampleDataResourceValue(getReferenceToSelf(), content);
     }
     return mResourceValue;
   }

@@ -166,7 +166,7 @@ public class AndroidModularizePreviewPanel {
       // We want to pre-process the resource items in order to group them by resource URLs.
       if (myLookupMap.get(reference) instanceof AndroidModularizeProcessor.ResourceXmlUsageInfo) {
         ResourceItem resourceItem = ((AndroidModularizeProcessor.ResourceXmlUsageInfo)myLookupMap.get(reference)).getResourceItem();
-        ResourceReference resourceReference = resourceItem.getReferenceToSelf(false);
+        ResourceReference resourceReference = resourceItem.getReferenceToSelf();
         Set<PsiElement> otherItems = resourceGroups.computeIfAbsent(resourceReference, k -> new HashSet<>());
         otherItems.add(reference);
         continue; // Postpone node creation until we have all resources mapped out.
