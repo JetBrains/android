@@ -39,7 +39,7 @@ import java.util.List;
  */
 public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   /** Enables printing of repository statistics. */
-  private static final boolean PRINT_STATS = true;
+  private static final boolean PRINT_STATS = false;
 
   private File myResourceFolder;
 
