@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import android.view.View;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.MultiBuildGuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -36,6 +36,7 @@ import org.fest.swing.fixture.JPopupMenuFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -46,9 +47,15 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(MultiBuildGuiTestRunner.class)
+@RunWith(Parameterized.class)
+@Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
 public class NlEditorTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Parameterized.Parameters(name="{0}")
+  public static TargetBuildSystem.BuildSystem[] data() {
+    return TargetBuildSystem.BuildSystem.values();
+  }
 
   @Test
   public void testSelectComponent() throws Exception {
