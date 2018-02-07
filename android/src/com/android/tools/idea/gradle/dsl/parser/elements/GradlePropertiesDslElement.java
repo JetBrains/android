@@ -174,6 +174,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     // only one argument is supported and for this cases we use addToParsedExpressionList method.
     GradleDslExpressionList literalList = new GradleDslExpressionList(this, psiElement, property, true);
     if (expression instanceof GradleDslMethodCall) {
+      // Make sure the psi is set to the argument list instead of the whole method call.
+      literalList.setPsiElement(((GradleDslMethodCall)expression).getArgumentListPsiElement());
       for (GradleDslElement element : ((GradleDslMethodCall)expression).getArguments()) {
         if (element instanceof GradleDslExpression) {
           literalList.addParsedExpression((GradleDslExpression)element);

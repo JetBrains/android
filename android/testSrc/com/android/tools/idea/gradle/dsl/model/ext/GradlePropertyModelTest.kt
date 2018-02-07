@@ -234,6 +234,66 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testUnknownValues() {
+    val text = """
+               ext {
+                 prop1 = z(1)
+                 prop2 = 1 + 2
+                 prop3 = obj.getName()
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyOne = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyOne, STRING_TYPE, "z(1)", UNKNOWN, REGULAR, 0)
+      val propertyTwo = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(propertyTwo, STRING_TYPE, "1 + 2", UNKNOWN, REGULAR, 0)
+      val propertyThree = buildModel.ext().findProperty("prop3")
+      verifyPropertyModel(propertyThree, STRING_TYPE, "obj.getName()", UNKNOWN, REGULAR, 0)
+    }
+  }
+
+  fun testUnknownValuesInMap() {
+    val text = """
+               ext {
+                 prop1 = [key: getValue(), key2: 2 + 3]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(MAP, propertyModel.valueType)
+      val map = propertyModel.getValue(MAP_TYPE)!!
+      assertSize(2, map.entries)
+      verifyPropertyModel(map["key"], STRING_TYPE, "getValue()", UNKNOWN, DERIVED, 0)
+      verifyPropertyModel(map["key2"], STRING_TYPE, "2 + 3", UNKNOWN, DERIVED, 0)
+    }
+  }
+
+  fun testUnknownValuesInList() {
+    val text = """
+               ext {
+                 prop1 = [getValue(), 2 + 3, z(1)]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      assertEquals(LIST, propertyModel.valueType)
+      val list = propertyModel.getValue(LIST_TYPE)!!
+      assertSize(3, list)
+      verifyPropertyModel(list[0], STRING_TYPE, "getValue()", UNKNOWN, DERIVED, 0)
+      verifyPropertyModel(list[1], STRING_TYPE, "2 + 3", UNKNOWN, DERIVED, 0)
+      verifyPropertyModel(list[2], STRING_TYPE, "z(1)", UNKNOWN, DERIVED, 0)
+    }
+  }
+
   fun testGetProperties() {
     val text = """
                ext {
@@ -933,7 +993,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
 
       propertyModel.setValue(ReferenceTo("in a voice like thunder"))
-      // Not: Since this doesn't actually make any sense, the word "in" gets removed as it is a keyword in Groovy.
+      // Note: Since this doesn't actually make any sense, the word "in" gets removed as it is a keyword in Groovy.
       verifyPropertyModel(propertyModel, STRING_TYPE, "a voice like thunder", REFERENCE, REGULAR, 0)
     }
 
@@ -941,8 +1001,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      // TODO: Fix this, it should still parse the value.
-      verifyPropertyModel(propertyModel, OBJECT_TYPE, null, NONE, REGULAR, 0)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "a voice like thunder", UNKNOWN, REGULAR, 0)
     }
   }
 

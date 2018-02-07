@@ -38,6 +38,8 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Nullable private GradleDslElement myToBeAddedArgument;
 
+  @Nullable private PsiElement myArgumentListPsiElement;
+
   /**
    * Create a new method call.
    *
@@ -54,8 +56,10 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   public GradleDslMethodCall(@NotNull GradleDslElement parent,
                              @NotNull PsiElement methodCall,
-                             @NotNull String name) {
+                             @NotNull String name,
+                             @NotNull PsiElement argumentListPsiElement) {
     super(parent, methodCall, name, methodCall);
+    myArgumentListPsiElement = argumentListPsiElement;
   }
 
   public void addParsedExpression(@NotNull GradleDslExpression expression) {
@@ -94,6 +98,11 @@ public final class GradleDslMethodCall extends GradleDslExpression {
       myToBeAddedArgument = argument;
       setModified(true);
     }
+  }
+
+  @Nullable
+  public PsiElement getArgumentListPsiElement() {
+    return myArgumentListPsiElement;
   }
 
   @Nullable
