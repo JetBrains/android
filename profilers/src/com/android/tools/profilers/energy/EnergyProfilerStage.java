@@ -20,9 +20,11 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class EnergyProfilerStage extends Stage {
 
@@ -36,6 +38,9 @@ public class EnergyProfilerStage extends Stage {
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
+  private AspectModel<EnergyProfilerAspect> myAspect = new AspectModel<>();
+
+  @Nullable private EventDuration mySelectedDuration;
 
   public EnergyProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -116,6 +121,24 @@ public class EnergyProfilerStage extends Stage {
   @NotNull
   public String getName() {
     return "ENERGY";
+  }
+
+  @NotNull
+  public AspectModel getAspect() {
+    return myAspect;
+  }
+
+  public void setSelectedDuration(@Nullable EventDuration duration) {
+    if (Objects.equals(mySelectedDuration, duration)) {
+      return;
+    }
+    mySelectedDuration = duration;
+    myAspect.changed(EnergyProfilerAspect.SELECTED_EVENT_DURATION);
+  }
+
+  @Nullable
+  public EventDuration getSelectedDuration() {
+    return mySelectedDuration;
   }
 
   public static class EnergyLegends extends LegendComponentModel {
