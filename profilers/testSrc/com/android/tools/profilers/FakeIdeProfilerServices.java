@@ -94,6 +94,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myShouldParseLongTraces = false;
 
   /**
+   * Toggle for faking sessions UI support in tests.
+   */
+  private boolean mySessionsViewEnabled = true;
+
+  /**
    * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean mySimplePerfEnabled = false;
@@ -222,6 +227,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isSessionsEnabled() {
+        return mySessionsViewEnabled;
+      }
+
+      @Override
       public boolean isSimplePerfEnabled() {
         return mySimplePerfEnabled;
       }
@@ -341,6 +351,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableRequestPayload(boolean enabled) {
     myRequestPayloadEnabled = enabled;
+  }
+
+  public void enableSessionsView(boolean enabled) {
+    mySessionsViewEnabled = enabled;
   }
 
   public void enableSimplePerf(boolean enabled) {

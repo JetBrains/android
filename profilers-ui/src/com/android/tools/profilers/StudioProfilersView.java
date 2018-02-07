@@ -15,11 +15,11 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -37,6 +37,7 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
@@ -45,10 +46,13 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.function.BiFunction;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
 
@@ -61,7 +65,13 @@ public class StudioProfilersView extends AspectObserver {
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
   private StageView myStageView;
   private final BorderLayout myLayout;
-  private final JPanel myComponent;
+
+  /**
+   * Splitter between the sessions and main profiler stage panel.
+   */
+  @NotNull private final JBSplitter mySplitter;
+  private final JPanel myStageComponent;
+  private SessionsView mySessionsView;
   private JPanel myStageToolbar;
   private JPanel myMonitoringToolbar;
   private JPanel myCommonToolbar;
@@ -75,9 +85,42 @@ public class StudioProfilersView extends AspectObserver {
     myIdeProfilerComponents = ideProfilerComponents;
     myStageView = null;
     myLayout = new BorderLayout();
-    myComponent = new JPanel(myLayout);
+    myStageComponent = new JPanel(myLayout);
 
-    initializeUi();
+    mySplitter = new JBSplitter(false);
+    mySplitter.setShowDividerIcon(false);
+    mySplitter.setShowDividerControls(false);
+    mySplitter.setDividerWidth(JBUI.scale(2));
+    mySplitter.setSecondComponent(myStageComponent);
+    if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
+      mySessionsView = new SessionsView(myProfiler);
+      mySplitter.setFirstComponent(mySessionsView.getComponent());
+
+      // Prevent resize in collapse mode
+      mySplitter.setResizeEnabled(false);
+      // Let the Sessions panel min size govern how much space to reserve on the left.
+      mySplitter.setProportion(0f);
+      mySessionsView.addExpandListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          mySplitter.setResizeEnabled(true);
+          // TODO expand to previous session panel size.
+          mySplitter.revalidate();
+          mySplitter.repaint();
+        }
+      });
+      mySessionsView.addCollapseListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          mySplitter.setResizeEnabled(false);
+          mySplitter.setProportion(0f);
+          mySplitter.revalidate();
+          mySplitter.repaint();
+        }
+      });
+    }
+
+    initializeStageUi();
 
     myBinder = new ViewBinder<>();
     myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
@@ -102,7 +145,7 @@ public class StudioProfilersView extends AspectObserver {
     return myStageView;
   }
 
-  private void initializeUi() {
+  private void initializeStageUi() {
     JComboBox<Common.Device> deviceCombo = new FlatComboBox<>();
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
@@ -128,8 +171,7 @@ public class StudioProfilersView extends AspectObserver {
     JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
     toolbar.setBorder(DEFAULT_BOTTOM_BORDER);
-    // There is a border of 5 pixels that is not scaled.
-    toolbar.setPreferredSize(new Dimension(15, JBUI.scale(25) + 5));
+    toolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
     myMonitoringToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myMonitoringToolbar.add(deviceCombo);
@@ -183,7 +225,7 @@ public class StudioProfilersView extends AspectObserver {
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
     ProfilerAction zoomOutAction =
-      new ProfilerAction.Builder("Zoom out").setContainerComponent(myComponent).setActionRunnable(() -> zoomOut.doClick(0))
+      new ProfilerAction.Builder("Zoom out").setContainerComponent(myStageComponent).setActionRunnable(() -> zoomOut.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                        KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
 
@@ -197,7 +239,7 @@ public class StudioProfilersView extends AspectObserver {
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
     ProfilerAction zoomInAction =
-      new ProfilerAction.Builder("Zoom in").setContainerComponent(myComponent)
+      new ProfilerAction.Builder("Zoom in").setContainerComponent(myStageComponent)
         .setActionRunnable(() -> zoomIn.doClick())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                        KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
@@ -212,7 +254,7 @@ public class StudioProfilersView extends AspectObserver {
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
     ProfilerAction resetZoomAction =
-      new ProfilerAction.Builder("Reset zoom").setContainerComponent(myComponent)
+      new ProfilerAction.Builder("Reset zoom").setContainerComponent(myStageComponent)
         .setActionRunnable(() -> resetZoom.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0), KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
     resetZoom.setToolTipText(resetZoomAction.getDefaultToolTipText());
@@ -228,12 +270,12 @@ public class StudioProfilersView extends AspectObserver {
     myGoLive.setIconTextGap(JBUI.scale(8));
     // Configure shortcuts for GoLive
     ProfilerAction attachAction =
-      new ProfilerAction.Builder("Attach to Live").setContainerComponent(myComponent)
+      new ProfilerAction.Builder("Attach to Live").setContainerComponent(myStageComponent)
         .setActionRunnable(() -> myGoLive.doClick(0))
         .setEnableBooleanSupplier(() -> !myGoLive.isSelected())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
     ProfilerAction detachAction =
-      new ProfilerAction.Builder("Detach from Live").setContainerComponent(myComponent)
+      new ProfilerAction.Builder("Detach from Live").setContainerComponent(myStageComponent)
         .setActionRunnable(() -> myGoLive.doClick(0))
         .setEnableBooleanSupplier(() -> myGoLive.isSelected())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build();
@@ -247,7 +289,8 @@ public class StudioProfilersView extends AspectObserver {
     timeline.addDependency(this).onChange(ProfilerTimeline.Aspect.STREAMING, this::updateStreaming);
     rightToolbar.add(myGoLive);
 
-    ProfilerContextMenu.createIfAbsent(myComponent).add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
+    ProfilerContextMenu.createIfAbsent(myStageComponent)
+      .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
 
     Runnable toggleToolButtons = () -> {
       zoomOut.setEnabled(myProfiler.isSessionAlive());
@@ -255,13 +298,13 @@ public class StudioProfilersView extends AspectObserver {
       resetZoom.setEnabled(myProfiler.isSessionAlive());
       myGoLive.setEnabled(myProfiler.isSessionAlive());
     };
-    myProfiler.addDependency(this).onChange(ProfilerAspect.PROCESSES, toggleToolButtons);
+    myProfiler.addDependency(this).onChange(ProfilerAspect.SESSIONS, toggleToolButtons);
     toggleToolButtons.run();
 
     myStageToolbar = new JPanel(new BorderLayout());
     toolbar.add(myStageToolbar, BorderLayout.CENTER);
 
-    myComponent.add(toolbar, BorderLayout.NORTH);
+    myStageComponent.add(toolbar, BorderLayout.NORTH);
 
     updateStreaming();
   }
@@ -279,10 +322,10 @@ public class StudioProfilersView extends AspectObserver {
     myStageView = myBinder.build(this, stage);
     Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
     if (prev != null) {
-      myComponent.remove(prev);
+      myStageComponent.remove(prev);
     }
-    myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
-    myComponent.revalidate();
+    myStageComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
+    myStageComponent.revalidate();
 
     myStageToolbar.removeAll();
     myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
@@ -294,11 +337,11 @@ public class StudioProfilersView extends AspectObserver {
   }
 
   public JPanel getComponent() {
-    return myComponent;
+    return mySplitter;
   }
 
   public ProfilerContextMenu getTimelineContextMenu() {
-    return ProfilerContextMenu.createIfAbsent(myComponent);
+    return ProfilerContextMenu.createIfAbsent(myStageComponent);
   }
 
   @VisibleForTesting

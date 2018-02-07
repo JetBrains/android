@@ -29,6 +29,7 @@ import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.truth.Truth;
+import com.intellij.ui.JBSplitter;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -293,6 +294,26 @@ public class StudioProfilersViewTest {
     StudioProfilersView view = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     JPanel component = view.getComponent();
     new ReferenceWalker(myProfilers).assertNotReachable(view, component);
+  }
+
+  @Test
+  public void testSessionsViewHiddenBehindFlag() {
+    FakeTimer timer = new FakeTimer();
+    FakeIdeProfilerServices services = new FakeIdeProfilerServices();
+    services.enableSessionsView(false);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
+    StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
+    JComponent splitter = view.getComponent();
+    assertThat(splitter).isInstanceOf(JBSplitter.class);
+    assertThat(((JBSplitter)splitter).getFirstComponent()).isNull();
+
+    // Test the true case as well.
+    services.enableSessionsView(true);
+    profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
+    view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
+    splitter = view.getComponent();
+    assertThat(splitter).isInstanceOf(JBSplitter.class);
+    assertThat(((JBSplitter)splitter).getFirstComponent()).isNotNull();
   }
 
   public void transitionStage(Stage stage) throws Exception {

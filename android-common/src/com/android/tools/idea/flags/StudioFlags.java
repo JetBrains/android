@@ -73,6 +73,11 @@ public final class StudioFlags {
     "and provides more advanced CPU, event, memory, and network profiling information.",
     true);
 
+  public static final Flag<Boolean> PROFILER_SHOW_SESSIONS = Flag.create(
+    PROFILER, "show.session", "Enable the sessions panel",
+    "Shows the sessions panel used for managing and navigating profiling data.",
+    false);
+
   public static final Flag<Boolean> PROFILER_USE_JVMTI = Flag.create(
     PROFILER, "jvmti", "Enable JVMTI profiling",
     "Use JVMTI for profiling devices with Android O or newer. " +

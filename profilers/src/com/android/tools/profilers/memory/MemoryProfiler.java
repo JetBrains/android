@@ -84,8 +84,7 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     Common.Session session = myProfilers.getSession();
-    Common.Device device = myProfilers.getDevice();
-    if (session == null) {
+    if (Common.Session.getDefaultInstance().equals(session)) {
       // Early return if no profiling is in session.
       return;
     }
@@ -98,7 +97,7 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
-      .getCurrentTime(TimeRequest.newBuilder().setDeviceId(device.getDeviceId()).build());
+      .getCurrentTime(TimeRequest.newBuilder().setDeviceId(session.getDeviceId()).build());
     long timeNs = timeResponse.getTimestampNs();
     try {
       // Attempts to stop an existing tracking session first.

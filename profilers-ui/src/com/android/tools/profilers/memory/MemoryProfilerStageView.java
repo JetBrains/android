@@ -191,7 +191,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myHeapDumpButton.setEnabled(profilers.isSessionAlive());
       myAllocationButton.setEnabled(profilers.isSessionAlive());
     };
-    profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, toggleButtons);
+    profilers.addDependency(this).onChange(ProfilerAspect.SESSIONS, toggleButtons);
     toggleButtons.run();
 
     JPanel panel = new JPanel(new BorderLayout());

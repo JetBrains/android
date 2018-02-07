@@ -184,8 +184,10 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
     assert (mySessions.containsKey(request.getSessionId()));
-    Common.Session session = mySessions.get(request.getSessionId()).toBuilder()
-      .setEndTimestamp(1000L) // set an arbitrary end time that is not Long.MAX_VALUE
+    Common.Session session = mySessions.get(request.getSessionId());
+    // Set an arbitrary end time that is not Long.MAX_VALUE, which is reserved for indicating a session is ongoing.
+    session = session.toBuilder()
+      .setEndTimestamp(session.getStartTimestamp() + 1)
       .build();
     mySessions.put(session.getSessionId(), session);
     EndSessionResponse.Builder builder = EndSessionResponse.newBuilder().setSession(session);

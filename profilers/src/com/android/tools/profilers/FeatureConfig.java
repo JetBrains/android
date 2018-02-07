@@ -30,6 +30,7 @@ public interface FeatureConfig {
   boolean isMemorySnapshotEnabled();
   boolean isNetworkRequestPayloadEnabled();
   boolean isNetworkThreadViewEnabled();
+  boolean isSessionsEnabled();
   boolean isSimplePerfEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.

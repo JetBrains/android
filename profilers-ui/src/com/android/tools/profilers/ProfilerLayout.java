@@ -81,6 +81,11 @@ public class ProfilerLayout {
   public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
   public static final int FILTER_TEXT_HISTORY_SIZE = 5;
 
+  // There is a border of 5 pixels that is not scaled.
+  public static final int TOOLBAR_HEIGHT = JBUI.scale(25) + 5;
+  public static final Border TOOLBAR_LABEL_BORDER =
+    BorderFactory.createEmptyBorder(JBUI.scale(3), JBUI.scale(3), JBUI.scale(3), JBUI.scale(3));
+
   private ProfilerLayout() {
     // Static class designed to hold constants only
   }

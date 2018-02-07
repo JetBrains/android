@@ -182,7 +182,7 @@ public final class FakeMouse {
 
   private void dispatchMouseEvent(FakeUi.RelativePoint point, int eventType, int modifiers, int button) {
     //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
-    MouseEvent event = new MouseEvent(myUi.getRoot(), eventType, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
+    MouseEvent event = new MouseEvent(point.component, eventType, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
                                       myKeyboard.toModifiersCode() | modifiers,
                                       point.x, point.y, 1, false, button);
     point.component.dispatchEvent(event);
@@ -191,7 +191,7 @@ public final class FakeMouse {
   private void dispatchMouseWheelEvent(int x, int y, int rotation) {
     //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
     FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
-    MouseWheelEvent event = new MouseWheelEvent(myUi.getRoot(), MouseEvent.MOUSE_WHEEL, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
+    MouseWheelEvent event = new MouseWheelEvent(point.component, MouseEvent.MOUSE_WHEEL, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
                                                 myKeyboard.toModifiersCode(), point.x, point.y, 0, false,
                                                 MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, rotation);
     point.component.dispatchEvent(event);

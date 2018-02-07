@@ -15,11 +15,18 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.network.FakeNetworkService;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,13 +41,17 @@ public class AllocStatsDataSeriesTest {
 
   private final FakeProfilerService myProfilerService = new FakeProfilerService();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myProfilerService, myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myProfilerService, myService,
+                                                                   new FakeEventService(),
+                                                                   new FakeCpuService(),
+                                                                   new FakeNetworkService.Builder().build());
 
   @Test
   public void testGetDataForXRange() {
+    FakeTimer timer = new FakeTimer();
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
-    StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    studioProfilers.update(TimeUnit.SECONDS.toNanos(1));
+    StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    timer.tick(TimeUnit.SECONDS.toNanos(1));
 
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(1)
