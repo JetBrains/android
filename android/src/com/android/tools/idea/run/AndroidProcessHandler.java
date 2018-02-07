@@ -43,14 +43,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
 /**
- * {@link AndroidProcessHandler} is a {@link ProcessHandler} that corresponds to a single Android app
- * potentially running on multiple connected devices after a launch of the app from Studio.
- * <br/><br/>
- * It encodes the following behavior:<br/>
- *  - Provides an option to connect and monitor the processes running on the device(s).<br/>
- *  - If the processes are being monitored, then:<br/>
- *     - destroyProcess provides a way to kill the processes (typically, this is connected to the stop button in the UI).<br/>
- *     - if all of the processes die, then the handler terminates as well.
+ * AndroidProcessHandler is a {@link ProcessHandler} that corresponds to a single Android app potentially running on multiple connected
+ * devices after it's launched from Studio.
+ *
+ * <p>It provides an option to connect and monitor the processes running on the devices. If the processes are being monitored, then
+ * destroyProcess kills the processes (typically by a stop button in the UI). If all the processes die, then this handler terminates as
+ * well.
  */
 public class AndroidProcessHandler extends ProcessHandler implements AndroidDebugBridge.IDeviceChangeListener,
                                                                      AndroidDebugBridge.IClientChangeListener {
@@ -96,7 +94,8 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
     Client client = device.getClient(myApplicationId);
     if (client != null) {
       addClient(client);
-    } else {
+    }
+    else {
       notifyTextAvailable("Client not ready yet..", ProcessOutputTypes.STDOUT);
     }
 
@@ -250,7 +249,8 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
     if ((System.currentTimeMillis() - myDeviceAdded) > TIMEOUT_MS) {
       print("Timed out waiting for process to appear on " + device.getName());
       stopMonitoring(device);
-    } else {
+    }
+    else {
       print("Waiting for process to come online");
     }
   }
@@ -422,7 +422,7 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
       }
 
       // Outside of lock to avoid deadlock with AndroidLogcatService internal lock
-      for (Map.Entry<IDevice, AndroidLogcatService.LogcatListener> entry: listeners) {
+      for (Map.Entry<IDevice, AndroidLogcatService.LogcatListener> entry : listeners) {
         AndroidLogcatService.getInstance().removeListener(entry.getKey(), entry.getValue());
       }
     }
