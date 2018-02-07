@@ -51,9 +51,8 @@ public abstract class ActionManager<S extends DesignSurface> {
   }
 
   @NotNull
-  public JComponent createToolbar(@NotNull NlModel model) {
+  public JComponent createToolbar() {
     ActionsToolbar actionsToolbar = createActionsToolbar();
-    actionsToolbar.setModel(model);
     return actionsToolbar.getToolbarComponent();
   }
 

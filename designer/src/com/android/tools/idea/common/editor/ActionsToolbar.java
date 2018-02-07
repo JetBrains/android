@@ -49,18 +49,18 @@ import java.util.List;
  * The actions toolbar updates dynamically based on the component selection, their
  * parents (and if no selection, the root layout)
  */
-public final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelListener, PanZoomListener, ConfigurationListener,
+public final class ActionsToolbar implements DesignSurfaceListener, Disposable, PanZoomListener, ConfigurationListener,
                                              RenderListener {
 
   private static final int CONFIGURATION_UPDATE_FLAGS = ConfigurationListener.CFG_TARGET |
                                                         ConfigurationListener.CFG_DEVICE;
 
   private final DesignSurface mySurface;
-  private NlModel myModel;
   private JComponent myToolbarComponent;
   private ActionToolbar myNorthToolbar;
   private ActionToolbar myNorthEastToolbar;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
+  private Configuration myConfiguration;
 
   public ActionsToolbar(@Nullable Disposable parent, DesignSurface surface) {
     if (parent != null) {
@@ -71,13 +71,10 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
   @Override
   public void dispose() {
-    myModel.removeListener(this);
-
     mySurface.removePanZoomListener(this);
     mySurface.removeListener(this);
-    Configuration configuration = mySurface.getConfiguration();
-    if (configuration != null) {
-      configuration.removeListener(this);
+    if (myConfiguration != null) {
+      myConfiguration.removeListener(this);
     }
   }
 
@@ -88,9 +85,11 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
       mySurface.addListener(this);
       mySurface.addPanZoomListener(this);
-      Configuration configuration;
-      if ((configuration = mySurface.getConfiguration()) != null) {
-        configuration.addListener(this);
+      if (myConfiguration == null) {
+        myConfiguration = mySurface.getConfiguration();
+        if (myConfiguration != null) {
+          myConfiguration.addListener(this);
+        }
       }
 
       updateActions();
@@ -170,10 +169,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     }
   }
 
-  public void setModel(NlModel model) {
-    myModel = model;
-  }
-
   @Nullable
   private static NlComponent findSharedParent(@NotNull List<NlComponent> newSelection) {
     NlComponent parent = null;
@@ -223,8 +218,15 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
     myNorthToolbar.updateActionsImmediately();
-    if (myDynamicGroup.getChildrenCount() == 0) {
-      myModel = model;
+    Configuration surfaceConfiguration = surface.getConfiguration();
+    if (surfaceConfiguration != myConfiguration) {
+      if (myConfiguration != null) {
+        myConfiguration.removeListener(this);
+      }
+      myConfiguration = surfaceConfiguration;
+      if (myConfiguration != null) {
+        myConfiguration.addListener(this);
+      }
     }
     updateActions();
   }
@@ -243,13 +245,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     if (manager != null) {
       manager.removeRenderListener(this);
     }
-  }
-
-  // ---- Implements ModelListener ----
-
-  @Override
-  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-    // Do nothing
   }
 
   @Override

@@ -157,7 +157,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
     }
     mySurface.setModel(model);
 
-    JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
+    JComponent toolbarComponent = mySurface.getActionManager().createToolbar();
     myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
     myContentPanel.add(mySurface);
 
