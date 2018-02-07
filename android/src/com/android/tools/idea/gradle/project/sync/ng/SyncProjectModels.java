@@ -26,24 +26,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 
 public class SyncProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
 
   // List of SyncModuleModels for modules in root build and included builds.
   @NotNull private final List<SyncModuleModels> mySyncModuleModels = new ArrayList<>();
-  @Nullable private GlobalLibraryMap myGlobalLibraryMap;
+  @NotNull private final List<GlobalLibraryMap> myGlobalLibraryMaps = new ArrayList<>();
   private BuildIdentifier myRootBuildId;
 
   public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes, @NotNull Set<Class<?>> extraJavaModelTypes) {
@@ -67,14 +64,23 @@ public class SyncProjectModels implements Serializable {
 
     // Ensure unique module names.
     deduplicateModuleNames();
+    // Request for GlobalLibraryMap model.
+    populateGlobalLibraryMap(controller);
+  }
 
-    // Request for GlobalLibraryMap, it can only be requested by android module.
-    // For plugins prior to 3.0.0, controller.findModel returns null.
+  private void populateGlobalLibraryMap(@NotNull BuildController controller) {
+    // GlobalLibraryMap can only be requested by android module.
+    // Each included project has an instance of GlobalLibraryMap, so the model needs to be requested once for each included project.
+    Set<BuildIdentifier> visitedBuildId = new HashSet<>();
     for (SyncModuleModels moduleModels : mySyncModuleModels) {
       AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
-      if (androidProject != null) {
-        myGlobalLibraryMap = controller.findModel(moduleModels.findModel(GradleProject.class), GlobalLibraryMap.class);
-        break;
+      BuildIdentifier buildId = moduleModels.getBuildId();
+      if (androidProject != null && !visitedBuildId.contains(buildId)) {
+        GlobalLibraryMap map = controller.findModel(moduleModels.findModel(GradleProject.class), GlobalLibraryMap.class);
+        if (map != null) {
+          visitedBuildId.add(buildId);
+          myGlobalLibraryMaps.add(map);
+        }
       }
     }
   }
@@ -111,17 +117,17 @@ public class SyncProjectModels implements Serializable {
   }
 
   /**
-   * @return {@link GlobalLibraryMap} retrieved from android plugin.
+   * @return A list of {@link GlobalLibraryMap} retrieved from android plugin.
    * <br/>
-   * The return value could be null in two cases:
+   * The returned list could be empty in two cases:
    * <ol>
    * <li>The version of Android plugin doesn't support GlobalLibraryMap. i.e. pre 3.0.0 plugin.</li>
    * <li>There is no Android module in this project.</li>
    * </ol>
    */
-  @Nullable
-  public GlobalLibraryMap getGlobalLibraryMap() {
-    return myGlobalLibraryMap;
+  @NotNull
+  public List<GlobalLibraryMap> getGlobalLibraryMap() {
+    return ImmutableList.copyOf(myGlobalLibraryMaps);
   }
 
   /**
