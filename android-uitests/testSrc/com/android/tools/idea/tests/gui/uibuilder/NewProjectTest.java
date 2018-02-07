@@ -27,7 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.openapi.module.Module;
@@ -143,7 +143,7 @@ public class NewProjectTest {
   @Test
   public void changeLibraryModuleSettings() throws Exception {
     newProject("MyTestApp").withMinSdk("24").create(guiTest)
-      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
       .setModuleName("library-module")

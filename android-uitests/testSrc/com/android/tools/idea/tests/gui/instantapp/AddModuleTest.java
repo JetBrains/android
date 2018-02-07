@@ -20,7 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.fest.swing.core.MouseButton;
@@ -59,7 +59,7 @@ public class AddModuleTest {
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
-    NewModuleDialogFixture newModDialog = NewModuleDialogFixture.find(ideFrame);
+    NewModuleWizardFixture newModDialog = NewModuleWizardFixture.find(ideFrame);
 
     newModDialog.chooseModuleType("Feature Module")
       .clickNextToStep("Creates a new Android module.")
@@ -98,7 +98,7 @@ public class AddModuleTest {
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
-    NewModuleDialogFixture.find(ideFrame)
+    NewModuleWizardFixture.find(ideFrame)
       .chooseModuleType("Android Library")
       .clickNextToStep("Configure the new module")
       .clickFinish();
@@ -149,7 +149,7 @@ public class AddModuleTest {
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
-    NewModuleDialogFixture.find(ideFrame)
+    NewModuleWizardFixture.find(ideFrame)
       .chooseModuleType("Instant App")
       .clickNextToStep("Configure your new module")
       .clickFinish();

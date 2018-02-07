@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture;
+package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidModuleStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureJavaLibraryStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.JListFixture;
@@ -30,22 +33,22 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class NewModuleDialogFixture extends AbstractWizardFixture<NewModuleDialogFixture> {
+public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizardFixture> {
 
-  public static NewModuleDialogFixture find(IdeFrameFixture ideFrameFixture) {
+  public static NewModuleWizardFixture find(IdeFrameFixture ideFrameFixture) {
     JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Create New Module"));
-    return new NewModuleDialogFixture(ideFrameFixture, dialog);
+    return new NewModuleWizardFixture(ideFrameFixture, dialog);
   }
 
   private final IdeFrameFixture myIdeFrameFixture;
 
-  private NewModuleDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog dialog) {
-    super(NewModuleDialogFixture.class, ideFrameFixture.robot(), dialog);
+  private NewModuleWizardFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog dialog) {
+    super(NewModuleWizardFixture.class, ideFrameFixture.robot(), dialog);
     myIdeFrameFixture = ideFrameFixture;
   }
 
   @NotNull
-  public NewModuleDialogFixture chooseModuleType(String name) {
+  public NewModuleWizardFixture chooseModuleType(String name) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
     listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
     listFixture.clickItem(name);
@@ -53,39 +56,45 @@ public class NewModuleDialogFixture extends AbstractWizardFixture<NewModuleDialo
   }
 
   @NotNull
-  public NewModuleDialogFixture setModuleName(String name) {
+  public NewModuleWizardFixture setModuleName(String name) {
     new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).deleteText().enterText(name);
     return this;
   }
 
   @NotNull
-  public NewModuleDialogFixture setPackageName(@NotNull String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "PackageName", JTextField.class)).deleteText().enterText(name);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleDialogFixture setFileName(String name) {
+  public NewModuleWizardFixture setFileName(String name) {
     TextFieldWithBrowseButton panel = robot().finder().findByLabel(target(), "File name:", TextFieldWithBrowseButton.class);
     new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).deleteText().enterText(name);
     return this;
   }
 
   @NotNull
-  public NewModuleDialogFixture setSubprojectName(String name) {
+  public NewModuleWizardFixture setSubprojectName(String name) {
     new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Subproject name:", JTextField.class))
       .deleteText().enterText(name);
     return this;
   }
 
   @NotNull
-  public NewModuleDialogFixture chooseActivity(String activity) {
+  public NewModuleWizardFixture chooseActivity(String activity) {
     new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class)).clickItem(activity);
     return this;
   }
 
   @NotNull
-  public NewModuleDialogFixture clickNextToStep(String name) {
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> getConfigureAndroidModuleStep() {
+    JRootPane rootPane = findStepWithTitle("Configure the new module");
+    return new ConfigureAndroidModuleStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
+  public ConfigureBasicActivityStepFixture<NewModuleWizardFixture> getConfigureActivityStep() {
+    JRootPane rootPane = findStepWithTitle("Configure Activity");
+    return new ConfigureBasicActivityStepFixture<>(this, rootPane);
+  }
+
+  @NotNull
+  public NewModuleWizardFixture clickNextToStep(String name) {
     GuiTests.findAndClickButton(this, "Next");
     Wait.seconds(5).expecting("next step to appear").until(
       () -> robot().finder().findAll(target(), JLabelMatcher.withText(name).andShowing()).size() == 1);
@@ -93,13 +102,21 @@ public class NewModuleDialogFixture extends AbstractWizardFixture<NewModuleDialo
   }
 
   @NotNull
-  public ConfigureJavaLibraryStepFixture<NewModuleDialogFixture> getConfigureJavaLibaryStepFixture() {
+  public ConfigureJavaLibraryStepFixture<NewModuleWizardFixture> getConfigureJavaLibaryStepFixture() {
     return new ConfigureJavaLibraryStepFixture<>(this, target().getRootPane());
   }
 
   @NotNull
   public IdeFrameFixture clickFinish() {
     super.clickFinish(Wait.seconds(5));
+
+    // Wait for gradle project importing to finish
+    Wait.seconds(30).expecting("Modal Progress Indicator to finish")
+      .until(() -> {
+        robot().waitForIdle();
+        return !ProgressManager.getInstance().hasModalProgressIndicator();
+      });
+
     return myIdeFrameFixture;
   }
 }
