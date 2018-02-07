@@ -39,40 +39,13 @@ import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JList
 
-fun showAddActionDialogAndUpdateModel(
-  existing: NlComponent?,
-  parent: NlComponent,
-  resourceResolver: ResourceResolver?,
-  defaultsType: AddActionDialog.Defaults
-) {
-  val addActionDialog = AddActionDialog(
-      defaultsType,
-      existing,
-      parent,
-      resourceResolver
-  )
-
-  if (addActionDialog.showAndGet()) {
-    WriteCommandAction.runWriteCommandAction(null) {
-      val realComponent = existing ?: addActionDialog.source.createAction()
-      realComponent.actionDestinationId = addActionDialog.destination?.id
-      realComponent.enterAnimation = addActionDialog.enterTransition
-      realComponent.exitAnimation = addActionDialog.exitTransition
-      realComponent.popUpTo = addActionDialog.popTo
-      realComponent.inclusive = addActionDialog.isInclusive
-      realComponent.singleTop = addActionDialog.isSingleTop
-      realComponent.document = addActionDialog.isDocument
-      realComponent.clearTask = addActionDialog.isClearTask
-    }
-  }
-}
-
 /**
  * Create a new action for the given component
  */
-class AddActionDialog(
+// Open for testing only
+open class AddActionDialog(
   defaultsType: Defaults,
-  existingAction: NlComponent?,
+  private val existingAction: NlComponent?,
   private val parent: NlComponent,
   resourceResolver: ResourceResolver?
 ) : DialogWrapper(false) {
@@ -82,37 +55,46 @@ class AddActionDialog(
   @VisibleForTesting
   val dialog = AddActionDialogUI()
 
-  val source: NlComponent
+  // Open for testing
+  open val source: NlComponent
     get() = dialog.myFromComboBox.selectedItem as NlComponent
 
-  val destination: NlComponent?
+  // Open for testing
+  open val destination: NlComponent?
     get() {
       val item = dialog.myDestinationComboBox.selectedItem as DestinationListEntry?
       return item?.component
     }
 
-  val enterTransition: String?
+  // Open for testing
+  open val enterTransition: String?
     get() = (dialog.myEnterComboBox.selectedItem as ValueWithDisplayString).value
 
-  val exitTransition: String?
+  // Open for testing
+  open val exitTransition: String?
     get() = (dialog.myExitComboBox.selectedItem as ValueWithDisplayString).value
 
-  val popTo: String?
+  // Open for testing
+  open val popTo: String?
     get() {
       val component = dialog.myPopToComboBox.selectedItem as NlComponent?
       return if (component == null) null else stripPlus(component.getAttribute(ANDROID_URI, ATTR_ID))
     }
 
-  val isInclusive: Boolean
+  // Open for testing
+  open val isInclusive: Boolean
     get() = dialog.myInclusiveCheckBox.isSelected
 
-  val isSingleTop: Boolean
+  // Open for testing
+  open val isSingleTop: Boolean
     get() = dialog.mySingleTopCheckBox.isSelected
 
-  val isDocument: Boolean
+  // Open for testing
+  open val isDocument: Boolean
     get() = dialog.myDocumentCheckBox.isSelected
 
-  val isClearTask: Boolean
+  // Open for testing
+  open val isClearTask: Boolean
     get() = dialog.myClearTaskCheckBox.isSelected
 
   enum class Defaults {
@@ -126,7 +108,7 @@ class AddActionDialog(
     dialog.myFromComboBox.addItem(parent)
 
     if (existingAction != null) {
-      setupFromExisting(existingAction)
+      setupFromExisting()
     } else {
       setDefaults(defaultsType)
     }
@@ -140,6 +122,10 @@ class AddActionDialog(
       myOKAction.putValue(Action.NAME, "Update")
       "Update Action"
     }
+  }
+
+  final override fun init() {
+    super.init()
   }
 
   private fun setDefaults(type: Defaults) {
@@ -209,30 +195,34 @@ class AddActionDialog(
     }
   }
 
-  private fun setupFromExisting(action: NlComponent) {
-    dialog.myFromComboBox.addItem(action.parent)
-
-    if (!action.parent!!.isRoot) {
-      dialog.myFromComboBox.addItem(action.parent)
+  private fun setupFromExisting() {
+    if (existingAction == null) {
+      return
     }
 
-    val destination = action.actionDestinationId
+    dialog.myFromComboBox.addItem(existingAction.parent)
+
+    if (!existingAction.parent!!.isRoot) {
+      dialog.myFromComboBox.addItem(existingAction.parent)
+    }
+
+    val destination = existingAction.actionDestinationId
     if (destination != null) {
 
       dialog.myDestinationComboBox.addItem(
-          DestinationListEntry(action.parent!!.findVisibleDestination(destination))
+          DestinationListEntry(existingAction.parent!!.findVisibleDestination(destination))
       )
       dialog.myDestinationComboBox.selectedIndex = 0
     }
     dialog.myDestinationComboBox.isEnabled = false
 
-    selectItem(dialog.myPopToComboBox, { it.getAttribute(ANDROID_URI, ATTR_ID) }, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, action)
-    dialog.myInclusiveCheckBox.isSelected = action.inclusive
-    selectItem(dialog.myEnterComboBox, { it.value }, ATTR_ENTER_ANIM, AUTO_URI, action)
-    selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, action)
-    dialog.mySingleTopCheckBox.isSelected = action.singleTop
-    dialog.myDocumentCheckBox.isSelected = action.document
-    dialog.myClearTaskCheckBox.isSelected = action.clearTask
+    selectItem(dialog.myPopToComboBox, { it.getAttribute(ANDROID_URI, ATTR_ID) }, NavigationSchema.ATTR_POP_UP_TO, AUTO_URI, existingAction)
+    dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive
+    selectItem(dialog.myEnterComboBox, { it.value }, ATTR_ENTER_ANIM, AUTO_URI, existingAction)
+    selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)
+    dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop
+    dialog.myDocumentCheckBox.isSelected = existingAction.document
+    dialog.myClearTaskCheckBox.isSelected = existingAction.clearTask
   }
 
   private fun <T, U> selectItem(
@@ -405,6 +395,21 @@ class AddActionDialog(
 
   override fun createCenterPanel(): JComponent? {
     return dialog.myContentPanel
+  }
+
+  @VisibleForTesting
+  fun writeUpdatedAction() {
+    WriteCommandAction.runWriteCommandAction(null) {
+      val realComponent = existingAction ?: source.createAction()
+      realComponent.actionDestinationId = destination?.id
+      realComponent.enterAnimation = enterTransition
+      realComponent.exitAnimation = exitTransition
+      realComponent.popUpTo = popTo
+      realComponent.inclusive = isInclusive
+      realComponent.singleTop = isSingleTop
+      realComponent.document = isDocument
+      realComponent.clearTask = isClearTask
+    }
   }
 
   @VisibleForTesting

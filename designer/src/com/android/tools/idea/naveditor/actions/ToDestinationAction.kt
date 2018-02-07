@@ -18,13 +18,15 @@ package com.android.tools.idea.naveditor.actions
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
-import com.android.tools.idea.naveditor.property.inspector.showAddActionDialogAndUpdateModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ToDestinationAction(private val component: NlComponent, private val resourceResolver: ResourceResolver) :
     AnAction("To Destination..") {
   override fun actionPerformed(e: AnActionEvent?) {
-    showAddActionDialogAndUpdateModel(null, component, resourceResolver, AddActionDialog.Defaults.NORMAL)
+    val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, component, resourceResolver)
+    if (addActionDialog.showAndGet()) {
+      addActionDialog.writeUpdatedAction()
+    }
   }
 }
