@@ -1878,7 +1878,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     public void editResourceItem(@NotNull ResourceItem selected) {
-      ResourceValue resourceValue = selected.getResourceValue(false);
+      ResourceValue resourceValue = selected.getResourceValue();
       assert resourceValue != null;
 
       @NotNull ResourceEditorTab resourceEditorTab;

@@ -2490,8 +2490,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             // #compareTo doesn't check the ResourceValue. At least check that getValue is equivalent (getRawXmlText may be different).
             // Skip ID type resources, where the ResourceValues are not important and where blob writing doesn't preserve the value.
             if (item.getType() != ResourceType.ID) {
-              ResourceValue resValue = item.getResourceValue(false);
-              ResourceValue otherResValue = resourceItem.getResourceValue(false);
+              ResourceValue resValue = item.getResourceValue();
+              ResourceValue otherResValue = resourceItem.getResourceValue();
               if (resValue == null || otherResValue == null) {
                 if (resValue != otherResValue) {
                   return false;

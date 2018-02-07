@@ -365,7 +365,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertTrue(lib1Resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
     List<ResourceItem> items = lib1Resources.getResourceItem(ResourceType.STRING, "ellipsis");
     assertNotNull(items);
-    ResourceValue firstValue = items.get(0).getResourceValue(false);
+    ResourceValue firstValue = items.get(0).getResourceValue();
     assertNotNull(firstValue);
     assertEquals("Here it is: \u2026!", firstValue.getValue());
 
@@ -377,7 +377,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertTrue(lib2Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
     items = lib2Resources.getResourceItem(ResourceType.STRING, "unique_string");
     assertNotNull(items);
-    firstValue = items.get(0).getResourceValue(false);
+    firstValue = items.get(0).getResourceValue();
     assertNotNull(firstValue);
     assertEquals("Unique", firstValue.getValue());
 

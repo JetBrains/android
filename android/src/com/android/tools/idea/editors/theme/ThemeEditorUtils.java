@@ -653,7 +653,7 @@ public class ThemeEditorUtils {
         assert themeItems != null;
         for (ResourceItem themeItem : themeItems) {
           ResourceResolver resolver = resolverCache.getResourceResolver(target, themeStyleResourceUrl, themeItem.getConfiguration());
-          ResourceValue themeItemResourceValue = themeItem.getResourceValue(false);
+          ResourceValue themeItemResourceValue = themeItem.getResourceValue();
           assert themeItemResourceValue != null;
           if (resolver.isTheme(themeItemResourceValue, cache)) {
             themeNamesSet.add(simpleThemeName);

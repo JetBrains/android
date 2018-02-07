@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.repository.GradleVersion;
@@ -162,7 +161,7 @@ public class GradleInstantRunContext implements InstantRunContext {
       }
 
       for (ResourceItem item : items) {
-        ResourceValue resourceValue = item.getResourceValue(false);
+        ResourceValue resourceValue = item.getResourceValue();
         if (resourceValue != null) {
           String text = resourceValue.getValue();
           if (text != null) {

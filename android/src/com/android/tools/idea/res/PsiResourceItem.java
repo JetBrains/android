@@ -94,8 +94,7 @@ class PsiResourceItem extends ResourceItem {
     FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(name);
     int index = name.indexOf('-');
     String qualifiers = index == -1 ? "" : name.substring(index + 1);
-    source = new PsiResourceFile(myFile, Collections.<ResourceItem>singletonList(this), qualifiers, folderType,
-                                 configuration);
+    source = new PsiResourceFile(myFile, Collections.singletonList(this), qualifiers, folderType, configuration);
     setSource(source);
 
     return source;
@@ -107,7 +106,7 @@ class PsiResourceItem extends ResourceItem {
    */
   @Nullable
   @Override
-  public ResourceValue getResourceValue(boolean isFrameworks) {
+  public ResourceValue getResourceValue() {
     if (mResourceValue == null) {
       //noinspection VariableNotUsedInsideIf
       if (myTag == null) {
@@ -115,17 +114,17 @@ class PsiResourceItem extends ResourceItem {
         ResourceType type = getType();
         Density density = type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP ? getFolderDensity() : null;
         if (density != null) {
-          mResourceValue = new DensityBasedResourceValue(getReferenceToSelf(isFrameworks),
+          mResourceValue = new DensityBasedResourceValue(getReferenceToSelf(),
                                                          getSource().getFile().getAbsolutePath(),
                                                          density,
                                                          null);
         } else {
-          mResourceValue = new ResourceValue(getReferenceToSelf(isFrameworks),
+          mResourceValue = new ResourceValue(getReferenceToSelf(),
                                              getSource().getFile().getAbsolutePath(),
                                              null);
         }
       } else {
-        mResourceValue = parseXmlToResourceValue(isFrameworks);
+        mResourceValue = parseXmlToResourceValue();
       }
     }
 
@@ -145,7 +144,7 @@ class PsiResourceItem extends ResourceItem {
   }
 
   @Nullable
-  private ResourceValue parseXmlToResourceValue(boolean isFrameworks) {
+  private ResourceValue parseXmlToResourceValue() {
     assert myTag != null;
 
     if (!myTag.isValid()) {
@@ -156,16 +155,16 @@ class PsiResourceItem extends ResourceItem {
     switch (getType()) {
       case STYLE:
         String parent = getAttributeValue(myTag, ATTR_PARENT);
-        value = parseStyleValue(new StyleResourceValue(getReferenceToSelf(isFrameworks), parent, null));
+        value = parseStyleValue(new StyleResourceValue(getReferenceToSelf(), parent, null));
         break;
       case DECLARE_STYLEABLE:
-        value = parseDeclareStyleable(new DeclareStyleableResourceValue(getReferenceToSelf(isFrameworks), null, null));
+        value = parseDeclareStyleable(new DeclareStyleableResourceValue(getReferenceToSelf(), null, null));
         break;
       case ATTR:
-        value = parseAttrValue(new AttrResourceValue(getReferenceToSelf(isFrameworks), null));
+        value = parseAttrValue(new AttrResourceValue(getReferenceToSelf(), null));
         break;
       case ARRAY:
-          value = parseArrayValue(new ArrayResourceValue(getReferenceToSelf(isFrameworks), null) {
+          value = parseArrayValue(new ArrayResourceValue(getReferenceToSelf(), null) {
           // Allow the user to specify a specific element to use via tools:index
           @Override
           protected int getDefaultIndex() {
@@ -178,7 +177,7 @@ class PsiResourceItem extends ResourceItem {
         });
         break;
       case PLURALS:
-        value = parsePluralsValue(new PluralsResourceValue(getReferenceToSelf(isFrameworks), null, null) {
+        value = parsePluralsValue(new PluralsResourceValue(getReferenceToSelf(), null, null) {
           // Allow the user to specify a specific quantity to use via tools:quantity
           @Override
           public String getValue() {
@@ -194,10 +193,10 @@ class PsiResourceItem extends ResourceItem {
         });
         break;
       case STRING:
-        value = parseTextValue(new PsiTextResourceValue(getReferenceToSelf(isFrameworks), null, null, null));
+        value = parseTextValue(new PsiTextResourceValue(getReferenceToSelf(), null, null, null));
         break;
       default:
-        value = parseValue(new ResourceValue(getReferenceToSelf(isFrameworks), null));
+        value = parseValue(new ResourceValue(getReferenceToSelf(), null));
         break;
     }
 

@@ -222,7 +222,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
 
       Set<ResourceReference> seenResources = new HashSet<>(myResourceRefSet.size());
       for (ResourceItem item : myResourceRefSet) {
-        ResourceReference ref = item.getReferenceToSelf(false);
+        ResourceReference ref = item.getReferenceToSelf();
         if (seenResources.add(ref)) {
           PsiField[] fields;
           PsiElement elm = getResourceDefinition(item);

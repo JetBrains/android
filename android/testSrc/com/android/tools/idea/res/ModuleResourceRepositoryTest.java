@@ -286,7 +286,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     appName = ContainerUtil.find(list, resourceItem -> resourceItem.getQualifiers().isEmpty());
     assertNotNull(appName);
     assertItemIsInDir(res3, appName);
-    ResourceValue appNameResourceValue = appName.getResourceValue(false);
+    ResourceValue appNameResourceValue = appName.getResourceValue();
     assertNotNull(appNameResourceValue);
     assertEquals("Not Very Different App Name", appNameResourceValue.getValue());
 
@@ -473,7 +473,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     }
 
     ResourceItem item = list.get(0);
-    ResourceValue resourceValue = item.getResourceValue(false);
+    ResourceValue resourceValue = item.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals(expected, resourceValue.getValue());
   }

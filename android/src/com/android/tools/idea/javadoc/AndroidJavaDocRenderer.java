@@ -435,7 +435,7 @@ public class AndroidJavaDocRenderer {
           folderName = source.getFile().getParentFile().getName();
         }
         String folder = renderFolderName(folderName);
-        ResourceValue value = item.getResourceValue(isFramework);
+        ResourceValue value = item.getResourceValue();
         ItemInfo info = new ItemInfo(value, item.getConfiguration(), folder, flavor, rank, mask);
         results.add(info);
       }

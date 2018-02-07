@@ -17,10 +17,8 @@ package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
@@ -207,7 +205,7 @@ abstract class ResourceChooserItem {
     @Override
     public String getDefaultValue() {
       ResourceItem first = myResourceItems.get(0);
-      ResourceValue value = first.getResourceValue(false);
+      ResourceValue value = first.getResourceValue();
       if (value != null) {
         return value.getValue();
       }
@@ -220,7 +218,7 @@ abstract class ResourceChooserItem {
     public List<Pair<FolderConfiguration, String>> getQualifiersAndValues() {
       ArrayList<Pair<FolderConfiguration, String>> pairs = new ArrayList<>(myResourceItems.size());
       for (ResourceItem item : myResourceItems) {
-        ResourceValue resourceValue = item.getResourceValue(false);
+        ResourceValue resourceValue = item.getResourceValue();
         FolderConfiguration configuration = item.getConfiguration();
         pairs.add(Pair.create(configuration, resourceValue != null ? resourceValue.getValue() : null));
       }

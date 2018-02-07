@@ -75,7 +75,7 @@ public class FileResourceRepositoryTest extends TestCase {
     List<String> helloVariants = ContainerUtil.map(
       items,
       resourceItem -> {
-        ResourceValue value = resourceItem.getResourceValue(false);
+        ResourceValue value = resourceItem.getResourceValue();
         assertNotNull(value);
         return value.getValue();
       });
