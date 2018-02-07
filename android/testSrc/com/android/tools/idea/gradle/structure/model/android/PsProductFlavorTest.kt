@@ -95,14 +95,17 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
     assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
 
-    assertThat(testInstrumentationRunnerArguments.resolved.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB")))
-    assertThat(testInstrumentationRunnerArguments.parsedValue.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB")))
+    assertThat(testInstrumentationRunnerArguments.resolved.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")))
+    assertThat(testInstrumentationRunnerArguments.parsedValue.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")))
 
     assertThat(editableTestInstrumentationRunnerArguments["a"]?.resolved?.asTestValue(), equalTo("AAA"))
     assertThat(editableTestInstrumentationRunnerArguments["a"]?.parsedValue?.asTestValue(), equalTo("AAA"))
 
     assertThat(editableTestInstrumentationRunnerArguments["b"]?.resolved?.asTestValue(), equalTo("BBB"))
     assertThat(editableTestInstrumentationRunnerArguments["b"]?.parsedValue?.asTestValue(), equalTo("BBB"))
+
+    assertThat(editableTestInstrumentationRunnerArguments["c"]?.resolved?.asTestValue(), equalTo("CCC"))
+    assertThat(editableTestInstrumentationRunnerArguments["c"]?.parsedValue?.asTestValue(), equalTo("CCC"))
   }
 
   fun testDimensions() {
@@ -144,9 +147,11 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     productFlavor.testInstrumentationRunner = "com.runner".asParsed()
     productFlavor.versionCode = "3".asParsed()
     productFlavor.versionName = "3.0".asParsed()
-    productFlavor.manifestPlaceholders = mapOf("c" to "CCC", "d" to "NotDDD").asParsed()
+    productFlavor.manifestPlaceholders = mapOf("c" to "CCC", "d" to "NotEEE").asParsed()
+    PsProductFlavor.ProductFlavorDescriptors.manifestPlaceholders.changeEntryKey(productFlavor,"d", "e")
     PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments
       .getEditableValues(productFlavor)["d"]?.setParsedValue(Unit, "DDD".asParsed())
+    PsProductFlavor.ProductFlavorDescriptors.testInstrumentationRunnerArguments.deleteEntry(productFlavor,"c")
 
     fun verifyValues(productFlavor: PsProductFlavor, afterSync: Boolean = false) {
       val applicationId = PsProductFlavor.ProductFlavorDescriptors.applicationId.getValue(productFlavor)
@@ -175,7 +180,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
       assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
       assertThat(versionName.parsedValue.asTestValue(), equalTo("3.0"))
-      assertThat(testInstrumentationRunnerArguments.parsedValue.asTestValue(), equalTo(mapOf("c" to "CCC", "d" to "DDD")))
+      assertThat(testInstrumentationRunnerArguments.parsedValue.asTestValue(), equalTo(mapOf("c" to "CCC", "e" to "EEE")))
 
       if (afterSync) {
         assertThat(dimension.parsedValue.asTestValue(), equalTo(dimension.resolved.asTestValue()))

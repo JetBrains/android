@@ -174,20 +174,18 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
   val manifestPlaceholders: ModelMapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(
     "Manifest Placeholders",
     getResolvedValue = { manifestPlaceholders.mapValues { it.value.toString() } },
-    getParsedCollection = { manifestPlaceholders().asParsedMapValue(ResolvedPropertyModel::asString, { setValue(it) }) },
-    getParsedRawValue = { manifestPlaceholders().dslText() },
-    clearParsedValue = { manifestPlaceholders().delete() },
-    setParsedRawValue = { manifestPlaceholders().setDslText(it) },
+    getParsedProperty = { manifestPlaceholders() },
+    itemValueGetter = { asString() },
+    itemValueSetter = { setValue(it) },
     parse = { parseString(it) }
   )
 
   val testInstrumentationRunnerArguments: ModelMapProperty<PsAndroidModuleDefaultConfig, String> = mapProperty(
     "Test Instrumentation Runner Arguments",
     getResolvedValue = { testInstrumentationRunnerArguments },
-    getParsedCollection = { testInstrumentationRunnerArguments().asParsedMapValue(ResolvedPropertyModel::asString, { setValue(it) }) },
-    getParsedRawValue = { testInstrumentationRunnerArguments().dslText() },
-    clearParsedValue = { testInstrumentationRunnerArguments().delete() },
-    setParsedRawValue = { testInstrumentationRunnerArguments().setDslText(it) },
+    getParsedProperty = { testInstrumentationRunnerArguments() },
+    itemValueGetter = { asString() },
+    itemValueSetter = { setValue(it) },
     parse = { parseString(it) }
   )
 }

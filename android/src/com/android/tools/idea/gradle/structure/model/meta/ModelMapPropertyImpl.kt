@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import kotlin.reflect.KProperty
 
@@ -23,30 +26,35 @@ import kotlin.reflect.KProperty
 fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any> T.mapProperty(
   description: String,
   getResolvedValue: ResolvedT.() -> Map<String, ValueT>?,
-  getParsedCollection: ParsedT.() -> Map<String, ModelPropertyCore<Unit, ValueT>>?,
-  getParsedRawValue: ParsedT.() -> DslText?,
-  clearParsedValue: ParsedT.() -> Unit,
-  setParsedRawValue: (ParsedT.(DslText) -> Unit),
+  itemValueGetter: ResolvedPropertyModel.() -> ValueT?,
+  itemValueSetter: ResolvedPropertyModel.(ValueT) -> Unit,
+  getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
   parse: (String) -> ParsedValue<ValueT>,
   getKnownValues: ((ModelT) -> List<ValueDescriptor<ValueT>>)? = null
 ) =
-    ModelMapPropertyImpl(
-      this,
-      description,
-      getResolvedValue,
-      getParsedCollection,
-      getParsedRawValue,
-      clearParsedValue,
-      setParsedRawValue,
-      { if (it.isBlank()) ParsedValue.NotSet() else parse(it.trim()) },
-      { if (getKnownValues != null) getKnownValues(it) else null }
-    )
+  ModelMapPropertyImpl(
+    this,
+    description,
+    getResolvedValue,
+    { getParsedProperty().asParsedMapValue(itemValueGetter, itemValueSetter) },
+    { key -> getParsedProperty().addEntry(key, itemValueGetter, itemValueSetter) },
+    { key -> getParsedProperty().deleteEntry(key) },
+    { old, new -> getParsedProperty().changeEntryKey(old, new, itemValueGetter, itemValueSetter) },
+    { getParsedProperty().dslText() },
+    { getParsedProperty().delete() },
+    { getParsedProperty().setDslText(it) },
+    { if (it.isBlank()) ParsedValue.NotSet() else parse(it.trim()) },
+    { if (getKnownValues != null) getKnownValues(it) else null }
+  )
 
 class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
   override val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   val getResolvedValue: ResolvedT.() -> Map<String, ValueT>?,
   private val getParsedCollection: ParsedT.() -> Map<String, ModelPropertyParsedCore<Unit, ValueT>>?,
+  private val addEntry: ParsedT.(String) -> ModelPropertyCore<Unit, ValueT>,
+  private val deleteEntry: ParsedT.(String) -> Unit,
+  private val changeEntryKey: ParsedT.(String, String) -> ModelPropertyCore<Unit, ValueT>,
   private val getParsedRawValue: ParsedT.() -> DslText?,
   override val clearParsedValue: ParsedT.() -> Unit,
   override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
@@ -63,6 +71,14 @@ class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
       ?.mapValues { makePropertyCore(it.value, resolvedValueGetter = { getResolvedValue(it.key) }) }
         ?: mapOf()
   }
+
+  override fun addEntry(model: ModelT, key: String): ModelPropertyCore<Unit, ValueT> =
+    modelDescriptor.getParsed(model)?.addEntry(key) ?: throw IllegalStateException()
+
+  override fun deleteEntry(model: ModelT, key: String) = modelDescriptor.getParsed(model)?.deleteEntry(key) ?: throw IllegalStateException()
+
+  override fun changeEntryKey(model: ModelT, old: String, new: String): ModelPropertyCore<Unit, ValueT> =
+    modelDescriptor.getParsed(model)?.changeEntryKey(old, new) ?: throw IllegalStateException()
 
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<Map<String, ValueT>> = getParsedValue(thisRef)
 
@@ -109,3 +125,31 @@ fun <T : Any> ResolvedPropertyModel?.asParsedMapValue(
     ?.getValue(GradlePropertyModel.MAP_TYPE)
     ?.mapValues { it.value.resolve() }
     ?.mapValues { makeItemProperty(it.value, getTypedValue, setTypedValue) }
+
+fun <T : Any> ResolvedPropertyModel.addEntry(
+  key: String,
+  getTypedValue: ResolvedPropertyModel.() -> T?,
+  setTypedValue: ResolvedPropertyModel.(T) -> Unit
+): ModelPropertyCore<Unit, T> =
+  makeItemProperty(getMapValue(key).resolve(), getTypedValue, setTypedValue)
+
+fun ResolvedPropertyModel.deleteEntry(key: String) = getMapValue(key).delete()
+
+fun <T : Any> ResolvedPropertyModel.changeEntryKey(
+  old: String,
+  new: String,
+  getTypedValue: ResolvedPropertyModel.() -> T?,
+  setTypedValue: ResolvedPropertyModel.(T) -> Unit
+): ModelPropertyCore<Unit, T> {
+  val oldProperty = getMapValue(old)
+  // TODO(b/73057388): Simplify to plain oldProperty.getRawValue(OBJECT_TYPE).
+  val oldValue = when (oldProperty.valueType) {
+    GradlePropertyModel.ValueType.REFERENCE -> oldProperty.getRawValue(STRING_TYPE)?.let { ReferenceTo(it) }
+    else -> oldProperty.getRawValue(OBJECT_TYPE)
+  }
+
+  oldProperty.delete()
+  val newProperty = getMapValue(new)
+  if (oldValue != null) newProperty.setValue(oldValue)
+  return makeItemProperty(newProperty.resolve(), getTypedValue, setTypedValue)
+}

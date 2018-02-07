@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
 class ModelMapPropertyImplTest : GradleFileModelTestCase() {
@@ -39,10 +40,9 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     return Model.mapProperty(
       "description",
       getResolvedValue = { null },
-      getParsedCollection = { resolved.asParsedMapValue({ caster() }, { setValue(it) }) },
-      getParsedRawValue = { resolved.dslText() },
-      clearParsedValue = { resolved.clear() },
-      setParsedRawValue = { resolved.setDslText(it) },
+      getParsedProperty = { resolved },
+      itemValueGetter = { caster() },
+      itemValueSetter = { setValue(it) },
       parse = { parse(it) }
     )
   }
@@ -129,5 +129,58 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     assertThat(prop3rd?.testValue(), equalTo("3rd"))
     assertThat(propD?.testValue(), equalTo("D"))
     assertThat(propE?.testValue(), equalTo("E"))
+  }
+
+  fun testEditMapKeys() {
+    // TODO(b/72940492): Replace propC1 and propRef1 with propC and propRef respectively.
+    val text = """
+               ext {
+                 propB = "2"
+                 propC1 = "3"
+                 propRef1 = propB
+                 propInterpolated = "${'$'}{propB}nd"
+                 propMap = [one: "1", "B": propB, "propC": propC1, propRef: propRef1, interpolated: propInterpolated]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    val map = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
+    map.deleteEntry(Model, "B")
+    val newInterpolated = map.changeEntryKey(Model, "interpolated", "newInterpolated")
+    val newPropC = map.changeEntryKey(Model, "propC", "newPropC")
+    val newPropRef = map.changeEntryKey(Model, "propRef", "newPropRef")
+    val newOne = map.changeEntryKey(Model, "one", "newOne")
+    // Add new.
+    val newNew = map.addEntry(Model, "new")
+    newNew.testSetValue("new")
+    // Add new and change it.
+    val new2 = map.addEntry(Model, "new2")
+    new2.testSetReference("propC1")
+    val newChanged = map.changeEntryKey(Model, "new2", "newChanged")
+
+    assertThat(newOne.testValue(), equalTo("1"))
+    assertThat(newPropC.testValue(), equalTo("3"))
+    assertThat(newPropRef.testValue(), equalTo("2"))
+    assertThat(newInterpolated.testValue(), equalTo("2nd"))
+    assertThat(newNew.testValue(), equalTo("new"))
+    assertThat(newChanged.testValue(), equalTo("3"))
+
+    val editableValues = map.getEditableValues(Model)
+    val one = editableValues["newOne"]
+    val b = editableValues["newB"]
+    val propC = editableValues["newPropC"]
+    val propRef = editableValues["newPropRef"]
+    val interpolated = editableValues["newInterpolated"]
+    val new = editableValues["new"]
+    val changed = editableValues["newChanged"]
+
+    assertThat(one?.testValue(), equalTo("1"))
+    assertThat(b?.testValue(), nullValue())
+    assertThat(propC?.testValue(), equalTo("3"))
+    assertThat(propRef?.testValue(), equalTo("2"))
+    assertThat(interpolated?.testValue(), equalTo("2nd"))
+    assertThat(new?.testValue(), equalTo("new"))
+    assertThat(changed?.testValue(), equalTo("3"))
   }
 }
