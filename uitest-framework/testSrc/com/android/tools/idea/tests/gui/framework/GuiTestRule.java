@@ -106,6 +106,7 @@ public class GuiTestRule implements TestRule {
     RuleChain chain = RuleChain.emptyRuleChain()
       .around(new LogStartAndStop())
       .around(new BlockReloading())
+      .around(new BazelUndeclaredOutputs())
       .around(myCurrentProjectSystem)
       .around(myRobotTestRule)
       .around(myLeakCheck)
