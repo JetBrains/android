@@ -496,11 +496,18 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
    */
   private void createPersistentCache() {
     File cacheFile = getCacheFile();
-    FileUtilRt.createParentDirs(cacheFile);
     //noinspection ResultOfMethodCallIgnored
     cacheFile.delete();
-    // Write to a file with ".tmp" extension first, then rename to to the final name.
-    File tempFile = new File(cacheFile.getPath() + ".tmp");
+
+    // Write to a temporary file first, then rename to to the final name.
+    File tempFile;
+    try {
+      tempFile = FileUtilRt.createTempFile(cacheFile.getParentFile(), cacheFile.getName(), ".tmp");
+    } catch (IOException e) {
+      LOG.error("Unable to create a temporary file in " + cacheFile.getParentFile().getAbsolutePath(), e);
+      return;
+    }
+
     try (CacheOutputStream out = new CacheOutputStream(tempFile)) {
       out.writeUTF(getResourceDirectory().getAbsolutePath());
 
