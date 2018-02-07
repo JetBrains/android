@@ -25,6 +25,9 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -66,7 +69,8 @@ public class NetworkProfilerStageViewTest {
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myProfilerService, myNetworkService);
+    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myProfilerService, myNetworkService,
+                        new FakeEventService(), new FakeMemoryService(), new FakeCpuService());
 
   private FakeTimer myTimer;
 

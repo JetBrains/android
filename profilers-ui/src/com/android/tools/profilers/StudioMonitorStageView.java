@@ -128,7 +128,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       });
 
       // Configure Context Menu
-      ProfilerContextMenu contextMenu = ProfilerContextMenu.createIfAbsent(getProfilersView().getComponent());
+      ProfilerContextMenu contextMenu = getProfilersView().getTimelineContextMenu();
       IdeProfilerComponents ideProfilerComponents = getIdeComponents();
       ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
