@@ -220,10 +220,9 @@ open class PsBuildType(
     val manifestPlaceholders: ModelMapProperty<PsBuildType, String> = mapProperty(
       "Manifest Placeholders",
       getResolvedValue = { manifestPlaceholders.mapValues { it.value.toString() } },
-      getParsedCollection = { manifestPlaceholders().asParsedMapValue(ResolvedPropertyModel::asString, { setValue(it) }) },
-      getParsedRawValue = { manifestPlaceholders().dslText() },
-      clearParsedValue = { manifestPlaceholders().delete() },
-      setParsedRawValue = { manifestPlaceholders().setDslText(it)},
+      getParsedProperty = { manifestPlaceholders() },
+      itemValueGetter = { asString() },
+      itemValueSetter = { setValue(it) },
       parse = { parseString(it) }
     )
   }

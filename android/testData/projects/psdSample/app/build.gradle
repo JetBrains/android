@@ -46,7 +46,7 @@ android {
         targetSdkVersion(19)
         versionCode 1
         versionName "1.0"
-        manifestPlaceholders = [aa: "aaa", bb: "bbb"]
+        manifestPlaceholders = [aa: "aaa", bb: "bbb", "cc": 'ccc']
     }
     buildTypes {
         release {
@@ -75,7 +75,7 @@ android {
             targetSdkVersion(20)
             versionCode 2
             versionName "2.0"
-            testInstrumentationRunnerArguments = ["a": "AAA", "b": "BBB"]
+            testInstrumentationRunnerArguments = ["a": "AAA", "b": "BBB", c: 'CCC']
         }
         bar {
             dimension "bar"

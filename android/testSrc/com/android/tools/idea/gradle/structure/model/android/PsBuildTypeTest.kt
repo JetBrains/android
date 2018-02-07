@@ -55,6 +55,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
     val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
     val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue(Unit) }
+    val manifestPlaceholders = PsBuildType.BuildTypeDescriptors.manifestPlaceholders.getValue(buildType)
 
     assertThat(applicationIdSuffix.resolved.asTestValue(), equalTo("suffix"))
     assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("suffix"))
@@ -102,6 +103,9 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     // TODO(b/72814329): Resolved values are not yet supported on list properties.
     assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
     assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("proguard-rules2.txt")))
+
+    assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
+    assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
   }
 
   fun testProperties_defaultResolved() {
@@ -129,6 +133,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
     val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
     val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
+    val manifestPlaceholders = PsBuildType.BuildTypeDescriptors.manifestPlaceholders.getValue(buildType)
 
     assertThat(applicationIdSuffix.resolved.asTestValue(), nullValue())
     assertThat(applicationIdSuffix.parsedValue.asTestValue(), nullValue())
@@ -156,6 +161,9 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     assertThat(zipAlignEnabled.resolved.asTestValue(), equalTo(true))
     assertThat(zipAlignEnabled.parsedValue.asTestValue(), nullValue())
+
+    assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
+    assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
   }
 
   fun testSetProperties() {
@@ -183,6 +191,10 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     val editableProGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType)
     editableProGuardFiles[1].setParsedValue(Unit, File("a.txt").asParsed())
     editableProGuardFiles[2].setParsedValue(Unit, File("b.txt").asParsed())
+    PsBuildType.BuildTypeDescriptors.manifestPlaceholders.addEntry(buildType, "b").setParsedValue(Unit, "v".asParsed())
+    PsBuildType.BuildTypeDescriptors.manifestPlaceholders.changeEntryKey(buildType, "b", "v")
+    PsBuildType.BuildTypeDescriptors.manifestPlaceholders.deleteEntry(buildType, "v")
+
 
     fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
       val applicationIdSuffix = PsBuildType.BuildTypeDescriptors.applicationIdSuffix.getValue(buildType)
@@ -198,6 +210,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.getValue(buildType)
       val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.getValue(buildType)
       val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue(Unit) }
+      val manifestPlaceholders = PsBuildType.BuildTypeDescriptors.manifestPlaceholders.getValue(buildType)
 
       assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo("new_suffix"))
       assertThat(debuggable.parsedValue.asTestValue(), equalTo(true))
@@ -216,6 +229,13 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
       assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("b.txt")))
 
+      // TODO(b/73059531): The value should not change after applying changes.
+      if (afterSync) {
+        assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
+      } else {
+        assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
+      }
+
       if (afterSync) {
         assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))
         assertThat(debuggable.parsedValue.asTestValue(), equalTo(debuggable.resolved.asTestValue()))
@@ -229,6 +249,9 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
         // TODO(b/72814329): assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
         // TODO(b/72814329): assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(proGuardFiles[2].resolved.asTestValue()))
+
+        // Note: empty manifestPlaceholders does not match null value.
+        assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
        }
     }
 

@@ -87,14 +87,17 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     assertThat(proGuardFiles.resolved.asTestValue(), equalTo(listOf()))
     assertThat(proGuardFiles.parsedValue.asTestValue(), nullValue())
 
-    assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb")))
-    assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb")))
+    assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to "ccc")))
+    assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to "ccc")))
 
     assertThat(editableManifestPlaceholders["aa"]?.resolved?.asTestValue(), equalTo("aaa"))
     assertThat(editableManifestPlaceholders["aa"]?.parsedValue?.asTestValue(), equalTo("aaa"))
 
     assertThat(editableManifestPlaceholders["bb"]?.resolved?.asTestValue(), equalTo("bbb"))
     assertThat(editableManifestPlaceholders["bb"]?.parsedValue?.asTestValue(), equalTo("bbb"))
+
+    assertThat(editableManifestPlaceholders["cc"]?.resolved?.asTestValue(), equalTo("ccc"))
+    assertThat(editableManifestPlaceholders["cc"]?.parsedValue?.asTestValue(), equalTo("ccc"))
   }
 
   fun testSetProperties() {
@@ -107,7 +110,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     assertThat(appModule, notNullValue())
 
     val defaultConfig = appModule.defaultConfig
-    assertThat(defaultConfig, notNullValue()); defaultConfig!!
+    assertThat(defaultConfig, notNullValue())
 
     defaultConfig.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
     defaultConfig.maxSdkVersion = 26.asParsed()
@@ -118,8 +121,14 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
     defaultConfig.testInstrumentationRunner = "com.runner".asParsed()
     defaultConfig.versionCode = "3".asParsed()
     defaultConfig.versionName = "3.0".asParsed()
-    defaultConfig.manifestPlaceholders = mapOf("cc" to "CCC", "dd" to "NotDDD").asParsed()
-    PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.getEditableValues(defaultConfig)["dd"]?.setParsedValue(Unit, "DDD".asParsed())
+    defaultConfig.manifestPlaceholders = mapOf("cc" to "CCC", "dd" to "NotDDD", "zz" to "zz").asParsed()
+    PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.getEditableValues(defaultConfig)["dd"]?.setParsedValue(
+      Unit,
+      "EEE".asParsed()
+    )
+    PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.changeEntryKey(defaultConfig, "dd", "ee")
+    PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.deleteEntry(defaultConfig, "zz")
+    PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders.addEntry(defaultConfig, "nn").setParsedValue(Unit, "NNN".asParsed())
 
     fun verifyValues(defaultConfig: PsAndroidModuleDefaultConfig, afterSync: Boolean = false) {
       val applicationId = PsAndroidModuleDefaultConfigDescriptors.applicationId.getValue(defaultConfig)
@@ -145,7 +154,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))
       assertThat(versionCode.parsedValue.asTestValue(), equalTo("3"))
       assertThat(versionName.parsedValue.asTestValue(), equalTo("3.0"))
-      assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("cc" to "CCC", "dd" to "DDD")))
+      assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("cc" to "CCC", "ee" to "EEE", "nn" to "NNN")))
 
       if (afterSync) {
         assertThat(applicationId.parsedValue.asTestValue(), equalTo(applicationId.resolved.asTestValue()))
