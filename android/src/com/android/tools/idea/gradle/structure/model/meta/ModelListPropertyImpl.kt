@@ -58,9 +58,9 @@ class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
     modelDescriptor
       .getParsed(model)
       ?.getParsedCollection()
-      ?.map { makeSetModifiedAware(it, model) }
       // TODO(b/72814329): Replace [null] with the matched value.
       ?.map { makePropertyCore(it, { null }) }
+      ?.map { it.makeSetModifiedAware(model) }
         ?: listOf()
 
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef)

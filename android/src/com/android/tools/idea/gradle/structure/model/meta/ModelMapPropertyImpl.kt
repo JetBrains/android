@@ -67,18 +67,23 @@ class ModelMapPropertyImpl<in ModelT, ResolvedT, ParsedT, ValueT : Any>(
     return modelDescriptor
       .getParsed(model)
       ?.getParsedCollection()
-      ?.mapValues { makeSetModifiedAware(it.value, model) }
       ?.mapValues { makePropertyCore(it.value, resolvedValueGetter = { getResolvedValue(it.key) }) }
+      ?.mapValues { it.value.makeSetModifiedAware(model) }
         ?: mapOf()
   }
 
   override fun addEntry(model: ModelT, key: String): ModelPropertyCore<Unit, ValueT> =
-    modelDescriptor.getParsed(model)?.addEntry(key) ?: throw IllegalStateException()
+      // No need to mark the model modified here since adding an empty property does not really affect its state. However, TODO(b/73059531).
+    modelDescriptor.getParsed(model)?.addEntry(key)?.makeSetModifiedAware(model)
+        ?: throw IllegalStateException()
 
-  override fun deleteEntry(model: ModelT, key: String) = modelDescriptor.getParsed(model)?.deleteEntry(key) ?: throw IllegalStateException()
+  override fun deleteEntry(model: ModelT, key: String) =
+    modelDescriptor.getParsed(model)?.deleteEntry(key).also { model.setModified() } ?: throw IllegalStateException()
 
   override fun changeEntryKey(model: ModelT, old: String, new: String): ModelPropertyCore<Unit, ValueT> =
-    modelDescriptor.getParsed(model)?.changeEntryKey(old, new) ?: throw IllegalStateException()
+      // Both make the property modify-aware and make the model modified since both operations involve changing the model.
+    modelDescriptor.getParsed(model)?.changeEntryKey(old, new)?.makeSetModifiedAware(model).also { model.setModified() }
+        ?: throw IllegalStateException()
 
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<Map<String, ValueT>> = getParsedValue(thisRef)
 
