@@ -133,7 +133,7 @@ public class ActionTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseRelease(int x, int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(int x, int y, @NotNull List<Target> closestTargets) {
     myComponent.getScene().getDesignSurface().getSelectionModel().setSelection(ImmutableList.of(myNlComponent));
   }
 

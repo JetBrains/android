@@ -28,7 +28,6 @@ import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -135,7 +134,7 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     if (myComponent.getParent() == null) {
       return;
     }
@@ -152,7 +151,7 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     if (!myComponent.isDragging()) {
       return;
     }

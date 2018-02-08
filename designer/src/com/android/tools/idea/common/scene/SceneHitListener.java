@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
   double myClosestComponentDistance = Double.MAX_VALUE;
   double myClosestTargetDistance = Double.MAX_VALUE;
   ArrayList<SceneComponent> myHitComponents = new ArrayList<>();
-  ArrayList<Target> myHitTargets = new ArrayList<>();
+  @NotNull final ArrayList<Target> myHitTargets = new ArrayList<>();
   Target mySkipTarget = null;
 
   public SceneHitListener(@NotNull SelectionModel selectionModel) {
@@ -138,6 +139,7 @@ class SceneHitListener implements ScenePicker.HitElementListener {
    * @param filteredTarget
    * @return the preferred target out of the list
    */
+  @Nullable
   public Target getFilteredTarget(Target filteredTarget) {
     Target hit = null;
     boolean found = false;

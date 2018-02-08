@@ -104,7 +104,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   }
 
   @Override
-  public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @NotNull List<Target> closestTargets) {
     myIsDragging = false;
     getComponent().setDragging(false);
   }

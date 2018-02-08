@@ -715,12 +715,12 @@ public class AnchorTarget extends BaseTarget {
    * On mouse drag, we can connect (in memory) to existing targets, or revert to the
    * original state that we capatured on mouseDown.
    *
+   * @param closestTarget
    * @param x
    * @param y
-   * @param closestTarget
    */
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     myLastX = x;
     myLastY = y;
     Target closestTarget = null;
@@ -784,7 +784,7 @@ public class AnchorTarget extends BaseTarget {
    * @param closestTarget
    */
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     myLastX = -1;
     myLastY = -1;
     try {
