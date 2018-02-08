@@ -20,7 +20,7 @@ android_library(
 
 android_binary(
     name = "android",
-    custom_package = "google.simpleapplication",
+    custom_package = "google",
     manifest = "src/main/AndroidManifest.xml",
     manifest_values = {
         "applicationId": "google.simpleapplication",
