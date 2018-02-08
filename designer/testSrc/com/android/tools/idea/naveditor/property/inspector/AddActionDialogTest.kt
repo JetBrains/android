@@ -43,7 +43,12 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, model.find("a1"), model.find("f1")!!, null)
+    val dialog = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        model.find("a1"),
+        model.find("f1")!!,
+        null
+    )
     dialog.close(0)
     assertEquals(model.find("f2"), dialog.destination)
     assertEquals("@anim/fade_in", dialog.enterTransition)
@@ -60,7 +65,14 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, null)
+    val dialogWrapper = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        null,
+        model.find("f1")!!,
+        null
+    )
+    val dialog = dialogWrapper.dialog
+
     dialog.myDestinationComboBox.selectedIndex = 2
 
     assertEquals(model.find("f1"), dialog.myFromComboBox.getItemAt(0))
@@ -93,7 +105,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("f2", dialog.myPopToComboBox.getItemAt(3).id)
     assertEquals(4, dialog.myPopToComboBox.itemCount)
 
-    dialog.close(0)
+    dialogWrapper.close(0)
   }
 
   fun testReturnToSource() {
@@ -104,7 +116,13 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, null)
+    val dialogWrapper = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        null,
+        model.find("f1")!!,
+        null
+    )
+    val dialog = dialogWrapper.dialog
 
     // Initial condition that will be restored
     dialog.myPopToComboBox.selectedIndex = 2
@@ -137,7 +155,7 @@ class AddActionDialogTest : NavTestCase() {
     assertTrue(dialog.myInclusiveCheckBox.isSelected)
     assertTrue(dialog.myInclusiveCheckBox.isEnabled)
 
-    dialog.close(0)
+    dialogWrapper.close(0)
   }
 
   fun testDestinationsForNestedSubnav() {
@@ -160,7 +178,13 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("subnav2")!!, null)
+    val dialogWrapper = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        null,
+        model.find("subnav2")!!,
+        null
+    )
+    val dialog = dialogWrapper.dialog
 
     assertEquals(null, dialog.myDestinationComboBox.getItemAt(0))
     assertEquals(model.find("subnav1"), dialog.myDestinationComboBox.getItemAt(1).component)
@@ -177,7 +201,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(model.find("othersubnav"), dialog.myDestinationComboBox.getItemAt(12).component)
 
     assertEquals(13, dialog.myDestinationComboBox.itemCount)
-    dialog.close(0)
+    dialogWrapper.close(0)
   }
 
   fun testDestinationsForNestedFragment() {
@@ -200,7 +224,13 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f4")!!, null)
+    val dialogWrapper = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        null,
+        model.find("f4")!!,
+        null
+    )
+    val dialog = dialogWrapper.dialog
 
     val combo = dialog.myDestinationComboBox
     assertEquals(null, combo.getItemAt(0))
@@ -217,7 +247,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(model.find("othersubnav"), combo.getItemAt(11).component)
 
     assertEquals(12, combo.itemCount)
-    dialog.close(0)
+    dialogWrapper.close(0)
   }
 
   fun testDestinationsForRoot() {
@@ -230,7 +260,13 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("root")!!, null)
+    val dialogWrapper = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        null,
+        model.find("root")!!,
+        null
+    )
+    val dialog = dialogWrapper.dialog
 
     val combo = dialog.myDestinationComboBox
     assertEquals(null, combo.getItemAt(0))
@@ -241,7 +277,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(model.find("subnav1"), combo.getItemAt(5).component)
 
     assertEquals(6, combo.itemCount)
-    dialog.close(0)
+    dialogWrapper.close(0)
 
   }
 
@@ -261,7 +297,13 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("subnav2")!!, null)
+    val dialogWrapper = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        null,
+        model.find("subnav2")!!,
+        null
+    )
+    val dialog = dialogWrapper.dialog
 
     val combo = dialog.myDestinationComboBox
     val renderer = combo.renderer
@@ -311,7 +353,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("f1", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
 
-    dialog.close(0)
+    dialogWrapper.close(0)
 
   }
 
@@ -334,7 +376,13 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
 
-    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("subnav2")!!, null)
+    val dialogWrapper = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        null,
+        model.find("subnav2")!!,
+        null
+    )
+    val dialog = dialogWrapper.dialog
 
     val combo = dialog.myPopToComboBox
     val renderer = combo.renderer
@@ -380,7 +428,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("f4", rendererComponent.text)
     assertFalse(rendererComponent.font.isBold)
 
-    dialog.close(0)
+    dialogWrapper.close(0)
 
   }
 
@@ -408,7 +456,12 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(null, dialog.popTo)
     dialog.close(0)
 
-    dialog = AddActionDialog(AddActionDialog.Defaults.RETURN_TO_SOURCE, null, f1, null)
+    dialog = AddActionDialog(
+        AddActionDialog.Defaults.RETURN_TO_SOURCE,
+        null,
+        f1,
+        null
+    )
     assertEquals(null, dialog.destination)
     assertEquals(f1, dialog.source)
     assertTrue(dialog.isInclusive)
