@@ -51,6 +51,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
     super(ThemeEditorFixture.class, robot, themeEditorComponent);
     myThemesComboBox = new JComboBoxFixture(robot(), robot().finder()
       .findByName(this.target().getSecondComponent(), AttributesPanel.THEME_SELECTOR_NAME, JComboBox.class));
+    Wait.seconds(5).expecting("Wait JComboBox to be enabled.").until(() -> myThemesComboBox.isEnabled());
   }
 
   @NotNull
