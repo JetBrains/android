@@ -193,6 +193,10 @@ fun NlComponent.setAsStartDestination() {
   parent?.startDestination = id
 }
 
+fun NlComponent.createNestedGraph(): NlComponent {
+  return createChild(model.schema.getDefaultTag(NavigationSchema.DestinationType.NAVIGATION)!!)
+}
+
 private fun NlComponent.createChild(tagName: String): NlComponent {
   val newTag = tag.createChildTag(tagName, null, null, false)
   val child = model.createComponent(newTag, this, null)
