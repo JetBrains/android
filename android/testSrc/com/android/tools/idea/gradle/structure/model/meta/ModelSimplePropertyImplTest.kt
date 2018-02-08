@@ -92,8 +92,8 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     assertThat(propRef.testValue(), equalTo("value"))
     assertThat(propInterpolated.testValue(), equalTo("25th"))
     assertThat(propUnresolved.testValue(), nullValue())
-    // TODO(b/72052622): assertThat(propOtherExpression1.testValue(), nullValue())
-    // TODO(b/72052689): assertThat(propOtherExpression2.testValue(), nullValue())
+    assertThat(propOtherExpression1.testValue(), nullValue())
+    assertThat(propOtherExpression2.testValue(), nullValue())
   }
 
   fun testWritePropertyValues() {
@@ -138,7 +138,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
 
     propUnresolved.testSetValue("reset")
     assertThat(propUnresolved.testValue(), equalTo("reset"))
-    // TODO(b/72052622): assertThat(propOtherExpression1.testValue(), nullValue())
-    // TODO(b/72052689): assertThat(propOtherExpression2.testValue(), nullValue())
+    assertThat(propOtherExpression1.testValue(), nullValue())
+    assertThat(propOtherExpression2.testValue(), nullValue())
   }
 }

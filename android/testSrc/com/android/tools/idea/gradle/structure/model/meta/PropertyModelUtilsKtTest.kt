@@ -59,7 +59,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propRef.asString(), equalTo("value"))
     assertThat(propInterpolated.asString(), equalTo("25"))
     assertThat(propUnresolved.asString(), nullValue())
-    // TODO(b/72052622): assertThat(propOtherExpression1.asString(), nullValue())
+    assertThat(propOtherExpression1.asString(), nullValue())
     assertThat(propOtherExpression2.asString(), nullValue())
   }
 
@@ -94,7 +94,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propRef.asInt(), nullValue())
     assertThat(propInterpolated.asInt(), nullValue())
     assertThat(propUnresolved.asInt(), nullValue())
-    // TODO(b/72052622): assertThat(propOtherExpression1.asInt(), nullValue())
+    assertThat(propOtherExpression1.asInt(), nullValue())
     assertThat(propOtherExpression2.asInt(), nullValue())
   }
 
@@ -178,8 +178,8 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propRef.dslText()?.mode, equalTo(DslMode.REFERENCE))
     assertThat(propInterpolated.dslText()?.mode, equalTo(DslMode.INTERPOLATED_STRING))
     assertThat(propUnresolved.dslText()?.mode, equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT))
-    // TODO(b/72052622): assertThat(propOtherExpression1.dslText()?.mode, equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT))
-    // TODO(b/72052689): assertThat(propOtherExpression2.dslText()?.mode, equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT))
+    assertThat(propOtherExpression1.dslText()?.mode, equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT))
+    assertThat(propOtherExpression2.dslText()?.mode, equalTo(DslMode.OTHER_UNPARSED_DSL_TEXT))
 
     assertThat(propValue.dslText()?.text, equalTo("value"))
     assertThat(prop25.dslText()?.text, equalTo("25"))
@@ -187,7 +187,7 @@ class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
     assertThat(propRef.dslText()?.text, equalTo("propValue"))
     assertThat(propInterpolated.dslText()?.text, equalTo("${'$'}{prop25}"))
     assertThat(propUnresolved.dslText()?.text, equalTo("unresolvedReference"))
-    // TODO(b/72052622): assertThat(propOtherExpression1.dslText()?.text, equalTo("z(1)"))
-    // TODO(b/72052622): assertThat(propOtherExpression2.dslText()?.text, equalTo("1 + 2"))
+    assertThat(propOtherExpression1.dslText()?.text, equalTo("z(1)"))
+    assertThat(propOtherExpression2.dslText()?.text, equalTo("1 + 2"))
   }
 }
