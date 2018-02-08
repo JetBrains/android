@@ -17,9 +17,9 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
 import com.android.tools.profilers.ProfilerClient;
 import org.jetbrains.annotations.NotNull;
 

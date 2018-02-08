@@ -31,7 +31,7 @@ import org.junit.Test
 class EnergyMonitorTest {
   private val service = FakeEnergyService(
       listOf(
-          EnergyProfiler.EnergyDataResponse.EnergySample.newBuilder().
+          EnergyProfiler.EnergySample.newBuilder().
               setTimestamp(2000).
               setNetworkUsage(20).
               setCpuUsage(30).build()

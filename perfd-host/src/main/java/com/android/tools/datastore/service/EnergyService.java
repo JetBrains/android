@@ -18,17 +18,19 @@ package com.android.tools.datastore.service;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventsResponse;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import com.intellij.openapi.util.Pair;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -58,7 +60,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
     Pair<Long, Long> timeRange = getRangeMs(request);
     for (long timeMs = timeRange.getFirst(); timeMs <= timeRange.getSecond(); timeMs += FAKE_TIME_PERIOD_MS) {
       responseBuilder.addSampleData(
-        EnergyDataResponse.EnergySample.newBuilder().
+        EnergyProfiler.EnergySample.newBuilder().
           setTimestamp(TimeUnit.MILLISECONDS.toNanos(timeMs)).
           setCpuUsage(FAKE_CPU_DATA.getValue(timeMs)).
           setNetworkUsage(FAKE_NETWORK_DATA.getValue(timeMs)).
