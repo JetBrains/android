@@ -65,6 +65,7 @@ public class GradleBuildOutputParserTest {
     when(myReader.getBuildId()).thenReturn("BUILD_ID_MOCK");
 
     ArgumentCaptor<MessageEvent> messageCaptor = ArgumentCaptor.forClass(MessageEvent.class);
+    String detailLine = "This is a detail line";
     assertTrue(myParser.parse(line, myReader, myConsumer));
     verify(myConsumer).accept(messageCaptor.capture());
 

@@ -25,10 +25,16 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.intellij.build.DefaultBuildDescriptor;
+import com.intellij.build.SyncViewManager;
+import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -52,6 +58,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.extensions.Extensions.findExtension;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalRootProjectPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static java.lang.System.currentTimeMillis;
 
@@ -90,6 +97,13 @@ public class IdeaGradleSync implements GradleSync {
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
 
+          // Create a task for the Build View, this is needed to hang any found issue to it.
+          ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject);
+          String workingDir = toCanonicalPath(getBaseDirPath(myProject).getPath());
+          DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Project setup", workingDir, currentTimeMillis());
+          SyncViewManager syncManager = ServiceManager.getService(myProject, SyncViewManager.class);
+          syncManager.onEvent(new StartBuildEventImpl(buildDescriptor, "reading from cache..."));
+          myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, taskId);
           ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, true /* sync skipped */);
           setUpTask.onSuccess(cache);
           return;
@@ -153,7 +167,7 @@ public class IdeaGradleSync implements GradleSync {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, false);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
-                     executionMode, true /* always report import errors */);
+                     executionMode, true /* always report import errors */, false /* do not seal the "Build View" */);
     }
   }
 

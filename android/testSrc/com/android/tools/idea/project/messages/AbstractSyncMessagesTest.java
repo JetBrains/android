@@ -16,26 +16,22 @@
 package com.android.tools.idea.project.messages;
 
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
 
 import static com.intellij.openapi.externalSystem.model.ProjectSystemId.IDE;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AbstractSyncMessages}.
  */
 public class AbstractSyncMessagesTest extends IdeaTestCase {
-  @Mock private ExternalSystemNotificationManager myNotificationManager;
-
   private SyncMessages mySyncMessages;
+  private static final String TEST_GROUP = "Test";
 
   @Override
   protected void setUp() throws Exception {
@@ -43,56 +39,65 @@ public class AbstractSyncMessagesTest extends IdeaTestCase {
 
     initMocks(this);
 
-    mySyncMessages = new SyncMessages(getProject(), myNotificationManager);
+    mySyncMessages = new SyncMessages(myProject);
+    ExternalSystemTaskId taskId = ExternalSystemTaskId.create(mySyncMessages.getProjectSystemId(), EXECUTE_TASK, myProject);
+    myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, taskId);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, null);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testGetErrorCount() {
     int expectedCount = 6;
-    when(myNotificationManager.getMessageCount(PROJECT_SYNC, ERROR, IDE)).thenReturn(expectedCount);
-
+    generateMessages(expectedCount, MessageType.ERROR);
+    generateMessages(expectedCount + 1, MessageType.WARNING);
     int actualCount = mySyncMessages.getErrorCount();
     assertEquals(expectedCount, actualCount);
-
-    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, ERROR, IDE);
   }
 
   public void testGetMessageCount() {
     String group = "Test";
 
     int expectedCount = 6;
-    when(myNotificationManager.getMessageCount(group, PROJECT_SYNC, null, IDE)).thenReturn(expectedCount);
+    generateMessages(expectedCount, MessageType.ERROR);
+    generateMessages(expectedCount, MessageType.WARNING);
 
-    int actualCount = mySyncMessages.getMessageCount(group);
-    assertEquals(expectedCount, actualCount);
-
-    verify(myNotificationManager).getMessageCount(group, PROJECT_SYNC, null, IDE);
+    int actualCount = mySyncMessages.getMessageCount(TEST_GROUP);
+    assertEquals(2 * expectedCount, actualCount);
   }
 
   public void testIsEmptyWithMessages() {
-    when(myNotificationManager.getMessageCount(PROJECT_SYNC, null, IDE)).thenReturn(6);
-
+    generateMessages(1, MessageType.ERROR);
     assertFalse(mySyncMessages.isEmpty());
-
-    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, null, IDE);
   }
 
   public void testIsEmptyWithoutMessages() {
-    when(myNotificationManager.getMessageCount(PROJECT_SYNC, null, IDE)).thenReturn(0);
-
     assertTrue(mySyncMessages.isEmpty());
-
-    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, null, IDE);
   }
 
   public void testRemoveAllMessages() {
+    generateMessages(1, MessageType.ERROR);
+    assertFalse(mySyncMessages.isEmpty());
     mySyncMessages.removeAllMessages();
+    assertTrue(mySyncMessages.isEmpty());
+  }
 
-    verify(myNotificationManager).clearNotifications(PROJECT_SYNC, IDE);
+  private void generateMessages(int count, MessageType type) {
+    for (int i = 0; i < count; i++) {
+      mySyncMessages.report(new SyncMessage("Test", type, "Message for test"));
+    }
   }
 
   private static class SyncMessages extends AbstractSyncMessages {
-    SyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
-      super(project, manager);
+    SyncMessages(@NotNull Project project) {
+      super(project);
     }
 
     @Override

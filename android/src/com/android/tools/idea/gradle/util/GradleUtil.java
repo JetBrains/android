@@ -615,23 +615,6 @@ public final class GradleUtil {
   }
 
   /**
-   * @param androidModel the Android model to check
-   * @param artifact     the artifact
-   * @return {@link GradleVersion} of the artifact if the project depends on the given artifact, or {@code null} if project doesn't depend on the artifact.
-   */
-  @Nullable
-  public static GradleVersion getModuleDependencyVersion(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
-    for (Library library : dependencies.getAndroidLibraries()) {
-      String version = getDependencyVersion(library, artifact);
-      if (version != null) {
-        return GradleVersion.tryParse(version);
-      }
-    }
-    return null;
-  }
-
-  /**
    * Returns {@code true} if the androidTest artifact of the given Android model depends on the given artifact, which consists of a group id
    * and an artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
    *
