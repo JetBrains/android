@@ -167,7 +167,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testStopCapturingSuccessfully() throws InterruptedException {
+  public void testStopCapturingSuccessfully() {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     captureSuccessfully();
   }
@@ -263,7 +263,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void setSelectedThreadShouldChangeDetails() throws Exception {
+  public void setSelectedThreadShouldChangeDetails() {
     captureSuccessfully();
 
     AspectObserver observer = new AspectObserver();
@@ -277,7 +277,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void unselectingThreadSetDetailsNodeToNull() throws InterruptedException {
+  public void unselectingThreadSetDetailsNodeToNull() {
     captureSuccessfully();
     myStage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART);
     myStage.setSelectedThread(myStage.getCapture().getMainThreadId());
@@ -289,7 +289,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void settingTheSameThreadDoesNothing() throws Exception {
+  public void settingTheSameThreadDoesNothing() {
     myCpuService.setTraceId(0);
     captureSuccessfully();
 
@@ -307,7 +307,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void settingTheSameDetailsTypeDoesNothing() throws Exception {
+  public void settingTheSameDetailsTypeDoesNothing() {
     myCpuService.setTraceId(0);
     captureSuccessfully();
 
@@ -375,7 +375,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void setAndSelectCaptureDifferentClockType() throws InterruptedException {
+  public void setAndSelectCaptureDifferentClockType() {
     captureSuccessfully();
     CpuCapture capture = myStage.getCapture();
     CaptureNode captureNode = capture.getCaptureNode(capture.getMainThreadId());
@@ -411,7 +411,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testCaptureRangeConversion() throws Exception {
+  public void testCaptureRangeConversion() {
     captureSuccessfully();
 
     myStage.setSelectedThread(myStage.getCapture().getMainThreadId());
@@ -602,7 +602,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void stopProfilerIsConsistentToStartProfiler() throws InterruptedException, IOException {
+  public void stopProfilerIsConsistentToStartProfiler() throws IOException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
                                                                 CpuProfiler.CpuProfilerType.SIMPLEPERF,
@@ -720,7 +720,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void selectARangeWithNoCapturesShouldKeepCurrentCaptureSelected() throws InterruptedException {
+  public void selectARangeWithNoCapturesShouldKeepCurrentCaptureSelected() {
     assertThat(myStage.getCapture()).isNull();
     captureSuccessfully();
     assertThat(myStage.getCapture()).isNotNull();
@@ -779,7 +779,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void cpuMetadataSuccessfulCapture() throws InterruptedException {
+  public void cpuMetadataSuccessfulCapture() {
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
                                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
@@ -975,7 +975,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void stopCapturingFailureShowsErrorBalloon() throws InterruptedException {
+  public void stopCapturingFailureShowsErrorBalloon() {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
@@ -1003,7 +1003,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void captureParsingFailureShowsErrorBalloon() throws InterruptedException, IOException {
+  public void captureParsingFailureShowsErrorBalloon() throws IOException {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                CpuProfiler.CpuProfilerType.ART,
