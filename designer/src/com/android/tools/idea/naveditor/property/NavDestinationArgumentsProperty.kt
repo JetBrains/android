@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.naveditor.property
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_NAME
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.util.xml.XmlName
@@ -24,10 +25,12 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 
 /**
- * Property representing all the arguments (possibly zero) for a destinations.
+ * Property representing all the arguments (possibly zero) for a destination.
  */
 class NavDestinationArgumentsProperty(components: List<NlComponent>, propertiesManager: NavPropertiesManager) :
     NavArgumentsProperty(components, propertiesManager) {
+
+  internal var newArgumentCount: Int = 0
 
   init {
     refreshList()
@@ -40,17 +43,51 @@ class NavDestinationArgumentsProperty(components: List<NlComponent>, propertiesM
     properties.clear()
 
     components.flatMap { it.children }
-        .filter { it.tagName == NavigationSchema.TAG_ARGUMENT }
-        .mapTo(properties) { NavDestinationArgumentPropertyImpl(listOf(it), attrDefs, this) }
-    properties.add(NewNavElementProperty(components[0], attrDefs, propertiesManager))
+      .filter { it.tagName == NavigationSchema.TAG_ARGUMENT }
+      .mapTo(properties) { NavDestinationArgumentPropertyImpl(listOf(it), attrDefs, this) }
+    repeat(newArgumentCount) {
+      properties.add(NewNavElementProperty(components[0], attrDefs, propertiesManager, this))
+    }
+  }
+
+  fun addRow() {
+    newArgumentCount++
+    refreshList()
+  }
+
+  fun deleteRows(indexes: IntArray) {
+    for (index in indexes.reversed()) {
+      val navArgumentProperty = properties[index]
+      if (navArgumentProperty is NavDestinationArgumentPropertyImpl) {
+        navArgumentProperty.deleteArgument()
+      } else {
+        properties.removeAt(index)
+        newArgumentCount--
+      }
+    }
+    refreshList()
   }
 }
 
-private class NewNavElementProperty(parent: NlComponent, attrDefs: AttributeDefinitions, propertiesManager: NavPropertiesManager)
+private class NewNavElementProperty(
+  parent: NlComponent,
+  attrDefs: AttributeDefinitions,
+  propertiesManager: NavPropertiesManager,
+  val navDestinationArgumentsProperty: NavDestinationArgumentsProperty
+)
   : NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_NAME, ANDROID_URI, attrDefs, propertiesManager), NavArgumentProperty {
+  override fun setValue(value: Any?) {
+    super.setValue(value)
+    navDestinationArgumentsProperty.newArgumentCount--
+  }
 
   override val defaultValueProperty =
-      NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_DEFAULT_VALUE, ANDROID_URI, attrDefs, propertiesManager)
+      object: NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_DEFAULT_VALUE, ANDROID_URI, attrDefs, propertiesManager) {
+        override fun setValue(value: Any?) {
+          super.setValue(value)
+          navDestinationArgumentsProperty.newArgumentCount--
+        }
+      }
 }
 
 private class NavDestinationArgumentPropertyImpl(components: List<NlComponent>,
@@ -74,9 +111,13 @@ private class NavDestinationArgumentPropertyImpl(components: List<NlComponent>,
 
   private fun deleteIfNeeded() {
     if (value.isNullOrEmpty() && defaultValueProperty.value.isNullOrEmpty()) {
-      navArgumentsProperty.model.delete(components)
-      navArgumentsProperty.refreshList()
+      deleteArgument()
     }
+  }
+
+  fun deleteArgument() {
+    navArgumentsProperty.model.delete(components)
+    navArgumentsProperty.refreshList()
   }
 }
 

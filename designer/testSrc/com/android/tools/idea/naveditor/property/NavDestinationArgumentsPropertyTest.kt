@@ -42,13 +42,13 @@ class NavDestinationArgumentsPropertyTest : NavTestCase() {
 
   fun testMultipleArguments() {
     val property = NavDestinationArgumentsProperty(listOf(model.find("f1")!!), mock(NavPropertiesManager::class.java))
-    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2", null to null),
+    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2"),
         property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 
   fun testNoArguments() {
     val property = NavDestinationArgumentsProperty(listOf(model.find("f3")!!), mock(NavPropertiesManager::class.java))
-    assertEquals(mapOf(null to null), property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
+    assertTrue(property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }).isEmpty())
   }
 
   fun testModify() {
@@ -60,6 +60,19 @@ class NavDestinationArgumentsPropertyTest : NavTestCase() {
     assertEquals(argument, property.properties[0].components[0])
     fragment.removeChild(argument)
     property.refreshList()
-    assertEquals(mapOf(null to null), property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
+    assertTrue(property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }).isEmpty())
+  }
+
+  fun testAddDelete() {
+    val property = NavDestinationArgumentsProperty(listOf(model.find("f1")!!), mock(NavPropertiesManager::class.java))
+    property.addRow()
+    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2", null to null),
+        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
+    property.addRow()
+    assertEquals(mapOf("arg1" to "val1", "arg2" to "val2", null to null, null to null),
+        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
+    property.deleteRows(intArrayOf(1, 2))
+    assertEquals(mapOf("arg1" to "val1", null to null),
+        property.properties.associateBy({ it.value }, { it.defaultValueProperty.value }))
   }
 }
