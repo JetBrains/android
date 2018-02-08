@@ -216,6 +216,8 @@ public class LineChart extends AnimatedComponent {
       seriesList = myReducer.reduceData(seriesList, config);
       double xBucketInterval = config.getDataBucketInterval() / xLength;
       double xBucketBarWidth = xBucketInterval * BUCKET_BAR_PERCENTAGE;
+      // If we are a stepped chart or bar chart, we don't need to worry about start and end points' Y value.
+      boolean optimizeYZooming = !config.isStepped() && xBucketInterval == 0;
       for (int i = 0; i < seriesList.size(); i++) {
         SeriesData<Long> data = seriesList.get(i);
         SeriesData<Long> dataNext = seriesList.get(i + 1 == seriesList.size() ? i : i + 1);
@@ -230,7 +232,15 @@ public class LineChart extends AnimatedComponent {
         // computing a line fill for pixels never to be rendered.
         // Truncate points that are off screen. Ones that cross the border get pushed to the border, and the
         // height gets scaled accordingly.
+        // For example, two out of bounds points would get snapped into place.
+        //                |                    |
+        //                |                    * <-- *
+        //          * --> *                    |
+        //                |                    |
+        // X Axis: -------|--------------------|------
+        //                0                    1
 
+        double originalXd = xd;
         if (xd < 0) {
           double xdNext = (dataNext.x - xMin) / xLength;
           // If our next point is also offscreen then ignore this point and continue.
@@ -246,7 +256,7 @@ public class LineChart extends AnimatedComponent {
           if (config.isDash()) {
             newPosition = xd % 1.0f;
           }
-          if (!config.isStepped()) {
+          if (optimizeYZooming) {
             // If we are not stepped we need to adjust the starting Y position to be a linear interpolation of our new X point.
             double ratio = (newPosition - xd) / (xdNext - xd);
             yd = (1 - ratio) * yd + (ratio * ydNext);
@@ -258,7 +268,7 @@ public class LineChart extends AnimatedComponent {
           if (xdPrev > 1) {
             break;
           }
-          if (!config.isStepped()) {
+          if (optimizeYZooming) {
             double ratio = (1 - xdPrev) / (xd - xdPrev);
             double ydPrev = 1 - (dataPrev.value - yMin) / yLength;
             yd = (1 - ratio) * ydPrev + (ratio * yd);
@@ -287,10 +297,13 @@ public class LineChart extends AnimatedComponent {
         if (xBucketInterval != 0) {
           // Each bucket data point is drawn according to the interval amount instead of xd.
           double x = path.getCurrentPoint().getX();
-          path.lineTo(x, yd);
-          path.lineTo(x + xBucketBarWidth, yd);
-          path.lineTo(x + xBucketBarWidth, 1);
-          path.lineTo(x + xBucketInterval, 1);
+          double barX = Math.min(1, originalXd + xBucketBarWidth);
+          if (barX - x > EPSILON) {
+            path.lineTo(x, yd);
+            path.lineTo(barX, yd);
+            path.lineTo(barX, 1);
+          }
+          path.lineTo(originalXd + xBucketInterval, 1);
         }
       }
 
