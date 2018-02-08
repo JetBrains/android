@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
-import com.android.ide.common.blame.*;
+import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.Message.Kind;
+import com.android.ide.common.blame.MessageJsonSerializer;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
@@ -26,6 +29,7 @@ import com.intellij.build.events.impl.FileMessageEventImpl;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,42 +40,52 @@ import java.util.function.Consumer;
 import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser.STDOUT_ERROR_TAG;
 
 /**
- * Parser got errors returned by the Android Gradle Plugin in AGPBI json format.
+ * Parser errors returned by the Android Gradle Plugin in AGPBI json format.
  */
 public class GradleBuildOutputParser implements BuildOutputParser {
-  private static final String MESSAGES_GROUP = "Android errors";
+  private static final String MESSAGES_GROUP = "Android issues";
 
   @Override
   public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<MessageEvent> messageConsumer) {
     if (line.startsWith(STDOUT_ERROR_TAG)) {
-      String jsonString = line.substring(STDOUT_ERROR_TAG.length()).trim();
-      if (jsonString.isEmpty()) {
-        return false;
-      }
-      GsonBuilder gsonBuilder = new GsonBuilder();
-      MessageJsonSerializer.registerTypeAdapters(gsonBuilder);
-      Gson gson = gsonBuilder.create();
-      try {
-        Message msg = gson.fromJson(jsonString, Message.class);
-        boolean validPosition = false;
-        for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
-          FilePosition filePosition = convertToFilePosition(sourceFilePosition);
-          if (filePosition != null) {
-            validPosition = true;
-            messageConsumer.accept(
-              new FileMessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), filePosition));
-          }
-        }
-        if (!validPosition) {
-          messageConsumer.accept(new MessageEventImpl(reader.getBuildId(), convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText()));
-        }
-        return true;
-      }
-      catch (JsonParseException e) {
-        return false;
-      }
+      // Message started, start storing lines
+      return processMessage(line, reader.getBuildId(), messageConsumer);
     }
     return false;
+  }
+
+  /**
+   * Process an error message stored in myBufferedLines.
+   * @return true if a message was processed.
+   */
+  private static boolean processMessage(@NotNull String line, @NotNull Object buildId, @NotNull Consumer<MessageEvent> messageConsumer) {
+    String jsonString = line.substring(STDOUT_ERROR_TAG.length()).trim();
+    if (jsonString.isEmpty()) {
+      return false;
+    }
+    GsonBuilder gsonBuilder = new GsonBuilder();
+    MessageJsonSerializer.registerTypeAdapters(gsonBuilder);
+    Gson gson = gsonBuilder.create();
+    try {
+      Message msg = gson.fromJson(jsonString, Message.class);
+      String detailMessage = msg.getText() + SystemProperties.getLineSeparator() + msg.toString();
+      boolean validPosition = false;
+      for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
+        FilePosition filePosition = convertToFilePosition(sourceFilePosition);
+        if (filePosition != null) {
+          validPosition = true;
+          messageConsumer.accept(
+            new FileMessageEventImpl(buildId, convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage, filePosition));
+        }
+      }
+      if (!validPosition) {
+        messageConsumer.accept(new MessageEventImpl(buildId, convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage));
+      }
+    }
+    catch (JsonParseException ignored) {
+      messageConsumer.accept(new MessageEventImpl(buildId, MessageEvent.Kind.WARNING, MESSAGES_GROUP, line, line));
+    }
+    return true;
   }
 
   /**

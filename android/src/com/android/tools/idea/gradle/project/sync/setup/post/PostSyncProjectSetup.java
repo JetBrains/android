@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersi
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -43,6 +45,13 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.build.SyncViewManager;
+import com.intellij.build.events.EventResult;
+import com.intellij.build.events.Failure;
+import com.intellij.build.events.FinishEvent;
+import com.intellij.build.events.impl.FailureResultImpl;
+import com.intellij.build.events.impl.FinishBuildEventImpl;
+import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
@@ -56,6 +65,7 @@ import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -70,6 +80,7 @@ import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
 import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.EXTERNAL_SYSTEM_TASK_ID_KEY;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
@@ -174,16 +185,17 @@ public class PostSyncProjectSetup {
 
     if (syncFailed) {
       failTestsIfSyncIssuesPresent();
-
       myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
       // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
       // previous sync, and not the one from the sync that just ended.
       mySyncState.syncFailed("");
+      finishFailedSync();
       return;
     }
 
     if (!request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
       // Plugin version was upgraded and a sync was triggered.
+      finishSuccessfulSync();
       return;
     }
 
@@ -209,6 +221,55 @@ public class PostSyncProjectSetup {
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
     myModuleSetup.setUpModules(null);
+
+    finishSuccessfulSync();
+  }
+
+  private void finishSuccessfulSync() {
+    ExternalSystemTaskId id = myProject.getUserData(EXTERNAL_SYSTEM_TASK_ID_KEY);
+    if (id != null) {
+      String message = "synced successfully";
+      // Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
+      EventResult result;
+      ArrayList<Failure> failures = new ArrayList<>();
+      GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
+      List<AndroidSyncIssueEvent> events = messages.getEvents();
+      for (AndroidSyncIssueEvent event : events) {
+        failures.addAll(((AndroidSyncIssueEventResult)event.getResult()).getFailures());
+      }
+      if (failures.isEmpty()) {
+        result = new SuccessResultImpl();
+      }
+      else {
+        result = new FailureResultImpl(failures);
+      }
+
+      FinishBuildEventImpl finishBuildEvent =
+        new FinishBuildEventImpl(id, null, System.currentTimeMillis(), message, result);
+      callFinishEventAndShowBuildView(finishBuildEvent);
+    }
+  }
+
+  private void finishFailedSync() {
+    ExternalSystemTaskId id = myProject.getUserData(EXTERNAL_SYSTEM_TASK_ID_KEY);
+    if (id != null) {
+      String message = "sync failed";
+      ArrayList<Failure> failures = new ArrayList<>();
+      GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
+      List<AndroidSyncIssueEvent> events = messages.getEvents();
+      for (AndroidSyncIssueEvent event : events) {
+        failures.addAll(((AndroidSyncIssueEventResult)event.getResult()).getFailures());
+      }
+      FailureResultImpl failureResult = new FailureResultImpl(failures);
+      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), message, failureResult);
+      callFinishEventAndShowBuildView(finishBuildEvent);
+    }
+  }
+
+  private void callFinishEventAndShowBuildView(@NotNull FinishEvent event) {
+    SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
+    syncViewManager.onEvent(event);
+    myProject.putUserData(EXTERNAL_SYSTEM_TASK_ID_KEY, null);
   }
 
   public void onCachedModelsSetupFailure(@NotNull Request request) {
