@@ -33,7 +33,6 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.function.Predicate;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
@@ -156,9 +155,8 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   @NotNull
   public ThemeSelectionDialogFixture openThemeSelectionDialog() {
     // We directly perform the action here because ActionButton of Theme may be collapsed and cannot be found by finder.
-    ThemeMenuAction themeMenuAction = (ThemeMenuAction) myToolBar.getActions().stream().filter(action -> action instanceof ThemeMenuAction).findAny().get();
-    AnAction moreThemeAction = Arrays.stream(themeMenuAction.getChildren(null)).filter(action -> action instanceof ThemeMenuAction.MoreThemesAction).findAny().get();
-    ApplicationManager.getApplication().invokeLater(() -> moreThemeAction.actionPerformed(new TestActionEvent()));
+    AnAction themeMenuAction = myToolBar.getActions().stream().filter(action -> action instanceof ThemeMenuAction).findAny().get();
+    ApplicationManager.getApplication().invokeLater(() -> themeMenuAction.actionPerformed(new TestActionEvent()));
     return ThemeSelectionDialogFixture.find(myRobot);
   }
 
