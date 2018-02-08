@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -39,10 +40,10 @@ import java.util.function.Predicate;
  * TODO: Rename this class to something different as this will be conflicting with GradlePropertiesModel
  */
 public abstract class GradlePropertiesDslElement extends GradleDslElement {
-  @NotNull private final static Predicate<GradleDslElement> VARIABLE_FILTER = e -> e.getElementType() == PropertyType.VARIABLE;
+  @NotNull private final static Predicate<ElementList.ElementItem> VARIABLE_FILTER = e -> e.myElement.getElementType() == PropertyType.VARIABLE;
   // This filter currently gives us everything that is not a variable.
-  @NotNull private final static Predicate<GradleDslElement> PROPERTY_FILTER = VARIABLE_FILTER.negate();
-  @NotNull private final static Predicate<GradleDslElement> ANY_FILTER = e -> true;
+  @NotNull private final static Predicate<ElementList.ElementItem> PROPERTY_FILTER = VARIABLE_FILTER.negate();
+  @NotNull private final static Predicate<ElementList.ElementItem> ANY_FILTER = e -> true;
 
   @NotNull private final Map<String, ElementList> myProperties = new LinkedHashMap<>();
 
@@ -239,7 +240,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   @NotNull
-  private Map<String, GradleDslElement> getElementsWhere(@NotNull Predicate<GradleDslElement> predicate) {
+  private Map<String, GradleDslElement> getElementsWhere(@NotNull Predicate<ElementList.ElementItem> predicate) {
     Map<String, GradleDslElement> results = new LinkedHashMap<>();
     for (Map.Entry<String, ElementList> item : myProperties.entrySet()) {
       GradleDslElement element = item.getValue().getElementWhere(predicate);
@@ -250,7 +251,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     return results;
   }
 
-  private GradleDslElement getElementWhere(@NotNull String name, @NotNull Predicate<GradleDslElement> predicate) {
+  private GradleDslElement getElementWhere(@NotNull String name, @NotNull Predicate<ElementList.ElementItem> predicate) {
     return getElementsWhere(predicate).get(name);
   }
 
@@ -318,6 +319,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   public <T extends GradleDslElement> T getPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslElement propertyElement = getPropertyElement(property);
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
+  }
+
+  @NotNull
+  public <T extends GradleDslElement> List<T> getPropertyElements(@NotNull Class<T> clazz) {
+    Collection<GradleDslElement> propertyElements = getPropertyElements().values();
+    return propertyElements.stream().filter(e -> clazz.isAssignableFrom(e.getClass())).map(e -> clazz.cast(e)).collect(Collectors.toList());
   }
 
   private static <T> GradleNullableValue<T> createAndWrapDslValue(@Nullable GradleDslElement element, @NotNull Class<T> clazz) {
@@ -490,6 +497,21 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   @Override
+  public List<GradleDslElement> getContainedElements(boolean includeProperties) {
+    List<GradleDslElement> result = new ArrayList<>();
+    if (includeProperties) {
+      result.addAll(getElementsWhere(e -> e.myElementState != ElementState.APPLIED).values());
+    }
+    else {
+      result.addAll(getVariableElements().values());
+    }
+
+    List<GradlePropertiesDslElement> holders = getPropertyElements(GradlePropertiesDslElement.class);
+    holders.forEach(e -> result.addAll(e.getContainedElements(includeProperties)));
+    return result;
+  }
+
+  @Override
   protected void apply() {
     for (Iterator<Map.Entry<String, ElementList>> i = myProperties.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry<String, ElementList> entry = i.next();
@@ -550,10 +572,9 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     }
 
     @Nullable
-    private GradleDslElement getElementWhere(@NotNull Predicate<GradleDslElement> predicate) {
+    private GradleDslElement getElementWhere(@NotNull Predicate<ElementItem> predicate) {
       return myElements.stream().filter(e -> e.myElementState != ElementState.TO_BE_REMOVED && e.myElementState != ElementState.HIDDEN)
-        .map(e -> e.myElement).filter(predicate)
-        .findFirst().orElse(null);
+        .filter(predicate).map(e -> e.myElement).findFirst().orElse(null);
     }
 
     private void addElement(@NotNull GradleDslElement newElement, @NotNull ElementState state) {

@@ -222,6 +222,14 @@ public abstract class GradleDslElement {
   protected abstract void reset();
 
   /**
+   * Computes a list of properties and variables that are declared or assigned to in this scope.
+   * Override in subclasses to return meaningful values.
+   */
+  public List<GradleDslElement> getContainedElements(boolean includeProperties) {
+    return Collections.emptyList();
+  }
+
+  /**
    * Computes a list of properties and variables that are visible from this GradleDslElement.
    */
   public Map<String, GradleDslElement> getInScopeElements() {

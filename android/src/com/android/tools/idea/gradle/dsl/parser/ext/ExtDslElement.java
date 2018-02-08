@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,7 +34,7 @@ import java.util.Map;
 public final class ExtDslElement extends GradleDslBlockElement {
   @NonNls public static final String EXT_BLOCK_NAME = "ext";
 
-  public ExtDslElement(@Nullable GradleDslElement parent) {
+  public ExtDslElement(@NotNull GradleDslElement parent) {
     super(parent, EXT_BLOCK_NAME);
   }
 
@@ -57,6 +57,16 @@ public final class ExtDslElement extends GradleDslBlockElement {
     GradleDslElement newElement = super.setNewElement(property, element);
     newElement.setUseAssignment(true);
     return newElement;
+  }
+
+  /**
+   * For the ExtModel we need to also include properties that are already defined in the block,
+   * rather than just variables.
+   */
+  @Override
+  @NotNull
+  public List<GradleDslElement> getContainedElements(boolean includeProperties) {
+    return super.getContainedElements(true);
   }
 
   /**

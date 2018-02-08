@@ -24,10 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE;
 
@@ -46,6 +43,11 @@ public final class GradlePropertiesFile extends GradleDslFile {
   @Override
   public void parse() {
     // There is nothing to parse in a properties file as it's just a java properties file.
+  }
+
+  @Override
+  public List<GradleDslElement> getContainedElements(boolean includeProperties) {
+    return new ArrayList<>(getPropertyElements().values());
   }
 
   @Override
@@ -69,6 +71,13 @@ public final class GradlePropertiesFile extends GradleDslFile {
       results.put(name, getPropertyElement(name));
     }
     return results;
+  }
+
+  @Override
+  @NotNull
+  public Map<String, GradleDslElement> getElements() {
+    // Properties files have no variables.
+    return getPropertyElements();
   }
 
   @Override

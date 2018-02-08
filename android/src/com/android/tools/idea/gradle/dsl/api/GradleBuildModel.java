@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.List;
+import java.util.Set;
 
 public interface GradleBuildModel extends GradleFileModel {
   @Nullable
@@ -79,6 +80,12 @@ public interface GradleBuildModel extends GradleFileModel {
 
   @NotNull
   RepositoriesModel repositories();
+
+  /**
+   * @return the models for files that are used by this GradleBuildModel.
+   */
+  @NotNull
+  Set<GradleFileModel> getInvolvedFiles();
 
   /**
    * Removes repository property.

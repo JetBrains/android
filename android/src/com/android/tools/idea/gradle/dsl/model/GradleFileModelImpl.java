@@ -16,7 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -72,9 +77,19 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     return myGradleDslFile.getFile();
   }
 
-  public Set<GradleDslFile> getInvolvedFiles() {
+  @NotNull
+  @Override
+  public List<GradlePropertyModel> getDeclaredProperties() {
+    return myGradleDslFile.getContainedElements(false).stream().map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
+  }
+
+  @NotNull
+  public Set<GradleDslFile> getAllInvolvedFiles() {
     Set<GradleDslFile> files = new HashSet<>();
     files.add(myGradleDslFile);
+    // Add all parent dsl files.
+    files.addAll(getParentFiles());
+
     List<GradleDslFile> currentFiles = new ArrayList<>();
     currentFiles.add(myGradleDslFile);
     // TODO: Generalize cycle detection in GradleDslExpression and reuse here.
@@ -84,6 +99,25 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
       files.addAll(currentFile.getAppliedFiles());
       currentFiles.addAll(currentFile.getAppliedFiles());
     }
+
+    // Get all the properties files.
+    for (GradleDslFile file : new ArrayList<>(files)) {
+      GradleDslFile sibling = file.getSiblingDslFile();
+      if (sibling != null) {
+        files.add(sibling);
+      }
+    }
+
+    return files;
+  }
+
+  private Set<GradleDslFile> getParentFiles() {
+    Set<GradleDslFile> files = new HashSet<>();
+    GradleDslFile file = myGradleDslFile.getParentModuleDslFile();
+    while (file != null) {
+      files.add(file);
+      file = file.getParentModuleDslFile();
+    }
     return files;
   }
 
@@ -91,18 +125,16 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     Set<PsiElement> relatedPsiElements = new HashSet<>();
     relatedPsiElements.add(myGradleDslFile.getPsiElement());
     // Add all applied dsl files.
-    relatedPsiElements.addAll(getInvolvedFiles().stream().map(GradleDslFile::getPsiElement).collect(Collectors.toList()));
-
-    // Add all parent dsl files.
-    GradleDslFile file = myGradleDslFile.getParentModuleDslFile();
-    while (file != null) {
-      relatedPsiElements.add(file.getPsiElement());
-      file = file.getParentModuleDslFile();
-    }
+    relatedPsiElements.addAll(getAllInvolvedFiles().stream().map(GradleDslFile::getPsiElement).collect(Collectors.toList()));
 
     // Now relatedPsiElements should contain psi elements for the whole GradleDslFile tree.
     // TODO: Only save the files that were actually modified by the build model.
     for (PsiElement psiElement : relatedPsiElements) {
+      // Properties files to not have PsiElements.
+      if (psiElement == null) {
+        continue;
+      }
+
       // Check for any postponed psi operations and complete them to unblock the underlying document for further modifications.
       assert psiElement instanceof PsiFile;
 

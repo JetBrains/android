@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -42,6 +43,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
@@ -61,6 +64,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -327,6 +331,24 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     }
     myToBeAppliedPlugins.clear();
     super.applyChanges();
+  }
+
+  @Override
+  @NotNull
+  public Set<GradleFileModel> getInvolvedFiles() {
+    return getAllInvolvedFiles().stream().map(e -> getFileModel(e)).collect(Collectors.toSet());
+  }
+
+  @NotNull
+  private static GradleFileModel getFileModel(@NotNull GradleDslFile file) {
+    if (file instanceof GradleBuildFile) {
+      return new GradleBuildModelImpl((GradleBuildFile)file);
+    } else if (file instanceof GradleSettingsFile) {
+      return new GradleSettingsModelImpl((GradleSettingsFile)file);
+    } else if (file instanceof GradlePropertiesFile) {
+      return new GradlePropertiesModel(file);
+    }
+    throw new IllegalStateException("Unknown GradleDslFile type found!");
   }
 
   /**

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public interface GradleFileModel {
   @NotNull
@@ -33,4 +36,7 @@ public interface GradleFileModel {
   VirtualFile getVirtualFile();
 
   void applyChanges();
+
+  @NotNull
+  List<GradlePropertyModel> getDeclaredProperties();
 }
