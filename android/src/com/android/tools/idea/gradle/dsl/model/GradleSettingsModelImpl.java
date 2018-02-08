@@ -51,7 +51,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     return new GradleSettingsModelImpl(settingsFile);
   }
 
-  private GradleSettingsModelImpl(@NotNull GradleSettingsFile parsedModel) {
+  public GradleSettingsModelImpl(@NotNull GradleSettingsFile parsedModel) {
     super(parsedModel);
   }
 

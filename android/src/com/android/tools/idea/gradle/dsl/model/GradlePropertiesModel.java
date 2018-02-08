@@ -50,7 +50,7 @@ public class GradlePropertiesModel extends GradleFileModelImpl {
     }
   }
 
-  private GradlePropertiesModel(@NotNull GradleDslFile gradleDslFile) {
+  public GradlePropertiesModel(@NotNull GradleDslFile gradleDslFile) {
     super(gradleDslFile);
   }
 }
