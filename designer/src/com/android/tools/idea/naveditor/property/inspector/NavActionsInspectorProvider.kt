@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.*
 import com.intellij.ui.components.JBList
 import icons.StudioIcons
 import java.awt.Component
+import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
 
 // Open for testing only
@@ -92,13 +93,14 @@ open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProp
     scene.repaint()
   }
 
-  override fun plusClicked(event: MouseEvent, parents: List<NlComponent>, resourceResolver: ResourceResolver?, surface: NavDesignSurface) {
+  override fun plusClicked(event: ActionEvent, parents: List<NlComponent>, resourceResolver: ResourceResolver?, surface: NavDesignSurface) {
     val actions: MutableList<AnAction> = getPopupActions(parents, resourceResolver, surface)
 
     val actionManager = ActionManager.getInstance()
     val popupMenu = actionManager.createActionPopupMenu("NavListInspector", DefaultActionGroup(actions))
-    val invoker: Component = event.source as? Component ?: return
-    popupMenu.component.show(invoker, event.x, event.y)
+    val mouseEvent: MouseEvent = event.source as? MouseEvent ?: return
+    val invoker: Component = mouseEvent.source as? Component ?: return
+    popupMenu.component.show(invoker, mouseEvent.x, mouseEvent.y)
   }
 
   @VisibleForTesting

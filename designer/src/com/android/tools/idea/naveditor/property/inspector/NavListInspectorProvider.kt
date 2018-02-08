@@ -27,20 +27,18 @@ import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
+import com.intellij.ui.InplaceButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.Font
 import java.awt.Point
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
+import java.awt.event.*
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_ENTER
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import javax.swing.*
 
 const val NAV_LIST_COMPONENT_NAME = "NavListPropertyInspector"
@@ -76,7 +74,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     inspector.reset()
   }
 
-  protected open fun plusClicked(event: MouseEvent,
+  protected open fun plusClicked(event: ActionEvent,
                                  parents: List<NlComponent>,
                                  resourceResolver: ResourceResolver?,
                                  surface: NavDesignSurface) =
@@ -165,15 +163,14 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       attachListeners.forEach { it.invoke(list) }
 
       panel.add(list, BorderLayout.CENTER)
-      val plus = JLabel("+")
-      plus.font = Font(null, Font.BOLD, 14)
-      plus.foreground = JBColor.GRAY
-      plus.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          surface?.let { plusClicked(e, components, markerProperties[0].resolver, it) }
-          refresh()
-        }
-      })
+
+      val plus = InplaceButton("Add Action", addIcon) {
+        @Suppress("UnnecessaryVariable")
+        val event = it
+        surface?.let { plusClicked(event, components, markerProperties[0].resolver, it) }
+        refresh()
+      }
+
       val plusPanel = JPanel(BorderLayout())
       plusPanel.add(plus, BorderLayout.EAST)
 
@@ -249,3 +246,5 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
     }
   }
 }
+
+private val addIcon = ColoredIconGenerator.generateColoredIcon(AllIcons.General.Add, JBColor.GRAY.rgb)
