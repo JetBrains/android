@@ -163,6 +163,13 @@ public class SubtagsProcessingUtil {
       registerXmlResourcesSubtags(facet, element.getXmlTag(), (XmlResourceElement)element, subtagProcessor);
     }
     else if (element instanceof NavDestinationElement) {
+      try {
+        NavigationSchema.createIfNecessary(facet);
+      }
+      catch (ClassNotFoundException e) {
+        // We must not have added the nav library dependency yet, but encountered a nav file. Ignore for now.
+        return;
+      }
       NavigationSchema schema = NavigationSchema.get(facet);
       Multimap<Class<? extends AndroidDomElement>, String> subtags = schema.getDestinationSubtags(element.getXmlTag().getName());
       for (Class<? extends AndroidDomElement> c : subtags.keys()) {
