@@ -45,15 +45,20 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   private var beingLoaded = false
   protected val valueToText: Map<ValueT, String> = buildValueToTextMap()
 
-  protected val table: JBTable = JBTable().also {
-    add(
-      ToolbarDecorator.createDecorator(it)
-            .setAddAction({})
-            .setRemoveAction({})
-            .setPreferredSize(Dimension(450, 100))
-            .setToolbarPosition(ActionToolbarPosition.RIGHT)
-            .createPanel())
-  }
+  protected val table: JBTable = JBTable()
+    .apply {
+      rowHeight = calculateMinRowHeight()
+    }
+    .also {
+      add(
+        ToolbarDecorator.createDecorator(it)
+          .setAddAction({})
+          .setRemoveAction({})
+          .setPreferredSize(Dimension(450, 100))
+          .setToolbarPosition(ActionToolbarPosition.RIGHT)
+          .createPanel()
+      )
+    }
 
   protected fun loadValue() {
     beingLoaded = true
@@ -73,6 +78,8 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   protected abstract fun setValueAt(row: Int, value: ParsedValue<ValueT>)
 
   private fun buildValueToTextMap() = property.getKnownValues(model)?.associate { it.value to it.description } ?: mapOf()
+
+  private fun calculateMinRowHeight() = editor(Unit, SimplePropertyStub(), null).component.minimumSize.height
 
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this)
 
@@ -133,3 +140,14 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   }
 }
 
+class SimplePropertyStub<ValueT : Any> : ModelSimpleProperty<Unit, ValueT> {
+  override fun getParsedValue(model: Unit): ParsedValue<ValueT> = ParsedValue.NotSet()
+  override fun setParsedValue(model: Unit, value: ParsedValue<ValueT>) = Unit
+  override fun getResolvedValue(model: Unit): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
+  override val description: String = ""
+  override fun getDefaultValue(model: Unit): ValueT? = null
+  override fun getValue(thisRef: Unit, property: KProperty<*>): ParsedValue<ValueT> = ParsedValue.NotSet()
+  override fun setValue(thisRef: Unit, property: KProperty<*>, value: ParsedValue<ValueT>) = Unit
+  override fun parse(value: String): ParsedValue<ValueT> = ParsedValue.NotSet()
+  override fun getKnownValues(model: Unit): List<ValueDescriptor<ValueT>>? = null
+}
