@@ -203,4 +203,34 @@ public interface GradlePropertyModel {
    */
   @Nullable
   PsiElement getPsiElement();
+
+  /**
+   * @return the value of the property as a String or null if no value exists or is of an incorrect type.
+   */
+  @Nullable
+  String toString();
+
+  /**
+   * @return the value of the property as an Integer or null if no value exists or is of an incorrect type.
+   */
+  @Nullable
+  Integer toInt();
+
+  /**
+   * @return the value of the property as a Boolean or null if no value exists or is of an incorrect type.
+   */
+  @Nullable
+  Boolean toBoolean();
+
+  /**
+   * @return the value of the property as a List or null if no value exists or is of an incorrect type.
+   */
+  @Nullable
+  List<GradlePropertyModel> toList();
+
+  /**
+   * @return the value of the property as a Map or null if no value exists or is of an incorrect type.
+   */
+  @Nullable
+  Map<String, GradlePropertyModel> toMap();
 }

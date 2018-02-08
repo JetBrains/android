@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
@@ -142,6 +143,36 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @Override
   public PsiElement getPsiElement() {
     return myRealModel.getPsiElement();
+  }
+
+  @Nullable
+  @Override
+  public String toString() {
+    return resolveModel().toString();
+  }
+
+  @Nullable
+  @Override
+  public Integer toInt() {
+    return resolveModel().toInt();
+  }
+
+  @Nullable
+  @Override
+  public Boolean toBoolean() {
+    return resolveModel().toBoolean();
+  }
+
+  @Nullable
+  @Override
+  public List<GradlePropertyModel> toList() {
+    return resolveModel().toList();
+  }
+
+  @Nullable
+  @Override
+  public Map<String, GradlePropertyModel> toMap() {
+    return resolveModel().toMap();
   }
 
   @Override

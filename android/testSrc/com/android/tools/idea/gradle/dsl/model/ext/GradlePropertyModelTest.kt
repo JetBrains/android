@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.testFramework.PlatformTestCase
 import java.io.File
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
@@ -75,8 +74,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = extModel.findProperty("prop4")
       assertEquals(MAP, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
-      assertNull(propertyModel.getValue(STRING_TYPE))
-      assertNull(propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop4", propertyModel.name)
       assertEquals("ext.prop4", propertyModel.fullyQualifiedName)
 
@@ -92,8 +89,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = extModel.findProperty("prop5")
       assertEquals(LIST, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
-      assertNull(propertyModel.getValue(STRING_TYPE))
-      assertNull(propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop5", propertyModel.name)
       assertEquals("ext.prop5", propertyModel.fullyQualifiedName)
       val list = propertyModel.getValue(LIST_TYPE)!!
@@ -180,8 +175,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = extModel.findProperty("prop4")
       assertEquals(MAP, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
-      assertNull(propertyModel.getValue(STRING_TYPE))
-      assertNull(propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop4", propertyModel.name)
       assertEquals("ext.prop4", propertyModel.fullyQualifiedName)
       val value = propertyModel.getValue(MAP_TYPE)!!["key"]!!
@@ -194,8 +187,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = extModel.findProperty("prop5")
       assertEquals(LIST, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
-      assertNull(propertyModel.getValue(STRING_TYPE))
-      assertNull(propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop5", propertyModel.name)
       assertEquals("ext.prop5", propertyModel.fullyQualifiedName)
       val list = propertyModel.getValue(LIST_TYPE)!!
@@ -339,6 +330,47 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     verifyPropertyModel(variables[0], STRING_TYPE, "gecko", STRING, VARIABLE, 0, "var1", "ext.var1")
     verifyPropertyModel(variables[1], STRING_TYPE, "barbet", STRING, VARIABLE, 0, "var2", "ext.var2")
     verifyPropertyModel(variables[2], STRING_TYPE, "crane", STRING, VARIABLE, 0, "var3", "ext.var3")
+  }
+
+  fun testAsType() {
+    val text = """
+               ext {
+                 def prop1 = 'value'
+                 def prop2 = 25
+                 def prop3 = true
+                 def prop4 = [ "key": 'val']
+                 def prop5 = [ 'val1', 'val2', "val3"]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val extModel = gradleBuildModel.ext()
+
+    run {
+      val stringModel = extModel.findProperty("prop1")
+      assertEquals("value", stringModel.toString())
+      assertNull(stringModel.toInt())
+      assertNull(stringModel.toBoolean())
+      assertNull(stringModel.toList())
+      assertNull(stringModel.toMap())
+      val intModel = extModel.findProperty("prop2")
+      assertEquals(25, intModel.toInt())
+      assertEquals("25", intModel.toString())
+      assertNull(intModel.toBoolean())
+      assertNull(intModel.toMap())
+      assertNull(intModel.toList())
+      val boolModel = extModel.findProperty("prop3")
+      assertEquals(true, boolModel.toBoolean())
+      assertEquals("true", boolModel.toString())
+      assertNull(boolModel.toInt())
+      val mapModel = extModel.findProperty("prop4")
+      assertNotNull(mapModel.toMap())
+      assertNull(mapModel.toInt())
+      assertNull(mapModel.toList())
+      val listModel = extModel.findProperty("prop5")
+      assertNotNull(listModel.toList())
+      assertNull(listModel.toBoolean())
+      assertNull(listModel.toMap())
+    }
   }
 
   fun testGetNonQuotedListIndex() {
@@ -2908,10 +2940,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
-    ApplicationManager.getApplication().runWriteAction { myProject.baseDir.fileSystem.refresh(false) }
-    println(String(PlatformTestCase.getVirtualFile(myBuildFile).contentsToByteArray()))
-    println(String(PlatformTestCase.getVirtualFile(File(myBuildFile.parentFile, "a.gradle")).contentsToByteArray()))
-    println(String(PlatformTestCase.getVirtualFile(File(myBuildFile.parentFile, "b.gradle")).contentsToByteArray()))
 
     run {
       val properties = buildModel.ext().inScopeProperties
