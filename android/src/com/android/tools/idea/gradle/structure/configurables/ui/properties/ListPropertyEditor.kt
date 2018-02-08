@@ -38,11 +38,7 @@ class ListPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelListPro
 
   override fun dispose() = Unit
 
-  private var valueToText: Map<ValueT, String>
-
   init {
-    val possibleValues = property.getKnownValues(model) ?: listOf()
-    valueToText = possibleValues.associate { it.value to it.description }
     loadValue()
   }
 
@@ -50,12 +46,14 @@ class ListPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelListPro
     val tableModel = DefaultTableModel()
     tableModel.addColumn("item")
     for (item in property.getEditableValues(model)) {
-      tableModel.addRow(arrayOf(item.getParsedValue(Unit).getText(valueToText)))
+      tableModel.addRow(arrayOf(item.getParsedValue(Unit).toTableModelValue()))
     }
     return tableModel
   }
 
-  override fun getRowElement(rowIndex: Int): ModelPropertyCore<Unit, ValueT> = property.getEditableValues(model)[rowIndex]
+  override fun getValueAt(row: Int): ParsedValue<ValueT> = getRowProperty(row).getParsedValue(Unit)
+
+  override fun setValueAt(row: Int, value: ParsedValue<ValueT>) = getRowProperty(row).setParsedValue(Unit, value)
 
   override fun createColumnModel(): TableColumnModel {
     return DefaultTableColumnModel().apply {
@@ -68,6 +66,8 @@ class ListPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelListPro
 
   override fun getValueText(): String = throw UnsupportedOperationException()
   override fun getValue(): ParsedValue<List<ValueT>> = throw UnsupportedOperationException()
+
+  private fun getRowProperty(row: Int) = property.getEditableValues(model)[row]
 }
 
 fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> listPropertyEditor(
