@@ -1,20 +1,35 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -26,12 +41,13 @@ import java.util.*;
 
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
 import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
+import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 
 /**
- * Class that provides methods to resolve themes for a given configuration.
+ * Resolves themes for a given configuration.
  */
 public class ThemeResolver {
-  private final Map<String, ConfiguredThemeEditorStyle> myThemeByName = Maps.newHashMap();
+  private final Map<String, ConfiguredThemeEditorStyle> myThemeByName = new HashMap<>();
   private final ImmutableList<ConfiguredThemeEditorStyle> myFrameworkThemes;
   private final ImmutableList<ConfiguredThemeEditorStyle> myLocalThemes;
   private final ImmutableList<ConfiguredThemeEditorStyle> myExternalLibraryThemes;
@@ -49,9 +65,9 @@ public class ThemeResolver {
 
     myFrameworkThemes = fillThemeResolverFromStyles(resolveFrameworkThemes());
 
-    final ImmutableList.Builder<ConfiguredThemeEditorStyle> localThemes = ImmutableList.builder();
+    ImmutableList.Builder<ConfiguredThemeEditorStyle> localThemes = ImmutableList.builder();
     for (Pair<StyleResourceValue, Module> pair : resolveLocallyDefinedModuleThemes()) {
-      final ConfiguredThemeEditorStyle theme = constructThemeFromResourceValue(pair.getFirst(), pair.getSecond());
+      ConfiguredThemeEditorStyle theme = constructThemeFromResourceValue(pair.getFirst(), pair.getSecond());
       if (theme != null) {
         localThemes.add(theme);
       }
@@ -66,16 +82,18 @@ public class ThemeResolver {
 
   /**
    * Create a ThemeEditorStyle instance stored in ThemeResolver, which can be added to one of theme lists.
+   *
+   * @returns The style, or null if theme with this name was already added or resolution has failed
    */
-  @Nullable/*if theme with this name was already added or resolution has failed*/
+  @Nullable
   private ConfiguredThemeEditorStyle constructThemeFromResourceValue(@NotNull StyleResourceValue value, @Nullable Module sourceModule) {
-    final String name = ResolutionUtils.getQualifiedStyleName(value);
+    String name = ResolutionUtils.getQualifiedStyleName(value);
 
     if (myThemeByName.containsKey(name)) {
       return null;
     }
 
-    final ConfiguredThemeEditorStyle theme = ResolutionUtils.getStyle(myConfiguration, name, sourceModule);
+    ConfiguredThemeEditorStyle theme = ResolutionUtils.getStyle(myConfiguration, name, sourceModule);
     if (theme != null) {
       myThemeByName.put(name, theme);
     }
@@ -98,15 +116,12 @@ public class ThemeResolver {
 
   @NotNull
   private List<StyleResourceValue> resolveFrameworkThemes() {
-    AbstractResourceRepository repository = myConfiguration.getFrameworkResources();
-    if (repository == null) {
-      return Collections.emptyList();
-    }
-
-    // TODO(namespaces): Use ResourceResolverCache.
-    ResourceValueMap styles =
-        repository.getConfiguredResources(myConfiguration.getFullConfig()).row(ResourceNamespace.ANDROID).get(ResourceType.STYLE);
-    return getThemes(styles, true /*isFramework*/);
+    ConfigurationManager configurationManager = myConfiguration.getConfigurationManager();
+    ResourceResolverCache resolverCache = configurationManager.getResolverCache();
+    IAndroidTarget target = configurationManager.getTarget();
+    Map<ResourceType, ResourceValueMap> resources = resolverCache.getConfiguredFrameworkResources(target, myConfiguration.getFullConfig());
+    ResourceValueMap styles = resources.get(ResourceType.STYLE);
+    return getThemes(styles, true);
   }
 
   /**
@@ -131,12 +146,12 @@ public class ThemeResolver {
    */
   @NotNull
   private List<Pair<StyleResourceValue, Module>> resolveLocallyDefinedModuleThemes() {
-    final Module module = myConfiguration.getModule();
-    final List<Pair<StyleResourceValue, Module>> result = Lists.newArrayList();
+    Module module = myConfiguration.getModule();
+    List<Pair<StyleResourceValue, Module>> result = new ArrayList<>();
 
     fillModuleResources(module, ModuleResourceRepository.getOrCreateInstance(module), result);
 
-    final List<AndroidFacet> allAndroidDependencies = AndroidUtils.getAllAndroidDependencies(module, false);
+    List<AndroidFacet> allAndroidDependencies = AndroidUtils.getAllAndroidDependencies(module, false);
     for (AndroidFacet facet : allAndroidDependencies) {
       fillModuleResources(facet.getModule(), ModuleResourceRepository.getOrCreateInstance(facet), result);
     }
@@ -166,24 +181,24 @@ public class ThemeResolver {
     Collection<ResourceValue> values = styles.values();
     List<StyleResourceValue> themes = new ArrayList<>(values.size());
 
-    if (!isFramework) {
-      Map<ResourceValue, Boolean> cache = Maps.newHashMapWithExpectedSize(values.size());
+    if (isFramework) {
+      // For the framework themes the computation is easier.
       for (ResourceValue value : values) {
-        if (value instanceof StyleResourceValue) {
-          StyleResourceValue styleValue = (StyleResourceValue)value;
-          if (myResolver.isTheme(styleValue, cache)) {
-            themes.add(styleValue);
-          }
+        String name = value.getName();
+        if (name.startsWith(THEME_NAME_DOT) || name.equals(THEME_NAME)) {
+          themes.add((StyleResourceValue)value);
         }
       }
       return themes;
     }
 
-    // For the framework themes the computation is easier
+    Map<ResourceValue, Boolean> cache = newHashMapWithExpectedSize(values.size());
     for (ResourceValue value : values) {
-      String name = value.getName();
-      if (name.startsWith(THEME_NAME_DOT) || name.equals(THEME_NAME)) {
-        themes.add((StyleResourceValue)value);
+      if (value instanceof StyleResourceValue) {
+        StyleResourceValue styleValue = (StyleResourceValue)value;
+        if (myResolver.isTheme(styleValue, cache)) {
+          themes.add(styleValue);
+        }
       }
     }
     return themes;

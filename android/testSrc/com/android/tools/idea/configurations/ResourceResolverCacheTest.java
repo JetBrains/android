@@ -107,17 +107,17 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
 
     assertTrue(cache.myResolverMap.isEmpty());
     assertTrue(cache.myAppResourceMap.isEmpty());
-    assertTrue(cache.myExternalResourceMap.isEmpty());
+    assertTrue(cache.myFrameworkResourceMap.isEmpty());
 
     ResourceResolver resolver = configuration.getResourceResolver();
 
     assertEquals(1, cache.myResolverMap.size());
     assertEquals(1, cache.myAppResourceMap.size());
-    assertEquals(1, cache.myExternalResourceMap.size());
+    assertEquals(1, cache.myFrameworkResourceMap.size());
     String originalResolverMapKey = Iterables.getFirst(cache.myResolverMap.keySet(), null);
     String originalResourceMapKey = Iterables.getFirst(cache.myAppResourceMap.keySet(), null);
     // Framework and App resource maps use the same key
-    assertEquals(originalResourceMapKey, Iterables.getFirst(cache.myExternalResourceMap.keySet(), null));
+    assertEquals(originalResourceMapKey, Iterables.getFirst(cache.myFrameworkResourceMap.keySet(), null));
 
     Device original = configuration.getDevice();
     Device.Builder builder = new Device.Builder(original);
@@ -136,10 +136,10 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     // The original config should be there plus we've added the custom one
     assertEquals(2, cache.myResolverMap.size());
     assertEquals(2, cache.myAppResourceMap.size());
-    assertEquals(2, cache.myExternalResourceMap.size());
+    assertEquals(2, cache.myFrameworkResourceMap.size());
     assertContainsElements(cache.myResolverMap.keySet(), originalResolverMapKey);
     assertContainsElements(cache.myAppResourceMap.keySet(), originalResourceMapKey);
-    assertContainsElements(cache.myExternalResourceMap.keySet(), originalResourceMapKey);
+    assertContainsElements(cache.myFrameworkResourceMap.keySet(), originalResourceMapKey);
 
     // Get the custom key used for this device
     String customResolverMapKey = cache.myResolverMap.keySet().stream()
@@ -166,10 +166,10 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     // This should replace only the custom config
     assertEquals(2, cache.myResolverMap.size());
     assertEquals(2, cache.myAppResourceMap.size());
-    assertEquals(2, cache.myExternalResourceMap.size());
+    assertEquals(2, cache.myFrameworkResourceMap.size());
     assertContainsElements(cache.myResolverMap.keySet(), originalResolverMapKey);
     assertContainsElements(cache.myAppResourceMap.keySet(), originalResourceMapKey);
-    assertContainsElements(cache.myExternalResourceMap.keySet(), originalResourceMapKey);
+    assertContainsElements(cache.myFrameworkResourceMap.keySet(), originalResourceMapKey);
     // We've only changed the theme so the resource maps won't change. They are indexed per device config.
     assertDoesntContain(cache.myResolverMap.keySet(), customResolverMapKey);
   }
