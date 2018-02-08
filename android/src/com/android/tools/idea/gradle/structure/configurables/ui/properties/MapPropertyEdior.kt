@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.ModelMapProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.PropertyEditorFactory
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableColumn
@@ -33,11 +36,7 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
 ) : CollectionPropertyEditor<ModelT, ModelPropertyT, ValueT>(model, property, editor, variablesProvider),
     ModelPropertyEditor<ModelT, Map<String, ValueT>> {
 
-  private var valueToText: Map<ValueT, String>
-
   init {
-    val possibleValues = property.getKnownValues(model) ?: listOf()
-    valueToText = possibleValues.associate { it.value to it.description }
     loadValue()
   }
 
@@ -45,8 +44,20 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
 
   override fun dispose() = Unit
 
-  override fun getRowElement(rowIndex: Int): ModelPropertyCore<Unit, ValueT> =
-    property.getEditableValues(model).toList()[rowIndex].second
+  override fun getValueAt(row: Int): ParsedValue<ValueT> {
+    val entryKey = keyAt(row)
+    val entryValue = if (entryKey == "") modelValueAt(row) else property.getEditableValues(model)[entryKey]?.getParsedValue(Unit)
+    return entryValue ?: ParsedValue.NotSet()
+  }
+
+  override fun setValueAt(row: Int, value: ParsedValue<ValueT>) {
+    val entryKey = keyAt(row)
+    // If entryKey == "", we don't need to store the value in the property. It is, however, automatically stored in the table model and
+    // it will be transferred to the property when the key value is set.
+    if (entryKey != "") {
+      (property.getEditableValues(model)[entryKey] ?: property.addEntry(model, entryKey)).setParsedValue(Unit, value)
+    }
+  }
 
   override fun createTableModel(): DefaultTableModel {
     val tableModel = DefaultTableModel()
@@ -54,7 +65,7 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
     tableModel.addColumn("value")
     val value = property.getEditableValues(model)
     for ((k, v) in value.entries) {
-      tableModel.addRow(arrayOf(k, v.getParsedValue(Unit).getText(valueToText)))
+      tableModel.addRow(arrayOf(k, v.getParsedValue(Unit).toTableModelValue()))
     }
     return tableModel
   }
@@ -71,6 +82,13 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
 
   override fun getValueText(): String = throw UnsupportedOperationException()
   override fun getValue(): ParsedValue<Map<String, ValueT>> = throw UnsupportedOperationException()
+
+  private fun keyAt(row: Int) = (table.model.getValueAt(row, 0) as? String).orEmpty()
+
+  private fun modelValueAt(row: Int) =
+    @Suppress("UNCHECKED_CAST")  // If it is of type Value, then generic type arguments are correct.
+    (table.model.getValueAt(row, 1) as? CollectionPropertyEditor<ModelT, ModelPropertyT, ValueT>.Value)?.value
+
 }
 
 fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> mapPropertyEditor(
