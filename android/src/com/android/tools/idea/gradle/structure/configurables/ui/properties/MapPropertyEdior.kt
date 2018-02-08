@@ -20,6 +20,10 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelMapProperty
 import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.PropertyEditorFactory
+import com.intellij.util.ui.AbstractTableCellEditor
+import java.awt.Component
+import java.awt.TextField
+import javax.swing.JTable
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableColumn
@@ -72,7 +76,10 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
 
   override fun createColumnModel(): TableColumnModel {
     return DefaultTableColumnModel().apply {
-      addColumn(TableColumn(0, 50).apply { headerValue = "K" })
+      addColumn(TableColumn(0, 50).apply {
+        headerValue = "K"
+        cellEditor = MyKeyCellEditor()
+      })
       addColumn(TableColumn(1).apply {
         headerValue = "V"
         cellEditor = MyCellEditor()
@@ -89,6 +96,52 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
     @Suppress("UNCHECKED_CAST")  // If it is of type Value, then generic type arguments are correct.
     (table.model.getValueAt(row, 1) as? CollectionPropertyEditor<ModelT, ModelPropertyT, ValueT>.Value)?.value
 
+  inner class MyKeyCellEditor : AbstractTableCellEditor() {
+    private var currentRow: Int = -1
+    private var currentKey: String? = null
+    private var lastEditor: TextField? = null
+
+    override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
+      currentRow = row
+      currentKey = keyAt(row)
+      lastEditor = TextField().apply {
+        text = currentKey
+      }
+      return lastEditor
+    }
+
+    override fun stopCellEditing(): Boolean {
+      return super.stopCellEditing().also {
+        if (it) {
+          val oldKey = currentKey!!
+          val newKey = lastEditor!!.text!!
+          when {
+            oldKey == "" -> {
+              val addedEntry = property.addEntry(model, newKey)
+              @Suppress("UNCHECKED_CAST")
+              val modelValue: Value? =
+                table.model.getValueAt(currentRow, 1) as? CollectionPropertyEditor<ModelT, ModelPropertyT, ValueT>.Value
+              if (modelValue != null) {
+                addedEntry.setParsedValue(Unit, modelValue.value)
+              }
+            }
+            newKey == "" -> property.deleteEntry(model, oldKey)
+            else -> property.changeEntryKey(model, oldKey, newKey)
+          }
+          currentRow = -1
+          currentKey = null
+        }
+      }
+    }
+
+    override fun cancelCellEditing() {
+      currentRow = -1
+      currentKey = null
+      super.cancelCellEditing()
+    }
+
+    override fun getCellEditorValue(): Any = lastEditor!!.text
+  }
 }
 
 fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> mapPropertyEditor(
