@@ -21,6 +21,9 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.intellij.openapi.util.Ref;
+import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,6 +36,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
 
   private final static String ABI_TYPE_X86 = "x86";
   private final static String ABI_TYPE_X86_64 = "x86_64";
+  private final static int GRADLE_SYNC_TIMEOUT = 60;
 
   /**
    * Verifies ABI split apks are generated as per the target emulator/device during a native
@@ -91,8 +95,8 @@ public class AbiSplitApksTest extends DebuggerTestBase {
   }
 
   private void testAbiSplitApks(@NotNull String abiType) throws Exception {
-    IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    IdeFrameFixture ideFrame = guiTest.importProject("BasicCmakeAppForUI");
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
 
     ideFrame.invokeMenuPath("Run", "Edit Configurations...");
     EditConfigurationsDialogFixture.find(guiTest.robot())
@@ -102,20 +106,21 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     ideFrame.getEditor()
       .open("app/build.gradle", EditorFixture.Tab.EDITOR)
       .moveBetween("apply plugin: 'com.android.application'", "")
-      .enterText("\n\nandroid.splits.abi.enable true");
+      .enterText("\n\nandroid.splits.abi.enable true")
+      .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
 
     openAndToggleBreakPoints(ideFrame,
                              "app/src/main/jni/native-lib.c",
                              "return (*env)->NewStringUTF(env, message);");
 
-    String apkName = null;
+    Ref<String> apkNameRef = new Ref<>();
     if (abiType.equals(ABI_TYPE_X86)) {
-      apkName = "app-x86-debug.apk";
+      apkNameRef.set("app-x86-debug.apk");
       emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     } else if (abiType.equals(ABI_TYPE_X86_64)) {
-      apkName = "app-x86_64-debug.apk";
+      apkNameRef.set("app-x86_64-debug.apk");
       emulator.createAVD(
         guiTest.ideFrame().invokeAvdManager(),
         "x86 Images",
@@ -135,15 +140,22 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
     waitForSessionStart(debugToolWindowFixture);
     ideFrame.stopApp();
+
     ProjectViewFixture.PaneFixture projectPane = ideFrame.getProjectView().selectProjectPane();
 
-    projectPane.clickPath("BasicCmakeAppForUI",
-                          "app",
-                          "build",
-                          "intermediates",
-                          "instant-run-apk",
-                          "debug",
-                          apkName);
-    ideFrame.getProjectView().selectAndroidPane();
+    Wait.seconds(10).expecting("The apk file is generated.").until(() -> {
+      try {
+        projectPane.clickPath("BasicCmakeAppForUI",
+                              "app",
+                              "build",
+                              "intermediates",
+                              "instant-run-apk",
+                              "debug",
+                              apkNameRef.get());
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
   }
  }
