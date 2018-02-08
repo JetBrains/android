@@ -111,13 +111,13 @@ class CoordinatorDragTarget : DragBaseTarget() {
     rememberAttributes()
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
     if (myComponent.parent == null) {
       return
     }
     mySnapTarget?.setMouseHovered(false)
     mySnapTarget = null
-    val snapTarget : Target? = closestTarget?.firstOrNull { it is CoordinatorSnapTarget }
+    val snapTarget : Target? = closestTarget.firstOrNull { it is CoordinatorSnapTarget }
     if (snapTarget is CoordinatorSnapTarget) {
       mySnapTarget = snapTarget
       snapTarget.setMouseHovered(true)
@@ -127,7 +127,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     myComponent.scene.repaint()
   }
 
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>?) {
+  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
     super.mouseRelease(x, y, closestTargets)
     if (myChangedComponent) {
       myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)

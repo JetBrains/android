@@ -75,7 +75,7 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     SceneComponent sceneParent = myComponent.getParent();
     assert sceneParent != null;
     TargetSnapper snapper = getTargetNotchSnapper();
@@ -126,7 +126,7 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTarget) {
     super.mouseRelease(x, y, closestTarget);
     myComponent.setModelUpdateAuthorized(true);
     myHandler.setDragging(myComponent, false);

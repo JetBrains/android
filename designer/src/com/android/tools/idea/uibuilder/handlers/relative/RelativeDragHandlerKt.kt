@@ -63,7 +63,7 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
     val result = super.update(x, y, modifiers)
     @AndroidDpCoordinate val dx = x + startX - component.drawWidth / 2
     @AndroidDpCoordinate val dy = y + startY - component.drawHeight / 2
-    dragTarget.mouseDrag(dx, dy, null)
+    dragTarget.mouseDrag(dx, dy, emptyList())
     return result
   }
 
@@ -95,8 +95,8 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
       dragTarget.component = sceneComponent
       @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
       @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
-      dragTarget.mouseDrag(dx, dy, null)
-      dragTarget.mouseRelease(dx, dy, null)
+      dragTarget.mouseDrag(dx, dy, emptyList())
+      dragTarget.mouseRelease(dx, dy, emptyList())
     }
   }
 

@@ -100,7 +100,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
       dragTarget.component = sceneComponent
       @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
       @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
-      dragTarget.mouseRelease(dx, dy, null)
+      dragTarget.mouseRelease(dx, dy, emptyList())
     }
   }
 

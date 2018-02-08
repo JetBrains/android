@@ -33,7 +33,6 @@ import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutArrange;
 import com.android.tools.idea.uibuilder.scout.ScoutWidget;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -55,7 +54,7 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTarget) {
     if (myComponent instanceof TemporarySceneComponent) {
       Scene scene = myComponent.getScene();
       int dx = getTargetNotchSnapper().trySnapX(x);

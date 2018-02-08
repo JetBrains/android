@@ -65,7 +65,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   }
 
   @Override
-  public void mouseDrag(@NavCoordinate int x, @NavCoordinate int y, @Nullable List<Target> closestTarget) {
+  public void mouseDrag(@NavCoordinate int x, @NavCoordinate int y, @NotNull List<Target> closestTarget) {
     // TODO: Support growing the scrollable area when dragging a control off the screen
     SceneComponent parent = myComponent.getParent();
 
@@ -96,7 +96,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   }
 
   @Override
-  public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @NotNull List<Target> closestTargets) {
     if (!myComponent.isDragging()) {
       return;
     }

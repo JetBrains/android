@@ -90,7 +90,7 @@ class RelativeDragTarget : DragBaseTarget() {
     myComponent.setModelUpdateAuthorized(true)
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>?) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
     myComponent.isDragging = true
     trySnap(x, y)
     myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
@@ -119,7 +119,7 @@ class RelativeDragTarget : DragBaseTarget() {
     mySnappedPoint.y = targetNotchSnapper.trySnapY(ny)
   }
 
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
+  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
     if (!myComponent.isDragging) return
     myComponent.isDragging = false
 

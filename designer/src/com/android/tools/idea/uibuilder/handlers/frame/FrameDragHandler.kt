@@ -65,7 +65,7 @@ class FrameDragHandler(editor: ViewEditor,
     }
     @AndroidDpCoordinate val dx = x + startX - component.drawWidth / 2
     @AndroidDpCoordinate val dy = y + startY - component.drawHeight / 2
-    dragTarget.mouseDrag(dx, dy, null)
+    dragTarget.mouseDrag(dx, dy, emptyList())
     return result
   }
 

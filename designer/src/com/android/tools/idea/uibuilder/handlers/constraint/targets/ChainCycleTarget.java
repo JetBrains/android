@@ -54,7 +54,7 @@ public class ChainCycleTarget extends ActionTarget {
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     if (myIsVisible && closestTargets.contains(this)) {
       if (myChainChecker.isInHorizontalChain()) {
         ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getHorizontalChainHead(),

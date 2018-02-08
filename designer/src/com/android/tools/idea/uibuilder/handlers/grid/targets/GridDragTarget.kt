@@ -88,7 +88,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget() {
     myComponent.setModelUpdateAuthorized(true)
   }
 
-  override fun mouseDrag(x: Int, y: Int, closestTargets: List<Target>?) {
+  override fun mouseDrag(x: Int, y: Int, closestTargets: List<Target>) {
     myComponent.isDragging = true
 
     val parent = myComponent.parent ?: return
@@ -126,7 +126,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget() {
     }
   }
 
-  override fun mouseRelease(x: Int, y: Int, closestTarget: List<Target>?) {
+  override fun mouseRelease(x: Int, y: Int, closestTarget: List<Target>) {
     if (!myComponent.isDragging) return
 
     myComponent.isDragging = false
