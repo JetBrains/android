@@ -20,6 +20,7 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.ZoomType
 import com.android.tools.idea.naveditor.actions.*
+import com.android.tools.idea.naveditor.model.getUiName
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -62,6 +63,8 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
   }
 
   private fun addMultiSelectionGroup(group: DefaultActionGroup, actionManager: com.intellij.openapi.actionSystem.ActionManager) {
+    group.add(createNestedGraphGroup(mySurface.selectionModel.selection))
+
     group.addSeparator()
     group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
   }
@@ -84,6 +87,7 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
 
     group.addSeparator()
     group.add(createAddActionGroup(component))
+    group.add(createNestedGraphGroup(listOf(component)))
     group.add(StartDestinationAction(component))
 
     group.addSeparator()
@@ -99,6 +103,24 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
     group.add(ToSelfAction(mySurface, component))
     group.add(ReturnToSourceAction(mySurface, component))
     group.add(AddGlobalAction(mySurface, component))
+    return group
+  }
+
+  private fun createNestedGraphGroup(components: List<NlComponent>): DefaultActionGroup {
+    // TODO: Add shortcut
+    val group = DefaultActionGroup("Move to Nested Graph", true)
+    val currentNavigation = mySurface.currentNavigation
+    group.add(AddToNewGraphAction(mySurface, components))
+
+    val resolver = mySurface?.configuration?.resourceResolver
+
+    if (resolver != null && currentNavigation.childCount > 0) {
+      group.addSeparator()
+      for (graph in currentNavigation.children.filter { it.isNavigation && !components.contains(it) }) {
+        group.add(AddToExistingGraphAction(mySurface, components, graph.getUiName(resolver), graph))
+      }
+    }
+
     return group
   }
 

@@ -34,5 +34,6 @@
     <orderEntry type="module" module-name="android-common" />
     <orderEntry type="module" module-name="project-system" />
     <orderEntry type="module" module-name="project-system-gradle" />
+    <orderEntry type="library" name="kotlin-stdlib-jre8" level="project" />
   </component>
 </module>

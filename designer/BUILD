@@ -45,6 +45,7 @@ iml_module(
         "//tools/adt/idea/android-common[module]",
         "//tools/adt/idea/project-system[module]",
         "//tools/adt/idea/project-system-gradle[module]",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jre8",
     ],
 )
 
