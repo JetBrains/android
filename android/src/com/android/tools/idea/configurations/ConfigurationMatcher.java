@@ -94,7 +94,7 @@ public class ConfigurationMatcher {
 
     @Override
     public String toString() {
-      return config.getUniqueKey();
+      return config.getQualifierString();
     }
   }
 
