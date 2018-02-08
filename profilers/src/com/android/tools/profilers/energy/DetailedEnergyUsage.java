@@ -16,7 +16,7 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
