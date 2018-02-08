@@ -569,8 +569,16 @@ private open class DrawDashedLineCommand(val swingX1: Int, val swingY1: Int, val
   override fun serialize(): String = "${javaClass.simpleName}: ($swingX1, $swingY1) - ($swingX2, $swingY2)"
 }
 
-private class DrawVerticalDashedLineCommand(sceneContext: SceneContext, x: Int, y1: Int, y2: Int)
-  : DrawDashedLineCommand(sceneContext.getSwingX(x), sceneContext.getSwingY(y1), sceneContext.getSwingX(x), sceneContext.getSwingY(y2))
+private class DrawVerticalDashedLineCommand(sceneContext: SceneContext, x: Int, y1: Int, y2: Int) : DrawDashedLineCommand(
+  sceneContext.getSwingXDip(x.toFloat()),
+  sceneContext.getSwingYDip(y1.toFloat()),
+  sceneContext.getSwingXDip(x.toFloat()),
+  sceneContext.getSwingYDip(y2.toFloat())
+)
 
-private class DrawHorizontalDashedLineCommand(sceneContext: SceneContext, x1: Int, x2: Int, y: Int)
-  : DrawDashedLineCommand(sceneContext.getSwingX(x1), sceneContext.getSwingY(y), sceneContext.getSwingX(x2), sceneContext.getSwingY(y))
+private class DrawHorizontalDashedLineCommand(sceneContext: SceneContext, x1: Int, x2: Int, y: Int) : DrawDashedLineCommand(
+  sceneContext.getSwingXDip(x1.toFloat()),
+  sceneContext.getSwingYDip(y.toFloat()),
+  sceneContext.getSwingXDip(x2.toFloat()),
+  sceneContext.getSwingYDip(y.toFloat())
+)
