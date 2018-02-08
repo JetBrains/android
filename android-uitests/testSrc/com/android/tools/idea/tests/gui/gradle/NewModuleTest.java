@@ -31,6 +31,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests, that newly generated modules work, even with older gradle plugin versions.
  */
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class NewModuleTest {
 
