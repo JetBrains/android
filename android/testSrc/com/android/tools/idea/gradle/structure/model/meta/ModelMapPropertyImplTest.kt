@@ -25,19 +25,22 @@ import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
 class ModelMapPropertyImplTest : GradleFileModelTestCase() {
+  var modifiedCount: Int = 0
 
-  object Model : ModelDescriptor<Model, Model, Model> {
-    override fun getResolved(model: Model): Model? = null
-    override fun getParsed(model: Model): Model? = this
-    override fun setModified(model: Model) = Unit
+  object TestModelDescriptor : ModelDescriptor<ModelMapPropertyImplTest, ModelMapPropertyImplTest, ModelMapPropertyImplTest> {
+    override fun getResolved(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest? = model
+    override fun getParsed(model: ModelMapPropertyImplTest): ModelMapPropertyImplTest? = model
+    override fun setModified(model: ModelMapPropertyImplTest) {
+      model.modifiedCount++
+    }
   }
 
   private fun <T : Any> GradlePropertyModel.wrap(
     parse: (String) -> ParsedValue<T>,
     caster: ResolvedPropertyModel.() -> T?
-  ): ModelMapProperty<Model, T> {
+  ): ModelMapProperty<ModelMapPropertyImplTest, T> {
     val resolved = ResolvedPropertyModelImpl(this)
-    return Model.mapProperty(
+    return TestModelDescriptor.mapProperty(
       "description",
       getResolvedValue = { null },
       getParsedProperty = { resolved },
@@ -75,8 +78,8 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val propMap = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
     val propMapRef = extModel.findProperty("propMapRef").wrap(::parseString, ResolvedPropertyModel::asString)
 
-    fun validateValues(map: ModelMapProperty<Model, String>) {
-      val editableValues = map.getEditableValues(Model)
+    fun validateValues(map: ModelMapProperty<ModelMapPropertyImplTest, String>) {
+      val editableValues = map.getEditableValues(this)
       val propOne = editableValues["one"]
       val propB = editableValues["B"]
       val propC = editableValues["propC1"]
@@ -109,15 +112,16 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
 
     val map = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
-    var editableValues = map.getEditableValues(Model)
+    var editableValues = map.getEditableValues(this)
 
     editableValues["one"]?.testSetValue("A")
     editableValues["B"]?.testSetReference("propC1")
     editableValues["propC"]?.testSetInterpolatedString("${'$'}{propC1}rd")
     editableValues["propRef"]?.testSetValue("D")
     editableValues["interpolated"]?.testSetValue("E")
+    assertThat(modifiedCount, equalTo(5))
 
-    editableValues = map.getEditableValues(Model)
+    editableValues = map.getEditableValues(this)
     val propA = editableValues["one"]
     val prop3 = editableValues["B"]
     val prop3rd = editableValues["propC"]
@@ -146,18 +150,19 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
 
     val map = extModel.findProperty("propMap").wrap(::parseString, ResolvedPropertyModel::asString)
-    map.deleteEntry(Model, "B")
-    val newInterpolated = map.changeEntryKey(Model, "interpolated", "newInterpolated")
-    val newPropC = map.changeEntryKey(Model, "propC", "newPropC")
-    val newPropRef = map.changeEntryKey(Model, "propRef", "newPropRef")
-    val newOne = map.changeEntryKey(Model, "one", "newOne")
+    map.deleteEntry(this, "B")
+    val newInterpolated = map.changeEntryKey(this, "interpolated", "newInterpolated")
+    val newPropC = map.changeEntryKey(this, "propC", "newPropC")
+    val newPropRef = map.changeEntryKey(this, "propRef", "newPropRef")
+    val newOne = map.changeEntryKey(this, "one", "newOne")
     // Add new.
-    val newNew = map.addEntry(Model, "new")
+    val newNew = map.addEntry(this, "new")  // Does not count as modified.
     newNew.testSetValue("new")
     // Add new and change it.
-    val new2 = map.addEntry(Model, "new2")
+    val new2 = map.addEntry(this, "new2")  // Does not count as modified.
     new2.testSetReference("propC1")
-    val newChanged = map.changeEntryKey(Model, "new2", "newChanged")
+    val newChanged = map.changeEntryKey(this, "new2", "newChanged")
+    assertThat(modifiedCount, equalTo(8))
 
     assertThat(newOne.testValue(), equalTo("1"))
     assertThat(newPropC.testValue(), equalTo("3"))
@@ -166,7 +171,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     assertThat(newNew.testValue(), equalTo("new"))
     assertThat(newChanged.testValue(), equalTo("3"))
 
-    val editableValues = map.getEditableValues(Model)
+    val editableValues = map.getEditableValues(this)
     val one = editableValues["newOne"]
     val b = editableValues["newB"]
     val propC = editableValues["newPropC"]
