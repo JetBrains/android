@@ -321,10 +321,34 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     return myElement.getPsiElement();
   }
 
+  @Nullable
   @Override
   public String toString() {
-    return String.format("[Element: %1$s, Type: %2$s, ValueType: %3$s]@%4$s",
-                         myElement, myPropertyType, myValueType.toString(), Integer.toHexString(hashCode()));
+    return getValue(STRING_TYPE);
+  }
+
+  @Nullable
+  @Override
+  public Integer toInt() {
+    return getValue(INTEGER_TYPE);
+  }
+
+  @Nullable
+  @Override
+  public Boolean toBoolean() {
+    return getValue(BOOLEAN_TYPE);
+  }
+
+  @Nullable
+  @Override
+  public List<GradlePropertyModel> toList() {
+    return getValue(LIST_TYPE);
+  }
+
+  @Nullable
+  @Override
+  public Map<String, GradlePropertyModel> toMap() {
+    return getValue(MAP_TYPE);
   }
 
   private static ValueType extractAndGetValueType(@NotNull GradleDslElement element) {
@@ -372,36 +396,43 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       return null;
     }
 
+    Object value;
     if (myValueType == MAP) {
-      Object value = getMap(resolved);
-      return typeReference.castTo(value);
+      value = getMap(resolved);
     }
     else if (myValueType == LIST) {
-      Object value = getList(resolved);
-      return typeReference.castTo(value);
+      value = getList(resolved);
     }
     else if (myValueType == REFERENCE) {
       // For references only display the reference text for both resolved and unresolved values.
       // Users should follow the reference to obtain the value.
       GradleDslReference ref = (GradleDslReference)myElement;
       String refText = ref.getReferenceText();
-      return refText == null ? null : typeReference.castTo(refText);
+      value = refText == null ? null : typeReference.castTo(refText);
     }
     else if (myValueType == UNKNOWN) {
       if (myElement.getPsiElement() == null) {
         return null;
       }
-      return typeReference.castTo(myElement.getPsiElement().getText());
+      value = myElement.getPsiElement().getText();
+    } else {
+      GradleDslExpression expression = (GradleDslExpression)myElement;
+
+      value = resolved ? expression.getValue() : expression.getUnresolvedValue();
     }
 
-    GradleDslExpression expression = (GradleDslExpression)myElement;
-
-    Object value = resolved ? expression.getValue() : expression.getUnresolvedValue();
     if (value == null) {
       return null;
     }
 
-    return typeReference.castTo(value);
+    T result = typeReference.castTo(value);
+    // Attempt to cast to a string if requested. But only do this for unresolved values,
+    // or when my type is BOOLEAN, STRING or INTEGER.
+    if (result == null && typeReference.getType().equals(String.class)) {
+      result = typeReference.castTo(value.toString());
+    }
+
+    return result;
   }
 
   private void makeEmptyMap() {
