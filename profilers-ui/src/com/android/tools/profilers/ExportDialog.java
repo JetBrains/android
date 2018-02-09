@@ -30,6 +30,7 @@ public interface ExportDialog {
    * @param saveToFile          File consumer for the file to save to (usually method to write to the file).
    */
   void open(@NotNull Supplier<String> dialogTitleSupplier,
+            @NotNull Supplier<String> fileNameSupplier,
             @NotNull Supplier<String> extensionSupplier,
             @NotNull Consumer<File> saveToFile);
 }

@@ -100,6 +100,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     return new ExportDialog() {
       @Override
       public void open(@NotNull Supplier<String> dialogTitleSupplier,
+                       @NotNull Supplier<String> fileNameSupplier,
                        @NotNull Supplier<String> extensionSupplier,
                        @NotNull Consumer<File> saveToFile) {
       }
