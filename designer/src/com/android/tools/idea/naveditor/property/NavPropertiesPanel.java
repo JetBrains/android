@@ -51,6 +51,11 @@ public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
   }
 
   @Override
+  public void modelRendered() {
+    myInspectorPanel.refresh();
+  }
+
+  @Override
   public void setItems(@NotNull List<NlComponent> components,
                        @NotNull Table<String, String, NlPropertyItem> properties) {
     myInspectorPanel.setComponent(components, properties, myPropertiesManager);
