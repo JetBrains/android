@@ -41,7 +41,9 @@ public final class IdeComponents {
 
   public IdeComponents(@Nullable Project project) {
     myProject = project;
-    Disposer.register(project, () -> myProject = null);
+    if (project != null) {
+      Disposer.register(project, () -> myProject = null);
+    }
   }
 
   @NotNull
