@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
@@ -39,10 +40,9 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     return Model.listProperty(
       "description",
       getResolvedValue = { null },
-      getParsedCollection = { resolved.asParsedListValue({ caster() }, { setValue(it) }) },
-      getParsedRawValue = { resolved.dslText() },
-      clearParsedValue = { resolved.clear() },
-      setParsedRawValue = { resolved.setDslText(it) },
+      getParsedProperty = { resolved },
+      itemValueGetter = { caster() },
+      itemValueSetter = { setValue(it) },
       parse = { parse(it) }
     )
   }
@@ -104,7 +104,8 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
                }""".trimIndent()
     writeToBuildFile(text)
 
-    val extModel = gradleBuildModel.ext()
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
 
     val list = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
     var editableValues = list.getEditableValues(Model)
@@ -115,17 +116,116 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     editableValues[3].testSetValue("D")
     editableValues[4].testSetValue("E")
 
-    editableValues = list.getEditableValues(Model)
-    val propA = editableValues[0]
-    val prop3 = editableValues[1]
-    val prop3rd = editableValues[2]
-    val propD = editableValues[3]
-    val propE = editableValues[4]
+    fun verify(ext: ExtModel) {
+      editableValues =
+          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues(Model)
+      val propA = editableValues[0]
+      val prop3 = editableValues[1]
+      val prop3rd = editableValues[2]
+      val propD = editableValues[3]
+      val propE = editableValues[4]
 
-    assertThat(propA.testValue(), equalTo("A"))
-    assertThat(prop3.testValue(), equalTo("3"))
-    assertThat(prop3rd.testValue(), equalTo("3rd"))
-    assertThat(propD.testValue(), equalTo("D"))
-    assertThat(propE.testValue(), equalTo("E"))
+      assertThat(propA.testValue(), equalTo("A"))
+      assertThat(prop3.testValue(), equalTo("3"))
+      assertThat(prop3rd.testValue(), equalTo("3rd"))
+      assertThat(propD.testValue(), equalTo("D"))
+      assertThat(propE.testValue(), equalTo("E"))
+    }
+
+    verify(extModel)
+    applyChangesAndReparse(buildModel)
+    verify(buildModel.ext())
+  }
+
+  fun testAddRemoveValues() {
+    val text = """
+               ext {
+                 propB = "2"
+                 propC = "3"
+                 propRef = propB
+                 propInterpolated = "${'$'}{propB}nd"
+                 propList = ["1", propB, propC, propRef, propInterpolated]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    val list = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
+
+    list.deleteItem(Model, 0)
+    var editableValues = list.getEditableValues(Model)
+    editableValues[0].testSetReference("propC")
+    editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
+    editableValues[2].testSetValue("D")
+    editableValues[3].testSetValue("E")
+
+    list.addItem(Model, 4).testSetValue("ZZ")
+
+    fun verify(ext: ExtModel) {
+      editableValues =
+          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues(Model)
+      val prop3 = editableValues[0]
+      val prop3rd = editableValues[1]
+      val propD = editableValues[2]
+      val propE = editableValues[3]
+      val propZZ = editableValues[4]
+
+      assertThat(prop3.testValue(), equalTo("3"))
+      assertThat(prop3rd.testValue(), equalTo("3rd"))
+      assertThat(propD.testValue(), equalTo("D"))
+      assertThat(propE.testValue(), equalTo("E"))
+      assertThat(propZZ.testValue(), equalTo("ZZ"))
+    }
+
+    verify(extModel)
+    applyChangesAndReparse(buildModel)
+    verify(buildModel.ext())
+  }
+
+  fun testInsertRemoveValues() {
+    val text = """
+               ext {
+                 propB = "2"
+                 propC = "3"
+                 propRef = propB
+                 propInterpolated = "${'$'}{propB}nd"
+                 propList = ["1", propB, propC, propRef, propInterpolated]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    val list = extModel.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString)
+
+    list.deleteItem(Model, 2)
+    var editableValues = list.getEditableValues(Model)
+    editableValues[0].testSetReference("propC")
+    editableValues[1].testSetInterpolatedString("${'$'}{propC}rd")
+    editableValues[2].testSetValue("D")
+    editableValues[3].testSetValue("E")
+
+    list.addItem(Model, 0).testSetValue("ZZ")
+
+    fun verify(ext: ExtModel) {
+      editableValues =
+          ext.findProperty("propList").wrap(::parseString, ResolvedPropertyModel::asString).getEditableValues(Model)
+      val propZZ = editableValues[0]
+      val prop3 = editableValues[1]
+      val prop3rd = editableValues[2]
+      val propD = editableValues[3]
+      val propE = editableValues[4]
+
+      assertThat(propZZ.testValue(), equalTo("ZZ"))
+      assertThat(prop3.testValue(), equalTo("3"))
+      assertThat(prop3rd.testValue(), equalTo("3rd"))
+      assertThat(propD.testValue(), equalTo("D"))
+      assertThat(propE.testValue(), equalTo("E"))
+    }
+
+    verify(extModel)
+    applyChangesAndReparse(buildModel)
+    verify(buildModel.ext())
   }
 }

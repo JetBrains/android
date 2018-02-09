@@ -23,30 +23,33 @@ import kotlin.reflect.KProperty
 fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>, ModelT, ResolvedT, ParsedT, ValueT : Any> T.listProperty(
   description: String,
   getResolvedValue: ResolvedT.() -> List<ValueT>?,
-  getParsedCollection: ParsedT.() -> List<ModelPropertyCore<Unit, ValueT>>?,
-  getParsedRawValue: ParsedT.() -> DslText?,
-  clearParsedValue: ParsedT.() -> Unit,
-  setParsedRawValue: (ParsedT.(DslText) -> Unit),
+  itemValueGetter: ResolvedPropertyModel.() -> ValueT?,
+  itemValueSetter: ResolvedPropertyModel.(ValueT) -> Unit,
+  getParsedProperty: ParsedT.() -> ResolvedPropertyModel,
   parse: (String) -> ParsedValue<ValueT>,
   getKnownValues: ((ModelT) -> List<ValueDescriptor<ValueT>>)? = null
 ) =
-    ModelListPropertyImpl(
-      this,
-      description,
-      getResolvedValue,
-      getParsedCollection,
-      getParsedRawValue,
-      clearParsedValue,
-      setParsedRawValue,
-      { if (it.isBlank()) ParsedValue.NotSet() else parse(it.trim()) },
-      { if (getKnownValues != null) getKnownValues(it) else null }
-    )
+  ModelListPropertyImpl(
+    this,
+    description,
+    getResolvedValue,
+    { getParsedProperty().asParsedListValue(itemValueGetter, itemValueSetter) },
+    { index -> getParsedProperty().addItem(index, itemValueGetter, itemValueSetter) },
+    { index -> getParsedProperty().deleteItem(index) },
+    { getParsedProperty().dslText() },
+    { getParsedProperty().delete() },
+    { getParsedProperty().setDslText(it) },
+    { if (it.isBlank()) ParsedValue.NotSet() else parse(it.trim()) },
+    { if (getKnownValues != null) getKnownValues(it) else null }
+  )
 
 class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
   override val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   private val getResolvedValue: ResolvedT.() -> List<ValueT>?,
   private val getParsedCollection: ParsedT.() -> List<ModelPropertyParsedCore<Unit, ValueT>>?,
+  private val addItem: ParsedT.(Int) -> ModelPropertyCore<Unit, ValueT>,
+  private val deleteItem: ParsedT.(Int) -> Unit,
   private val getParsedRawValue: ParsedT.() -> DslText?,
   override val clearParsedValue: ParsedT.() -> Unit,
   override val setParsedRawValue: (ParsedT.(DslText) -> Unit),
@@ -62,6 +65,13 @@ class ModelListPropertyImpl<in ModelT, out ResolvedT, ParsedT, ValueT : Any>(
       ?.map { makePropertyCore(it, { null }) }
       ?.map { it.makeSetModifiedAware(model) }
         ?: listOf()
+
+  override fun addItem(model: ModelT, index: Int): ModelPropertyCore<Unit, ValueT> =
+    modelDescriptor.getParsed(model)?.addItem(index)?.makeSetModifiedAware(model).also { model.setModified() }
+        ?: throw IllegalStateException()
+
+  override fun deleteItem(model: ModelT, index: Int) =
+    modelDescriptor.getParsed(model)?.deleteItem(index).also { model.setModified() } ?: throw IllegalStateException()
 
   override fun getValue(thisRef: ModelT, property: KProperty<*>): ParsedValue<List<ValueT>> = getParsedValue(thisRef)
 
@@ -103,3 +113,13 @@ fun <T : Any> ResolvedPropertyModel?.asParsedListValue(
     ?.getValue(LIST_TYPE)
     ?.map { it.resolve() }
     ?.map { makeItemProperty(it, getTypedValue, setTypedValue) }
+
+fun <T : Any> ResolvedPropertyModel.addItem(
+  index: Int,
+  getTypedValue: ResolvedPropertyModel.() -> T?,
+  setTypedValue: ResolvedPropertyModel.(T) -> Unit
+): ModelPropertyCore<Unit, T> =
+  makeItemProperty(addListValueAt(index).resolve(), getTypedValue, setTypedValue)
+
+fun ResolvedPropertyModel.deleteItem(index: Int) = getValue(LIST_TYPE)?.get(index)?.delete() ?: throw IllegalStateException()
+
