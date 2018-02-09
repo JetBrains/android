@@ -30,6 +30,7 @@ import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.android.tools.idea.res.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -157,21 +158,23 @@ public class GraphicsLayoutRenderer {
           }
         };
 
-    // Load the local project R identifiers.
-    boolean loadRResult = ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        // create can run from a different thread so we need to run this in a read action to make sure the module hasn't been disposed
-        // half way.
-        if (module.isDisposed()) {
-          return false;
+    if (ResourceIdManager.get(module).getFinalIdsUsed()) {
+      // Load the local project R identifiers.
+      boolean loadRResult = ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+        @Override
+        public Boolean compute() {
+          // create can run from a different thread so we need to run this in a read action to make sure the module hasn't been disposed
+          // half way.
+          if (module.isDisposed()) {
+            return false;
+          }
+          layoutlibCallback.loadAndParseRClass();
+          return true;
         }
-        layoutlibCallback.loadAndParseRClass();
-        return true;
+      });
+      if (!loadRResult) {
+        throw new AlreadyDisposedException("Module was already disposed");
       }
-    });
-    if (!loadRResult) {
-      throw new AlreadyDisposedException("Module was already disposed");
     }
 
     IAndroidTarget target = configuration.getTarget();

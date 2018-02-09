@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
@@ -24,6 +25,7 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceIdManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -116,7 +118,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
     ResourceClassRegistry rClassRegistry = ResourceClassRegistry.get(module.getProject());
-    rClassRegistry.addLibrary(appResources, "test");
+    rClassRegistry.addLibrary(appResources, ResourceIdManager.get(module), "test", ResourceNamespace.fromPackageName("test"));
 
     AtomicBoolean noSuchField = new AtomicBoolean(false);
     ApplicationManager.getApplication().runReadAction(() -> {

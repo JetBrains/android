@@ -44,7 +44,7 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     }
   }
 
-  public void test() throws Exception {
+  public void testDefaultTheme() throws Exception {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
@@ -62,9 +62,9 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
                     "android:layout_height=\"match_parent\" />\n";
 
     newXml = StringHelper.toSystemLineSeparator(newXml);
+    assertEquals(newXml, layout);
 
     RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1.png");
-    assertEquals(newXml, layout);
   }
 
   public void testLightTheme() throws IOException {

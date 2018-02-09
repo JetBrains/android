@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.android.ide.common.rendering.api.*;
-import com.android.resources.ResourceType;
-import com.android.util.Pair;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
@@ -33,7 +29,7 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
   public LayoutFilePullParserTest() {
   }
 
-  public void test() throws Exception {
+  public void testParser() throws Exception {
     @SuppressWarnings("SpellCheckingInspection")
     VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
     assertNotNull(virtualFile);
@@ -65,83 +61,5 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
     assertEquals("ListView", parser.getName());
     assertEquals("@+id/listView", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
     assertNull(parser.getAttributeValue(ANDROID_URI, "fastScrollAlwaysVisible")); // Cleared by overriding defined framework attribute
-  }
-
-  @SuppressWarnings({"deprecation", "ConstantConditions"})
-  private static class DummyCallback extends LayoutlibCallback {
-
-    @Override
-    public Object loadView(String name, Class[] constructorSignature, Object[] constructorArgs) throws Exception {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public String getNamespace() {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public Pair<ResourceType, String> resolveResourceId(int id) {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public String resolveResourceId(int[] id) {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public Integer getResourceId(ResourceType type, String name) {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public ILayoutPullParser getParser(String layoutName) {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public Object getAdapterItemValue(ResourceReference adapterView,
-                                      Object adapterCookie,
-                                      ResourceReference itemRef,
-                                      int fullPosition,
-                                      int positionPerType,
-                                      int fullParentPosition,
-                                      int parentPositionPerType,
-                                      ResourceReference viewRef,
-                                      ViewAttribute viewAttribute,
-                                      Object defaultValue) {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public AdapterBinding getAdapterBinding(ResourceReference adapterViewRef, Object adapterCookie, Object viewObject) {
-      fail("Should not be used by unit test");
-      return null;
-    }
-
-    @Override
-    public ActionBarCallback getActionBarCallback() {
-      return new ActionBarCallback();
-    }
-
-    @Override
-    public boolean supports(int ideFeature) {
-      fail("Should not be used by unit test");
-      return false;
-    }
   }
 }

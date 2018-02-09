@@ -19,10 +19,11 @@ import com.android.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
-import com.android.tools.idea.util.listenUntilNextSuccessfulSync
 import com.android.tools.idea.res.AppResourceRepository
 import com.android.tools.idea.res.ResourceClassRegistry
+import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.util.listenUntilNextSuccessfulSync
 import com.intellij.openapi.components.AbstractProjectComponent
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -96,6 +97,7 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
 
       AndroidUtils.getApplicationFacets(myProject).forEach { facet ->
         ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches()
+        ResourceIdManager.get(facet.module).resetDynamicIds()
         ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
       }
     }

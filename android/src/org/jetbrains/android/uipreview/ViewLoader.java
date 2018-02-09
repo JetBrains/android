@@ -19,7 +19,8 @@ package org.jetbrains.android.uipreview;
 import android.view.Gravity;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
-import com.android.ide.common.resources.IntArrayWrapper;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.layoutlib.bridge.MockView;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -27,8 +28,8 @@ import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.util.Pair;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
@@ -58,8 +59,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -130,9 +129,9 @@ public class ViewLoader {
   }
 
   private static boolean parseClass(@NotNull Class<?> rClass,
-                                    @NotNull TIntObjectHashMap<Pair<ResourceType, String>> id2res,
-                                    @NotNull Map<IntArrayWrapper, String> styleableId2Res,
-                                    @NotNull Map<ResourceType, TObjectIntHashMap<String>> res2id) throws ClassNotFoundException {
+                                    @NotNull ResourceNamespace namespace,
+                                    @NotNull TIntObjectHashMap<ResourceReference> id2res,
+                                    @NotNull TObjectIntHashMap<ResourceReference> res2id) throws ClassNotFoundException {
     try {
       final Class<?>[] nestedClasses;
       try {
@@ -159,9 +158,6 @@ public class ViewLoader {
           LOG.debug(String.format("  Defining resource type '%s'", anonymizeClassName(resClass.getSimpleName())));
         }
 
-        final TObjectIntHashMap<String> resName2Id = new TObjectIntHashMap<>();
-        res2id.put(resType, resName2Id);
-
         for (Field field : resClass.getDeclaredFields()) {
           if (!Modifier.isStatic(field.getModifiers())) { // May not be final in library projects
             if (LOG.isDebugEnabled()) {
@@ -172,16 +168,11 @@ public class ViewLoader {
           }
 
           final Class<?> type = field.getType();
-          if (type.isArray() && type.getComponentType() == int.class) {
-            styleableId2Res.put(new IntArrayWrapper((int[])field.get(null)), field.getName());
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("  '%s' defined as int[]", field.getName()));
-            }
-          }
-          else if (type == int.class) {
+          if (type == int.class) {
             final Integer value = (Integer)field.get(null);
-            id2res.put(value, Pair.of(resType, field.getName()));
-            resName2Id.put(field.getName(), value);
+            ResourceReference reference = new ResourceReference(namespace, resType, field.getName());
+            id2res.put(value, reference);
+            res2id.put(reference, value);
             if (LOG.isDebugEnabled()) {
               LOG.debug(String.format("  '%s' defined as int", field.getName()));
             }
@@ -581,7 +572,10 @@ public class ViewLoader {
 
   /**
    * Load and parse the R class such that resource references in the layout rendering can refer
-   * to local resources properly
+   * to local resources properly. Only needed if views are compiled against an R class with
+   * final fields.
+   *
+   * @see ResourceIdManager#getFinalIdsUsed()
    */
   public void loadAndParseRClassSilently() {
     final String rClassName = getRClassName(myModule);
@@ -609,7 +603,8 @@ public class ViewLoader {
     }
 
     Class<?> aClass = myLoadedClasses.get(className);
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myModule);
+    ResourceIdManager idManager = ResourceIdManager.get(myModule);
+
     if (aClass == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("  The R class is not loaded.");
@@ -630,9 +625,7 @@ public class ViewLoader {
         ModuleClassLoader.clearCache(myModule);
         myModuleClassLoader = null;
         aClass = getModuleClassLoader().loadClass(className);
-        if (appResources != null) {
-          appResources.resetDynamicIds(true);
-        }
+        idManager.resetDynamicIds();
       }
       else {
         if (LOG.isDebugEnabled()) {
@@ -652,13 +645,13 @@ public class ViewLoader {
     }
 
     if (aClass != null) {
-      final Map<ResourceType, TObjectIntHashMap<String>> res2id = new EnumMap<>(ResourceType.class);
-      final TIntObjectHashMap<Pair<ResourceType, String>> id2res = new TIntObjectHashMap<>();
-      final Map<IntArrayWrapper, String> styleableId2res = new HashMap<>();
+      final TObjectIntHashMap<ResourceReference> res2id = new TObjectIntHashMap<>();
+      final TIntObjectHashMap<ResourceReference> id2res = new TIntObjectHashMap<>();
 
-      if (parseClass(aClass, id2res, styleableId2res, res2id)) {
-        if (appResources != null) {
-          appResources.setCompiledResources(id2res, styleableId2res, res2id);
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet != null) {
+        if (parseClass(aClass, ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace(), id2res, res2id)) {
+          idManager.setCompiledIds(res2id, id2res);
         }
       }
     }

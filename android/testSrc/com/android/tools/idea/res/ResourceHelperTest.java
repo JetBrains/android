@@ -35,6 +35,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.res.ResourceHelper.buildResourceId;
 import static com.android.tools.idea.res.ResourceHelper.getResourceName;
 import static com.android.tools.idea.res.ResourceHelper.resolveColor;
 import static com.google.common.truth.Truth.assertThat;
@@ -275,5 +276,10 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(resolver.uriToPrefix(ANDROID_URI)).isEqualTo("framework");
     assertThat(resolver.prefixToUri("newtools")).isEqualTo(TOOLS_URI);
     assertThat(resolver.prefixToUri("framework")).isEqualTo(ANDROID_URI);
+  }
+
+  public void testBuildResourceId() {
+    assertEquals(0x7f_02_ffff, buildResourceId((byte) 0x7f, (byte) 0x02, (short) 0xffff));
+    assertEquals(0x02_02_0001, buildResourceId((byte) 0x02, (byte) 0x02, (short) 0x0001));
   }
 }

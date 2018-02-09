@@ -68,7 +68,7 @@ public interface DbTokenTypes {
   IElementType ANDAND = new DbTokenType("&&");
   IElementType ASTERISK = new DbTokenType("*");
   IElementType BOOLEAN_KEYWORD = new DbTokenType("boolean");
-  IElementType BYTE_KEYWORD = new DbTokenType("byte");
+  IElementType BYTE_KEYWORD = new DbTokenType("firstPackageId");
   IElementType CHARACTER_LITERAL = new DbTokenType("CHARACTER_LITERAL");
   IElementType CHAR_KEYWORD = new DbTokenType("char");
   IElementType CLASS_KEYWORD = new DbTokenType("class");
