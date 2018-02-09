@@ -21,10 +21,8 @@ import com.intellij.openapi.editor.impl.EditorComponentImpl
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.finder.WindowFinder.findDialog
-import java.awt.Component
-import java.awt.event.InputEvent.CTRL_MASK
-import java.awt.event.KeyEvent.VK_A
-import java.awt.event.KeyEvent.VK_DELETE
+import org.fest.swing.fixture.JComboBoxFixture
+import org.fest.swing.fixture.JPanelFixture
 import javax.swing.JDialog
 import javax.swing.JRadioButton
 import javax.swing.SwingUtilities
@@ -42,25 +40,13 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     }
   }
 
-  private fun selectAndClearTextField(textField: Component) {
-    robot().click(textField)
-    robot().pressAndReleaseKey(VK_A, CTRL_MASK)
-    robot().pressAndReleaseKey(VK_DELETE)
-  }
-
   fun setBazelBinaryPath(path: String): ImportBazelProjectWizardFixture {
-    val textField = robot().finder().findByName("bazel-binary-path-field")
-    selectAndClearTextField(textField)
-    robot().enterText(path)
-
+    JPanelFixture(robot(), "bazel-binary-path-field").comboBox().replaceText(path)
     return this
   }
 
   fun setWorkspacePath(path: String): ImportBazelProjectWizardFixture {
-    val textField = robot().finder().findByName("workspace-directory-field")
-    selectAndClearTextField(textField)
-    robot().enterText(path)
-
+    JComboBoxFixture(robot(), "workspace-directory-field").replaceText(path)
     return this
   }
 
@@ -72,10 +58,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     })
     robot().click(generateFromBuildFileOption)
 
-    val textField = robot().finder().findByName("build-file-path-field")
-    selectAndClearTextField(textField)
-    robot().enterText(path)
-
+    JComboBoxFixture(robot(), "build-file-path-field").replaceText(path)
     return this
   }
 
