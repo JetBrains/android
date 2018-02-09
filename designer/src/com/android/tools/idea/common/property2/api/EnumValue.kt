@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.idea.common.property2.impl.support.*
+import com.android.tools.idea.common.property2.impl.ui.EnumValueListCellRenderer
+import com.intellij.openapi.actionSystem.AnAction
+import javax.swing.ListCellRenderer
+
 /**
  * Representation of values for the builtin [EnumSupport].
  *
@@ -77,5 +82,30 @@ interface EnumValue {
    */
   fun select(property: PropertyItem) {
     property.value = value
+  }
+
+  /**
+   * Convenience method for creating a variant [EnumValue] with a header.
+   */
+  fun withHeader(header: String): EnumValue
+
+  /**
+   * Convenience method for creating a variant [EnumValue] with a separator.
+   */
+  fun withSeparator(): EnumValue
+
+  /**
+   * Convenience method for creating a variant [EnumValue] with indentation.
+   */
+  fun withIndentation(): EnumValue
+
+  /** Default implementations of [EnumValue]s */
+  companion object {
+    fun item(value: String): EnumValue = ItemEnumValue(value)
+    fun item(value: String, display: String): EnumValue = ItemWithDisplayEnumValue(value, display)
+    fun indented(value: String): EnumValue = IndentedItemEnumValue(value)
+    fun indented(value: String, display: String): EnumValue = IndentedItemWithDisplayEnumValue(value, display)
+    fun action(action: AnAction): BaseActionEnumValue = ActionEnumValue(action)
+    val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
   }
 }
