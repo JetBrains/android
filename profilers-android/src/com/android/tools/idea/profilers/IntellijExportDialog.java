@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.profilers.ExportDialog;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class IntellijExportDialog implements com.android.tools.profilers.ExportDialog {
+public class IntellijExportDialog implements ExportDialog {
   private final Project myProject;
 
   public IntellijExportDialog(@NotNull Project project) {
@@ -32,15 +39,30 @@ public class IntellijExportDialog implements com.android.tools.profilers.ExportD
 
   @Override
   public void open(@NotNull Supplier<String> dialogTitleSupplier,
+                   @NotNull Supplier<String> fileNameSupplier,
                    @NotNull Supplier<String> extensionSupplier,
                    @NotNull Consumer<File> saveToFile) {
     ApplicationManager.getApplication().invokeLater(() -> {
       String extension = extensionSupplier.get();
       if (extension != null) {
-        ExportDialog dialog = new ExportDialog(myProject, dialogTitleSupplier.get(), extension);
-        if (dialog.showAndGet()) {
-          saveToFile.accept(dialog.getFile());
+        // Update default file path to user home if myProject.getBasePath() is not valid
+        VirtualFile outputDir = myProject.getBaseDir();
+        if (outputDir == null || !outputDir.exists()) {
+          outputDir = VfsUtil.getUserHomeDir();
         }
+
+        // Configure title, description and extension
+        FileSaverDescriptor descriptor = new FileSaverDescriptor(dialogTitleSupplier.get(), "Save as *." + extension, extension);
+
+        // Open the Dialog which returns a VirtualFileWrapper when closed
+        FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
+        VirtualFileWrapper result = saveFileDialog.save(outputDir, fileNameSupplier.get());
+
+        // If the dialog is closed with a valid result, pass it to saveToFile
+        if (result == null) {
+          return;
+        }
+        saveToFile.accept(result.getFile());
       }
     });
   }

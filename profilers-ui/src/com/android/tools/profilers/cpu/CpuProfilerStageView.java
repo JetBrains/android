@@ -64,7 +64,9 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -406,11 +408,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void installExportTraceMenuItem(ContextMenuInstaller contextMenuInstaller) {
     // Add the item to export a trace file.
     ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(StudioIcons.Common.EXPORT).build();
+    // TODO (b/73296572)  provide a default file name for exporting CPU trace file
     contextMenuInstaller.installGenericContextMenu(
       mySelection, exportTrace,
       x -> getTraceIntersectingWithMouseX(x) != null,
       x -> getIdeComponents().createExportDialog().open(
         () -> "Export trace as",
+        () -> "trace",
         () -> "trace",
         file -> getStage().getStudioProfilers().getIdeServices().saveFile(
           file,
@@ -496,8 +500,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull
   private RangeTooltipComponent createTooltip(@NotNull JPanel overlayPanel,
-                                   @NotNull JComponent overlay,
-                                   @NotNull JBList<CpuThreadsModel.RangedCpuThread> threads) {
+                                              @NotNull JComponent overlay,
+                                              @NotNull JBList<CpuThreadsModel.RangedCpuThread> threads) {
     ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
 
     MouseListener usageListener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
