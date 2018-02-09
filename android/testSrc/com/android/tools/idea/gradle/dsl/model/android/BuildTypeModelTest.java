@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradlePropertyUtilKt;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -673,8 +672,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     buildType.replaceBuildConfigField("abcd", "efgh", "ijkl","abcd", "mnop", "qrst");
-    GradlePropertyUtilKt.replaceListValue(buildType.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
-    GradlePropertyUtilKt.replaceListValue(buildType.proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(buildType.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(buildType.proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
     buildType.replaceResValue("mnop", "qrst", "uvwx","mnop", "efgh", "ijkl");
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "mnop", "qrst")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
@@ -791,8 +790,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.resValues());
 
     buildType.removeBuildConfigField("abcd", "efgh", "ijkl");
-    GradlePropertyUtilKt.removeListValue(buildType.consumerProguardFiles(), "proguard-rules.pro");
-    GradlePropertyUtilKt.removeListValue(buildType.proguardFiles(), "proguard-rules.pro");
+    removeListValue(buildType.consumerProguardFiles(), "proguard-rules.pro");
+    removeListValue(buildType.proguardFiles(), "proguard-rules.pro");
     buildType.removeResValue("opqr", "stuv", "wxyz");
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("cdef", "ghij", "klmn")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
@@ -1282,8 +1281,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     buildType.replaceBuildConfigField("abcd", "efgh", "ijkl", "abcd", "mnop", "qrst");
-    GradlePropertyUtilKt.replaceListValue(buildType.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
-    GradlePropertyUtilKt.replaceListValue(buildType .proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(buildType.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(buildType .proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
     buildType.replaceResValue("mnop", "qrst", "uvwx", "mnop", "efgh", "ijkl");
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "mnop", "qrst")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
@@ -1428,8 +1427,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.resValues());
 
     buildType.removeBuildConfigField("abcd", "efgh", "ijkl");
-    GradlePropertyUtilKt.removeListValue(buildType.consumerProguardFiles(), "proguard-rules.pro");
-    GradlePropertyUtilKt.removeListValue(buildType.proguardFiles(), "proguard-rules.pro");
+    removeListValue(buildType.consumerProguardFiles(), "proguard-rules.pro");
+    removeListValue(buildType.proguardFiles(), "proguard-rules.pro");
     buildType.removeResValue("opqr", "stuv", "wxyz");
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("cdef", "ghij", "klmn")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
@@ -1467,8 +1466,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-rules.pro"), buildType.proguardFiles());
 
-    GradlePropertyUtilKt.removeListValue(buildType.consumerProguardFiles(), "proguard-android.txt");
-    GradlePropertyUtilKt.removeListValue(buildType.proguardFiles(), "proguard-rules.pro");
+    removeListValue(buildType.consumerProguardFiles(), "proguard-android.txt");
+    removeListValue(buildType.proguardFiles(), "proguard-rules.pro");
     assertThat(buildType.consumerProguardFiles().getValue(LIST_TYPE)).named("consumerProguardFiles").isEmpty();
     assertThat(buildType.proguardFiles().getValue(LIST_TYPE)).named("proguardFiles").isEmpty();
 

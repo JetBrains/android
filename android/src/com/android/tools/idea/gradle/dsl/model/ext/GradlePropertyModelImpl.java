@@ -237,6 +237,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
+  @NotNull
   public GradlePropertyModel getMapValue(@NotNull String key) {
     if (myValueType != MAP && myValueType != NONE) {
       throw new IllegalStateException("Can't add map value to type: " + myValueType + ". " +
@@ -257,12 +258,14 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
+  @NotNull
   public GradlePropertyModel convertToEmptyList() {
     makeEmptyList();
     return this;
   }
 
   @Override
+  @NotNull
   public GradlePropertyModel addListValue() {
     if (myValueType != LIST && myValueType != NONE) {
       throw new IllegalStateException("Can't add list value to type: " + myValueType + ". " +
@@ -279,6 +282,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
+  @NotNull
   public GradlePropertyModel addListValueAt(int index) {
     if (myValueType != LIST && myValueType != NONE) {
       throw new IllegalStateException("Can't add list value to type: " + myValueType + ". " +
@@ -303,11 +307,30 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
+  @Nullable
+  public GradlePropertyModel getListValue(@NotNull Object value) {
+    if (myValueType != LIST && myValueType != NONE) {
+      throw new IllegalStateException("Can't get list value on type: " + myValueType + ". " +
+                                      "Please call GradlePropertyModel#convertToList before trying to get values");
+    }
+
+    List<GradlePropertyModel> list = getValue(LIST_TYPE);
+    if (list == null) {
+      return null;
+    }
+    return list.stream().filter(e -> {
+      Object v = e.getValue(OBJECT_TYPE);
+      return v != null && v.equals(value);
+    }).findFirst().orElseGet(null);
+  }
+
+  @Override
   public void delete() {
     deleteInternal();
   }
 
   @Override
+  @NotNull
   public ResolvedPropertyModel resolve() {
     return new ResolvedPropertyModelImpl(this);
   }
