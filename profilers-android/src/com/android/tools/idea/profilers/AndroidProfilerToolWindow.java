@@ -115,7 +115,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   }
 
   @Nullable
-  private String getPreferredProcessName(Project project) {
+  private static String getPreferredProcessName(Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
       if (moduleInfo != null) {

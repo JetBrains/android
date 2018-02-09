@@ -99,6 +99,21 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
+  public void configureStartupAgent(ConfigureStartupAgentRequest request, StreamObserver<ConfigureStartupAgentResponse> observer) {
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
+      myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
+
+    if (client != null) {
+      observer.onNext(client.configureStartupAgent(request));
+    }
+    else {
+      observer.onNext(ConfigureStartupAgentResponse.getDefaultInstance());
+    }
+
+    observer.onCompleted();
+  }
+
+  @Override
   public void beginSession(BeginSessionRequest request, StreamObserver<BeginSessionResponse> responseObserver) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
     if (client == null) {

@@ -31,7 +31,7 @@
     </action>
   </actions>
   <extensions defaultExtensionNs="com.android.run">
-    <androidLaunchTaskContributor implementation="com.android.tools.idea.profilers.AndroidProfilerToolWindowTaskContributor" />
+    <androidLaunchTaskContributor implementation="com.android.tools.idea.profilers.AndroidProfilerLaunchTaskContributor" />
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor" />
