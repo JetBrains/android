@@ -3069,6 +3069,35 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testAddRemoveReferenceValues() {
+    val text = """
+               ext {
+                 propB = "2"
+                 propC = "3"
+                 propRef = propB
+                 propInterpolated = "${'$'}{propB}nd"
+                 propList = ["1", propB, propC, propRef, propInterpolated]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    run {
+      val propertyModel = extModel.findProperty("propList")
+      verifyListProperty(propertyModel, listOf("1", "2", "3", "2", "2nd"), REGULAR, 4)
+      propertyModel.toList()!![0].setValue(ReferenceTo("propC"))
+      verifyListProperty(propertyModel, listOf("3", "2", "3", "2", "2nd"), REGULAR, 5)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = extModel.findProperty("propList")
+      verifyListProperty(propertyModel, listOf("3", "2", "3", "2", "2nd"), REGULAR, 5)
+    }
+  }
+
   private fun runSetPropertyTest(text: String, type: PropertyType) {
     writeToBuildFile(text)
 
