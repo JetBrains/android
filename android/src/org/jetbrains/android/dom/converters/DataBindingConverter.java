@@ -201,8 +201,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     for (int i = 0; i < qName.size(); i++) {
       String segment = qName.get(i);
       int endOffset = offset + segment.length();
-      if (!str.regionMatches(offset, segment, 0, segment.length())
-          || (endOffset != str.length() && str.charAt(endOffset) != '.')) {
+      if (!str.startsWith(segment, offset) || (endOffset != str.length() && str.charAt(endOffset) != '.')) {
         return i;
       }
       offset = endOffset + 1;
