@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.BuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
@@ -211,10 +210,9 @@ open class PsBuildType(
     val proGuardFiles: ModelListProperty<PsBuildType, File> = listProperty(
       "Proguard Files",
       getResolvedValue = { proguardFiles.toList() },
-      getParsedCollection = { proguardFiles().asParsedListValue(ResolvedPropertyModel::asFile, { setValue(it.toString()) }) },
-      getParsedRawValue = { proguardFiles().dslText() },
-      clearParsedValue = { proguardFiles().delete() },
-      setParsedRawValue = { proguardFiles().setDslText(it)},
+      getParsedProperty = { proguardFiles() },
+      itemValueGetter = { asFile() },
+      itemValueSetter = { setValue(it.toString()) },
       parse = { parseFile(it) }
     )
     val manifestPlaceholders: ModelMapProperty<PsBuildType, String> = mapProperty(

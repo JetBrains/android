@@ -28,6 +28,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
   private fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
   private fun <T> ParsedValue<T>.asTestValue(): T? = (this as? ParsedValue.Set.Parsed<T>)?.value
+  private fun <T> ParsedValue<T>.asTestInvalidValue(): String? = (this as? ParsedValue.Set.Invalid<T>)?.dslText
   private fun <T : Any> T.asParsed(): ParsedValue<T> = ParsedValue.Set.Parsed(value = this)
 
   fun testProperties() {
@@ -188,9 +189,11 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     buildType.renderscriptOptimLevel = 3.asParsed()
     buildType.versionNameSuffix = "new_vsuffix".asParsed()
     buildType.zipAlignEnabled = false.asParsed()
+    PsBuildType.BuildTypeDescriptors.proGuardFiles.deleteItem(buildType, 1)
     val editableProGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType)
     editableProGuardFiles[1].setParsedValue(Unit, File("a.txt").asParsed())
-    editableProGuardFiles[2].setParsedValue(Unit, File("b.txt").asParsed())
+    PsBuildType.BuildTypeDescriptors.proGuardFiles.addItem(buildType, 2).setParsedValue(Unit, File("z.txt").asParsed())
+
     PsBuildType.BuildTypeDescriptors.manifestPlaceholders.addEntry(buildType, "b").setParsedValue(Unit, "v".asParsed())
     PsBuildType.BuildTypeDescriptors.manifestPlaceholders.changeEntryKey(buildType, "b", "v")
     PsBuildType.BuildTypeDescriptors.manifestPlaceholders.deleteEntry(buildType, "v")
@@ -223,11 +226,14 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(zipAlignEnabled.parsedValue.asTestValue(), equalTo(false))
 
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[0].parsedValue.asTestInvalidValue(), equalTo("getDefaultProguardFile('proguard-android.txt')"))
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
       assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(File("a.txt")))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
-      assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("b.txt")))
+      assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("z.txt")))
 
       // TODO(b/73059531): The value should not change after applying changes.
       if (afterSync) {
@@ -252,6 +258,59 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
         // Note: empty manifestPlaceholders does not match null value.
         assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
+       }
+    }
+
+    verifyValues(buildType)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProject(resolvedProject)
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findBuildType("release")!!, afterSync = true)
+  }
+
+  @Ignore("b/73149707")
+  // TODO(b/73149707): Uncomment when the text is fixed.
+  fun /*test*/InsertingProguardFiles() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProject(resolvedProject)
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val buildType = appModule.findBuildType("release")
+    assertThat(buildType, notNullValue()); buildType!!
+
+    val editableProGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType)
+    editableProGuardFiles[1].setParsedValue(Unit, File("a.txt").asParsed())
+    editableProGuardFiles[2].setParsedValue(Unit, File("b.txt").asParsed())
+    PsBuildType.BuildTypeDescriptors.proGuardFiles.addItem(buildType, 0).setParsedValue(Unit, File("z.txt").asParsed())
+
+
+    fun verifyValues(buildType: PsBuildType, afterSync: Boolean = false) {
+      val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.getEditableValues(buildType).map { it.getValue(Unit) }
+
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(File("z.txt")))
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[1].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[1].parsedValue.asTestInvalidValue(), equalTo("getDefaultProguardFile('proguard-android.txt')"))
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("a.txt")))
+      // TODO(b/72814329): Resolved values are not yet supported on list properties.
+      assertThat(proGuardFiles[3].resolved.asTestValue(), nullValue())
+      assertThat(proGuardFiles[3].parsedValue.asTestValue(), equalTo(File("b.txt")))
+
+      if (afterSync) {
+        // TODO(b/72814329): assertThat(proGuardFiles[0].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
+        // TODO(b/72814329): assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(proGuardFiles[2].resolved.asTestValue()))
+        // TODO(b/72814329): assertThat(proGuardFiles[3].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
        }
     }
 

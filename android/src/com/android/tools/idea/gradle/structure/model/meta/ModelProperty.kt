@@ -92,6 +92,8 @@ interface ModelCollectionProperty<in ModelT, CollectionT : Any, out ValueT : Any
 interface ModelListProperty<in ModelT, ValueT : Any> :
   ModelCollectionProperty<ModelT, List<ValueT>, ValueT> {
   fun getEditableValues(model: ModelT): List<ModelPropertyCore<Unit, ValueT>>
+  fun addItem(model: ModelT, index: Int): ModelPropertyCore<Unit, ValueT>
+  fun deleteItem(model: ModelT, index: Int)
 }
 
 /**
