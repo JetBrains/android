@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
+import java.math.BigDecimal
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testProperties() {
@@ -968,6 +969,41 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
                  def prop1 = 'value'
                }""".trimIndent()
     runSetPropertyTest(text, VARIABLE)
+  }
+
+  fun testSetUnknownValueType() {
+    val text = """
+               ext {
+                 prop1 = "hello"
+               }""".trimIndent()
+    writeToBuildFile(text)
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.ext().findProperty("prop1")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "hello", STRING, REGULAR, 0, "prop1", "ext.prop1")
+      propertyModel.setValue(25)
+      verifyPropertyModel(propertyModel, INTEGER_TYPE, 25, INTEGER, REGULAR, 0, "prop1", "ext.prop1")
+      propertyModel.setValue(true)
+      verifyPropertyModel(propertyModel, BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop1", "ext.prop1")
+      propertyModel.setValue("goodbye")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "goodbye", STRING, REGULAR, 0, "prop1", "ext.prop1")
+
+      try {
+        propertyModel.setValue(File("Hello"))
+        fail()
+      } catch (e : IllegalArgumentException) {
+        // Expected
+      }
+      try {
+        propertyModel.setValue(BigDecimal(3))
+        fail()
+      } catch (e : IllegalArgumentException) {
+        // Expected
+      }
+
+      verifyPropertyModel(propertyModel, STRING_TYPE, "goodbye", STRING, REGULAR, 0, "prop1", "ext.prop1")
+    }
   }
 
   fun testSetBothStringTypes() {

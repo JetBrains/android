@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,5 +53,12 @@ public abstract class GradleDslSettableExpression extends GradleDslExpression {
   protected void setUnsavedValue(@Nullable PsiElement element) {
     myUnsavedValue = element;
     setModified(true);
+  }
+
+  protected void checkForValidValue(@NotNull Object value) {
+    if (!(value instanceof String || value instanceof Integer || value instanceof Boolean || value instanceof ReferenceTo)) {
+      throw new IllegalArgumentException(
+        "Can't set a property value with: " + value.getClass() + " type must be one of [Boolean, Integer, String, ReferenceTo]");
+    }
   }
 }
