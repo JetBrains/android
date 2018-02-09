@@ -75,7 +75,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
   /** Namespace prefixes used in framework resources and the corresponding URIs. */
   private static final String[] WELL_KNOWN_NAMESPACES = new String[] {
-    SdkConstants.ANDROID_NS_NAME, SdkConstants.ANDROID_NS_NAME_PREFIX,
+    SdkConstants.ANDROID_NS_NAME, SdkConstants.ANDROID_URI,
     SdkConstants.XLIFF_PREFIX, SdkConstants.XLIFF_URI,
     SdkConstants.TOOLS_PREFIX, SdkConstants.TOOLS_URI,
     SdkConstants.AAPT_PREFIX, SdkConstants.AAPT_URI

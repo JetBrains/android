@@ -59,7 +59,6 @@ public class ChooseResourceDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/73089905
   @Test
   public void testColorStateList() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("StateListApplication");
