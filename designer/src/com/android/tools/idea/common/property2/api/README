@@ -1,0 +1,16 @@
+# Package com.android.tools.idea.common.property2.api
+
+Defines the API of the property editing system.
+The system is setup in a way to allow for reuse in different types properties.
+Currently only an inspector style view is supported.
+
+To use the property system a client should:
+ - implement a customized [PropertyItem] that optionally can implement [ActionButtonSupport] and [HelpSupport]
+ - implement a [PropertiesModel] which is capable of generating a table of properties
+ - implement a [ControlTypeProvider] (unless a custom [EditorProvider] is used)
+ - implement a [EnumSupportProvider] (unless a custom [EditorProvider] is used)
+ - instantiate a [EditorProviderImpl] using the [ControlTypeProvider] and [EnumSupportProvider]
+ - instantiate a [PropertiesView]
+ - implement one or more [InspectorProvider]s using the [EditorProvider] and add them to the [PropertiesView]
+
+ The PropertyItem is generic such that the client can reference their own types in the [InspectorProvider] implementations.
