@@ -192,6 +192,19 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     buildModel.reparse();
   }
 
+  protected void removeListValue(@NotNull GradlePropertyModel model, @NotNull Object valueToRemove) {
+    assertEquals(LIST, model.getValueType());
+    GradlePropertyModel itemModel = model.getListValue(valueToRemove);
+    assertNotNull(itemModel);
+    itemModel.delete();
+  }
+
+  protected void replaceListValue(@NotNull GradlePropertyModel model, @NotNull Object valueToRemove, @NotNull Object valueToAdd) {
+    GradlePropertyModel itemModel = model.getListValue(valueToRemove);
+    assertNotNull(itemModel);
+    itemModel.setValue(valueToAdd);
+  }
+
   protected void verifyPropertyModel(@NotNull GradlePropertyModel propertyModel,
                                      @NotNull String propertyName,
                                      @NotNull String propertyText) {

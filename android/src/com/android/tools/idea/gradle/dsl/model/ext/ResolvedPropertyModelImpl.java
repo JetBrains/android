@@ -103,30 +103,41 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  @NotNull
   public ResolvedPropertyModel convertToEmptyMap() {
     myRealModel.convertToEmptyMap();
     return this;
   }
 
   @Override
+  @NotNull
   public GradlePropertyModel getMapValue(@NotNull String key) {
     return myRealModel.getMapValue(key);
   }
 
   @Override
+  @NotNull
   public GradlePropertyModel convertToEmptyList() {
     myRealModel.convertToEmptyList();
     return this;
   }
 
   @Override
+  @NotNull
   public GradlePropertyModel addListValue() {
     return myRealModel.addListValue();
   }
 
   @Override
+  @NotNull
   public GradlePropertyModel addListValueAt(int index) {
     return myRealModel.addListValueAt(index);
+  }
+
+  @Nullable
+  @Override
+  public GradlePropertyModel getListValue(@NotNull Object value) {
+    return myRealModel.getListValue(value);
   }
 
   @Override
@@ -135,6 +146,7 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  @NotNull
   public ResolvedPropertyModel resolve() {
     return this;
   }

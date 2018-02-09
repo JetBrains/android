@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.dsl.api.android.productFlavors.ExternalNati
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.NdkOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.NdkBuildOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradlePropertyUtilKt;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.ExternalNativeBuildOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl;
@@ -705,9 +704,9 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), defaultConfig.resValues());
 
-    GradlePropertyUtilKt.replaceListValue(defaultConfig.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
-    GradlePropertyUtilKt.replaceListValue(defaultConfig.proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
-    GradlePropertyUtilKt.replaceListValue(defaultConfig.resConfigs(), "abcd", "xyz");
+    replaceListValue(defaultConfig.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(defaultConfig.proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(defaultConfig.resConfigs(), "abcd", "xyz");
     defaultConfig.replaceResValue("abcd", "efgh", "ijkl", "abcd", "mnop", "qrst");
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
@@ -834,9 +833,9 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("mnop", "qrst", "uvwx")),
                      defaultConfig.resValues());
 
-    GradlePropertyUtilKt.removeListValue(defaultConfig.consumerProguardFiles(), "proguard-rules.pro");
-    GradlePropertyUtilKt.removeListValue(defaultConfig.proguardFiles(), "proguard-rules.pro");
-    GradlePropertyUtilKt.removeListValue(defaultConfig.resConfigs(), "efgh");
+    removeListValue(defaultConfig.consumerProguardFiles(), "proguard-rules.pro");
+    removeListValue(defaultConfig.proguardFiles(), "proguard-rules.pro");
+    removeListValue(defaultConfig.resConfigs(), "efgh");
     defaultConfig.removeResValue("mnop", "qrst", "uvwx");
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
@@ -1408,9 +1407,9 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("resConfigs", ImmutableList.of("abcd", "efgh"), defaultConfig.resConfigs());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), defaultConfig.resValues());
 
-    GradlePropertyUtilKt.replaceListValue(defaultConfig.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
-    GradlePropertyUtilKt.replaceListValue(defaultConfig.proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
-    GradlePropertyUtilKt.replaceListValue(defaultConfig.resConfigs(), "abcd", "xyz");
+    replaceListValue(defaultConfig.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(defaultConfig.proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(defaultConfig.resConfigs(), "abcd", "xyz");
     defaultConfig.replaceResValue("abcd", "efgh", "ijkl", "abcd", "mnop", "qrst");
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
@@ -1571,9 +1570,9 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("mnop", "qrst", "uvwx")),
                      defaultConfig.resValues());
 
-    GradlePropertyUtilKt.removeListValue(defaultConfig.consumerProguardFiles(), "proguard-rules.pro");
-    GradlePropertyUtilKt.removeListValue(defaultConfig.proguardFiles(), "proguard-rules.pro");
-    GradlePropertyUtilKt.removeListValue(defaultConfig.resConfigs(), "efgh");
+    removeListValue(defaultConfig.consumerProguardFiles(), "proguard-rules.pro");
+    removeListValue(defaultConfig.proguardFiles(), "proguard-rules.pro");
+    removeListValue(defaultConfig.resConfigs(), "efgh");
     defaultConfig.removeResValue("mnop", "qrst", "uvwx");
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
@@ -1617,8 +1616,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-rules.pro"), defaultConfig.proguardFiles());
 
-    GradlePropertyUtilKt.removeListValue(defaultConfig.consumerProguardFiles(), "proguard-android.txt");
-    GradlePropertyUtilKt.removeListValue(defaultConfig.proguardFiles(), "proguard-rules.pro");
+    removeListValue(defaultConfig.consumerProguardFiles(), "proguard-android.txt");
+    removeListValue(defaultConfig.proguardFiles(), "proguard-rules.pro");
 
     assertThat(defaultConfig.consumerProguardFiles().getValue(LIST_TYPE)).named("consumerProguardFiles").isEmpty();
     assertThat(defaultConfig.proguardFiles().getValue(LIST_TYPE)).named("proguardFiles").isEmpty();

@@ -156,6 +156,7 @@ public interface GradlePropertyModel {
    * This can be called on a property with any {@link ValueType} but will always result in {@link ValueType#MAP}.
    * This method returns itself for in order to chain operations e.g propertyModel.convertToEmptyMap().getMapValue()
    */
+  @NotNull
   GradlePropertyModel convertToEmptyMap();
 
   /**
@@ -164,6 +165,7 @@ public interface GradlePropertyModel {
    * Unless this resulting model has its value set, nothing will be created.
    * This should only be used for properties for which {@link #getValueType()} returns {@link ValueType#MAP}.
    */
+  @NotNull
   GradlePropertyModel getMapValue(@NotNull String key);
 
   /**
@@ -171,6 +173,7 @@ public interface GradlePropertyModel {
    * This can be called on a property with any {@link ValueType} but will always result in {@link ValueType#LIST}
    * This method returns itself for in order to chain operations e.g propertyModel.convertToEmptyList().addListValue()
    */
+  @NotNull
   GradlePropertyModel convertToEmptyList();
 
   /**
@@ -179,13 +182,23 @@ public interface GradlePropertyModel {
    * Note: The returned {@link GradlePropertyModel} should not be set to a map or list. Setting these inside lists will throw an exception.
    * This should only be used for properties for which {@link #getValueType()} return {@link ValueType#LIST}
    */
+  @NotNull
   GradlePropertyModel addListValue();
 
   /**
    * Same as {@link #addListValue()} but instead of the value being added at the end, it will be added at the given index.
    * @throw {@link IndexOutOfBoundsException} if the index is outside the range of the list. Indexing starts from 0.
    */
+  @NotNull
   GradlePropertyModel addListValueAt(int index);
+
+  /**
+   * Returns the first property model within a list property where {@code #getValue(OBJECT_TYPE)} return {@code value}.
+   * Will always return null if the value could not be found. And throws an IllegalStateException if called on a property of the
+   * wrong type.
+   */
+  @Nullable
+  GradlePropertyModel getListValue(@NotNull Object value);
 
   /**
    * Marks this property for deletion, which when {@link GradleBuildModel#applyChanges()} is called, removes it and its value
@@ -196,6 +209,7 @@ public interface GradlePropertyModel {
   /**
    * @return a resolved model representing this property.
    */
+  @NotNull
   ResolvedPropertyModel resolve();
 
   /**
