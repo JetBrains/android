@@ -377,6 +377,8 @@ public class GradleBuildInvoker {
                                                                                              buildOutputParsers);
     try {
       return new ExternalSystemTaskNotificationListenerAdapter() {
+        @NotNull private BuildOutputInstantReaderImpl myReader = buildOutputInstantReader;
+
         @Override
         public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
           AnAction restartAction = new AnAction() {
@@ -388,6 +390,10 @@ public class GradleBuildInvoker {
 
             @Override
             public void actionPerformed(AnActionEvent e) {
+              // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
+              myReader.close();
+              // noinspection resource, IOResourceOpenedButNotSafelyClosed
+              myReader = new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager, buildOutputParsers);
               executeTasks(request);
             }
           };
@@ -415,12 +421,12 @@ public class GradleBuildInvoker {
         @Override
         public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
           buildViewManager.onEvent(new OutputBuildEventImpl(id, text, stdOut));
-          buildOutputInstantReader.append(text);
+          myReader.append(text);
         }
 
         @Override
         public void onEnd(@NotNull ExternalSystemTaskId id) {
-          buildOutputInstantReader.close();
+          myReader.close();
         }
 
         @Override
