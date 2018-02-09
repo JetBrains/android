@@ -51,11 +51,11 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
       return;
     }
 
-    if (version.equals(android.buildToolsVersion().value())) {
+    if (version.equals(android.buildToolsVersion().toString())) {
       return;
     }
 
-    android.setBuildToolsVersion(version);
+    android.buildToolsVersion().setValue(version);
     runWriteCommandAction(project, buildModel::applyChanges);
 
     if (requestSync) {

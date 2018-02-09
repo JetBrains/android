@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel.BuildConfigF
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -52,12 +51,12 @@ public class GradleValueTest extends GradleFileModelTestCase {
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
 
-    verifyGradleValue(android.buildToolsVersion(), "android.buildToolsVersion", "\"23.0.0\"");
-    verifyGradleValue(android.compileSdkVersion(), "android.compileSdkVersion", "23");
-    verifyGradleValue(android.defaultPublishConfig(), "android.defaultPublishConfig", "\"debug\"");
-    verifyGradleValue(android.generatePureSplits(), "android.generatePureSplits", "true");
-    verifyGradleValue(android.publishNonDefault(), "android.publishNonDefault", "false");
-    verifyGradleValue(android.resourcePrefix(), "android.resourcePrefix", "\"abcd\"");
+    verifyPropertyModel(android.buildToolsVersion(), "android.buildToolsVersion", "23.0.0");
+    verifyPropertyModel(android.compileSdkVersion(), "android.compileSdkVersion", "23");
+    verifyPropertyModel(android.defaultPublishConfig(), "android.defaultPublishConfig", "debug");
+    verifyPropertyModel(android.generatePureSplits(), "android.generatePureSplits", "true");
+    verifyPropertyModel(android.publishNonDefault(), "android.publishNonDefault", "false");
+    verifyPropertyModel(android.resourcePrefix(), "android.resourcePrefix", "abcd");
   }
 
   public void testGradleValuesOfLiteralElementsInAssignmentStatements() throws Exception {
@@ -73,10 +72,10 @@ public class GradleValueTest extends GradleFileModelTestCase {
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
 
-    verifyGradleValue(android.buildToolsVersion(), "android.buildToolsVersion", "\"23.0.0\"");
-    verifyGradleValue(android.compileSdkVersion(), "android.compileSdkVersion", "\"android-23\"");
-    verifyGradleValue(android.defaultPublishConfig(), "android.defaultPublishConfig", "\"debug\"");
-    verifyGradleValue(android.generatePureSplits(), "android.generatePureSplits", "true");
+    verifyPropertyModel(android.buildToolsVersion(), "android.buildToolsVersion", "23.0.0");
+    verifyPropertyModel(android.compileSdkVersion(), "android.compileSdkVersion", "android-23");
+    verifyPropertyModel(android.defaultPublishConfig(), "android.defaultPublishConfig", "debug");
+    verifyPropertyModel(android.generatePureSplits(), "android.generatePureSplits", "true");
   }
 
   public void testListOfGradleValuesInApplicationStatements() throws Exception {

@@ -19,10 +19,7 @@ import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
-import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
-import com.android.tools.idea.gradle.structure.model.meta.dsl
-import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 
 object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidProject, AndroidModel> {
@@ -37,18 +34,10 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val compileSdkVersion: ModelSimpleProperty<PsAndroidModule, String> = property(
       "Compile Sdk Version",
       getResolvedValue = { AndroidTargetHash.getPlatformVersion(compileTarget)?.featureLevel?.toString() ?: compileTarget },
-      getParsedValue = { compileSdkVersion().value() },
-      getParsedRawValue = { compileSdkVersion().dsl() },
-      setParsedValue = {
-        val itInt = it.toIntOrNull()
-        if (itInt != null) {
-          setCompileSdkVersion(itInt)
-        }
-        else {
-          setCompileSdkVersion(it)
-        }
-      },
-      clearParsedValue = { removeCompileSdkVersion() },
+      getParsedValue = { compileSdkVersion().asString() },
+      getParsedRawValue = { compileSdkVersion().dslText() },
+      setParsedValue = { compileSdkVersion().setValue(it) },
+      clearParsedValue = { compileSdkVersion().delete() },
       parse = { parseString(it) },
       getKnownValues = { installedCompiledApis() }
   )
@@ -56,10 +45,10 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val buildToolsVersion: ModelSimpleProperty<PsAndroidModule, String> = property(
       "Build Tools Version",
       getResolvedValue = { buildToolsVersion },
-      getParsedValue = { buildToolsVersion().value() },
-      getParsedRawValue = { buildToolsVersion().dsl() },
-      setParsedValue = { setBuildToolsVersion(it) },
-      clearParsedValue = { removeBuildToolsVersion() },
+      getParsedValue = { buildToolsVersion().asString() },
+      getParsedRawValue = { buildToolsVersion().dslText() },
+      setParsedValue = { buildToolsVersion().setValue(it) },
+      clearParsedValue = { buildToolsVersion().delete() },
       parse = { parseString(it) },
       getKnownValues = { installedBuildTools() }
   )

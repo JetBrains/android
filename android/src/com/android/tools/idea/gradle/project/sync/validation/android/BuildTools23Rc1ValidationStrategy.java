@@ -47,7 +47,7 @@ class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy
       if (buildModel != null) {
         AndroidModel android = buildModel.android();
         if (android != null) {
-          return android.buildToolsVersion().value();
+          return android.buildToolsVersion().toString();
         }
       }
       return null;
