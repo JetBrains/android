@@ -19,12 +19,10 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
+import com.android.tools.idea.actions.DevicePickerHelpActionKt;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.concurrent.EdtExecutor;
-import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator;
-import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -35,13 +33,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.AdbAssistantStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTabbedPane;
@@ -242,14 +240,20 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
         .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));
-    if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
-      OpenAssistSidePanelAction action = new OpenAssistSidePanelAction();
-      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, myFacet.getModule().getProject());
-      doCancelAction(); // need to close the dialog for tool window to show
-    }
-    else {
-      BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
-    }
+
+    AnAction action = DevicePickerHelpActionKt.getAction();
+    ApplicationManager.getApplication().invokeLater(() -> {
+      action.actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, new DataContext() {
+        @Nullable
+        @Override
+        public Object getData(String dataId) {
+          if (dataId.equalsIgnoreCase(CommonDataKeys.PROJECT.getName())) {
+            return myFacet.getModule().getProject();
+          }
+          return null;
+        }
+      }));
+    });
   }
 
   /**

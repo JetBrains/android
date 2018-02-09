@@ -282,14 +282,6 @@
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
     </action>
     <action
-        id="DeveloperServices.ConnectionAssistant"
-        class="com.android.tools.idea.connection.assistant.OpenConnectionAssistantSidePanelAction"
-        icon="StudioIcons.Shell.ToolWindows.ASSISTANT"
-        text="Connection Assistant"
-        description="Help debug device connection">
-      <add-to-group group-id="AndroidToolsGroupExtension"/>
-    </action>
-    <action
       id="LayoutEditor.AddSampleData"
       class="com.android.tools.idea.sampledata.AddSampleDataFileAction"
       text="Add Sample Data File"
@@ -302,6 +294,7 @@
       <keyboard-shortcut first-keystroke="control meta R" keymap="Mac OS X 10.5+"/>
       <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
     </action>
+    <action id="Android.Device.Picker.Help" class="com.android.tools.idea.actions.DevicePickerHelpAction"/>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -1183,12 +1176,6 @@
                     interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.assistant.actionHandler"
-                    interface="com.android.tools.idea.assistant.AssistActionHandler"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.assistant.actionStateManager"
-                    interface="com.android.tools.idea.assistant.AssistActionStateManager"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.assistant.assistantBundleCreator"
-                    interface="com.android.tools.idea.assistant.AssistantBundleCreator"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.ide.developerServiceBuildSystemOperations"
@@ -1334,14 +1321,4 @@
       <implementation-class>com.android.tools.idea.model.MergedManifest</implementation-class>
     </component>
   </module-components>
-
-  <!-- Connection Assistant -->
-  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
-    <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
-    <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbAction"/>
-    <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbActionStateManager"/>
-    <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesAction"/>
-    <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.ListUsbDevicesActionStateManager"/>
-    <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.SubmitReportAction"/>
-  </extensions>
 </idea-plugin>
