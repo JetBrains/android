@@ -242,8 +242,8 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
    * <p>Returns {@code null} when experimental plugin is used as reading and updating android section is not supported for the
    * experimental dsl.</p>
    */
-  @Nullable
   @Override
+  @Nullable
   public AndroidModel android() {
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(myGradleDslFile.getProject());
     if (androidPluginInfo != null && androidPluginInfo.isExperimental()) {

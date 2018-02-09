@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -28,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 /**
  * Base class for the models representing block elements.
@@ -65,5 +69,22 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   public Map<String, GradlePropertyModel> getInScopeProperties() {
     return myDslElement.getInScopeElements().entrySet().stream()
       .collect(Collectors.toMap(e -> e.getKey(), e -> new GradlePropertyModelImpl(e.getValue())));
+  }
+
+  @NotNull
+  protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
+    return getModelForProperty(property, false);
+  }
+
+  @NotNull
+  protected ResolvedPropertyModel getModelForProperty(@NotNull String property, boolean isMethod) {
+    GradleDslElement element = myDslElement.getPropertyElement(property);
+
+    GradlePropertyModelImpl model = element == null
+                                    ? new GradlePropertyModelImpl(myDslElement, REGULAR, property) : new GradlePropertyModelImpl(element);
+    if (isMethod) {
+      model.markAsMethodCall();
+    }
+    return new ResolvedPropertyModelImpl(model);
   }
 }

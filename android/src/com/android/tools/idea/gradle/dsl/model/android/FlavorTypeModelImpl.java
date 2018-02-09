@@ -202,24 +202,6 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     }
   }
 
-  @NotNull
-  protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
-    return getModelForProperty(property, false);
-  }
-
-  @NotNull
-  protected ResolvedPropertyModel getModelForProperty(@NotNull String property, boolean isMethod) {
-    GradleDslElement element = myDslElement.getPropertyElement(property);
-
-    GradlePropertyModelImpl model = element == null
-                                    ? new GradlePropertyModelImpl(myDslElement, REGULAR, property) : new GradlePropertyModelImpl(element);
-    if (isMethod) {
-      model.markAsMethodCall();
-    }
-    return new ResolvedPropertyModelImpl(model);
-  }
-
-
   protected <T extends TypeNameValueElement> T addNewTypeNameValueElement(@NotNull Function<GradleDslExpressionList, T> producer,
                                                                           @NotNull String elementName,
                                                                           @NotNull String type,

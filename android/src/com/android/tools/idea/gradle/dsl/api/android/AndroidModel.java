@@ -17,10 +17,8 @@ package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -32,40 +30,21 @@ public interface AndroidModel {
   AdbOptionsModel adbOptions();
 
   @NotNull
-  GradleNullableValue<String> buildToolsVersion();
-
-  @NotNull
-  AndroidModel setBuildToolsVersion(int buildToolsVersion);
-
-  @NotNull
-  AndroidModel setBuildToolsVersion(@NotNull String buildToolsVersion);
-
-  @NotNull
-  AndroidModel removeBuildToolsVersion();
+  ResolvedPropertyModel buildToolsVersion();
 
   @NotNull
   List<BuildTypeModel> buildTypes();
 
   @NotNull
-  AndroidModel addBuildType(@NotNull String buildType);
+  BuildTypeModel addBuildType(@NotNull String buildType);
 
-  @NotNull
-  AndroidModel removeBuildType(@NotNull String buildType);
+  void removeBuildType(@NotNull String buildType);
 
   @NotNull
   CompileOptionsModel compileOptions();
 
   @NotNull
-  GradleNullableValue<String> compileSdkVersion();
-
-  @NotNull
-  AndroidModel setCompileSdkVersion(int compileSdkVersion);
-
-  @NotNull
-  AndroidModel setCompileSdkVersion(@NotNull String compileSdkVersion);
-
-  @NotNull
-  AndroidModel removeCompileSdkVersion();
+  ResolvedPropertyModel compileSdkVersion();
 
   @NotNull
   DataBindingModel dataBinding();
@@ -74,13 +53,7 @@ public interface AndroidModel {
   ProductFlavorModel defaultConfig();
 
   @NotNull
-  GradleNullableValue<String> defaultPublishConfig();
-
-  @NotNull
-  AndroidModel setDefaultPublishConfig(@NotNull String defaultPublishConfig);
-
-  @NotNull
-  AndroidModel removeDefaultPublishConfig();
+  ResolvedPropertyModel defaultPublishConfig();
 
   @NotNull
   DexOptionsModel dexOptions();
@@ -88,29 +61,11 @@ public interface AndroidModel {
   @NotNull
   ExternalNativeBuildModel externalNativeBuild();
 
-  @Nullable
-  List<GradleNotNullValue<String>> flavorDimensions();
+  @NotNull
+  ResolvedPropertyModel flavorDimensions();
 
   @NotNull
-  AndroidModel addFlavorDimension(@NotNull String flavorDimension);
-
-  @NotNull
-  AndroidModel removeFlavorDimension(@NotNull String flavorDimension);
-
-  @NotNull
-  AndroidModel removeAllFlavorDimensions();
-
-  @NotNull
-  AndroidModel replaceFlavorDimension(@NotNull String oldFlavorDimension, @NotNull String newFlavorDimension);
-
-  @NotNull
-  GradleNullableValue<Boolean> generatePureSplits();
-
-  @NotNull
-  AndroidModel setGeneratePureSplits(boolean generatePureSplits);
-
-  @NotNull
-  AndroidModel removeGeneratePureSplits();
+  ResolvedPropertyModel generatePureSplits();
 
   @NotNull
   LintOptionsModel lintOptions();
@@ -122,28 +77,25 @@ public interface AndroidModel {
   List<ProductFlavorModel> productFlavors();
 
   @NotNull
-  AndroidModel addProductFlavor(@NotNull String flavor);
+  ProductFlavorModel addProductFlavor(@NotNull String flavor);
 
-  @NotNull
-  AndroidModel removeProductFlavor(@NotNull String flavor);
+  void removeProductFlavor(@NotNull String flavor);
 
   @NotNull
   List<SigningConfigModel> signingConfigs();
 
   @NotNull
-  AndroidModel addSigningConfig(@NotNull String config);
+  SigningConfigModel addSigningConfig(@NotNull String config);
 
-  @NotNull
-  AndroidModel removeSigningConfig(@NotNull String configName);
+  void removeSigningConfig(@NotNull String configName);
 
   @NotNull
   List<SourceSetModel> sourceSets();
 
   @NotNull
-  AndroidModel addSourceSet(@NotNull String sourceSet);
+  SourceSetModel addSourceSet(@NotNull String sourceSet);
 
-  @NotNull
-  AndroidModel removeSourceSet(@NotNull String sourceSet);
+  void removeSourceSet(@NotNull String sourceSet);
 
   @NotNull
   SplitsModel splits();
@@ -152,20 +104,8 @@ public interface AndroidModel {
   TestOptionsModel testOptions();
 
   @NotNull
-  GradleNullableValue<Boolean> publishNonDefault();
+  ResolvedPropertyModel publishNonDefault();
 
   @NotNull
-  AndroidModel setPublishNonDefault(boolean publishNonDefault);
-
-  @NotNull
-  AndroidModel removePublishNonDefault();
-
-  @NotNull
-  GradleNullableValue<String> resourcePrefix();
-
-  @NotNull
-  AndroidModel setResourcePrefix(@NotNull String resourcePrefix);
-
-  @NotNull
-  AndroidModel removeResourcePrefix();
+  ResolvedPropertyModel resourcePrefix();
 }

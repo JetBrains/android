@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -92,10 +92,10 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     GradleBuildModel parsedModel = getParsedModel();
     AndroidModel parsedAndroidModel = parsedModel != null ? parsedModel.android() : null;
     result.addAll(getGradleModel().getAndroidProject().getFlavorDimensions());
-    List<GradleNotNullValue<String>> parsedFlavorDimensions = (parsedAndroidModel != null) ?
-                                                              parsedAndroidModel.flavorDimensions() : null;
+    List<GradlePropertyModel> parsedFlavorDimensions = (parsedAndroidModel != null) ?
+                                                       parsedAndroidModel.flavorDimensions().toList() : null;
     if (parsedFlavorDimensions != null) {
-      result.addAll(parsedFlavorDimensions.stream().map(v -> v.value()).collect(Collectors.toList()));
+      result.addAll(parsedFlavorDimensions.stream().map(v -> v.toString()).collect(Collectors.toList()));
     }
     return result;
   }
@@ -256,7 +256,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     assert getParsedModel() != null;
     AndroidModel androidModel = getParsedModel().android();
     assert androidModel != null;
-    androidModel.addFlavorDimension(newName);
+    androidModel.flavorDimensions().addListValue().setValue(newName);
     setModified(true);
   }
 
@@ -264,8 +264,12 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     assert getParsedModel() != null;
     AndroidModel androidModel = getParsedModel().android();
     assert androidModel != null;
-    androidModel.removeFlavorDimension(flavorDimension);
-    setModified(true);
+
+    GradlePropertyModel model = androidModel.flavorDimensions().getListValue(flavorDimension);
+    if (model != null) {
+      model.delete();
+      setModified(true);
+    }
   }
 
   @NotNull

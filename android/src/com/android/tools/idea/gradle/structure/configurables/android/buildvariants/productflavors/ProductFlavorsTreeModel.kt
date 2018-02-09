@@ -70,8 +70,8 @@ fun createProductFlavorsModel(module: PsAndroidModule): ProductFlavorsTreeModel 
         createConfigurablesTree(
             object : NamedContainerConfigurableBase<String>("Flavor Dimensions") {
               override fun getChildren(): List<NamedConfigurable<String>> =
-                  module.parsedModel?.android()?.flavorDimensions()
-                      ?.map { FlavorDimensionConfigurable(module, it.value()) }
+                  module.parsedModel?.android()?.flavorDimensions()?.toList()
+                      ?.map { FlavorDimensionConfigurable(module, it.toString()) }
                       ?: listOf()
             }))
 

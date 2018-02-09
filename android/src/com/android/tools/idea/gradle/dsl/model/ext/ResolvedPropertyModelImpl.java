@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 
@@ -43,10 +43,6 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
 
   public ResolvedPropertyModelImpl(@NotNull GradlePropertyModel realModel) {
     myRealModel = realModel;
-  }
-
-  public ResolvedPropertyModelImpl(@NotNull GradleDslElement element) {
-    myRealModel = new GradlePropertyModelImpl(element);
   }
 
   @NotNull
@@ -178,13 +174,21 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @Nullable
   @Override
   public List<GradlePropertyModel> toList() {
-    return resolveModel().toList();
+    List<GradlePropertyModel> list = resolveModel().toList();
+    if (list == null) {
+      return null;
+    }
+    return list.stream().map(GradlePropertyModel::resolve).collect(Collectors.toList());
   }
 
   @Nullable
   @Override
   public Map<String, GradlePropertyModel> toMap() {
-    return resolveModel().toMap();
+    Map<String, GradlePropertyModel> map = resolveModel().toMap();
+    if (map == null) {
+      return null;
+    }
+    return map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().resolve()));
   }
 
   @Override
