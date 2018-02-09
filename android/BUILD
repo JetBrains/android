@@ -112,7 +112,6 @@ iml_module(
         "//tools/adt/idea/apkanalyzer[module]",
         "//tools/adt/idea/android-lang[module]",
         "//tools/adt/idea/android-adb[module]",
-        "//tools/base/usb-devices:studio.usb-devices[module]",
     ],
 )
 
@@ -241,7 +240,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle[module, test]",
         "//tools/adt/idea/project-system:project-system-tests[module, test]",
         "//tools/adt/idea/adt-testutils[module, test]",
-        "//tools/base/usb-devices:studio.usb-devices[module, test]",
         "//tools/adt/idea/android-lang[module, test]",
     ],
 )

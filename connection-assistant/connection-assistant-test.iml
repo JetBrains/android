@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/testSrc">
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="assistant" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$APPLICATION_HOME_DIR$/redist/annotations-java8.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="core-api" />
+    <orderEntry type="module" module-name="android-common" />
+    <orderEntry type="module" module-name="editor-ui-api" />
+    <orderEntry type="module" module-name="analytics-protos" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="module" module-name="usb-devices" />
+    <orderEntry type="module" module-name="usb-devices" />
+    <orderEntry type="module" module-name="common" />
+    <orderEntry type="module" module-name="ddmlib" />
+    <orderEntry type="module" module-name="android" />
+    <orderEntry type="module" module-name="android-adb" />
+    <orderEntry type="module" module-name="platform-api" />
+    <orderEntry type="module" module-name="flags" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="module" module-name="adt-testutils" scope="TEST" />
+    <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
+    <orderEntry type="module" module-name="connection-assistant" scope="TEST" />
+  </component>
+</module>
