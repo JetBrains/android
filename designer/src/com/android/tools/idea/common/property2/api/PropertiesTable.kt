@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
+import com.google.common.collect.Table
+
 /**
  * Table of properties indexed by namespace and name.
  */
@@ -53,4 +56,15 @@ interface PropertiesTable<out P: PropertyItem> {
    * Return the number of properties in the table.
    */
   val size: Int
+
+  /**
+   * Default implementation of a [PropertiesTable].
+   *
+   * Which is using a [Table] as a backing store.
+   */
+  companion object {
+    fun <T: PropertyItem> create(table: Table<String, String, T>): PropertiesTable<T> {
+      return PropertiesTableImpl(table)
+    }
+  }
 }

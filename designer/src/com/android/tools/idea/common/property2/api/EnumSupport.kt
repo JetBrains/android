@@ -32,4 +32,26 @@ interface EnumSupport {
    * A [ListCellRenderer] for customizing the display of each value.
    */
   val renderer: ListCellRenderer<EnumValue>
+    get() = EnumValue.DEFAULT_RENDERER
+
+  /**
+   * A simple [EnumSupport] implementation where the values and renderer is specified up front.
+   */
+  private class SimpleEnumSupport(override val values: List<EnumValue>) : EnumSupport
+
+  companion object {
+
+    /** Creates an EnumSupport with the values specified */
+    fun simple(values: List<EnumValue>): EnumSupport = SimpleEnumSupport(values)
+
+    /** Creates an EnumSupport with the values specified as strings */
+    fun simple(vararg values: String): EnumSupport = SimpleEnumSupport(convert(values))
+
+    private fun convert(values: Array<out String>): List<EnumValue> {
+      if (values.isEmpty()) {
+        return emptyList()
+      }
+      return values.map { EnumValue.item(it) }.toList()
+    }
+  }
 }
