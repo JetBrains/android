@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture
 import org.mockito.Mockito.`when`
@@ -34,9 +36,6 @@ class DestinationClassEditorTest : NavTestCase() {
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("f1")))
 
-    val editor = DestinationClassEditor()
-    editor.property = property
-
     var choices = EnumEditorFixture.create(::DestinationClassEditor).use {
       it.setProperty(property)
         .showPopup()
@@ -51,7 +50,6 @@ class DestinationClassEditorTest : NavTestCase() {
     assertDoesntContain(choices, "mytest.navtest.MainActivity" displayFor "mytest.navtest.MainActivity")
 
     `when`(property.components).thenReturn(listOf(model.find("activity1")))
-    editor.property = property
 
     choices = EnumEditorFixture.create(::DestinationClassEditor).use {
       it.setProperty(property)
@@ -64,6 +62,24 @@ class DestinationClassEditorTest : NavTestCase() {
         "android.app.ListActivity" displayFor "android.app.ListActivity",
         "mytest.navtest.MainActivity" displayFor "mytest.navtest.MainActivity")
     assertDoesntContain(choices, "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment")
+  }
+
+  fun testSetsLayout() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        activity("activity1")
+      }
+    }
+    val property = SimpleProperty(ATTR_NAME, listOf(model.find("f1")!!), ANDROID_URI, null)
+
+    EnumEditorFixture.create({_, combo -> DestinationClassEditor(DestinationClassEditor.Listener, combo)}).use {
+      it.setProperty(property)
+        .gainFocus()
+        .setSelectedModelItem(ValueWithDisplayString("mytest.navtest.MainActivity", "mytest.navtest.MainActivity"))
+        .loseFocus()
+    }
+    assertEquals("@layout/activity_main", model.find("f1")?.getAttribute(TOOLS_URI, ATTR_LAYOUT))
   }
 
   private infix fun String.displayFor(value: String?) = ValueWithDisplayString(this, value)
