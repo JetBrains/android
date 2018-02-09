@@ -52,7 +52,7 @@ class NavPropertyEditors : PropertyEditors() {
       return NonEditableEditor(project)
     }
     // TODO: handle other types
-    return TextEditor(project, DEFAULT_LISTENER)
+    return TextEditor(project, true, DEFAULT_LISTENER)
   }
 
   companion object Factory {

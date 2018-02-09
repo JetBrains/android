@@ -35,6 +35,7 @@ import javax.swing.JPanel
 import javax.swing.table.TableCellRenderer
 
 const val NAV_ARGUMENTS_COMPONENT_NAME = "NavArgumentsPropertyInspector"
+const val NAV_ARGUMENTS_ROW_HEIGHT = 22
 
 class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 
@@ -93,6 +94,7 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
     override fun attachToInspector(inspector: InspectorPanel<NavPropertiesManager>) {
       val panel = JPanel(BorderLayout())
       val table = JBTable(NavArgumentsTableModel(argumentProperty))
+      table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
       table.name = NAV_ARGUMENTS_COMPONENT_NAME
 
       val nameCellRenderer = JBTextField()
@@ -109,8 +111,8 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
         defaultValueCellRenderer.also { it.text = (value as? NlProperty)?.value }
       }
 
-      val nameTextEditor = TextEditor(surface!!.project, NlEditingListener.DEFAULT_LISTENER)
-      val defaultValueTextEditor = TextEditor(surface!!.project, NlEditingListener.DEFAULT_LISTENER)
+      val nameTextEditor = TextEditor(surface!!.project, false, NlEditingListener.DEFAULT_LISTENER)
+      val defaultValueTextEditor = TextEditor(surface!!.project, false, NlEditingListener.DEFAULT_LISTENER)
 
       val nameEditor = NlTableCellEditor()
       nameEditor.init(nameTextEditor, null)

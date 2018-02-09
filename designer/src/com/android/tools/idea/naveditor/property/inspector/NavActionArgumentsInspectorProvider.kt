@@ -96,6 +96,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
       })
 
       table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
+      table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
 
       val nameCellRenderer = JBTextField()
       nameCellRenderer.isEnabled = false
@@ -112,7 +113,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
         defaultValueCellRenderer.also { it.text = (value as? NlProperty)?.value }
       }
 
-      val defaultValueTextEditor = TextEditor(surface!!.project, NlEditingListener.DEFAULT_LISTENER)
+      val defaultValueTextEditor = TextEditor(surface!!.project, false, NlEditingListener.DEFAULT_LISTENER)
 
       val defaultValueEditor = NlTableCellEditor()
       defaultValueEditor.init(defaultValueTextEditor, null)

@@ -23,8 +23,6 @@ import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.command.undo.UndoConstants;
-import com.intellij.openapi.components.ComponentManager;
-import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -55,6 +53,7 @@ public class TextEditor extends BaseComponentEditor {
   private Object myLastWriteValue;
 
   public TextEditor(@NotNull Project project,
+                    boolean drawBorder,
                     @NotNull NlEditingListener listener) {
     super(listener);
     myPanel = new AdtSecondaryPanel(new BorderLayout());
@@ -63,7 +62,9 @@ public class TextEditor extends BaseComponentEditor {
     myLabel = new JBLabel();
     myPanel.add(myLabel, BorderLayout.LINE_START);
     myPanel.setFocusable(false);
-    myLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
+    if (drawBorder) {
+      myLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
+    }
 
     myProject = project;
 
@@ -73,16 +74,18 @@ public class TextEditor extends BaseComponentEditor {
         public void addNotify() {
           super.addNotify();
           getEditor().getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
-          getEditor().setBorder(new DarculaEditorTextFieldBorder() {
-            @Override
-            public Insets getBorderInsets(Component component) {
-              Insets myEditorInsets = JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
-                                               HORIZONTAL_PADDING,
-                                               VERTICAL_SPACING + VERTICAL_PADDING,
-                                               HORIZONTAL_PADDING);
-              return new InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right);
-            }
-          });
+          if (drawBorder) {
+            getEditor().setBorder(new DarculaEditorTextFieldBorder() {
+              @Override
+              public Insets getBorderInsets(Component component) {
+                Insets myEditorInsets = JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
+                                                    HORIZONTAL_PADDING,
+                                                    VERTICAL_SPACING + VERTICAL_PADDING,
+                                                    HORIZONTAL_PADDING);
+                return new InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right);
+              }
+            });
+          }
         }
 
         @Override
@@ -118,10 +121,6 @@ public class TextEditor extends BaseComponentEditor {
       }
     });
     myProperty = EmptyProperty.INSTANCE;
-  }
-
-  protected EditorTextField getTextEditor() {
-    return myTextEditor;
   }
 
   @NotNull
