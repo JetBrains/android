@@ -122,7 +122,9 @@ public final class GradleDslReference extends GradleDslSettableExpression {
 
   @Override
   public void setValue(@NotNull Object value) {
+    checkForValidValue(value);
     setUnsavedValue(getDslFile().getParser().convertToPsiElement(value));
+    valueChanged();
   }
 
   @Override
