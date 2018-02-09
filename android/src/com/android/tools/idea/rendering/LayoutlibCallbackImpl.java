@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.*;
@@ -31,6 +32,7 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.*;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -94,11 +96,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   public static final String BUILD_CACHE = "build-cache";
 
   @NotNull private final Module myModule;
-  @NotNull private final AppResourceRepository myProjectRes;
+  @NotNull private final ResourceIdManager myIdManager;
   @NotNull final private LayoutLibrary myLayoutLib;
   @Nullable private final Object myCredential;
   private final boolean myHasAppCompat;
-  @Nullable private String myNamespace;
+  @NotNull private String myNamespace;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
@@ -142,7 +144,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable ILayoutPullParserFactory parserFactory) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
-    myProjectRes = projectRes;
+    myIdManager = ResourceIdManager.get(module);
     myModule = module;
     myLogger = logger;
     myCredential = credential;
@@ -239,29 +241,21 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    *
    * @return The package namespace of the project or null in case of error.
    */
-  @Nullable
+  @NotNull
   @Override
   public String getNamespace() {
     return myNamespace;
   }
 
-  @SuppressWarnings({"UnnecessaryFullyQualifiedName", "deprecation"}) // Required by IProjectCallback
   @Nullable
   @Override
-  public com.android.util.Pair<ResourceType, String> resolveResourceId(int id) {
-    return myProjectRes.resolveResourceId(id);
+  public ResourceReference resolveResourceId(int id) {
+    return myIdManager.findById(id);
   }
 
-  @Nullable
   @Override
-  public String resolveResourceId(int[] id) {
-    return myProjectRes.resolveStyleable(id);
-  }
-
-  @Nullable
-  @Override
-  public Integer getResourceId(ResourceType type, String name) {
-    return myProjectRes.getResourceId(type, name);
+  public int getOrGenerateResourceId(@NotNull ResourceReference resource) {
+    return myIdManager.getOrGenerateId(resource);
   }
 
   /**
@@ -355,23 +349,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return myLayoutEmbeddedParser;
   }
 
-  @SuppressWarnings("deprecation") // Required by IProjectCallback
-  @Nullable
-  @Override
-  public ILayoutPullParser getParser(@NotNull String layoutName) {
-    // Try to compute the ResourceValue for this layout since layoutlib
-    // must be an older version which doesn't pass the value:
-    if (myResourceResolver != null) {
-      ResourceValue value = myResourceResolver.getProjectResource(ResourceType.LAYOUT, layoutName);
-      if (value != null) {
-        return getParser(value);
-      }
-    }
-
-    return getParser(layoutName, false, null);
-  }
-
-  @Nullable
   @Override
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
     String value = layoutResource.getValue();
@@ -381,7 +358,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       parser = LayoutPsiPullParser.create(aaptResource, myLogger);
     }
     else {
-      parser = getParser(layoutResource.getName(), layoutResource.isFramework(), new File(layoutResource.getValue()));
+      parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), new File(layoutResource.getValue()));
     }
 
     if (parser instanceof AaptAttrParser) {
@@ -400,7 +377,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
-  private ILayoutPullParser getParser(@NotNull String layoutName, boolean isFramework, @Nullable File xml) {
+  private ILayoutPullParser getParser(@NotNull String layoutName, @NotNull ResourceNamespace namespace, @NotNull File xml) {
     if (myParserFiles != null && myParserFiles.contains(xml)) {
       if (myParserCount > MAX_PARSER_INCLUDES) {
         // Unlikely large number of includes. Look for cyclic dependencies in the available files.
@@ -426,7 +403,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
     }
 
-    if (layoutName.equals(myLayoutName) && !isFramework) {
+    if (layoutName.equals(myLayoutName) && namespace != ResourceNamespace.ANDROID) {
       ILayoutPullParser parser = myLayoutEmbeddedParser;
       // The parser should only be used once!! If it is included more than once,
       // subsequent includes should just use a plain pull parser that is not tied
@@ -438,7 +415,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // See if we can find a corresponding PSI file for this included layout, and
     // if so directly reuse the PSI parser, such that we pick up the live, edited
     // contents rather than the most recently saved file contents.
-    if (xml != null && xml.isFile()) {
+    if (xml.isFile()) {
       File parent = xml.getParentFile();
       String path = xml.getPath();
       // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or

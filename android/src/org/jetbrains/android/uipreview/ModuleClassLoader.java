@@ -1,5 +1,8 @@
 package org.jetbrains.android.uipreview;
 
+import com.android.builder.model.AaptOptions;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -9,9 +12,7 @@ import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.FileResourceRepository;
-import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.*;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -362,6 +363,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   private static void registerLibraryResourceFiles(@NotNull Module module, @NotNull File jarFile) {
+    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+    if (appResources == null) {
+      return;
+    }
+
+    // We need to figure out the layout of the resources relative to the jar file. This changed over time, so we check for different
+    // layouts until we find one we recognize.
+    File resourcesDirectory = null;
+
     File aarDir = jarFile.getParentFile();
     if (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(FilenameConstants.EXPLODED_AAR)) {
       if (aarDir.getPath().contains(FilenameConstants.EXPLODED_AAR)) {
@@ -374,29 +384,61 @@ public final class ModuleClassLoader extends RenderClassLoader {
           aarDir = aarDir.getParentFile();
         }
       }
-      AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
-      if (appResources != null) {
-        ResourceClassRegistry.get(module.getProject()).addAarLibrary(appResources, aarDir);
+      String path = aarDir.getPath();
+      if (path.endsWith(DOT_AAR) || path.contains(FilenameConstants.EXPLODED_AAR)) {
+        resourcesDirectory = aarDir;
       }
-
-      return;
     }
 
-    // Build cache? We need to compute the package name in a slightly different way
-    File parentFile = aarDir.getParentFile();
-    if (parentFile != null) {
-      File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
-      if (manifest.exists()) {
-        AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
-        if (appResources != null) {
-          FileResourceRepository repository = appResources.findRepositoryFor(parentFile);
-          if (repository != null) {
-            ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
-            registry.addLibrary(appResources, registry.getAarPackage(parentFile));
-          }
+    if (resourcesDirectory == null) {
+      // Build cache? We need to compute the package name in a slightly different way
+      File parentFile = aarDir.getParentFile();
+      if (parentFile != null) {
+        File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
+        if (manifest.exists()) {
+          resourcesDirectory = parentFile;
         }
       }
     }
+
+    if (resourcesDirectory == null) {
+      return;
+    }
+
+    AbstractResourceRepository aarResources = appResources.findRepositoryFor(resourcesDirectory);
+    if (aarResources == null) {
+      return;
+    }
+
+    ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
+    if (registry == null) {
+      return;
+    }
+    String packageName = ResourceHelper.getAarPackageName(resourcesDirectory);
+    if (packageName == null) {
+      return;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return;
+    }
+
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+
+    // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
+    AbstractResourceRepository rClassContents;
+    ResourceNamespace resourcesNamespace;
+    if (repositoryManager.getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+      rClassContents = appResources;
+      resourcesNamespace = ResourceNamespace.RES_AUTO;
+    }
+    else {
+      rClassContents = aarResources;
+      resourcesNamespace = ResourceNamespace.fromPackageName(packageName);
+    }
+
+    registry.addLibrary(rClassContents, ResourceIdManager.get(module), packageName, resourcesNamespace);
   }
 
   /**

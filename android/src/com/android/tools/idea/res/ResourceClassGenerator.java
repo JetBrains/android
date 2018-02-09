@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.AttrResourceValue;
-import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Maps;
@@ -33,6 +32,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Type;
 
+import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
@@ -58,32 +58,54 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.*;
  * look up resources such as string and style values), and based on the names there generates bytecode on the
  * fly which can then be loaded into the VM and handled by the class loader.
  * <p>
- * The R class for an aar should contain the resource references to resources from the aar and all its
- * dependencies. It is not straight-forward to get the list of dependencies after the creation of the resource
- * repositories for each aar. So, we use the app's resource repository and generate the R file from it. This
- * will break custom libraries that use reflection on the R class, but meh.
+ * In non-namespaced projects, the R class for an aar should contain the resource references to resources from
+ * the aar and all its dependencies. It is not straight-forward to get the list of dependencies after the creation
+ * of the resource repositories for each aar. So, we use the app's resource repository and generate the R file
+ * from it. This will break custom libraries that use reflection on the R class, but meh.
+ * <p>
+ * In namespaced projects the R class contains only resources from the aar itself and the repository used by the
+ * {@link ResourceClassGenerator} should be the one created from the AAR.
  */
 public class ResourceClassGenerator {
   private static final Logger LOG = Logger.getInstance(ResourceClassGenerator.class);
 
+  interface NumericIdProvider {
+    int getOrGenerateId(@NotNull ResourceReference resourceReference);
+
+    /**
+     * Returns the numeric ids of attributes defined in the given styleable, in the order defined by {@code attrs}.
+     *
+     * <p>Returns null if the styleable is not found. The array may contain nulls if the attributes are not found.
+     *
+     * @see RDotTxtParser#getDeclareStyleableArray(File, List, String)
+     */
+    @Nullable
+    Integer[] getDeclaredArrayValues(@NotNull List<AttrResourceValue> attrs, @NotNull String styleableName);
+  }
+
   private Map<ResourceType, TObjectIntHashMap<String>> myCache;
   /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
   private Map<String, List<Integer>> myStyleableCache;
-  @NotNull private final AppResourceRepository myAppResources;
+  @NotNull private final AbstractResourceRepository myResources;
+  @NotNull private final NumericIdProvider myIdProvider;
+  @NotNull private final ResourceNamespace myNamespace;
 
-  private ResourceClassGenerator(@NotNull AppResourceRepository appResources) {
-    myAppResources = appResources;
+  private ResourceClassGenerator(@NotNull NumericIdProvider idProvider,
+                                 @NotNull AbstractResourceRepository resources,
+                                 @NotNull ResourceNamespace namespace) {
+    myIdProvider = idProvider;
+    myResources = resources;
+    myNamespace = namespace;
   }
 
   /**
    * Creates a new {@linkplain ResourceClassGenerator}.
-   *
-   * @param appResources the application resources used during rendering; this is used to look up dynamic id's
-   *                     for resources
    */
   @NotNull
-  public static ResourceClassGenerator create(@NotNull AppResourceRepository appResources) {
-    return new ResourceClassGenerator(appResources);
+  public static ResourceClassGenerator create(@NotNull NumericIdProvider manager,
+                                              @NotNull AbstractResourceRepository resources,
+                                              @NotNull ResourceNamespace namespace) {
+    return new ResourceClassGenerator(manager, resources, namespace);
   }
 
   /**
@@ -116,7 +138,7 @@ public class ResourceClassGenerator {
       }
       if (type == ResourceType.STYLEABLE) {
         if (myStyleableCache == null) {
-          TObjectIntHashMap<String> styleableIntCache = new TObjectIntHashMap<String>();
+          TObjectIntHashMap<String> styleableIntCache = new TObjectIntHashMap<>();
           myCache.put(type, styleableIntCache);
           myStyleableCache = Maps.newHashMap();
           generateStyleable(cw, styleableIntCache, className);
@@ -130,7 +152,7 @@ public class ResourceClassGenerator {
       } else {
         TObjectIntHashMap<String> typeCache = myCache.get(type);
         if (typeCache == null) {
-          typeCache = new TObjectIntHashMap<String>();
+          typeCache = new TObjectIntHashMap<>();
           myCache.put(type, typeCache);
           generateValuesForType(cw, type, typeCache);
         }
@@ -141,7 +163,7 @@ public class ResourceClassGenerator {
     } else {
       // Default R class.
       boolean styleableAdded = false;
-      for (ResourceType t : myAppResources.getAvailableResourceTypes()) {
+      for (ResourceType t : myResources.getAvailableResourceTypes()) {
         // getAvailableResourceTypes() sometimes returns both styleable and declare styleable. Make sure that we only create one subclass.
         if (t == ResourceType.DECLARE_STYLEABLE) {
           t = ResourceType.STYLEABLE;
@@ -163,12 +185,12 @@ public class ResourceClassGenerator {
   }
 
   private void generateValuesForType(@NotNull ClassWriter cw, @NotNull ResourceType resType, @NotNull TObjectIntHashMap<String> cache) {
-    Collection<String> keys = myAppResources.getItemsOfType(resType);
-    for (String key : keys) {
-      int initialValue = myAppResources.getResourceId(resType, key);
-      key = AndroidResourceUtil.getFieldNameByResourceName(key);
-      generateField(cw, key, initialValue);
-      cache.put(key, initialValue);
+    Collection<String> resourceNames = myResources.getItemsOfType(myNamespace, resType);
+    for (String name : resourceNames) {
+      int initialValue = myIdProvider.getOrGenerateId(new ResourceReference(myNamespace, resType, name));
+      name = AndroidResourceUtil.getFieldNameByResourceName(name);
+      generateField(cw, name, initialValue);
+      cache.put(name, initialValue);
     }
   }
 
@@ -190,11 +212,11 @@ public class ResourceClassGenerator {
     }
 
     boolean debug = LOG.isDebugEnabled() && isPublicClass(className);
-    Collection<String> declaredStyleables = myAppResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE);
+    Collection<String> declaredStyleables = myResources.getItemsOfType(myNamespace, ResourceType.DECLARE_STYLEABLE);
     // Generate all declarations - both int[] and int for the indices into the array.
     for (String styleableName : declaredStyleables) {
-      List<ResourceItem> items = myAppResources.getResourceItem(ResourceType.DECLARE_STYLEABLE, styleableName);
-      if (items == null || items.isEmpty()) {
+      List<ResourceItem> items = myResources.getResourceItems(myNamespace, ResourceType.DECLARE_STYLEABLE, styleableName);
+      if (items.isEmpty()) {
         if (debug) {
           LOG.debug("  No items for " + styleableName);
         }
@@ -234,12 +256,15 @@ public class ResourceClassGenerator {
     MethodVisitor mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
     mv.visitCode();
     for (String styleableName : declaredStyleables) {
-      List<ResourceItem> items = myAppResources.getResourceItem(ResourceType.DECLARE_STYLEABLE, styleableName);
-      if (items == null || items.isEmpty()) {
+      List<ResourceItem> items = myResources.getResourceItems(myNamespace, ResourceType.DECLARE_STYLEABLE, styleableName);
+      if (items.isEmpty()) {
         continue;
       }
 
+      // IDs of attrs in the styleable. The list is initialized by looking for this styleable in R.txt of all dependencies. The ids of
+      // framework attributes are assumed to be correct and ready to use, for non-framework attrs we pick new ids below.
       List<Integer> values = new ArrayList<>();
+
       List<AttrResourceValue> mergedAttributes = new ArrayList<>();
       String fieldName = AndroidResourceUtil.getFieldNameByResourceName(styleableName);
       myStyleableCache.put(fieldName, values);
@@ -249,7 +274,7 @@ public class ResourceClassGenerator {
           continue;
         }
         mergedAttributes.addAll(attributes);
-        Integer[] valuesArray = myAppResources.getDeclaredArrayValues(attributes, styleableName);
+        Integer[] valuesArray = myIdProvider.getDeclaredArrayValues(attributes, styleableName);
         if (valuesArray == null) {
           valuesArray = new Integer[attributes.size()];
         }
@@ -258,17 +283,18 @@ public class ResourceClassGenerator {
 
       HashSet<String> styleableEntries = new HashSet<>();
       int idx = -1;
-      for (AttrResourceValue value : mergedAttributes) {
+      for (AttrResourceValue attr : mergedAttributes) {
         idx++;
-        if (values.get(idx) == null || !value.isFramework()) {
-          String name = value.getName();
+        // If the table was
+        if (values.get(idx) == null || !attr.isFramework()) {
+          String name = attr.getName();
           if (!styleableEntries.add(name)) {
             // This is a duplicate, remove
             values.remove(idx);
             idx--;
           }
           else {
-            values.set(idx, myAppResources.getResourceId(ResourceType.ATTR, name));
+            values.set(idx, myIdProvider.getOrGenerateId(attr.asReference()));
           }
         }
       }
@@ -361,14 +387,22 @@ public class ResourceClassGenerator {
     mv.visitEnd();
   }
 
-  public static String getResourceName(String styleableName, @NotNull AttrResourceValue value) {
+  public String getResourceName(String styleableName, @NotNull AttrResourceValue value) {
     StringBuilder sb = new StringBuilder(30);
     sb.append(styleableName);
     sb.append('_');
-    if (value.isFramework()) {
-      sb.append("android_");
+    if (!value.getNamespace().equals(myNamespace)) {
+      String packageName = value.getNamespace().getPackageName();
+      if (packageName != null) {
+        appendEscaped(sb, packageName);
+        sb.append('_');
+      }
     }
-    String v = value.getName();
+    appendEscaped(sb, value.getName());
+    return sb.toString();
+  }
+
+  private static void appendEscaped(@NotNull StringBuilder sb, @NotNull String v) {
     // See AndroidResourceUtil.getFieldNameByResourceName
     for (int i = 0, n = v.length(); i < n; i++) {
       char c = v.charAt(i);
@@ -378,6 +412,5 @@ public class ResourceClassGenerator {
         sb.append(c);
       }
     }
-    return sb.toString();
   }
 }

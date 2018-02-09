@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -24,11 +23,9 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.stubs.android.ClassFieldStub;
-import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -38,22 +35,16 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ui.UIUtil;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
 
-import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotEquals;
 
 public class AppResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -88,7 +79,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
       myFacet, Collections.singletonList(projectResources), Collections.emptyList());
 
-    assertOrderedEquals(appResources.getItemsOfType(ResourceType.STRING),
+    assertOrderedEquals(appResources.getItemsOfType(RES_AUTO, ResourceType.STRING),
                         Arrays.asList("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
                                       "title_layout_changes", "title_template_step", "ellipsis"));
   }
@@ -116,29 +107,29 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
       myFacet, Collections.singletonList(projectResources), Collections.emptyList());
 
-    assertTrue(appResources.hasResourceItem(ResourceType.STRING, "title_card_flip"));
-    assertFalse(appResources.hasResourceItem(ResourceType.STRING, "non_existent_title_card_flip"));
+    assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
+    assertFalse(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
-    assertTrue(projectResources.hasResourceItem(ResourceType.STRING, "title_card_flip"));
-    assertFalse(projectResources.hasResourceItem(ResourceType.STRING, "non_existent_title_card_flip"));
+    assertTrue(projectResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
+    assertFalse(projectResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
-    assertTrue(moduleRepository.hasResourceItem(ResourceType.STRING, "title_card_flip"));
-    assertFalse(moduleRepository.hasResourceItem(ResourceType.STRING, "non_existent_title_card_flip"));
+    assertTrue(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
+    assertFalse(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
     FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res3), null);
     appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
-    assertTrue(appResources.hasResourceItem(ResourceType.STRING, "another_unique_string"));
-    assertTrue(aar1.hasResourceItem(ResourceType.STRING, "another_unique_string"));
-    assertFalse(projectResources.hasResourceItem(ResourceType.STRING, "another_unique_string"));
-    assertFalse(moduleRepository.hasResourceItem(ResourceType.STRING, "another_unique_string"));
-    assertTrue(appResources.hasResourceItem(ResourceType.STRING, "title_card_flip"));
-    assertFalse(appResources.hasResourceItem(ResourceType.STRING, "non_existent_title_card_flip"));
+    assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
+    assertTrue(aar1.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
+    assertFalse(projectResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
+    assertFalse(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.STRING, "another_unique_string"));
+    assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "title_card_flip"));
+    assertFalse(appResources.hasResourceItem(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
     // Update module resource repository and assert that changes make it all the way up
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
-    assertTrue(moduleRepository.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+    assertTrue(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
     final ResourceItem item = ModuleResourceRepositoryTest.getFirstItem(moduleRepository, ResourceType.ID, "btn_title_refresh");
 
     final long generation = moduleRepository.getModificationCount();
@@ -160,9 +151,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       assertTrue(projectGeneration < projectResources.getModificationCount());
       assertTrue(appGeneration < appResources.getModificationCount());
       // Should still be defined:
-      assertTrue(moduleRepository.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-      assertTrue(appResources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-      assertTrue(projectResources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+      assertTrue(moduleRepository.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+      assertTrue(appResources.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+      assertTrue(projectResources.hasResourceItem(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
       ResourceItem newItem = ModuleResourceRepositoryTest.getFirstItem(appResources, ResourceType.ID, "btn_title_refresh");
       assertNotNull(newItem.getSource());
       // However, should be a different item
@@ -171,34 +162,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  public void testGetDeclaredArrayValues() throws IOException {
-    final AppResourceRepository appResources = createTestAppResourceRepository(myFacet);
-    ImmutableList.Builder<AttrResourceValue> builder = ImmutableList.builder();
-    // simple styleable test.
-    ImmutableList<AttrResourceValue> attrList = builder.add(
-      new AttrResourceValue(new ResourceReference(RES_AUTO, ResourceType.ATTR, "some-attr"), null)).build();
-    Integer[] foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable1");
-    assertOrderedEquals(foundValues, 0x7f010000);
-
-    // Declared styleables mismatch
-    attrList = builder.add(
-      new AttrResourceValue(new ResourceReference(RES_AUTO, ResourceType.ATTR, "some-attr"), null),
-      new AttrResourceValue(new ResourceReference(RES_AUTO, ResourceType.ATTR, "other-attr"), null)).build();
-    assertNull(appResources.getDeclaredArrayValues(attrList, "Styleable1"));
-
-    // slightly complex test.
-    builder = ImmutableList.builder();
-    attrList = builder
-      .add(new AttrResourceValue(new ResourceReference(RES_AUTO, ResourceType.ATTR, "app_attr1"), null),
-           new AttrResourceValue(new ResourceReference(RES_AUTO, ResourceType.ATTR, "app_attr2"), null),
-           new AttrResourceValue(new ResourceReference(ANDROID, ResourceType.ATTR, "framework-attr1"), null),
-           new AttrResourceValue(new ResourceReference(RES_AUTO, ResourceType.ATTR, "app_attr3"), null),
-           new AttrResourceValue(new ResourceReference(ANDROID, ResourceType.ATTR, "framework_attr2"), null)).build();
-    foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable_with_underscore");
-    assertOrderedEquals(foundValues, 0x7f010000, 0x7f010068, 0x01010125, 0x7f010069, 0x01010142);
-  }
-
-  public void testGetResourceDirs() throws IOException {
+  public void testGetResourceDirs() {
     VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
     VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
 
@@ -223,102 +187,24 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertSameElements(foldersWithAar, res1, res2);
   }
 
-  public void testGetItemsOfTypeIdIncludeAAR() throws IOException {
+  public void testGetItemsOfTypeIdIncludeAAR() {
     VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/some_layout.xml").getParent().getParent();
     final LocalResourceRepository moduleRepository = ModuleResourceRepository.createForTest(
       myFacet, ImmutableList.of(res1));
     final LocalResourceRepository projectResources = ProjectResourceRepository.createForTest(
       myFacet, ImmutableList.of(moduleRepository));
 
-    FileResourceRepository aar = FileResourceRepositoryTest.getTestRepository();
+    FileResourceRepository aar = ResourcesTestsUtil.getTestAarRepository();
     final AppResourceRepository appResources = AppResourceRepository.createForTest(
       myFacet, ImmutableList.of(projectResources, aar), ImmutableList.of(aar));
 
-    Collection<String> idResources = appResources.getItemsOfType(ResourceType.ID);
+    Collection<String> idResources = appResources.getItemsOfType(RES_AUTO, ResourceType.ID);
     Map<String, Integer> aarIds = aar.getAllDeclaredIds();
     assertNotNull(aarIds);
     assertFalse(aarIds.isEmpty());
     assertContainsElements(idResources, aarIds.keySet());
     assertFalse(aarIds.keySet().contains("btn_title_refresh"));
     assertContainsElements(idResources, "btn_title_refresh");
-  }
-
-  @SuppressWarnings("deprecation")  // For Pair
-  public void testDynamicIds() {
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
-    Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
-    assertNotNull(stringId);
-    Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
-    assertNotNull(styleId);
-    Integer layoutId = repository.getResourceId(ResourceType.LAYOUT, "layout");
-    assertNotNull(layoutId);
-    assertEquals(stringId, repository.getResourceId(ResourceType.STRING, "string"));
-    assertEquals(Pair.of(ResourceType.STRING, "string"), repository.resolveResourceId(stringId));
-    assertEquals(styleId, repository.getResourceId(ResourceType.STYLE, "style"));
-    assertEquals(Pair.of(ResourceType.STYLE, "style"), repository.resolveResourceId(styleId));
-    assertEquals(layoutId, repository.getResourceId(ResourceType.LAYOUT, "layout"));
-    assertEquals(Pair.of(ResourceType.LAYOUT, "layout"), repository.resolveResourceId(layoutId));
-  }
-
-  public void testResetDynamicIds() {
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
-    Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
-    Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
-    Integer layoutId = repository.getResourceId(ResourceType.LAYOUT, "layout");
-    repository.resetDynamicIds(false);
-    // They should be all gone now.
-    assertNull(repository.resolveResourceId(stringId));
-    assertNull(repository.resolveResourceId(styleId));
-    assertNull(repository.resolveResourceId(layoutId));
-    // Check in different order. These should be new IDs.
-    assertNotEquals(layoutId, repository.getResourceId(ResourceType.LAYOUT, "layout"));
-    assertNotEquals(stringId, repository.getResourceId(ResourceType.STRING, "string"));
-    assertNotEquals(styleId, repository.getResourceId(ResourceType.STYLE, "style"));
-  }
-
-  @SuppressWarnings("deprecation")  // For Pair
-  public void testSetCompiledResources() {
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
-    Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
-    Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
-    Integer layoutId = repository.getResourceId(ResourceType.LAYOUT, "layout");
-
-    TIntObjectHashMap<Pair<ResourceType, String>> id2res = new TIntObjectHashMap<>();
-    id2res.put(0x7F000000, Pair.of(ResourceType.STRING, "string"));
-    id2res.put(0x7F010000, Pair.of(ResourceType.STYLE, "style"));
-    id2res.put(0x7F020000, Pair.of(ResourceType.LAYOUT, "layout"));
-
-    Map<ResourceType, TObjectIntHashMap<String>> res2id = Maps.newHashMap();
-    TObjectIntHashMap<String> stringIdMap = new TObjectIntHashMap<>();
-    stringIdMap.put("string", 0x7F000000);
-    res2id.put(ResourceType.STRING, stringIdMap);
-    TObjectIntHashMap<String> styleIdMap = new TObjectIntHashMap<>();
-    styleIdMap.put("style", 0x7F010000);
-    res2id.put(ResourceType.STYLE, styleIdMap);
-    TObjectIntHashMap<String> layoutIdMap = new TObjectIntHashMap<>();
-    layoutIdMap.put("layout", 0x7F020000);
-    res2id.put(ResourceType.LAYOUT, layoutIdMap);
-
-    repository.setCompiledResources(id2res, Collections.emptyMap(), res2id);
-
-    // Compiled resources should replace the dynamic IDs.
-    assertNotEquals(stringId, repository.getResourceId(ResourceType.STRING, "string"));
-    assertEquals(Integer.valueOf(0x7F000000), repository.getResourceId(ResourceType.STRING, "string"));
-    assertNotEquals(styleId, repository.getResourceId(ResourceType.STYLE, "style"));
-    assertEquals(Integer.valueOf(0x7F010000), repository.getResourceId(ResourceType.STYLE, "style"));
-    assertNotEquals(layoutId, repository.getResourceId(ResourceType.LAYOUT, "layout"));
-    assertEquals(Integer.valueOf(0x7F020000), repository.getResourceId(ResourceType.LAYOUT, "layout"));
-
-    // Dynamic IDs should still resolve though.
-    assertEquals(Pair.of(ResourceType.STRING, "string"), repository.resolveResourceId(stringId));
-    assertEquals(Pair.of(ResourceType.STYLE, "style"), repository.resolveResourceId(styleId));
-    assertEquals(Pair.of(ResourceType.LAYOUT, "layout"), repository.resolveResourceId(layoutId));
-
-    // But not after reset.
-    repository.resetDynamicIds(false);
-    assertNull(repository.resolveResourceId(stringId));
-    assertNull(repository.resolveResourceId(styleId));
-    assertNull(repository.resolveResourceId(layoutId));
   }
 
   public void testNamespaces() {
@@ -374,12 +260,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertThat(projectResourceRepository.getNamespaces()).containsExactly(RES_AUTO, localLibNamespace);
     assertThat(appResourceRepository.getNamespaces()).containsExactly(RES_AUTO, localLibNamespace, aarLibNamespace);
 
-    assertOnlyValue(appResourceRepository, RES_AUTO, ResourceType.STRING, "app_name", "Animations Demo");
-    assertOnlyValue(appResourceRepository, localLibNamespace, ResourceType.STRING, "app_name", "Different App Name");
-    assertOnlyValue(appResourceRepository, aarLibNamespace, ResourceType.STRING, "app_name", "Very Different App Name");
+    assertOnlyValue(appResourceRepository, RES_AUTO, "app_name", "Animations Demo");
+    assertOnlyValue(appResourceRepository, localLibNamespace, "app_name", "Different App Name");
+    assertOnlyValue(appResourceRepository, aarLibNamespace, "app_name", "Very Different App Name");
 
-    assertOnlyValue(appResourceRepository, RES_AUTO, ResourceType.STRING, "model_value", "appValue");
-    assertOnlyValue(appResourceRepository, localLibNamespace, ResourceType.STRING, "model_value", "localLibValue");
+    assertOnlyValue(appResourceRepository, RES_AUTO, "model_value", "appValue");
+    assertOnlyValue(appResourceRepository, localLibNamespace, "model_value", "localLibValue");
     assertThat(resourceTable.get(aarLibNamespace, ResourceType.STRING).get("model_value")).isEmpty();
 
     assertThat(resourceTable.get(RES_AUTO, ResourceType.ID).get("action_next")).hasSize(1);
@@ -464,10 +350,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
   private static void assertOnlyValue(MultiResourceRepository repository,
                                       ResourceNamespace namespace,
-                                      ResourceType resourceType,
                                       String name,
                                       String value) {
-    ResourceValue resourceValue = getOnlyValue(repository, namespace, resourceType, name);
+    ResourceValue resourceValue = getOnlyValue(repository, namespace, ResourceType.STRING, name);
     assertThat(resourceValue.getValue()).named(resourceValue.toString()).isEqualTo(value);
   }
 
@@ -488,20 +373,4 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertThat((resourceValue)).named(fullName).isNotNull();
     return resourceValue;
   }
-
-  static AppResourceRepository createTestAppResourceRepository(AndroidFacet facet) throws IOException {
-    final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(facet, Collections.emptyList());
-    final ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
-      facet, Collections.singletonList(moduleRepository));
-
-    final AppResourceRepository appResources = AppResourceRepository.createForTest(
-      facet, Collections.singletonList(projectResources), Collections.emptyList());
-    FileResourceRepository aar = FileResourceRepositoryTest.getTestRepository();
-    appResources.updateRoots(Arrays.asList(projectResources, aar), Collections.singletonList(aar));
-    return appResources;
-  }
-
-  // TODO: When we can load gradle projects from unit tests, test that we properly override
-  // library resources (from AARs) with resources in the main app (e.g. that computeRepositories()
-  // places the libraries *before* the module resources)
 }

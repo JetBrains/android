@@ -25,6 +25,8 @@ import com.android.ide.common.resources.DataFile;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.xml.AndroidManifestParser;
+import com.android.io.FileWrapper;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -569,6 +571,21 @@ public class ResourceHelper {
             }
           }
         }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static String getAarPackageName(@NotNull File aarDir) {
+    File manifest = new File(aarDir, ANDROID_MANIFEST_XML);
+    if (manifest.exists()) {
+      try {
+        return AndroidManifestParser.parse(new FileWrapper(manifest)).getPackage();
+      }
+      catch (Exception e) {
+        return null;
       }
     }
 
@@ -1599,5 +1616,9 @@ public class ResourceHelper {
     public String getDescription() {
       return Joiner.on(", ").join(getAttributesNames(true));
     }
+  }
+
+  public static int buildResourceId(byte packageId, byte typeId, short entryId) {
+    return (packageId << 24) | (typeId << 16) | (entryId & 0xffff);
   }
 }

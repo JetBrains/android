@@ -18,28 +18,23 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.collect.ListMultimap;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.containers.ContainerUtil;
 import junit.framework.TestCase;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
-import static java.io.File.separatorChar;
 
 public class FileResourceRepositoryTest extends TestCase {
-  private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
 
-  public void testCacheUseSoftReferences() throws IOException {
+  public void testCacheUseSoftReferences() {
     File dir = Files.createTempDir();
     try {
       assertNotNull(FileResourceRepository.get(dir, null));
@@ -60,17 +55,17 @@ public class FileResourceRepositoryTest extends TestCase {
     }
   }
 
-  public void testGetAllDeclaredIds() throws IOException {
-    FileResourceRepository repository = getTestRepository();
+  public void testGetAllDeclaredIds() {
+    FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
     assertThat(repository.getAllDeclaredIds()).containsExactly(
       "id1", 0x7f0b0000,
       "id2", 0x7f0b0001,
       "id3", 0x7f0b0002);
   }
 
-  public void testMultipleValues() throws IOException {
-    FileResourceRepository repository = getTestRepository();
-    List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, "hello");
+  public void testMultipleValues() {
+    FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
+    List<ResourceItem> items = repository.getResourceItems(RES_AUTO, ResourceType.STRING, "hello");
     assertNotNull(items);
     List<String> helloVariants = ContainerUtil.map(
       items,
@@ -82,23 +77,13 @@ public class FileResourceRepositoryTest extends TestCase {
     assertSameElements(helloVariants, "bonjour", "hello", "hola");
   }
 
-  public void testLibraryNameIsMaintained() throws IOException {
-    FileResourceRepository repository = getTestRepository();
-    assertThat(repository.getLibraryName()).isEqualTo(LIBRARY_NAME);
+  public void testLibraryNameIsMaintained() {
+    FileResourceRepository repository = ResourcesTestsUtil.getTestAarRepository();
+    assertThat(repository.getLibraryName()).isEqualTo(ResourcesTestsUtil.AAR_LIBRARY_NAME);
     for (ListMultimap<String, ResourceItem> multimap : repository.getItems().values()) {
       for (ResourceItem item : multimap.values()) {
-        assertThat(item.getLibraryName()).isEqualTo(LIBRARY_NAME);
+        assertThat(item.getLibraryName()).isEqualTo(ResourcesTestsUtil.AAR_LIBRARY_NAME);
       }
     }
-  }
-
-  @NotNull
-  static FileResourceRepository getTestRepository() throws IOException {
-    String aarPath = AndroidTestBase.getTestDataPath() + separatorChar +
-                     "rendering" + separatorChar +
-                     FilenameConstants.EXPLODED_AAR + separatorChar +
-                     "my_aar_lib" + separatorChar +
-                     "res";
-    return FileResourceRepository.get(new File(aarPath), LIBRARY_NAME);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+* Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,87 +16,61 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.xml.AndroidManifestParser;
-import com.android.io.FileWrapper;
-import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.DOT_AAR;
-
 /**
- * A registry for class lookup of resource classes (R classes).
+ * A project-wide registry for class lookup of resource classes (R classes).
  */
 public class ResourceClassRegistry implements ProjectComponent {
 
-  private final Map<AppResourceRepository, ResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
-  private final Project myProject;
+  private final Map<AbstractResourceRepository, ResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
   private Collection<String> myPackages;
 
-  @SuppressWarnings("WeakerAccess")  // Accessed via reflection.
-  public ResourceClassRegistry(Project project) {
-    myProject = project;
-  }
-
-  public void addLibrary(@NotNull AppResourceRepository appResources, @Nullable String pkg) {
-    if (pkg != null && !pkg.isEmpty()) {
+  /**
+   * Adds definition of a new R class to the registry. The R class will contain resources from the given repo in the given namespace and
+   * will be generated if the same repository is passed to {@link #findClassDefinition(String, AbstractResourceRepository)} together with
+   * a class name that matches the {@code aarPackageName}.
+   *
+   * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
+   * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
+   * in question. In namespaced projects the repository is the {@link FileResourceRepository} of just the AAR contents.
+   */
+  public void addLibrary(@NotNull AbstractResourceRepository repo,
+                         @NotNull ResourceIdManager idManager,
+                         @Nullable String aarPackageName,
+                         @NotNull ResourceNamespace namespace) {
+    if (StringUtil.isNotEmpty(aarPackageName)) {
       if (myPackages == null) {
         myPackages = new HashSet<>();
       }
-      myPackages.add(pkg);
-      if (!myGeneratorMap.containsKey(appResources)) {
-        ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
-        myGeneratorMap.put(appResources, generator);
+      myPackages.add(aarPackageName);
+      if (!myGeneratorMap.containsKey(repo)) {
+        ResourceClassGenerator generator = ResourceClassGenerator.create(idManager, repo, namespace);
+        myGeneratorMap.put(repo, generator);
       }
     }
-  }
-
-  public void addAarLibrary(@NotNull AppResourceRepository appResources, @NotNull File aarDir) {
-    String path = aarDir.getPath();
-    if (path.endsWith(DOT_AAR) || path.contains(FilenameConstants.EXPLODED_AAR)) {
-      FileResourceRepository repository = appResources.findRepositoryFor(aarDir);
-      if (repository != null) {
-        addLibrary(appResources, getAarPackage(aarDir));
-      }
-    }
-  }
-
-  @Nullable
-  public String getAarPackage(@NotNull File aarDir) {
-    File manifest = new File(aarDir, ANDROID_MANIFEST_XML);
-    if (manifest.exists()) {
-      try {
-        return AndroidManifestParser.parse(new FileWrapper(manifest)).getPackage();
-      }
-      catch (Exception e) {
-        // No go
-        return null;
-      }
-    }
-
-    return null;
   }
 
   /** Looks up a class definition for the given name, if possible */
   @Nullable
-  public byte[] findClassDefinition(@NotNull String name, @NotNull AppResourceRepository appRepo) {
+  public byte[] findClassDefinition(@NotNull String name, @NotNull AbstractResourceRepository repo) {
     int index = name.lastIndexOf('.');
     if (index != -1 && name.charAt(index + 1) == 'R' && (index == name.length() - 2 || name.charAt(index + 2) == '$') && index > 1) {
       // If this is an R class or one of its inner classes.
       String pkg = name.substring(0, index);
       if (myPackages != null && myPackages.contains(pkg)) {
-        ResourceClassGenerator generator = myGeneratorMap.get(appRepo);
+        ResourceClassGenerator generator = myGeneratorMap.get(repo);
         if (generator != null) {
           return generator.generate(name);
         }
@@ -106,22 +80,13 @@ public class ResourceClassRegistry implements ProjectComponent {
   }
 
   /**
-   * Ideally, this method will not exist. But there are potential bugs in the caching mechanism.
-   * So, the method should be called when rendering fails due to hard to explain causes: like
-   * NoSuchFieldError. The method also resets the dynamic ids generated in {@link AppResourceRepository}.
+   * Ideally, this method will not exist. But there are potential bugs in the caching mechanism. So, the method should be called when
+   * rendering fails due to hard to explain causes: like NoSuchFieldError.
+   *
+   * @see ResourceIdManager#resetDynamicIds()
    */
   public void clearCache() {
     myGeneratorMap.clear();
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AppResourceRepository appResources = AppResourceRepository.findExistingInstance(module);
-      if (appResources != null) {
-        appResources.resetDynamicIds(false);
-      }
-    }
-  }
-
-  void clearCache(AppResourceRepository appResources) {
-    myGeneratorMap.remove(appResources);
   }
 
   /**
@@ -145,7 +110,7 @@ public class ResourceClassRegistry implements ProjectComponent {
   }
 
   @VisibleForTesting
-  Map<AppResourceRepository, ResourceClassGenerator> getGeneratorMap() {
+  Map<AbstractResourceRepository, ResourceClassGenerator> getGeneratorMap() {
     return myGeneratorMap;
   }
 }

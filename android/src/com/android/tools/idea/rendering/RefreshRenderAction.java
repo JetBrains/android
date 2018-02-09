@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -62,7 +62,7 @@ public class RefreshRenderAction extends AnAction {
       IAndroidTarget target = configuration.getTarget();
       Module module = configuration.getModule();
       if (module != null) {
-        ResourceClassRegistry.get(module.getProject()).clearCache();
+        ResourceIdManager.get(module).resetDynamicIds();
         if (target != null) {
           AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
           if (targetData != null) {

@@ -19,16 +19,14 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.builder.model.level2.Library;
-import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
-import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.util.Pair;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -38,8 +36,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidUtils;
@@ -351,16 +347,17 @@ public class AppResourceRepository extends MultiResourceRepository {
         }
       }
       // Also add all ids from resource types, just in case it contains things that are not in the libraries.
-      myIds.addAll(super.getItemsOfType(ResourceType.ID));
+      myIds.addAll(super.getItemsOfType(ResourceNamespace.TODO, ResourceType.ID));
     }
     return myIds;
   }
 
   @Override
   @NotNull
-  public Collection<String> getItemsOfType(@NotNull ResourceType type) {
+  public Collection<String> getItemsOfType(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     synchronized (ITEM_MAP_LOCK) {
-      return type == ResourceType.ID ? getAllIds() : super.getItemsOfType(type);
+      // TODO(namespaces): store all ID resources in the repositories and stop reading R.txt.
+      return type == ResourceType.ID ? getAllIds() : super.getItemsOfType(namespace, type);
     }
   }
 
@@ -395,7 +392,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     setChildren(resources);
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
-    resetDynamicIds(true);
+    ResourceIdManager.get(myFacet.getModule()).resetDynamicIds();
     ModuleClassLoader.clearCache(myFacet.getModule());
   }
 
@@ -505,179 +502,5 @@ public class AppResourceRepository extends MultiResourceRepository {
     }
 
     return myResourceVisibility.isPrivate(type, name);
-  }
-
-  // For LayoutlibCallback
-
-  // Project resource ints are defined as 0x7FXX#### where XX is the resource type (layout, drawable,
-  // etc...). Using FF as the type allows for 255 resource types before we get a collision
-  // which should be fine.
-  private static final int DYNAMIC_ID_SEED_START = 0x7fff0000;
-
-  /**
-   * Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java
-   */
-  private Map<ResourceType, TObjectIntHashMap<String>> myResourceValueMap;
-  /**
-   * Map of (id, [name, resType]) for all resources coming from R.java
-   */
-  @SuppressWarnings("deprecation")  // For Pair
-  private TIntObjectHashMap<Pair<ResourceType, String>> myResIdValueToNameMap;
-  /**
-   * Map of (int[], name) for styleable resources coming from R.java
-   */
-  private Map<IntArrayWrapper, String> myStyleableValueToNameMap;
-
-  private final TObjectIntHashMap<TypedResourceName> myName2DynamicIdMap = new TObjectIntHashMap<>();
-  private final TIntObjectHashMap<TypedResourceName> myDynamicId2ResourceMap = new TIntObjectHashMap<>();
-  private int myDynamicSeed = DYNAMIC_ID_SEED_START;
-  private final IntArrayWrapper myWrapper = new IntArrayWrapper(null);
-
-
-  @Nullable
-  @SuppressWarnings("deprecation")  // For Pair
-  public Pair<ResourceType, String> resolveResourceId(int id) {
-    Pair<ResourceType, String> result = null;
-    if (myResIdValueToNameMap != null) {
-      result = myResIdValueToNameMap.get(id);
-    }
-
-    if (result == null) {
-      final TypedResourceName pair = myDynamicId2ResourceMap.get(id);
-      if (pair != null) {
-        result = pair.toPair();
-      }
-    }
-
-    return result;
-  }
-
-  @Nullable
-  public String resolveStyleable(int[] id) {
-    if (myStyleableValueToNameMap != null) {
-      myWrapper.set(id);
-      // A normal map lookup on int[] would only consider object identity, but the IntArrayWrapper
-      // will check all the individual elements for equality. We reuse an instance for all the lookups
-      // since we don't need a new one each time.
-      return myStyleableValueToNameMap.get(myWrapper);
-    }
-
-    return null;
-  }
-
-  @NotNull
-  public Integer getResourceId(ResourceType type, String name) {
-    final TObjectIntHashMap<String> map = myResourceValueMap != null ? myResourceValueMap.get(type) : null;
-
-    if (map == null || !map.containsKey(name)) {
-      return getDynamicId(type, name);
-    }
-    return map.get(name);
-  }
-
-  @Nullable
-  Integer[] getDeclaredArrayValues(List<AttrResourceValue> attrs, String styleableName) {
-    ListIterator<FileResourceRepository> iter = myAarLibraries.listIterator();
-    while (iter.hasNext()) {
-      FileResourceRepository repo = iter.next();
-      File resourceTextFile = repo.getResourceTextFile();
-      if (resourceTextFile == null) {
-        continue;
-      }
-      Integer[] in = null;
-      try {
-        in = RDotTxtParser.getDeclareStyleableArray(resourceTextFile, attrs, styleableName);
-      }
-      catch (Throwable e) {
-        // Filter all possible errors while parsing the R.txt file
-        assert false : e.getLocalizedMessage();
-        LOG.warn("Error while parsing R.txt", e);
-      }
-      if (in != null) {
-        // Reorder the list to place this library first. It's likely that there will be more calls to the same library.
-        iter.remove();
-        myAarLibraries.addFirst(repo);
-        return in;
-      }
-    }
-    return null;
-  }
-
-  private int getDynamicId(ResourceType type, String name) {
-    TypedResourceName key = new TypedResourceName(type, name);
-    synchronized (myName2DynamicIdMap) {
-      if (myName2DynamicIdMap.containsKey(key)) {
-        return myName2DynamicIdMap.get(key);
-      }
-      final int value = ++myDynamicSeed;
-      myName2DynamicIdMap.put(key, value);
-      myDynamicId2ResourceMap.put(value, key);
-      return value;
-    }
-  }
-
-  public void setCompiledResources(@SuppressWarnings("deprecation") TIntObjectHashMap<Pair<ResourceType, String>> id2res,
-                                   Map<IntArrayWrapper, String> styleableId2name,
-                                   Map<ResourceType, TObjectIntHashMap<String>> res2id) {
-    myResourceValueMap = res2id;
-    myResIdValueToNameMap = id2res;
-    myStyleableValueToNameMap = styleableId2name;
-  }
-
-  public void resetDynamicIds(boolean clearResourceRegistry) {
-    // The dynamic ids are referenced by the generated R classes. Ensure that the R classes cache is also cleared
-    // if the dynamic ids are reset.
-    if (clearResourceRegistry) {
-      ResourceClassRegistry.get(myFacet.getModule().getProject()).clearCache(this);
-    }
-    synchronized (myName2DynamicIdMap) {
-      myDynamicSeed = DYNAMIC_ID_SEED_START;
-      myName2DynamicIdMap.clear();
-      myDynamicId2ResourceMap.clear();
-    }
-  }
-
-  private static final class TypedResourceName {
-    @Nullable final ResourceType myType;
-    @NotNull final String myName;
-    @SuppressWarnings("deprecation") Pair<ResourceType, String> myPair;
-
-    public TypedResourceName(@Nullable ResourceType type, @NotNull String name) {
-      myType = type;
-      myName = name;
-    }
-
-    @SuppressWarnings("deprecation")
-    public Pair<ResourceType, String> toPair() {
-      if (myPair == null) {
-        myPair = Pair.of(myType, myName);
-      }
-      return myPair;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      TypedResourceName that = (TypedResourceName)o;
-
-      if (myType != that.myType) return false;
-      if (!myName.equals(that.myName)) return false;
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      int result = myType != null ? myType.hashCode() : 0;
-      result = 31 * result + (myName.hashCode());
-      return result;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("Type=%1$s, value=%2$s", myType, myName);
-    }
   }
 }
