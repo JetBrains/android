@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
+import java.io.File;
+import java.util.Collections;
+import com.android.ide.common.gradle.model.stubs.SourceProviderStub;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -492,9 +495,13 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   private void setAndroidModel(int minSdk, int targetSdk) {
+    SourceProviderStub provider = new SourceProviderStub("test", new File(myFixture.getTempDirPath()), "AndroidManifest.xml");
     myFacet.getConfiguration().setModel(new TestAndroidModel("com.example.test",
                                                              new AndroidVersion(minSdk),
-                                                             new AndroidVersion(targetSdk)));
+                                                             new AndroidVersion(targetSdk),
+                                                             new AndroidVersion(minSdk),
+                                                             Collections.singleton("com.example.test"),
+                                                             provider));
   }
 
   @NotNull
