@@ -91,6 +91,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(1);
+    assertEquals(SyncMessage.DEFAULT_GROUP, message.getGroup());
 
     assertAbout(syncMessage()).that(message).hasMessageLine(expectedText, 0);
   }
