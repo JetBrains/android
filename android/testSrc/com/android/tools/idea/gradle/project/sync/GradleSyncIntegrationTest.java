@@ -512,4 +512,20 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     LocalProperties afterSyncLocalProperties = new LocalProperties(project);
     assertThat(afterSyncLocalProperties.getProperty("custom.property")).isEqualTo("custom.value");
   }
+
+  // Verify that previously reported sync issues are cleaned up as part of the next sync
+  public void testSyncIssuesCleanup() throws Exception {
+    loadSimpleApplication();
+
+    Project project = getProject();
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    SyncMessage oldSyncMessage = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR,
+                                                 "A quick blown fix bumps over the lazy bug");
+    syncMessages.report(oldSyncMessage);
+
+    // Expect a successful sync, and that the old message should get cleaned up.
+    requestSyncAndWait();
+    List<SyncMessage> messages = syncMessages.getReportedMessages();
+    assertThat(messages).isEmpty();
+  }
 }
