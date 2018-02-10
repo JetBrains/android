@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
@@ -61,6 +62,7 @@ import static com.intellij.openapi.externalSystem.service.execution.ProgressExec
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
@@ -185,6 +187,7 @@ public class GradleSyncInvoker {
       clearStoredGradleJvmArgs(project);
     }
 
+    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeProjectMessages());
     PreSyncCheckResult checkResult = myPreSyncChecks.canSync(project);
     if (!checkResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.

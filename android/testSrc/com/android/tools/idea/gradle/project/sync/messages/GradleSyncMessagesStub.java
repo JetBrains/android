@@ -26,8 +26,7 @@ import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
@@ -96,6 +95,12 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
 
   public void clearReportedMessages() {
     myMessages.clear();
+  }
+
+  @Override
+  public void removeMessages(@NotNull String... groupNames) {
+    Set<String> groupNamesSet = new HashSet<>(Arrays.asList(groupNames));
+    myMessages.removeIf(m -> groupNamesSet.contains(m.getGroup()));
   }
 
   public static class NotificationUpdate {
