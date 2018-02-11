@@ -106,7 +106,6 @@ public final class LinearLayoutTest {
    * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
    */
   @Test
-  @RunIn(TestGroup.UNRELIABLE)  // b/70726902
   public void resolveAttributeStyleReference() throws IOException {
     // @formatter:off
     String xml = new XmlBuilder()
