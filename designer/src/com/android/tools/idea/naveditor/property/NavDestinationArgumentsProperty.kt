@@ -78,14 +78,18 @@ private class NewNavElementProperty(
   : NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_NAME, ANDROID_URI, attrDefs, propertiesManager), NavArgumentProperty {
   override fun setValue(value: Any?) {
     super.setValue(value)
-    navDestinationArgumentsProperty.newArgumentCount--
+    if ((value as? String)?.isEmpty() == false) {
+      navDestinationArgumentsProperty.newArgumentCount--
+    }
   }
 
   override val defaultValueProperty =
       object: NewElementProperty(parent, NavigationSchema.TAG_ARGUMENT, ATTR_DEFAULT_VALUE, ANDROID_URI, attrDefs, propertiesManager) {
         override fun setValue(value: Any?) {
           super.setValue(value)
-          navDestinationArgumentsProperty.newArgumentCount--
+          if ((value as? String)?.isEmpty() == false) {
+            navDestinationArgumentsProperty.newArgumentCount--
+          }
         }
       }
 }
