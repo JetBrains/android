@@ -20,10 +20,9 @@ import com.android.tools.idea.fd.FlightRecorder;
 import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.updateSettings.impl.UpdateChecker;
+import com.intellij.openapi.application.PermanentInstallationID;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
@@ -86,7 +85,7 @@ public class GoogleCrash {
     }
 
     try {
-      return Anonymizer.anonymizeUtf8(new NullLogger(), UpdateChecker.getInstallationUID(PropertiesComponent.getInstance()));
+      return Anonymizer.anonymizeUtf8(new NullLogger(), PermanentInstallationID.get());
     }
     catch (IOException e) {
       return null;
