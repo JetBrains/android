@@ -115,7 +115,6 @@ public class NlEditorTest {
   }
 
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
-  @RunIn(TestGroup.UNRELIABLE) // b/73120444
   @Test
   public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
     // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
@@ -140,7 +139,6 @@ public class NlEditorTest {
   }
 
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
-  @RunIn(TestGroup.UNRELIABLE) // b/73120444
   @Test
   public void designEditorUnavailableIfLastBazelSyncFailed() throws Exception {
     // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
