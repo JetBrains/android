@@ -61,5 +61,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
     <orderEntry type="library" name="commons-io" level="project" />
+    <orderEntry type="library" scope="TEST" name="lombok-ast" level="project" />
   </component>
 </module>
