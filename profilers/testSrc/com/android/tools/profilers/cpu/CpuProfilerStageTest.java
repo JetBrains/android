@@ -696,7 +696,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void suggestedProfilingConfigurationDependsOnNativePreference() {
     // Make sure simpleperf is supported.
-    myServices.enableSimplePerf(true);
+    myServices.enableSimpleperf(true);
     addAndSetDevice(26, "Any Serial");
 
     myServices.setNativeProfilingConfigurationPreferred(false);

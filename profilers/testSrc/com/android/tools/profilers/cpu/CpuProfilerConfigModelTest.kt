@@ -52,7 +52,7 @@ class CpuProfilerConfigModelTest {
   @Test
   fun defaultProfilingConfigsReturnsOnlyDeviceSupported() {
     myServices.enableAtrace(true)
-    myServices.enableSimplePerf(true)
+    myServices.enableSimpleperf(true)
     setDevice(AndroidVersion.VersionCodes.LOLLIPOP)
     model!!.updateProfilingConfigurations()
 
@@ -98,7 +98,7 @@ class CpuProfilerConfigModelTest {
   @Test
   fun flagsFilterConfigsFromDefault() {
     myServices.enableAtrace(false)
-    myServices.enableSimplePerf(false)
+    myServices.enableSimpleperf(false)
 
     setDevice(AndroidVersion.VersionCodes.O)
     model!!.updateProfilingConfigurations()
@@ -122,7 +122,7 @@ class CpuProfilerConfigModelTest {
   @Test
   fun customProfilingConfigsDeviceFiltering() {
     myServices.enableAtrace(true)
-    myServices.enableSimplePerf(true)
+    myServices.enableSimpleperf(true)
     setDevice(AndroidVersion.VersionCodes.LOLLIPOP)
 
     myServices.addCustomProfilingConfiguration("Art", CpuProfilerType.ART)
@@ -154,7 +154,7 @@ class CpuProfilerConfigModelTest {
   fun flagsFilterConfigsFromCustom() {
     // First, we try with the flags enabled
     myServices.enableAtrace(true)
-    myServices.enableSimplePerf(true)
+    myServices.enableSimpleperf(true)
 
     myServices.addCustomProfilingConfiguration("Art", CpuProfilerType.ART)
     myServices.addCustomProfilingConfiguration("Atrace", CpuProfilerType.ATRACE)
@@ -181,7 +181,7 @@ class CpuProfilerConfigModelTest {
 
     // Now disable the flags
     myServices.enableAtrace(false)
-    myServices.enableSimplePerf(false)
+    myServices.enableSimpleperf(false)
     model!!.updateProfilingConfigurations()
 
     customConfigs = model!!.customProfilingConfigurations

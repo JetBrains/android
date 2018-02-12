@@ -99,9 +99,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean mySessionsViewEnabled = true;
 
   /**
-   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
+   * Can toggle for tests via {@link #enableSimpleperf(boolean)}, but each test starts with this defaulted to false.
    */
-  private boolean mySimplePerfEnabled = false;
+  private boolean mySimpleperfEnabled = false;
 
   /**
    * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
@@ -237,8 +237,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSimplePerfEnabled() {
-        return mySimplePerfEnabled;
+      public boolean isSimpleperfEnabled() {
+        return mySimpleperfEnabled;
       }
 
       @Override
@@ -367,8 +367,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     mySessionsViewEnabled = enabled;
   }
 
-  public void enableSimplePerf(boolean enabled) {
-    mySimplePerfEnabled = enabled;
+  public void enableSimpleperf(boolean enabled) {
+    mySimpleperfEnabled = enabled;
   }
 
   public void enableExportTrace(boolean enabled) {

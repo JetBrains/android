@@ -215,7 +215,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSimplePerfEnabled() {
+      public boolean isSimpleperfEnabled() {
         return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
       }
 
