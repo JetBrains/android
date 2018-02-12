@@ -415,7 +415,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFinish() {
-    return waitForGradleProjectSyncToFinish(Wait.seconds(30));
+    // Workaround: b/72654538: Gradle Project Sync takes longer time
+    return waitForGradleProjectSyncToFinish(Wait.seconds(60));
   }
 
   @NotNull
