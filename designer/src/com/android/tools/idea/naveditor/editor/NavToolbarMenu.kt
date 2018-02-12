@@ -25,7 +25,8 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) : AnAction("", description, icon) {
+abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) :
+    AnAction(description, description, icon) {
   var balloon: Balloon? = null
 
   override fun actionPerformed(e: AnActionEvent) {
