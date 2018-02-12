@@ -63,6 +63,31 @@ class MapPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelMapPrope
     }
   }
 
+  override fun addItem() {
+    tableModel?.let { tableModel ->
+      val index = tableModel.rowCount
+      tableModel.addRow(arrayOf("", ParsedValue.NotSet<ValueT>().toTableModelValue()))
+      table.selectionModel.setSelectionInterval(index, index)
+      table.editCellAt(index, 0)
+    }
+  }
+
+  override fun removeItem() {
+    tableModel?.let { tableModel ->
+      table.removeEditor()
+      val selection = table.selectionModel
+      for (index in selection.maxSelectionIndex downTo selection.minSelectionIndex) {
+        if (table.selectionModel.isSelectedIndex(index)) {
+          val key = (tableModel.getValueAt(index, 0) as String?).orEmpty()
+          if (key != "") {
+            property.deleteEntry(model, key)
+            tableModel.removeRow(index)
+          }
+        }
+      }
+    }
+  }
+
   override fun createTableModel(): DefaultTableModel {
     val tableModel = DefaultTableModel()
     tableModel.addColumn("key")

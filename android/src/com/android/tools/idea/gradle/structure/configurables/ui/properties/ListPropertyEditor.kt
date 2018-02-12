@@ -67,6 +67,29 @@ class ListPropertyEditor<ModelT, ValueT : Any, out ModelPropertyT : ModelListPro
   override fun getValueText(): String = throw UnsupportedOperationException()
   override fun getValue(): ParsedValue<List<ValueT>> = throw UnsupportedOperationException()
 
+  override fun addItem() {
+    tableModel?.let { tableModel ->
+      val index = tableModel.rowCount
+      val modelPropertyCore = property.addItem(model, index)
+      tableModel.addRow(arrayOf(modelPropertyCore.getValue(Unit).parsedValue.toTableModelValue()))
+      table.selectionModel.setSelectionInterval(index, index)
+    table.editCellAt(index, 0)
+    }
+  }
+
+  override fun removeItem() {
+    tableModel?.let { tableModel ->
+      table.removeEditor()
+      val selection = table.selectionModel
+      for (index in selection.maxSelectionIndex downTo selection.minSelectionIndex) {
+        if (table.selectionModel.isSelectedIndex(index)) {
+          property.deleteItem(model, index)
+          tableModel.removeRow(index)
+        }
+      }
+    }
+  }
+
   private fun getRowProperty(row: Int) = property.getEditableValues(model)[row]
 }
 

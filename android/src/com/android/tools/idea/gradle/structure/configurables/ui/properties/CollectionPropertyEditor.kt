@@ -43,6 +43,7 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
 
   val component: JComponent get() = this
   private var beingLoaded = false
+  protected var tableModel: DefaultTableModel? = null ; private set
   protected val valueToText: Map<ValueT, String> = buildValueToTextMap()
 
   protected val table: JBTable = JBTable()
@@ -52,8 +53,8 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
     .also {
       add(
         ToolbarDecorator.createDecorator(it)
-          .setAddAction({})
-          .setRemoveAction({})
+          .setAddAction { addItem() }
+          .setRemoveAction { removeItem() }
           .setPreferredSize(Dimension(450, 100))
           .setToolbarPosition(ActionToolbarPosition.RIGHT)
           .createPanel()
@@ -63,7 +64,7 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   protected fun loadValue() {
     beingLoaded = true
     try {
-      val tableModel = createTableModel()
+      tableModel = createTableModel()
       table.model = tableModel
       table.columnModel = createColumnModel()
     }
@@ -76,6 +77,8 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   protected abstract fun createColumnModel(): TableColumnModel
   protected abstract fun getValueAt(row: Int): ParsedValue<ValueT>
   protected abstract fun setValueAt(row: Int, value: ParsedValue<ValueT>)
+  protected abstract fun addItem()
+  protected abstract fun removeItem()
 
   private fun buildValueToTextMap() = property.getKnownValues(model)?.associate { it.value to it.description } ?: mapOf()
 
