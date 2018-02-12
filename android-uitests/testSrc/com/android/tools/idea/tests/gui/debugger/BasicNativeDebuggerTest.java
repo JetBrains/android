@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
 import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +43,14 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
   @Rule public final ScreenshotsDuringTest movieMaker = new ScreenshotsDuringTest();
 
+  @Before
+  public void setUp() throws Exception {
+    guiTest.importProject("BasicCmakeAppForUI");
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+  }
+
   /**
    * <p>TT ID: TODO this test case needs a TT ID.
    *
@@ -49,8 +58,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/72699808
   public void testSessionRestart() throws Exception{
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     projectFrame.invokeMenuPath("Run", "Edit Configurations...");
@@ -100,8 +107,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testNativeDebuggerBreakpoints() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     projectFrame.invokeMenuPath("Run", "Edit Configurations...");
@@ -138,8 +143,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testNativeDebuggerCleanWhileDebugging() throws  Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     projectFrame.invokeMenuPath("Run", "Edit Configurations...");
@@ -174,8 +177,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testNativeDebuggerNewLibraryWhileDebugging() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     projectFrame.invokeMenuPath("Run", "Edit Configurations...");
@@ -243,9 +244,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.SANITY)
   public void testDualDebuggerBreakpoints() throws Exception {
-    guiTest.importProject("BasicCmakeAppForUI");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
