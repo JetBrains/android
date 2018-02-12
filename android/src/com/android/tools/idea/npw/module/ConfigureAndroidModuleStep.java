@@ -137,6 +137,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myRenderModel = new RenderTemplateModel(moduleModel, null, dummyTemplate, message("android.wizard.activity.add", myFormFactor.id));
 
     myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
+    myValidatorPanel.registerValidator(myRenderModel.androidSdkInfo(), value ->
+      value.isPresent() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message("select.target.dialog.text")));
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
