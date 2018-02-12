@@ -387,6 +387,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
           assertEquals(message, expected, model.getValue(STRING_TYPE));
         }
         break;
+      case UNKNOWN:
+        assertEquals(message, expected, model.getValue(STRING_TYPE));
+        break;
       default:
         fail("Type for model: " + model + " was unexpected, " + model.getValueType());
     }

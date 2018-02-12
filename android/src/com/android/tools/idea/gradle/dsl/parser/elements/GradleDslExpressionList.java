@@ -202,13 +202,13 @@ public final class GradleDslExpressionList extends GradleDslElement {
         GradleDslExpression expression = myUnsavedExpressions.get(i);
         if (expression.getPsiElement() == null) {
           // See GroovyDslUtil#shouldAddToListInternal for why this workaround is needed.
-          if (i > 0 && isLiteralList()) {
+          if (i > 0) {
             expression.setPsiElement(myUnsavedExpressions.get(i - 1).getExpression());
           } else {
             expression.setPsiElement(psiElement);
           }
           expression.applyChanges();
-          if (i > 0 && isLiteralList()) {
+          if (i > 0) {
             expression.setPsiElement(psiElement);
           }
         }

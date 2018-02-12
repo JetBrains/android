@@ -180,26 +180,7 @@ public class GroovyDslWriter implements GradleDslWriter {
       }
     }
     else {
-      PsiElement added;
-      if (psiElement instanceof GrListOrMap && literal.getParent() instanceof GradleDslExpressionList &&
-        ((GradleDslExpressionList)literal.getParent()).isLiteralList()) {
-        // Add to the front when we are inserting the first element into a literal list
-        emplaceElementToFrontOfList((GrListOrMap)psiElement, newLiteral);
-        added = newLiteral;
-      }
-      else if (psiElement instanceof GrListOrMap || // Entries in [].
-          (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList))) { // Method call arguments in ().
-        added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before ) or ]
-
-      }
-      else if (shouldAddToListInternal(literal)) {
-        emplaceElementIntoList(psiElement, psiElement.getParent(), newLiteral);
-        added = newLiteral;
-      }
-      else {
-        added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
-      }
-
+      PsiElement added = createPsiElementInsideList(literal, psiElement, newLiteral);
       if (added instanceof GrLiteral) {
         literal.setExpression(added);
       }
@@ -254,18 +235,7 @@ public class GroovyDslWriter implements GradleDslWriter {
       reference.setExpression(replace);
     }
     else {
-      PsiElement added;
-      if (psiElement instanceof GrListOrMap && reference.getParent() instanceof GradleDslExpressionList &&
-          ((GradleDslExpressionList)reference.getParent()).isLiteralList()) {
-        // Add to the front when we are inserting the first element into a literal list
-        emplaceElementToFrontOfList((GrListOrMap)psiElement, newReference);
-        added = newReference;
-      } else if (shouldAddToListInternal(reference)) {
-        emplaceElementIntoList(psiElement, psiElement.getParent(), newReference);
-        added = newReference;
-      } else {
-        added = psiElement.addAfter(newReference, psiElement.getLastChild());
-      }
+      PsiElement added = createPsiElementInsideList(reference, psiElement, newReference);
       reference.setExpression(added);
     }
 
