@@ -111,5 +111,6 @@
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
+    <orderEntry type="library" name="lombok-ast" level="project" />
   </component>
 </module>

@@ -27,12 +27,30 @@
     <orderEntry type="module" module-name="android.sdktools.ddmlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
-    <orderEntry type="module" module-name="android.sdktools.lint-api" exported="" />
-    <orderEntry type="module" module-name="android.sdktools.lint-checks" exported="" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module-library" exported="">
+      <library name="com.android.tools.lint:lint-checks:26.0.0" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.lint:lint-checks:26.0.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-checks/26.0.0/lint-checks-26.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="com.android.tools.lint:lint-api:26.0.0" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools.lint:lint-api:26.0.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/lint/lint-api/26.0.0/lint-api-26.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

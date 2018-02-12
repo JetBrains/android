@@ -33,12 +33,6 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    GradleDetector.cleanUp();
-    super.tearDown();
-  }
-
   public void testDependencies() throws Exception {
     AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
     doTest(inspection, null);
