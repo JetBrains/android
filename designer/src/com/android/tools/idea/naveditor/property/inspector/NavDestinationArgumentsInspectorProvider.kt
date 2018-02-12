@@ -34,9 +34,11 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.FlowLayout
 import javax.swing.BorderFactory
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
 
 const val NAV_ARGUMENTS_COMPONENT_NAME = "NavArgumentsPropertyInspector"
@@ -102,20 +104,10 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
       val table = JBTable(tableModel)
       table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
       table.name = NAV_ARGUMENTS_COMPONENT_NAME
+      table.rowSelectionAllowed = true
 
-      val nameCellRenderer = JBTextField()
-      nameCellRenderer.emptyText.text = "name"
-      nameCellRenderer.border = BorderFactory.createEmptyBorder()
-      table.columnModel.getColumn(0).cellRenderer = TableCellRenderer { _, value, _, _, _, _ ->
-        nameCellRenderer.also { it.text = (value as? NlProperty)?.value }
-      }
-
-      val defaultValueCellRenderer = JBTextField()
-      defaultValueCellRenderer.emptyText.text = "default value"
-      defaultValueCellRenderer.border = BorderFactory.createEmptyBorder()
-      table.columnModel.getColumn(1).cellRenderer = TableCellRenderer { _, value, _, _, _, _ ->
-        defaultValueCellRenderer.also { it.text = (value as? NlProperty)?.value }
-      }
+      table.columnModel.getColumn(0).cellRenderer = MyCellRenderer("name")
+      table.columnModel.getColumn(1).cellRenderer = MyCellRenderer("default value")
 
       val nameTextEditor = TextEditor(surface!!.project, false, NlEditingListener.DEFAULT_LISTENER)
       val defaultValueTextEditor = TextEditor(surface!!.project, false, NlEditingListener.DEFAULT_LISTENER)
@@ -157,6 +149,35 @@ class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavProperties
 
     override fun refresh() {
       argumentProperty.refreshList()
+    }
+  }
+}
+
+private class MyCellRenderer(emptyText: String) : TableCellRenderer {
+  val rendererComponent = JBTextField()
+  init {
+    rendererComponent.emptyText.text = emptyText
+    rendererComponent.border = BorderFactory.createEmptyBorder()
+  }
+
+  override fun getTableCellRendererComponent(
+    table: JTable?,
+    value: Any?,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    row: Int,
+    column: Int
+  ): Component {
+    return rendererComponent.also {
+      it.text = (value as? NlProperty)?.value
+      if (isSelected) {
+        it.foreground = table?.selectionForeground
+        it.background = table?.selectionBackground
+      }
+      else {
+        it.foreground = table?.foreground
+        it.background = table?.background
+      }
     }
   }
 }
