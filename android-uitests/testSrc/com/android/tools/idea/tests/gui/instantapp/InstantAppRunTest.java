@@ -139,14 +139,6 @@ public class InstantAppRunTest {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    // TODO remove the following workaround waits for the project to be set up. See http://b/72666461
-    // TODO Gradle distribution is retrieved from services.gradle.org rather than local filesystem. See http://b/72832198
-    Wait.seconds(projectSetupTime)
-      .expecting("a file to be opened")
-      .until(() -> ideFrame.getEditor().getCurrentFile() != null);
-
-    guiTest.waitForBackgroundTasks();
-
     emulator.createAVD(
       ideFrame.invokeAvdManager(),
       "x86 Images",

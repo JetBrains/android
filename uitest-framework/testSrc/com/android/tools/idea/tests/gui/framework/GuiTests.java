@@ -33,6 +33,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
@@ -69,6 +70,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -652,6 +654,16 @@ public final class GuiTests {
                !progressManager.hasProgressIndicator() &&
                !progressManager.hasUnsafeProgressIndicator();
       });
+  }
+
+  public static void waitForProjectImport(@NotNull Robot robot, @NotNull Project project) {
+    AtomicBoolean isProjectOpen = new AtomicBoolean();
+    DumbService.getInstance(project).smartInvokeLater(() -> isProjectOpen.set(true));
+
+    Wait.seconds(60).expecting("Project import to finish")
+      .until(isProjectOpen::get);
+
+    waitForBackgroundTasks(robot);
   }
 
   /**
