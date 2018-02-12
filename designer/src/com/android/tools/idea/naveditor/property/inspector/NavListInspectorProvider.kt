@@ -44,7 +44,7 @@ import javax.swing.*
 const val NAV_LIST_COMPONENT_NAME = "NavListPropertyInspector"
 
 abstract class NavListInspectorProvider<PropertyType : ListProperty>(
-    private val propertyType: Class<PropertyType>, val icon: Icon)
+    private val propertyType: Class<PropertyType>, val icon: Icon, val tooltip: String)
   : InspectorProvider<NavPropertiesManager> {
 
   protected val inspector = NavListInspectorComponent()
@@ -164,7 +164,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
       panel.add(list, BorderLayout.CENTER)
 
-      val plus = InplaceButton("Add Action", addIcon) {
+      val plus = InplaceButton(tooltip, addIcon) {
         @Suppress("UnnecessaryVariable")
         val event = it
         surface?.let { plusClicked(event, components, markerProperties[0].resolver, it) }
