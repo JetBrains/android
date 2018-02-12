@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.JListFixture;
@@ -107,13 +106,7 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   @NotNull
   public IdeFrameFixture clickFinish() {
     super.clickFinish(Wait.seconds(5));
-
-    // Wait for gradle project importing to finish
-    Wait.seconds(30).expecting("Modal Progress Indicator to finish")
-      .until(() -> {
-        robot().waitForIdle();
-        return !ProgressManager.getInstance().hasModalProgressIndicator();
-      });
+    GuiTests.waitForProjectImport(myIdeFrameFixture.robot(), myIdeFrameFixture.getProject());
 
     return myIdeFrameFixture;
   }

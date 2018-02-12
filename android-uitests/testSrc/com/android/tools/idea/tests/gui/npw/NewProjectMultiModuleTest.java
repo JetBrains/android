@@ -92,6 +92,5 @@ public class NewProjectMultiModuleTest {
     }
 
     newProjectWizard.clickFinish();
-    guiTest.ideFrame().waitForGradleImportProjectSync();
   }
 }
