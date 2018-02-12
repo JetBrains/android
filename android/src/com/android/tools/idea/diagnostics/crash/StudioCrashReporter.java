@@ -19,11 +19,10 @@ package com.android.tools.idea.diagnostics.crash;
 import com.android.tools.analytics.Anonymizer;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.android.utils.NullLogger;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PermanentInstallationID;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +56,7 @@ public class StudioCrashReporter extends GoogleCrashReporter {
     }
 
     try {
-      return Anonymizer.anonymizeUtf8(new NullLogger(), UpdateChecker.getInstallationUID(PropertiesComponent.getInstance()));
+      return Anonymizer.anonymizeUtf8(new NullLogger(), PermanentInstallationID.get());
     }
     catch (IOException e) {
       return null;
