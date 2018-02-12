@@ -52,5 +52,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" scope="RUNTIME" name="asm-tools" level="project" />
   </component>
 </module>
