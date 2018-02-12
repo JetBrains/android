@@ -132,12 +132,12 @@ public class CpuProfilerConfigModel {
     Common.Device selectedDevice = myProfilers.getDevice();
     // Anytime before we check the device feature level we need to validate we have a device. The device will be null in test
     // causing a null pointer exception here.
-    boolean isSimplePerfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
-                                  myProfilers.getIdeServices().getFeatureConfig().isSimplePerfEnabled();
+    boolean isSimpleperfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
+                                  myProfilers.getIdeServices().getFeatureConfig().isSimpleperfEnabled();
     if (myProfilingConfiguration == null) {
       // TODO (b/68691584): Remember the last selected configuration and suggest it instead of default configurations.
       // If there is a preference for a native configuration, we select simpleperf.
-      if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimplePerfEnabled) {
+      if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimpleperfEnabled) {
         myProfilingConfiguration =
           Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.SIMPLEPERF);
       }
@@ -158,7 +158,7 @@ public class CpuProfilerConfigModel {
         return false;
       }
       if (pref.getProfilerType() == CpuProfilerType.SIMPLEPERF) {
-        return myProfilers.getIdeServices().getFeatureConfig().isSimplePerfEnabled();
+        return myProfilers.getIdeServices().getFeatureConfig().isSimpleperfEnabled();
       }
       if (pref.getProfilerType() == CpuProfilerType.ATRACE) {
         return myProfilers.getIdeServices().getFeatureConfig().isAtraceEnabled();
