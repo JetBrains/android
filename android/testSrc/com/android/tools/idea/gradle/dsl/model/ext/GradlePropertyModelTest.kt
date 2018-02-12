@@ -2504,6 +2504,34 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testAddAndRemoveFromNonLiteralList() {
+    val text = """
+               android {
+                 defaultConfig {
+                   proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules2.txt'
+                 }
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val proguardFiles = buildModel.android()?.defaultConfig()?.proguardFiles()!!
+      verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules2.txt"), DERIVED, 0)
+      proguardFiles.addListValueAt(0).setValue("z.txt")
+      proguardFiles.addListValueAt(2).setValue("proguard-rules.txt")
+      verifyListProperty(proguardFiles, listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"), DERIVED, 0)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val proguardFiles = buildModel.android()?.defaultConfig()?.proguardFiles()!!
+      verifyListProperty(proguardFiles, listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"), DERIVED, 0)
+    }
+  }
+
   fun testSetList() {
     val text = """
                ext {

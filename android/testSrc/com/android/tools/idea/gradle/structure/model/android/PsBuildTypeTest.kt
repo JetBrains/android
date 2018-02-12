@@ -271,9 +271,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
   }
 
-  @Ignore("b/73149707")
-  // TODO(b/73149707): Uncomment when the text is fixed.
-  fun /*test*/InsertingProguardFiles() {
+  fun testInsertingProguardFiles() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project

@@ -58,7 +58,7 @@ public final class GroovyDslUtil {
       return null;
     }
     if (element instanceof GroovyPsiElement) {
-      return (GroovyPsiElement) element;
+      return (GroovyPsiElement)element;
     }
     throw new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GoovyPsiElement");
   }
@@ -182,7 +182,8 @@ public final class GroovyDslUtil {
             break;
           }
         }
-      } catch (AssertionError e) {
+      }
+      catch (AssertionError e) {
         // We will get this exception if the argument list is already deleted.
         argumentList = null;
       }
@@ -215,7 +216,8 @@ public final class GroovyDslUtil {
       if (variableDeclaration.getVariables().length == 0) {
         variableDeclaration.delete();
       }
-    } else if (element instanceof GrVariable) {
+    }
+    else if (element instanceof GrVariable) {
       GrVariable variable = (GrVariable)element;
       if (variable.getInitializerGroovy() == null) {
         variable.delete();
@@ -284,7 +286,8 @@ public final class GroovyDslUtil {
       String stringValue = (String)unsavedValue;
       if (stringValue.startsWith(GrStringUtil.DOUBLE_QUOTES) && stringValue.endsWith(GrStringUtil.DOUBLE_QUOTES)) {
         unsavedValueText = (String)unsavedValue;
-      } else {
+      }
+      else {
         unsavedValueText = GrStringUtil.getLiteralTextByValue((String)unsavedValue);
       }
     }
@@ -333,7 +336,8 @@ public final class GroovyDslUtil {
       final ASTNode astNode = map.getNode();
       astNode.addLeaf(GroovyTokenTypes.mCOMMA, ",", map.getLBrack().getNextSibling().getNode());
       CodeStyleManager.getInstance(map.getProject()).reformat(map);
-    } else {
+    }
+    else {
       // Empty maps are defined by [:], we need to delete the colon before adding the first element.
       while (map.getLBrack().getNextSibling() != map.getRBrack()) {
         map.getLBrack().getNextSibling().delete();
@@ -366,7 +370,7 @@ public final class GroovyDslUtil {
       added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
     }
     else if (parentPsiElement instanceof GrListOrMap) {
-      GrListOrMap grListOrMap = (GrListOrMap) parentPsiElement;
+      GrListOrMap grListOrMap = (GrListOrMap)parentPsiElement;
       added = addToMap(grListOrMap, namedArgument);
     }
     else {
@@ -380,10 +384,12 @@ public final class GroovyDslUtil {
         expression.setModified(false);
         expression.reset();
         return expression.getPsiElement();
-      } else {
+      }
+      else {
         return null;
       }
-    } else {
+    }
+    else {
       throw new IllegalStateException("Unexpected element type added to Mpa: " + added);
     }
   }
@@ -499,10 +505,13 @@ public final class GroovyDslUtil {
    * item in the list (this is done in GradleDslExpressionList) and then set it back once we have called apply.
    */
   static boolean shouldAddToListInternal(@NotNull GradleDslElement element) {
-    return element.getParent() instanceof GradleDslExpressionList &&
-           ((GradleDslExpressionList)element.getParent()).isLiteralList() &&
-           element.getParent().getPsiElement() instanceof GrListOrMap &&
-           ((GrListOrMap)element.getParent().getPsiElement()).getInitializers().length > 0;
+    GradleDslElement parent = element.getParent();
+    if (!(parent instanceof GradleDslExpressionList)) {
+      return false;
+    }
+    PsiElement parentPsi = parent.getPsiElement();
+    return ((parentPsi instanceof GrListOrMap && ((GrListOrMap)parentPsi).getInitializers().length > 0) ||
+            (parentPsi instanceof GrArgumentList && ((GrArgumentList)parentPsi).getAllArguments().length > 0));
   }
 
   static void emplaceElementIntoList(@NotNull PsiElement anchorBefore, @NotNull PsiElement list, @NotNull PsiElement newElement) {
@@ -512,11 +521,61 @@ public final class GroovyDslUtil {
     node.addLeaf(mCOMMA, ",", newElement.getNode());
   }
 
-  static void emplaceElementToFrontOfList(@NotNull GrListOrMap list, @NotNull PsiElement newElement) {
-    final ASTNode node = list.getNode();
-    final ASTNode anchor = list.getLBrack().getNode().getTreeNext();
-    node.addLeaf(mCOMMA, ",", anchor);
-    // We want to anchor this off the added mCOMMA node.
-    node.addChild(newElement.getNode(), list.getLBrack().getNode().getTreeNext());
+  static void emplaceElementToFrontOfList(@NotNull PsiElement listElement, @NotNull PsiElement newElement) {
+    assert listElement instanceof GrListOrMap || listElement instanceof GrArgumentList;
+    final ASTNode node = listElement.getNode();
+    if (listElement instanceof GrListOrMap) {
+      GrListOrMap list = (GrListOrMap)listElement;
+      final ASTNode anchor = list.getLBrack().getNode().getTreeNext();
+      if (!list.isEmpty()) {
+        node.addLeaf(mCOMMA, ",", anchor);
+      }
+      // We want to anchor this off the added mCOMMA node.
+      node.addChild(newElement.getNode(), list.getLBrack().getNode().getTreeNext());
+    }
+    else {
+      ASTNode anchor = getFirstASTNode(listElement);
+      if (anchor != null) {
+        node.addLeaf(mCOMMA, ",", anchor);
+      }
+      // We want to anchor this off the added mCOMMA node
+      node.addChild(newElement.getNode(), getFirstASTNode(listElement));
+    }
+  }
+
+  @Nullable
+  static ASTNode getFirstASTNode(@NotNull PsiElement parent) {
+    final PsiElement firstChild = parent.getFirstChild();
+    if (firstChild == null) {
+      return null;
+    }
+    return firstChild.getNode();
+  }
+
+  @NotNull
+  static PsiElement createPsiElementInsideList(@NotNull GradleDslElement dslElement,
+                                               @NotNull PsiElement parentPsiElement,
+                                               @NotNull PsiElement newElement) {
+    PsiElement added;
+    if ((parentPsiElement instanceof GrListOrMap || parentPsiElement instanceof GrArgumentList) &&
+        dslElement.getParent() instanceof GradleDslExpressionList) {
+      // Add to the front when we are inserting the element into a list
+      emplaceElementToFrontOfList(parentPsiElement, newElement);
+      added = newElement;
+    }
+    else if (parentPsiElement instanceof GrListOrMap || // Entries in [].
+             (parentPsiElement instanceof GrArgumentList &&
+              !(parentPsiElement instanceof GrCommandArgumentList))) { // Method call arguments in ().
+      added = parentPsiElement.addBefore(newElement, parentPsiElement.getLastChild()); // add before ) or ]
+    }
+    else if (shouldAddToListInternal(dslElement)) {
+      emplaceElementIntoList(parentPsiElement, parentPsiElement.getParent(), newElement);
+      added = newElement;
+    }
+    else {
+      added = parentPsiElement.addAfter(newElement, parentPsiElement.getLastChild());
+    }
+
+    return added;
   }
 }
