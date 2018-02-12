@@ -59,7 +59,7 @@ import javax.swing.event.DocumentEvent
  */
 @VisibleForTesting
 class AddExistingDestinationMenu(surface: NavDesignSurface) :
-    NavToolbarMenu(surface, "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_EXISTING) {
+    NavToolbarMenu(surface, "Available Destinations", StudioIcons.NavEditor.Toolbar.ADD_EXISTING) {
 
   @VisibleForTesting
   val destinations: List<Destination>

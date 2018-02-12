@@ -76,7 +76,7 @@ public class CreateDestinationMenu extends NavToolbarMenu {
   private String myDefaultLabel;
 
   CreateDestinationMenu(@NotNull NavDesignSurface surface) {
-    super(surface, "Add Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION);
+    super(surface, "New Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION);
     mySchema = surface.getSchema();
     myMainPanel = createNewPanel();
   }
