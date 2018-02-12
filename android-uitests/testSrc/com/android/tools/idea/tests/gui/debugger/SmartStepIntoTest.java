@@ -164,15 +164,15 @@ public class SmartStepIntoTest extends DebuggerTestBase {
       .until(() -> (NATIVE_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
 
     ideFrame.stepOver();
-    String currentLine = ideFrame.getEditor().getCurrentLine().trim();
-    String expectedLine = "return (*env)->NewStringUTF(env, \"Smart Step Into\");";
-    assertThat(currentLine.equals(expectedLine)).isTrue();
+    String cCurrentLine = ideFrame.getEditor().getCurrentLine().trim();
+    String cExpectedLine = "return (*env)->NewStringUTF(env, \"Smart Step Into\");";
+    Wait.seconds(10).expecting("Current line in native code is expected").until(() -> (cCurrentLine.equals(cExpectedLine)));
 
     ideFrame.resumeProgram();
     Wait.seconds(60).expecting("Java file should be opened.")
       .until(() -> (JAVA_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
-    currentLine = ideFrame.getEditor().getCurrentLine().trim();
-    expectedLine = "String myString = s;";
-    assertThat(currentLine.equals(expectedLine)).isTrue();
+    String javaCurrentLine = ideFrame.getEditor().getCurrentLine().trim();
+    String javaExpectedLine = "String myString = s;";
+    Wait.seconds(10).expecting("Current line in Java code is expected").until(() -> (javaCurrentLine.equals(javaExpectedLine)));
   }
 }
