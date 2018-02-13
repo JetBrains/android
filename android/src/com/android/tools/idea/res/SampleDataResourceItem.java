@@ -20,7 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
-import com.android.ide.common.res2.SourcelessResourceItem;
+import com.android.ide.common.resources.SourcelessResourceItem;
 import com.android.ide.common.resources.sampledata.SampleDataCsvParser;
 import com.android.ide.common.resources.sampledata.SampleDataHolder;
 import com.android.ide.common.resources.sampledata.SampleDataJsonParser;

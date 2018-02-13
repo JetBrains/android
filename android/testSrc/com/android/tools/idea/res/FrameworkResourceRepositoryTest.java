@@ -16,7 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;

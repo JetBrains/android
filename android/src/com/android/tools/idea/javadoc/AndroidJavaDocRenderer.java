@@ -19,9 +19,9 @@ package com.android.tools.idea.javadoc;
 import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.res2.AbstractResourceRepository;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -74,7 +74,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.res2.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
 import static com.android.utils.SdkUtils.hasImageExtension;
 import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 

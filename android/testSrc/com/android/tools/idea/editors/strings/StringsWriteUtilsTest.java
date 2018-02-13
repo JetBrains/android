@@ -16,8 +16,8 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.AbstractResourceRepository;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ModuleResourceRepository;

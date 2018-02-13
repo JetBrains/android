@@ -16,8 +16,8 @@
 
 package org.jetbrains.android.util;
 
-import com.android.SdkConstants;
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.FileResourceNameValidator;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -503,7 +503,7 @@ public class AndroidResourceUtil {
    * Generate an extension-less file name based on a passed string, that should pass
    * validation as a resource file name by Gradle plugin.
    * <p/>
-   * For names validation in the Gradle plugin, see {@link com.android.ide.common.res2.FileResourceNameValidator}
+   * For names validation in the Gradle plugin, see {@link FileResourceNameValidator}
    */
   @NotNull
   public static String getValidResourceFileName(@NotNull String base) {

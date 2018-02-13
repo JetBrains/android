@@ -17,8 +17,8 @@ package com.android.tools.idea.res;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.ide.common.res2.DataBindingResourceItem;
-import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.resources.DataBindingResourceItem;
+import com.android.ide.common.resources.DataBindingResourceType;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;

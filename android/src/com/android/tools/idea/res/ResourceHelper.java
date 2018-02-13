@@ -18,10 +18,10 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
-import com.android.ide.common.res2.AbstractResourceRepository;
-import com.android.ide.common.res2.DataFile;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.DataFile;
+import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -65,8 +65,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.res2.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
-import static com.android.ide.common.res2.ResourceItem.*;
+import static com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION;
+import static com.android.ide.common.resources.ResourceItem.*;
 
 public class ResourceHelper {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.res.ResourceHelper");

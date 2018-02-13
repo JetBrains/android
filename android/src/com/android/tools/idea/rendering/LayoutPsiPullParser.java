@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;

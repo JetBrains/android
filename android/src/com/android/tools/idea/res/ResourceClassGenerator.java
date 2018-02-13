@@ -18,7 +18,7 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;

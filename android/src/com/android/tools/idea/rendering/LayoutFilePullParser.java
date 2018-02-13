@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.LayoutlibCallback;
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;

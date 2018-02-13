@@ -19,7 +19,7 @@ import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.reflection.ModelField;
 import android.databinding.tool.reflection.ModelMethod;
 import com.android.annotations.NonNull;
-import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.BrUtil;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor.ResolvesToModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;

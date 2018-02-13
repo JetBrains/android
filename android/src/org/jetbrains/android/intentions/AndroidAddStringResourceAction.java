@@ -16,7 +16,7 @@
 
 package org.jetbrains.android.intentions;
 
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.CommonBundle;

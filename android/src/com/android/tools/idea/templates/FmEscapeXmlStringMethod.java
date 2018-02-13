@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ValueXmlHelper;
 import freemarker.template.*;
 
 import java.util.List;

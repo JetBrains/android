@@ -1,7 +1,7 @@
 package org.jetbrains.android.dom.resources;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.ValueResourceNameValidator;
+import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceType;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;

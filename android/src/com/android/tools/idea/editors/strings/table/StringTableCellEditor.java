@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.tools.adtui.font.FontUtil;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;

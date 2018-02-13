@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
