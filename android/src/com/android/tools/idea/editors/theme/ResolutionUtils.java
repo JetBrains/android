@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.res2.AbstractResourceRepository;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;

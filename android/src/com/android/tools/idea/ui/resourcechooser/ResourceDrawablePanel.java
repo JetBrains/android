@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.AbstractResourceRepository;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;

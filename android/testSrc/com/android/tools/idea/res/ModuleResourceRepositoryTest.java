@@ -16,8 +16,8 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.LintUtils;

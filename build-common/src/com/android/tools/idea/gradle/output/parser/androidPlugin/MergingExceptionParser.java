@@ -6,6 +6,7 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.ParsingFailedException;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
+import com.android.ide.common.resources.MergingException;
 import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +15,7 @@ import java.util.List;
 
 /**
  * A parser for errors that happen during resource merging, usually via
- * a {@link com.android.ide.common.res2.MergingException}
+ * a {@link MergingException}
  * This parser also catches C/C++ errors from the ninja process.
  * <p/>
  * The error will be in one of these formats:

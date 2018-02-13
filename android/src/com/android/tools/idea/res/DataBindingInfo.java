@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.resources.DataBindingResourceType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;

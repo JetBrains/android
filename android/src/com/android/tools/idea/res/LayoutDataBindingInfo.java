@@ -16,8 +16,8 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.res2.DataBindingResourceType;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.DataBindingResourceType;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.google.common.collect.Iterables;

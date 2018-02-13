@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.lang.Language;

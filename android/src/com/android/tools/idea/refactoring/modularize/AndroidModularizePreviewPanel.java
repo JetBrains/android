@@ -16,7 +16,7 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;

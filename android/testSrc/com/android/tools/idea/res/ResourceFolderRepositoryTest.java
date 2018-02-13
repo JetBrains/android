@@ -17,9 +17,9 @@ package com.android.tools.idea.res;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.res2.DataBindingResourceType;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.DataBindingResourceType;
+import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;

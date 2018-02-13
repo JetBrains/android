@@ -17,9 +17,9 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;

@@ -16,7 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.res2.AbstractResourceRepository;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;

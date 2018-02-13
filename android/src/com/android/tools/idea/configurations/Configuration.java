@@ -17,7 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Features;
-import com.android.ide.common.res2.AbstractResourceRepository;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;

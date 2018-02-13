@@ -51,7 +51,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.res2.ValueXmlHelper.escapeResourceString;
+import static com.android.ide.common.resources.ValueXmlHelper.escapeResourceString;
 
 /**
  * Create a font file for a new downloadable font.

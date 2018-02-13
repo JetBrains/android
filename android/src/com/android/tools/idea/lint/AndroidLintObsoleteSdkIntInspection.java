@@ -16,9 +16,9 @@
 package com.android.tools.idea.lint;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.DataFile;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.DataFile;
+import com.android.ide.common.resources.ResourceFile;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;

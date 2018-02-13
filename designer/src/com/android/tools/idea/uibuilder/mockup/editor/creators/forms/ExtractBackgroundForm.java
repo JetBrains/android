@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators.forms;
 
-import com.android.ide.common.res2.MergingException;
-import com.android.ide.common.res2.ValueResourceNameValidator;
+import com.android.ide.common.resources.MergingException;
+import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.mockup.backgroundremove.RemoveBackgroundPanel;
 import com.intellij.icons.AllIcons;

@@ -17,7 +17,7 @@ package com.android.tools.idea.refactoring.modularize;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;

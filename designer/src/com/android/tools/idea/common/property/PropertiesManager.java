@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.common.property;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.model.ModelListener;

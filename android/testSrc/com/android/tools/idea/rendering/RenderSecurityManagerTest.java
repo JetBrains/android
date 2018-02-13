@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.res2.RecordingLogger;
+import com.android.ide.common.resources.RecordingLogger;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import org.jetbrains.android.AndroidTestBase;

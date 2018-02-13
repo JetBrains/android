@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;

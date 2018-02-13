@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor;
 import com.android.tools.idea.res.DataBindingInfo;

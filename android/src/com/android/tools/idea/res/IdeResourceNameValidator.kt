@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.res
 
-import com.android.ide.common.res2.AbstractResourceRepository
-import com.android.ide.common.res2.FileResourceNameValidator
-import com.android.ide.common.res2.ValueResourceNameValidator
+import com.android.ide.common.resources.AbstractResourceRepository
+import com.android.ide.common.resources.FileResourceNameValidator
+import com.android.ide.common.resources.ValueResourceNameValidator
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.intellij.openapi.ui.InputValidatorEx
