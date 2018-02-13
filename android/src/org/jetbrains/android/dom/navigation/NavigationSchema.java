@@ -106,6 +106,7 @@ public class NavigationSchema implements Disposable {
   private final AndroidFacet myFacet;
   private PsiClass myActionClass;
   public static final String ATTR_DEFAULT_VALUE = "defaultValue";
+  public static final String NAV_HOST_FRAGMENT = "android.arch.navigation.NavHostFragment";
 
   public enum DestinationType {
     NAVIGATION,
