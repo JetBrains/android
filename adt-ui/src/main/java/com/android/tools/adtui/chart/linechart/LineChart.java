@@ -295,15 +295,15 @@ public class LineChart extends AnimatedComponent {
         }
 
         if (xBucketInterval != 0) {
-          // Each bucket data point is drawn according to the interval amount instead of xd.
-          double x = path.getCurrentPoint().getX();
+          // Move line to (xd, 1) first because data points may not be equal time buckets, for example, data points are (1000, 1),
+          // (1200, 2), (2000, 3).
           double barX = Math.min(1, originalXd + xBucketBarWidth);
-          if (barX - x > EPSILON) {
-            path.lineTo(x, yd);
+          if (barX - xd > EPSILON) {
+            path.lineTo(xd, 1);
+            path.lineTo(xd, yd);
             path.lineTo(barX, yd);
             path.lineTo(barX, 1);
           }
-          path.lineTo(originalXd + xBucketInterval, 1);
         }
       }
 
