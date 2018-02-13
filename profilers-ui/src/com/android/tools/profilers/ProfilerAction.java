@@ -23,16 +23,16 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 
 public class ProfilerAction implements ContextMenuItem {
-  @NotNull private final String myText;
+  @NotNull private final Supplier<String> myText;
   @NotNull private final Runnable myActionRunnable;
   @NotNull private final BooleanSupplier myEnableBooleanSupplier;
   @NotNull private final KeyStroke[] myKeyStrokes;
-  @Nullable private final Icon myIcon;
-  @Nullable private final JComponent myContainerComponent;
+  @Nullable private final Supplier<Icon> myIcon;
 
   private ProfilerAction(Builder builder) {
     myText = builder.myText;
@@ -40,16 +40,16 @@ public class ProfilerAction implements ContextMenuItem {
     myEnableBooleanSupplier = builder.myEnableBooleanSupplier;
     myKeyStrokes = builder.myKeyStrokes;
     myIcon = builder.myIcon;
-    myContainerComponent = builder.myContainerComponent;
+    JComponent containerComponent = builder.myContainerComponent;
 
     // Put KeyStrokes into InputMap/ActionMap to activate the shortcuts.
     // The shortcuts are active when {@code myContainerComponent} is an ancestor
     // of the focused component or is itself the focused component.
-    if (myContainerComponent == null || myKeyStrokes.length == 0) {
+    if (containerComponent == null || myKeyStrokes.length == 0) {
       return;
     }
-    InputMap inputMap = myContainerComponent.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    ActionMap actionMap = myContainerComponent.getActionMap();
+    InputMap inputMap = containerComponent.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    ActionMap actionMap = containerComponent.getActionMap();
     String label = getDefaultToolTipText();
     for (KeyStroke keyStroke : myKeyStrokes) {
       inputMap.put(keyStroke, label);
@@ -67,13 +67,13 @@ public class ProfilerAction implements ContextMenuItem {
   @NotNull
   @Override
   public String getText() {
-    return myText;
+    return myText.get();
   }
 
   @Nullable
   @Override
   public Icon getIcon() {
-    return myIcon;
+    return myIcon == null ? null : myIcon.get();
   }
 
   @Override
@@ -93,7 +93,7 @@ public class ProfilerAction implements ContextMenuItem {
   }
 
   public String getDefaultToolTipText() {
-    String text = myText;
+    String text = myText.get();
     if (myKeyStrokes.length != 0) {
       return text + " (" + KeymapUtil.getKeystrokeText(myKeyStrokes[0]) + ")";
     }
@@ -101,14 +101,21 @@ public class ProfilerAction implements ContextMenuItem {
   }
 
   public static class Builder {
-    @NotNull private final String myText;
     @NotNull private Runnable myActionRunnable;
     @NotNull private BooleanSupplier myEnableBooleanSupplier;
+    @NotNull private Supplier<String> myText;
     @NotNull private KeyStroke[] myKeyStrokes;
-    @Nullable private Icon myIcon;
+    @Nullable private Supplier<Icon> myIcon;
     @Nullable private JComponent myContainerComponent;
 
+    /**
+     * Convenience constructor for actions with fixed text.
+     */
     public Builder(@NotNull String text) {
+      this(() -> text);
+    }
+
+    public Builder(@NotNull Supplier<String> text) {
       myText = text;
       myActionRunnable = () -> {
       };
@@ -131,7 +138,14 @@ public class ProfilerAction implements ContextMenuItem {
       return this;
     }
 
+    /**
+     * Convenience setter for actions with fixed icon.
+     */
     public Builder setIcon(@Nullable Icon icon) {
+      return setIcon(() -> icon);
+    }
+
+    public Builder setIcon(@Nullable Supplier<Icon> icon) {
       myIcon = icon;
       return this;
     }

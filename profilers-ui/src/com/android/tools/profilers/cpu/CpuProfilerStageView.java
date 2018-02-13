@@ -73,6 +73,8 @@ import java.util.Map;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
 import static com.android.tools.profilers.ProfilerLayout.*;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
@@ -393,20 +395,23 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   private void installContextMenu() {
     ContextMenuInstaller contextMenuInstaller = getIdeComponents().createContextMenuInstaller();
+    // Add the item to trigger a recording
+    installRecordMenuItem(contextMenuInstaller);
+
+    // Add the item to export a trace file.
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isExportCpuTraceEnabled()) {
       installExportTraceMenuItem(contextMenuInstaller);
     }
-    // TODO(b/72982718): add other actions specific to CPU profiler
+    // TODO(b/73338399): add actions to navigate through captures.
 
     // Add the profilers common menu items
     getProfilersView().installCommonMenuItems(mySelection);
   }
 
   /**
-   * Install the {@link ContextMenuItem} corresponding to the "Export Trace" feature on {@link #mySelection}.
+   * Installs the {@link ContextMenuItem} corresponding to the "Export Trace" feature on {@link #mySelection}.
    */
   private void installExportTraceMenuItem(ContextMenuInstaller contextMenuInstaller) {
-    // Add the item to export a trace file.
     ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(StudioIcons.Common.EXPORT).build();
     // TODO (b/73296572)  provide a default file name for exporting CPU trace file
     contextMenuInstaller.installGenericContextMenu(
@@ -420,6 +425,24 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
           file,
           (output) -> exportTraceFile(output, getTraceIntersectingWithMouseX(x)),
           null)));
+    contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
+  }
+
+  /**
+   * Install the {@link ContextMenuItem} corresponding to the Start/Stop recording action on {@link #mySelection}.
+   */
+  private void installRecordMenuItem(ContextMenuInstaller contextMenuInstaller) {
+    ProfilerAction record = new ProfilerAction.Builder(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
+                                                             ? "Stop recording" : "Record CPU trace")
+      .setIcon(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
+                     ? StudioIcons.Profiler.Toolbar.STOP_RECORDING : StudioIcons.Profiler.Toolbar.RECORD)
+      .setEnableBooleanSupplier(() -> myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING
+                                      || myStage.getCaptureState() == CpuProfilerStage.CaptureState.IDLE)
+      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_R, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK))
+      .setActionRunnable(() -> capture())
+      .build();
+
+    contextMenuInstaller.installGenericContextMenu(mySelection, record);
     contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
   }
 
