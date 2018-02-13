@@ -162,7 +162,7 @@ public class GradleFiles {
     }
   }
 
-  private void storeHashsForFiles(@NotNull Map<VirtualFile, Integer> files) {
+  private void storeHashesForFiles(@NotNull Map<VirtualFile, Integer> files) {
     synchronized (myLock) {
       myFileHashes.clear();
       myFileHashes.putAll(files);
@@ -206,15 +206,13 @@ public class GradleFiles {
    */
   @Nullable
   private Integer computeHash(@NotNull VirtualFile file) {
-    return ApplicationManager.getApplication().runReadAction((Computable<Integer>)() -> {
-      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
 
-      if (psiFile != null && psiFile.isValid()) {
-        return psiFile.getText().hashCode();
-      }
+    if (psiFile != null && psiFile.isValid()) {
+      return psiFile.getText().hashCode();
+    }
 
-      return null;
-    });
+    return null;
   }
 
   private boolean areHashesEqual(@NotNull VirtualFile file) {
@@ -315,7 +313,7 @@ public class GradleFiles {
       }
     }
 
-    storeHashsForFiles(fileHashes);
+    storeHashesForFiles(fileHashes);
   }
 
   /**
@@ -332,13 +330,15 @@ public class GradleFiles {
    */
   public boolean areGradleFilesModified() {
     // Checks if any file in myChangedFiles actually has changes.
-    return !checkHashesOfChangedFiles();
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> !checkHashesOfChangedFiles());
   }
 
   public boolean areExternalBuildFilesModified() {
-    synchronized (myLock) {
-      return !filterHashes(myChangedExternalFiles);
-    }
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+      synchronized (myLock) {
+        return !filterHashes(myChangedExternalFiles);
+      }
+    });
   }
 
   public boolean isGradleFile(@NotNull PsiFile psiFile) {
@@ -385,8 +385,8 @@ public class GradleFiles {
       }
       else {
         ApplicationManager.getApplication().runReadAction(() -> {
-          removeChangedFiles();
           updateFileHashes();
+          removeChangedFiles();
         });
       }
     }
