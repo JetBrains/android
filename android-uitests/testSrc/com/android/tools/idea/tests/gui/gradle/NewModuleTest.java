@@ -149,6 +149,7 @@ public class NewModuleTest {
     assertAbout(file()).that(guiTest.getProjectPath("library-module")).isDirectory();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/73262313
   @Test
   public void createNewJavaLibraryWithDefaults() throws Exception {
     guiTest.importSimpleLocalApplication()
