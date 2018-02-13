@@ -360,23 +360,27 @@ public class ScenePicker {
       double y1 = mObjectData[mDataOffset + 3];
       double x2 = mObjectData[mDataOffset + 4];
       double y2 = mObjectData[mDataOffset + 5];
-      if (lineLengthSq < EPSILON) {
-        mDistance = Math.hypot(x1 - mMouseX, y1 - mMouseY);
-        return mDistance <= range;
-      }
-
-      double t = ((mMouseX - x1) * (x2 - x1) + (mMouseY - y1) * (y2 - y1)) / lineLengthSq;
-      t = Math.max(0, Math.min(1, t));
-      double tx = x1 + t * (x2 - x1);
-      double ty = y1 + t * (y2 - y1);
-      mDistance = Math.hypot(tx - mMouseX, ty - mMouseY);
+      mDistance = Math.sqrt(lineDistanceSqr(lineLengthSq, x1, y1, x2, y2, mMouseX, mMouseY));
       return mDistance <= range;
     }
+
 
     @Override
     double distance() {
       return mDistance;
     }
+  }
+
+  private static double lineDistanceSqr(double lineLengthSq, double x1, double y1, double x2, double y2, int mouseX, int mouseY) {
+    if (lineLengthSq < EPSILON) {
+      return Math.hypot(x1 - mouseX, y1 - mouseY);
+    }
+
+    double t = ((mouseX - x1) * (x2 - x1) + (mouseY - y1) * (y2 - y1)) / lineLengthSq;
+    t = Math.max(0, Math.min(1, t));
+    double tx = x1 + t * (x2 - x1);
+    double ty = y1 + t * (y2 - y1);
+    return ((tx - mouseX) * (tx - mouseX)) + ((ty - mouseY) * (ty - mouseY));
   }
 
   /*-----------------------------------------------------------------------*/
@@ -543,25 +547,29 @@ public class ScenePicker {
 
       double minDistanceSqr = Integer.MAX_VALUE;
       double widthSqr = w * w;
-
-      for (double t = 0; t < 1; t += .03) {
+      double prevX = cx0;
+      double prevY = cy0;
+      for (double t = .03; t < 1; t += .03) {
         double t2 = t * t;
         double t3 = t * t2;
         double x = cx0 + cx1 * t + cx2 * t2 + cx3 * t3;
         double y = cy0 + cy1 * t + cy2 * t2 + cy3 * t3;
-        double dx = x - mMouseX;
-        double dy = y - mMouseY;
-        double distanceSq = dx * dx + dy * dy;
 
-        if(distanceSq < widthSqr) {
+        double segmentSqr = ((x - prevX) * (x - prevX)) + ((y - prevY) * (y - prevY));
+        double distanceSqr = lineDistanceSqr(segmentSqr, prevX, prevY, x, y, mMouseX, mMouseY);
+
+        if(distanceSqr < widthSqr) {
           mDistance = 0;
           return true;
         }
 
-        minDistanceSqr = Math.min(minDistanceSqr, distanceSq);
+        minDistanceSqr = Math.min(minDistanceSqr, distanceSqr);
+
+        prevX = x;
+        prevY = y;
       }
 
-      if(minDistanceSqr > (range + w) * (range + w)) {
+      if (minDistanceSqr > (range + w) * (range + w)) {
         return false;
       }
 
