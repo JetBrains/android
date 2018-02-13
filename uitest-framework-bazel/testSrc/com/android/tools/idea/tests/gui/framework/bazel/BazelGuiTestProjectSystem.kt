@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.io.Files
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import org.fest.swing.core.Robot
@@ -68,6 +69,7 @@ android_sdk_repository(
 
   override fun importProject(targetTestDirectory: File, robot: Robot, buildFilePath: String?) {
     logger.info("Importing project.")
+
     openBazelImportWizard(robot)
         .setWorkspacePath(targetTestDirectory.path)
         .clickNext()
@@ -99,6 +101,20 @@ android_sdk_repository(
     // sync is a part of the background tasks.
     GuiTests.waitForBackgroundTasks(ideFrameFixture.robot())
     logger.info("Background tasks finished, assuming sync complete.")
+  }
+
+  override fun validateSetup() {
+    PluginManagerCore.getPlugins().find { it.name == "Bazel" } ?: throw IllegalStateException(
+        """
+The bazel plugin is required to run tests with BAZEL as the build system. It doesn't seem to be present on the plugin path.
+This issue can be fixed by:
+ 1. Generate the bazel plugin by running:
+    ${'$'} bazel //tools/adt/idea/android-uitests:unzip_aswb
+ 2. Add the bazel plugin to your plugin path. To do this, edit your current run configuration, and include the following in the VM options:
+    -Dplugin.path=/path/to/studio-master-dev/bazel-genfiles/tools/adt/idea/android-uitests/aswb/
+
+"""
+    )
   }
 
   private fun openBazelImportWizard(robot: Robot): ImportBazelProjectWizardFixture {

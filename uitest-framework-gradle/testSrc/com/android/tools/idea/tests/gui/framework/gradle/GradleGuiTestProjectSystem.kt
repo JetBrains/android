@@ -32,6 +32,10 @@ class GradleGuiTestProjectSystem : GuiTestProjectSystem {
   override val buildSystem: TargetBuildSystem.BuildSystem
     get() = TargetBuildSystem.BuildSystem.GRADLE
 
+  override fun validateSetup() {
+    // Gradle does not currently require any extra setup validation.
+  }
+
   override fun prepareTestForImport(targetTestDirectory: File) {
     // If the uitestignore file exists, then delete the files listed in that file.
     val ignoreFile = File(targetTestDirectory, "gradle.uitestignore")

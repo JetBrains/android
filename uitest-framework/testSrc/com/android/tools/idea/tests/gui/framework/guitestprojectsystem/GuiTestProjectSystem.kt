@@ -33,6 +33,12 @@ interface GuiTestProjectSystem {
   val buildSystem: TargetBuildSystem.BuildSystem
 
   /**
+   * Check the test setup to see if all requirements are met (environment variables, required plugins, etc) and throws an
+   * [IllegalArgumentException] if there are errors.
+   */
+  fun validateSetup()
+
+  /**
    * Modifies the test project in preparation for testing. (e.g. removing/transforming build files.)
    */
   fun prepareTestForImport(targetTestDirectory: File)

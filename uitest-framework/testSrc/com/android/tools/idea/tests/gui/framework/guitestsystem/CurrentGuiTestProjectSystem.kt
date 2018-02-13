@@ -32,5 +32,6 @@ class CurrentGuiTestProjectSystem : ExternalResource() {
         throw IllegalStateException("TargetBuildSystem has not been set.")
     testProjectSystem = GuiTestProjectSystem.forBuildSystem(buildSystem) ?:
         throw IllegalStateException("No build system delegate found for $buildSystem.")
+    testProjectSystem.validateSetup()
   }
 }
