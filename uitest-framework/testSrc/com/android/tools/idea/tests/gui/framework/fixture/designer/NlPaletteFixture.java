@@ -33,6 +33,9 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
+
 public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Component> {
   private final PalettePanel myNewPalette;
   private SearchTextFieldFixture mySearchField;
@@ -82,7 +85,8 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
   @NotNull
   public SearchTextFieldFixture getSearchTextField() {
     if (mySearchField == null) {
-      mySearchField = new SearchTextFieldFixture(robot(), robot().finder().findByType(getMyPanel().getParent(), SearchTextField.class));
+      SearchTextField searchTextField = waitUntilShowing(robot(), getMyPanel().getParent(), byType(SearchTextField.class));
+      mySearchField = new SearchTextFieldFixture(robot(), searchTextField);
     }
     return mySearchField;
   }
