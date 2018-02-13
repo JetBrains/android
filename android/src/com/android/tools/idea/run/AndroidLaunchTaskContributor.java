@@ -1,5 +1,7 @@
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
@@ -7,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Extension point to provide additional launch tasks to {@code AndroidLaunchTaskProvider}.
+ * Extension point to provide additional launch tasks to {@code AndroidLaunchTasksProvider}.
  */
 public interface AndroidLaunchTaskContributor {
 
@@ -23,4 +25,9 @@ public interface AndroidLaunchTaskContributor {
    */
   @Nullable
   LaunchTask getTask(@NotNull Module module, @NotNull String applicationId);
+
+  @NotNull
+  default String getAmStartOptions(@NotNull Module module, @NotNull String applicationId, @NotNull IDevice device) {
+    return "";
+  }
 }

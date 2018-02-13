@@ -629,6 +629,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                          @NotNull AndroidFacet facet,
+                                                         @NotNull String contributorsAmStartOptions,
                                                          boolean waitForDebugger,
                                                          @NotNull LaunchStatus launchStatus);
 

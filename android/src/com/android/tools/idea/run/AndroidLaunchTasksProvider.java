@@ -88,9 +88,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       packageName = myApplicationIdProvider.getPackageName();
       launchTasks.addAll(getDeployTasks(device, packageName));
 
+      StringBuilder amStartOptions = new StringBuilder();
       // launch the contributors before launching the application in case
       // the contributors need to start listening on logcat for the application launch itself
       for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
+        String amOptions = taskContributor.getAmStartOptions(myFacet.getModule(), packageName, device);
+        amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
+
         LaunchTask task = taskContributor.getTask(myFacet.getModule(), packageName);
         if (task != null) {
           launchTasks.add(task);
@@ -98,6 +102,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       }
 
       LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
+                                                                      amStartOptions.toString(),
                                                                       myLaunchOptions.isDebug(), launchStatus);
       if (appLaunchTask != null) {
         launchTasks.add(appLaunchTask);
