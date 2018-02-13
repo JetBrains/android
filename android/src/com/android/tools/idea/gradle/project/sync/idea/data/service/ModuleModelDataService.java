@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.ModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,7 +44,10 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (toImport.isEmpty()) {
-      onModelsNotFound(modelsProvider);
+      // there can be other build systems which can use the same project elements for the import
+      if(projectData != null && projectData.getOwner().equals(GradleUtil.GRADLE_SYSTEM_ID)) {
+        onModelsNotFound(modelsProvider);
+      }
       return;
     }
     try {
@@ -70,7 +74,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                           @NotNull IdeModifiableModelsProvider modelsProvider) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
-      protected void run() throws Throwable {
+      protected void run() {
         if (project.isDisposed()) {
           return;
         }
