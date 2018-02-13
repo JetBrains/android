@@ -6,13 +6,14 @@ import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.PredefinedCodeStyle;
-import com.intellij.psi.codeStyle.arrangement.group.ArrangementGroupingRule;
+import com.intellij.psi.codeStyle.arrangement.ArrangementSettings;
 import com.intellij.psi.codeStyle.arrangement.match.StdArrangementMatchRule;
 import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
 import com.intellij.psi.formatter.xml.XmlCodeStyleSettings;
-import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order.BY_NAME;
@@ -42,8 +43,15 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
     androidSettings.VALUE_RESOURCE_FILE_SETTINGS = new AndroidXmlCodeStyleSettings.ValueResourceFileSettings();
     androidSettings.OTHER_SETTINGS = new AndroidXmlCodeStyleSettings.OtherSettings();
 
-    // arrangement
-    final List<StdArrangementMatchRule> rules = new ArrayList<StdArrangementMatchRule>();
+    final CommonCodeStyleSettings xmlCommonSettings = settings.getCommonSettings(XMLLanguage.INSTANCE);
+    xmlCommonSettings.setArrangementSettings(createVersion2Settings());
+    xmlCommonSettings.FORCE_REARRANGE_MODE = CommonCodeStyleSettings.REARRANGE_ALWAYS;
+  }
+
+  @NotNull
+  public static ArrangementSettings createVersion2Settings() {
+    List<StdArrangementMatchRule> rules = new ArrayList<>();
+
     rules.add(attrArrangementRule("xmlns:android", "^$", KEEP));
     rules.add(attrArrangementRule("xmlns:.*", "^$", BY_NAME));
     rules.add(attrArrangementRule(".*:id", SdkConstants.NS_RESOURCES, KEEP));
@@ -51,15 +59,34 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
     rules.add(attrArrangementRule("name", "^$", KEEP));
     rules.add(attrArrangementRule("style", "^$", KEEP));
     rules.add(attrArrangementRule(".*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*:layout_.*", SdkConstants.NS_RESOURCES, new AndroidLayoutAttributeOrder()));
+    rules.add(attrArrangementRule(".*:layout_.*", SdkConstants.NS_RESOURCES, AndroidLayoutAttributeOrder.INSTANCE));
     rules.add(attrArrangementRule(".*:width", SdkConstants.NS_RESOURCES, BY_NAME));
     rules.add(attrArrangementRule(".*:height", SdkConstants.NS_RESOURCES, BY_NAME));
     rules.add(attrArrangementRule(".*", SdkConstants.NS_RESOURCES, BY_NAME));
     rules.add(attrArrangementRule(".*", ".*", BY_NAME));
-    // TODO: Should sort name:"color",namespace:"" to the end (primarily for color state lists)
-    final CommonCodeStyleSettings xmlCommonSettings = settings.getCommonSettings(XMLLanguage.INSTANCE);
-    xmlCommonSettings.setArrangementSettings(
-      StdArrangementSettings.createByMatchRules(ContainerUtil.<ArrangementGroupingRule>emptyList(), rules));
-    xmlCommonSettings.FORCE_REARRANGE_MODE = CommonCodeStyleSettings.REARRANGE_ALWAYS;
+
+    return StdArrangementSettings.createByMatchRules(Collections.emptyList(), rules);
+  }
+
+  @NotNull
+  public static ArrangementSettings createVersion1Settings() {
+    List<StdArrangementMatchRule> rules = new ArrayList<>();
+
+    rules.add(attrArrangementRule("xmlns:android", "^$", KEEP));
+    rules.add(attrArrangementRule("xmlns:.*", "^$", BY_NAME));
+    rules.add(attrArrangementRule(".*:id", SdkConstants.NS_RESOURCES, KEEP));
+    rules.add(attrArrangementRule(".*:name", SdkConstants.NS_RESOURCES, KEEP));
+    rules.add(attrArrangementRule("name", "^$", KEEP));
+    rules.add(attrArrangementRule("style", "^$", KEEP));
+    rules.add(attrArrangementRule(".*", "^$", BY_NAME));
+    rules.add(attrArrangementRule(".*:layout_width", SdkConstants.NS_RESOURCES, KEEP));
+    rules.add(attrArrangementRule(".*:layout_height", SdkConstants.NS_RESOURCES, KEEP));
+    rules.add(attrArrangementRule(".*:layout_.*", SdkConstants.NS_RESOURCES, BY_NAME));
+    rules.add(attrArrangementRule(".*:width", SdkConstants.NS_RESOURCES, BY_NAME));
+    rules.add(attrArrangementRule(".*:height", SdkConstants.NS_RESOURCES, BY_NAME));
+    rules.add(attrArrangementRule(".*", SdkConstants.NS_RESOURCES, BY_NAME));
+    rules.add(attrArrangementRule(".*", ".*", BY_NAME));
+
+    return StdArrangementSettings.createByMatchRules(Collections.emptyList(), rules);
   }
 }

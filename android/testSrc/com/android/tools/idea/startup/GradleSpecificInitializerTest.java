@@ -18,13 +18,23 @@ package com.android.tools.idea.startup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.RefreshProjectAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.psi.codeStyle.CodeStyleScheme;
+import com.intellij.psi.codeStyle.CodeStyleSchemes;
+import com.intellij.psi.codeStyle.arrangement.ArrangementSettings;
+import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
+
+import java.util.Collections;
 
 import static com.android.tools.idea.startup.GradleSpecificInitializer.TEMPLATE_PROJECT_SETTINGS_GROUP_ID;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Order.KEEP;
+import static com.intellij.xml.arrangement.XmlRearranger.attrArrangementRule;
 
 /**
  * Tests for {@link GradleSpecificInitializer}
@@ -64,5 +74,37 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
   public void testSelectProjectToImportActionIsHidden() {
     AnAction selectProjectToImportAction = ActionManager.getInstance().getAction("ExternalSystem.SelectProjectDataToImport");
     assertThat(selectProjectToImportAction).isInstanceOf(EmptyAction.class);
+  }
+
+  public void testModifyCodeStyleSettingsReplacesVersion1WithVersion2() {
+    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
+
+    CodeStyleScheme scheme = schemes.createNewScheme("New Scheme", schemes.getDefaultScheme());
+    scheme.getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE)
+      .setArrangementSettings(AndroidXmlPredefinedCodeStyle.createVersion1Settings());
+
+    schemes.setCurrentScheme(scheme);
+
+    GradleSpecificInitializer.modifyCodeStyleSettings();
+
+    assertThat(schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE).getArrangementSettings())
+      .isEqualTo(AndroidXmlPredefinedCodeStyle.createVersion2Settings());
+  }
+
+  public void testModifyCodeStyleSettingsDoesntReplaceVersion1() {
+    ArrangementSettings settings = StdArrangementSettings
+      .createByMatchRules(Collections.emptyList(), Collections.singletonList(attrArrangementRule("xmlns:android", "^$", KEEP)));
+
+    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
+
+    CodeStyleScheme scheme = schemes.createNewScheme("New Scheme", schemes.getDefaultScheme());
+    scheme.getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE).setArrangementSettings(settings);
+
+    schemes.setCurrentScheme(scheme);
+
+    GradleSpecificInitializer.modifyCodeStyleSettings();
+
+    assertThat(schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE).getArrangementSettings())
+      .isEqualTo(settings);
   }
 }

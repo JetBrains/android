@@ -23,7 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 
 final class AndroidLayoutAttributeOrder extends CustomArrangementOrderToken {
-  AndroidLayoutAttributeOrder() {
+  static final AndroidLayoutAttributeOrder INSTANCE = new AndroidLayoutAttributeOrder();
+
+  private AndroidLayoutAttributeOrder() {
     super("ANDROID_LAYOUT_ATTRIBUTE_ORDER", "Android layout attribute order");
   }
 
