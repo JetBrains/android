@@ -18,12 +18,11 @@ package com.android.tools.idea.startup;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
-import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -31,6 +30,8 @@ import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
+import com.intellij.ide.plugins.IdeaPluginDescriptorImpl;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -49,16 +50,14 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerAdapter;
-import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.PlatformUtils;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.List;
+import java.util.Arrays;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
@@ -113,6 +112,15 @@ public class AndroidStudioInitializer implements Runnable {
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     ApplicationInfo application = ApplicationInfo.getInstance();
     UsageTracker.getInstance().setVersion(application.getStrictVersion());
+    // Set the IDE brand when the android plugin is used in Studio.
+    // See AndroidPlugin for the corresponding initialization when run in IntelliJ IDEA
+    // We need to set this early enough in Studio before any events are logged.
+    if (PlatformUtils.isAndroidStudio()) {
+      UsageTracker.getInstance().setIdeBrand(
+        Arrays.stream(PluginManagerCore.getPlugins()).anyMatch(plugin -> "Android Studio with Blaze".equals(plugin.getName()))
+        ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
+        : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);
+    }
   }
 
   private static void checkInstallation() {
