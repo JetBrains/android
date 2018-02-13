@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.tools.idea.common.scene.ScenePicker;
 import junit.framework.TestCase;
 
 import java.awt.*;
@@ -312,10 +311,34 @@ public class ScenePickerTest extends TestCase {
         Rectangle rect = new Rectangle(x1 - 1, y1 - 1, x4 - x1 + 2, y4 - y1 + 2);
         ScenePicker.CurveToSelectionEngine c = new ScenePicker.CurveToSelectionEngine();
         c.add(null, 10, x1, y1, x2, y2, x3, y3, x4, y4, 0);
-        for (double i = 0; i < 1; i += .01) {
+        for (double i = 0; i < 1; i += .03) {
           double x = c.evalX(i);
-          double y = c.evalY(1);
+          double y = c.evalY(i);
           assertTrue(rect.contains(x, y));
+        }
+      }
+    };
+  }
+
+  public void testCurveHit() {
+    ScenePicker scenePicker = new ScenePicker() {
+      {
+        int x1 = 10;
+        int y1 = 10;
+        int x2 = 40;
+        int y2 = 10;
+        int x3 = 60;
+        int y3 = 100;
+        int x4 = 100;
+        int y4 = 100;
+        ScenePicker.CurveToSelectionEngine c = new ScenePicker.CurveToSelectionEngine();
+        c.add(null, 1, x1, y1, x2, y2, x3, y3, x4, y4, 0);
+        for (double i = 0; i < 1; i += .001) {
+          double x = c.evalX(i);
+          double y = c.evalY(i);
+          assertTrue(c.inRange(0, (int)x, (int)y));
+
+          assertFalse(c.inRange(0, (int)x + 10, (int)y - 10));
         }
       }
     };
@@ -343,7 +366,7 @@ public class ScenePickerTest extends TestCase {
 
     for (int i = 0; i < 10000; i++) {
       double x = (i % 100) / 100.;
-      double y = (i / 100) / 100.;
+      @SuppressWarnings("IntegerDivisionInFloatingPointContext") double y = (i / 100) / 100.;
       x = 13 * x - 1;
       y = 13 * y - 1;
       scenePicker.find((int)x, (int)y);
