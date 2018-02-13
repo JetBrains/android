@@ -41,7 +41,7 @@ public class PropertiesTablePanelTest {
   public void setUp() {
     ViewNode node = ViewNode.parseFlatString(getViewNodeFlatString());
     PTableModel model = new PTableModel();
-    model.setItems(LayoutInspectorContext.convertToItems(node.groupedProperties));
+    model.setItems(LayoutInspectorContext.convertToItems(node.getGroupedProperties()));
     CopyPasteManager mockManager = mock(CopyPasteManager.class);
     PTable table = new PTable(model, mockManager);
     table.setRendererProvider(LITableRendererProvider.getInstance());

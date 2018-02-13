@@ -144,8 +144,8 @@ public class ViewNodeActiveDisplay extends JComponent {
 
     // if size has changed, recalculate the the view node display boxes sizes/locations.
     if (mLastWidth != getWidth() || mLastHeight != getHeight() || updateBounds) {
-      float rootHeight = mRoot.displayInfo.height;
-      float rootWidth = mRoot.displayInfo.width;
+      float rootHeight = mRoot.getDisplayInfo().getHeight();
+      float rootWidth = mRoot.getDisplayInfo().getWidth();
 
       // on first draw, calculate scale to fit image into panel
       if (mLastHeight == 0 && mLastWidth == 0) {
@@ -185,26 +185,26 @@ public class ViewNodeActiveDisplay extends JComponent {
     @NotNull ViewNode node, float leftShift, float topshift,
     float scaleX, float scaleY, float drawScale) {
 
-    DisplayInfo info = node.displayInfo;
-    float newScaleX = scaleX * info.scaleX;
-    float newScaleY = scaleY * info.scaleY;
+    DisplayInfo info = node.getDisplayInfo();
+    float newScaleX = scaleX * info.getScaleX();
+    float newScaleY = scaleY * info.getScaleY();
 
     float l =
-      leftShift + (info.left + info.translateX) * scaleX + info.width * (scaleX - newScaleX) / 2;
+      leftShift + (info.getLeft() + info.getTranslateX()) * scaleX + info.getWidth() * (scaleX - newScaleX) / 2;
     float t =
-      topshift + (info.top + info.translateY) * scaleY + info.height * (scaleY - newScaleY) / 2;
+      topshift + (info.getTop() + info.getTranslateX()) * scaleY + info.getHeight() * (scaleY - newScaleY) / 2;
 
-    node.previewBox.setBounds(
+    node.getPreviewBox().setBounds(
       (int)(l * drawScale),
       (int)(t * drawScale),
-      (int)(info.width * newScaleX * drawScale),
-      (int)(info.height * newScaleY * drawScale)
+      (int)(info.getWidth() * newScaleX * drawScale),
+      (int)(info.getHeight() * newScaleY * drawScale)
     );
 
     if (!node.isLeaf()) {
-      float shiftX = l - info.scrollX;
-      float shiftY = t - info.scrollY;
-      for (ViewNode child : node.children) {
+      float shiftX = l - info.getScaleX();
+      float shiftY = t - info.getScaleY();
+      for (ViewNode child : node.getChildren()) {
         calculateNodeBounds(child, shiftX, shiftY, newScaleX, newScaleY, drawScale);
       }
     }
@@ -225,7 +225,7 @@ public class ViewNodeActiveDisplay extends JComponent {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
       }
-      g.drawImage(mPreview, 0, 0, mRoot.previewBox.width, mRoot.previewBox.height,
+      g.drawImage(mPreview, 0, 0, mRoot.getPreviewBox().width, mRoot.getPreviewBox().height,
                   0, 0, mPreview.getWidth(null), mPreview.getHeight(null), null);
 
       if (isGridVisible() && mZoomFactor >= SHOW_GRID_LEVEL) {
@@ -237,7 +237,7 @@ public class ViewNodeActiveDisplay extends JComponent {
       g.setRenderingHints(oldHints);
     }
 
-    g.clipRect(0, 0, mRoot.previewBox.width, mRoot.previewBox.height);
+    g.clipRect(0, 0, mRoot.getPreviewBox().width, mRoot.getPreviewBox().height);
     g.setColor(DEFAULT_COLOR);
     g.setStroke(DEFAULT_STROKE);
 
@@ -246,11 +246,11 @@ public class ViewNodeActiveDisplay extends JComponent {
     g.setStroke(THICK_STROKE);
     if (mHoverNode != null && mSelectedNode != mHoverNode) {
       g.setColor(HOVER_COLOR);
-      paintBox(mHoverNode.previewBox, g);
+      paintBox(mHoverNode.getPreviewBox(), g);
     }
     if (mSelectedNode != null) {
       g.setColor(SELECTED_COLOR);
-      paintBox(mSelectedNode.previewBox, g);
+      paintBox(mSelectedNode.getPreviewBox(), g);
     }
   }
 
@@ -266,7 +266,7 @@ public class ViewNodeActiveDisplay extends JComponent {
     }
     Composite oldComposite = g.getComposite();
     g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, mOverlayAlpha));
-    g.drawImage(mOverlay, 0, 0, mRoot.previewBox.width, mRoot.previewBox.height,
+    g.drawImage(mOverlay, 0, 0, mRoot.getPreviewBox().width, mRoot.getPreviewBox().height,
                 0, 0, mOverlay.getWidth(null), mOverlay.getHeight(null), null);
     g.setComposite(oldComposite);
   }
@@ -274,10 +274,10 @@ public class ViewNodeActiveDisplay extends JComponent {
   private void paintNode(ViewNode node, Graphics2D g) {
     if (node != mHoverNode && node != mSelectedNode) {
       // Hover node & selected node are drawn last
-      paintBox(node.previewBox, g);
+      paintBox(node.getPreviewBox(), g);
     }
     if (!node.isLeaf()) {
-      for (ViewNode child : node.children) {
+      for (ViewNode child : node.getChildren()) {
         if (child.isDrawn()) {
           paintNode(child, g);
         }
@@ -294,11 +294,11 @@ public class ViewNodeActiveDisplay extends JComponent {
     int x = e.getX() - mDrawShiftX;
     int y = e.getY() - mDrawShiftY;
 
-    if (!mRoot.previewBox.contains(x, y)) {
+    if (!mRoot.getPreviewBox().contains(x, y)) {
       return null;
     }
     return updateSelection(mRoot, x, y, new ViewNode[1], 0, 0,
-                           mRoot.previewBox.width, mRoot.previewBox.height);
+                           mRoot.getPreviewBox().width, mRoot.getPreviewBox().height);
   }
 
   @Nullable
@@ -308,7 +308,7 @@ public class ViewNodeActiveDisplay extends JComponent {
       return null;
     }
     boolean wasFirstNoDrawChildNull = firstNoDrawChild[0] == null;
-    Rectangle boxpos = node.previewBox;
+    Rectangle boxpos = node.getPreviewBox();
 
     int boxRight = boxpos.x + boxpos.width;
     int boxBottom = boxpos.y + boxpos.height;
@@ -316,15 +316,15 @@ public class ViewNodeActiveDisplay extends JComponent {
     int newClipY1 = clipY1;
     int newClipX2 = clipX2;
     int newClipY2 = clipY2;
-    if (node.displayInfo.clipChildren) {
+    if (node.getDisplayInfo().getClipChildren()) {
       newClipX1 = Math.max(clipX1, boxpos.x);
       newClipY1 = Math.max(clipY1, boxpos.y);
       newClipX2 = Math.min(clipX2, boxRight);
       newClipY2 = Math.min(clipY2, boxBottom);
     }
     if (newClipX1 < x && newClipX2 > x && newClipY1 < y && newClipY2 > y) {
-      for (int i = node.children.size() - 1; i >= 0; i--) {
-        ViewNode child = node.children.get(i);
+      for (int i = node.getChildren().size() - 1; i >= 0; i--) {
+        ViewNode child = node.getChildAt(i);
         ViewNode ret = updateSelection(child, x, y, firstNoDrawChild, newClipX1, newClipY1, newClipX2, newClipY2);
         if (ret != null) {
           return ret;
@@ -332,7 +332,7 @@ public class ViewNodeActiveDisplay extends JComponent {
       }
     }
     if (boxpos.x < x && boxRight > x && boxpos.y < y && boxBottom > y) {
-      if (node.displayInfo.willNotDraw) {
+      if (node.getDisplayInfo().getWillNotDraw()) {
         if (firstNoDrawChild[0] == null) {
           firstNoDrawChild[0] = node;
         }
@@ -350,8 +350,8 @@ public class ViewNodeActiveDisplay extends JComponent {
 
   public void setZoomFactor(float zoomFactor) {
     mZoomFactor = zoomFactor;
-    float rootHeight = mRoot.displayInfo.height;
-    float rootWidth = mRoot.displayInfo.width;
+    float rootHeight = mRoot.getDisplayInfo().getHeight();
+    float rootWidth = mRoot.getDisplayInfo().getWidth();
     // when zoom factor changes, change the size. more zoomed in = bigger size and vice versa.
     setPreferredSize(new Dimension((int)(rootWidth * mZoomFactor), (int)(rootHeight * mZoomFactor)));
     revalidate();

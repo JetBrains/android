@@ -26,7 +26,7 @@ public class LITableItem extends PTableItem implements Comparable<PTableItem> {
   private final String myName;
 
   public LITableItem(@NotNull ViewProperty prop, @NotNull PTableItem parent) {
-    myName = prop.fullName.startsWith(parent.getName()) ? prop.fullName.substring(parent.getName().length() + 1) : prop.fullName;
+    myName = prop.getFullName().startsWith(parent.getName()) ? prop.getFullName().substring(parent.getName().length() + 1) : prop.getFullName();
     myValue = prop.getValue();
     setParent(parent);
   }

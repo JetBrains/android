@@ -1,0 +1,3 @@
+This module contains code for the Layout Inspector tool in Android Studio.
+
+It is packaged as a part android-plugin module into the Android Studio for Intellij.

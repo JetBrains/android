@@ -52,7 +52,6 @@
     <orderEntry type="module" module-name="adt-branding" scope="TEST" />
     <orderEntry type="module" module-name="sdk-updates" scope="TEST" />
     <orderEntry type="module" module-name="java-lib-model" scope="TEST" />
-    <orderEntry type="module" module-name="layoutinspector" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
     <orderEntry type="module" module-name="analyzer" scope="TEST" />
     <orderEntry type="module" module-name="sdk-common" scope="TEST" />
