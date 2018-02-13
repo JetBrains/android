@@ -859,6 +859,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return CompletableFuture.completedFuture(null);
   }
 
+  @NotNull
+  public InteractionManager getInteractionManager() {
+    return myInteractionManager;
+  }
+
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);

@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.scene.NavSceneManager
@@ -62,6 +63,7 @@ object NavModelBuilderUtil {
       `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
       `when`(surface.extentSize).thenReturn(Dimension(500, 500))
       `when`(surface.scrollPosition).thenReturn(Point(0, 0))
+      `when`(surface.interactionManager).thenReturn(InteractionManager(surface))
 
       val selectionModel = mock(SelectionModel::class.java)
       `when`<ImmutableList<NlComponent>>(selectionModel.selection).thenReturn(ImmutableList.of<NlComponent>())

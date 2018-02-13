@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.ZoomType
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -41,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 
 /**
  * Tests for the nav editor Scene.
@@ -702,6 +704,53 @@ class NavSceneTest : NavTestCase() {
             "\n" +
             "UNClip\n", list.generateSortedDisplayList(transform)
     )
+  }
+
+  fun testHoverDuringDrag() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1") {
+          action("a1", destination = "subnav")
+        }
+        navigation("subnav")
+        action("a2", destination = "fragment1")
+      }
+    }
+
+    val surface = model.surface
+    val scene = surface.scene!!
+
+    val list = DisplayList()
+    val view = surface.currentSceneView!!
+    `when`(view.scale).thenReturn(1.0)
+    val transform = SceneContext.get(view)
+    scene.layout(0, SceneContext.get(surface.currentSceneView))
+    val interactionManager = mock(InteractionManager::class.java)
+    `when`(interactionManager.isInteractionInProgress).thenReturn(true)
+    `when`(surface.interactionManager).thenReturn(interactionManager)
+    scene.mouseHover(transform, 150, 30)
+    scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
+
+    assertEquals(
+        "Clip,0,0,990,928\n" +
+            "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
+            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawRectangle,1,398x398x80x132,ffa7a7a7,1,2\n" +
+            "DrawAction,NORMAL,400x400x76x128,520x400x70x19,NORMAL\n" +
+            "DrawArrow,2,RIGHT,510x406x5x6,b2a7a7a7\n" +
+            "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
+            "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
+            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "DrawFilledRectangle,1,520x400x70x19,fffafafa,6\n" +
+            "DrawRectangle,1,519x399x72x21,ffa7a7a7,1,6\n" +
+            "DrawTruncatedText,3,Nested Graph,520x400x70x19,ffa7a7a7,Default:1:9,true\n" +
+            "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "UNClip\n", list.generateSortedDisplayList(transform)
+    )
+
   }
 
   // TODO: this should test the different "Simulated Layouts", once that's implemented.

@@ -312,6 +312,10 @@ public class InteractionManager {
     mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
 
+  public boolean isInteractionInProgress() {
+    return myCurrentInteraction != null;
+  }
+
   /**
    * Helper class which implements the {@link MouseMotionListener},
    * {@link MouseListener} and {@link KeyListener} interfaces.
