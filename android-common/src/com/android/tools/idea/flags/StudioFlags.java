@@ -97,7 +97,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_EXPORT_CPU_TRACE = Flag.create(
     PROFILER, "cpu.export.trace", "Enable CPU trace exporting",
     "Add the option to export CPU trace files when right-clicking a CPU capture.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_STARTUP_CPU_PROFILING = Flag.create(
     PROFILER, "startup.cpu.profiling", "Enable startup CPU Profiling",
