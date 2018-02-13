@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.AndroidActivityLauncher;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -48,16 +50,23 @@ public abstract class ActivityLaunchTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    String activityName = getQualifiedActivityName(device, printer);
-    if (activityName == null) {
+    String command = getStartActivityCommand(device, launchStatus, printer);
+    if (command == null) {
       return false;
     }
-
-    final String activityPath = AndroidActivityLauncher.getLauncherActivityPath(myApplicationId, activityName);
-    String command = AndroidActivityLauncher.getStartActivityCommand(activityPath, myStartActivityFlagsProvider.getFlags(device));
-
     // The timeout is quite large to accomodate ARM emulators.
     return ShellCommandLauncher.execute(command, device, launchStatus, printer, 15, TimeUnit.SECONDS);
+  }
+
+  @VisibleForTesting
+  @Nullable
+  public String getStartActivityCommand(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    String activityName = getQualifiedActivityName(device, printer);
+    if (activityName == null) {
+      return null;
+    }
+    String activityPath = AndroidActivityLauncher.getLauncherActivityPath(myApplicationId, activityName);
+    return AndroidActivityLauncher.getStartActivityCommand(activityPath, myStartActivityFlagsProvider.getFlags(device));
   }
 
   @Nullable

@@ -206,12 +206,16 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                 @NotNull AndroidFacet facet,
+                                                @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
     String extraFlags = ACTIVITY_EXTRA_FLAGS;
+    if (!contributorsAmStartOptions.isEmpty()) {
+      extraFlags += (extraFlags.isEmpty() ? "" : " ") + contributorsAmStartOptions;
+    }
 
     StartActivityFlagsProvider startActivityFlagsProvider;
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {

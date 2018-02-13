@@ -125,6 +125,8 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertNotNull(androidTestRunConfiguration);
 
 
-    return (AndroidTestRunConfiguration.MyApplicationLaunchTask) androidTestRunConfiguration.getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, false, launchStatus);
+    return (AndroidTestRunConfiguration.MyApplicationLaunchTask)androidTestRunConfiguration
+      .getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "",
+                                false, launchStatus);
   }
 }

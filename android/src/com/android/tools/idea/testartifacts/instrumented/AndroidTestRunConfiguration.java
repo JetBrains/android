@@ -295,6 +295,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                 @NotNull AndroidFacet facet,
+                                                @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
     String runner;
