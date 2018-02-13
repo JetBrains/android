@@ -45,7 +45,6 @@ class DestinationClassEditorTest : NavTestCase() {
     assertContainsElements(choices,
         "none" displayFor null,
         "android.app.DialogFragment" displayFor "android.app.DialogFragment",
-        "android.arch.navigation.NavHostFragment" displayFor "android.arch.navigation.NavHostFragment",
         "mytest.navtest.BlankFragment" displayFor "mytest.navtest.BlankFragment")
     assertDoesntContain(choices, "mytest.navtest.MainActivity" displayFor "mytest.navtest.MainActivity")
 

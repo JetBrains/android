@@ -36,6 +36,7 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.NavigationSchema.NAV_HOST_FRAGMENT
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
@@ -82,13 +83,21 @@ class DestinationClassEditor(listener: NlEditingListener, comboBox: CustomComboB
       val project = component.model.project
       val psiFacade = JavaPsiFacade.getInstance(project)
       val allScope = GlobalSearchScope.allScope(project)
-      return NavigationSchema.DESTINATION_SUPERCLASS_TO_TYPE
-          .filterValues { it == targetType }
-          .keys
-          .mapNotNull { psiFacade.findClass(it, allScope) }
-          .flatMap { ClassInheritorsSearch.search(it, allScope, true) }
-          .map { ValueWithDisplayString(it.qualifiedName, it.qualifiedName) }
-          .toMutableList()
+      val result = mutableListOf<ValueWithDisplayString>()
+      for ((key, value) in NavigationSchema.DESTINATION_SUPERCLASS_TO_TYPE) {
+        if (value != targetType) {
+          continue
+        }
+        val psiClass = psiFacade.findClass(key, allScope) ?: continue
+        for (inheritor in ClassInheritorsSearch.search(psiClass, allScope, true)) {
+          val qname = inheritor.qualifiedName
+          if (inheritor.supers.map { it.qualifiedName }.plus(qname).contains(NAV_HOST_FRAGMENT)) {
+            continue
+          }
+          result.add(ValueWithDisplayString(qname, qname))
+        }
+      }
+      return result
     }
   }
 }
