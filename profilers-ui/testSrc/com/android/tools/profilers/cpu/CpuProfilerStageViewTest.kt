@@ -66,14 +66,17 @@ class CpuProfilerStageViewTest {
     CpuProfilerStageView(myProfilersView, myStage)
 
     var items = myComponents.allContextMenuItems
-    assertThat(items).hasSize(7)
+    assertThat(items).hasSize(9)
 
     // Check we add CPU specific actions first.
-    assertThat(items[0].text).isEqualTo("Export trace...")
+    assertThat(items[0].text).isEqualTo("Record CPU trace")
     assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR)
 
+    assertThat(items[2].text).isEqualTo("Export trace...")
+    assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR)
+
     // Check the common menu items are added only after the "export trace" action
-    checkCommonProfilersMenuItems(items, 2)
+    checkCommonProfilersMenuItems(items, 4)
 
     // Disable the export trace flag
     myIdeServices.enableExportTrace(false)
@@ -81,10 +84,12 @@ class CpuProfilerStageViewTest {
     CpuProfilerStageView(myProfilersView, myStage)
 
     items = myComponents.allContextMenuItems
-    assertThat(items).hasSize(5)
+    assertThat(items).hasSize(7)
 
-    // Check the common menu items are added first
-    checkCommonProfilersMenuItems(items, 0)
+    assertThat(items[0].text).isEqualTo("Record CPU trace")
+    assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR)
+    // Check the common menu items are added after "Record" action
+    checkCommonProfilersMenuItems(items, 2)
   }
 
   /**
