@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +27,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD;
-import static com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD_ROOT_PROJECT;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
@@ -56,6 +56,8 @@ import static java.util.stream.Collectors.toList;
  * TestCompositeLib4 :           -> java
  */
 public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestCase {
+  @NotNull private static final String COMPOSITE_BUILD_ROOT_PROJECT = COMPOSITE_BUILD + "/TestCompositeApp";
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
