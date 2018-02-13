@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPane
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewKotlinClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -164,8 +165,15 @@ public class ProjectWithKotlinTest {
                                      @NotNull String packageName,
                                      @NotNull String name,
                                      @NotNull String type) {
-    projectPane.clickPath(projectName, APP, SRC, MAIN, JAVA, packageName)
-      .invokeMenuPath(MENU_FILE, MENU_NEW, KOTLIN_FILE_CLASS);
+    Wait.seconds(30).expecting("Path should be found.").until(() -> {
+      try {
+        projectPane.clickPath(projectName, APP, SRC, MAIN, JAVA, packageName)
+          .invokeMenuPath(MENU_FILE, MENU_NEW, KOTLIN_FILE_CLASS);
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
 
     NewKotlinClassDialogFixture.find(ideFrameFixture)
       .enterName(name)
