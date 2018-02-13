@@ -497,6 +497,6 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   public static void verifyFilePathsAreEqual(@NotNull File expected, @NotNull VirtualFile actual) {
-    assertEquals(expected.getAbsolutePath(), actual.getPath());
+    assertEquals(toSystemIndependentName(expected.getAbsolutePath()), actual.getPath());
   }
 }
