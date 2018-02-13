@@ -16,13 +16,14 @@
 package com.android.tools.idea.sdk;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.*;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -30,6 +31,8 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NonNls;
@@ -54,6 +57,8 @@ import static java.util.Collections.emptyList;
  * Utility methods related to IDEA JDKs.
  */
 public class Jdks {
+  @NotNull private static final Logger LOG = Logger.getInstance(Jdks.class);
+
   @NonNls public static final String DOWNLOAD_JDK_8_URL =
     "http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html";
 
@@ -230,7 +235,7 @@ public class Jdks {
     Sdk jdk = createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
     if (jdk == null) {
       String msg = String.format("Unable to create JDK from path '%1$s'", jdkHomePath);
-      Logger.getInstance(Jdks.class).error(msg);
+      LOG.error(msg);
     }
     return jdk;
   }
@@ -257,9 +262,22 @@ public class Jdks {
   public List<NotificationHyperlink> getWrongJdkQuickFixes(@NotNull Project project) {
     List<NotificationHyperlink> quickFixes = Lists.newArrayList();
 
-    NotificationHyperlink useEmbeddedJdkHyperlink = UseEmbeddedJdkHyperlink.create();
-    if (useEmbeddedJdkHyperlink != null) {
-      quickFixes.add(useEmbeddedJdkHyperlink);
+    if (myIdeInfo.isAndroidStudio()) {
+      File embeddedJdkPath = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+      if (embeddedJdkPath == null || !isJdkRunnableOnPlatform(embeddedJdkPath.getAbsolutePath())) {
+        NotificationHyperlink downloadAndroidStudioHyperLink = new DownloadAndroidStudioHyperlink();
+        quickFixes.add(downloadAndroidStudioHyperLink);
+        NotificationHyperlink useCurrentJdkHyperLink = UseCurrentlyRunningJdkHyperlink.create();
+        if (useCurrentJdkHyperLink != null) {
+          quickFixes.add(useCurrentJdkHyperLink);
+        }
+      }
+      else {
+        NotificationHyperlink useEmbeddedJdkHyperlink = UseEmbeddedJdkHyperlink.create();
+        if (useEmbeddedJdkHyperlink != null) {
+          quickFixes.add(useEmbeddedJdkHyperlink);
+        }
+      }
     }
 
     quickFixes.add(new DownloadJdk8Hyperlink());
@@ -270,5 +288,40 @@ public class Jdks {
     }
 
     return quickFixes;
+  }
+
+  public static boolean isJdkRunnableOnPlatform(@NotNull Sdk jdk) {
+    if (!(jdk.getSdkType() instanceof JavaSdk)) {
+      return false;
+    }
+
+    if (!SystemInfo.isWindows || !SystemInfo.is32Bit) {
+      // We only care about bitness compatibility on Windows. Elsewhere we just assume things are fine, because
+      // nowadays virtually all Mac and Linux installations are 64 bits. No need to spend cycles on running 'java -version'
+      return true;
+    }
+
+    JavaSdk javaSdk = (JavaSdk)jdk.getSdkType();
+    String javaExecutablePath = javaSdk.getVMExecutablePath(jdk);
+    return runAndCheckJVM(javaExecutablePath);
+  }
+
+  private static boolean isJdkRunnableOnPlatform(@NotNull String jdkHome) {
+    return runAndCheckJVM(FileUtil.join(jdkHome, "bin", "java"));
+  }
+
+  private static boolean runAndCheckJVM(@NotNull String javaExecutablePath) {
+    LOG.info("Checking java binary: " + javaExecutablePath);
+    GeneralCommandLine commandLine = new GeneralCommandLine(javaExecutablePath);
+    commandLine.addParameter("-version");
+    try {
+      CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
+      int exitCode = process.runProcess().getExitCode();
+      return (exitCode == 0);
+    }
+    catch (ExecutionException e) {
+      LOG.info("Could not invoke 'java -version'", e);
+      return false;
+    }
   }
 }

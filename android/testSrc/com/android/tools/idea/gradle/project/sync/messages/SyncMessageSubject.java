@@ -64,6 +64,14 @@ public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage>
   }
 
   @NotNull
+  public SyncMessageSubject hasMessageLineStartingWith(@NotNull String text, int index) {
+    String[] textLines = getNotNullSubject().getText();
+    assertThat(textLines.length).named("message line count").isGreaterThan(index);
+    assertThat(textLines[index]).named("message[" + index + "]").startsWith(text);
+    return this;
+  }
+
+  @NotNull
   private SyncMessage getNotNullSubject() {
     SyncMessage syncMessage = super.getSubject();
     assertNotNull(syncMessage);
