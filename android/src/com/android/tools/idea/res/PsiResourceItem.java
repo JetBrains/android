@@ -207,7 +207,12 @@ class PsiResourceItem extends ResourceItem {
   @NotNull
   private static ResourceNamespace.Resolver getNamespaceResolver(XmlTag tag) {
     // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
-    return prefix -> ReadAction.compute(() -> StringUtil.nullize(tag.getNamespaceByPrefix(prefix)));
+    return prefix -> ReadAction.compute(() -> {
+      if (!tag.isValid()) {
+        return null;
+      }
+      return StringUtil.nullize(tag.getNamespaceByPrefix(prefix));
+    });
   }
 
   @Nullable
