@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.files
 
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.utils.FileUtils.toSystemIndependentPath
 import java.io.File
 
 class GradleDslFileTest : GradleFileModelTestCase() {
@@ -56,7 +58,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
       assertSize(4, files)
       val expected = listOf(myBuildFile.absolutePath, mySubModuleBuildFile.absolutePath,
           myPropertiesFile.absolutePath, mySubModulePropertiesFile.absolutePath)
-      assertContainsElements(files.map { it.virtualFile.path }, expected)
+      assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
 
@@ -91,7 +93,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     val files = buildModel.involvedFiles
 
     run {
-      val properties = files.first { it.virtualFile.path == mySubModuleBuildFile.absolutePath }.declaredProperties
+      val properties = getFile(mySubModuleBuildFile, files).declaredProperties
       assertSize(4, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "value", STRING, VARIABLE, 0, "childVar2")
       verifyPropertyModel(properties[1], INTEGER_TYPE, 23, INTEGER, VARIABLE, 0, "childVar1")
@@ -101,7 +103,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
     run {
       // Parent file properties
-      val properties = files.first { it.virtualFile.path == myBuildFile.absolutePath }.declaredProperties
+      val properties = getFile(myBuildFile, files).declaredProperties
       assertSize(3, properties)
       verifyPropertyModel(properties[0], BOOLEAN_TYPE, true, BOOLEAN, VARIABLE, 0, "parentVar1")
       verifyPropertyModel(properties[1], STRING_TYPE, "parentVar1", REFERENCE, VARIABLE, 1, "parentVar2")
@@ -110,14 +112,14 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
     run {
       // Parent properties file
-      val properties = files.first { it.virtualFile.path == myPropertiesFile.absolutePath }.declaredProperties
+      val properties = getFile(myPropertiesFile, files).declaredProperties
       assertSize(1, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "othervalue", STRING, PROPERTIES_FILE, 0, "parentPropProp1")
     }
 
     run {
       // Child properties file
-      val properties = files.first { it.virtualFile.path == mySubModulePropertiesFile.absolutePath }.declaredProperties
+      val properties = getFile(mySubModulePropertiesFile, files).declaredProperties
       assertSize(1, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "somevalue", STRING, PROPERTIES_FILE, 0, "childPropProp1")
     }
@@ -159,7 +161,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
       val fileParent = myBuildFile.parentFile
       val expected = listOf(myBuildFile.absolutePath,
           File(fileParent, "a.gradle").absolutePath, File(fileParent, "b.gradle").absolutePath)
-      assertContainsElements(files.map { it.virtualFile.path }, expected)
+      assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
 
@@ -198,21 +200,21 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     val fileParent = myBuildFile.parentFile
 
     run {
-      val properties = files.first { it.virtualFile.path == myBuildFile.absolutePath }.declaredProperties
+      val properties = getFile(myBuildFile, files).declaredProperties
       assertSize(2, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "goodbye", STRING, VARIABLE, 0, "goodbye")
       verifyPropertyModel(properties[1], INTEGER_TYPE, 5, INTEGER, REGULAR, 0, "prop5")
     }
 
     run {
-      val properties = files.first { it.virtualFile.path == File(fileParent, "a.gradle").absolutePath }.declaredProperties
+      val properties = getFile(File(fileParent, "a.gradle"), files).declaredProperties
       assertSize(2, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "hello", STRING, VARIABLE, 0, "hello")
       verifyPropertyModel(properties[1], BOOLEAN_TYPE, false, BOOLEAN, REGULAR, 0, "prop2")
     }
 
     run {
-      val properties = files.first { it.virtualFile.path == File(fileParent, "b.gradle").absolutePath }.declaredProperties
+      val properties = getFile(File(fileParent, "b.gradle"), files).declaredProperties
       assertSize(5, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "1", STRING, VARIABLE, 0, "var1")
       verifyPropertyModel(properties[1], INTEGER_TYPE, 2, INTEGER, VARIABLE, 0, "var2")
@@ -221,4 +223,6 @@ class GradleDslFileTest : GradleFileModelTestCase() {
       verifyPropertyModel(properties[4], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop2")
     }
   }
+
+  fun getFile(file : File, files : Set<GradleFileModel>) = files.first { toSystemIndependentPath(file.absolutePath) == it.virtualFile.path }
 }
