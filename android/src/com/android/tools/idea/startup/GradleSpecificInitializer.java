@@ -81,7 +81,9 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
-/** Performs Gradle-specific IDE initialization */
+/**
+ * Performs Gradle-specific IDE initialization
+ */
 public class GradleSpecificInitializer implements Runnable {
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
@@ -92,7 +94,7 @@ public class GradleSpecificInitializer implements Runnable {
     {ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME};
 
   // Id for TemplateProjectSettingsGroup
-  @NotNull public static final String  TEMPLATE_PROJECT_SETTINGS_GROUP_ID = "TemplateProjectSettingsGroup";
+  @NotNull public static final String TEMPLATE_PROJECT_SETTINGS_GROUP_ID = "TemplateProjectSettingsGroup";
 
   @Override
   public void run() {
@@ -183,7 +185,7 @@ public class GradleSpecificInitializer implements Runnable {
     ActionManager actionManager = ActionManager.getInstance();
     AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
     if (runnerActions instanceof DefaultActionGroup) {
-      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
     }
   }
 
@@ -237,7 +239,8 @@ public class GradleSpecificInitializer implements Runnable {
         parent.remove(action);
         parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Move Module to Group"),
                    new Constraints(AFTER, "OpenModuleSettings"));
-      } else if (action instanceof MarkRootGroup) {
+      }
+      else if (action instanceof MarkRootGroup) {
         parent.remove(action);
         parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Mark Directory As"),
                    new Constraints(AFTER, "OpenModuleSettings"));
@@ -267,13 +270,13 @@ public class GradleSpecificInitializer implements Runnable {
       @Override
       public void appStarting(Project project) {
         app.invokeLater(() -> {
-          Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+          Notification notification =
+            getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
           notification.setImportant(true);
           Notifications.Bus.notify(notification);
         });
       }
     });
-
   }
 
   private static NotificationGroup getNotificationGroup() {
@@ -413,7 +416,8 @@ public class GradleSpecificInitializer implements Runnable {
     String sdkPath = getLastSdkPathUsedByAndroidTools(toolsPreferencePath);
     if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
-    } else {
+    }
+    else {
       msg = "Unable to locate last SDK used by Android tools";
     }
     LOG.info(msg);
@@ -438,7 +442,8 @@ public class GradleSpecificInitializer implements Runnable {
     try {
       Properties properties = getProperties(file);
       return properties.getProperty("lastSdkPath");
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       return null;
     }
   }
