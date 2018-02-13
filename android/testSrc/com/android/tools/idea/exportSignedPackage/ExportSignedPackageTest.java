@@ -27,6 +27,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_MULTIFLAVOR;
 import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_NO_FLAVORS;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class ExportSignedPackageTest extends AndroidGradleTestCase {
   public void testNoFlavors() throws Exception {
@@ -59,6 +60,6 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
 
   public void testApkLocationCorrect() {
     // This test guarantees user is taken to the folder with the selected build type outputs
-    assertEquals("path/to/folder/release", ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString());
+    assertEquals(toSystemDependentName("path/to/folder/release"), ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString());
   }
 }
