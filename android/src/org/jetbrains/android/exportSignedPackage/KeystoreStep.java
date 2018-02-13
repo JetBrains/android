@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.project.Project;
@@ -42,8 +43,8 @@ import java.util.Arrays;
  * @author Eugene.Kudelevsky
  */
 class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
-  private static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
-  private static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
+  @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
+  @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
 
   private static class KeyStorePasswordRequestor {
     // dummy: used as a requestor class id to access the key store password
@@ -98,7 +99,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
       // while transitioning to a version which contains the fix for b/64995008, rather than having them retype all the
       // passwords at once.
-      password = passwordSafe.getPassword(KeyStore.class, key);
+      password = passwordSafe.getPassword(KeystoreStep.class, key);
     }
 
     return password;
@@ -108,10 +109,11 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     final PasswordSafe passwordSafe = PasswordSafe.getInstance();
     passwordSafe.setPassword(primaryRequestor, key, value);
     // Always erase the one stored with the old requestor (the one used before the fix for b/64995008).
-    passwordSafe.setPassword(KeyStore.class, key, null);
+    passwordSafe.setPassword(KeystoreStep.class, key, null);
   }
 
-  private static String makePasswordKey(@NotNull String prefix, @NotNull String keyStorePath, @Nullable String keyAlias) {
+  @VisibleForTesting
+  static String makePasswordKey(@NotNull String prefix, @NotNull String keyStorePath, @Nullable String keyAlias) {
     return prefix + "__" + keyStorePath + (keyAlias != null ? "__" + keyAlias : "");
   }
 
