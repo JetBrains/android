@@ -104,7 +104,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean mySimpleperfEnabled = false;
 
   /**
-   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
+   * Can toggle for tests via {@link #enableExportTrace(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myExportCpuTraceEnabled = false;
 
