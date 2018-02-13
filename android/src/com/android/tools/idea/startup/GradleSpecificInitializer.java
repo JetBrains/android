@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
@@ -36,6 +37,7 @@ import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
@@ -50,9 +52,10 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.util.messages.MessageBusConnection;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -65,10 +68,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
@@ -126,14 +126,7 @@ public class GradleSpecificInitializer implements Runnable {
     }
 
     registerAppClosing();
-
-    // Always reset the Default scheme to match Android standards
-    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
-    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
-    if (scheme != null) {
-      CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      AndroidCodeStyleSettingsModifier.modify(settings);
-    }
+    modifyCodeStyleSettings();
   }
 
   /**
@@ -463,6 +456,22 @@ public class GradleSpecificInitializer implements Runnable {
         }
       }
     });
+  }
+
+  @VisibleForTesting
+  static void modifyCodeStyleSettings() {
+    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
+    CodeStyleScheme scheme = schemes.getDefaultScheme();
+
+    if (scheme != null) {
+      AndroidCodeStyleSettingsModifier.modify(scheme.getCodeStyleSettings());
+    }
+
+    CommonCodeStyleSettings settings = schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE);
+
+    if (Objects.equals(settings.getArrangementSettings(), AndroidXmlPredefinedCodeStyle.createVersion1Settings())) {
+      settings.setArrangementSettings(AndroidXmlPredefinedCodeStyle.createVersion2Settings());
+    }
   }
 
   private static void checkAndSetAndroidSdkSources() {
