@@ -241,7 +241,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   public void valueChanged(@NotNull TreeSelectionEvent event) {
     ViewNode selection = (ViewNode)myNodeTree.getLastSelectedPathComponent();
     if (selection != null) {
-      myTableModel.setItems(convertToItems(selection.groupedProperties));
+      myTableModel.setItems(convertToItems(selection.getGroupedProperties()));
       if (myPreview != null) {
         myPreview.setSelectedNode(selection);
       }
@@ -395,7 +395,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
       if (myClient == null || myWindow == null) return;
       try {
-        HandleViewDebug.dumpDisplayList(myClient, myWindow.title, node.toString());
+        HandleViewDebug.dumpDisplayList(myClient, myWindow.getTitle(), node.toString());
       }
       catch (IOException e1) {
         createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.failure", e1.getMessage()),

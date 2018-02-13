@@ -59,13 +59,13 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
 
     displayText(attr, cellTextBuilder.toString());
 
-    if (node.displayInfo.contentDesc != null) {
+    if (node.getDisplayInfo().getContentDesc() != null) {
       Font currentFont = getFont();
-      Font f = FontUtil.getFontAbleToDisplay(node.displayInfo.contentDesc, currentFont);
+      Font f = FontUtil.getFontAbleToDisplay(node.getDisplayInfo().getContentDesc(), currentFont);
       if (f != currentFont) {
         setFont(f);
       }
-      displayText(node.isDrawn() ? new SimpleTextAttributes(Font.PLAIN, Color.GRAY) : attr, "- \"" + node.displayInfo.contentDesc + "\"");
+      displayText(node.isDrawn() ? new SimpleTextAttributes(Font.PLAIN, Color.GRAY) : attr, "- \"" + node.getDisplayInfo().getContentDesc() + "\"");
     }
   }
 
@@ -80,7 +80,7 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
 
   @NotNull
   public static String getName(@NotNull ViewNode node) {
-    String[] name = node.name.split("\\.");
+    String[] name = node.getName().split("\\.");
     return name[name.length - 1];
   }
 
