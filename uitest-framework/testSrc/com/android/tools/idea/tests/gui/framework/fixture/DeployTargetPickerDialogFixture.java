@@ -87,7 +87,8 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), deviceList);
     jListFixture.replaceCellReader(DEVICE_PICKER_CELL_READER);
-    Wait.seconds(15).expecting(String.format("Deployment Target list to contain %s", text))
+    // Workaround: b/72748687, increase timeout.
+    Wait.seconds(30).expecting(String.format("Deployment Target list to contain %s", text))
       .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
     jListFixture.selectItem(text);
     return this;
