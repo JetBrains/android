@@ -91,6 +91,7 @@ public class StatisticsViewer extends JPanel implements Disposable {
       }
     });
     UsageTracker.getInstance().setVersion(myOriginalUsageTracker.getVersion());
+    UsageTracker.getInstance().setIdeBrand(myOriginalUsageTracker.getIdeBrand());
   }
 
   // Create a non-modal dialog with this panel so the user can interact with Android Studio while looking at metrics on another screen.

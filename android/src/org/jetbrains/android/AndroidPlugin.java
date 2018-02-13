@@ -15,12 +15,15 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.fd.actions.HotswapAction;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
 
@@ -61,6 +64,7 @@ public class AndroidPlugin implements ApplicationComponent {
     // Move the "Sync Project with Gradle Files" toolbar button to a less prominent place.
     moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
                new Constraints(Anchor.LAST, null));
+    UsageTracker.getInstance().setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
   }
 
   @Override
