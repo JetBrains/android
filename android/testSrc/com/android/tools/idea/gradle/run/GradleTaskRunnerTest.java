@@ -73,7 +73,8 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     countDownLatch.await(5, TimeUnit.SECONDS);
   }
 
-  public void testBuildActionRunner() throws Exception {
+  // b/72262273
+  public void ignore_testBuildActionRunner() throws Exception {
     loadSimpleApplication();
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = new GradleTaskRunner.DefaultGradleTaskRunner(getProject(), new TestBuildAction());
