@@ -766,12 +766,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         parent = parent.getParent();
       }
       if (parent != null) {
-        boolean userAndroidx = NlComponentHelperKt.isOrHasAndroidxSuperclass(parent);
+        boolean useAndroidx = NlComponentHelperKt.isOrHasAndroidxSuperclass(parent);
         ensureLayersAreShown(editor, 1000);
         switch (myType) {
           case HORIZONTAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt
-              .createChild(parent, editor, userAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
+              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
                            null, InsertType.CREATE);
             assert guideline != null;
             guideline.ensureId();
@@ -784,7 +784,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case VERTICAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt
-              .createChild(parent, editor, userAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
+              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_GUIDELINE.newName() : CONSTRAINT_LAYOUT_GUIDELINE.oldName(),
                            null, InsertType.CREATE);
             assert guideline != null;
             guideline.ensureId();
@@ -798,7 +798,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case GROUP: {
             NlComponent group = NlComponentHelperKt
-              .createChild(parent, editor, userAndroidx ? CLASS_CONSTRAINT_LAYOUT_GROUP.newName() : CLASS_CONSTRAINT_LAYOUT_GROUP.oldName(),
+              .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_GROUP.newName() : CLASS_CONSTRAINT_LAYOUT_GROUP.oldName(),
                            null, InsertType.CREATE);
             assert group != null;
             group.ensureId();
@@ -806,7 +806,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case CONSTRAINT_SET: {
             NlComponent constraints =
-              NlComponentHelperKt.createChild(parent, editor, userAndroidx
+              NlComponentHelperKt.createChild(parent, editor, useAndroidx
                                                               ? CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.newName()
                                                               : CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.oldName(), null, InsertType.CREATE);
             assert constraints != null;
@@ -816,7 +816,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case LAYER: {
             NlComponent layer = NlComponentHelperKt
-              .createChild(parent, editor, userAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
+              .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
             layer.ensureId();
@@ -858,7 +858,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             }
 
             NlComponent barrier = NlComponentHelperKt
-              .createChild(parent, editor, userAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
+              .createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null,
                            InsertType.CREATE);
             assert barrier != null;
             barrier.ensureId();
@@ -917,7 +917,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               } // TODO: add views to the barrier when not using the tags approach
               return;
             }
-            NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, userAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null, InsertType.CREATE);
+            NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, useAndroidx ? CONSTRAINT_LAYOUT_BARRIER.newName() : CONSTRAINT_LAYOUT_BARRIER.oldName(), null, InsertType.CREATE);
             assert barrier != null;
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
