@@ -121,6 +121,8 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   }
 
   private class FakeEnergyService : EnergyServiceGrpc.EnergyServiceImplBase() {
+    var eventList = ArrayList<EnergyProfiler.EnergyEvent>()
+
     override fun startMonitoringApp(
       request: EnergyProfiler.EnergyStartRequest,
       responseObserver: StreamObserver<EnergyProfiler.EnergyStartResponse>
@@ -134,6 +136,11 @@ class EnergyDataPollerTest : DataStorePollerTest() {
       responseObserver: StreamObserver<EnergyProfiler.EnergyStopResponse>
     ) {
       responseObserver.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance())
+      responseObserver.onCompleted()
+    }
+
+    override fun getEvents(request: EnergyProfiler.EnergyRequest, responseObserver: StreamObserver<EnergyProfiler.EnergyEventsResponse>) {
+      responseObserver.onNext(EnergyProfiler.EnergyEventsResponse.newBuilder().addAllEvents(eventList).build())
       responseObserver.onCompleted()
     }
   }
@@ -336,6 +343,59 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
     val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergySamplesResponse>
     energyService.getSamples(request, responseObserver)
+    validateResponse(responseObserver, responseBuilder.build())
+  }
+
+  @Test
+  fun eventsArePassedThrough() {
+    val wakeLock1Acquire = EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(0)
+      .setEventId(1)
+      .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+      .build()
+
+    val wakeLock2Acquire = EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(ONE_FOURTH_SEC_NS)
+      .setEventId(2)
+      .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+      .build()
+
+    val wakeLock1Release = EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(ONE_HALF_SEC_NS)
+      .setEventId(1)
+      .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
+      .build()
+
+    val wakeLock2Release = EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(THREE_FOURTH_SEC_NS)
+      .setEventId(2)
+      .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
+      .build()
+
+    fakeEnergyService.eventList = Lists.newArrayList(
+      wakeLock1Acquire,
+      wakeLock2Acquire,
+      wakeLock1Release,
+      wakeLock2Release
+    )
+
+    fastForward(ONE_SEC_NS)
+
+    val request = EnergyProfiler.EnergyRequest.newBuilder()
+      .setSession(SESSION)
+      .setStartTimestamp(0)
+      .setEndTimestamp(ONE_SEC_NS)
+      .build()
+
+    val responseBuilder = EnergyProfiler.EnergyEventsResponse.newBuilder()
+
+    responseBuilder.addEvents(wakeLock1Acquire)
+    responseBuilder.addEvents(wakeLock2Acquire)
+    responseBuilder.addEvents(wakeLock1Release)
+    responseBuilder.addEvents(wakeLock2Release)
+
+    val responseObserver = mock(StreamObserver::class.java) as StreamObserver<EnergyProfiler.EnergyEventsResponse>
+    energyService.getEvents(request, responseObserver)
     validateResponse(responseObserver, responseBuilder.build())
   }
 }

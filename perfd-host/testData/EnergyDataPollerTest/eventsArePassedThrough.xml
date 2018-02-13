@@ -200,10 +200,56 @@ end_timestamp: 1000000000
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/GetEvents" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyEventsResponse">
-        <Message></Message>
+        <Message>events {
+  event_id: 1
+  wake_lock_acquired {
+  }
+}
+events {
+  timestamp: 250000000
+  event_id: 2
+  wake_lock_acquired {
+  }
+}
+events {
+  timestamp: 500000000
+  event_id: 1
+  wake_lock_released {
+  }
+}
+events {
+  timestamp: 750000000
+  event_id: 2
+  wake_lock_released {
+  }
+}
+</Message>
         <clazz>class com.android.tools.profiler.proto.EnergyProfiler$EnergyEventsResponse</clazz>
         <functionCalled>profiler.proto.EnergyService/GetEvents</functionCalled>
-        <message></message>
+        <message>events {
+  event_id: 1
+  wake_lock_acquired {
+  }
+}
+events {
+  timestamp: 250000000
+  event_id: 2
+  wake_lock_acquired {
+  }
+}
+events {
+  timestamp: 500000000
+  event_id: 1
+  wake_lock_released {
+  }
+}
+events {
+  timestamp: 750000000
+  event_id: 2
+  wake_lock_released {
+  }
+}
+</message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyStopRequest">
         <Message>session {
