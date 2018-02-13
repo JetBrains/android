@@ -298,7 +298,7 @@ fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
         ANDROIDX_PKG_PREFIX)
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
-      if (viewClass.name.startsWith(ANDROID_PKG_PREFIX)) {
+      if (viewClass.name.startsWith(ANDROIDX_PKG_PREFIX)) {
         return true
       }
       viewClass = viewClass.superclass
