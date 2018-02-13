@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.resourceManagers;
 
 import com.android.SdkConstants;
@@ -27,7 +26,6 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.dom.resources.Attr;
@@ -42,6 +40,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.google.common.collect.Sets.newHashSetWithExpectedSize;
 
 public class LocalResourceManager extends ResourceManager {
   private AttributeDefinitions myAttrDefs;
@@ -100,11 +100,6 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   public VirtualFile[] getResourceOverlayDirs() {
     return AndroidRootUtil.getResourceOverlayDirs(getFacet());
-  }
-
-  @NotNull
-  public List<ResourceElement> getValueResources(@NotNull ResourceType resourceType) {
-    return getPublicValueResources(resourceType);
   }
 
   @Override
@@ -258,7 +253,7 @@ public class LocalResourceManager extends ResourceManager {
     }
     // We may need to filter out public only, or if the type is attr, filter out android: attributes.
     if (publicOnly || resourceType == ResourceType.ATTR) {
-      Set<String> filtered = ContainerUtil.newHashSet(resourceNames.size());
+      Set<String> filtered = newHashSetWithExpectedSize(resourceNames.size());
       for (String name : resourceNames) {
         if (resourceType == ResourceType.ATTR) {
           if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
