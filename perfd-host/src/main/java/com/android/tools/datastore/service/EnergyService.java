@@ -16,80 +16,96 @@
 package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.database.EnergyTable;
+import com.android.tools.datastore.poller.EnergyDataPoller;
+import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventsResponse;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
+import com.android.tools.profiler.proto.EnergyProfiler.*;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
-import com.intellij.openapi.util.Pair;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 import java.util.function.Consumer;
 
-/**
- * TODO: Set real data with Energy data table.
- */
 public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase implements ServicePassThrough {
 
-  // TODO: Only used for prototyping. Delete these once we start getting real values from the device.
-  private static final long FAKE_TIME_PERIOD_MS = 200;
-  private static final RandomData FAKE_CPU_DATA = new RandomData(20);
-  private static final RandomData FAKE_NETWORK_DATA = new RandomData(30);
-  private static final RandomData FAKE_WAKE_LOCK_DURATION = new RandomData(200);
+  private final EnergyTable myEnergyTable;
 
   @NotNull private final DataStoreService myService;
-  private final Consumer<Runnable> myExecutor;
+  private final Map<Long, PollRunner> myRunners = new HashMap<>();
+  private final Consumer<Runnable> myFetchExecutor;
 
   public EnergyService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
     myService = service;
-    myExecutor = fetchExecutor;
+    myFetchExecutor = fetchExecutor;
+    myEnergyTable = new EnergyTable();
+  }
+
+  @Override
+  public void startMonitoringApp(EnergyProfiler.EnergyStartRequest request,
+                                 StreamObserver<EnergyProfiler.EnergyStartResponse> responseObserver) {
+    DeviceId deviceId = DeviceId.fromSession(request.getSession());
+    EnergyServiceGrpc.EnergyServiceBlockingStub energyClient = myService.getEnergyClient(deviceId);
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerClient = myService.getProfilerClient(deviceId);
+
+    if (energyClient != null && profilerClient != null) {
+      responseObserver.onNext(energyClient.startMonitoringApp(request));
+      responseObserver.onCompleted();
+      long sessionId = request.getSession().getSessionId();
+      myRunners.put(sessionId, new EnergyDataPoller(request.getSession(), myEnergyTable, profilerClient, energyClient));
+      myFetchExecutor.accept(myRunners.get(sessionId));
+    }
+    else {
+      responseObserver.onNext(EnergyProfiler.EnergyStartResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    }
+  }
+
+  @Override
+  public void stopMonitoringApp(EnergyProfiler.EnergyStopRequest request,
+                                StreamObserver<EnergyProfiler.EnergyStopResponse> responseObserver) {
+    long sessionId = request.getSession().getSessionId();
+    PollRunner runner = myRunners.remove(sessionId);
+    if (runner != null) {
+      runner.stop();
+    }
+    // Our polling service can get shutdown if we unplug the device.
+    // This should be the only function that gets called as StudioProfilers attempts
+    // to stop monitoring the last app it was monitoring.
+    EnergyServiceGrpc.EnergyServiceBlockingStub client =
+      myService.getEnergyClient(DeviceId.fromSession(request.getSession()));
+    if (client == null) {
+      responseObserver.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance());
+    }
+    else {
+      responseObserver.onNext(client.stopMonitoringApp(request));
+    }
+    responseObserver.onCompleted();
   }
 
   @Override
   public void getData(EnergyRequest request, StreamObserver<EnergyDataResponse> responseObserver) {
-    EnergyDataResponse.Builder responseBuilder = EnergyDataResponse.newBuilder();
-
-    Pair<Long, Long> timeRange = getRangeMs(request);
-    for (long timeMs = timeRange.getFirst(); timeMs <= timeRange.getSecond(); timeMs += FAKE_TIME_PERIOD_MS) {
-      responseBuilder.addSampleData(
-        EnergyProfiler.EnergySample.newBuilder().
-          setTimestamp(TimeUnit.MILLISECONDS.toNanos(timeMs)).
-          setCpuUsage(FAKE_CPU_DATA.getValue(timeMs)).
-          setNetworkUsage(FAKE_NETWORK_DATA.getValue(timeMs)).
-          build());
-    }
-    responseObserver.onNext(responseBuilder.build());
+    EnergyProfiler.EnergyDataResponse.Builder response = EnergyProfiler.EnergyDataResponse.newBuilder();
+    List<EnergySample> samples = myEnergyTable.findSamples(request);
+    response.addAllSampleData(samples);
+    responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
 
   @Override
   public void getEvents(EnergyRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
-    EnergyEventsResponse.Builder responseBuilder = EnergyEventsResponse.newBuilder();
-
-    Pair<Long, Long> timeRange = getRangeMs(request);
-    EnergyProfiler.WakeLockAcquired.Builder wakeLockAcquiredBuilder = EnergyProfiler.WakeLockAcquired.newBuilder().setLevelAndFlags(1);
-    for (long timeMs = timeRange.getFirst(); timeMs < timeRange.getSecond(); timeMs += 200) {
-      // Uses the acquire time milliseconds as fake ID.
-      responseBuilder.addEvent(EnergyEvent.newBuilder()
-                                 .setTimestamp(TimeUnit.MILLISECONDS.toNanos(timeMs))
-                                 .setEventId((int) timeMs)
-                                 .setWakeLockAcquired(wakeLockAcquiredBuilder.setTag(String.valueOf(timeMs)).build()).build());
-      long releaseTimeMs = FAKE_WAKE_LOCK_DURATION.getValue(timeMs) + 1 + timeMs;
-      responseBuilder.addEvent(EnergyEvent.newBuilder()
-                                 .setTimestamp(TimeUnit.MILLISECONDS.toNanos(releaseTimeMs))
-                                 .setEventId((int) timeMs)
-                                 .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance()).build());
-    }
-
-    responseObserver.onNext(responseBuilder.build());
+    EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
+    List<EnergyEvent> events = myEnergyTable.findEvents(request);
+    response.addAllEvent(events);
+    responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
 
@@ -102,48 +118,6 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   @Override
   public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
-  }
-
-  /**
-   * Help function to get fake data time range, delete when get real energy data from device.
-   */
-  private static Pair<Long, Long> getRangeMs(EnergyRequest request) {
-    // TODO: Get real energy data from device and delete check session range, this adds fake sample within request range.
-    long sessionStartTime = request.getSession().getStartTimestamp();
-    long sessionEndTime = request.getSession().getEndTimestamp();
-    long startTime = Math.max(request.getStartTimestamp(), sessionStartTime > 0 ? sessionStartTime : Long.MAX_VALUE);
-    long endTime = Math.min(request.getEndTimestamp(), sessionEndTime > 0 ? sessionEndTime : Long.MAX_VALUE);
-
-    long startTimeMs = TimeUnit.NANOSECONDS.toMillis(startTime);
-    long endTimeMs = TimeUnit.NANOSECONDS.toMillis(endTime);
-
-    // Ground the first sample in a consistent way, so the samples returned given a query range
-    // will always be the same. For example, with a heartbeat of 20ms...
-    // (87 to 123) -> [100, 120]
-    // (98 to 135) -> [100, 120]
-    long firstSampleMs = (startTimeMs + (FAKE_TIME_PERIOD_MS - startTimeMs % FAKE_TIME_PERIOD_MS));
-    return Pair.create(firstSampleMs, endTimeMs);
-  }
-
-  // TODO: Delete after we get real data from the target device
-  private static final class RandomData {
-    private static final int NUM_VALUES = 1000;
-    private final int[] values = new int[NUM_VALUES];
-
-    /**
-     * Generates a bunch of random data samples, between 0 and {@code bound}.
-     */
-    public RandomData(int bound) {
-      Random random = new Random();
-      for (int i = 0; i < NUM_VALUES; i++) {
-        values[i] = random.nextInt(bound);
-      }
-    }
-
-    public int getValue(long timeMs) {
-      // One data sample per tenth of a second. This allows 1000 unique values to spread across 100
-      // seconds before the pattern repeats.
-      return values[(int)((timeMs / 100) % NUM_VALUES)];
-    }
+    myEnergyTable.initialize(connection);
   }
 }

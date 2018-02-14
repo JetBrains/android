@@ -229,6 +229,10 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getCpuClient() : null;
   }
 
+  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getEnergyClient() : null;
+  }
+
   public EventServiceGrpc.EventServiceBlockingStub getEventClient(@NotNull DeviceId deviceId) {
     return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getEventClient() : null;
   }
@@ -256,18 +260,20 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private static class DataStoreClient {
     @NotNull private final Channel myChannel;
     @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
-    @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
     @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
-    @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
+    @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
     @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
+    @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
+    @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
 
     public DataStoreClient(@NotNull Channel channel) {
       myChannel = channel;
       myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
-      myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
       myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
-      myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
+      myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
       myEventClient = EventServiceGrpc.newBlockingStub(channel);
+      myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
+      myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
     }
 
     @NotNull
@@ -281,23 +287,28 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     }
 
     @NotNull
-    public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
-      return myMemoryClient;
-    }
-
-    @NotNull
     public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
       return myCpuClient;
     }
 
     @NotNull
-    public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
-      return myNetworkClient;
+    public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
+      return myEnergyClient;
     }
 
     @NotNull
     public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
       return myEventClient;
+    }
+
+    @NotNull
+    public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
+      return myMemoryClient;
+    }
+
+    @NotNull
+    public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
+      return myNetworkClient;
     }
 
     public void shutdownNow() {
