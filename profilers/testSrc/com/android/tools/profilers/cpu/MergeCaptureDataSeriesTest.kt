@@ -30,17 +30,14 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MergeCaptureDataSeriesTest {
-
-  private val myProfilerService = FakeProfilerService()
-
   private val myCpuService = FakeCpuService()
 
   @Rule
   @JvmField
-  var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
-      FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+  var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService)
 
-  private var myMergeCaptureDataSeries: MergeCaptureDataSeries<CpuProfilerStage.ThreadState>? = null
+  private lateinit var myMergeCaptureDataSeries: MergeCaptureDataSeries<CpuProfilerStage.ThreadState>
+  private lateinit var myStage: CpuProfilerStage;
 
   @Before
   @Throws(Exception::class)
@@ -48,21 +45,21 @@ class MergeCaptureDataSeriesTest {
     val timer = FakeTimer()
     val services = FakeIdeProfilerServices()
     val profilers = StudioProfilers(myGrpcChannel.client, services, timer)
-    val stage = CpuProfilerStage(profilers)
-    stage.studioProfilers.stage = stage
+    myStage = CpuProfilerStage(profilers)
+    myStage.studioProfilers.stage = myStage
     val myParser = AtraceParser(1)
     val capture = myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
     capture.range.set(TimeUnit.MILLISECONDS.toMicros(50).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
-    stage.capture = capture;
-    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>(stage, {buildSeriesData(50, 150, 10)})
-    val threadStateSeries = ThreadStateDataSeries(stage, ProfilersTestData.SESSION_DATA, 1)
-    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(stage, threadStateSeries, aTraceSeries)
+    myStage.capture = capture;
+    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>(myStage, {buildSeriesData(50, 150, 10)})
+    val threadStateSeries = ThreadStateDataSeries(myStage, ProfilersTestData.SESSION_DATA, 1)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(myStage, threadStateSeries, aTraceSeries)
     myCpuService.addAdditionalThreads(1, "Thread", buildThreadActivityData(1, 200, 20))
   }
 
   @Test
   fun testGetDataNoTrace() {
-    val stateSeries = myMergeCaptureDataSeries!!.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
         Range(
             TimeUnit.MILLISECONDS.toMicros(201).toDouble(),
             TimeUnit.MILLISECONDS.toMicros(400).toDouble()
@@ -75,57 +72,77 @@ class MergeCaptureDataSeriesTest {
   fun testGetDataTrace() {
     myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
     myCpuService.addTraceInfo(buildTraceInfo(50, 150))
-    val stateSeries = myMergeCaptureDataSeries!!.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
         Range(
             TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
             TimeUnit.MILLISECONDS.toMicros(400).toDouble()
         )
     )
-    // 54 because 22 from ThreadStateDataSeries + 10 from MergeStateDataSeries + 22 from ThreadStateDataSeries
+    // 53 because 21 from ThreadStateDataSeries + 10 from MergeStateDataSeries + 22 from ThreadStateDataSeries
+    // The last element of the first data series call is truncated because it exceeds the start of our trace info.
     // |---[xxxx]---|, FakeCpuService does not filter on time, as such we get the ThreadStateDataSeries twice.
-    assertThat(stateSeries).hasSize(54)
+    assertThat(stateSeries).hasSize(53)
   }
 
   @Test
   fun testGetDataTraceStartOverlap() {
     myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
     myCpuService.addTraceInfo(buildTraceInfo(50, 150))
-    val stateSeries = myMergeCaptureDataSeries!!.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
         Range(
             TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
             TimeUnit.MILLISECONDS.toMicros(200).toDouble()
         )
     )
-    // 32 because 22 from ThreadStateDataSeries + 10 from MergeStateDataSeries |[xxxx]---|
-    assertThat(stateSeries).hasSize(32)
+    // 53 because 21 from ThreadStateDataSeries + 10 from MergeStateDataSeries + 22 from ThreadStateDataSeriesp
+    // The last element of the first data series call is truncated because it exceeds the start of our trace info.
+    // |---[xxxx]---|, FakeCpuService does not filter on time, as such we get the ThreadStateDataSeries twice.
+    assertThat(stateSeries).hasSize(53)
   }
 
   @Test
   fun testGetDataTraceEndOverlap() {
     myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
     myCpuService.addTraceInfo(buildTraceInfo(50, 150))
-    val stateSeries = myMergeCaptureDataSeries!!.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
         Range(
             TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
             TimeUnit.MILLISECONDS.toMicros(150).toDouble()
         )
     )
-    // 32 because 22 from ThreadStateDataSeries + 10 from MergeStateDataSeries |---[xxxx]|
-    assertThat(stateSeries).hasSize(32)
+    // 31 because 22 from ThreadStateDataSeries + 10 from MergeStateDataSeries |---[xxxx]|
+    // The last element of the first data series call is truncated because it exceeds the start of our trace info.
+    assertThat(stateSeries).hasSize(31)
   }
 
   @Test
   fun testGetDataTraceDataOnly() {
     myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
     myCpuService.addTraceInfo(buildTraceInfo(50, 150))
-    val stateSeries = myMergeCaptureDataSeries!!.getDataForXRange(
+    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
         Range(
             TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
             TimeUnit.MILLISECONDS.toMicros(150).toDouble()
         )
     )
     // Only get some of the trace data. [xxx|xxxx|xxx]
-    assertThat(stateSeries).hasSize(5)
+    // 26 because 21 from ThreadStateDataSeries + 5 from MergeStateDataSeries
+    // |[xxxx]|, FakeCpuService does not filter on time, as such we get the ThreadStateDataSeries when we go to pull the last element.
+    assertThat(stateSeries).hasSize(26)
+  }
+
+  @Test
+  fun testGetDataNoTraceGetsSampledData() {
+    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>(myStage, {buildSeriesData(50, 150, 0)})
+    val threadStateSeries = ThreadStateDataSeries(myStage, ProfilersTestData.SESSION_DATA, 1)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(myStage, threadStateSeries, aTraceSeries)
+    val stateSeries = myMergeCaptureDataSeries.getDataForXRange(
+      Range(
+        TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
+        TimeUnit.MILLISECONDS.toMicros(150).toDouble()
+      )
+    )
+    assertThat(stateSeries).hasSize(20)
   }
 
   private fun buildTraceInfo(fromTime: Long, toTime: Long): com.android.tools.profiler.proto.CpuProfiler.TraceInfo {
