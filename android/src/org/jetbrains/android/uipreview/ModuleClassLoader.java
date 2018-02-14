@@ -1,10 +1,8 @@
 package org.jetbrains.android.uipreview;
 
-import com.android.builder.model.level2.Library;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
@@ -20,9 +18,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -557,5 +555,5 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   /** Temporary hack: Store this in a weak hash map cached by modules. In the next version we should move this
    * into a proper persistent render service. */
-  private static WeakHashMap<Module,ModuleClassLoader> ourCache = new WeakHashMap<>();
+  private static Map<Module,ModuleClassLoader> ourCache = ContainerUtil.createWeakMap();
 }

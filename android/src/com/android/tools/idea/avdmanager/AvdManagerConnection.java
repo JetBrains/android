@@ -62,7 +62,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,7 +117,7 @@ public class AvdManagerConnection {
   };
 
   private AvdManager myAvdManager;
-  private static Map<File, AvdManagerConnection> ourCache = new WeakHashMap<>();
+  private static Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private static long ourMemorySize = -1;
   private final FileOp myFileOp;
 
