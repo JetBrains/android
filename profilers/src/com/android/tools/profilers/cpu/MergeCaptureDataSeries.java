@@ -22,6 +22,7 @@ import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,41 +62,43 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
     if (myStage.getCapture() instanceof AtraceCpuCapture) {
       Range traceRange = myStage.getCapture().getRange();
       if (traceRange.getMin() <= maxRangeUs && traceRange.getMax() >= minRangeUs) {
-        // If the trace starts before our minimum requested range capture we pull all data from the trace.
+        // If our trace starts before our requested we query only for the last bit of data in our range.
+        // otherwise we request all data from the start upto our trace start. This ensures we cover two scenarios.
         // [##] is the capture range and data.
         // |--| is the requested range and DataStore data.
-        // [###|####]--------| or [##|###########|##]
-        if (traceRange.getMin() <= minRangeUs) {
-          double requestTo = traceRange.getMax();
-          if (traceRange.getMax() > maxRangeUs) {
-            requestTo = maxRangeUs;
-          }
-          seriesData.addAll(getDataForRangeFromSeries(minRangeUs, requestTo, myAtraceDataSeries));
-          minRangeUs = traceRange.getMax();
+        // 1) We have all data upto our trace start range |----[xxx]|
+        // 2) We have the last state change from before our trace in the event we have no trace data available |-[]|
+        double traceStart = traceRange.getMin() < minRangeUs ? minRangeUs : traceRange.getMin();
+        // Pull all states from the start of our range up to our capture start time.
+        // If our capture start time is after our range we still need to pull the data as our capture may not
+        // include data for all cases.
+        List<SeriesData<T>> dataStoreSeries = getDataForRangeFromSeries(minRangeUs, traceStart, myDataStoreSeries);
+
+        // Request data from our trace up to the max trace or requested range whatever is less.
+        double requestTo = traceRange.getMax();
+        if (traceRange.getMax() > maxRangeUs) {
+          requestTo = maxRangeUs;
         }
-        // If our trace starts before our max requested range and extends beyond it.
-        // |------[#####|####]
-        else if (traceRange.getMax() > maxRangeUs) {
-          seriesData.addAll(getDataForRangeFromSeries(
-            traceRange.getMin(), maxRangeUs, myAtraceDataSeries));
-          minRangeUs = maxRangeUs;
+        List<SeriesData<T>> atraceSeries = getDataForRangeFromSeries(traceStart, requestTo, myAtraceDataSeries);
+        minRangeUs = requestTo;
+
+        // Merge our DataStore series and our trace series.
+        // We find the first time from our DataStore that is less than our Atrace and add that to our results.
+        // followed by all results from our trace series.
+        int dataStoreSeriesIndex = dataStoreSeries.size();
+        if (!atraceSeries.isEmpty()) {
+          while(--dataStoreSeriesIndex >= 0 && dataStoreSeries.get(dataStoreSeriesIndex).x > atraceSeries.get(0).x);
+          dataStoreSeriesIndex++;
         }
-        // Our trace starts somewhere in the middle so we store a request for both Datastore data and capture data.
-        // |----[####]----|
-        else {
-          seriesData.addAll(getDataForRangeFromSeries(
-            minRangeUs, traceRange.getMin(), myDataStoreSeries));
-          seriesData
-            .addAll(getDataForRangeFromSeries(traceRange.getMin(), traceRange.getMax(), myAtraceDataSeries));
-          minRangeUs = traceRange.getMax();
-        }
+        seriesData.addAll(dataStoreSeries.subList(0, dataStoreSeriesIndex));
+        seriesData.addAll(atraceSeries);
       }
     }
 
-    if (minRangeUs != maxRangeUs) {
+    // If we still have data to request, get this data and append it to our results.
+    if (minRangeUs < maxRangeUs) {
       seriesData.addAll(getDataForRangeFromSeries(minRangeUs, maxRangeUs, myDataStoreSeries));
     }
-
     return seriesData;
   }
 

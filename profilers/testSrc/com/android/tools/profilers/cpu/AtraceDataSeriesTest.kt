@@ -21,38 +21,33 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceParser
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class AtraceDataSeriesTest {
-  private val myProfilerService = FakeProfilerService()
-
-  private val myCpuService = FakeCpuService()
+  private lateinit var myStage: CpuProfilerStage
 
   @Rule
   @JvmField
-  var myGrpcChannel = FakeGrpcChannel(
-      "CpuProfilerStageTestChannel", myCpuService, myProfilerService,
-      FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
-  )
+  var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", FakeCpuService(), FakeProfilerService())
+
+  @Before
+  fun setup() {
+    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
+    myStage = CpuProfilerStage(profilers)
+    val parser = AtraceParser(1)
+    val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
+    myStage.capture = capture;
+  }
 
   @Test
   fun testCaptureDataRange() {
-    val timer = FakeTimer()
-    val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(myGrpcChannel.client, services, timer)
-    val stage = CpuProfilerStage(profilers)
-    val myParser = AtraceParser(1)
-    val capture = myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
-    stage.capture = capture;
     val testSeriesData = buildSeriesData(1, 100, 10)
-    val series = AtraceDataSeries<CpuProfilerStage.ThreadState>(stage, { _ -> testSeriesData })
+    val series = AtraceDataSeries<CpuProfilerStage.ThreadState>(myStage, { _ -> testSeriesData })
     // Test get exact data.
     var seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
         series.getDataForXRange(
@@ -114,6 +109,21 @@ class AtraceDataSeriesTest {
             )
         )
     verifySeriesDataMatches(seriesData, testSeriesData, 9, 10)
+  }
+
+  @Test
+  fun testEmptySeries() {
+    val testSeriesData = buildSeriesData(1, 100, 0)
+    val series = AtraceDataSeries<CpuProfilerStage.ThreadState>(myStage, { _ -> testSeriesData })
+    // Test getting data for an empty series doesn't cause issues and returns nothing.
+    var seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
+      series.getDataForXRange(
+        Range(
+          TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
+          TimeUnit.MILLISECONDS.toMicros(100).toDouble()
+        )
+      )
+    assertThat(seriesData).hasSize(0)
   }
 
   private fun verifySeriesDataMatches(

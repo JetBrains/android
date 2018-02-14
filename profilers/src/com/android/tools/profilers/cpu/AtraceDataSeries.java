@@ -49,6 +49,9 @@ public class AtraceDataSeries<T> implements DataSeries<T> {
     CpuCapture capture = myStage.getCapture();
     if (capture instanceof AtraceCpuCapture) {
       List<SeriesData<T>> seriesDataList = mySeriesDataFunction.fun((AtraceCpuCapture)capture);
+      if (seriesDataList.isEmpty()) {
+        return series;
+      }
       for (int i = 0; i < seriesDataList.size() - 1; i++) {
         SeriesData<T> data = seriesDataList.get(i);
         SeriesData<T> nextData = seriesDataList.get(i + 1);
