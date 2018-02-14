@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.run.StartupCpuProfilingConfiguration;
 import com.android.tools.idea.run.ValidationError;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
@@ -37,6 +38,9 @@ public class ProfilerState {
    */
   public boolean ADVANCED_PROFILING_ENABLED = false;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
+
+  public boolean STARTUP_CPU_PROFILING_ENABLED = false;
+  public String STARTUP_CPU_PROFILING_CONFIGURATION_NAME = StartupCpuProfilingConfiguration.DEFAULT_CONFIGS.get(0).getName();
 
   private boolean PROFILING_OKHTTP_ENABLED = true;
   public static final String ENABLE_ADVANCED_OKHTTP_PROFILING_NAME = "android.profiler.okhttp.enabled";

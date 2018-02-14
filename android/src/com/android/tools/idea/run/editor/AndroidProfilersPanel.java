@@ -22,13 +22,17 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.run.StartupCpuProfilingConfiguration;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.HyperlinkLabel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -50,6 +54,8 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   private HyperlinkLabel myHyperlinkLabel;
   private JTextPane myAdvancedProfilingDescription;
   private JLabel mySyncStatusMessage;
+  private JCheckBox myStartupCpuProfileCheckBox;
+  private ComboBox<StartupCpuProfilingConfiguration> myStartupCpuConfigsComboBox;
 
   public JComponent getComponent() {
     return myDescription;
@@ -58,7 +64,39 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   AndroidProfilersPanel(Project project, ProfilerState state) {
     myProject = project;
     updateHyperlink("");
+    setUpStartupCpuProfiling();
     resetFrom(state);
+  }
+
+  /**
+   * Sets up startup CPU profiling options, there are two options:
+   * - myStartupCpuProfileCheckBox - if the checkbox is selected, the next time when the user profiles an application
+   *                                 the method trace recording will start automatically with the application launch.
+   * - myStartupCpuConfigsComboBox - CPU Configurations that can be used to record a method trace on application launch
+   *                                 (e.g Sampled Java, Instrumented Java).
+   *                                 The combobox is disabled, if {@code myStartupCpuProfileCheckBox} is unchecked.
+   */
+  private void setUpStartupCpuProfiling() {
+    myStartupCpuProfileCheckBox.addItemListener(e -> myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected()));
+    myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected());
+    myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(StartupCpuProfilingConfiguration.DEFAULT_CONFIGS
+                                                                      .toArray(new StartupCpuProfilingConfiguration[0])));
+    myStartupCpuConfigsComboBox.setRenderer(new ColoredListCellRenderer<StartupCpuProfilingConfiguration>() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList<? extends StartupCpuProfilingConfiguration> list,
+                                           StartupCpuProfilingConfiguration value,
+                                           int index,
+                                           boolean selected,
+                                           boolean hasFocus) {
+        append(value.getName());
+      }
+    });
+    myStartupCpuConfigsComboBox.setSelectedIndex(0);
+
+    if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
+      myStartupCpuProfileCheckBox.setVisible(false);
+      myStartupCpuConfigsComboBox.setVisible(false);
+    }
   }
 
   /**
@@ -68,6 +106,14 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     boolean enabled = myAdvancedProfilingCheckBox.isEnabled();
     myAdvancedProfilingDescription.setBackground(myDescription.getBackground());
     myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
+
+    myStartupCpuProfileCheckBox.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
+
+    StartupCpuProfilingConfiguration config =
+      StartupCpuProfilingConfiguration.getDefaultConfigByName(state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME);
+    if (config != null) {
+      myStartupCpuConfigsComboBox.setSelectedItem(config);
+    }
   }
 
   /**
@@ -75,6 +121,10 @@ public class AndroidProfilersPanel implements HyperlinkListener {
    */
   void applyTo(ProfilerState state) {
     state.ADVANCED_PROFILING_ENABLED = StudioFlags.PROFILER_ENABLED.get() && myAdvancedProfilingCheckBox.isSelected();
+
+    state.STARTUP_CPU_PROFILING_ENABLED = StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get() && myStartupCpuProfileCheckBox.isSelected();
+    assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof StartupCpuProfilingConfiguration;
+    state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((StartupCpuProfilingConfiguration)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
   }
 
   private void createUIComponents() {

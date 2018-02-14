@@ -99,6 +99,11 @@ public final class StudioFlags {
     "Add the option to export CPU trace files when right-clicking a CPU capture.",
     false);
 
+  public static final Flag<Boolean> PROFILER_STARTUP_CPU_PROFILING = Flag.create(
+    PROFILER, "startup.cpu.profiling", "Enable startup CPU Profiling",
+    "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
+    false);
+
   public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
     PROFILER, "threads.view", "Show network threads view",
     "Show a view in the network profiler that groups connections by their creation thread.",
