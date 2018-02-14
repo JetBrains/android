@@ -262,7 +262,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeviceFutures deviceFutures = null;
 
     final boolean isDebugging = executor instanceof DefaultDebugExecutor;
-
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
     if (forceColdswap) {
       DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
@@ -327,9 +326,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
 
+    LaunchOptions.Builder launchOptions = getLaunchOptions()
+      .setDebug(isDebugging);
+
+    if (executor instanceof LaunchOptionsProvider) {
+      launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
+    }
+
     LaunchTasksProviderFactory providerFactory =
       createLaunchTasksProviderFactory(env, facet, deviceFutures,
-                                       applicationIdProvider, instantRunContext, processHandler, isDebugging);
+                                       applicationIdProvider, launchOptions.build(), instantRunContext, processHandler);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
@@ -370,11 +376,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                                       @NotNull AndroidFacet facet,
                                                                       @NotNull DeviceFutures deviceFutures,
                                                                       @NotNull ApplicationIdProvider applicationIdProvider,
+                                                                      @NotNull LaunchOptions launchOptions,
                                                                       @Nullable InstantRunContext instantRunContext,
-                                                                      @Nullable ProcessHandler processHandler, boolean isDebugging) {
-    LaunchOptions launchOptions = getLaunchOptions()
-      .setDebug(isDebugging)
-      .build();
+                                                                      @Nullable ProcessHandler processHandler) {
     return new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, getApkProvider(facet, applicationIdProvider),
                                                  deviceFutures, launchOptions,
                                                  processHandler, instantRunContext);

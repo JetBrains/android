@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidLaunchTaskContributor;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -35,7 +36,7 @@ public final class AndroidProfilerToolWindowTaskContributor implements AndroidLa
 
   @NotNull
   @Override
-  public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId) {
+  public LaunchTask getTask(@NotNull Module module, @NotNull String applicationId, @NotNull LaunchOptions launchOptions) {
     return new AndroidProfilerToolWindowLaunchTask(module.getProject());
   }
 

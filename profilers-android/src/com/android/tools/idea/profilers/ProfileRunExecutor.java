@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.run.ExecutorIconProvider;
+import com.android.tools.idea.run.LaunchOptionsProvider;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.executors.DefaultRunExecutor;
@@ -29,8 +31,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Map;
 
-public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIconProvider {
+public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIconProvider, LaunchOptionsProvider {
+  public static final String PROFILER_LAUNCH_OPTION_KEY = "isProfiling";
+
   @NonNls public static final String EXECUTOR_ID = AndroidProfilerToolWindowFactory.ID;
 
   @NotNull
@@ -89,5 +94,11 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
       return ExecutionUtil.getLiveIndicator(getIcon());
     }
     return getIcon();
+  }
+
+  @NotNull
+  @Override
+  public Map<String, Object> getLaunchOptions() {
+    return ImmutableMap.of(PROFILER_LAUNCH_OPTION_KEY, true);
   }
 }

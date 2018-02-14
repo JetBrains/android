@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.run;
 
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A collection of options governing Android run configuration launch behavior.
@@ -31,6 +35,7 @@ public final class LaunchOptions {
     private boolean myClearLogcatBeforeStart = false;
     private boolean mySkipNoopApkInstallations = true;
     private boolean myForceStopRunningApp = true;
+    private final Map<String, Object> myExtraOptions = new HashMap<>();
 
     private Builder() {
     }
@@ -43,7 +48,8 @@ public final class LaunchOptions {
                                myOpenLogcatAutomatically,
                                myClearLogcatBeforeStart,
                                mySkipNoopApkInstallations,
-                               myForceStopRunningApp);
+                               myForceStopRunningApp,
+                               myExtraOptions);
     }
 
     @NotNull
@@ -87,6 +93,12 @@ public final class LaunchOptions {
       myForceStopRunningApp = forceStopRunningApp;
       return this;
     }
+
+    @NotNull
+    public Builder addExtraOptions(@NotNull Map<String, Object> extraOptions) {
+      myExtraOptions.putAll(extraOptions);
+      return this;
+    }
   }
 
   @NotNull
@@ -101,6 +113,7 @@ public final class LaunchOptions {
   private final boolean myClearLogcatBeforeStart;
   private final boolean mySkipNoopApkInstallations;
   private final boolean myForceStopRunningApp;
+  private final Map<String, Object> myExtraOptions;
 
   private LaunchOptions(boolean deploy,
                         @Nullable String pmInstallOptions,
@@ -108,7 +121,8 @@ public final class LaunchOptions {
                         boolean openLogcatAutomatically,
                         boolean clearLogcatBeforeStart,
                         boolean skipNoopApkInstallations,
-                        boolean forceStopRunningApp) {
+                        boolean forceStopRunningApp,
+                        @NotNull Map<String, Object> extraOptions) {
     myDeploy = deploy;
     myPmInstallOptions = pmInstallOptions;
     myDebug = debug;
@@ -116,6 +130,7 @@ public final class LaunchOptions {
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
     mySkipNoopApkInstallations = skipNoopApkInstallations;
     myForceStopRunningApp = forceStopRunningApp;
+    myExtraOptions = ImmutableMap.copyOf(extraOptions);
   }
 
   public boolean isDeploy() {
@@ -145,5 +160,10 @@ public final class LaunchOptions {
 
   public boolean isForceStopRunningApp() {
     return myForceStopRunningApp;
+  }
+
+  @Nullable
+  public Object getExtraOption(@NotNull String key) {
+    return myExtraOptions.get(key);
   }
 }
