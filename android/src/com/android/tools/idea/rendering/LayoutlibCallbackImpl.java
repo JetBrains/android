@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
@@ -29,6 +30,7 @@ import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
@@ -113,6 +115,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private ProjectFonts myProjectFonts;
   private String myAdaptiveIconMaskPath;
   @Nullable private final ILayoutPullParserFactory myLayoutPullParserFactory;
+  @NotNull private final ResourceNamespace.Resolver myImplicitNamespaces;
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -153,6 +156,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     } else {
       myNamespace = AUTO_URI;
     }
+
+    if (ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+      // In the past we assumed the "tools:" prefix is defined, we need to keep doing this for projects that don't care about namespaces.
+      myImplicitNamespaces = ResourceNamespace.Resolver.fromBiMap(ImmutableBiMap.of(TOOLS_NS_NAME, TOOLS_URI));
+    } else {
+      myImplicitNamespaces = ResourceNamespace.Resolver.EMPTY_RESOLVER;
+    }
+
     myFontCacheService = DownloadableFontCacheService.getInstance();
     myFontFamilies = projectRes.getAllResourceItems().stream()
       .filter(r -> r.getType() == ResourceType.FONT)
@@ -819,6 +830,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       throw new ClassNotFoundException(name + " not found.", e);
     }
 
+  }
+
+  @NotNull
+  @Override
+  public ResourceNamespace.Resolver getImplicitNamespaces() {
+    return myImplicitNamespaces;
   }
 
   public void setAdaptiveIconMaskPath(@NotNull String adaptiveIconMaskPath) {
