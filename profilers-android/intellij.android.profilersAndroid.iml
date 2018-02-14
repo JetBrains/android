@@ -29,6 +29,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="analytics-protos" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
-    <orderEntry type="library" scope="TEST" name="mockito-2" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
 </module>
