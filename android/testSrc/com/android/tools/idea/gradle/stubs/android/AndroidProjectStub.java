@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -334,6 +335,12 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   public boolean isBaseSplit() {
     return false;
+  }
+
+  @NonNull
+  @Override
+  public Collection<String> getDynamicFeatures() {
+    return ImmutableList.of();
   }
 
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {

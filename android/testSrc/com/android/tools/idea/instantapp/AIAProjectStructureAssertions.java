@@ -19,6 +19,7 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableList;
+import com.google.common.truth.Truth;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +29,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -41,7 +43,7 @@ public class AIAProjectStructureAssertions {
    */
   public static void assertModuleIsValidAIAApp(@NotNull Module module, @NotNull Collection<String> expectedDependencies)
     throws InterruptedException {
-    assertModuleIsValidForAIA(module, expectedDependencies, PROJECT_TYPE_APP, false);
+    assertModuleIsValidForAIA(module, expectedDependencies, PROJECT_TYPE_APP, true);
   }
 
   /**
@@ -77,17 +79,14 @@ public class AIAProjectStructureAssertions {
                                                 int moduleType,
                                                 boolean isBaseFeature) throws InterruptedException {
     AndroidModuleModel model = AndroidModuleModel.get(module);
-    assertNotNull(model);
+    assertThat(module).isNotNull();
     int projectType = model.getAndroidProject().getProjectType();
-    assertEquals(moduleType, projectType);
+    assertThat(projectType).named("Module type").isEqualTo(moduleType);
+    assertThat(model.getAndroidProject().isBaseSplit()).named("IsBaseSplit").isEqualTo(isBaseFeature);
 
     IdeDependencies dependencies = model.getSelectedMainCompileLevel2Dependencies();
     List<String> libraries =
       dependencies.getModuleDependencies().stream().map(Library::getProjectPath).filter(Objects::nonNull).collect(Collectors.toList());
-
-    assertEquals(expectedDependencies.size(), libraries.size());
-    assertTrue(libraries.stream().allMatch(expectedDependencies::contains));
-
-    assertEquals(isBaseFeature, model.getAndroidProject().isBaseSplit());
+    assertThat(libraries).containsExactlyElementsIn(expectedDependencies);
   }
 }
