@@ -24,7 +24,6 @@
     <orderEntry type="module" module-name="intellij.maven" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.properties" />
-    <orderEntry type="library" name="xpp3-1.1.4-min" level="project" />
     <orderEntry type="module" module-name="intellij.testng" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" exported="" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -112,5 +111,6 @@
     <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="lombok-ast" level="project" />
+    <orderEntry type="library" name="XStream" level="project" />
   </component>
 </module>
