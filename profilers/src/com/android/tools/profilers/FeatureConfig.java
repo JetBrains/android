@@ -23,6 +23,7 @@ public interface FeatureConfig {
   boolean isAtraceEnabled();
   boolean isCpuCaptureFilterEnabled();
   boolean isEnergyProfilerEnabled();
+  boolean isExportCpuTraceEnabled();
   boolean isJniReferenceTrackingEnabled();
   boolean isJvmtiAgentEnabled();
   boolean isLiveAllocationsEnabled();
@@ -32,7 +33,6 @@ public interface FeatureConfig {
   boolean isNetworkThreadViewEnabled();
   boolean isSessionsEnabled();
   boolean isSimpleperfEnabled();
-  boolean isExportCpuTraceEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }
