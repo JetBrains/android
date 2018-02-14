@@ -17,26 +17,18 @@ package com.android.tools.idea.tests.gui.framework.bazel.fixture
 
 import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture
-import com.google.common.truth.Truth
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.impl.EditorComponentImpl
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.finder.WindowFinder.findDialog
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JPanelFixture
-import org.fest.swing.fixture.JRadioButtonFixture
-import org.junit.Assert
 import javax.swing.JDialog
 import javax.swing.JRadioButton
 import javax.swing.SwingUtilities
 
 class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     AbstractWizardFixture<ImportBazelProjectWizardFixture>(ImportBazelProjectWizardFixture::class.java, robot, target) {
-  val id: String
-    get() = ImportBazelProjectWizardFixture::class.java.name
-
-  private val logger = Logger.getInstance(id)
 
   companion object {
     fun find(robot: Robot): ImportBazelProjectWizardFixture {
@@ -49,36 +41,28 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
   }
 
   fun setBazelBinaryPath(path: String): ImportBazelProjectWizardFixture {
-    logger.info("Setting bazel binary path = $path")
-    val bazelBinaryComboBox = JPanelFixture(robot(), "bazel-binary-path-field").comboBox().replaceText(path)
-    Truth.assertThat(bazelBinaryComboBox.target().editor.item).isEqualTo(path)
+    JPanelFixture(robot(), "bazel-binary-path-field").comboBox().replaceText(path)
     return this
   }
 
   fun setWorkspacePath(path: String): ImportBazelProjectWizardFixture {
-    logger.info("Setting workspace directory = $path")
-    val workspaceComboBox = JComboBoxFixture(robot(), "workspace-directory-field").replaceText(path)
-    Truth.assertThat(workspaceComboBox.target().editor.item).isEqualTo(path)
+    JComboBoxFixture(robot(), "workspace-directory-field").replaceText(path)
     return this
   }
 
   fun selectGenerateFromBuildFileOptionAndSetPath(path: String): ImportBazelProjectWizardFixture {
-    logger.info("Find 'Generate from BUILD file' radio button")
     val generateFromBuildFileOption = robot().finder().find(object : GenericTypeMatcher<JRadioButton>(JRadioButton::class.java) {
       override fun isMatching(component: JRadioButton): Boolean {
         return (component.text == "Generate from BUILD file")
       }
     })
-    JRadioButtonFixture(robot(), generateFromBuildFileOption).click()
+    robot().click(generateFromBuildFileOption)
 
-    logger.info("Setting build file path = $path")
-    val buildFileComboBox = JComboBoxFixture(robot(), "build-file-path-field").replaceText(path)
-    Truth.assertThat(buildFileComboBox.target().editor.item).isEqualTo(path)
+    JComboBoxFixture(robot(), "build-file-path-field").replaceText(path)
     return this
   }
 
   fun uncommentApi27(): ImportBazelProjectWizardFixture {
-    logger.info("Modifying BUILD file content")
     val editor = robot().finder().findByType(EditorComponentImpl::class.java)
 
     // Maybe let test configs select which platform to use?
@@ -87,7 +71,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     val selectionStartIndex = editor.text.indexOf(toSelect)
 
     if (selectionStartIndex < 0) {
-      logger.info("Assuming api 27 in bazel test run.")
+      System.out.println("Assuming api 27 in bazel test run.")
     }
     else {
       val selectionEndIndex = selectionStartIndex + toSelect.length
@@ -99,13 +83,11 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
         editableText.replaceText(selectionStartIndex, toSelect.length, toPaste)
       }
     }
-    logger.info("BUILD file content is '${editor.text}'")
-    System.out.println("BUILD file content is '${editor.text}'")
+
     return this
   }
 
   fun clickFinish(): ImportBazelProjectWizardFixture {
-    logger.info("Finish import bazel project wizard")
     findAndClickButtonWhenEnabled(this, "Finish")
     return this
   }
