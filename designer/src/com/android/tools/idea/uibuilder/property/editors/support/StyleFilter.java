@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
@@ -122,8 +121,8 @@ public class StyleFilter {
       .sorted(Comparator
                 .comparing(ResourceValue::isUserDefined)
                 .reversed()
-                .thenComparing(ResourceReference::isFramework)
-                .thenComparing(ResourceReference::getName))
+                .thenComparing(ResourceValue::isFramework)
+                .thenComparing(ResourceValue::getName))
       .collect(Collectors.toList());
   }
 

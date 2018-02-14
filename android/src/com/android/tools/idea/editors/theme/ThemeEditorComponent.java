@@ -250,7 +250,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
        */
       private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme, @NotNull List<ItemResourceValue> originalItems) {
         StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
-        StyleResourceValue restoredResourceValue = new StyleResourceValue(modifiedResourceValue,
+        StyleResourceValue restoredResourceValue = new StyleResourceValue(modifiedResourceValue.asReference(),
                                                                           modifiedResourceValue.getParentStyleName(),
                                                                           modifiedResourceValue.getLibraryName());
         for (ItemResourceValue item : originalItems) {
