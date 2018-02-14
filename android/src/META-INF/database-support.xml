@@ -8,7 +8,6 @@
   <project-components>
     <component>
       <implementation-class>org.jetbrains.android.database.AndroidDataSourceProjectComponent</implementation-class>
-      <skipForDefaultProject/>
     </component>
   </project-components>
 
