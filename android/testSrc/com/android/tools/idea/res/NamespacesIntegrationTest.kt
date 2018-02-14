@@ -18,6 +18,8 @@ package com.android.tools.idea.res
 import com.android.builder.model.AaptOptions.Namespacing.DISABLED
 import com.android.builder.model.AaptOptions.Namespacing.REQUIRED
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceValue
+import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -50,16 +52,16 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     assertSame(ResourceNamespace.RES_AUTO, resourceRepositoryManager.namespace)
   }
 
-  @Suppress("DEPRECATION") // We're calling the same method as layoutlib currently.
   fun testResolver() {
     loadProject(TestProjectPaths.NAMESPACES)
     val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "activity_my.xml")!!
     val resourceResolver = ConfigurationManager.getOrCreateInstance(myModules.appModule).getConfiguration(layout).resourceResolver!!
+    val appNs = ResourceRepositoryManager.getOrCreateInstance(myAndroidFacet).namespace
 
     fun check(reference: String, resolvesTo: String) {
       assertEquals(
         resolvesTo,
-        resourceResolver.resolveValue(null, "text", reference, false)!!.value
+        resourceResolver.resolveResValue(ResourceValue(appNs, ResourceType.STRING, "dummy", reference))!!.value
       )
     }
 
