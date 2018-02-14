@@ -77,7 +77,7 @@ import static org.jetbrains.android.util.AndroidResourceUtil.XML_FILE_RESOURCE_T
  * example, when it notices that the user is editing the value inside a <string> element in a value folder XML file, it will directly update
  * the resource value for the given resource item, and so on.
  *
- * <p>For efficiency, the ResourceFolderRepository is initialized via the same parsers as the FileResourceRepository and then lazily
+ * <p>For efficiency, the ResourceFolderRepository is initialized via the same parsers as the {@link FileResourceRepository} and then lazily
  * switches to PSI parsers after edits. See also {@code README.md} in this package.
  *
  * <p>Remaining work:
@@ -104,9 +104,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @GuardedBy("AbstractResourceRepository.ITEM_MAP_LOCK")
   private final ResourceTable myFullTable = new ResourceTable();
 
-  private final Map<VirtualFile, ResourceFile> myResourceFiles = Maps.newHashMap();
+  private final Map<VirtualFile, ResourceFile> myResourceFiles = new HashMap<>();
   // qualifiedName -> PsiResourceFile
-  private Map<String, DataBindingInfo> myDataBindingResourceFiles = Maps.newHashMap();
+  private Map<String, DataBindingInfo> myDataBindingResourceFiles = new HashMap<>();
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
   private final Object SCAN_LOCK = new Object();
   private Set<PsiFile> myPendingScans;
@@ -167,7 +167,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   /** NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method. */
   @NotNull
   // TODO: namespaces
-  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
+  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir,
+                                         @NotNull ResourceNamespace namespace) {
     return new ResourceFolderRepository(facet, dir, namespace);
   }
 
@@ -187,14 +188,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       ResourcePreprocessor preprocessor = NoOpResourcePreprocessor.INSTANCE;
       File tempDirectory = FileUtil.createTempDirectory("resource", "tmp", false);
       try {
-        MergeConsumer<ResourceItem> consumer = MergedResourceWriter.createWriterWithoutPngCruncher(
-          blobRoot, null, null, preprocessor, tempDirectory);
+        MergeConsumer<ResourceItem> consumer =
+            MergedResourceWriter.createWriterWithoutPngCruncher(blobRoot, null, null, preprocessor, tempDirectory);
         myInitialScanState.myResourceMerger.writeBlobToWithTimestamps(blobRoot, consumer);
       } finally {
         FileUtil.delete(tempDirectory);
       }
     }
-    catch (MergingException|IOException e) {
+    catch (MergingException | IOException e) {
       LOG.error("Failed to saveStateToFile", e);
       // Delete the blob root just in case it's in an inconsistent state.
       FileUtil.delete(blobRoot);
@@ -209,8 +210,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
    * @return the loaded ResourceMerger -- this can be used to save state again, if the cache isn't fresh
    */
   private ResourceMerger loadPreviousStateIfExists() {
-    File blobRoot = ResourceFolderRepositoryFileCacheService.get().getResourceDir(
-      myModule.getProject(), myResourceDir);
+    File blobRoot = ResourceFolderRepositoryFileCacheService.get().getResourceDir(myModule.getProject(), myResourceDir);
     if (blobRoot == null || !blobRoot.exists()) {
       return createFreshResourceMerger();
     }
@@ -229,8 +229,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       LOG.warn("failed to loadPreviousStateIfExists " + blobRoot, e);
       return createFreshResourceMerger();
     }
-    // This temp resourceFiles set is just to avoid calling VfsUtil#findFileByIoFile a ton.
-    Set<ResourceFile> resourceFiles = Sets.newHashSet();
+    // This temp resourceFiles set is just to avoid calling VfsUtil.findFileByIoFile repeatedly.
+    Set<ResourceFile> resourceFiles = new HashSet<>();
     List<ResourceSet> resourceSets = merger.getDataSets();
     if (resourceSets.size() != 1) {
       LOG.error("Expecting exactly one resource set, but found " + resourceSets.size());
@@ -246,8 +246,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     // Check that the dataSet we're loading actually corresponds to this resource directory.
     // This could happen if there's a hash collision in naming the cache directory.
     if (!FileUtil.filesEqual(sourceFiles.get(0), myResourceDirFile)) {
-      LOG.warn(String.format("source file %1$s, does not match resource dir %2$s",
-                             sourceFiles.get(0), myResourceDirFile));
+      LOG.warn(String.format("source file %1$s, does not match resource dir %2$s", sourceFiles.get(0), myResourceDirFile));
       return createFreshResourceMerger();
     }
 
@@ -534,7 +533,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     ResourceItem item = new PsiResourceItem(ResourceHelper.getResourceName(file), type, myNamespace, null, file);
 
     if (idGenerating) {
-      List<ResourceItem> items = Lists.newArrayList();
+      List<ResourceItem> items = new ArrayList<>();
       items.add(item);
       addToResult(result, item);
       addIds(result, items, file);
@@ -608,10 +607,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @Nullable
   @Override
   public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
-    List<ResourceItem> resourceItems = getResourceItem(ResourceType.LAYOUT, layoutName);
-    if (resourceItems == null) {
-      return null;
-    }
+    List<ResourceItem> resourceItems = getResourceItems(myNamespace, ResourceType.LAYOUT, layoutName);
     for (ResourceItem item : resourceItems) {
       ResourceFile source = item.getSource();
       if (source instanceof PsiResourceFile && ((PsiResourceFile) source).getDataBindingInfo() != null) {
@@ -642,7 +638,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       } else {
         MergedDataBindingInfo mergedDataBindingInfo = new MergedDataBindingInfo(entry.getValue());
         entry.getValue().forEach(info -> info.setMergedInfo(mergedDataBindingInfo));
-        ArrayList<DataBindingInfo> list = Lists.newArrayList(mergedDataBindingInfo);
+        ArrayList<DataBindingInfo> list = new ArrayList<>(1 + entry.getValue().size());
+        list.add(mergedDataBindingInfo);
         list.addAll(entry.getValue());
         return list.stream();
       }
@@ -674,12 +671,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private static void scanDataBindingDataTag(PsiResourceFile resourceFile, @Nullable XmlTag dataTag, long modificationCount) {
     LayoutDataBindingInfo info = resourceFile.getDataBindingInfo();
     assert info != null;
-    List<PsiDataBindingResourceItem> items = Lists.newArrayList();
+    List<PsiDataBindingResourceItem> items = new ArrayList<>();
     if (dataTag == null) {
       info.replaceItems(items, modificationCount);
       return;
     }
-    Set<String> usedNames = Sets.newHashSet();
+    Set<String> usedNames = new HashSet<>();
     for (XmlTag tag : dataTag.findSubTags(TAG_VARIABLE)) {
       String nameValue = tag.getAttributeValue(ATTR_NAME);
       if (nameValue == null) {
@@ -694,7 +691,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         }
       }
     }
-    Set<String> usedAliases = Sets.newHashSet();
+    Set<String> usedAliases = new HashSet<>();
     for (XmlTag tag : dataTag.findSubTags(TAG_IMPORT)) {
       String nameValue = tag.getAttributeValue(ATTR_TYPE);
       if (nameValue == null) {
@@ -805,9 +802,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     addIds(result, items, file, file);
   }
 
-  private void addIds(Map<ResourceType, ListMultimap<String, ResourceItem>> result, List<ResourceItem> items, PsiElement element, PsiFile file) {
+  private void addIds(Map<ResourceType, ListMultimap<String, ResourceItem>> result, List<ResourceItem> items, PsiElement element,
+                      PsiFile file) {
     // "@+id/" names found before processing the view tag corresponding to the id.
-    Map<String, XmlTag> pendingResourceIds = Maps.newHashMap();
+    Map<String, XmlTag> pendingResourceIds = new HashMap<>();
     Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(element, XmlTag.class);
     if (element instanceof XmlTag) {
       addId(result, items, file, (XmlTag)element, pendingResourceIds);
@@ -910,7 +908,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           return false;
         }
         XmlTag[] subTags = root.getSubTags(); // Not recursive, right?
-        List<ResourceItem> items = Lists.newArrayListWithExpectedSize(subTags.length);
+        List<ResourceItem> items = new ArrayList<>(subTags.length);
         for (XmlTag tag : subTags) {
           String name = tag.getAttributeValue(ATTR_NAME);
           if (!StringUtil.isEmpty(name)) {
@@ -1027,7 +1025,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
 
       if (myPendingScans == null) {
-        myPendingScans = Sets.newHashSet();
+        myPendingScans = new HashSet<>();
       }
       myPendingScans.add(psiFile);
     }
@@ -1149,12 +1147,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           // We've already seen this resource, so no change in the ResourceItem for the
           // file itself (e.g. @layout/foo from layout-land/foo.xml). However, we may have
           // to update the id's:
-          Set<String> idsBefore = Sets.newHashSet();
-          Set<String> idsAfter = Sets.newHashSet();
+          Set<String> idsBefore = new HashSet<>();
+          Set<String> idsAfter = new HashSet<>();
           synchronized (ITEM_MAP_LOCK) {
             ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, ResourceType.ID);
             if (map != null) {
-              List<ResourceItem> idItems = Lists.newArrayList();
+              List<ResourceItem> idItems = new ArrayList<>();
               for (ResourceItem item : resourceFile) {
                 if (item.getType() == ResourceType.ID) {
                   idsBefore.add(item.getName());
@@ -1167,7 +1165,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 // items manually, can't just do map.remove(item.getName(), item)
                 List<ResourceItem> mapItems = map.get(id);
                 if (mapItems != null && !mapItems.isEmpty()) {
-                  List<ResourceItem> toDelete = Lists.newArrayListWithExpectedSize(mapItems.size());
+                  List<ResourceItem> toDelete = new ArrayList<>(mapItems.size());
                   for (ResourceItem mapItem : mapItems) {
                     if (mapItem.getSource() == resourceFile) {
                       toDelete.add(mapItem);
@@ -1183,7 +1181,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           }
 
           // Add items for this file
-          List<ResourceItem> idItems = Lists.newArrayList();
+          List<ResourceItem> idItems = new ArrayList<>();
           file = ensureValid(file);
           if (file != null) {
             addIds(result, idItems, file);
@@ -1409,7 +1407,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
-                List<ResourceItem> ids = Lists.newArrayList();
+                List<ResourceItem> ids = new ArrayList<>();
                 Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
                 addIds(result, ids, child, psiFile);
                 commitToRepository(result);
@@ -2420,10 +2418,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return getClass().getSimpleName() + " for " + myResourceDir + ": @" + Integer.toHexString(System.identityHashCode(this));
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected Set<VirtualFile> computeResourceDirs() {
-    return Sets.newHashSet(myResourceDir);
+    return Collections.singleton(myResourceDir);
   }
 
   /**
