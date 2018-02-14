@@ -29,15 +29,14 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
-import com.intellij.spellchecker.quickfixes.AcceptWordAsCorrect;
 import com.intellij.spellchecker.quickfixes.RenameTo;
+import com.intellij.spellchecker.quickfixes.SaveTo;
 import com.intellij.testFramework.UsefulTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -226,7 +225,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertEquals(2, fixes.size());
     assertInstanceOf(((QuickFixWrapper)fixes.get(0)).getFix(), RenameTo.class);
-    assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), AcceptWordAsCorrect.class);
+    assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), SaveTo.class);
   }
 
   /**
