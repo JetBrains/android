@@ -21,7 +21,6 @@
   <project-components>
     <component>
       <implementation-class>com.android.tools.adtui.workbench.DetachedToolWindowManager</implementation-class>
-      <skipForDefaultProject/>
     </component>
   </project-components>
 </idea-plugin>
