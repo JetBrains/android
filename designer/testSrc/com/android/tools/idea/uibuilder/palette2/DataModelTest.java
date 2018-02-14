@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.util.PropertiesComponent;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -119,6 +120,21 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
       "Button", "ImageButton", "CheckBox", "RadioGroup", "RadioButton", "ToggleButton", "Switch", "FloatingActionButton").inOrder();
+  }
+
+  public void testContainersGroup() {
+    myDataModel.setLayoutType(myFacet, NlLayoutType.LAYOUT);
+    assertThat(myCategoryListModel.getSize()).isEqualTo(8);
+    assertThat(myCategoryListModel.getElementAt(5).getName()).isEqualTo("Containers");
+    assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
+
+    System.clearProperty(NavigationSchema.ENABLE_NAV_PROPERTY);
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
+    assertThat(getElementsAsStrings(myItemListModel)).doesNotContain("NavHostFragment");
+
+    System.setProperty(NavigationSchema.ENABLE_NAV_PROPERTY, "true");
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
+    assertThat(getElementsAsStrings(myItemListModel)).contains("NavHostFragment");
   }
 
   public void testSearch() {

@@ -25,6 +25,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -79,7 +80,8 @@ public class DataModel {
 
       return myDependencyManager.useAndroidxDependencies() ? isAndroidxTag : isOldSupportLibTag;
     };
-    myFilterCondition = Conditions.and(androidxFilter, myFilterPattern);
+    Condition<Palette.Item> navFilter = item -> !item.getId().equals("NavHostFragment") || NavigationSchema.enableNavigationEditor();
+    myFilterCondition = Conditions.and(Conditions.and(androidxFilter, myFilterPattern), navFilter);
   }
 
   @NotNull

@@ -398,6 +398,16 @@
     <item tag="ViewStub"/>
     <item tag="include"/>
     <item tag="fragment"/>
+    <item tag="fragment" title="NavHostFragment" suggested="true" id="NavHostFragment">
+      <xml>
+        <![CDATA[
+            <fragment
+              android:name="android.arch.navigation.NavHostFragment"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"/>
+          ]]>
+      </xml>
+    </item>
     <item tag="view"/>
     <item tag="requestFocus"/>
   </group>

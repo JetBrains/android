@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.model.NlComponent;
@@ -37,7 +39,10 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
@@ -51,6 +56,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
@@ -276,6 +282,22 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   private static NlComponent getChild(@NotNull NlComponent parent, int index) {
     return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
+  }
+
+  @Override
+  public void openResourceFile(@NotNull String resourceId) {
+    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    ResourceValue value = resolver != null ? resolver.findResValue(resourceId, false) : null;
+    String fileName = value != null ? value.getValue() : null;
+    if (fileName != null) {
+      File file = new File(fileName);
+      if (file.exists()) {
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
+        if (virtualFile != null) {
+          FileEditorManager.getInstance(myModel.getProject()).openFile(virtualFile, true);
+        }
+      }
+    }
   }
 
   /**
