@@ -202,4 +202,7 @@ public abstract class ViewEditor {
    */
   @NotNull
   public abstract NlDependencyManager getDependencyManager();
+
+
+  public abstract void openResourceFile(@NotNull String resourceId);
 }

@@ -435,7 +435,7 @@ public class NlDesignSurface extends DesignSurface {
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
 
     if (handler != null) {
-      handler.onActivateInDesignSurface(component, x, y);
+      handler.onActivateInDesignSurface(component, getSceneManager().getViewEditor(), x, y);
     }
     super.notifyComponentActivate(component, x, y);
   }
