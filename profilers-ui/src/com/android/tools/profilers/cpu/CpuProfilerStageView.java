@@ -67,6 +67,8 @@ import java.awt.event.*;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -419,7 +421,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       x -> getTraceIntersectingWithMouseX(x) != null,
       x -> getIdeComponents().createExportDialog().open(
         () -> "Export trace as",
-        () -> "trace",
+        () -> generateTraceName(getTraceIntersectingWithMouseX(x)),
         () -> "trace",
         file -> getStage().getStudioProfilers().getIdeServices().saveFile(
           file,
@@ -444,6 +446,23 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     contextMenuInstaller.installGenericContextMenu(mySelection, record);
     contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
+  }
+
+  /**
+   * Generate a default name for a trace to be exported. The name suggested is based on the current timestamp and the capture type.
+   */
+  private String generateTraceName(CpuTraceInfo traceInfo) {
+    StringBuilder traceName = new StringBuilder("cpu-");
+    CpuCapture capture = myStage.getCapture();
+    if (capture != null) {
+      String normalizedTraceType = traceInfo.getProfilerType().name().toLowerCase();
+      traceName.append(normalizedTraceType);
+      traceName.append("-");
+    }
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
+    traceName.append(LocalDateTime.now().format(formatter));
+    traceName.append(".trace");
+    return traceName.toString();
   }
 
   /**
