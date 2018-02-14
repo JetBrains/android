@@ -18,9 +18,9 @@ package com.android.tools.datastore.database;
 import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
 import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
-import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
 import com.intellij.openapi.util.io.FileUtil;
 import org.junit.After;
@@ -57,19 +57,21 @@ public class ProfilerTableTest {
   public void testInsertAndGetSessions() throws Exception {
     List<Common.Session> sessions = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
+      long startTime = 40 + i;
+      String sessionName = Integer.toString(60 + i);
       Common.Session session = Common.Session.newBuilder()
         .setSessionId(10 + i)
         .setDeviceId(20 + i)
         .setPid(30 + i)
-        .setStartTimestamp(40 + i)
+        .setStartTimestamp(startTime)
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      myTable.insertOrUpdateSession(session);
+      myTable.insertOrUpdateSession(session, sessionName, startTime);
       sessions.add(session);
     }
 
-    GetSessionsResponse response = myTable.getSessions(GetSessionsRequest.getDefaultInstance());
+    GetSessionsResponse response = myTable.getSessions();
     assertThat(response.getSessionsCount()).isEqualTo(10);
     for (int i = 0; i < 10; i++) {
       assertThat(response.getSessions(i)).isEqualTo(sessions.get(i));
@@ -77,14 +79,41 @@ public class ProfilerTableTest {
 
     for (int i = 0; i < 10; i++) {
       Common.Session session = sessions.get(i).toBuilder().setEndTimestamp(50 + i).build();
+      myTable.updateSessionEndTime(session.getSessionId(), session.getEndTimestamp());
       sessions.set(i, session);
-      myTable.insertOrUpdateSession(session);
     }
 
-    response = myTable.getSessions(GetSessionsRequest.getDefaultInstance());
+    response = myTable.getSessions();
     assertThat(response.getSessionsCount()).isEqualTo(10);
     for (int i = 0; i < 10; i++) {
       assertThat(response.getSessions(i)).isEqualTo(sessions.get(i));
+    }
+  }
+
+  @Test
+  public void testInsertAndGetSessionMetaData() {
+    List<Common.SessionMetaData> metaDatas = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      long sessionId = 10 + i;
+      long startTime = 40 + i;
+      String sessionName = Integer.toString(60 + i);
+      Common.Session session = Common.Session.newBuilder()
+        .setSessionId(sessionId)
+        .build();
+      Common.SessionMetaData metaData = Common.SessionMetaData.newBuilder()
+        .setSessionId(sessionId)
+        .setStartTimestampEpochMs(startTime)
+        .setSessionName(sessionName)
+        .build();
+
+      myTable.insertOrUpdateSession(session, sessionName, startTime);
+      metaDatas.add(metaData);
+    }
+
+    for (int i = 0; i < 10; i++) {
+      Common.SessionMetaData data = metaDatas.get(i);
+      Profiler.GetSessionMetaDataResponse response = myTable.getSessionMetaData(data.getSessionId());
+      assertThat(response.getData()).isEqualTo(data);
     }
   }
 

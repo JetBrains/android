@@ -35,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,6 +83,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Common.Device myDevice;
 
+  /**
+   * The session that is currently being profiled (e.g. end timestamp == Long.MAX_VALUE)
+   */
   @NotNull
   private Common.Session mySession;
 
@@ -295,10 +299,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (!Objects.equals(device, myDevice)) {
       // The device has changed and we need to reset the process.
       // First, stop profiling the current process on the previous device.
-      if (myDevice != null && myProcess != null &&
-          myDevice.getDeviceId() == myProcess.getDeviceId() &&
-          myDevice.getState() == Common.Device.State.ONLINE &&
-          myProcess.getState() == Common.Process.State.ALIVE) {
+      if (mySession.getEndTimestamp() == Long.MAX_VALUE) {
         endSession();
       }
 
@@ -334,12 +335,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     if (!Objects.equals(process, myProcess)) {
-      if (myDevice != null && myProcess != null &&
-          myDevice.getState() == Common.Device.State.ONLINE &&
-          // Avoids calling endSession() on a previous process if the device has already changed.
-          // In those cases, endSession() should have already been called during setDevice.
-          myDevice.getDeviceId() == myProcess.getDeviceId() &&
-          myProcess.getState() == Common.Process.State.ALIVE) {
+      // Avoids calling endSession() on a previous process if the device has already changed.
+      // In those cases, endSession() should have already been called during setDevice.
+      if (mySession.getEndTimestamp() == Long.MAX_VALUE) {
         endSession();
       }
 
@@ -393,8 +391,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private void beginSession() {
     assert myDevice != null && myProcess != null;
 
-    BeginSessionRequest.Builder requestBuilder =
-      BeginSessionRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).setPid(myProcess.getPid());
+    BeginSessionRequest.Builder requestBuilder = BeginSessionRequest.newBuilder()
+      .setDeviceId(myDevice.getDeviceId())
+      .setPid(myProcess.getPid())
+      .setSessionName(buildSessionName(myDevice, myProcess))
+      .setRequestTimeEpochMs(System.currentTimeMillis());
     // Attach agent for advanced profiling if JVMTI is enabled
     if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O && myIdeServices.getFeatureConfig().isJvmtiAgentEnabled()) {
       // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
@@ -421,6 +422,36 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySession = response.getSession();
     mySessions.put(mySession.getSessionId(), mySession);
     changed(ProfilerAspect.SESSIONS);
+  }
+
+  @NotNull
+  private String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
+    StringBuilder deviceNameBuilder = new StringBuilder();
+    String manufacturer = device.getManufacturer();
+    String model = device.getModel();
+    String serial = device.getSerial();
+    String suffix = String.format("-%s", serial);
+    if (model.endsWith(suffix)) {
+      model = model.substring(0, model.length() - suffix.length());
+    }
+    if (!StringUtil.isEmpty(manufacturer)) {
+      deviceNameBuilder.append(manufacturer);
+      deviceNameBuilder.append(" ");
+    }
+    deviceNameBuilder.append(model);
+
+    return String.format("%s (%s)", process.getName(), deviceNameBuilder.toString());
+  }
+
+  @NotNull
+  public String getSessionDisplayName() {
+    if (Common.Session.getDefaultInstance().equals(mySession)) {
+      return "";
+    }
+
+    GetSessionMetaDataResponse response = myClient.getProfilerClient()
+      .getSessionMetaData(GetSessionMetaDataRequest.newBuilder().setSessionId(mySession.getSessionId()).build());
+    return response.getData().getSessionName();
   }
 
   /**
@@ -515,10 +546,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myTimeline;
   }
 
+  @Nullable
   public Common.Device getDevice() {
     return myDevice;
   }
 
+  @Nullable
   public Common.Process getProcess() {
     return myProcess;
   }

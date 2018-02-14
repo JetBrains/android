@@ -19,7 +19,6 @@ import com.android.tools.datastore.DeviceId;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,10 +36,12 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     INSERT_PROCESS,
     UPDATE_PROCESS,
     INSERT_SESSION,
+    UPDATE_SESSION,
     SELECT_PROCESSES,
     SELECT_PROCESS_BY_ID,
     SELECT_DEVICE,
     SELECT_SESSIONS,
+    SELECT_SESSION_BY_ID,
     FIND_AGENT_STATUS,
     UPDATE_AGENT_STATUS,
     INSERT_BYTES,
@@ -61,7 +62,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER", "EndTime INTEGER",
                   "HasAgent INTEGER", "LastKnownAttachedTime INTEGER", "Data BLOB");
       createTable("Profiler_Sessions", "SessionId INTEGER", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER",
-                  "EndTime INTEGER");
+                  "EndTime INTEGER", "StartTimeEpochMs INTEGER", "NAME TEXT");
       createUniqueIndex("Profiler_Processes", "DeviceId", "ProcessId", "StartTime");
       createUniqueIndex("Profiler_Devices", "DeviceId");
       createUniqueIndex("Profiler_Bytes", "Id", "Session");
@@ -82,7 +83,11 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.UPDATE_PROCESS,
                       "UPDATE Profiler_Processes Set EndTime = ?, Data = ? WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.INSERT_SESSION,
-                      "INSERT OR REPLACE INTO Profiler_Sessions (SessionId, DeviceId, ProcessId, StartTime, EndTime) values (?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Profiler_Sessions " +
+                      "(SessionId, DeviceId, ProcessId, StartTime, EndTime, StartTimeEpochMs, Name) " +
+                      "values (?, ?, ?, ?, ?, ?, ?)");
+      createStatement(ProfilerStatements.UPDATE_SESSION,
+                      "UPDATE Profiler_Sessions Set EndTime = ? WHERE SessionId = ?");
       createStatement(ProfilerStatements.SELECT_PROCESSES,
                       "SELECT Data from Profiler_Processes WHERE DeviceId = ? AND (EndTime > ? OR EndTime = 0) AND StartTime < ?");
       createStatement(ProfilerStatements.SELECT_PROCESS_BY_ID,
@@ -91,6 +96,8 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
                       "SELECT Data from Profiler_Devices");
       createStatement(ProfilerStatements.SELECT_SESSIONS,
                       "SELECT * from Profiler_Sessions ORDER BY SessionId ASC");
+      createStatement(ProfilerStatements.SELECT_SESSION_BY_ID,
+                      "SELECT * from Profiler_Sessions WHERE SessionId = ?");
       createStatement(ProfilerStatements.FIND_AGENT_STATUS,
                       "SELECT HasAgent, LastKnownAttachedTime from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.UPDATE_AGENT_STATUS,
@@ -147,7 +154,33 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   }
 
   @NotNull
-  public GetSessionsResponse getSessions(@NotNull GetSessionsRequest request) {
+  public GetSessionMetaDataResponse getSessionMetaData(long sessionId) {
+    if (isClosed()) {
+      return GetSessionMetaDataResponse.getDefaultInstance();
+    }
+
+    // Note - this is not being called from multiple threads at the moment.
+    // If we ever need to call getSessions and insertOrUpdateSession synchronously, we should protect the logic below.
+    GetSessionMetaDataResponse.Builder responseBuilder = GetSessionMetaDataResponse.newBuilder();
+    try {
+      ResultSet results = executeQuery(ProfilerStatements.SELECT_SESSION_BY_ID, sessionId);
+      while (results.next()) {
+        responseBuilder.setData(Common.SessionMetaData.newBuilder()
+                                  .setSessionId(results.getLong(1))
+                                  .setStartTimestampEpochMs(results.getLong(6))
+                                  .setSessionName(results.getString(7))
+                                  .build());
+      }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+
+    return responseBuilder.build();
+  }
+
+  @NotNull
+  public GetSessionsResponse getSessions() {
     if (isClosed()) {
       return GetSessionsResponse.getDefaultInstance();
     }
@@ -201,11 +234,17 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     }
   }
 
-  public void insertOrUpdateSession(@NotNull Common.Session session) {
+  public void insertOrUpdateSession(@NotNull Common.Session session, @NotNull String name, long startTimeUtc) {
     // Note - this is not being called from multiple threads at the moment.
     // If we ever need to call getSessions and insertOrUpdateSession synchronously, we should protect the logic below.
     execute(ProfilerStatements.INSERT_SESSION, session.getSessionId(), session.getDeviceId(), session.getPid(),
-            session.getStartTimestamp(), session.getEndTimestamp());
+            session.getStartTimestamp(), session.getEndTimestamp(), startTimeUtc, name);
+  }
+
+  public void updateSessionEndTime(long sessionId, long endTimestampNs) {
+    // Note - this is not being called from multiple threads at the moment.
+    // If we ever need to call getSessions and insertOrUpdateSession synchronously, we should protect the logic below.
+    execute(ProfilerStatements.UPDATE_SESSION, endTimestampNs, sessionId);
   }
 
   /**
