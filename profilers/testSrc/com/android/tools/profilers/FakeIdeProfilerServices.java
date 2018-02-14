@@ -59,6 +59,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myEnergyProfilerEnabled = false;
 
   /**
+   * Can toggle for tests via {@link #enableExportTrace(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myExportCpuTraceEnabled = false;
+
+  /**
    * Toggle for faking jvmti agent support in tests.
    */
   private boolean myJvmtiAgentEnabled = false;
@@ -103,10 +108,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean mySimpleperfEnabled = false;
 
-  /**
-   * Can toggle for tests via {@link #enableExportTrace(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myExportCpuTraceEnabled = false;
 
   /**
    * List of custom CPU profiling configurations.
@@ -199,6 +200,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isExportCpuTraceEnabled() {
+        return myExportCpuTraceEnabled;
+      }
+
+      @Override
       public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
 
       @Override
@@ -239,11 +245,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isSimpleperfEnabled() {
         return mySimpleperfEnabled;
-      }
-
-      @Override
-      public boolean isExportCpuTraceEnabled() {
-        return myExportCpuTraceEnabled;
       }
     };
   }
