@@ -28,7 +28,6 @@ import org.junit.runner.RunWith;
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
   NlDesignSurfaceTest.class, // Flaky
-  com.android.tools.idea.uibuilder.property.editors.support.StyleFilterTest.class,  // b/72973198
 })
 public class DesignerTestSuite extends IdeaTestSuiteBase {
 
