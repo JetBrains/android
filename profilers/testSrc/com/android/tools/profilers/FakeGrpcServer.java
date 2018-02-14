@@ -55,13 +55,13 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     return ourProfiledProcesses.keySet().size();
   }
 
-  private synchronized static void addProfileredProcess(Common.Session session) {
+  private synchronized static void addProfiledProcess(Common.Session session) {
     long sessionId = session.getSessionId();
     int profilerCount = ourProfiledProcesses.getOrDefault(sessionId, 0);
     ourProfiledProcesses.put(sessionId, profilerCount + 1);
   }
 
-  private synchronized static void removeProfileredProcess(Common.Session session) {
+  private synchronized static void removeProfiledProcess(Common.Session session) {
     long sessionId = session.getSessionId();
     Integer profilerCount = ourProfiledProcesses.get(sessionId);
     if (profilerCount != null) {
@@ -79,14 +79,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(EventStartRequest request, StreamObserver<EventStartResponse> response) {
       response.onNext(EventStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession());
+      addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(EventStopRequest request, StreamObserver<EventStopResponse> response) {
       response.onNext(EventStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession());
+      removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -107,14 +107,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> response) {
       response.onNext(MemoryStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession());
+      addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> response) {
       response.onNext(MemoryStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession());
+      removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -129,14 +129,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(NetworkStartRequest request, StreamObserver<NetworkStartResponse> response) {
       response.onNext(NetworkStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession());
+      addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(NetworkStopRequest request, StreamObserver<NetworkStopResponse> response) {
       response.onNext(NetworkStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession());
+      removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -151,14 +151,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {
       response.onNext(CpuStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession());
+      addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> response) {
       response.onNext(CpuStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession());
+      removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -188,6 +188,22 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   }
 
   private static class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase {
+    @Override
+    public void startMonitoringApp(EnergyProfiler.EnergyStartRequest request,
+                                   StreamObserver<EnergyProfiler.EnergyStartResponse> response) {
+      response.onNext(EnergyProfiler.EnergyStartResponse.getDefaultInstance());
+      response.onCompleted();
+      addProfiledProcess(request.getSession());
+    }
+
+    @Override
+    public void stopMonitoringApp(EnergyProfiler.EnergyStopRequest request,
+                                  StreamObserver<EnergyProfiler.EnergyStopResponse> response) {
+      response.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance());
+      response.onCompleted();
+      removeProfiledProcess(request.getSession());
+    }
+
     @Override
     public void getData(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergyDataResponse> response) {
       response.onNext(EnergyProfiler.EnergyDataResponse.getDefaultInstance());

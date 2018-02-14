@@ -60,6 +60,8 @@ public final class PerfdProxy implements AndroidDebugBridge.IDeviceChangeListene
                                                  new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
                                                (d, p) -> new StudioLegacyAllocationTracker(d, p)));
     myProxyServices.add(new NetworkServiceProxy(device, perfdChannel));
+    myProxyServices.add(new EnergyServiceProxy(device, perfdChannel));
+
 
     ServerBuilder builder = InProcessServerBuilder.forName(channelName);
     myProxyServices.forEach(service -> builder.addService(service.getServiceDefinition()));
