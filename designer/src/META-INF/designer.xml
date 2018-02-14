@@ -47,24 +47,19 @@
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
-      <skipForDefaultProject/>
       <headless-implementation-class/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
-      <skipForDefaultProject/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.editor.LayoutNavigationManager</implementation-class>
-      <skipForDefaultProject/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
-      <skipForDefaultProject/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm$Storage</implementation-class>
-      <skipForDefaultProject/>
     </component>
   </project-components>
 

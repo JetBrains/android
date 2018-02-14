@@ -52,28 +52,22 @@
     </component>
     <component>
       <implementation-class>com.android.tools.idea.editors.theme.AndroidThemePreviewToolWindowManager</implementation-class>
-      <skipForDefaultProject/>
       <headless-implementation-class/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.gradle.project.AndroidGradleProjectComponent</implementation-class>
-      <skipForDefaultProject/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.res.PsiProjectListener</implementation-class>
-      <skipForDefaultProject/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
-      <skipForDefaultProject/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.profiling.view.EmptyManager</implementation-class>
-      <skipForDefaultProject/>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.profiling.view.AnalysisResultsManager</implementation-class>
-      <skipForDefaultProject/>
     </component>
   </project-components>
   <actions>
@@ -1347,7 +1341,6 @@
     </component>
     <component>
       <implementation-class>com.android.tools.adtui.workbench.DetachedToolWindowManager</implementation-class>
-      <skipForDefaultProject/>
     </component>
   </project-components>
 
