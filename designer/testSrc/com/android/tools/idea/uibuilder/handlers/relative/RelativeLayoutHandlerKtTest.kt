@@ -48,7 +48,7 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"70dp\"\n" +
             "        android:layout_height=\"30dp\"\n" +
-            "        android:layout_marginLeft=\"100dp\"\n" +
+            "        android:layout_marginLeft=\"50dp\"\n" +
             "        android:layout_marginTop=\"30dp\"\n" +
             "        android:layout_toRightOf=\"@id/button\"\n" +
             "        android:layout_below=\"@id/button\" />")
@@ -64,7 +64,7 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:layout_width=\"50dp\"\n" +
             "        android:layout_height=\"80dp\"\n" +
             "        android:layout_marginLeft=\"10dp\"\n" +
-            "        android:layout_marginTop=\"100dp\"\n" +
+            "        android:layout_marginTop=\"50dp\"\n" +
             "        android:layout_toRightOf=\"@id/button\"\n" +
             "        android:layout_below=\"@id/button\" />")
   }
@@ -78,8 +78,8 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "        android:id=\"@id/checkbox\"\n" +
             "        android:layout_width=\"70dp\"\n" +
             "        android:layout_height=\"80dp\"\n" +
-            "        android:layout_marginLeft=\"100dp\"\n" +
-            "        android:layout_marginTop=\"100dp\"\n" +
+            "        android:layout_marginLeft=\"50dp\"\n" +
+            "        android:layout_marginTop=\"50dp\"\n" +
             "        android:layout_toRightOf=\"@id/button\"\n" +
             "        android:layout_below=\"@id/button\" />")
   }
@@ -223,9 +223,9 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
                     .withAttribute("android:layout_alignParentTop", "true")
                     .withAttribute("android:layout_alignParentLeft", "true")
                     .withAttribute("android:layout_alignParentStart", "true")
-                    .withAttribute("android:layout_marginTop", "100dp")
-                    .withAttribute("android:layout_marginLeft", "100dp")
-                    .withAttribute("android:layout_marginStart", "100dp"),
+                    .withAttribute("android:layout_marginTop", "50dp")
+                    .withAttribute("android:layout_marginLeft", "50dp")
+                    .withAttribute("android:layout_marginStart", "50dp"),
 
                 component(CHECK_BOX)
                     .withBounds(300, 300, 20, 20)
@@ -235,8 +235,8 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
                     .height("20dp")
                     .withAttribute("android:layout_below", "@id/button")
                     .withAttribute("android:layout_toRightOf", "@id/button")
-                    .withAttribute("android:layout_marginLeft", "100dp")
-                    .withAttribute("android:layout_marginTop", "100dp")
+                    .withAttribute("android:layout_marginLeft", "50dp")
+                    .withAttribute("android:layout_marginTop", "50dp")
             ))
     val model = builder.build()
     assertEquals(1, model.components.size)
@@ -257,9 +257,9 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
         "        android:layout_alignParentTop=\"true\"\n" +
         "        android:layout_alignParentLeft=\"true\"\n" +
         "        android:layout_alignParentStart=\"true\"\n" +
-        "        android:layout_marginTop=\"100dp\"\n" +
-        "        android:layout_marginLeft=\"100dp\"\n" +
-        "        android:layout_marginStart=\"100dp\" />\n" +
+        "        android:layout_marginTop=\"50dp\"\n" +
+        "        android:layout_marginLeft=\"50dp\"\n" +
+        "        android:layout_marginStart=\"50dp\" />\n" +
         "\n" +
         "    <CheckBox\n" +
         "        android:id=\"@id/checkbox\"\n" +
@@ -267,8 +267,8 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
         "        android:layout_height=\"20dp\"\n" +
         "        android:layout_below=\"@id/button\"\n" +
         "        android:layout_toRightOf=\"@id/button\"\n" +
-        "        android:layout_marginLeft=\"100dp\"\n" +
-        "        android:layout_marginTop=\"100dp\" />\n" +
+        "        android:layout_marginLeft=\"50dp\"\n" +
+        "        android:layout_marginTop=\"50dp\" />\n" +
         "\n" +
         "</RelativeLayout>\n", model.file.text)
     return builder
