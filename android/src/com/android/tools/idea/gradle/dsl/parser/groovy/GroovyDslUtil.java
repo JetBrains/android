@@ -334,7 +334,7 @@ public final class GroovyDslUtil {
     if (map.getNamedArguments().length != 0) {
       map.addAfter(GroovyPsiElementFactory.getInstance(map.getProject()).createWhiteSpace(), map.getLBrack());
       final ASTNode astNode = map.getNode();
-      astNode.addLeaf(GroovyTokenTypes.mCOMMA, ",", map.getLBrack().getNextSibling().getNode());
+      astNode.addLeaf(mCOMMA, ",", map.getLBrack().getNextSibling().getNode());
       CodeStyleManager.getInstance(map.getProject()).reformat(map);
     }
     else {

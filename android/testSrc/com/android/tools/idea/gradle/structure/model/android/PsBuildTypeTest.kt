@@ -235,12 +235,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
       assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("z.txt")))
 
-      // TODO(b/73059531): The value should not change after applying changes.
-      if (afterSync) {
-        assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
-      } else {
-        assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
-      }
+      assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
 
       if (afterSync) {
         assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))

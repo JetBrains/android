@@ -465,6 +465,94 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertEquals(VARIABLE, value.propertyType)
   }
 
+  fun testCreateAndDeleteListToEmpty() {
+    val text = """
+               ext {
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    run {
+      val propertyModel = extModel.findProperty("prop2")
+      assertMissingProperty(propertyModel)
+      propertyModel.addListValue().setValue("true")
+      verifyListProperty(propertyModel, listOf("true"), true)
+      val valueModel = propertyModel.getListValue("true")!!
+      verifyPropertyModel(valueModel, STRING_TYPE, "true", STRING, DERIVED, 0, "0")
+      valueModel.delete()
+      assertMissingProperty(valueModel)
+      verifyListProperty(propertyModel, listOf(), true)
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = extModel.findProperty("prop2")
+      verifyListProperty(propertyModel, listOf(), true)
+    }
+  }
+
+  fun testCreateAndDeletePlaceHoldersToEmpty() {
+    val text = """
+               android {
+                 defaultConfig {
+                 }
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    run {
+      val propertyModel = buildModel.android()?.defaultConfig()?.manifestPlaceholders()!!
+      assertMissingProperty(propertyModel)
+      propertyModel.getMapValue("key").setValue("true")
+      verifyMapProperty(propertyModel, mapOf("key" to "true"))
+      val valueModel = propertyModel.getMapValue("key")
+      verifyPropertyModel(valueModel, STRING_TYPE, "true", STRING, DERIVED, 0, "key")
+      valueModel.delete()
+      assertMissingProperty(valueModel)
+      verifyMapProperty(propertyModel, mapOf())
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = buildModel.android()?.defaultConfig()?.manifestPlaceholders()!!
+      verifyMapProperty(propertyModel, mapOf())
+    }
+  }
+
+  fun testCreateAndDeleteMapToEmpty() {
+    val text = """
+               ext {
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    run {
+      val propertyModel = extModel.findProperty("prop2")
+      assertMissingProperty(propertyModel)
+      propertyModel.getMapValue("key").setValue("true")
+      verifyMapProperty(propertyModel, mapOf("key" to "true"))
+      val valueModel = propertyModel.getMapValue("key")
+      verifyPropertyModel(valueModel, STRING_TYPE, "true", STRING, DERIVED, 0, "key")
+      valueModel.delete()
+      assertMissingProperty(valueModel)
+      verifyMapProperty(propertyModel, mapOf())
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = extModel.findProperty("prop2")
+      verifyMapProperty(propertyModel, mapOf())
+    }
+  }
+
   fun testReferenceMapDependency() {
     val text = """
                ext {
@@ -992,13 +1080,15 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.setValue(File("Hello"))
         fail()
-      } catch (e : IllegalArgumentException) {
+      }
+      catch (e: IllegalArgumentException) {
         // Expected
       }
       try {
         propertyModel.setValue(BigDecimal(3))
         fail()
-      } catch (e : IllegalArgumentException) {
+      }
+      catch (e: IllegalArgumentException) {
         // Expected
       }
 
@@ -1555,7 +1645,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = extModel.findProperty("prop1")
-      verifyListProperty(propertyModel, listOf<Any>(1, 2, 3, 4) , REGULAR, 0)
+      verifyListProperty(propertyModel, listOf<Any>(1, 2, 3, 4), REGULAR, 0)
     }
 
     run {
@@ -1581,9 +1671,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   fun testiStr() {
     assertEquals("\"Its rider held a bow, and he was given a crown, and he rode out as a conqueror bent on conquest.\"",
-            iStr("Its rider held a bow, and he was given a crown, and he rode out as a conqueror bent on conquest."))
+        iStr("Its rider held a bow, and he was given a crown, and he rode out as a conqueror bent on conquest."))
     assertEquals("\"When the Lamb opened the second seal, I heard the second living creature say, \\\"Come and see!\\\" \"",
-            iStr("When the Lamb opened the second seal, I heard the second living creature say, \"Come and see!\" "))
+        iStr("When the Lamb opened the second seal, I heard the second living creature say, \"Come and see!\" "))
   }
 
   fun testCreateNewEmptyMapValue() {
@@ -1625,7 +1715,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.getMapValue("key")
         fail("Exception should have been thrown!")
-      } catch (e : IllegalStateException) {
+      }
+      catch (e: IllegalStateException) {
         // Expected.
       }
     }
@@ -2262,16 +2353,18 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.addListValue().setValue("True")
         fail()
-      } catch (e : IllegalStateException) {
+      }
+      catch (e: IllegalStateException) {
         // Expected
       }
 
       try {
         propertyModel.addListValueAt(23).setValue(72)
         fail()
-      } catch (e : IllegalStateException) {{
+      }
+      catch (e: IllegalStateException) {
         // Expected
-      }}
+      }
     }
   }
 
@@ -2286,12 +2379,13 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyListProperty(propertyModel, listOf(1,2,3,4,5,6,"hello"), REGULAR, 0)
+      verifyListProperty(propertyModel, listOf(1, 2, 3, 4, 5, 6, "hello"), REGULAR, 0)
 
       try {
         propertyModel.addListValueAt(82).setValue(true)
         fail()
-      } catch (e : IndexOutOfBoundsException) {
+      }
+      catch (e: IndexOutOfBoundsException) {
         // Expected
       }
     }
@@ -2406,7 +2500,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals(LIST, thirdModel.valueType)
       val thirdList = thirdModel.getValue(LIST_TYPE)!!
       assertSize(1, thirdList)
-      verifyPropertyModel(thirdList[0], STRING_TYPE, "prop2", REFERENCE, DERIVED,  1)
+      verifyPropertyModel(thirdList[0], STRING_TYPE, "prop2", REFERENCE, DERIVED, 1)
 
       val fourthModel = buildModel.ext().findProperty("prop4")
       assertEquals(MAP, fourthModel.valueType)
@@ -2545,7 +2639,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyListProperty(propertyModel, listOf(1,2,3), REGULAR, 0)
+      verifyListProperty(propertyModel, listOf(1, 2, 3), REGULAR, 0)
       // Set middle value
       propertyModel.getValue(LIST_TYPE)!![1].setValue(true)
       verifyListProperty(propertyModel, listOf(1, true, 3), REGULAR, 0)
@@ -2940,7 +3034,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     }
   }
-  
+
   fun testVariablesFromNestedApply() {
     val firstApplyFileText = """
                              def var1 = "1"
