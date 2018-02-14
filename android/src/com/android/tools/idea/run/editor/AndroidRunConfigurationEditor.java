@@ -38,12 +38,9 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.util.ui.PlatformColors;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -190,7 +187,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   @Override
-  protected void resetEditorFrom(T configuration) {
+  protected void resetEditorFrom(@NotNull T configuration) {
     // Set configurations before resetting the module selector to avoid premature calls to setFacet.
     myModuleSelector.reset(configuration);
 
@@ -215,7 +212,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   @Override
-  protected void applyEditorTo(T configuration) throws ConfigurationException {
+  protected void applyEditorTo(@NotNull T configuration) throws ConfigurationException {
     myModuleSelector.applyTo(configuration);
 
     DeployTargetContext deployTargetContext = configuration.getDeployTargetContext();
