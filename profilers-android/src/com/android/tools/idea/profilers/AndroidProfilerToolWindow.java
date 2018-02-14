@@ -17,13 +17,11 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +57,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     myProfilers.addDependency(this)
       .onChange(ProfilerAspect.MODE, this::updateToolWindow)
       .onChange(ProfilerAspect.STAGE, this::updateToolWindow)
-      .onChange(ProfilerAspect.PROCESSES, this::updateToolWindow);
+      .onChange(ProfilerAspect.SESSIONS, this::updateToolWindow);
   }
 
   private void initializeUi() {
@@ -83,28 +81,14 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
     ToolWindow window = manager.getToolWindow(AndroidProfilerToolWindowFactory.ID);
 
-    Common.Device device = myProfilers.getDevice();
-    Common.Process process = myProfilers.getProcess();
-    if (device == null || process == null) {
+    String sessionName = myProfilers.getSessionDisplayName();
+    if (sessionName.isEmpty()) {
       window.setTitle("");
     }
     else {
-      String manufacturer = device.getManufacturer();
-      String model = device.getModel();
-      String serial = device.getSerial();
-      String suffix = String.format("-%s", serial);
-      if (model.endsWith(suffix)) {
-        model = model.substring(0, model.length() - suffix.length());
-      }
-      StringBuilder titleBuilder = new StringBuilder();
-      if (!StringUtil.isEmpty(manufacturer)) {
-        titleBuilder.append(manufacturer);
-        titleBuilder.append(" ");
-      }
-      titleBuilder.append(model);
       // setTitle appends to the ToolWindow's existing ID (e.g. "Android Profiler"), hence we only
-      // need to create and set the string for "- {process} ({device})".
-      window.setTitle(String.format("- %s (%s)", process.getName(), titleBuilder.toString()));
+      // need to create and set the string for "- SESSION_NAME".
+      window.setTitle(String.format("- %s", sessionName));
     }
 
     boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;

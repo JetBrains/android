@@ -21,6 +21,7 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.poller.ProfilerDevicePoller;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
@@ -105,11 +106,10 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     }
     else {
       BeginSessionResponse response = client.beginSession(request);
-      responseObserver.onNext(response);
-
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
       // The downside is we will have a delay before getSessions will see the data
-      myTable.insertOrUpdateSession(response.getSession());
+      myTable.insertOrUpdateSession(response.getSession(), request.getSessionName(), request.getRequestTimeEpochMs());
+      responseObserver.onNext(response);
     }
     responseObserver.onCompleted();
   }
@@ -122,18 +122,25 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     }
     else {
       EndSessionResponse response = client.endSession(request);
-      responseObserver.onNext(response);
-
+      Common.Session session = response.getSession();
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
       // The downside is we will have a delay before getSessions will see the data
-      myTable.insertOrUpdateSession(response.getSession());
+      myTable.updateSessionEndTime(session.getSessionId(), session.getEndTimestamp());
+      responseObserver.onNext(response);
     }
     responseObserver.onCompleted();
   }
 
   @Override
+  public void getSessionMetaData(GetSessionMetaDataRequest request,
+                                 StreamObserver<GetSessionMetaDataResponse> responseObserver) {
+    responseObserver.onNext(myTable.getSessionMetaData(request.getSessionId()));
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void getSessions(GetSessionsRequest request, StreamObserver<GetSessionsResponse> responseObserver) {
-    responseObserver.onNext(myTable.getSessions(request));
+    responseObserver.onNext(myTable.getSessions());
     responseObserver.onCompleted();
   }
 

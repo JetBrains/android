@@ -160,7 +160,8 @@ public class SessionsView extends AspectObserver {
 
   private void refreshSessions() {
     java.util.List<Common.Session> sessions = new ArrayList<>(myProfilers.getSessions().values());
-    Collections.sort(sessions, Comparator.comparingLong(Common.Session::getStartTimestamp));
+    // The most recent session should appear at the top.
+    Collections.sort(sessions, Comparator.comparingLong(Common.Session::getStartTimestamp).reversed());
 
     mySelectedSession = myProfilers.getSession();
     mySessionsListModel.clear();
@@ -185,7 +186,7 @@ public class SessionsView extends AspectObserver {
       String duration = value.getEndTimestamp() == Long.MAX_VALUE ? "current" :
                         TimeAxisFormatter.DEFAULT
                           .getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(value.getEndTimestamp() - value.getStartTimestamp()));
-      setText(String.format("Session - %s", duration));
+      setText(String.format("session - %s", duration));
     }
   }
 }
