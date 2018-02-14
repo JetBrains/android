@@ -32,7 +32,8 @@ import org.fest.swing.timing.Wait
 import java.io.File
 
 class BazelGuiTestProjectSystem : GuiTestProjectSystem {
-  override val id = BazelGuiTestProjectSystem::class.java.name!!
+  override val id: String
+    get() = BazelGuiTestProjectSystem::class.java.name
 
   override val buildSystem: TargetBuildSystem.BuildSystem
     get() = TargetBuildSystem.BuildSystem.BAZEL
