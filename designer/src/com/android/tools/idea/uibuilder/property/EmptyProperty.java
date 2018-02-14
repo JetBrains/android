@@ -71,7 +71,9 @@ public class EmptyProperty implements NlProperty {
 
   @Override
   public void setValue(@Nullable Object value) {
-    throw new IllegalStateException();
+    if (value != null) {
+      throw new IllegalStateException();
+    }
   }
 
   @Override

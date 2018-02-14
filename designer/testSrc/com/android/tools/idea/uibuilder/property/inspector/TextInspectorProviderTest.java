@@ -172,6 +172,36 @@ public class TextInspectorProviderTest extends PropertyTestCase {
     assertThat(properties.get(ATTR_TEXT_ALIGNMENT).getValue()).isNull();
   }
 
+  public void testTextAppearanceWithEmptyProperties() {
+    // Simulate the case where a property is not supported by a certain API level
+    // http://b/72926267
+    List<NlComponent> components = ImmutableList.of(myTextView);
+    Map<String, NlProperty> properties = getPropertyMap(components);
+    properties.remove(ATTR_TEXT_ALIGNMENT);
+
+    assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
+    TextInspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
+    inspector.refresh();
+
+    Optional<NlComponentEditor> textAppearanceEditor = inspector.getEditors().stream()
+      .filter(editor -> editor.getProperty().getName().equals(ATTR_TEXT_APPEARANCE))
+      .findFirst();
+    assertThat(textAppearanceEditor.isPresent()).isTrue();
+    assert textAppearanceEditor.isPresent();
+    assertThat(textAppearanceEditor.get()).isInstanceOf(BaseComponentEditor.class);
+    BaseComponentEditor editor = (BaseComponentEditor)textAppearanceEditor.get();
+    editor.stopEditing("Material.Display1");
+    UIUtil.dispatchAllInvocationEvents();
+
+    assertThat(properties.get(ATTR_TEXT_APPEARANCE).getValue()).isEqualTo("Material.Display1");
+    assertThat(properties.get(ATTR_TYPEFACE).getValue()).isNull();
+    assertThat(properties.get(ATTR_TEXT_SIZE).getValue()).isNull();
+    assertThat(properties.get(ATTR_LINE_SPACING_EXTRA).getValue()).isNull();
+    assertThat(properties.get(ATTR_TEXT_COLOR).getValue()).isNull();
+    assertThat(properties.get(ATTR_TEXT_STYLE).getValue()).isNull();
+    assertThat(properties.get(ATTR_TEXT_ALL_CAPS).getValue()).isNull();
+  }
+
 
   private static void propertyPanelHasAllComponents(@NotNull InspectorPanel panel,
                                                     @NotNull String propertyName,
