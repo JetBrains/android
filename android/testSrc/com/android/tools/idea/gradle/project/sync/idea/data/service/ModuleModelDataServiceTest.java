@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -31,6 +32,7 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link ModuleModelDataService}.
@@ -50,7 +52,9 @@ public class ModuleModelDataServiceTest extends IdeaTestCase {
     Collection<DataNode<NdkModuleModel>> toImport = new ArrayList<>();
     Project project = getProject();
 
-    myDataService.importData(toImport, mock(ProjectData.class), project, myModelsProvider);
+    ProjectData projectDataMock = mock(ProjectData.class);
+    when(projectDataMock.getOwner()).thenReturn(GradleUtil.GRADLE_SYSTEM_ID);
+    myDataService.importData(toImport, projectDataMock, project, myModelsProvider);
 
     assertTrue(myDataService.onModelsNotFoundInvoked);
     assertFalse(myDataService.importDataInvoked);
