@@ -95,8 +95,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   private FakeProfilerService myFakeService = new FakeProfilerService();
   private TestName myTestName = new TestName();
-  private TestGrpcService<FakeProfilerService> myService =
-    new TestGrpcService<>(ProfilerServiceTest.class, myTestName, myProfilerService, myFakeService);
+  private TestGrpcService myService = new TestGrpcService(ProfilerServiceTest.class, myTestName, myProfilerService, myFakeService);
 
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);

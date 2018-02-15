@@ -19,7 +19,6 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.CpuService;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
@@ -93,8 +92,8 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   public TestName myTestName = new TestName();
   private FakeCpuService myFakeCpuService = new FakeCpuService();
-  public TestGrpcService<FakeCpuService> myService =
-    new TestGrpcService<>(CpuDataPollerTest.class, myTestName, myCpuService, myFakeCpuService, new FakeProfilerService());
+  public TestGrpcService myService =
+    new TestGrpcService(CpuDataPollerTest.class, myTestName, myCpuService, myFakeCpuService, new FakeProfilerService());
 
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
