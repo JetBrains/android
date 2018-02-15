@@ -95,7 +95,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final MemoryProfilerConfiguration myConfiguration;
   private final EventMonitor myEventMonitor;
   private final SelectionModel mySelectionModel;
-  private final StackTraceModel myStackTraceModel;
+  private final StackTraceModel myAllocationStackTraceModel;
+  private final StackTraceModel myDeallocationStackTraceModel;
   private boolean myTrackingAllocations;
   private boolean myUpdateCaptureOnSelection = true;
   private final CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
@@ -163,7 +164,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       }
     });
 
-    myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
+    myAllocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
+    myDeallocationStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
   }
 
   public boolean hasUserUsedMemoryCapture() {
@@ -235,8 +237,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  public StackTraceModel getStackTraceModel() {
-    return myStackTraceModel;
+  public StackTraceModel getAllocationStackTraceModel() {
+    return myAllocationStackTraceModel;
+  }
+
+  @NotNull
+  public StackTraceModel getDeallocationStackTraceModel() {
+    return myDeallocationStackTraceModel;
   }
 
   private void selectCaptureFromSelectionRange() {

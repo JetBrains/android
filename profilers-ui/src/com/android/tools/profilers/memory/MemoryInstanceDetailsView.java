@@ -58,7 +58,8 @@ import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_V
  */
 final class MemoryInstanceDetailsView extends AspectObserver {
   private static final String TITLE_TAB_REFERENCES = "References";
-  private static final String TITLE_TAB_CALLSTACK = "Call Stack";
+  private static final String TITLE_TAB_ALLOCATION_CALLSTACK = "Allocation Call Stack";
+  private static final String TITLE_TAB_DEALLOCATION_CALLSTACK = "Deallocation Call Stack";
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
@@ -70,7 +71,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final JTabbedPane myTabsPanel;
 
-  @NotNull private final StackTraceView myStackTraceView;
+  @NotNull private final StackTraceView myAllocationStackTraceView;
+
+  @NotNull private final StackTraceView myDeallocationStackTraceView;
 
   @Nullable private JComponent myReferenceColumnTree;
 
@@ -90,7 +93,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
     myTabsPanel = new CommonTabbedPane();
     myTabsPanel.addChangeListener(this::trackActiveTab);
-    myStackTraceView = ideProfilerComponents.createStackView(stage.getStackTraceModel());
+    myAllocationStackTraceView = ideProfilerComponents.createStackView(stage.getAllocationStackTraceModel());
+    myDeallocationStackTraceView = ideProfilerComponents.createStackView(stage.getDeallocationStackTraceModel());
 
     myInstanceViewers.add(new BitmapViewer());
 
@@ -217,7 +221,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       case TITLE_TAB_REFERENCES:
         featureTracker.trackSelectMemoryReferences();
         break;
-      case TITLE_TAB_CALLSTACK:
+      case TITLE_TAB_ALLOCATION_CALLSTACK:
+      case TITLE_TAB_DEALLOCATION_CALLSTACK:
         featureTracker.trackSelectMemoryStack();
         break;
       default:
@@ -273,12 +278,21 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     // Populate Callstacks
-    List<CodeLocation> callStack = instance.getCodeLocations();
-    if (!callStack.isEmpty()) {
-      myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), callStack);
-      JComponent stackTraceView = myStackTraceView.getComponent();
+    List<CodeLocation> allocCallStack = instance.getAllocationCodeLocations();
+    if (!allocCallStack.isEmpty()) {
+      myAllocationStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), allocCallStack);
+      JComponent stackTraceView = myAllocationStackTraceView.getComponent();
       stackTraceView.setBorder(DEFAULT_TOP_BORDER);
-      myTabsPanel.addTab(TITLE_TAB_CALLSTACK, stackTraceView);
+      myTabsPanel.addTab(TITLE_TAB_ALLOCATION_CALLSTACK, stackTraceView);
+      hasContent = true;
+    }
+
+    List<CodeLocation> deallocCallStack = instance.getDeallocationCodeLocations();
+    if (!deallocCallStack.isEmpty()) {
+      myDeallocationStackTraceView.getModel().setStackFrames(instance.getDeallocationThreadId(), deallocCallStack);
+      JComponent stackTraceView = myDeallocationStackTraceView.getComponent();
+      stackTraceView.setBorder(DEFAULT_TOP_BORDER);
+      myTabsPanel.addTab(TITLE_TAB_DEALLOCATION_CALLSTACK, stackTraceView);
       hasContent = true;
     }
 

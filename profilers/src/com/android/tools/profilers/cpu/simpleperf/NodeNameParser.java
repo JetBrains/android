@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * Responsible for parsing full method/function names (String) obtained from symbol tables collected when profiling using simpleperf.
  * The names are parsed into {@link CaptureNodeModel} instances containing the class name, method name and signature.
  */
-class NodeNameParser {
+public class NodeNameParser {
 
   private static final Pattern NATIVE_SEPARATOR_PATTERN = Pattern.compile("::");
 
@@ -57,20 +57,23 @@ class NodeNameParser {
   /**
    * C++ function names are usually in the format namespace::Class::Fun(params). Sometimes, they also include
    * return type and template information, e.g. void namespace::Class::Fun<int>(params). We need to handle all the cases and parse
-   * the function name into a {@link CaptureNodeModel}.
+   * the function name into a {@link CppFunctionModel}.
    */
   @NotNull
-  private static CaptureNodeModel parseCppFunctionName(String functionFullName, boolean isUserWritten) {
+  public static CppFunctionModel parseCppFunctionName(String functionFullName, boolean isUserWritten) {
     // First, remove template information.
     functionFullName = removeTemplateInformation(functionFullName);
 
-    // Then, extract the function parameters, which should be between parentheses
+    // Then, try to extract the function parameters, which should be between parentheses
+    String parameters = "";
     int paramsStartIndex = functionFullName.lastIndexOf('(');
-    int paramsEndIndex = findMatchingClosingCharacterIndex(functionFullName, '(', ')', paramsStartIndex);
-    // Make sure not to include the indexes of "(" and ")" when creating the parameters substring.
-    String parameters = functionFullName.substring(paramsStartIndex + 1, paramsEndIndex);
-    // Remove the parameters and everything that comes after it, such as const/volatile modifiers.
-    functionFullName = functionFullName.substring(0, paramsStartIndex);
+    if (paramsStartIndex != -1) {
+      int paramsEndIndex = findMatchingClosingCharacterIndex(functionFullName, '(', ')', paramsStartIndex);
+      // Make sure not to include the indexes of "(" and ")" when creating the parameters substring.
+      parameters = functionFullName.substring(paramsStartIndex + 1, paramsEndIndex);
+      // Remove the parameters and everything that comes after it, such as const/volatile modifiers.
+      functionFullName = functionFullName.substring(0, paramsStartIndex);
+    }
 
     // If the string still contains a whitespace, it's the separator between the return type and the function name.
     int returnTypeSeparatorIndex = functionFullName.indexOf(' ');

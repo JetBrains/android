@@ -109,7 +109,7 @@ public class NativeSymbolsPoller extends PollRunner {
       getLogger().error(e);
     }
     if (symbol == null) {
-      String unfoundSymbolName = String.format("unknown_symbol_at_0x%x()", offset);
+      String unfoundSymbolName = String.format("0x%x", offset);
       return frame.toBuilder().setSymbolName(unfoundSymbolName).build();
     }
     return frame.toBuilder().setSymbolName(symbol.getName())

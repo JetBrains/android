@@ -16,8 +16,10 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -78,12 +80,21 @@ public final class IntelliJCodeElement implements CodeElement {
 
   @Override
   public boolean isInUserCode() {
-    VirtualFile classFile = findClassFile();
-    return classFile != null && ProjectFileIndex.SERVICE.getInstance(myProject).isInSource(classFile);
+    VirtualFile sourceFile = myCodeLocation.isNativeCode() ? findSourceFile() : findClassFile();
+    return sourceFile != null && ProjectFileIndex.SERVICE.getInstance(myProject).isInSource(sourceFile);
   }
 
   @Nullable
-  VirtualFile findClassFile() {
+  private VirtualFile findSourceFile() {
+    String sourceFileName = myCodeLocation.getFileName();
+    if (Strings.isNullOrEmpty(sourceFileName)) {
+      return null;
+    }
+    return LocalFileSystem.getInstance().findFileByPath(sourceFileName);
+  }
+
+  @Nullable
+  private VirtualFile findClassFile() {
     //noinspection UseVirtualFileEquals
     if (myCachedClassFile != UNRESOLVED_CLASS_FILE) {
       return myCachedClassFile;

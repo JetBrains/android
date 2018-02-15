@@ -28,6 +28,7 @@ import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttri
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
@@ -637,8 +638,10 @@ final class MemoryClassifierView extends AspectObserver {
           String nameAndLine = name + "()";
           append(nameAndLine, SimpleTextAttributes.REGULAR_ATTRIBUTES, nameAndLine);
 
-          String classNameText = " (" + className + ")";
-          append(classNameText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, classNameText);
+          if (!Strings.isNullOrEmpty(className)) {
+            String classNameText = " (" + className + ")";
+            append(classNameText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, classNameText);
+          }
         }
         else if (node.getAdapter() instanceof ThreadSet) {
           setIcon(AllIcons.Debugger.ThreadSuspended);

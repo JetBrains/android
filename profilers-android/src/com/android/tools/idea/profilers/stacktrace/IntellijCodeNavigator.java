@@ -19,8 +19,12 @@ import com.android.tools.idea.profilers.TraceSignatureConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.google.common.base.Strings;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
@@ -63,6 +67,11 @@ public final class IntellijCodeNavigator extends CodeNavigator {
 
   @Nullable
   private Navigatable getNavigatable(@NotNull CodeLocation location) {
+    if (!Strings.isNullOrEmpty(location.getFileName()) &&
+        location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
+      return getExplicitLocationNavigable(location);
+    }
+
     if (location.isNativeCode()) {
       return getNativeNavigatable(location);
     }
@@ -95,6 +104,20 @@ public final class IntellijCodeNavigator extends CodeNavigator {
       // Otherwise, navigatable is the class
       return psiClass;
     }
+  }
+
+  /**
+   * Returns a navigation to a file and a line explicitly specified in the location
+   * if it exists.
+   */
+  @Nullable
+  private Navigatable getExplicitLocationNavigable(@NotNull CodeLocation location) {
+    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFile sourceFile = fileSystem.findFileByPath(location.getFileName());
+    if (sourceFile == null || !sourceFile.exists()) {
+      return null;
+    }
+    return new OpenFileDescriptor(myProject, sourceFile, location.getLineNumber(), 0);
   }
 
   /**

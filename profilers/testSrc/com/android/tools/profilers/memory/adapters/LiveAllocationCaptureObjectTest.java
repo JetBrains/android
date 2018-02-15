@@ -485,6 +485,7 @@ public class LiveAllocationCaptureObjectTest {
     }
   }
 
+
   public static class DefaultHeapTest extends LiveAllocationCaptureObjectTest {
 
     @Before
@@ -492,6 +493,7 @@ public class LiveAllocationCaptureObjectTest {
     public void before() {
       super.before();
     }
+
 
     // Class + method names in each StackFrame are lazy-loaded. Check that the method info are fetched correctly.
     @Test
@@ -565,6 +567,88 @@ public class LiveAllocationCaptureObjectTest {
       verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
     }
   }
+
+  public static class JniHeapTest extends LiveAllocationCaptureObjectTest {
+
+    @Before
+    @Override
+    public void before() {
+      super.before();
+      myIdeProfilerServices.enableJniReferenceTracking(true);
+    }
+
+    @Test
+    public void testLazyLoadedCallStack() throws Exception {
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                            ProfilersTestData.SESSION_DATA,
+                                                                            CAPTURE_START_TIME,
+                                                                            LOAD_SERVICE,
+                                                                            myStage);
+
+      // Heap set should start out empty.
+      HeapSet heapSet = capture.getHeapSet(JNI_HEAP_ID);
+      assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
+      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
+
+      Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+      expected_0_to_4.add(new ClassifierSetTestData(0, JNI_HEAP_NAME, 4, 2, 2, 4, 4, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (NativeNamespace::Bar)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (NativeNamespace::Foo)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (NativeNamespace::Foo)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (NativeNamespace::Bar)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodB() (NativeNamespace::Bar)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodB() (NativeNamespace::Foo)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 0, 1, 1, 0, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (NativeNamespace::Foo)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (NativeNamespace::Bar)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
+
+      Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
+      capture.load(loadRange, LOAD_JOINER);
+      verifyClassifierResult(heapSet, expected_0_to_4, 0);
+    }
+
+
+    @Test
+    public void testSelectionWithJaveMethodFilter() throws Exception {
+      // Flag that gets set on the joiner thread to notify the main thread whether the contents in the ChangeNode are accurate.
+      boolean[] loadSuccess = new boolean[1];
+      LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                            ProfilersTestData.SESSION_DATA,
+                                                                            CAPTURE_START_TIME,
+                                                                            LOAD_SERVICE,
+                                                                            myStage);
+
+      // Heap set should start out empty.
+      HeapSet heapSet = capture.getHeapSet(JNI_HEAP_ID);
+      assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
+      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE);
+      myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, () -> loadSuccess[0] = true);
+
+      Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
+      loadSuccess[0] = false;
+      capture.load(loadRange, LOAD_JOINER);
+
+      // Filter with Java method name
+      heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
+      heapSet.selectFilter(getFilterPattern("MethodA", false, false));
+      Queue<ClassifierSetTestData> expected_0_to_4 = new LinkedList<>();
+      expected_0_to_4.add(new ClassifierSetTestData(0, JNI_HEAP_NAME, 3, 2, 1, 4, 3, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "BarMethodA() (NativeNamespace::Bar)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "FooMethodA() (NativeNamespace::Foo)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(3, "Foo", 1, 1, 0, 1, 0, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodB() (NativeNamespace::Foo)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodA() (NativeNamespace::Bar)", 1, 1, 0, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 1, 0, 1, 0, true));
+      expected_0_to_4.add(new ClassifierSetTestData(1, "FooMethodA() (NativeNamespace::Foo)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(2, "BarMethodB() (NativeNamespace::Bar)", 1, 0, 1, 1, 1, true));
+      expected_0_to_4.add(new ClassifierSetTestData(3, "Bar", 1, 0, 1, 1, 0, true));
+      verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+    }
+  }
+
 
   private static boolean verifyClassifierResult(@NotNull ClassifierSet node,
                                                 @NotNull Queue<ClassifierSetTestData> expected,

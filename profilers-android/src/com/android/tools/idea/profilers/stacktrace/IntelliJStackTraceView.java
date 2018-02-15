@@ -24,6 +24,7 @@ import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -41,6 +42,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -219,7 +221,13 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
 
       setIpad(ProfilerLayout.LIST_ROW_INSETS);
       if (value instanceof CodeElement) {
-        renderStackNavigation((CodeElement)value, selected);
+        CodeElement element = (CodeElement)value;
+        if (element.getCodeLocation().isNativeCode()) {
+          renderNativeStackFrame(element, selected);
+        } else {
+          renderJavaStackFrame(element, selected);
+        }
+
       }
       else if (value instanceof ThreadElement) {
         renderThreadElement((ThreadElement)value, selected);
@@ -229,7 +237,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       }
     }
 
-    private void renderStackNavigation(@NotNull CodeElement codeElement, boolean selected) {
+    private void renderJavaStackFrame(@NotNull CodeElement codeElement, boolean selected) {
       setIcon(PlatformIcons.METHOD_ICON);
       SimpleTextAttributes textAttribute = selected || codeElement.isInUserCode() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
       CodeLocation location = codeElement.getCodeLocation();
@@ -244,6 +252,35 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       append(methodName, textAttribute, methodName);
       String packageName = " (" + codeElement.getPackageName() + ")";
       append(packageName, selected ? REGULAR_ITALIC_ATTRIBUTES : GRAYED_ITALIC_ATTRIBUTES, packageName);
+    }
+
+    private void renderNativeStackFrame(@NotNull CodeElement codeElement, boolean selected) {
+      setIcon(PlatformIcons.METHOD_ICON);
+      SimpleTextAttributes textAttribute = selected || codeElement.isInUserCode() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
+      CodeLocation location = codeElement.getCodeLocation();
+
+      StringBuilder methodBuilder = new StringBuilder();
+      if (!Strings.isNullOrEmpty(location.getClassName())) {
+        methodBuilder.append(location.getClassName());
+        methodBuilder.append("::");
+      }
+
+      methodBuilder.append(location.getMethodName());
+      methodBuilder.append("(" + String.join(",", location.getMethodParameters()) + ") ");
+      String methodName = methodBuilder.toString();
+      append(methodName, textAttribute, methodName);
+
+      if (!Strings.isNullOrEmpty(location.getFileName())) {
+        String sourceLocation = Paths.get(location.getFileName()).getFileName().toString();
+        if (location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
+          sourceLocation += ":" + String.valueOf(location.getLineNumber() + 1);
+        }
+
+        append(sourceLocation, textAttribute, sourceLocation);
+      }
+
+      String moduleName = " " + Paths.get(location.getNativeModuleName()).getFileName().toString();
+      append(moduleName, selected ? REGULAR_ITALIC_ATTRIBUTES : GRAYED_ITALIC_ATTRIBUTES, moduleName);
     }
 
     private void renderThreadElement(@NotNull ThreadElement threadElement, boolean selected) {
