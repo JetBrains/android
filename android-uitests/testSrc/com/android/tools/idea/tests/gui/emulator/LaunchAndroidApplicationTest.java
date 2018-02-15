@@ -344,7 +344,7 @@ public class LaunchAndroidApplicationTest {
       ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
       "Update");
 
-    ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 
