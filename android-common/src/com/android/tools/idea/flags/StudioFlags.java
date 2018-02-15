@@ -250,7 +250,7 @@ public final class StudioFlags {
 
   private static final FlagGroup NDK = new FlagGroup(FLAGS, "ndk", "Native code features");
   public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag
-    .create(NDK, "ndk.cmakeclionfeatures", "Enable CMake language support from CLion",
+    .create(NDK, "cmakeclionfeatures", "Enable CMake language support from CLion",
             "If enabled, language support features (e.g. syntax highlighting) currently present in CLion will be turned on.", true);
 
   private StudioFlags() {
