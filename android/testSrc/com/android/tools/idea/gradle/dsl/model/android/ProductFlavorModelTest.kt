@@ -61,29 +61,29 @@ private const val NATIVE_ELEMENTS_TEXT = "android {\n" +
  */
 class ProductFlavorModelTest : GradleFileModelTestCase() {
   fun testDefaultConfigBlockWithApplicationStatements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    applicationId \"com.example.myapplication\"\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    dimension \"abcd\"\n" +
-        "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-        "    maxSdkVersion 23\n" +
-        "    minSdkVersion 15\n" +
-        "    multiDexEnabled true\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "    targetSdkVersion 22 \n" +
-        "    testApplicationId \"com.example.myapplication.test\"\n" +
-        "    testFunctionalTest true\n" +
-        "    testHandleProfiling true\n" +
-        "    testInstrumentationRunner \"abcd\"\n" +
-        "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
-        "    useJack true\n" +
-        "    versionCode 1\n" +
-        "    versionName \"1.0\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      applicationId "com.example.myapplication"
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      dimension "abcd"
+                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
+                      maxSdkVersion 23
+                      minSdkVersion 15
+                      multiDexEnabled true
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                      targetSdkVersion 22
+                      testApplicationId "com.example.myapplication.test"
+                      testFunctionalTest true
+                      testHandleProfiling true
+                      testInstrumentationRunner "abcd"
+                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
+                      useJack true
+                      versionCode 1
+                      versionName "1.0"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -116,23 +116,23 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testDefaultConfigBlockWithAssignmentStatements() {
-    val text = "android.defaultConfig {\n" +
-        "  applicationId = \"com.example.myapplication\"\n" +
-        "  consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-        "  dimension = \"abcd\"\n" +
-        "  manifestPlaceholders = [activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"]\n" +
-        "  maxSdkVersion = 23\n" +
-        "  multiDexEnabled = true\n" +
-        "  proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-        "  testApplicationId = \"com.example.myapplication.test\"\n" +
-        "  testFunctionalTest = true\n" +
-        "  testHandleProfiling = true\n" +
-        "  testInstrumentationRunner = \"abcd\"\n" +
-        "  testInstrumentationRunnerArguments = [size:\"medium\", foo:\"bar\"]\n" +
-        "  useJack = true\n" +
-        "  versionCode = 1\n" +
-        "  versionName = \"1.0\"\n" +
-        "}"
+    val text = """android.defaultConfig {
+                    applicationId = "com.example.myapplication"
+                    consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+                    dimension = "abcd"
+                    manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
+                    maxSdkVersion = 23
+                    multiDexEnabled = true
+                    proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+                    testApplicationId = "com.example.myapplication.test"
+                    testFunctionalTest = true
+                    testHandleProfiling = true
+                    testInstrumentationRunner = "abcd"
+                    testInstrumentationRunnerArguments = [size:"medium", foo:"bar"]
+                    useJack = true
+                    versionCode = 1
+                    versionName = "1.0"
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -161,25 +161,25 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testDefaultConfigApplicationStatements() {
-    val text = "android.defaultConfig.applicationId \"com.example.myapplication\"\n" +
-        "android.defaultConfig.consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "android.defaultConfig.dimension \"abcd\"\n" +
-        "android.defaultConfig.manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-        "android.defaultConfig.maxSdkVersion 23\n" +
-        "android.defaultConfig.minSdkVersion 15\n" +
-        "android.defaultConfig.multiDexEnabled true\n" +
-        "android.defaultConfig.proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "android.defaultConfig.resConfigs \"abcd\", \"efgh\"\n" +
-        "android.defaultConfig.resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "android.defaultConfig.targetSdkVersion 22 \n" +
-        "android.defaultConfig.testApplicationId \"com.example.myapplication.test\"\n" +
-        "android.defaultConfig.testFunctionalTest true\n" +
-        "android.defaultConfig.testHandleProfiling true\n" +
-        "android.defaultConfig.testInstrumentationRunner \"abcd\"\n" +
-        "android.defaultConfig.testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
-        "android.defaultConfig.useJack true\n" +
-        "android.defaultConfig.versionCode 1\n" +
-        "android.defaultConfig.versionName \"1.0\""
+    val text = """android.defaultConfig.applicationId "com.example.myapplication"
+                  android.defaultConfig.consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                  android.defaultConfig.dimension "abcd"
+                  android.defaultConfig.manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
+                  android.defaultConfig.maxSdkVersion 23
+                  android.defaultConfig.minSdkVersion 15
+                  android.defaultConfig.multiDexEnabled true
+                  android.defaultConfig.proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                  android.defaultConfig.resConfigs "abcd", "efgh"
+                  android.defaultConfig.resValue "abcd", "efgh", "ijkl"
+                  android.defaultConfig.targetSdkVersion 22
+                  android.defaultConfig.testApplicationId "com.example.myapplication.test"
+                  android.defaultConfig.testFunctionalTest true
+                  android.defaultConfig.testHandleProfiling true
+                  android.defaultConfig.testInstrumentationRunner "abcd"
+                  android.defaultConfig.testInstrumentationRunnerArguments size:"medium", foo:"bar"
+                  android.defaultConfig.useJack true
+                  android.defaultConfig.versionCode 1
+                  android.defaultConfig.versionName "1.0"""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -212,21 +212,21 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testDefaultConfigAssignmentStatements() {
-    val text = "android.defaultConfig.applicationId = \"com.example.myapplication\"\n" +
-        "android.defaultConfig.consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-        "android.defaultConfig.dimension = \"abcd\"\n" +
-        "android.defaultConfig.manifestPlaceholders = [activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"]\n" +
-        "android.defaultConfig.maxSdkVersion = 23\n" +
-        "android.defaultConfig.multiDexEnabled = true\n" +
-        "android.defaultConfig.proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-        "android.defaultConfig.testApplicationId = \"com.example.myapplication.test\"\n" +
-        "android.defaultConfig.testFunctionalTest = true\n" +
-        "android.defaultConfig.testHandleProfiling = true\n" +
-        "android.defaultConfig.testInstrumentationRunner = \"abcd\"\n" +
-        "android.defaultConfig.testInstrumentationRunnerArguments = [size:\"medium\", foo:\"bar\"]\n" +
-        "android.defaultConfig.useJack = true\n" +
-        "android.defaultConfig.versionCode = 1\n" +
-        "android.defaultConfig.versionName = \"1.0\""
+    val text = """android.defaultConfig.applicationId = "com.example.myapplication"
+                  android.defaultConfig.consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+                  android.defaultConfig.dimension = "abcd"
+                  android.defaultConfig.manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
+                  android.defaultConfig.maxSdkVersion = 23
+                  android.defaultConfig.multiDexEnabled = true
+                  android.defaultConfig.proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+                  android.defaultConfig.testApplicationId = "com.example.myapplication.test"
+                  android.defaultConfig.testFunctionalTest = true
+                  android.defaultConfig.testHandleProfiling = true
+                  android.defaultConfig.testInstrumentationRunner = "abcd"
+                  android.defaultConfig.testInstrumentationRunnerArguments = [size:"medium", foo:"bar"]
+                  android.defaultConfig.useJack = true
+                  android.defaultConfig.versionCode = 1
+                  android.defaultConfig.versionName = "1.0"""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -255,47 +255,47 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testDefaultConfigBlockWithOverrideStatements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    applicationId \"com.example.myapplication\"\n" +
-        "    consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    dimension \"abcd\"\n" +
-        "    manifestPlaceholders = [activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"]\n" +
-        "    maxSdkVersion 23\n" +
-        "    minSdkVersion 15\n" +
-        "    multiDexEnabled true\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    targetSdkVersion 22 \n" +
-        "    testApplicationId \"com.example.myapplication.test\"\n" +
-        "    testFunctionalTest true\n" +
-        "    testHandleProfiling = false\n" +
-        "    testInstrumentationRunner = \"abcd\"\n" +
-        "    testInstrumentationRunnerArguments = [size:\"medium\", foo:\"bar\"]\n" +
-        "    useJack true\n" +
-        "    versionCode 1\n" +
-        "    versionName \"1.0\"\n" +
-        "  }\n" +
-        "}\n" +
-        "android.defaultConfig {\n" +
-        "  applicationId = \"com.example.myapplication1\"\n" +
-        "  consumerProguardFiles 'proguard-android-1.txt', 'proguard-rules-1.pro'\n" +
-        "  dimension \"efgh\"\n" +
-        "  manifestPlaceholders activityLabel3:\"defaultName3\", activityLabel4:\"defaultName4\"\n" +
-        "  maxSdkVersion = 24\n" +
-        "  minSdkVersion 16\n" +
-        "  multiDexEnabled false\n" +
-        "  proguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.pro']\n" +
-        "  targetSdkVersion 23 \n" +
-        "  testApplicationId = \"com.example.myapplication.test1\"\n" +
-        "  testFunctionalTest false\n" +
-        "  testHandleProfiling true\n" +
-        "  testInstrumentationRunner = \"efgh\"\n" +
-        "  testInstrumentationRunnerArguments = [key:\"value\"]\n" +
-        "  useJack = false\n" +
-        "  versionCode 2\n" +
-        "  versionName = \"2.0\"\n" +
-        "}\n" +
-        "android.defaultConfig.versionName = \"3.0\""
+    val text = """android {
+                    defaultConfig {
+                      applicationId "com.example.myapplication"
+                      consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro'
+                      dimension "abcd"
+                      manifestPlaceholders = [activityLabel1:"defaultName1", activityLabel2:"defaultName2"]
+                      maxSdkVersion 23
+                      minSdkVersion 15
+                      multiDexEnabled true
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      targetSdkVersion 22
+                      testApplicationId "com.example.myapplication.test"
+                      testFunctionalTest true
+                      testHandleProfiling = false
+                      testInstrumentationRunner = "abcd"
+                      testInstrumentationRunnerArguments = [size:"medium", foo:"bar"]
+                      useJack true
+                      versionCode 1
+                      versionName "1.0"
+                    }
+                  }
+                  android.defaultConfig {
+                    applicationId = "com.example.myapplication1"
+                    consumerProguardFiles 'proguard-android-1.txt', 'proguard-rules-1.pro'
+                    dimension "efgh"
+                    manifestPlaceholders activityLabel3:"defaultName3", activityLabel4:"defaultName4"
+                    maxSdkVersion = 24
+                    minSdkVersion 16
+                    multiDexEnabled false
+                    proguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.pro']
+                    targetSdkVersion 23
+                    testApplicationId = "com.example.myapplication.test1"
+                    testFunctionalTest false
+                    testHandleProfiling true
+                    testInstrumentationRunner = "efgh"
+                    testInstrumentationRunnerArguments = [key:"value"]
+                    useJack = false
+                    versionCode 2
+                    versionName = "2.0"
+                  }
+                  android.defaultConfig.versionName = "3.0"""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -325,29 +325,28 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testDefaultConfigBlockWithAppendStatements() {
-    val text = "android.defaultConfig {\n" +
-        "  proguardFiles = ['pro-1.txt', 'pro-2.txt']\n" +
-        "  resConfigs \"abcd\", \"efgh\"\n" +
-        "  resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "  testInstrumentationRunnerArguments = [key1:\"value1\", key2:\"value2\"]\n" +
-        "  testInstrumentationRunnerArgument \"key3\", \"value3\"\n" +
-        "}\n" +
-        "android { \n" +
-        "  defaultConfig {\n" +
-        "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-        "    proguardFile 'pro-3.txt'\n" +
-        "    resConfigs \"ijkl\", \"mnop\"\n" +
-        "    resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-        "    testInstrumentationRunnerArguments key4:\"value4\", key5:\"value5\"\n" +
-        "  }\n" +
-        "}\n" +
-        "android.defaultConfig.manifestPlaceholders.activityLabel3 \"defaultName3\"\n" +
-        "android.defaultConfig.manifestPlaceholders.activityLabel4 = \"defaultName4\"\n" +
-        "android.defaultConfig.proguardFiles 'pro-4.txt', 'pro-5.txt'\n" +
-        "android.defaultConfig.resConfig \"qrst\"\n" +
-        "android.defaultConfig.testInstrumentationRunnerArguments.key6 \"value6\"\n" +
-        "android.defaultConfig.testInstrumentationRunnerArguments.key7 = \"value7\""
-
+    val text = """android.defaultConfig {
+                    proguardFiles = ['pro-1.txt', 'pro-2.txt']
+                    resConfigs "abcd", "efgh"
+                    resValue "abcd", "efgh", "ijkl"
+                    testInstrumentationRunnerArguments = [key1:"value1", key2:"value2"]
+                    testInstrumentationRunnerArgument "key3", "value3"
+                  }
+                  android {
+                    defaultConfig {
+                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
+                      proguardFile 'pro-3.txt'
+                      resConfigs "ijkl", "mnop"
+                      resValue "mnop", "qrst", "uvwx"
+                      testInstrumentationRunnerArguments key4:"value4", key5:"value5"
+                    }
+                  }
+                  android.defaultConfig.manifestPlaceholders.activityLabel3 "defaultName3"
+                  android.defaultConfig.manifestPlaceholders.activityLabel4 = "defaultName4"
+                  android.defaultConfig.proguardFiles 'pro-4.txt', 'pro-5.txt'
+                  android.defaultConfig.resConfig "qrst"
+                  android.defaultConfig.testInstrumentationRunnerArguments.key6 "value6"
+                  android.defaultConfig.testInstrumentationRunnerArguments.key7 = "value7"""".trimIndent()
     writeToBuildFile(text)
 
     val android = gradleBuildModel.android()
@@ -386,29 +385,29 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveAndResetElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    applicationId \"com.example.myapplication\"\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    dimension \"abcd\"\n" +
-        "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-        "    maxSdkVersion 23\n" +
-        "    minSdkVersion 15\n" +
-        "    multiDexEnabled true\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "    targetSdkVersion 22 \n" +
-        "    testApplicationId \"com.example.myapplication.test\"\n" +
-        "    testFunctionalTest false\n" +
-        "    testHandleProfiling true\n" +
-        "    testInstrumentationRunner \"abcd\"\n" +
-        "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
-        "    useJack false\n" +
-        "    versionCode 1\n" +
-        "    versionName \"1.0\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      applicationId "com.example.myapplication"
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      dimension "abcd"
+                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
+                      maxSdkVersion 23
+                      minSdkVersion 15
+                      multiDexEnabled true
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                      targetSdkVersion 22
+                      testApplicationId "com.example.myapplication.test"
+                      testFunctionalTest false
+                      testHandleProfiling true
+                      testInstrumentationRunner "abcd"
+                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
+                      useJack false
+                      versionCode 1
+                      versionName "1.0"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -507,23 +506,23 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testEditAndResetLiteralElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    applicationId \"com.example.myapplication\"\n" +
-        "    dimension \"abcd\"\n" +
-        "    maxSdkVersion 23\n" +
-        "    minSdkVersion \"15\"\n" +
-        "    multiDexEnabled true\n" +
-        "    targetSdkVersion \"22\" \n" +
-        "    testApplicationId \"com.example.myapplication.test\"\n" +
-        "    testFunctionalTest false\n" +
-        "    testHandleProfiling true\n" +
-        "    testInstrumentationRunner \"abcd\"\n" +
-        "    useJack false\n" +
-        "    versionCode 1\n" +
-        "    versionName \"1.0\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      applicationId "com.example.myapplication"
+                      dimension "abcd"
+                      maxSdkVersion 23
+                      minSdkVersion "15"
+                      multiDexEnabled true
+                      targetSdkVersion "22"
+                      testApplicationId "com.example.myapplication.test"
+                      testFunctionalTest false
+                      testHandleProfiling true
+                      testInstrumentationRunner "abcd"
+                      useJack false
+                      versionCode 1
+                      versionName "1.0"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -608,10 +607,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
 
   fun testAddAndResetLiteralElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -695,14 +694,14 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testReplaceAndResetListElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -739,10 +738,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddAndResetListElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -776,14 +775,14 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddToAndResetListElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -822,15 +821,15 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveFromAndResetListElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "    resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                      resValue "mnop", "qrst", "uvwx"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -868,12 +867,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testSetAndResetMapElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    manifestPlaceholders key1:\"value1\", key2:\"value2\"\n" +
-        "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      manifestPlaceholders key1:"value1", key2:"value2"
+                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -904,10 +903,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddAndResetMapElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -936,12 +935,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveAndResetMapElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-        "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
+                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -972,29 +971,29 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveAndApplyElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    applicationId \"com.example.myapplication\"\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    dimension \"abcd\"\n" +
-        "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-        "    maxSdkVersion 23\n" +
-        "    minSdkVersion 15\n" +
-        "    multiDexEnabled true\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "    targetSdkVersion 22 \n" +
-        "    testApplicationId \"com.example.myapplication.test\"\n" +
-        "    testFunctionalTest false\n" +
-        "    testHandleProfiling true\n" +
-        "    testInstrumentationRunner \"abcd\"\n" +
-        "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
-        "    useJack false\n" +
-        "    versionCode 1\n" +
-        "    versionName \"1.0\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      applicationId "com.example.myapplication"
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      dimension "abcd"
+                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
+                      maxSdkVersion 23
+                      minSdkVersion 15
+                      multiDexEnabled true
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                      targetSdkVersion 22
+                      testApplicationId "com.example.myapplication.test"
+                      testFunctionalTest false
+                      testHandleProfiling true
+                      testInstrumentationRunner "abcd"
+                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
+                      useJack false
+                      versionCode 1
+                      versionName "1.0"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1123,23 +1122,23 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testEditAndApplyLiteralElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    applicationId \"com.example.myapplication\"\n" +
-        "    dimension \"abcd\"\n" +
-        "    maxSdkVersion 23\n" +
-        "    minSdkVersion \"15\"\n" +
-        "    multiDexEnabled true\n" +
-        "    targetSdkVersion \"22\" \n" +
-        "    testApplicationId \"com.example.myapplication.test\"\n" +
-        "    testFunctionalTest false\n" +
-        "    testHandleProfiling true\n" +
-        "    testInstrumentationRunner \"abcd\"\n" +
-        "    useJack false\n" +
-        "    versionCode 1\n" +
-        "    versionName \"1.0\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      applicationId "com.example.myapplication"
+                      dimension "abcd"
+                      maxSdkVersion 23
+                      minSdkVersion "15"
+                      multiDexEnabled true
+                      targetSdkVersion "22"
+                      testApplicationId "com.example.myapplication.test"
+                      testFunctionalTest false
+                      testHandleProfiling true
+                      testInstrumentationRunner "abcd"
+                      useJack false
+                      versionCode 1
+                      versionName "1.0"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1226,13 +1225,13 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testEditAndApplyIntegerLiteralElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    minSdkVersion \"15\"\n" +
-        "    targetSdkVersion \"22\" \n" +
-        "    versionCode 1\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      minSdkVersion "15"
+                      targetSdkVersion "22"
+                      versionCode 1
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1269,10 +1268,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddAndApplyLiteralElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1359,10 +1358,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddAndApplyIntegerLiteralElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1399,14 +1398,14 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testReplaceAndApplyListElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1452,10 +1451,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddAndApplyListElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                      defaultConfig {
+                      }
+                    }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1499,14 +1498,14 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddToAndApplyListElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1559,15 +1558,15 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveFromAndApplyListElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-        "    proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-        "    resConfigs \"abcd\", \"efgh\"\n" +
-        "    resValue \"abcd\", \"efgh\", \"ijkl\"\n" +
-        "    resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+                      resConfigs "abcd", "efgh"
+                      resValue "abcd", "efgh", "ijkl"
+                      resValue "mnop", "qrst", "uvwx"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1612,12 +1611,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveFromAndApplyListElementsWithSingleElement() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    consumerProguardFiles 'proguard-android.txt'\n" +
-        "    proguardFiles = ['proguard-rules.pro']\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      consumerProguardFiles 'proguard-android.txt'
+                      proguardFiles = ['proguard-rules.pro']
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1649,12 +1648,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testSetAndApplyMapElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    manifestPlaceholders key1:\"value1\", key2:\"value2\"\n" +
-        "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                      defaultConfig {
+                        manifestPlaceholders key1:"value1", key2:"value2"
+                        testInstrumentationRunnerArguments size:"medium", foo:"bar"
+                      }
+                    }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1695,10 +1694,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddAndApplyMapElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1738,12 +1737,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveAndApplyMapElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-        "    testInstrumentationRunnerArguments size:\"medium\", foo:\"bar\"\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      manifestPlaceholders activityLabel1:"defaultName1", activityLabel2:"defaultName2"
+                      testInstrumentationRunnerArguments size:"medium", foo:"bar"
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
 
@@ -1842,10 +1841,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testAddNativeElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
     verifyNullNativeElements()
@@ -1986,29 +1985,29 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveOnlyNativeElementInTheList() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    externalNativeBuild {\n" +
-        "      cmake {\n" +
-        "        abiFilters 'abiFilterX'\n" +
-        "        arguments 'argumentX'\n" +
-        "        cFlags 'cFlagX'\n" +
-        "        cppFlags 'cppFlagX'\n" +
-        "        targets 'targetX'\n" +
-        "      }\n" +
-        "      ndkBuild {\n" +
-        "        abiFilters 'abiFilterY'\n" +
-        "        arguments 'argumentY'\n" +
-        "        cFlags 'cFlagY'\n" +
-        "        cppFlags 'cppFlagY'\n" +
-        "        targets 'targetY'\n" +
-        "      }\n" +
-        "    }\n" +
-        "    ndk {\n" +
-        "      abiFilters 'abiFilterZ'\n" +
-        "    }\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      externalNativeBuild {
+                        cmake {
+                          abiFilters 'abiFilterX'
+                          arguments 'argumentX'
+                          cFlags 'cFlagX'
+                          cppFlags 'cppFlagX'
+                          targets 'targetX'
+                        }
+                        ndkBuild {
+                          abiFilters 'abiFilterY'
+                          arguments 'argumentY'
+                          cFlags 'cFlagY'
+                          cppFlags 'cppFlagY'
+                          targets 'targetY'
+                        }
+                      }
+                      ndk {
+                        abiFilters 'abiFilterZ'
+                      }
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
@@ -2106,14 +2105,14 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveNativeBlockElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    externalNativeBuild {\n" +
-        "    }\n" +
-        "    ndk {\n" +
-        "    }\n" +
-        "  }\n" +
-        ""
+    val text = """android {
+                    defaultConfig {
+                      externalNativeBuild {
+                      }
+                      ndk {
+                      }
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
@@ -2135,16 +2134,16 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testRemoveExternalNativeBlockElements() {
-    val text = "android {\n" +
-        "  defaultConfig {\n" +
-        "    externalNativeBuild {\n" +
-        "      cmake {\n" +
-        "      }\n" +
-        "      ndkBuild {\n" +
-        "      }\n" +
-        "    }\n" +
-        "  }\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      externalNativeBuild {
+                        cmake {
+                        }
+                        ndkBuild {
+                        }
+                      }
+                    }
+                  }""".trimIndent()
 
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
@@ -2166,17 +2165,17 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   fun testFunctionCallWithParentheses() {
-    val text = "android {\n" +
-        "defaultConfig {\n" +
-        "applicationId \"com.example.psd.sample.app.default\"\n" +
-        "testApplicationId \"com.example.psd.sample.app.default.test\"\n" +
-        "maxSdkVersion 26\n" +
-        "minSdkVersion 9\n" +
-        "targetSdkVersion(19)\n" +
-        "versionCode 1\n" +
-        "versionName \"1.0\" \n" +
-        "}\n" +
-        "}"
+    val text = """android {
+                    defaultConfig {
+                      applicationId "com.example.psd.sample.app.default"
+                      testApplicationId "com.example.psd.sample.app.default.test"
+                      maxSdkVersion 26
+                      minSdkVersion 9
+                      targetSdkVersion(19)
+                      versionCode 1
+                      versionName "1.0"
+                    }
+                  }""".trimIndent()
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
