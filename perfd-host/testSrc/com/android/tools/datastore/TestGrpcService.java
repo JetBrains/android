@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore;
 
-import com.google.common.collect.Lists;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -26,17 +25,16 @@ import org.junit.rules.TestName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * JUnit rule for creating a test instance of {@link StudioProfilers} connected over a light,
+ * JUnit rule for tests that have a datastore and need to fake a connection to it.
+ *
+ * This rule creates a test instance of {@link StudioProfilers} connected over a light,
  * in-process GRPC server that reads from a mock service which provides fake data. Besides creating
  * the {@link StudioProfilers} instance, it also starts up / shuts down the test server automatically.
- *
- * Within a test, use {@link #get()} to fetch a valid {@link StudioProfilers} instance.
  */
 public final class TestGrpcService extends ExternalResource {
   private final List<BindableService> myServices;
@@ -49,16 +47,22 @@ public final class TestGrpcService extends ExternalResource {
   private TestName myMethodName;
   private String myTestClassName;
 
-  public TestGrpcService(Class testClazz,
+  /**
+   * @param testClass        The owning test class, used for generating a unique name for a call
+   *                         history file
+   * @param methodName       The name of the test, used for generating a unique name for a call
+   *                         history file
+   * @param dataStoreService The main datastore service under test
+   * @param services         All services that the datastore under test depends on. These services
+   *                         are usually fakes.
+   */
+  public TestGrpcService(Class testClass,
                          TestName methodName,
                          ServicePassThrough dataStoreService,
-                         BindableService primaryService,
-                         BindableService... otherServices) {
-    myServices = new ArrayList<>();
-    myServices.add(primaryService);
-    myServices.addAll(Arrays.asList(otherServices));
+                         BindableService... services) {
+    myServices = Arrays.asList(services);
     myMethodName = methodName;
-    myTestClassName = testClazz.getSimpleName();
+    myTestClassName = testClass.getSimpleName();
     myDataStoreService = dataStoreService;
   }
 
