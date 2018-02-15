@@ -50,8 +50,6 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
                                     AndroidDebugBridge.IClientChangeListener, Disposable {
   private static final Logger LOG = Logger.getInstance(DevicePanel.class);
 
-  private JPanel myPanel;
-
   private final DeviceContext myDeviceContext;
   @Nullable private AndroidDebugBridge myBridge;
 
@@ -76,14 +74,12 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     myPreferredClients = Maps.newHashMap();
     Disposer.register(myProject, this);
 
+    initializeDeviceCombo();
+    initializeClientCombo();
+
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
-  }
-
-  private void createUIComponents() {
-    initializeDeviceCombo();
-    initializeClientCombo();
   }
 
   private void initializeDeviceCombo() {
@@ -185,10 +181,6 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
       myBridge = null;
     }
-  }
-
-  public JPanel getComponent() {
-    return myPanel;
   }
 
   @Override
