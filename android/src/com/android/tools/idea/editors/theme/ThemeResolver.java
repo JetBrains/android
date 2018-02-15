@@ -118,7 +118,12 @@ public class ThemeResolver {
   private List<StyleResourceValue> resolveFrameworkThemes() {
     ConfigurationManager configurationManager = myConfiguration.getConfigurationManager();
     ResourceResolverCache resolverCache = configurationManager.getResolverCache();
+
     IAndroidTarget target = configurationManager.getTarget();
+    if (target == null) {
+      return Collections.emptyList();
+    }
+
     Map<ResourceType, ResourceValueMap> resources = resolverCache.getConfiguredFrameworkResources(target, myConfiguration.getFullConfig());
     ResourceValueMap styles = resources.get(ResourceType.STYLE);
     return getThemes(styles, true);
