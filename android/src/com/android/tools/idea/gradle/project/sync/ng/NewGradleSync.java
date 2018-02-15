@@ -29,6 +29,8 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -36,6 +38,8 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
 public class NewGradleSync implements GradleSync {
   @NotNull private final Project myProject;
@@ -137,9 +141,11 @@ public class NewGradleSync implements GradleSync {
           // @formatter:on
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
+          // Create a new taskId when using cache
+          ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject);
 
           try {
-            myResultHandler.onSyncSkipped(projectModelsCache, setupRequest, indicator, syncListener);
+            myResultHandler.onSyncSkipped(projectModelsCache, setupRequest, indicator, syncListener, taskId);
             return;
           }
           catch (ModelNotFoundInCacheException e) {

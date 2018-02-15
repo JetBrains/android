@@ -96,6 +96,6 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
-    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any());
+    verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
 }

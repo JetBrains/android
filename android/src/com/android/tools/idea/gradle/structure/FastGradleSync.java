@@ -51,7 +51,7 @@ public class FastGradleSync {
         assert projectDataNode != null;
         invokeAndWaitIfNeeded((ThrowableRunnable)() -> {
           IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(project);
-          task.populateProject(projectDataNode);
+          task.populateProject(projectDataNode, id);
         });
         callback.setDone();
       }

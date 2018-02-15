@@ -42,6 +42,7 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.mock.MockProgressIndicator;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -79,6 +80,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private CommonModuleValidator myModuleValidator;
   @Mock private RunManagerImpl myRunManager;
   @Mock private ProvisionTasks myProvisionTasks;
+  @Mock private ExternalSystemTaskId myTaskId;
 
   private ProjectStructureStub myProjectStructure;
   private ProgressIndicator myProgressIndicator;
@@ -108,7 +110,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    mySetup.setUpProject(request, myProgressIndicator);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
     Project project = getProject();
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration("", project, configurationFactory);
@@ -130,7 +132,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     tasks.add(newTask);
     myRunManager.setBeforeRunTasks(runConfiguration, tasks, false);
 
-    mySetup.setUpProject(request, myProgressIndicator);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
 
     verify(myGradleProjectInfo, times(2)).setNewProject(false);
@@ -146,7 +148,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.usingCachedGradleModels = true;
     request.lastSyncTimestamp = lastSyncTimestamp;
 
-    mySetup.setUpProject(request, myProgressIndicator);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
 
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp);
     verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_LOADED);
@@ -164,7 +166,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.usingCachedGradleModels = false;
     request.lastSyncTimestamp = 1L;
 
-    mySetup.setUpProject(request, myProgressIndicator);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
 
     verify(mySyncState, times(1)).syncFailed(any());
     verify(mySyncState, never()).syncEnded();
@@ -178,7 +180,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     request.generateSourcesAfterSync = true;
     request.cleanProjectAfterSync = true;
 
-    mySetup.setUpProject(request, myProgressIndicator);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
 
     Project project = getProject();
     verify(myDependencySetupIssues, times(1)).reportIssues();
@@ -213,7 +215,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
       }
     };
 
-    mySetup.setUpProject(request, myProgressIndicator);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
 
     // verify "clean" was invoked.
     verify(myProjectBuilder).cleanAndGenerateSources();
@@ -248,7 +250,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     myRunManager.fireBeforeRunTasksUpdated();
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    mySetup.setUpProject(request, myProgressIndicator);
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
 
     assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration, ProvisionBeforeRunTaskProvider.ID));
     assertSize(1, myRunManager.getBeforeRunTasks(androidRunConfiguration2, ProvisionBeforeRunTaskProvider.ID));

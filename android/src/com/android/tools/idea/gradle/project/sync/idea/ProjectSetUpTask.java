@@ -27,6 +27,7 @@ import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
@@ -60,7 +61,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   @Override
-  public void onSuccess(@Nullable DataNode<ProjectData> projectInfo) {
+  public void onSuccess(@NotNull ExternalSystemTaskId taskId,
+                        @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
     unregisterAsNewProject(myProject);
 
@@ -69,7 +71,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
     GradleSyncState.getInstance(myProject).setupStarted();
     boolean importedProject = GradleProjectInfo.getInstance(myProject).isImportedProject();
-    populateProject(projectInfo, importedProject);
+    populateProject(projectInfo, taskId, importedProject);
 
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
@@ -99,18 +101,18 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
   }
 
-  private void populateProject(@NotNull DataNode<ProjectData> projectInfo, boolean importedProject) {
+  private void populateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId, boolean importedProject) {
     if (!importedProject) {
-      doPopulateProject(projectInfo);
+      doPopulateProject(projectInfo, taskId);
       return;
     }
     StartupManager startupManager = StartupManager.getInstance(myProject);
-    startupManager.runWhenProjectIsInitialized(() -> doPopulateProject(projectInfo));
+    startupManager.runWhenProjectIsInitialized(() -> doPopulateProject(projectInfo, taskId));
   }
 
-  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
+  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
     IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-    task.populateProject(projectInfo, mySetupRequest, () -> {
+    task.populateProject(projectInfo, taskId, mySetupRequest, () -> {
       if (mySyncListener != null) {
         if (mySyncSkipped) {
           mySyncListener.syncSkipped(myProject);

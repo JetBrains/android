@@ -96,7 +96,10 @@ class BuildVariantUpdater {
       setupRequest.generateSourcesAfterSync = false;
       setupRequest.cleanProjectAfterSync = false;
 
-      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, new EmptyProgressIndicator());
+      // TODO: Generate a taskID and its corresponding event for build vew. Is it necessary when selecting variants?
+      // (changes needed for single variant sync)
+
+      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, new EmptyProgressIndicator(), null);
       generateSourcesIfNeeded(project, affectedAndroidFacets);
     });
     return !affectedAndroidFacets.isEmpty() || !affectedNdkFacets.isEmpty();

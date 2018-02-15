@@ -29,6 +29,8 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -90,8 +92,11 @@ public class IdeaGradleSync implements GradleSync {
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
 
+          // Create a new taskId when using cache
+          ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject);
+
           ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, true /* sync skipped */);
-          setUpTask.onSuccess(cache);
+          setUpTask.onSuccess(taskId, cache);
           return;
         }
       }

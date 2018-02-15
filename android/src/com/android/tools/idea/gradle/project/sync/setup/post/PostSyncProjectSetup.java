@@ -43,6 +43,11 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.build.SyncViewManager;
+import com.intellij.build.events.EventResult;
+import com.intellij.build.events.impl.FailureResultImpl;
+import com.intellij.build.events.impl.FinishBuildEventImpl;
+import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
@@ -55,6 +60,7 @@ import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -62,6 +68,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
 
 import java.util.*;
@@ -146,7 +153,7 @@ public class PostSyncProjectSetup {
   /**
    * Invoked after a project has been synced with Gradle.
    */
-  public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator) {
+  public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator, @Nullable ExternalSystemTaskId taskId) {
     if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
       removeSyncContextDataFrom(myProject);
     }
@@ -179,11 +186,13 @@ public class PostSyncProjectSetup {
       // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
       // previous sync, and not the one from the sync that just ended.
       mySyncState.syncFailed("");
+      finishFailedSync(taskId);
       return;
     }
 
     if (!request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
       // Plugin version was upgraded and a sync was triggered.
+      finishSuccessfulSync(taskId);
       return;
     }
 
@@ -209,6 +218,32 @@ public class PostSyncProjectSetup {
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
     myModuleSetup.setUpModules(null);
+
+    finishSuccessfulSync(taskId);
+  }
+
+  private void finishSuccessfulSync(@Nullable ExternalSystemTaskId taskId) {
+    if (taskId == null) {
+      return;
+    }
+
+    String message = "synced successfully";
+    // TODO: Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
+    EventResult result = new SuccessResultImpl();
+
+    FinishBuildEventImpl finishBuildEvent =
+      new FinishBuildEventImpl(taskId, null, System.currentTimeMillis(), message, result);
+    ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
+  }
+
+  private void finishFailedSync(@Nullable ExternalSystemTaskId taskId) {
+    if (taskId != null) {
+      String message = "sync failed";
+      // TODO: append failures
+      FailureResultImpl failureResult = new FailureResultImpl(Collections.emptyList());
+      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, System.currentTimeMillis(), message, failureResult);
+      ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
+    }
   }
 
   public void onCachedModelsSetupFailure(@NotNull Request request) {
