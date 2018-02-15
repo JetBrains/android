@@ -21,9 +21,9 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.ClientCellRenderer.ClientComparator;
+import com.android.tools.idea.ddms.DeviceRenderer.DeviceComboBoxRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,6 +57,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @NotNull private final Map<String, String> myPreferredClients;
   private boolean myIgnoringActionEvents;
 
+  private final boolean myUsingCustomDeviceComboBoxRendering;
   private JComboBox<IDevice> myDeviceCombo;
   private JComboBox<Client> myClientCombo;
   private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<String>() {
@@ -66,13 +67,24 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       return getApplicationName();
     }
   };
-  private DeviceRenderer.DeviceComboBoxRenderer myDeviceRenderer;
+  private DeviceComboBoxRenderer myDeviceRenderer;
 
-  public DevicePanel(@NotNull Project project, @NotNull DeviceContext context) {
+  public DevicePanel(@NotNull Project project, @NotNull DeviceContext deviceContext) {
+    this(project, deviceContext, true);
+  }
+
+  @VisibleForTesting
+  DevicePanel(@NotNull Project project, @NotNull DeviceContext deviceContext, boolean usingCustomDeviceComboBoxRendering) {
     myProject = project;
-    myDeviceContext = context;
-    myPreferredClients = Maps.newHashMap();
+    myDeviceContext = deviceContext;
+    myUsingCustomDeviceComboBoxRendering = usingCustomDeviceComboBoxRendering;
+    myPreferredClients = new HashMap<>();
+
     Disposer.register(myProject, this);
+
+    if (myUsingCustomDeviceComboBoxRendering) {
+      initializeDeviceComboBoxRenderer();
+    }
 
     initializeDeviceCombo();
     initializeClientCombo();
@@ -80,6 +92,25 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
+  }
+
+  private void initializeDeviceComboBoxRenderer() {
+    boolean visible = myBridge != null && DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(myBridge.getDevices()));
+    DeviceNamePropertiesProvider provider = new DeviceNamePropertiesFetcher(new MyFutureCallback(), this);
+
+    myDeviceRenderer = new DeviceComboBoxRenderer("No connected devices", visible, provider);
+  }
+
+  private final class MyFutureCallback implements FutureCallback<DeviceNameProperties> {
+    @Override
+    public void onSuccess(@Nullable DeviceNameProperties properties) {
+      updateDeviceCombo();
+    }
+
+    @Override
+    public void onFailure(@NotNull Throwable throwable) {
+      LOG.warn("Error retrieving device name properties", throwable);
+    }
   }
 
   private void initializeDeviceCombo() {
@@ -95,27 +126,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       myDeviceContext.fireDeviceSelected(device);
     });
 
-    boolean showSerial = false;
-    if (myBridge != null) {
-      showSerial = DeviceRenderer
-        .shouldShowSerialNumbers(Arrays.asList(myBridge.getDevices()));
+    if (myUsingCustomDeviceComboBoxRendering) {
+      myDeviceCombo.setRenderer(myDeviceRenderer);
     }
 
-    myDeviceRenderer = new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices",
-                                                                 showSerial,
-                                                                 new DeviceNamePropertiesFetcher(
-                                                                   new FutureCallback<DeviceNameProperties>() {
-                                                                     @Override
-                                                                     public void onSuccess(@Nullable DeviceNameProperties result) {
-                                                                       updateDeviceCombo();
-                                                                     }
-
-                                                                     @Override
-                                                                     public void onFailure(@NotNull Throwable t) {
-                                                                       LOG.warn("Error retrieving device name properties", t);
-                                                                     }
-                                                                   }, this));
-    myDeviceCombo.setRenderer(myDeviceRenderer);
     Dimension size = myDeviceCombo.getMinimumSize();
     myDeviceCombo.setMinimumSize(new Dimension(200, size.height));
   }
@@ -240,9 +254,11 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     myDeviceCombo.removeAllItems();
 
     List<IDevice> devices = Arrays.asList(myBridge.getDevices());
-
     devices.forEach(device -> myDeviceCombo.addItem(device));
-    myDeviceRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(devices));
+
+    if (myUsingCustomDeviceComboBoxRendering) {
+      myDeviceRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(devices));
+    }
 
     Optional<IDevice> optionalDevice = IntStream.range(0, myDeviceCombo.getItemCount())
       .mapToObj(i -> myDeviceCombo.getItemAt(i))
