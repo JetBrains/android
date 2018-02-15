@@ -20,18 +20,14 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
-import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
@@ -52,15 +48,12 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBInsets;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
@@ -69,8 +62,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
@@ -107,10 +98,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @NotNull private final SelectionComponent mySelection;
 
+  @NotNull private final RangeTooltipComponent myTooltipComponent;
+
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
-    // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
     super(profilersView, stage);
     myStage = stage;
+    ProfilerTimeline timeline = getTimeline();
 
     stage.getAspect().addDependency(this)
       .onChange(CpuProfilerAspect.CAPTURE_STATE, this::updateCaptureState)
@@ -123,21 +116,153 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
     getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
-    StudioProfilers profilers = stage.getStudioProfilers();
-    ProfilerTimeline timeline = profilers.getTimeline();
+
+    myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
+                                                   timeline.getViewRange(),
+                                                   timeline.getDataRange(),
+                                                   getTooltipPanel(),
+                                                   ProfilerLayeredPane.class);
+    mySelection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
+    mySelection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    myThreads = new JBList<>(myStage.getThreadStates());
+
+    final OverlayComponent overlay = new OverlayComponent(mySelection);
+    final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
+    eventsView.registerTooltip(myTooltipComponent, getStage());
+    final AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
+    timeAxisGuide.setShowAxisLine(false);
+    timeAxisGuide.setShowLabels(false);
+    timeAxisGuide.setHideTickAtMin(true);
+    timeAxisGuide.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
 
     TabularLayout layout = new TabularLayout("*");
-    JPanel details = new JPanel(layout);
+    layout.setRowSizing(1, "4*");
+    layout.setRowSizing(2, "6*");
+
+    final JPanel details = new JPanel(layout);
     details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
-    EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
-    JComponent eventsComponent = eventsView.getComponent();
+    final JPanel overlayPanel = new JBPanel(new BorderLayout());
+    configureOverlayPanel(overlayPanel, overlay);
 
-    JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
+    final JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
+    configureAxisPanel(axisPanel);
+
+    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+    configureLineChart(lineChartPanel, overlay);
+
+    final JScrollPane scrollingThreads = new MyScrollPane();
+    configureThreadsPanel(scrollingThreads, timeAxisGuide);
+
+    final JPanel legendPanel = new JBPanel(new BorderLayout());
+    configureLegendPanel(legendPanel);
+
+    JComponent timeAxis = buildTimeAxis(myStage.getStudioProfilers());
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
+
+    if (!getStage().hasUserUsedCpuCapture()) {
+      installProfilingInstructions(monitorPanel);
+    }
+    // Panel that represents the cpu utilization.
+    monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(mySelection, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
+
+    // Panel that represents all of L2
+    details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
+    details.add(myTooltipComponent, new TabularLayout.Constraint(1, 0, 2, 1));
+    details.add(timeAxisGuide, new TabularLayout.Constraint(2, 0));
+    details.add(scrollingThreads, new TabularLayout.Constraint(2, 0));
+    details.add(monitorPanel, new TabularLayout.Constraint(1, 0));
+    details.add(timeAxis, new TabularLayout.Constraint(3, 0));
+    details.add(scrollbar, new TabularLayout.Constraint(4, 0));
+
+    myHelpTipPanel = new JPanel(new BorderLayout());
+    configureHelpTipPanel();
+
+    // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
+    mySplitter = new JBSplitter(true);
+    mySplitter.setFirstComponent(details);
+    mySplitter.setSecondComponent(null);
+    mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    getComponent().add(mySplitter, BorderLayout.CENTER);
+
+    myCaptureButton = new CommonButton();
+    myCaptureButton.addActionListener(event -> capture());
+
+    myCaptureStatus = new JLabel("");
+    myCaptureStatus.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
+    myCaptureStatus.setBorder(new EmptyBorder(0, 5, 0, 0));
+    myCaptureStatus.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
+
+    myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
+    myCaptureViewLoading.setLoadingText("Parsing capture...");
+
+    myProfilingConfigurationCombo = new ComboBox<>();
+    configureProfilingConfigCombo();
+
+    updateCaptureState();
+    installContextMenu();
+  }
+
+  private void configureProfilingConfigCombo() {
+    JComboBoxView<ProfilingConfiguration, CpuProfilerAspect> profilingConfiguration =
+      new JComboBoxView<>(myProfilingConfigurationCombo, myStage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
+                          myStage::getProfilingConfigurations, myStage::getProfilingConfiguration, myStage::setProfilingConfiguration);
+    profilingConfiguration.bind();
+    // Do not support keyboard accessibility until it is supported product-wide in Studio.
+    myProfilingConfigurationCombo.setFocusable(false);
+    myProfilingConfigurationCombo.addKeyListener(new KeyAdapter() {
+      /**
+       * Select the next item, skipping over any separators encountered
+       */
+      private void skipSeparators(int indexDelta) {
+        int selectedIndex = myProfilingConfigurationCombo.getSelectedIndex() + indexDelta;
+        if (selectedIndex < 0 || selectedIndex == myProfilingConfigurationCombo.getItemCount()) {
+          return;
+        }
+        while (myProfilingConfigurationCombo.getItemAt(selectedIndex) == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
+          selectedIndex += indexDelta;
+        }
+        myProfilingConfigurationCombo.setSelectedIndex(selectedIndex);
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+          skipSeparators(1);
+          e.consume();
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_UP) {
+          skipSeparators(-1);
+          e.consume();
+        }
+      }
+    });
+    myProfilingConfigurationCombo.setRenderer(new ProfilingConfigurationRenderer());
+  }
+
+  private void configureHelpTipPanel() {
+    InstructionsPanel infoMessage = new InstructionsPanel.Builder(
+      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Thread details unavailable"),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "Click the record button "),
+      new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
+      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, " to start CPU profiling"),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "or select a capture in the timeline."))
+      .setColors(JBColor.foreground(), null)
+      .build();
+    myHelpTipPanel.add(infoMessage, BorderLayout.CENTER);
+  }
+
+  private void configureAxisPanel(JPanel axisPanel) {
     axisPanel.setOpaque(false);
     final AxisComponent leftAxis = new AxisComponent(getStage().getCpuUsageAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
@@ -156,17 +281,88 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
+  }
 
-    mySelection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
-    mySelection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    final JPanel overlayPanel = new JBPanel(new BorderLayout());
+  private void configureOverlayPanel(JPanel overlayPanel, OverlayComponent overlay) {
+    MouseListener usageListener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
+    overlay.addMouseListener(usageListener);
+    overlayPanel.addMouseListener(usageListener);
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
-    final OverlayComponent overlay = new OverlayComponent(mySelection);
     overlayPanel.add(overlay, BorderLayout.CENTER);
-    installContextMenu();
 
-    final JPanel lineChartPanel = new JBPanel(new BorderLayout());
+    // Double-clicking the chart should remove a capture selection if one exists.
+    MouseAdapter doubleClick = new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2 && !e.isConsumed()) {
+          clearSelection();
+        }
+      }
+    };
+    overlay.addMouseListener(doubleClick);
+    overlayPanel.addMouseListener(doubleClick);
+
+    // TODO: This needs to be refactored, because probably we don't handle mouse events
+    //       properly when components are layered, currently mouse events should happen on the OverlayComponent.
+    myTooltipComponent.registerListenersOn(overlay);
+    myTooltipComponent.registerListenersOn(overlayPanel);
+  }
+
+  private void configureThreadsPanel(JScrollPane scrollingThreads, AxisComponent timeAxisGuide) {
+    CpuThreadsModel model = myStage.getThreadStates();
+    myThreads.addListSelectionListener((e) -> {
+      int selectedIndex = myThreads.getSelectedIndex();
+      if (selectedIndex >= 0) {
+        CpuThreadsModel.RangedCpuThread thread = model.getElementAt(selectedIndex);
+        if (myStage.getSelectedThread() != thread.getThreadId()) {
+          myStage.setSelectedThread(thread.getThreadId());
+          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectThread();
+        }
+      }
+      else {
+        myStage.setSelectedThread(CaptureModel.NO_THREAD);
+      }
+    });
+
+    myThreads.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (myThreads.getSelectedIndex() < 0 && myThreads.getItemsCount() > 0) {
+          myThreads.setSelectedIndex(0);
+        }
+      }
+    });
+
+    scrollingThreads.setBorder(MONITOR_BORDER);
+    scrollingThreads.setViewportView(myThreads);
+    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
+    myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+
+    scrollingThreads.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        timeAxisGuide.setMarkerLengths(scrollingThreads.getHeight(), 0);
+      }
+    });
+
+    myThreads.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)));
+    myThreads.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        int row = myThreads.locationToIndex(e.getPoint());
+        if (row != -1) {
+          CpuThreadsModel.RangedCpuThread model = myThreads.getModel().getElementAt(row);
+          if (myStage.getTooltip() instanceof CpuThreadsTooltip) {
+            CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
+            tooltip.setThread(model.getName(), model.getStateSeries());
+          }
+        }
+      }
+    });
+  }
+
+  private void configureLineChart(JPanel lineChartPanel, OverlayComponent overlay) {
     lineChartPanel.setOpaque(false);
 
     DetailedCpuUsage cpuUsage = getStage().getCpuUsage();
@@ -181,24 +377,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
     lineChart.setFillEndGap(true);
-
-    CpuProfilerStage.CpuStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
-    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_CAPTURED));
-    legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_USAGE_CAPTURED));
-    legend.configure(legends.getThreadsLegend(),
-                     new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_CAPTURED));
-
-    final JLabel label = new JLabel(getStage().getName());
-    label.setBorder(MONITOR_LABEL_PADDING);
-    label.setVerticalAlignment(SwingConstants.TOP);
-    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-
-    final JPanel legendPanel = new JBPanel(new BorderLayout());
-    legendPanel.setOpaque(false);
-    legendPanel.add(label, BorderLayout.WEST);
-    legendPanel.add(legend, BorderLayout.EAST);
 
     DurationDataRenderer<CpuTraceInfo> traceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
@@ -233,155 +411,25 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     overlay.addDurationDataRenderer(inProgressTraceRenderer);
     lineChart.addCustomRenderer(inProgressTraceRenderer);
+  }
 
-    if (!getStage().hasUserUsedCpuCapture()) {
-      installProfilingInstructions(monitorPanel);
-    }
-    monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(mySelection, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
+  private void configureLegendPanel(JPanel legendPanel) {
+    CpuProfilerStage.CpuStageLegends legends = getStage().getLegends();
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
+    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_CAPTURED));
+    legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_USAGE_CAPTURED));
+    legend.configure(legends.getThreadsLegend(),
+                     new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_CAPTURED));
 
-    CpuThreadsModel model = myStage.getThreadStates();
-    myThreads = new JBList<>(model);
-    myThreads.addListSelectionListener((e) -> {
-      int selectedIndex = myThreads.getSelectedIndex();
-      if (selectedIndex >= 0) {
-        CpuThreadsModel.RangedCpuThread thread = model.getElementAt(selectedIndex);
-        if (myStage.getSelectedThread() != thread.getThreadId()) {
-          myStage.setSelectedThread(thread.getThreadId());
-          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectThread();
-        }
-      }
-      else {
-        myStage.setSelectedThread(CaptureModel.NO_THREAD);
-      }
-    });
+    final JLabel label = new JLabel(getStage().getName());
+    label.setBorder(MONITOR_LABEL_PADDING);
+    label.setVerticalAlignment(SwingConstants.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
-    myThreads.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusGained(FocusEvent e) {
-        if (myThreads.getSelectedIndex() < 0 && myThreads.getItemsCount() > 0) {
-          myThreads.setSelectedIndex(0);
-        }
-      }
-    });
-
-    JScrollPane scrollingThreads = new MyScrollPane();
-    scrollingThreads.setBorder(MONITOR_BORDER);
-    scrollingThreads.setViewportView(myThreads);
-    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
-    myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-
-    details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
-    RangeTooltipComponent tooltipComponent = createTooltip(overlayPanel, overlay, myThreads);
-    eventsView.registerTooltip(tooltipComponent, getStage());
-    details.add(tooltipComponent, new TabularLayout.Constraint(1, 0, 2, 1));
-
-    // Double-clicking the chart should remove a capture selection if one exists.
-    MouseAdapter doubleClick = new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2 && !e.isConsumed()) {
-          clearSelection();
-        }
-      }
-    };
-    overlay.addMouseListener(doubleClick);
-    overlayPanel.addMouseListener(doubleClick);
-
-    layout.setRowSizing(1, "4*");
-    details.add(monitorPanel, new TabularLayout.Constraint(1, 0));
-
-    layout.setRowSizing(2, "6*");
-    AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
-    timeAxisGuide.setShowAxisLine(false);
-    timeAxisGuide.setShowLabels(false);
-    timeAxisGuide.setHideTickAtMin(true);
-    timeAxisGuide.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
-    scrollingThreads.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        timeAxisGuide.setMarkerLengths(scrollingThreads.getHeight(), 0);
-      }
-    });
-    details.add(timeAxisGuide, new TabularLayout.Constraint(2, 0));
-    details.add(scrollingThreads, new TabularLayout.Constraint(2, 0));
-
-    JComponent timeAxis = buildTimeAxis(profilers);
-    details.add(timeAxis, new TabularLayout.Constraint(3, 0));
-
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, details);
-    details.add(scrollbar, new TabularLayout.Constraint(4, 0));
-
-    myHelpTipPanel = new JPanel(new BorderLayout());
-    InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Thread details unavailable"),
-      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "Click the record button "),
-      new IconInstruction(StudioIcons.Profiler.Toolbar.RECORD, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, " to start CPU profiling"),
-      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "or select a capture in the timeline."))
-      .setColors(JBColor.foreground(), null)
-      .build();
-    myHelpTipPanel.add(infoMessage, BorderLayout.CENTER);
-
-    mySplitter = new JBSplitter(true);
-    mySplitter.setFirstComponent(details);
-    mySplitter.setSecondComponent(null);
-    mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
-    getComponent().add(mySplitter, BorderLayout.CENTER);
-
-    myCaptureButton = new CommonButton();
-    myCaptureButton.addActionListener(event -> capture());
-
-    myCaptureStatus = new JLabel("");
-    myCaptureStatus.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
-    myCaptureStatus.setBorder(new EmptyBorder(0, 5, 0, 0));
-    myCaptureStatus.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
-
-    myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
-    myCaptureViewLoading.setLoadingText("Parsing capture...");
-
-    myProfilingConfigurationCombo = new ComboBox<>();
-    JComboBoxView<ProfilingConfiguration, CpuProfilerAspect> profilingConfiguration =
-      new JComboBoxView<>(myProfilingConfigurationCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
-                          stage::getProfilingConfigurations, stage::getProfilingConfiguration, stage::setProfilingConfiguration);
-    profilingConfiguration.bind();
-    // Do not support keyboard accessibility until it is supported product-wide in Studio.
-    myProfilingConfigurationCombo.setFocusable(false);
-    myProfilingConfigurationCombo.addKeyListener(new KeyAdapter() {
-      /**
-       * Select the next item, skipping over any separators encountered
-       */
-      private void skipSeparators(int indexDelta) {
-        int selectedIndex = myProfilingConfigurationCombo.getSelectedIndex() + indexDelta;
-        if (selectedIndex < 0 || selectedIndex == myProfilingConfigurationCombo.getItemCount()) {
-          return;
-        }
-        while (myProfilingConfigurationCombo.getItemAt(selectedIndex) == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
-          selectedIndex += indexDelta;
-        }
-        myProfilingConfigurationCombo.setSelectedIndex(selectedIndex);
-      }
-
-      @Override
-      public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-          skipSeparators(1);
-          e.consume();
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_UP) {
-          skipSeparators(-1);
-          e.consume();
-        }
-      }
-    });
-    myProfilingConfigurationCombo.setRenderer(new ProfilingConfigurationRenderer());
-
-    updateCaptureState();
+    legendPanel.setOpaque(false);
+    legendPanel.add(label, BorderLayout.WEST);
+    legendPanel.add(legend, BorderLayout.EAST);
   }
 
   private static Logger getLogger() {
@@ -540,41 +588,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
   }
 
-  @NotNull
-  private RangeTooltipComponent createTooltip(@NotNull JPanel overlayPanel,
-                                              @NotNull JComponent overlay,
-                                              @NotNull JBList<CpuThreadsModel.RangedCpuThread> threads) {
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-
-    MouseListener usageListener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
-    overlay.addMouseListener(usageListener);
-    overlayPanel.addMouseListener(usageListener);
-
-    threads.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage)));
-    threads.addMouseMotionListener(new MouseAdapter() {
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        int row = threads.locationToIndex(e.getPoint());
-        if (row != -1) {
-          CpuThreadsModel.RangedCpuThread model = threads.getModel().getElementAt(row);
-          if (myStage.getTooltip() instanceof CpuThreadsTooltip) {
-            CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
-            tooltip.setThread(model.getName(), model.getStateSeries());
-          }
-        }
-      }
-    });
-
-    RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
-                                                              timeline.getDataRange(), getTooltipPanel(), ProfilerLayeredPane.class);
-    // TODO: This needs to be refactored, because probably we don't handle mouse events
-    //       properly when components are layered, currently mouse events should happen on the OverlayComponent.
-    tooltip.registerListenersOn(overlay);
-    tooltip.registerListenersOn(overlayPanel);
-    tooltip.registerListenersOn(threads);
-    return tooltip;
-  }
-
   @Override
   public JComponent getToolbar() {
     JPanel panel = new JPanel(new BorderLayout());
@@ -730,146 +743,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       // Overrides it because, when not on mac, JBViewport adds the width of the scrollbar to the right inset of the border,
       // which would consequently misplace the threads state chart.
       return new JViewport();
-    }
-  }
-
-  private static class ThreadCellRenderer implements ListCellRenderer<CpuThreadsModel.RangedCpuThread> {
-
-    /**
-     * Label to display the thread name on a cell.
-     */
-    private final JLabel myLabel;
-
-    /**
-     * Maps a thread id to a {@link StateChartData} containing the chart that should be rendered on the cell corresponding to that thread.
-     */
-    private final Map<Integer, StateChartData> myStateCharts;
-
-    /**
-     * Keep the index of the item currently hovered.
-     */
-    private int myHoveredIndex = -1;
-
-    /**
-     * {@link UpdatableManager} responsible for managing the threads state charts.
-     */
-    private final UpdatableManager myUpdatableManager;
-
-    /**
-     * Maps a {@link StateChart} to a {@link EnumColors} helper class to return the proper color object for the {@link StateChart}
-     */
-    @NotNull
-    private final Map<StateChart<CpuProfilerStage.ThreadState>, EnumColors<CpuProfilerStage.ThreadState>> myColors;
-
-    public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, UpdatableManager updatableManager) {
-      myLabel = new JLabel();
-      myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
-      Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
-      Border marginLeft = new EmptyBorder(0, 10, 0, 0);
-      myLabel.setBorder(new CompoundBorder(rightSeparator, marginLeft));
-      myLabel.setOpaque(true);
-      myUpdatableManager = updatableManager;
-      myStateCharts = new HashMap<>();
-      myColors = new HashMap<>();
-      list.addMouseMotionListener(new MouseAdapter() {
-        @Override
-        public void mouseMoved(MouseEvent e) {
-          Point p = new Point(e.getX(), e.getY());
-          myHoveredIndex = list.locationToIndex(p);
-        }
-      });
-    }
-
-    @Override
-    public Component getListCellRendererComponent(JList list,
-                                                  CpuThreadsModel.RangedCpuThread value,
-                                                  int index,
-                                                  boolean isSelected,
-                                                  boolean cellHasFocus) {
-      JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
-      panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, JBUI.scale(15)));
-      panel.setBackground(list.getBackground());
-
-      myLabel.setText(value.getName());
-      myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
-      myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
-
-      // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
-      // corresponding to each thread and their models. StateChart#setModel is currently expensive and will make StateChart#render
-      // to be called. As this method can be called by Swing more often than our update cycle, we cache the models to avoid
-      // recalculating the render states. This causes the rendering time to be substantially improved.
-      int tid = value.getThreadId();
-      StateChartModel<CpuProfilerStage.ThreadState> model = value.getModel();
-      if (myStateCharts.containsKey(tid) && !model.equals(myStateCharts.get(tid).getModel())) {
-        // The model associated to the tid has changed. That might have happened because the tid was recycled and
-        // assigned to another thread. The current model needs to be unregistered.
-        myUpdatableManager.unregister(myStateCharts.get(tid).getModel());
-      }
-      StateChart<CpuProfilerStage.ThreadState> stateChart = getOrCreateStateChart(tid, model);
-      stateChart.setOpaque(true);
-      // 1 is index of the selected color, 0 is of the non-selected
-      // See more: {@link ProfilerColors#THREAD_STATES}
-      myColors.get(stateChart).setColorIndex(isSelected ? 1 : 0);
-
-      if (isSelected) {
-        // Cell is selected. Update its background accordingly.
-        panel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
-        myLabel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
-        myLabel.setForeground(ProfilerColors.SELECTED_THREAD_LABEL_TEXT);
-        // As the state chart is opaque the selected background wouldn't be visible
-        // if we didn't set the opaqueness to false if the cell is selected.
-        stateChart.setOpaque(false);
-      }
-      else if (myHoveredIndex == index) {
-        // Cell is hovered. Draw the hover overlay over it.
-        JPanel overlay = new JPanel();
-        overlay.setBackground(ProfilerColors.DEFAULT_HOVER_COLOR);
-        panel.add(overlay, new TabularLayout.Constraint(0, 0, 2));
-      }
-
-      panel.add(myLabel, new TabularLayout.Constraint(0, 0));
-      panel.add(stateChart, new TabularLayout.Constraint(0, 0, 2));
-      return panel;
-    }
-
-    /**
-     * Returns a {@link StateChart} corresponding to a given thread or create a new one if it doesn't exist.
-     */
-    private StateChart<CpuProfilerStage.ThreadState> getOrCreateStateChart(int tid, StateChartModel<CpuProfilerStage.ThreadState> model) {
-      if (myStateCharts.containsKey(tid) && myStateCharts.get(tid).getModel().equals(model)) {
-        // State chart is already saved on the map. Return it.
-        return myStateCharts.get(tid).getChart();
-      }
-      // The state chart corresponding to the thread is not stored on the map. Create a new one.
-      EnumColors<CpuProfilerStage.ThreadState> enumColors = ProfilerColors.THREAD_STATES.build();
-      StateChart<CpuProfilerStage.ThreadState> stateChart = new StateChart<>(model, enumColors::getColor);
-      StateChartData data = new StateChartData(stateChart, model);
-      stateChart.setHeightGap(0.40f);
-      myStateCharts.put(tid, data);
-      myColors.put(stateChart, enumColors);
-      myUpdatableManager.register(model);
-      return stateChart;
-    }
-
-    /**
-     * Contains a state chart and its corresponding model.
-     */
-    private static class StateChartData {
-      private final StateChart<CpuProfilerStage.ThreadState> myChart;
-      private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
-
-      public StateChartData(StateChart<CpuProfilerStage.ThreadState> chart, StateChartModel<CpuProfilerStage.ThreadState> model) {
-        myChart = chart;
-        myModel = model;
-      }
-
-      public StateChart<CpuProfilerStage.ThreadState> getChart() {
-        return myChart;
-      }
-
-      public StateChartModel<CpuProfilerStage.ThreadState> getModel() {
-        return myModel;
-      }
     }
   }
 }
