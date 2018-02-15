@@ -23,15 +23,11 @@ import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -41,8 +37,6 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.plaf.ComboBoxUI;
-import javax.swing.plaf.TextUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
@@ -344,7 +338,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   public static class CustomComboBox extends ComboBox {
     private JPanel myBorderPanel;
-    private boolean myUseDarculaUI;
 
     public CustomComboBox() {
       super(SMALL_WIDTH);
@@ -368,50 +361,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
 
     private void setBorders() {
-      int horizontalSpacing = HORIZONTAL_SPACING + (myUseDarculaUI ? 0 : 1);
+      int horizontalSpacing = HORIZONTAL_SPACING + 1;
       if (myBorderPanel != null) {
         myBorderPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, horizontalSpacing, VERTICAL_SPACING, 0));
-      }
-      setBorder(myUseDarculaUI && myBorderPanel != null ? null : JBUI.Borders.empty(1, 4, 1, 4));
-    }
-
-    @Override
-    public void setUI(ComboBoxUI ui) {
-      myUseDarculaUI = !(ui instanceof WindowsComboBoxUI) && !ApplicationManager.getApplication().isUnitTestMode();
-      if (myUseDarculaUI) {
-        // There are multiple reasons for hardcoding the ComboBoxUI here:
-        // 1) Some LAF will draw a beveled border which does not look good in the table grid.
-        // 2) In the inspector we would like the reference editor and the combo boxes to have a similar width.
-        //    This is very hard unless you can control the UI.
-        // Note: forcing the Darcula UI does not imply dark colors.
-        ui = new CustomDarculaComboBoxUI();
-      }
-      super.setUI(ui);
-      setBorders();
-    }
-  }
-
-  private static class CustomDarculaComboBoxUI extends DarculaComboBoxUI {
-
-    @Override
-    protected Insets getInsets() {
-      // Minimize the vertical padding used in the UI
-      return JBUI.insets(VERTICAL_PADDING, HORIZONTAL_PADDING, VERTICAL_PADDING, 4).asUIResource();
-    }
-
-    @Override
-    @NotNull
-    protected Color getArrowButtonFillColor(@NotNull Color defaultColor) {
-      // Use a lighter gray for the IntelliJ LAF. Darcula remains what is was.
-      return JBColor.LIGHT_GRAY;
-    }
-
-    @Override protected void configureEditor() {
-      super.configureEditor();
-
-      if (editor instanceof JTextField) {
-        JTextField tf = (JTextField)editor;
-        tf.setUI((TextUI)DarculaTextFieldUI.createUI(tf));
       }
     }
   }

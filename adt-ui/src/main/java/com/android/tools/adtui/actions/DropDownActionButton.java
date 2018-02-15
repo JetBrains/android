@@ -59,6 +59,20 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
   }
 
   @Override
+  public Dimension getPreferredSize() {
+    Dimension size = super.getPreferredSize();
+    size.width += DROP_DOWN_ICON.getIconWidth() + DROP_DOWN_ICON_MARGIN_RIGHT;
+    return size;
+  }
+
+  @Override
+  protected Rectangle getButtonRect() {
+    Rectangle viewRect = super.getButtonRect();
+    viewRect.width -= DROP_DOWN_ICON.getIconWidth() + DROP_DOWN_ICON_MARGIN_RIGHT;
+    return viewRect;
+  }
+
+  @Override
   public void paintComponent(Graphics g) {
     super.paintComponent(g);
     Insets insets = getInsets();

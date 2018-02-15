@@ -24,7 +24,6 @@ import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupListener;
 import com.intellij.codeInsight.lookup.LookupManager;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
@@ -43,7 +42,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -81,12 +79,6 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
     editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
     editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
-    editor.setBorder(new DarculaEditorTextFieldBorder() {
-      @Override
-      public Insets getBorderInsets(Component component) {
-        return new InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right);
-      }
-    });
     LookupManager.getInstance(getProject()).addPropertyChangeListener(myPropertyChangeListener);
   }
 
