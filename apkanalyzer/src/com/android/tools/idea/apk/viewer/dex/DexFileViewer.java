@@ -32,10 +32,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.*;
 import com.intellij.icons.AllIcons;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -82,6 +84,8 @@ public class DexFileViewer implements ApkFileEditorComponent {
   private boolean myDeobfuscateNames;
   private ListenableFuture<DexReferences> myDexReferences;
 
+  @NotNull public static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("APK Analyzer (Info)");
+  @NotNull public static final NotificationGroup BALLOON_NOTIFICATION = NotificationGroup.balloonGroup("APK Analyzer (Important)");
 
   public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @NotNull VirtualFile apkFolder) {
     myDexFiles = dexFiles;
@@ -249,17 +253,18 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
       myProguardMappings = loaded.isEmpty() ? null : new ProguardMappings(proguardMap, seeds, usage);
       if (errors.isEmpty() && loaded.isEmpty()) {
-        Messages.showWarningDialog("No Proguard mapping files found. The filenames must match one of: mapping.txt, seeds.txt, usage.txt",
-                                   "Load Proguard Mappings...");
+        BALLOON_NOTIFICATION.createNotification("APK Analyzer couldn't find any ProGuard mapping files. " +
+                                                "The filenames must match one of: mapping.txt, seeds.txt, usage.txt",
+                                                MessageType.ERROR).notify(myProject);
       }
       else if (errors.isEmpty()) {
-        Messages.showInfoMessage("Successfully loaded maps from: " + StringUtil.join(loaded, ", "),
-                                 "Load Proguard Mappings...");
+        LOGGING_NOTIFICATION.createNotification("APK Analyzer successfully loaded maps from: " + StringUtil.join(loaded, ", "),
+                                                MessageType.INFO).notify(myProject);
       }
       else {
-        Messages.showErrorDialog("Successfully loaded maps from: " + StringUtil.join(loaded, ",") + "\n"
-                                 + "There were problems loading: " + StringUtil.join(errors, ", "),
-                                 "Load Proguard Mappings...");
+        BALLOON_NOTIFICATION.createNotification("APK Analyzer successfully loaded maps from: " + StringUtil.join(loaded, ",") + "\n"
+                                                + "There were problems loading: " + StringUtil.join(errors, ", "),
+                                                MessageType.WARNING).notify(myProject);
       }
 
       myDexTreeRenderer.setMappings(myProguardMappings);
