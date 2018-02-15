@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -91,7 +92,7 @@ public class NlEditorTest {
    * </pre>
    */
   @RunIn(TestGroup.SANITY)
-  @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE, TargetBuildSystem.BuildSystem.BAZEL})
+  @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE}) // TargetBuildSyste.BuildSystem.BAZEL temporarily removed (b/72952881)
   @Test
   public void basicLayoutEdit() throws Exception {
     NlEditorFixture editorFixture = guiTest.importSimpleLocalApplication()
@@ -114,6 +115,7 @@ public class NlEditorTest {
     assertThat(layoutFileContents).contains("<Button");
   }
 
+  @Ignore // b/72952881
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
@@ -138,6 +140,7 @@ public class NlEditorTest {
     assertThat(editorFixture.canInteractWithSurface()).isFalse();
   }
 
+  @Ignore // b/72952881
   @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void designEditorUnavailableIfLastBazelSyncFailed() throws Exception {

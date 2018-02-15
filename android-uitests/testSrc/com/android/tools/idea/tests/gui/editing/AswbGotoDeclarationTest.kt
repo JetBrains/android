@@ -24,10 +24,7 @@ import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBui
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
 import org.hamcrest.core.IsInstanceOf.instanceOf
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.util.*
@@ -71,6 +68,7 @@ class AswbGotoDeclarationTest {
     return guiTest.ideFrame().editor.open(relativePath)
   }
 
+  @Ignore // b/72952881
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
@@ -87,6 +85,7 @@ class AswbGotoDeclarationTest {
     }
   }
 
+  @Ignore // b/72952881
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withLocalResources() {
