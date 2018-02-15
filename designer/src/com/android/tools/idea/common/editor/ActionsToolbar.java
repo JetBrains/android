@@ -17,7 +17,6 @@ package com.android.tools.idea.common.editor;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
-import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -114,10 +113,13 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
 
     ActionToolbar centerToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
-    centerToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
 
     JComponent centerToolbarComponent = centerToolbar.getComponent();
     centerToolbarComponent.setName("NlLayoutToolbar");
+    // Wrap the component inside a fixed height component so it doesn't disappear
+    JPanel centerToolbarComponentWrapper = new AdtPrimaryPanel(new BorderLayout());
+    centerToolbarComponentWrapper.setPreferredSize(JBUI.size(-1, 30));
+    centerToolbarComponentWrapper.add(centerToolbarComponent);
 
     ActionToolbar eastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
 
@@ -132,7 +134,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     JComponent panel = new AdtPrimaryPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
     panel.add(northPanel, BorderLayout.NORTH);
-    panel.add(centerToolbarComponent, BorderLayout.CENTER);
+    panel.add(centerToolbarComponentWrapper, BorderLayout.CENTER);
     panel.add(eastToolbarComponent, BorderLayout.EAST);
 
     return panel;
