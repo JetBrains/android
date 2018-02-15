@@ -87,8 +87,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   private final FakeNetworkService myFakeNetworkService = new FakeNetworkService();
 
   public TestName myTestName = new TestName();
-  public TestGrpcService<FakeNetworkService> myService =
-    new TestGrpcService<>(NetworkDataPollerTest.class, myTestName, myNetworkService, myFakeNetworkService);
+  public TestGrpcService myService = new TestGrpcService(NetworkDataPollerTest.class, myTestName, myNetworkService, myFakeNetworkService);
 
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);

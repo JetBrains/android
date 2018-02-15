@@ -87,8 +87,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
   private EventService myEventDataPoller = new EventService(myDataStoreService, getPollTicker()::run);
 
   private TestName myTestName = new TestName();
-  private TestGrpcService<EventServiceMock> myService =
-    new TestGrpcService<>(EventDataPollerTest.class, myTestName, myEventDataPoller, new EventServiceMock());
+  private TestGrpcService myService = new TestGrpcService(EventDataPollerTest.class, myTestName, myEventDataPoller, new EventServiceMock());
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
 

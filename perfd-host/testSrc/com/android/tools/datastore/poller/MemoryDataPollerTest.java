@@ -101,8 +101,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   private FakeMemoryService myFakeMemoryService = new FakeMemoryService();
 
   private TestName myTestName = new TestName();
-  private TestGrpcService<FakeMemoryService> myService =
-    new TestGrpcService<>(MemoryDataPollerTest.class, myTestName, myMemoryService, myFakeMemoryService);
+  private TestGrpcService myService = new TestGrpcService(MemoryDataPollerTest.class, myTestName, myMemoryService, myFakeMemoryService);
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore;
 
+import com.google.common.collect.Lists;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -25,6 +26,9 @@ import org.junit.rules.TestName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -34,10 +38,9 @@ import java.util.UUID;
  *
  * Within a test, use {@link #get()} to fetch a valid {@link StudioProfilers} instance.
  */
-public final class TestGrpcService<S extends BindableService> extends ExternalResource {
+public final class TestGrpcService extends ExternalResource {
+  private final List<BindableService> myServices;
   private String myGrpcName;
-  private final S myService;
-  private final BindableService mySecondaryService;
   private Server myServer;
   private ServicePassThrough myDataStoreService;
   private File myTestFile;
@@ -46,19 +49,16 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
   private TestName myMethodName;
   private String myTestClassName;
 
-  public TestGrpcService(Class testClazz, TestName methodName, ServicePassThrough dataStoreService, S service) {
-    this(testClazz, methodName, dataStoreService, service, null);
-  }
-
   public TestGrpcService(Class testClazz,
                          TestName methodName,
                          ServicePassThrough dataStoreService,
-                         S service,
-                         BindableService secondaryService) {
-    myService = service;
+                         BindableService primaryService,
+                         BindableService... otherServices) {
+    myServices = new ArrayList<>();
+    myServices.add(primaryService);
+    myServices.addAll(Arrays.asList(otherServices));
     myMethodName = methodName;
     myTestClassName = testClazz.getSimpleName();
-    mySecondaryService = secondaryService;
     myDataStoreService = dataStoreService;
   }
 
@@ -67,9 +67,9 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     myRpcFile = new TestGrpcFile(File.separator + myTestClassName + File.separator + myMethodName.getMethodName());
     myGrpcName = UUID.randomUUID().toString();
     InProcessServerBuilder builder = InProcessServerBuilder.forName(myGrpcName);
-    builder.addService(ServerInterceptors.intercept(myService, new TestServerInterceptor(myRpcFile)));
-    if (mySecondaryService != null) {
-      builder.addService(ServerInterceptors.intercept(mySecondaryService, new TestServerInterceptor(myRpcFile)));
+    TestServerInterceptor interceptor = new TestServerInterceptor(myRpcFile);
+    for (BindableService service : myServices) {
+      builder.addService(ServerInterceptors.intercept(service, interceptor));
     }
     myServer = builder.build();
     myServer.start();
