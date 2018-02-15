@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.atrace
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -79,6 +80,33 @@ class AtraceParserTest {
     assertThat(dataSeries[THREAD_ID]!!.get(0).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED);
     // Running = RUNNING
     assertThat(dataSeries[THREAD_ID]!!.get(1).value).isEqualTo(CpuProfilerStage.ThreadState.RUNNING_CAPTURED);
+  }
+
+  @Test
+  fun testGetCpuUtilizationDataSeries() {
+    val dataSeries = myParser.cpuUtilizationSeries
+    val size = 100 / myParser.cpuThreadInfoStates.size.toDouble()
+    // No values should exceed the bounds
+    for (data in dataSeries) {
+      assertThat(data.value).isAtLeast(0)
+      assertThat(data.value).isAtMost(100)
+      assertThat(data.value % size).isEqualTo(0.0)
+    }
+  }
+
+  @Test
+  fun testGetCpuProcessData() {
+    val dataSeries = myParser.cpuThreadInfoStates
+    assertThat(dataSeries).hasSize(4)
+    for (i in 0..3) {
+      assertThat(dataSeries.containsKey(i))
+    }
+    // Verify that we have a perfd process, null process, then rcu process.
+    // Verifying the null process is important as it ensures we render the data properly.
+    assertThat(dataSeries[0]!![0].value.name).matches("perfd")
+    assertThat(dataSeries[0]!![1].value).isEqualTo(CpuThreadInfo.NULL_THREAD)
+    assertThat(dataSeries[0]!![2].value.name).matches("rcu_preempt")
+
   }
 
   companion object {
