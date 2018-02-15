@@ -17,17 +17,32 @@ package com.android.tools.profilers.cpu;
 
 import com.android.annotations.NonNull;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CpuThreadInfo {
+  public static final CpuThreadInfo NULL_THREAD = new CpuThreadInfo(0, "", 0, "");
+
   /** Thread id */
   private final int myId;
 
   /** Thread name */
   private final String myName;
 
+  /** User space process id, in kernel space this is the tgid. */
+  private final int myProcessId;
+
+  /** User space process name */
+  private final String myProcessName;
+
   public CpuThreadInfo(int threadId, @NonNull String name) {
+    this(threadId, name, NULL_THREAD.myProcessId, NULL_THREAD.myProcessName);
+  }
+
+  public CpuThreadInfo(int threadId, @NonNull String name, int processId, @Nullable String processName) {
     myId = threadId;
     myName = name;
+    myProcessId = processId;
+    myProcessName = processName;
   }
 
   public int getId() {
@@ -37,5 +52,13 @@ public class CpuThreadInfo {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  public int getProcessId() {
+    return myProcessId;
+  }
+
+  public String getProcessName() {
+    return myProcessName;
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.CpuThreadInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -41,5 +42,30 @@ public class AtraceCpuCapture extends CpuCapture {
   @NotNull
   public List<SeriesData<CpuProfilerStage.ThreadState>> getThreadStatesForThread(int threadId) {
     return myParser.getThreadStateDataSeries().getOrDefault(threadId, new ArrayList<>());
+  }
+
+  /**
+   * @param cpu The cpu index to get {@link CpuProcess} series for.
+   * @return A series of {@link CpuProcess} information. The information is computed from the
+   * sched_switch trace line reported by atrace.
+   */
+  @NotNull
+  public List<SeriesData<CpuThreadInfo>> getCpuThreadInfoStates(int cpu) {
+    return myParser.getCpuThreadInfoStates().getOrDefault(cpu, new ArrayList<>());
+  }
+
+  /**
+   * @return Cpu Utilization data series. This data series is computed from each core
+   */
+  @NotNull
+  public List<SeriesData<Long>> getCpuUtilizationSeries() {
+    return myParser.getCpuUtilizationSeries();
+  }
+
+  /**
+   * @return The number of cores represented by this capture.
+   */
+  public int getCpuCount() {
+    return myParser.getCpuThreadInfoStates().size();
   }
 }
