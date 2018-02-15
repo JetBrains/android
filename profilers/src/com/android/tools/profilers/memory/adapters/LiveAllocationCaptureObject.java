@@ -440,22 +440,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   }
 
   @Nullable
-  private AllocationStack convertNativeCallstack(@Nullable NativeBacktrace backtrace) {
-    if (backtrace == null) return null;
-
-    //TODO: This is not even close to real native symbol resolution, just a temporary code to populate UI.
-    AllocationStack.StackFrameWrapper.Builder frames = AllocationStack.StackFrameWrapper.newBuilder();
-    AllocationStack.Builder stack = AllocationStack.newBuilder();
-    for (long address : backtrace.getAddressesList()) {
-      frames.addFrames(AllocationStack.StackFrame.newBuilder()
-                         .setClassName("CppClass")
-                         .setMethodName("Func_" + address));
-    }
-    stack.setFullStack(frames);
-    return stack.build();
-  }
-
-  @Nullable
   private JniReferenceInstanceObject getOrCreateJniRefObject(int tag, long refValue, int threadId) {
     LiveAllocationInstanceObject referencedObject = myInstanceMap.get(tag);
     if (referencedObject == null) {
@@ -470,7 +454,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
     JniReferenceInstanceObject result = referencedObject.getJniRefByValue(refValue);
     if (result == null) {
-      result = new JniReferenceInstanceObject(referencedObject, thread, tag, refValue);
+      result = new JniReferenceInstanceObject(this, referencedObject, thread, tag, refValue);
       referencedObject.addJniRef(result);
     }
     return result;
@@ -517,7 +501,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // reported. We don't have anything to show and ignore this reference.
         continue;
       }
-      refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+      if (event.hasBacktrace()) {
+        refObject.setAllocationBacktrace(event.getBacktrace());
+      }
       refObject.setAllocationTime(event.getTimestamp());
       setAllocationList.add(refObject);
     }
@@ -593,7 +579,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             refObject.setAllocationTime(Long.MIN_VALUE);
           } else {
             refObject.setAllocationTime(event.getTimestamp());
-            refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+            if (event.hasBacktrace()) {
+              refObject.setAllocationBacktrace(event.getBacktrace());
+            }
           }
           allocationList.add(refObject);
           break;
@@ -602,7 +590,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             refObject.setAllocationTime(Long.MAX_VALUE);
           } else {
             refObject.setDeallocTime(event.getTimestamp());
-            refObject.setDeallocationStack(convertNativeCallstack(event.getBacktrace()));
+            if (event.hasBacktrace()) {
+              refObject.setDeallocationBacktrace(event.getBacktrace());
+            }
           }
           deallocatoinList.add(refObject);
           break;

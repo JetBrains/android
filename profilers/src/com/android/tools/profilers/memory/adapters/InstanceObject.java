@@ -34,6 +34,11 @@ public interface InstanceObject extends ValueObject {
   }
 
   @NotNull
+  default ThreadId getDeallocationThreadId() {
+    return ThreadId.INVALID_THREAD_ID;
+  }
+
+  @NotNull
   ClassDb.ClassEntry getClassEntry();
 
   @Nullable
@@ -87,10 +92,10 @@ public interface InstanceObject extends ValueObject {
   }
 
   /**
-   * @return The IJ-friendly callstack which can be used to navigate to the user code using the StackTraceView.
+   * @return The IJ-friendly allocation callstack which can be used to navigate to the user code using the StackTraceView.
    */
   @NotNull
-  default List<CodeLocation> getCodeLocations() {
+  default List<CodeLocation> getAllocationCodeLocations() {
     AllocationStack callStack = getAllocationCallStack();
     if (callStack != null && callStack.getFrameCase() == AllocationStack.FrameCase.FULL_STACK) {
       AllocationStack.StackFrameWrapper fullStack = callStack.getFullStack();
@@ -103,6 +108,14 @@ public interface InstanceObject extends ValueObject {
       }
     }
 
+    return Collections.emptyList();
+  }
+
+  /**
+   * @return The IJ-friendly deallocation callstack which can be used to navigate to the user code using the StackTraceView.
+   */
+  @NotNull
+  default List<CodeLocation> getDeallocationCodeLocations() {
     return Collections.emptyList();
   }
 

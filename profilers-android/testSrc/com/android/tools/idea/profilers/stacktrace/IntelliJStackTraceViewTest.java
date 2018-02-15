@@ -91,6 +91,21 @@ public class IntelliJStackTraceViewTest {
   }
 
   @Test
+  public void nativeEqualityTest() {
+    CodeLocation loc = new CodeLocation.Builder("type").setMethodName("method").setNativeModuleName("module1")
+      .setMethodParameters(Arrays.asList("int", "std::string &"))
+      .setFileName("file").setLineNumber(1).setNativeCode(true).build();
+    CodeLocation positive = new CodeLocation.Builder(loc).build();
+    assertThat(loc).isEqualTo(positive);
+
+    CodeLocation negativeTest1 = new CodeLocation.Builder(positive).setNativeCode(false).build();
+    assertThat(loc).isNotEqualTo(negativeTest1);
+
+    CodeLocation negativeTest2 = new CodeLocation.Builder(positive).setNativeModuleName("module2").build();
+    assertThat(loc).isNotEqualTo(negativeTest2);
+  }
+
+  @Test
   public void setStackFramesTest() {
     myStackView.getModel().setStackFrames(STACK_STRING);
     List<CodeLocation> viewLocations = myStackView.getModel().getCodeLocations();

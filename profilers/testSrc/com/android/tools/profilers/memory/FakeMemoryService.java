@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -57,7 +58,29 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   // Difference between object tag and JNI reference value.
   private static final long JNI_REF_BASE = 0x50000000;
 
-  private static final List<Long> NATIVE_ADDRESSES = Arrays.asList(0xBAADF00Dl, 0xCAFEBABEl, 0xDABBAD00l, 0xDEADBEEFl);
+  private static final Long NATIVE_ADDRESSES_BASE = 0xBAADF00Dl;
+  private static final List<String> NATIVE_FUNCTION_NAMES = Arrays.asList(
+    "NativeNamespace::Foo::FooMethodA(string, int)",
+    "NativeNamespace::Bar::BarMethodA(string, int)",
+    "NativeNamespace::Foo::FooMethodB(string, int)",
+    "NativeNamespace::Bar::BarMethodB(string, int)"
+  );
+
+  private static final List<String> NATIVE_SOURCE_FILE = Arrays.asList(
+    "/a/path/to/sources/foo.cc",
+    "/a/path/to/sources/bar.cc",
+    "/a/path/to/sources/foo.h",
+    "/a/path/to/sources/bar.h"
+  );
+
+  private static final List<String> NATIVE_MODULE_NAMES = Arrays.asList(
+    "/data/app/com.example.sum-000==/lib/arm64/libfoo.so",
+    "/data/app/com.example.sum-000==/lib/arm/libbar.so",
+    "/data/app/com.example.sum-000==/lib/x86/libfoo.so",
+    "/data/app/com.example.sum-000==/lib/x86_64/libbar.so"
+  );
+
+  private static final String SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
 
 
   @NotNull private Range myLastRequestedDataRange = new Range(0, 0);
@@ -247,14 +270,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return sampleBuilder.build();
   }
 
-  private static NativeBacktrace createBacktrace(long seed) {
-    NativeBacktrace.Builder result = NativeBacktrace.newBuilder();
-    for (long address : NATIVE_ADDRESSES) {
-      result.addAddresses(address + seed);
-    }
-    return result.build();
-  }
-
   @Override
   public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
                                      StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
@@ -287,6 +302,41 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       }
     }
     result.setTimestamp(allocationSample.getTimestamp());
+    responseObserver.onNext(result.build());
+    responseObserver.onCompleted();
+  }
+
+  private static NativeBacktrace createBacktrace(int objTag) {
+    NativeBacktrace.Builder result = NativeBacktrace.newBuilder();
+    result.addAddresses(NATIVE_ADDRESSES_BASE + objTag);
+    result.addAddresses(NATIVE_ADDRESSES_BASE + objTag + 1);
+    return result.build();
+  }
+
+  @Override
+  public void resolveNativeBacktrace(ResolveNativeBacktraceRequest request,
+                                     StreamObserver<NativeCallStack> responseObserver) {
+    NativeCallStack.Builder result = NativeCallStack.newBuilder();
+    for (long addr : request.getBacktrace().getAddressesList()) {
+      int index = (int)(addr - NATIVE_ADDRESSES_BASE) % ALLOC_CONTEXT_NUM;
+      result.addFramesBuilder()
+        .setModuleName(NATIVE_MODULE_NAMES.get(index))
+        .setSymbolName(NATIVE_FUNCTION_NAMES.get(index))
+        .setFileName(NATIVE_SOURCE_FILE.get(index))
+        .setAddress(addr)
+        .setLineNumber(index + 100)
+        .setModuleOffset(addr);
+    }
+
+    /* Add an extra frame from a system module to check that such frames are ignored */
+    result.addFramesBuilder()
+      .setModuleName(SYSTEM_NATIVE_MODULE)
+      .setSymbolName("system_symbol_name()")
+      .setFileName("/path/android.cc")
+      .setAddress(NATIVE_ADDRESSES_BASE)
+      .setLineNumber(1)
+      .setModuleOffset(NATIVE_ADDRESSES_BASE);
+
     responseObserver.onNext(result.build());
     responseObserver.onCompleted();
   }
