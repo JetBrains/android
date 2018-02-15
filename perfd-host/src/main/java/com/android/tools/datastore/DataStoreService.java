@@ -19,6 +19,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.service.*;
+import com.android.tools.nativeSymbolizer.NativeSymbolizer;
+import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.*;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -26,6 +28,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +96,8 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private Consumer<Throwable> myNoPiiExceptionHanlder;
 
   private ProfilerService myProfilerService;
+  @NotNull
+  private NativeSymbolizer myNativeSymbolizer = new NopSymbolizer();
   private final ServerInterceptor myInterceptor;
   private final Map<DeviceId, DataStoreClient> myConnectedClients = new HashMap<>();
 
@@ -190,6 +195,21 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    */
   public void connect(@NotNull ManagedChannel channel) {
     myProfilerService.startMonitoring(channel);
+  }
+
+  /**
+   * Sets a symbolizer that is used to transform native backtraces into human readable callstacks.
+   */
+  public void setNativeSymbolizer(@NotNull NativeSymbolizer symbolizer) {
+    myNativeSymbolizer = symbolizer;
+  }
+
+  /**
+   * Gets native symbolizer to be used for JNI tracking
+   */
+  @NotNull
+  public NativeSymbolizer getNativeSymbolizer() {
+    return myNativeSymbolizer;
   }
 
   /**

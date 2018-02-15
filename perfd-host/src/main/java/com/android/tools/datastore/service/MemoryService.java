@@ -21,6 +21,7 @@ import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
+import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.NativeSymbolsPoller;
@@ -50,6 +51,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   private final Map<Long, PollRunner> mySymbolizationRunners = new HashMap<>();
   private final MemoryStatsTable myStatsTable;
   private final MemoryLiveAllocationTable myAllocationsTable;
+  private final ProfilerTable myProfilerTable;
   private final Consumer<Runnable> myFetchExecutor;
   private final DataStoreService myService;
 
@@ -59,6 +61,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     myService = dataStoreService;
     myStatsTable = new MemoryStatsTable();
     myAllocationsTable = new MemoryLiveAllocationTable();
+    myProfilerTable = new ProfilerTable();
   }
 
   @Override
@@ -71,7 +74,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       long sessionId = session.getSessionId();
       myJvmtiRunners.put(sessionId, new MemoryJvmtiDataPoller(session, myAllocationsTable, client));
       myRunners.put(sessionId, new MemoryDataPoller(session, myStatsTable, client, myFetchExecutor));
-      mySymbolizationRunners.put(sessionId, new NativeSymbolsPoller(session, myAllocationsTable));
+      mySymbolizationRunners.put(sessionId, new NativeSymbolsPoller(session, myAllocationsTable, myProfilerTable,
+                                                                    myService.getNativeSymbolizer()));
       myFetchExecutor.accept(mySymbolizationRunners.get(sessionId));
       myFetchExecutor.accept(myJvmtiRunners.get(sessionId));
       myFetchExecutor.accept(myRunners.get(sessionId));
@@ -341,6 +345,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     assert getBackingNamespaces().contains(namespace);
     if (namespace.equals(BackingNamespace.DEFAULT_SHARED_NAMESPACE)) {
       myStatsTable.initialize(connection);
+      myProfilerTable.initializeConnectionOnly(connection);
     }
     else {
       myAllocationsTable.initialize(connection);
