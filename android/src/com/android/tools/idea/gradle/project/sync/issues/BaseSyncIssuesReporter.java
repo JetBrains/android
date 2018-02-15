@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.util.PositionInFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.MagicConstant;
@@ -25,8 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.project.messages.MessageType.WARNING;
+import static com.android.tools.idea.project.messages.MessageType.*;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 abstract class BaseSyncIssuesReporter {
   @NotNull
@@ -42,5 +44,18 @@ abstract class BaseSyncIssuesReporter {
   @NotNull
   static MessageType getMessageType(@NotNull SyncIssue syncIssue) {
     return syncIssue.getSeverity() == SEVERITY_ERROR ? ERROR : WARNING;
+  }
+
+  @NotNull
+  static SyncMessage generateSyncMessage(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
+    SyncMessage message;
+    if (buildFile != null) {
+      PositionInFile position = new PositionInFile(buildFile);
+      message = new SyncMessage(module.getProject(), DEFAULT_GROUP, findFromSyncIssue(syncIssue), position, syncIssue.getMessage());
+    }
+    else {
+      message = new SyncMessage(DEFAULT_GROUP, findFromSyncIssue(syncIssue), syncIssue.getMessage());
+    }
+    return message;
   }
 }
