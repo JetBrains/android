@@ -187,11 +187,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     Runnable toggleButtons = () -> {
-      myForceGarbageCollectionButton.setEnabled(profilers.isSessionAlive());
-      myHeapDumpButton.setEnabled(profilers.isSessionAlive());
-      myAllocationButton.setEnabled(profilers.isSessionAlive());
+      boolean isAlive = profilers.getSessionsManager().isSessionAlive();
+      myForceGarbageCollectionButton.setEnabled(isAlive);
+      myHeapDumpButton.setEnabled(isAlive);
+      myAllocationButton.setEnabled(isAlive);
     };
-    profilers.addDependency(this).onChange(ProfilerAspect.SESSIONS, toggleButtons);
+    profilers.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleButtons);
     toggleButtons.run();
 
     JPanel panel = new JPanel(new BorderLayout());

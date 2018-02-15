@@ -93,7 +93,7 @@ public class StudioProfilersView extends AspectObserver {
     mySplitter.setDividerWidth(JBUI.scale(2));
     mySplitter.setSecondComponent(myStageComponent);
     if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      mySessionsView = new SessionsView(myProfiler);
+      mySessionsView = new SessionsView(myProfiler.getSessionsManager());
       mySplitter.setFirstComponent(mySessionsView.getComponent());
 
       // Prevent resize in collapse mode
@@ -293,12 +293,13 @@ public class StudioProfilersView extends AspectObserver {
       .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
 
     Runnable toggleToolButtons = () -> {
-      zoomOut.setEnabled(myProfiler.isSessionAlive());
-      zoomIn.setEnabled(myProfiler.isSessionAlive());
-      resetZoom.setEnabled(myProfiler.isSessionAlive());
-      myGoLive.setEnabled(myProfiler.isSessionAlive());
+      boolean isAlive = myProfiler.getSessionsManager().isSessionAlive();
+      zoomOut.setEnabled(isAlive);
+      zoomIn.setEnabled(isAlive);
+      resetZoom.setEnabled(isAlive);
+      myGoLive.setEnabled(isAlive);
     };
-    myProfiler.addDependency(this).onChange(ProfilerAspect.SESSIONS, toggleToolButtons);
+    myProfiler.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleToolButtons);
     toggleToolButtons.run();
 
     myStageToolbar = new JPanel(new BorderLayout());
@@ -342,6 +343,7 @@ public class StudioProfilersView extends AspectObserver {
 
   /**
    * Installs the {@link ContextMenuItem} common to all profilers.
+   *
    * @param component
    */
   public void installCommonMenuItems(@NotNull JComponent component) {
