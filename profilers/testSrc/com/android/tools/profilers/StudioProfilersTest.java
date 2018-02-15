@@ -906,7 +906,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
-    Map<Long, Common.Session> sessions = profilers.getSessions();
+    Map<Long, Common.Session> sessions = profilers.getSessionsManager().getSessions();
     Common.Session session1 = profilers.getSession();
     assertThat(session1.getDeviceId()).isEqualTo(device.getDeviceId());
     assertThat(session1.getPid()).isEqualTo(process1.getPid());
@@ -917,7 +917,7 @@ public final class StudioProfilersTest {
 
     profilers.setProcess(process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    sessions = profilers.getSessions();
+    sessions = profilers.getSessionsManager().getSessions();
     Common.Session session2 = profilers.getSession();
     session1 = session1.toBuilder().setEndTimestamp(session1.getStartTimestamp() + 1).build();
     assertThat(session2.getDeviceId()).isEqualTo(device.getDeviceId());

@@ -598,9 +598,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     toolbar.add(myCaptureButton);
     toolbar.add(myCaptureStatus);
 
-    StudioProfilers profilers = getStage().getStudioProfilers();
-    profilers.addDependency(this).onChange(ProfilerAspect.SESSIONS, () -> myCaptureButton.setEnabled(profilers.isSessionAlive()));
-    myCaptureButton.setEnabled(profilers.isSessionAlive());
+    SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
+    sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, () -> myCaptureButton.setEnabled(sessions.isSessionAlive()));
+    myCaptureButton.setEnabled(sessions.isSessionAlive());
 
     panel.add(toolbar, BorderLayout.WEST);
     return panel;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,9 @@
  */
 package com.android.tools.profilers;
 
-public enum ProfilerAspect {
-  // The current stage of the profiler tools has changed
-  STAGE,
-  // The set of processes has changed.
-  PROCESSES,
-  // The overall set of devices and/or processes seen by the datastore has changed.
-  DEVICES,
-  // The profiler desired mode has changed
-  MODE,
-  // The agent attach state has changed
-  AGENT,
-  // The active tooltip has changed
-  TOOLTIP,
+public enum SessionAspect {
+  // The state of the currently selected session has changed.
+  SELECTED_SESSION,
+  // The list of sessions and/or their internal data have changed.
+  SESSIONS,
 }

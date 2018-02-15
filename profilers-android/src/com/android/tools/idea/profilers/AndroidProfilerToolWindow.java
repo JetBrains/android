@@ -56,8 +56,9 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
     myProfilers.addDependency(this)
       .onChange(ProfilerAspect.MODE, this::updateToolWindow)
-      .onChange(ProfilerAspect.STAGE, this::updateToolWindow)
-      .onChange(ProfilerAspect.SESSIONS, this::updateToolWindow);
+      .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
+    myProfilers.getSessionsManager().addDependency(this)
+      .onChange(SessionAspect.SELECTED_SESSION, this::updateToolWindow);
   }
 
   private void initializeUi() {
@@ -80,6 +81,9 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   public void updateToolWindow() {
     ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
     ToolWindow window = manager.getToolWindow(AndroidProfilerToolWindowFactory.ID);
+    if (window == null) {
+      return;
+    }
 
     String sessionName = myProfilers.getSessionDisplayName();
     if (sessionName.isEmpty()) {

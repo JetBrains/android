@@ -49,7 +49,7 @@ public class SessionsView extends AspectObserver {
   private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUI.scale(20);
   private static final int SESSIONS_EXPANDED_MIN_WIDTH = JBUI.scale(200);
 
-  @NotNull private final StudioProfilers myProfilers;
+  @NotNull private final SessionsManager mySessionsManager;
   @NotNull private final JComponent myComponent;
   @NotNull private final JButton myExpandButton;
   @NotNull private final JButton myCollapseButton;
@@ -59,8 +59,8 @@ public class SessionsView extends AspectObserver {
 
   private boolean myIsExpanded;
 
-  public SessionsView(@NotNull StudioProfilers profilers) {
-    myProfilers = profilers;
+  public SessionsView(@NotNull SessionsManager sessionsManager) {
+    mySessionsManager = sessionsManager;
     // Starts out with a collapsed sessions panel.
     // TODO b\73159126 make this configurable. e.g. save user's previous settings.
     myIsExpanded = false;
@@ -89,7 +89,7 @@ public class SessionsView extends AspectObserver {
     mySessionsList = new JList<>(mySessionsListModel);
     mySessionsList.setCellRenderer(new SessionsCellRenderer());
     mySessionsList.setSelectionMode(SINGLE_SELECTION);
-    myProfilers.addDependency(this).onChange(ProfilerAspect.SESSIONS, this::refreshSessions);
+    mySessionsManager.addDependency(this).onChange(SessionAspect.SESSIONS, this::refreshSessions);
     initializeUI();
   }
 
@@ -159,11 +159,11 @@ public class SessionsView extends AspectObserver {
   }
 
   private void refreshSessions() {
-    java.util.List<Common.Session> sessions = new ArrayList<>(myProfilers.getSessions().values());
+    java.util.List<Common.Session> sessions = new ArrayList<>(mySessionsManager.getSessions().values());
     // The most recent session should appear at the top.
     Collections.sort(sessions, Comparator.comparingLong(Common.Session::getStartTimestamp).reversed());
 
-    mySelectedSession = myProfilers.getSession();
+    mySelectedSession = mySessionsManager.getSession();
     mySessionsListModel.clear();
     int selectionIndex = -1;
     for (int i = 0; i < sessions.size(); i++) {
