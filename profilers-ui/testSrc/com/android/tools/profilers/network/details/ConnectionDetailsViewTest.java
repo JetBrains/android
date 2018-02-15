@@ -20,6 +20,7 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.network.NetworkProfilerStage;
@@ -29,7 +30,6 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -53,7 +53,10 @@ public class ConnectionDetailsViewTest {
     .build();
 
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
-  private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
+  /**
+   * Header names chosen and intentionally unsorted, to make sure that they are shown in the UI in sorted order.
+   */
+  private static final String TEST_HEADERS = "car = car-value \n border = border-value \n apple = apple-value \n 123 = numeric-value \n";
   private static final String TEST_REQUEST_PAYLOAD_ID = "Request Payload";
   private static final String TEST_RESPONSE_PAYLOAD_ID = "Response Payload";
 
@@ -234,28 +237,25 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void headerSectionIsSortedAndFormatted() {
+  public void headerSectionIsSorted() {
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
     myView.setHttpData(data);
     JPanel requestHeadersPanel = findTab(myView, HeadersTabContent.class).findRequestHeadersSection();
     String text = firstDescendantWithType(requestHeadersPanel, JTextPane.class).getText();
-    String idealBody = "<body>" +
-                       "  <p>" +
-                       "    <nobr><b>123:&#160;&#160;</b></nobr><span>value</span>" +
-                       "  </p>" +
-                       "  <p>" +
-                       "    <nobr><b>apple:&#160;&#160;</b></nobr><span>value</span>" +
-                       "  </p>" +
-                       "  <p>" +
-                       "    <nobr><b>border:&#160;&#160;</b></nobr><span>value</span>" +
-                       "  </p>" +
-                       "  <p>" +
-                       "    <nobr><b>car:&#160;&#160;</b></nobr><span>value</span>" +
-                       "  </p>" +
-                       "</body>";
-    text = text.replaceAll("\\s", "");
-    idealBody = idealBody.replaceAll("\\s", "");
-    assertThat(text).contains(idealBody);
+
+    assertUiContainsLabelAndValue(text, "123", "numeric-value");
+    assertUiContainsLabelAndValue(text, "apple", "apple-value");
+    assertUiContainsLabelAndValue(text, "border", "border-value");
+    assertUiContainsLabelAndValue(text, "car", "car-value");
+
+    assertThat(text.indexOf("123")).isGreaterThan(-1);
+    assertThat(text.indexOf("123")).isLessThan(text.indexOf("apple"));
+    assertThat(text.indexOf("apple")).isLessThan(text.indexOf("border"));
+    assertThat(text.indexOf("border")).isLessThan(text.indexOf("car"));
+  }
+
+  private void assertUiContainsLabelAndValue(String uiText, String label, String value) {
+    assertThat(uiText).containsMatch(String.format("\\b%s\\b.+\\b%s\\b", label, value));
   }
 
   @Test

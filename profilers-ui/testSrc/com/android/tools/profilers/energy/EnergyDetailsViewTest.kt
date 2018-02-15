@@ -81,10 +81,14 @@ class EnergyDetailsViewTest {
     view.setDuration(wakeLockDuration)
     val wakeLockTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(wakeLockTextPane.text) {
-      assertThat(this).contains("<b>Name</b>:&#160;<span>wakeLockTag</span>")
-      assertThat(this).contains("<b>Level</b>:&#160;<span>SCREEN_DIM_WAKE_LOCK</span>")
-      assertThat(this).contains("<b>Flags</b>:&#160;<span>ACQUIRE_CAUSES_WAKEUP</span>")
+      assertUiContainsLabelAndValue(this, "Name", "wakeLockTag")
+      assertUiContainsLabelAndValue(this, "Level", "SCREEN_DIM_WAKE_LOCK")
+      assertUiContainsLabelAndValue(this, "Flags", "ACQUIRE_CAUSES_WAKEUP")
     }
     // TODO: Test time data
+  }
+
+  private fun assertUiContainsLabelAndValue(uiText: String, label: String, value: String) {
+    assertThat(uiText).containsMatch("\\b$label\\b.+\\b$value\\b")
   }
 }
