@@ -17,12 +17,16 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.nativeSymbolizer.NativeSymbolizer;
+import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.profilers.ProfilerClient;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -32,6 +36,7 @@ public class ProfilerService implements Disposable {
   public static ProfilerService getInstance(@NotNull Project project) {
     ProfilerService service = ServiceManager.getService(ProfilerService.class);
     service.myManager.initialize(project);
+    service.initializeSymbolizer(project);
     return service;
   }
 
@@ -43,6 +48,8 @@ public class ProfilerService implements Disposable {
   private final ProfilerClient myClient;
   @NotNull
   private final DataStoreService myDataStoreService;
+  @Nullable
+  private NativeSymbolizer mySymbolizer;
 
   private ProfilerService() {
     String datastoreDirectory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
@@ -51,6 +58,12 @@ public class ProfilerService implements Disposable {
     myManager = new StudioProfilerDeviceManager(myDataStoreService);
     myClient = new ProfilerClient(DATASTORE_NAME);
     IdeSdks.subscribe(myManager, this);
+  }
+
+  private void initializeSymbolizer(@NotNull Project project) {
+    mySymbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
+    Disposer.register(this, mySymbolizer);
+    myDataStoreService.setNativeSymbolizer(mySymbolizer);
   }
 
   @Override

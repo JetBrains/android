@@ -32,7 +32,7 @@ import static com.android.testutils.TestUtils.getWorkspaceRoot;
 
 
 public class IdeaTestSuiteBase {
-  private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+  protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {
     VfsRootAccess.allowRootAccess("/");  // Bazel tests are sandboxed so we disable VfsRoot checks.

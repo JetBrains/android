@@ -73,6 +73,15 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     }
   }
 
+  /**
+   * Establishes DB connection without creating tables and indexes.
+   *
+   * (Tables and indexes should be already created at this point somewhere else)
+   */
+  public void initializeConnectionOnly(@NotNull Connection connection) {
+    super.initialize(connection);
+  }
+
   @Override
   public void prepareStatements() {
     try {

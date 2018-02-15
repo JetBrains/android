@@ -33,5 +33,6 @@
     <orderEntry type="module" module-name="android-adb" />
     <orderEntry type="module" module-name="cidr-lang" />
     <orderEntry type="module" module-name="dom-openapi" />
+    <orderEntry type="module" module-name="native-symbolizer" />
   </component>
 </module>

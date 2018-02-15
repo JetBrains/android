@@ -46,5 +46,6 @@ iml_module(
         "//tools/idea/.idea/libraries:sqlite",
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/native-symbolizer[module]",
     ],
 )
