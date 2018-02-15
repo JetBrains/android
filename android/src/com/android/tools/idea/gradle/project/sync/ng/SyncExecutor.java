@@ -92,7 +92,7 @@ class SyncExecutor {
 
       try {
         SyncProjectModels models = executor.run();
-        callback.setDone(models);
+        callback.setDone(models, id);
       }
       catch (RuntimeException e) {
         myErrorHandlerManager.handleError(e);

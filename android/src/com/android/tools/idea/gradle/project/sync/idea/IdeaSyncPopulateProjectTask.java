@@ -25,6 +25,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -58,36 +59,39 @@ public class IdeaSyncPopulateProjectTask {
     myDataManager = dataManager;
   }
 
-  public void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
-    populateProject(projectInfo, null, null);
+  public void populateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
+    populateProject(projectInfo, taskId, null, null);
   }
 
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
+                              @NotNull ExternalSystemTaskId taskId,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
                               @Nullable Runnable syncFinishedCallback) {
-    doPopulateProject(projectInfo, setupRequest, syncFinishedCallback);
+    doPopulateProject(projectInfo, taskId, setupRequest, syncFinishedCallback);
   }
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo,
+                                 @NotNull ExternalSystemTaskId taskId,
                                  @Nullable PostSyncProjectSetup.Request setupRequest,
                                  @Nullable Runnable syncFinishedCallback) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeProjectMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(projectInfo, new EmptyProgressIndicator(), setupRequest, syncFinishedCallback);
+      populate(projectInfo, taskId, new EmptyProgressIndicator(), setupRequest, syncFinishedCallback);
       return;
     }
 
     Task.Backgroundable task = new Task.Backgroundable(myProject, "Project Setup", false) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        populate(projectInfo, indicator, setupRequest, syncFinishedCallback);
+        populate(projectInfo, taskId, indicator, setupRequest, syncFinishedCallback);
       }
     };
     task.queue();
   }
 
   private void populate(@NotNull DataNode<ProjectData> projectInfo,
+                        @NotNull ExternalSystemTaskId taskId,
                         @NotNull ProgressIndicator indicator,
                         @Nullable PostSyncProjectSetup.Request setupRequest,
                         @Nullable Runnable syncFinishedCallback) {
@@ -101,7 +105,7 @@ public class IdeaSyncPopulateProjectTask {
       }
     }
     if (setupRequest != null) {
-      PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator);
+      PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator, taskId);
     }
   }
 

@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
@@ -69,9 +70,10 @@ class SyncResultHandler {
                       @NotNull ProgressIndicator indicator,
                       @Nullable GradleSyncListener syncListener) {
     SyncProjectModels models = callback.getModels();
+    ExternalSystemTaskId taskId = callback.getTaskId();
     if (models != null) {
       try {
-        setUpProject(models, setupRequest, indicator, syncListener);
+        setUpProject(models, setupRequest, indicator, syncListener, taskId);
         Runnable runnable = () -> {
           boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
           boolean isImportedProject = myProjectInfo.isImportedProject();
@@ -110,7 +112,8 @@ class SyncResultHandler {
   private void setUpProject(@NotNull SyncProjectModels models,
                             @NotNull PostSyncProjectSetup.Request setupRequest,
                             @NotNull ProgressIndicator indicator,
-                            @Nullable GradleSyncListener syncListener) {
+                            @Nullable GradleSyncListener syncListener,
+                            @Nullable ExternalSystemTaskId taskId) {
     try {
       if (syncListener != null) {
         syncListener.setupStarted(myProject);
@@ -126,7 +129,7 @@ class SyncResultHandler {
         syncListener.syncSucceeded(myProject);
       }
 
-      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator));
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
     }
     catch (Throwable e) {
       notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -136,7 +139,8 @@ class SyncResultHandler {
   void onSyncSkipped(@NotNull CachedProjectModels projectModelsCache,
                      @NotNull PostSyncProjectSetup.Request setupRequest,
                      @NotNull ProgressIndicator indicator,
-                     @Nullable GradleSyncListener syncListener) throws ModelNotFoundInCacheException {
+                     @Nullable GradleSyncListener syncListener,
+                     @Nullable ExternalSystemTaskId taskId) throws ModelNotFoundInCacheException {
     if (syncListener != null) {
       syncListener.setupStarted(myProject);
     }
@@ -149,7 +153,7 @@ class SyncResultHandler {
       syncListener.syncSkipped(myProject);
     }
 
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator));
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {

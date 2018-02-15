@@ -22,10 +22,13 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
@@ -72,7 +75,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     myGradleSync.sync(request, mySyncListener);
 
     verify(mySyncMessages).removeAllMessages();
-    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener));
+    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
   }
 
   public void testFailedSyncFromCachedModels() throws Exception {
@@ -88,10 +91,16 @@ public class NewGradleSyncTest extends IdeaTestCase {
     when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(projectModelsCache);
 
     // Simulate loading models from cache fails.
-    ModelNotFoundInCacheException error = new ModelNotFoundInCacheException(GradleModuleModel.class);
-    doThrow(error).when(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener));
+    Answer getTaskIdAndTrowError = new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocation) throws Throwable {
+        ExternalSystemTaskId taskId = invocation.getArgument(4);
+        myCallback.setDone(mock(SyncProjectModels.class), taskId);
+        throw new ModelNotFoundInCacheException(GradleModuleModel.class);
+      }
+    };
+    doAnswer(getTaskIdAndTrowError).when(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
 
-    myCallback.setDone(mock(SyncProjectModels.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -111,7 +120,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
     when(buildFileChecksums.canUseCachedData()).thenReturn(false);
 
-    myCallback.setDone(mock(SyncProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -131,7 +140,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
     when(buildFileChecksums.canUseCachedData()).thenReturn(true);
 
-    myCallback.setDone(mock(SyncProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -153,7 +162,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(null);
 
-    myCallback.setDone(mock(SyncProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -168,7 +177,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     // Simulate successful sync.
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
 
-    myCallback.setDone(mock(SyncProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
