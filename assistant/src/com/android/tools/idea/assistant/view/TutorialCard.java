@@ -28,6 +28,7 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -231,13 +232,18 @@ public class TutorialCard extends CardViewPanel {
 
     StepByStepFooter() {
       super(new BorderLayout());
+      setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
+      setOpaque(false);
+      JPanel containerPanel = new JPanel(new BorderLayout());
+      containerPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+
       myPrevButton = new StepButton("Previous", StepButton.Direction.PREV, e -> handleStepButtonClick(e));
-      add(myPrevButton, BorderLayout.LINE_START);
+      containerPanel.add(myPrevButton, BorderLayout.LINE_START);
       myNextButton = new StepButton("Next", StepButton.Direction.NEXT, e -> handleStepButtonClick(e));
-      add(myNextButton, BorderLayout.LINE_END);
+      containerPanel.add(myNextButton, BorderLayout.LINE_END);
+      add(containerPanel);
 
       updateVisibility();
-      setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor()));
     }
 
     private void handleStepButtonClick(@NotNull ActionEvent event) {
