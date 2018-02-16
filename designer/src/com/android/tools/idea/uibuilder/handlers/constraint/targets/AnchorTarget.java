@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2017 - 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -39,19 +38,32 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Implements a target anchor for the ConstraintLayout viewgroup
+ * Implements a target anchor for the ConstraintLayout.
  */
-@SuppressWarnings("ForLoopReplaceableByForEach")
 public class AnchorTarget extends BaseTarget {
 
   private static final boolean DEBUG_RENDERER = false;
+
+  private static final int EXPANDED_SIZE = 200;
+  private static final int ANCHOR_SIZE = 3;
+
   private final boolean myVisibility;
+  private final AnchorTarget.Type myType;
+
   private AnchorTarget myCurrentClosestTarget; // used to define the closest target during drag;
-  private boolean myThisIsTheTarget;
   private boolean myInDrag = false;
   private boolean myRenderingTemporaryConnection = false;
+  private boolean myExpandArea = false;
+  @AndroidDpCoordinate private int myLastX = -1;
+  @AndroidDpCoordinate private int myLastY = -1;
+  @AndroidDpCoordinate private int myConnectedX = -1;
+  @AndroidDpCoordinate private int myConnectedY = -1;
 
-  // Type of possible anchors
+  private final HashMap<String, String> mPreviousAttributes = new HashMap<>();
+
+  /**
+   * Type of possible anchors.
+   */
   public enum Type {
     LEFT, TOP, RIGHT, BOTTOM, BASELINE;
     public int getMask() {
@@ -70,18 +82,6 @@ public class AnchorTarget extends BaseTarget {
       return 0;
     }
   }
-
-  protected static final int ourSize = 3;
-  private static final int ourExpandSize = 200;
-  private final AnchorTarget.Type myType;
-  private boolean myExpandArea = false;
-
-  @AndroidDpCoordinate private int myLastX = -1;
-  @AndroidDpCoordinate private int myLastY = -1;
-  @AndroidDpCoordinate private int myConnectedX = -1;
-  @AndroidDpCoordinate private int myConnectedY = -1;
-
-  private HashMap<String, String> mPreviousAttributes = new HashMap<>();
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
@@ -119,24 +119,19 @@ public class AnchorTarget extends BaseTarget {
     return myType == Type.TOP || myType == Type.BOTTOM;
   }
 
-  public void setThisIsTheTarget(boolean target) {
-    myThisIsTheTarget = target;
-  }
-
   @Override
   public void setMouseHovered(boolean over) {
     if (over != mIsOver) {
-      changeState(mIsOver, over);
-      mIsOver = over;
+      changeMouseOverState(over);
       myComponent.getScene().needsRebuildList();
       myComponent.getScene().repaint();
     }
   }
 
-  private void changeState(boolean prevOver, boolean currentOver) {
+  private void changeMouseOverState(boolean newValue) {
+    mIsOver = newValue;
     String dir;
     switch (myType) {
-
       case LEFT:
         dir = DecoratorUtilities.LEFT_CONNECTION;
         break;
@@ -154,11 +149,17 @@ public class AnchorTarget extends BaseTarget {
         break;
     }
     DecoratorUtilities.ViewStates mode = DecoratorUtilities.ViewStates.SELECTED;
-    if (currentOver & !myThisIsTheTarget) {
+    if (isTargeted()) {
       mode = DecoratorUtilities.ViewStates.WILL_DESTROY;
     }
     DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
+  }
 
+  /**
+   * Returns true if this anchor is currently the destination target in a new constraint creation.
+   */
+  private boolean isTargeted() {
+    return mIsOver && !myComponent.isSelected();
   }
 
   @Override
@@ -201,7 +202,7 @@ public class AnchorTarget extends BaseTarget {
     if (ratio > 2) {
       ratio = 2;
     }
-    float size = (ourSize * ratio);
+    float size = (ANCHOR_SIZE * ratio);
     float minWidth = 4 * size;
     float minHeight = 4 * size;
     if (r - l < minWidth) {
@@ -225,7 +226,7 @@ public class AnchorTarget extends BaseTarget {
         myRight = l + size;
         myBottom = mh + size;
         if (myExpandArea) {
-          myLeft = l - ourExpandSize;
+          myLeft = l - EXPANDED_SIZE;
           myTop = t;
           myBottom = b;
         }
@@ -237,7 +238,7 @@ public class AnchorTarget extends BaseTarget {
         myRight = mw + size;
         myBottom = t + size;
         if (myExpandArea) {
-          myTop = t - ourExpandSize;
+          myTop = t - EXPANDED_SIZE;
           myLeft = l;
           myRight = r;
         }
@@ -249,7 +250,7 @@ public class AnchorTarget extends BaseTarget {
         myRight = r + size;
         myBottom = mh + size;
         if (myExpandArea) {
-          myRight = r + ourExpandSize;
+          myRight = r + EXPANDED_SIZE;
           myTop = t;
           myBottom = b;
         }
@@ -261,7 +262,7 @@ public class AnchorTarget extends BaseTarget {
         myRight = mw + size;
         myBottom = b + size;
         if (myExpandArea) {
-          myBottom = b + ourExpandSize;
+          myBottom = b + EXPANDED_SIZE;
           myLeft = l;
           myRight = r;
         }
@@ -293,28 +294,32 @@ public class AnchorTarget extends BaseTarget {
     String attribute = null;
     switch (myType) {
       case LEFT: {
-        attribute = ConstraintComponentUtilities
-          .getConnectionId(myComponent.getAuthoritativeNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
+        attribute = ConstraintComponentUtilities.getConnectionId(myComponent.getAuthoritativeNlComponent(),
+                                                                 SdkConstants.SHERPA_URI,
+                                                                 ConstraintComponentUtilities.ourLeftAttributes);
         break;
       }
       case RIGHT: {
-        attribute = ConstraintComponentUtilities
-          .getConnectionId(myComponent.getAuthoritativeNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
+        attribute = ConstraintComponentUtilities.getConnectionId(myComponent.getAuthoritativeNlComponent(),
+                                                                 SdkConstants.SHERPA_URI,
+                                                                 ConstraintComponentUtilities.ourRightAttributes);
         break;
       }
       case TOP: {
-        attribute = ConstraintComponentUtilities
-          .getConnectionId(myComponent.getAuthoritativeNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
+        attribute = ConstraintComponentUtilities.getConnectionId(myComponent.getAuthoritativeNlComponent(),
+                                                                 SdkConstants.SHERPA_URI,
+                                                                 ConstraintComponentUtilities.ourTopAttributes);
         break;
       }
       case BOTTOM: {
-        attribute = ConstraintComponentUtilities
-          .getConnectionId(myComponent.getAuthoritativeNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
+        attribute = ConstraintComponentUtilities.getConnectionId(myComponent.getAuthoritativeNlComponent(),
+                                                                 SdkConstants.SHERPA_URI,
+                                                                 ConstraintComponentUtilities.ourBottomAttributes);
         break;
       }
       case BASELINE: {
         attribute = myComponent.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI,
-                                                                  SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+                                                                               SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
         if (attribute != null) {
           attribute = NlComponent.extractId(attribute);
         }
@@ -324,7 +329,7 @@ public class AnchorTarget extends BaseTarget {
     if (attribute == null) {
       return false;
     }
-    return attribute.equalsIgnoreCase((String)target.getComponent().getId());
+    return attribute.equalsIgnoreCase(target.getComponent().getId());
   }
 
   private boolean isConnected() {
@@ -350,14 +355,13 @@ public class AnchorTarget extends BaseTarget {
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
     }
 
-    int mode = DrawAnchor.NORMAL;
     Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
 
-    boolean can_connect = (state != null && (state & myType.getMask()) != 0)? true : false;
+    boolean can_connect = state != null && (state & myType.getMask()) != 0;
     boolean is_connected = isConnected();
-    int drawState = ((can_connect)?1:0) | (mIsOver?2:0) | (is_connected?4:0) | (myThisIsTheTarget?8:0) | (myComponent.isSelected()?16:0);
+    int drawState = ((can_connect)?1:0) | (mIsOver?2:0) | (is_connected?4:0) | (isTargeted()?8:0) | (myComponent.isSelected()?16:0);
 
-    int []modeTable = {
+    int[] modeTable = {
       DrawAnchor.DO_NOT_DRAW, //
       DrawAnchor.CAN_CONNECT, // can_connect
       DrawAnchor.OVER,        // mIsOver
@@ -390,13 +394,12 @@ public class AnchorTarget extends BaseTarget {
       DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget & is_connected & can_connect
       DrawAnchor.OVER,        // isSelected & myThisIsTheTarget & is_connected & mIsOver
       DrawAnchor.CAN_CONNECT, // isSelected & myThisIsTheTarget & is_connected & can_connect & mIsOver
-
     };
-    mode = modeTable[drawState];
+    int mode = modeTable[drawState];
 
     if (mode != DrawAnchor.DO_NOT_DRAW) {
       DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
-                     myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, is_connected && !myThisIsTheTarget,
+                     myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, is_connected && !isTargeted(),
                      mode);
     }
 
@@ -419,8 +422,6 @@ public class AnchorTarget extends BaseTarget {
 
   /**
    * Clear the attributes related to this Anchor type
-   *
-   * @param transaction
    */
   private void clearMe(@NotNull AttributesTransaction transaction) {
     ConstraintComponentUtilities.clearAnchor(myType, transaction, useRtlAttributes(), isRtl());
@@ -428,15 +429,10 @@ public class AnchorTarget extends BaseTarget {
 
   /**
    * Store the existing attributes in mPreviousAttributes
-   *
-   * @param uri
-   * @param attributes
    */
   private void rememberPreviousAttribute(@NotNull String uri, @NotNull ArrayList<String> attributes) {
     NlComponent component = myComponent.getAuthoritativeNlComponent();
-    int count = attributes.size();
-    for (int i = 0; i < count; i++) {
-      String attribute = attributes.get(i);
+    for (String attribute : attributes) {
       mPreviousAttributes.put(attribute, component.getLiveAttribute(uri, attribute));
     }
   }
@@ -451,9 +447,6 @@ public class AnchorTarget extends BaseTarget {
 
   /**
    * Return the correct attribute string given our type and the target type
-   *
-   * @param target
-   * @return
    */
   private String getAttribute(@NotNull Target target) {
     if (!(target instanceof AnchorTarget)) {
@@ -471,10 +464,8 @@ public class AnchorTarget extends BaseTarget {
     AttributesTransaction attributes = component.startAttributeTransaction();
     attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
     for (String key : mPreviousAttributes.keySet()) {
-      if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)) {
-        attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
-      }
-      else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)) {
+      if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X) ||
+          key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)) {
         attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
       }
       else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_TOP)
@@ -495,16 +486,12 @@ public class AnchorTarget extends BaseTarget {
 
   /**
    * Connect the anchor to the given target. Applied immediately in memory.
-   *
-   * @param component
-   * @param attribute
-   * @param targetComponent
-   * @return
    */
   private AttributesTransaction connectMe(NlComponent component, String attribute, NlComponent targetComponent) {
     AttributesTransaction attributes = component.startAttributeTransaction();
-    String targetId = null;
+    String targetId;
     NlComponent parent = component.getParent();
+    assert parent != null;
     if (NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
       parent = parent.getParent();
     }
@@ -713,11 +700,7 @@ public class AnchorTarget extends BaseTarget {
 
   /**
    * On mouse drag, we can connect (in memory) to existing targets, or revert to the
-   * original state that we capatured on mouseDown.
-   *
-   * @param closestTarget
-   * @param x
-   * @param y
+   * original state that we captured on mouseDown.
    */
   @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
@@ -735,19 +718,13 @@ public class AnchorTarget extends BaseTarget {
       DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, true);
     }
     if (myCurrentClosestTarget != closestTarget) {
-      if (myCurrentClosestTarget != null) {
-        myCurrentClosestTarget.setThisIsTheTarget(false);
-      }
       myCurrentClosestTarget = null;
-      if (closestTarget instanceof AnchorTarget) {
+      if (closestTarget != null) {
         myCurrentClosestTarget = ((AnchorTarget)closestTarget);
-        if (myCurrentClosestTarget != null) {
-          myCurrentClosestTarget.setThisIsTheTarget(true);
-        }
       }
     }
 
-    if (closestTarget != null && closestTarget instanceof AnchorTarget) {
+    if (closestTarget != null) {
       NlComponent component = myComponent.getAuthoritativeNlComponent();
       String attribute = getAttribute(closestTarget);
       if (attribute != null) {
@@ -755,7 +732,7 @@ public class AnchorTarget extends BaseTarget {
         if (targetAnchor.myComponent != myComponent && !targetAnchor.isConnected(this)) {
           if (myComponent.getParent() != targetAnchor.myComponent) {
             Integer state = DecoratorUtilities.getTryingToConnectState(targetAnchor.myComponent.getNlComponent());
-            if (targetAnchor.myType == null || state == null) {
+            if (state == null) {
               return;
             }
             int mask = state & targetAnchor.myType.getMask();
@@ -775,13 +752,9 @@ public class AnchorTarget extends BaseTarget {
   }
 
   /**
-   * On mouseRelease, we can either disconnect the current anchor (if the mouse release is on ourselve)
-   * or connect the anchor to a given target. Modifications are applied first in memory then commited
+   * On mouseRelease, we can either disconnect the current anchor (if the mouse release is on ourselves)
+   * or connect the anchor to a given target. Modifications are applied first in memory then committed
    * to the XML model.
-   *
-   * @param x
-   * @param y
-   * @param closestTarget
    */
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
@@ -791,17 +764,17 @@ public class AnchorTarget extends BaseTarget {
       if (myComponent.getParent() != null) {
         myComponent.getParent().setExpandTargetArea(false);
       }
-      Target closestTarget = null;
+      AnchorTarget closestTarget = null;
       for (Target target : closestTargets) {
         if (target instanceof AnchorTarget && target != this) {
-          closestTarget = target;
+          closestTarget = (AnchorTarget) target;
           break;
         }
       }
       if (closestTarget == null && closestTargets.contains(this)) {
         closestTarget = this;
       }
-      if (closestTarget != null && closestTarget instanceof AnchorTarget && !(((AnchorTarget)closestTarget).isConnected(this))) {
+      if (closestTarget != null && !closestTarget.isConnected(this)) {
         NlComponent component = myComponent.getAuthoritativeNlComponent();
         if (closestTarget == this) {
           disconnectMe(component);
@@ -809,21 +782,20 @@ public class AnchorTarget extends BaseTarget {
         else {
           String attribute = getAttribute(closestTarget);
           if (attribute != null) {
-            AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
-            if (targetAnchor.myComponent == myComponent) {
+            if (closestTarget.myComponent == myComponent) {
               return;
             }
-            if (myComponent.getParent() != targetAnchor.myComponent) {
-              Integer state = DecoratorUtilities.getTryingToConnectState(targetAnchor.myComponent.getNlComponent());
-              if (targetAnchor.myType == null || state == null) {
+            if (myComponent.getParent() != closestTarget.myComponent) {
+              Integer state = DecoratorUtilities.getTryingToConnectState(closestTarget.myComponent.getNlComponent());
+              if (state == null) {
                 return;
               }
-              int mask = state & targetAnchor.myType.getMask();
+              int mask = state & closestTarget.myType.getMask();
               if (mask == 0) {
                 return;
               }
             }
-            NlComponent targetComponent = targetAnchor.myComponent.getAuthoritativeNlComponent();
+            NlComponent targetComponent = closestTarget.myComponent.getAuthoritativeNlComponent();
             AttributesTransaction attributes = connectMe(component, attribute, targetComponent);
 
             NlWriteCommandAction.run(component, "Constraint Connected", attributes::commit);
@@ -831,7 +803,8 @@ public class AnchorTarget extends BaseTarget {
           }
         }
       }
-    } finally {
+    }
+    finally {
       if (myInDrag) {
         myInDrag = false;
         DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
