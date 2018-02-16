@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleValueImpl;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -71,6 +72,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    IdeSdks.removeJdksOn(getTestRootDisposable());
 
     String basePath = myProject.getBasePath();
     assertNotNull(basePath);
