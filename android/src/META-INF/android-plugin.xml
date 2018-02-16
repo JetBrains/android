@@ -17,7 +17,7 @@
 
   <depends>JUnit</depends>
   <depends>com.intellij.properties</depends>
-  <depends>org.jetbrains.plugins.gradle.java</depends>
+  <depends>org.jetbrains.plugins.gradle</depends>
   <depends>com.android.tools.idea.smali</depends>
 
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
