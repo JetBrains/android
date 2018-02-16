@@ -41,7 +41,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.android.SdkConstants.TAG_DEEPLINK;
+import static com.android.SdkConstants.TAG_DEEP_LINK;
 import static com.android.SdkConstants.TAG_INCLUDE;
 import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.*;
 
@@ -235,7 +235,7 @@ public class NavigationSchema implements Disposable {
       if (type != ACTIVITY) {
         result.put(NavActionElement.class, TAG_ACTION);
       }
-      result.put(DeeplinkElement.class, TAG_DEEPLINK);
+      result.put(DeeplinkElement.class, TAG_DEEP_LINK);
       result.put(ArgumentElement.class, TAG_ARGUMENT);
     }
     return result;

@@ -34,7 +34,7 @@ class NavDeeplinkInspectorProvider :
     if (deeplinkDialog.showAndGet()) {
       WriteCommandAction.runWriteCommandAction(null, {
         val realComponent = existing ?: run {
-          val tag = parents[0].tag.createChildTag(TAG_DEEPLINK, null, null, false)
+          val tag = parents[0].tag.createChildTag(TAG_DEEP_LINK, null, null, false)
           parents[0].model.createComponent(tag, parents[0], null)
         }
         realComponent.setAttribute(

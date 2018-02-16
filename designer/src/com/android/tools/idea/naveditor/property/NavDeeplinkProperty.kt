@@ -33,7 +33,7 @@ class NavDeeplinkProperty(components: List<NlComponent>) : ListProperty("Deeplin
     properties.clear()
 
     components.flatMap { it.children }
-        .filter { it.tagName == SdkConstants.TAG_DEEPLINK }
+        .filter { it.tagName == SdkConstants.TAG_DEEP_LINK }
         .forEach { child ->
           child.resolveAttribute(SdkConstants.AUTO_URI, ATTR_URI)?.let {
             properties.put(it, SimpleProperty(it, listOf(child)))
