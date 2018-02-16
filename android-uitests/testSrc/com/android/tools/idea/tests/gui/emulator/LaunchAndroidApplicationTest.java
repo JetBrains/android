@@ -347,9 +347,7 @@ public class LaunchAndroidApplicationTest {
       .waitForGradleProjectSyncToFail()
       .getEditor()
       .open("Application/build.gradle")
-      .select("compileSdkVersion (26)")
-      .enterText("27")
-      .select("buildToolsVersion \"(26.0.1)\"")
+      .select("buildToolsVersion \"(.*)\"")
       .enterText("27.0.3")
       .invokeAction(EditorFixture.EditorAction.SAVE);
 
