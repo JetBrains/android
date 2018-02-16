@@ -615,7 +615,7 @@ public class EditorFixture {
   public boolean isPreviewShowing(@NotNull String fileName) {
     return GuiQuery.getNonNull(() -> {
       NlPreviewForm preview = NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm();
-      return preview.getSurface().isShowing() && getCurrentFileName().equals(preview.getFile().getName());
+      return preview.getSurface().isShowing() && getCurrentFileName().equals(preview.getFileName());
     });
   }
 
