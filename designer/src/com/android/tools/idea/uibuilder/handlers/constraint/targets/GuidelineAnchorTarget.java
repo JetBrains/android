@@ -26,7 +26,7 @@ import java.awt.*;
 /**
  * Guideline anchors
  */
-public class GuidelineAnchorTarget extends AnchorTarget {
+public class GuidelineAnchorTarget extends ConstraintAnchorTarget {
   boolean myIsHorizontal;
 
   @Override
