@@ -13,12 +13,12 @@
 // limitations under the License.
 package com.android.tools.idea.tests.gui.java8;
 
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.AndroidToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.fest.swing.util.PatternTextMatcher;
@@ -28,6 +28,8 @@ import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class CompileWithJava8Test {
@@ -60,13 +62,10 @@ public class CompileWithJava8Test {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70227905
-  public void compileWithJave8() throws Exception {
+  @RunIn(TestGroup.SANITY)
+  public void compileWithJava8() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk24App");
-
-    // Test will fail here, relative bug: b/70227905
-    ideFrameFixture.invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
 
     emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
 
@@ -76,8 +75,11 @@ public class CompileWithJava8Test {
 
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
     ExecutionToolWindowFixture.ContentFixture runWindow = ideFrameFixture.getRunToolWindow().findContent(CONF_NAME);
-    runWindow.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), TimeUnit.MINUTES.toSeconds(2));
+    runWindow.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
-    // TODO: Verify statement prints "D/TAG: Hello World from Lambda Expression" on logcat.
+    // Verify statement prints "D/TAG: Hello World from Lambda Expression" on logcat.
+    AndroidToolWindowFixture androidToolWindow = ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess("android.com.app");
+    String logcatPrint = androidToolWindow.getLogcatPrint();
+    assertThat(logcatPrint).contains("D/TAG: Hello World from Lambda Expression");
   }
 }

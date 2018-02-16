@@ -16,7 +16,9 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.Client;
+import com.android.tools.idea.logcat.AndroidLogConsole;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.tabs.impl.TabLabel;
@@ -68,6 +70,13 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     show();
     selectTab("logcat");
     return this;
+  }
+
+  @Nullable
+  public String getLogcatPrint() {
+    AndroidLogConsole androidLogConsole = myRobot.finder().findByType(myToolWindow.getComponent(), AndroidLogConsole.class, true);
+    ConsoleViewImpl consoleView = myRobot.finder().findByType(androidLogConsole.getComponent(), ConsoleViewImpl.class, true /* showing */);
+    return consoleView.getText();
   }
 
   private void selectTab(@NotNull final String tabName) {
