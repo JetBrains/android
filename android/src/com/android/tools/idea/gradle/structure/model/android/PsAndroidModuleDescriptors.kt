@@ -56,10 +56,10 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val sourceCompatibility: ModelSimpleProperty<PsAndroidModule, LanguageLevel> = property(
       "Source Compatibility",
       getResolvedValue = { LanguageLevel.parse(javaCompileOptions.sourceCompatibility) },
-      getParsedValue = { compileOptions().sourceCompatibility().value() },
-      getParsedRawValue = { compileOptions().sourceCompatibility().dsl()  },
-      setParsedValue = { compileOptions().setSourceCompatibility(it) },
-      clearParsedValue = { compileOptions().removeSourceCompatibility() },
+      getParsedValue = { compileOptions().sourceCompatibility().toLanguageLevel() },
+      getParsedRawValue = { compileOptions().sourceCompatibility().dslText()  },
+      setParsedValue = { compileOptions().sourceCompatibility().setLanguageLevel(it) },
+      clearParsedValue = { compileOptions().sourceCompatibility().delete() },
       parse = { parseEnum(it, LanguageLevel::parse) },
       getKnownValues = { languageLevels() }
   )
@@ -67,10 +67,10 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val targetCompatibility: ModelSimpleProperty<PsAndroidModule, LanguageLevel> = property(
       "Target Compatibility",
       getResolvedValue = { LanguageLevel.parse(javaCompileOptions.targetCompatibility) },
-      getParsedValue = { compileOptions().targetCompatibility().value() },
-      getParsedRawValue = { compileOptions().targetCompatibility().dsl() },
-      setParsedValue = { compileOptions().setTargetCompatibility(it) },
-      clearParsedValue = { compileOptions().removeTargetCompatibility() },
+      getParsedValue = { compileOptions().targetCompatibility().toLanguageLevel() },
+      getParsedRawValue = { compileOptions().targetCompatibility().dslText() },
+      setParsedValue = { compileOptions().targetCompatibility().setLanguageLevel(it) },
+      clearParsedValue = { compileOptions().targetCompatibility().delete() },
       parse = { parseEnum(it, LanguageLevel::parse) },
       getKnownValues = { languageLevels() }
   )

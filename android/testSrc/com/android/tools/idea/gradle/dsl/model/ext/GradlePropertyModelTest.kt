@@ -120,9 +120,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = extModel.findProperty("prop6")
-      // TODO: Getting float values not cureently supported
-      //assertEquals(25.3, propertyModel.getValue(java.lang.Double::class.java))
-      assertEquals(UNKNOWN, propertyModel.valueType) // There is currently no type for this
+      assertEquals(BigDecimal("25.3"), propertyModel.toBigDecimal())
+      assertEquals(BIG_DECIMAL, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       assertEquals("prop6", propertyModel.name)
       assertEquals("ext.prop6", propertyModel.fullyQualifiedName)
@@ -218,9 +217,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = extModel.findProperty("prop6")
-      // TODO: Getting float values not cureently supported
-      //assertEquals(25.3, propertyModel?.getValue(java.lang.Double::class.java))
-      assertEquals(UNKNOWN, propertyModel.valueType) // There is currently no type for this
+      assertEquals(BigDecimal("25.3"), propertyModel.toBigDecimal())
+      assertEquals(BIG_DECIMAL, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("prop6", propertyModel.name)
       assertEquals("ext.prop6", propertyModel.fullyQualifiedName)
@@ -1086,7 +1084,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
         // Expected
       }
       try {
-        propertyModel.setValue(BigDecimal(3))
+        propertyModel.setValue(IllegalStateException("Boo"))
         fail()
       }
       catch (e: IllegalArgumentException) {

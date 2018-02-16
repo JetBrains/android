@@ -15,25 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 
 public interface CompileOptionsModel extends BaseCompileOptionsModel {
   @NotNull
-  GradleNullableValue<String> encoding();
+  ResolvedPropertyModel encoding();
 
   @NotNull
-  CompileOptionsModel setEncoding(@NotNull String encoding);
-
-  @NotNull
-  CompileOptionsModel removeEncoding();
-
-  @NotNull
-  GradleNullableValue<Boolean> incremental();
-
-  @NotNull
-  CompileOptionsModel setIncremental(boolean incremental);
-
-  @NotNull
-  CompileOptionsModel removeIncremental();
+  ResolvedPropertyModel incremental();
 }

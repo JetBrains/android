@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.android;
+package com.android.tools.idea.gradle.dsl.api.java;
 
-import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface BaseCompileOptionsModel {
-  @NotNull
-  LanguageLevelPropertyModel sourceCompatibility();
+public interface LanguageLevelPropertyModel extends ResolvedPropertyModel {
+  @Nullable
+  LanguageLevel toLanguageLevel();
 
-  @NotNull
-  LanguageLevelPropertyModel targetCompatibility();
+  void setLanguageLevel(@NotNull LanguageLevel level);
 }

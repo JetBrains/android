@@ -20,6 +20,8 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
+
 /**
  * Represents a GradleExpression that has a value that can be set/reset. This class stores a tentative value. Subclasses should
  * use {@link #getCurrentElement()} to get the currently tentative or set element or {@link #reset()} return to the previously saved state.
@@ -56,7 +58,11 @@ public abstract class GradleDslSettableExpression extends GradleDslExpression {
   }
 
   protected void checkForValidValue(@NotNull Object value) {
-    if (!(value instanceof String || value instanceof Integer || value instanceof Boolean || value instanceof ReferenceTo)) {
+    if (!(value instanceof String ||
+          value instanceof Integer ||
+          value instanceof Boolean ||
+          value instanceof ReferenceTo ||
+          value instanceof BigDecimal)) {
       throw new IllegalArgumentException(
         "Can't set a property value with: " + value.getClass() + " type must be one of [Boolean, Integer, String, ReferenceTo]");
     }
