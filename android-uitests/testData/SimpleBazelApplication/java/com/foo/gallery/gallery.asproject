@@ -2,7 +2,7 @@ directories:
   java/com/foo/gallery
 
 import_run_configurations:
-  java/com/foo/gallery/build/run_configuration/gallery.xml
+  java/com/foo/gallery/run_configuration/gallery.xml
 
 targets:
   //java/com/foo/gallery/...:all
