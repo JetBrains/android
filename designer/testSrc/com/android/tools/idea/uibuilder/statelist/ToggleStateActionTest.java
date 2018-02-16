@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +93,7 @@ public final class ToggleStateActionTest {
     Mockito.when(imageViewInfo.getViewObject()).thenReturn(image);
 
     RenderResult result = Mockito.mock(RenderResult.class);
-    Mockito.when(result.getRootViews()).thenReturn(Collections.singletonList(imageViewInfo));
+    Mockito.when(result.getRootViews()).thenReturn(ImmutableList.of(imageViewInfo));
 
     LayoutlibSceneManager manager = Mockito.mock(LayoutlibSceneManager.class);
     Mockito.when(manager.getRenderResult()).thenReturn(result);
