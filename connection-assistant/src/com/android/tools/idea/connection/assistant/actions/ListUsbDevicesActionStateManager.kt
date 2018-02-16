@@ -111,11 +111,9 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
           "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>.").newline()
     }
 
-    devices.forEach { (name, vendorId, productId) ->
+    devices.forEach { (name, _, productId) ->
       htmlBuilder.addHtml("<p>")
-          .addHtml("<b>$name</b>")
-          .newline()
-          .add("Product ID: $productId, Vendor ID: $vendorId")
+          .addHtml("<b>$name</b> ($productId)")
           .newlineIfNecessary().addHtml("</p>")
     }
     return htmlBuilder.closeHtmlBody().html
