@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.actions.DevicePickerHelpAction;
 import com.android.tools.idea.actions.DevicePickerHelpActionKt;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
@@ -241,7 +242,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
         .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
         .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));
 
-    AnAction action = DevicePickerHelpActionKt.getAction();
+    DevicePickerHelpAction action = (DevicePickerHelpAction) DevicePickerHelpActionKt.getAction();
     ApplicationManager.getApplication().invokeLater(() -> {
       action.actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, new DataContext() {
         @Nullable
@@ -253,6 +254,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
           return null;
         }
       }));
+      if (action.closeDialog()) doCancelAction();
     });
   }
 

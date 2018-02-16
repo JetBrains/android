@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (C) 2017 The Android Open Source Project
+  ~ Copyright (C) 2018 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -78,9 +78,9 @@
         </stepElement>
         <stepElement>
           <image
-              src="/bundle/connection/dev-options-nexus.png"
-              width="262"
-              height="525"/>
+              src="/dev-options-nexus.png"
+              width="227"
+              height="403"/>
         </stepElement>
       </step>
       <step label="Restart the ADB (Android Debug Bridge) server">

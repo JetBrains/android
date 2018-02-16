@@ -4,6 +4,7 @@ iml_module(
     name = "connection-assistant",
     srcs = ["src"],
     iml_files = ["connection-assistant.iml"],
+    resources = ["resources"],
     tags = ["managed"],
     # keep sorted
     test_data = [
