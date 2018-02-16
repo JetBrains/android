@@ -61,7 +61,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jsr305" level="project" />
-    <orderEntry type="library" name="jgraphx-3.4.0.1" level="project" />
     <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-client" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-common" />
@@ -112,5 +111,6 @@
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="lombok-ast" level="project" />
     <orderEntry type="library" name="XStream" level="project" />
+    <orderEntry type="library" name="jgraphx" level="project" />
   </component>
 </module>

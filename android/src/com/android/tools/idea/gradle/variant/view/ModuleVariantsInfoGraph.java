@@ -274,9 +274,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     @NotNull
     protected DefaultActionGroup createPopupActionGroup(JComponent button) {
       List<VariantSelectionAction> actions = Lists.newArrayList();
-      myAndroidModel.getAndroidProject().forEachVariant(variant -> {
-        actions.add(new VariantSelectionAction(variant));
-      });
+      myAndroidModel.getAndroidProject().forEachVariant(variant -> actions.add(new VariantSelectionAction(variant)));
       return new DefaultActionGroup(actions);
     }
   }
