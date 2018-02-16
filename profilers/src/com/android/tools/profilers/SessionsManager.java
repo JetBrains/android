@@ -23,10 +23,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * A wrapper class for keeping track of the list of sessions that the profilers have seen, along with their associated artifacts (e.g.
@@ -37,33 +34,50 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull private final StudioProfilers myProfilers;
 
   /**
-   * A map of Session's Id -> Sessions.
+   * A map of Session's Id -> {@link SessionItem}
    */
-  @NotNull private Map<Long, Common.Session> mySessions;
+  @NotNull private Map<Long, SessionItem> mySessionItems;
+
+  /**
+   * A list of session-related items for display in the Sessions panel.
+   */
+  @NotNull private List<SessionArtifact> mySessionArtifacts;
 
   /**
    * The currently selected session.
    */
-  @NotNull private Common.Session mySession;
+  @NotNull private Common.Session mySelectedSession;
+
+  /**
+   * The session that is actively being profiled. Note that there can only be one profiling session at a time, but it does not have to the
+   * one that is currently selected (e.g. Users can profile in the background while exploring other sessions history).
+   */
+  @NotNull private Common.Session myProfilingSession;
 
   public SessionsManager(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
-    mySession = Common.Session.getDefaultInstance();
-    mySessions = new HashMap<>();
+    mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
+    mySessionItems = new HashMap<>();
+    mySessionArtifacts = new ArrayList<>();
   }
 
   @NotNull
-  public Map<Long, Common.Session> getSessions() {
-    return mySessions;
+  public Common.Session getSelectedSession() {
+    return mySelectedSession;
   }
 
   @NotNull
-  public Common.Session getSession() {
-    return mySession;
+  public Common.Session getProfilingSession() {
+    return myProfilingSession;
+  }
+
+  @NotNull
+  public List<SessionArtifact> getSessionArtifacts() {
+    return mySessionArtifacts;
   }
 
   public boolean isSessionAlive() {
-    return mySession.getEndTimestamp() == Long.MAX_VALUE;
+    return mySelectedSession.getEndTimestamp() == Long.MAX_VALUE;
   }
 
   /**
@@ -71,31 +85,49 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    */
   public void update() {
     GetSessionsResponse sessionsResponse = myProfilers.getClient().getProfilerClient().getSessions(GetSessionsRequest.getDefaultInstance());
-    Map<Long, Common.Session> sessions =
-      sessionsResponse.getSessionsList().stream().collect(Collectors.toMap(Common.Session::getSessionId, Function.identity()));
-    if (!sessions.equals(mySessions)) {
-      mySessions = sessions;
-      changed(SessionAspect.SESSIONS);
+    updateSessionItems(sessionsResponse.getSessionsList());
+  }
+
+  /**
+   * Change the current selected session.
+   */
+  public void setSession(@NotNull Common.Session session) {
+    if (session.equals(mySelectedSession)) {
+      return;
     }
+
+    assert Common.Session.getDefaultInstance().equals(session) ||
+           (mySessionItems.containsKey(session.getSessionId()) && mySessionItems.get(session.getSessionId()).getSession().equals(session));
+
+    mySelectedSession = session;
+    changed(SessionAspect.SELECTED_SESSION);
+  }
+
+  private void setProfilingSession(@NotNull Common.Session session) {
+    if (session.equals(myProfilingSession)) {
+      return;
+    }
+
+    myProfilingSession = session;
+    changed(SessionAspect.PROFILING_SESSION);
   }
 
   /**
    * Request to begin a new session using the input device and process.
    */
   public void beginSession(@Nullable Common.Device device, @Nullable Common.Process process) {
-    // We currently don't support more than one ongoing session at a time.
-    assert !isSessionAlive();
+    // We currently don't support more than one profiling session at a time.
+    assert Common.Session.getDefaultInstance().equals(myProfilingSession);
 
     if (device == null || process == null) {
-      mySession = Common.Session.getDefaultInstance();
-      changed(SessionAspect.SELECTED_SESSION);
+      setProfilingSession(Common.Session.getDefaultInstance());
+      setSession(myProfilingSession);
       return;
     }
 
     // TODO this part is currently only for backward compatibility
     // Once we switched to the new device+process dropdown (b/67509466), we should not see offline device and process anymore.
-    if ((device != null && device.getState() != Common.Device.State.ONLINE) ||
-        (process != null && process.getState() != Common.Process.State.ALIVE)) {
+    if (device.getState() != Common.Device.State.ONLINE || process.getState() != Common.Process.State.ALIVE) {
       return;
     }
 
@@ -116,32 +148,61 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
 
     BeginSessionResponse response = myProfilers.getClient().getProfilerClient().beginSession(requestBuilder.build());
-    mySession = response.getSession();
-    mySessions.put(mySession.getSessionId(), mySession);
-    changed(SessionAspect.SELECTED_SESSION);
-    changed(SessionAspect.SESSIONS);
+    Common.Session session = response.getSession();
+
+    setProfilingSession(session);
+    updateSessionItems(Collections.singletonList(session));
+    setSession(session);
   }
 
   /**
-   * Request to end the currently active session if there is one.
+   * Request to end the currently profiling session if there is one.
    */
   public void endCurrentSession() {
-    if (!isSessionAlive()) {
+    if (Common.Session.getDefaultInstance().equals(myProfilingSession)) {
       return;
     }
 
     EndSessionResponse response = myProfilers.getClient().getProfilerClient().endSession(EndSessionRequest.newBuilder()
-                                                                                           .setDeviceId(mySession.getDeviceId())
-                                                                                           .setSessionId(mySession.getSessionId())
+                                                                                           .setDeviceId(myProfilingSession.getDeviceId())
+                                                                                           .setSessionId(myProfilingSession.getSessionId())
                                                                                            .build());
-    mySession = response.getSession();
-    mySessions.put(mySession.getSessionId(), mySession);
-    changed(SessionAspect.SELECTED_SESSION);
+    boolean selectedSessionIsProfilingSession = myProfilingSession.equals(mySelectedSession);
+    setProfilingSession(Common.Session.getDefaultInstance());
+
+    Common.Session session = response.getSession();
+    updateSessionItems(Collections.singletonList(session));
+    if (selectedSessionIsProfilingSession) {
+      setSession(session);
+    }
+  }
+
+  /**
+   * Update or add to the list of {@link SessionItem} based on the input list.
+   *
+   * @param sessions the list of {@link Common.Session} objects that have been added/updated.
+   */
+  private void updateSessionItems(@NotNull List<Common.Session> sessions) {
+    // Note: we only add to a growing list of sessions at the moment.
+    sessions.forEach(session -> {
+      SessionItem sessionItem = mySessionItems.get(session.getSessionId());
+      if (sessionItem == null) {
+        sessionItem = new SessionItem(myProfilers, session);
+        mySessionItems.put(session.getSessionId(), sessionItem);
+      }
+      else {
+        sessionItem.setSession(session);
+      }
+    });
+
+    // TODO b/67509285 query for the artifacts (e.g. capture objects) associated with each SessionItem as well.
+    mySessionArtifacts = new ArrayList<>(mySessionItems.values());
+    Collections.sort(mySessionArtifacts, Comparator.comparingLong(SessionArtifact::getTimestampNs).reversed());
     changed(SessionAspect.SESSIONS);
   }
 
   @NotNull
-  private String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
+  private static String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
     StringBuilder deviceNameBuilder = new StringBuilder();
     String manufacturer = device.getManufacturer();
     String model = device.getModel();

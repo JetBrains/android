@@ -38,13 +38,15 @@ class SessionsManagerTest {
   fun setup() {
     myObserver = SessionsAspectObserver()
     val profilers = StudioProfilers(myGrpcServer.client, FakeIdeProfilerServices(), FakeTimer())
-    myManager = SessionsManager(profilers)
+    myManager = profilers.sessionsManager
     myManager.addDependency(myObserver)
       .onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
+      .onChange(SessionAspect.PROFILING_SESSION) { myObserver.profilingSessionChanged() }
       .onChange(SessionAspect.SESSIONS) { myObserver.sessionsChanged() }
 
-    assertThat(myManager.sessions).isEmpty()
-    assertThat(myManager.session).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.sessionArtifacts).isEmpty()
+    assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
   }
 
   @Test
@@ -52,10 +54,12 @@ class SessionsManagerTest {
     myManager.beginSession(null, null)
     myManager.beginSession(null, Common.Process.getDefaultInstance())
     myManager.beginSession(Common.Device.getDefaultInstance(), null)
-    assertThat(myManager.sessions).isEmpty()
-    assertThat(myManager.session).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.sessionArtifacts).isEmpty()
+    assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myObserver.sessionsChangedCount).isEqualTo(0)
-    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(3)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(0)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(0)
   }
 
   @Test
@@ -68,8 +72,9 @@ class SessionsManagerTest {
     myManager.beginSession(offlineDevice, offlineProcess)
     myManager.beginSession(offlineDevice, onlineProcess)
     myManager.beginSession(onlineDevice, offlineProcess)
-    assertThat(myManager.sessions).isEmpty()
-    assertThat(myManager.session).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.sessionArtifacts).isEmpty()
+    assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myObserver.sessionsChangedCount).isEqualTo(0)
     assertThat(myObserver.selectedSessionChangedCount).isEqualTo(0)
   }
@@ -82,16 +87,18 @@ class SessionsManagerTest {
     val onlineProcess = Common.Process.newBuilder().setPid(pid).setState(Common.Process.State.ALIVE).build()
     myManager.beginSession(onlineDevice, onlineProcess)
 
-    val session = myManager.session
+    val session = myManager.selectedSession
     assertThat(session.deviceId).isEqualTo(deviceId)
     assertThat(session.pid).isEqualTo(pid)
+    assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
 
-    val sessions = myManager.sessions.values
-    assertThat(sessions).hasSize(1)
-    assertThat(sessions.first()).isEqualTo(session)
+    val sessionItems = myManager.sessionArtifacts
+    assertThat(sessionItems).hasSize(1)
+    assertThat(sessionItems.first().session).isEqualTo(session)
 
     assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(1)
     assertThat(myObserver.selectedSessionChangedCount).isEqualTo(1)
   }
 
@@ -118,34 +125,143 @@ class SessionsManagerTest {
 
     // endSession calls on no active session is a no-op
     myManager.endCurrentSession()
-    var session = myManager.session
-    assertThat(session).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myObserver.sessionsChangedCount).isEqualTo(0)
     assertThat(myObserver.selectedSessionChangedCount).isEqualTo(0)
 
     myManager.beginSession(onlineDevice, onlineProcess)
-    session = myManager.session
+    var session = myManager.selectedSession
     assertThat(session.deviceId).isEqualTo(deviceId)
     assertThat(session.pid).isEqualTo(pid)
+    assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
+
+    var sessionItems = myManager.sessionArtifacts
+    assertThat(sessionItems).hasSize(1)
+    assertThat(sessionItems.first().session).isEqualTo(session)
+
     assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(1)
     assertThat(myObserver.selectedSessionChangedCount).isEqualTo(1)
 
     myManager.endCurrentSession()
-    session = myManager.session
+    session = myManager.selectedSession
     assertThat(session.deviceId).isEqualTo(deviceId)
     assertThat(session.pid).isEqualTo(pid)
+    assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.isSessionAlive).isFalse()
+
+    sessionItems = myManager.sessionArtifacts
+    assertThat(sessionItems).hasSize(1)
+    assertThat(sessionItems.first().session).isEqualTo(session)
+
     assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(2)
     assertThat(myObserver.selectedSessionChangedCount).isEqualTo(2)
+  }
+
+  @Test
+  fun testSetInvalidSession() {
+    val session = Common.Session.newBuilder().setSessionId(1).build()
+    myThrown.expect(AssertionError::class.java)
+    myManager.setSession(session)
+  }
+
+  @Test
+  fun testSetSession() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+
+    // Create a finished session and a ongoing profiling session.
+    myManager.beginSession(device, process1)
+    myManager.endCurrentSession()
+    val session1 = myManager.selectedSession
+    myManager.beginSession(device, process2)
+    val session2 = myManager.selectedSession
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(3)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(3)
+
+    myManager.setSession(session1)
+    assertThat(myManager.selectedSession).isEqualTo(session1)
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(3)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(4)
+
+    myManager.setSession(session2)
+    assertThat(myManager.selectedSession).isEqualTo(session2)
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(3)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(5)
+
+    myManager.setSession(Common.Session.getDefaultInstance())
+    assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(3)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(6)
+  }
+
+  @Test
+  fun testSwitchingNonProfilingSession() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+
+    // Create a finished session and a ongoing profiling session.
+    myManager.beginSession(device, process1)
+    myManager.endCurrentSession()
+    val session1 = myManager.selectedSession
+    myManager.beginSession(device, process2)
+    val session2 = myManager.selectedSession
+
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(3)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(3)
+    assertThat(myManager.profilingSession).isEqualTo(session2)
+    assertThat(myManager.isSessionAlive).isTrue()
+
+    // Explicitly set to a different session should not change the profiling session.
+    myManager.setSession(session1)
+    assertThat(myManager.selectedSession).isEqualTo(session1)
+    assertThat(myManager.profilingSession).isEqualTo(session2)
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(3)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(4)
+  }
+
+  @Test
+  fun testSessionArtifactsUpToDate() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+
+    myManager.beginSession(device, process1)
+    myManager.endCurrentSession()
+    val session1 = myManager.selectedSession
+    myManager.beginSession(device, process2)
+    myManager.endCurrentSession()
+    val session2 = myManager.selectedSession
+
+    val sessionItems = myManager.sessionArtifacts
+    assertThat(sessionItems).hasSize(2)
+    assertThat(sessionItems[0].session).isEqualTo(session2)
+    assertThat(sessionItems[1].session).isEqualTo(session1)
   }
 
   private class SessionsAspectObserver : AspectObserver() {
     var selectedSessionChangedCount: Int = 0
+    var profilingSessionChangedCount: Int = 0
     var sessionsChangedCount: Int = 0
 
     internal fun selectedSessionChanged() {
       selectedSessionChangedCount++
+    }
+
+    internal fun profilingSessionChanged() {
+      profilingSessionChangedCount++
     }
 
     internal fun sessionsChanged() {

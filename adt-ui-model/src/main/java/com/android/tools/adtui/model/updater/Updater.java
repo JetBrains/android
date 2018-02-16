@@ -51,7 +51,6 @@ public class Updater implements StopwatchTimer.TickHandler {
     mTimer.start();
   }
 
-  @VisibleForTesting
   public StopwatchTimer getTimer() {
     return mTimer;
   }

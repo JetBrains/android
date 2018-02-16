@@ -17,26 +17,21 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.RotatedLabel;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.profiler.proto.Common;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
 import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_LABEL_BORDER;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
@@ -53,9 +48,8 @@ public class SessionsView extends AspectObserver {
   @NotNull private final JComponent myComponent;
   @NotNull private final JButton myExpandButton;
   @NotNull private final JButton myCollapseButton;
-  @NotNull private final JList<Common.Session> mySessionsList;
-  @NotNull private final DefaultListModel<Common.Session> mySessionsListModel;
-  private Common.Session mySelectedSession;
+  @NotNull private final JList<SessionArtifact> mySessionsList;
+  @NotNull private final DefaultListModel<SessionArtifact> mySessionsListModel;
 
   private boolean myIsExpanded;
 
@@ -87,15 +81,33 @@ public class SessionsView extends AspectObserver {
 
     mySessionsListModel = new DefaultListModel<>();
     mySessionsList = new JList<>(mySessionsListModel);
-    mySessionsList.setCellRenderer(new SessionsCellRenderer());
+    mySessionsList.setMinimumSize(new Dimension(SESSIONS_EXPANDED_MIN_WIDTH, 0));
+    mySessionsList.setOpaque(false);
+    mySessionsList.setCellRenderer(new SessionsCellRenderer(this));
     mySessionsList.setSelectionMode(SINGLE_SELECTION);
-    mySessionsManager.addDependency(this).onChange(SessionAspect.SESSIONS, this::refreshSessions);
+    mySessionsList.addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        SessionArtifact artifact = mySessionsList.getSelectedValue();
+        if (artifact != null) {
+          artifact.onSelect();
+        }
+      }
+    });
+    mySessionsManager.addDependency(this)
+      .onChange(SessionAspect.SESSIONS, this::refreshSessions)
+      .onChange(SessionAspect.SELECTED_SESSION, this::refreshSelection);
     initializeUI();
   }
 
   @NotNull
   public JComponent getComponent() {
     return myComponent;
+  }
+
+  @VisibleForTesting
+  JList<SessionArtifact> getSessionsList() {
+    return mySessionsList;
   }
 
   /**
@@ -130,8 +142,8 @@ public class SessionsView extends AspectObserver {
   private JComponent createToolbar() {
     JPanel toolbar;
     if (myIsExpanded) {
-      toolbar = new JPanel(new TabularLayout("*,Fit", "*,Fit,*"));
-      toolbar.setBorder(DEFAULT_BOTTOM_BORDER);
+      toolbar = new JPanel(new TabularLayout("*,Fit,Fit", "*,Fit,*"));
+      toolbar.setBorder(AdtUiUtils.DEFAULT_BOTTOM_BORDER);
       toolbar.setMinimumSize(new Dimension(SESSIONS_EXPANDED_MIN_WIDTH, TOOLBAR_HEIGHT));
       toolbar.setPreferredSize(new Dimension(SESSIONS_EXPANDED_MIN_WIDTH, TOOLBAR_HEIGHT));
 
@@ -141,52 +153,80 @@ public class SessionsView extends AspectObserver {
 
       // TODO replace with proper icon.
       toolbar.add(myCollapseButton, new TabularLayout.Constraint(0, 1, 3, 1));
+      myCollapseButton.setVisible(true);
+      // Note - if we simply remove the expand button after it is clicked, next time we add it back it will
+      // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
+      // render and update its state even though it is hidden.
+      toolbar.add(myExpandButton, new TabularLayout.Constraint(0, 2, 3, 1));
+      myExpandButton.setVisible(false);
     }
     else {
-      toolbar = new JPanel(new TabularLayout("*,Fit,*", "Fit,*,Fit"));
+      toolbar = new JPanel(new TabularLayout("*,Fit,*", "Fit,Fit,*"));
       toolbar.setMinimumSize(new Dimension(SESSIONS_COLLAPSED_MIN_WIDTH, 0));
-      toolbar.setPreferredSize(new Dimension(SESSIONS_COLLAPSED_MIN_WIDTH, 0));
-
-      RotatedLabel label = new RotatedLabel("SESSIONS");
-      label.setBorder(TOOLBAR_LABEL_BORDER);
-      toolbar.add(label, new TabularLayout.Constraint(2, 1, 1, 1));
 
       // TODO replace with proper icon.
       toolbar.add(myExpandButton, new TabularLayout.Constraint(0, 0, 1, 3));
+      myExpandButton.setVisible(true);
+      // Note - if we simply remove the collapse button after it is clicked, next time we add it back it will
+      // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
+      // render and update its state even though it is hidden.
+      toolbar.add(myCollapseButton, new TabularLayout.Constraint(1, 0, 1, 3));
+      myCollapseButton.setVisible(false);
     }
 
     return toolbar;
   }
 
   private void refreshSessions() {
-    java.util.List<Common.Session> sessions = new ArrayList<>(mySessionsManager.getSessions().values());
-    // The most recent session should appear at the top.
-    Collections.sort(sessions, Comparator.comparingLong(Common.Session::getStartTimestamp).reversed());
+    java.util.List<SessionArtifact> sessionItems = mySessionsManager.getSessionArtifacts();
 
-    mySelectedSession = mySessionsManager.getSession();
+    SessionArtifact previousSelectedArtifact = mySessionsList.getSelectedValue();
+    Common.Session previousSelectedSession =
+      previousSelectedArtifact != null ? previousSelectedArtifact.getSession() : Common.Session.getDefaultInstance();
+
     mySessionsListModel.clear();
-    int selectionIndex = -1;
-    for (int i = 0; i < sessions.size(); i++) {
-      Common.Session session = sessions.get(i);
-      mySessionsListModel.addElement(session);
-
-      if (mySelectedSession == session) {
-        selectionIndex = i;
+    int newSelectionIndex = -1;
+    for (int i = 0; i < sessionItems.size(); i++) {
+      SessionArtifact item = sessionItems.get(i);
+      mySessionsListModel.addElement(item);
+      if (previousSelectedSession.equals(item.getSession())) {
+        newSelectionIndex = i;
       }
     }
-    mySessionsList.setSelectedIndex(selectionIndex);
+
+    mySessionsList.setSelectedIndex(newSelectionIndex);
   }
 
-  /**
-   * TODO b\67509537 we need a much more customized cell renderer.
-   */
-  private static class SessionsCellRenderer extends ListCellRendererWrapper<Common.Session> {
+  private void refreshSelection() {
+    Common.Session selectedSession = mySessionsManager.getSelectedSession();
+    for (int i = 0; i < mySessionsListModel.size(); i++) {
+      SessionArtifact item = mySessionsListModel.get(i);
+      if (selectedSession.equals(item.getSession())) {
+        mySessionsList.setSelectedIndex(i);
+        break;
+      }
+    }
+  }
+
+  private static class SessionsCellRenderer implements ListCellRenderer<SessionArtifact> {
+
+    @NotNull private final SessionsView mySessionsView;
+    @NotNull private final ViewBinder<SessionsView, SessionArtifact, SessionArtifactRenderer> myViewBinder;
+
+    public SessionsCellRenderer(@NotNull SessionsView sessionsView) {
+      mySessionsView = sessionsView;
+      myViewBinder = new ViewBinder<>();
+      myViewBinder.bind(SessionItem.class, (p, m) -> new SessionItemRenderer());
+    }
+
     @Override
-    public void customize(JList list, Common.Session value, int index, boolean selected, boolean hasFocus) {
-      String duration = value.getEndTimestamp() == Long.MAX_VALUE ? "current" :
-                        TimeAxisFormatter.DEFAULT
-                          .getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(value.getEndTimestamp() - value.getStartTimestamp()));
-      setText(String.format("session - %s", duration));
+    public Component getListCellRendererComponent(JList<? extends SessionArtifact> list,
+                                                  SessionArtifact item,
+                                                  int index,
+                                                  boolean isSelected,
+                                                  boolean cellHasFocus) {
+      SessionArtifactRenderer renderer = myViewBinder.build(mySessionsView, item);
+      return renderer.generateComponent(list, item, index, isSelected, cellHasFocus);
     }
   }
 }

@@ -237,6 +237,8 @@ public final class StudioProfilersTest {
     assertThat(profilers.getTimeline().getDataRange().getMin()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds));
     assertThat(profilers.getTimeline().getDataRange().getMax()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds));
 
+    // The timeline has reset in the previous tick, so we need to advance the current time to make sure the next tick advances data range.
+    timer.setCurrentTimeNs(FakeTimer.ONE_SECOND_IN_NS * 5);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS * 5);
 
     assertThat(profilers.getTimeline().getDataRange().getMin()).isWithin(0.001).of(TimeUnit.SECONDS.toMicros(nowInSeconds));
@@ -892,42 +894,6 @@ public final class StudioProfilersTest {
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
     assertThat(profilers.getStage()).isInstanceOf(StudioMonitorStage.class);
-  }
-
-  @Test
-  public void testSessionsListUpdated() {
-    FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
-    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
-    Common.Process process1 = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
-    Common.Process process2 = createProcess(device.getDeviceId(), 21, "FakeProcess2", Common.Process.State.ALIVE);
-    myProfilerService.addDevice(device);
-    myProfilerService.addProcess(device, process1);
-    myProfilerService.addProcess(device, process2);
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-
-    Map<Long, Common.Session> sessions = profilers.getSessionsManager().getSessions();
-    Common.Session session1 = profilers.getSession();
-    assertThat(session1.getDeviceId()).isEqualTo(device.getDeviceId());
-    assertThat(session1.getPid()).isEqualTo(process1.getPid());
-    assertThat(session1.getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
-    assertThat(sessions.size()).isEqualTo(1);
-    assertThat(sessions.containsKey(session1.getSessionId())).isTrue();
-    assertThat(sessions.get(session1.getSessionId())).isEqualTo(session1);
-
-    profilers.setProcess(process2);
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    sessions = profilers.getSessionsManager().getSessions();
-    Common.Session session2 = profilers.getSession();
-    session1 = session1.toBuilder().setEndTimestamp(session1.getStartTimestamp() + 1).build();
-    assertThat(session2.getDeviceId()).isEqualTo(device.getDeviceId());
-    assertThat(session2.getPid()).isEqualTo(process2.getPid());
-    assertThat(session2.getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
-    assertThat(sessions.size()).isEqualTo(2);
-    assertThat(sessions.containsKey(session1.getSessionId())).isTrue();
-    assertThat(sessions.containsKey(session2.getSessionId())).isTrue();
-    assertThat(sessions.get(session1.getSessionId())).isEqualTo(session1);
-    assertThat(sessions.get(session2.getSessionId())).isEqualTo(session2);
   }
 
   @Test

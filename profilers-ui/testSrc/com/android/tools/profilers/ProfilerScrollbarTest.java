@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import org.junit.Before;
@@ -36,7 +38,8 @@ public class ProfilerScrollbarTest {
 
   @Before
   public void setUp() throws Exception {
-    myTimeline = new ProfilerTimeline();
+    Updater updater = new Updater(new FakeTimer());
+    myTimeline = new ProfilerTimeline(updater);
     myPanel = new JPanel();
     myPanel.setSize(100, 100);
     myScrollbar = new ProfilerScrollbar(myTimeline, myPanel);

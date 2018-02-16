@@ -16,8 +16,10 @@
 package com.android.tools.profilers;
 
 public enum SessionAspect {
-  // The state of the currently selected session has changed.
+  // The currently selected session has changed.
   SELECTED_SESSION,
+  // The currently profiling session has changed.
+  PROFILING_SESSION,
   // The list of sessions and/or their internal data have changed.
   SESSIONS,
 }
