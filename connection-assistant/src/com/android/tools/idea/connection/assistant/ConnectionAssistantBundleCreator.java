@@ -27,7 +27,7 @@ import java.net.URL;
 public class ConnectionAssistantBundleCreator implements AssistantBundleCreator {
   public static final String BUNDLE_ID = "DeveloperServices.ConnectionAssistant";
 
-  private static final String TUTORIAL_CONFIG_FILENAME = "/bundle/connection/connection_assistant_bundle.xml";
+  private static final String TUTORIAL_CONFIG_FILENAME = "/connection_assistant_bundle.xml";
 
   @NotNull
   @Override

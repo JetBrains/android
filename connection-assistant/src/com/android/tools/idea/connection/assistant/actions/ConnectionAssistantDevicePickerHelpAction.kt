@@ -21,17 +21,16 @@ import com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCrea
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-class ConnectionAssistantDevicePickerHelpAction : DumbAwareAction("Help") {
+class ConnectionAssistantDevicePickerHelpAction : DevicePickerHelpAction() {
   override fun actionPerformed(e: AnActionEvent?) {
     if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
       val action = OpenAssistSidePanelAction()
       action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, e?.project)
-      //TODO figure out issue: need to close the dialog for tool window to show
-//      doCancelAction()
     } else {
-      val devicePickerHelpAction = DevicePickerHelpAction()
-      devicePickerHelpAction.actionPerformed(e)
+      super.actionPerformed(e)
     }
   }
+
+  override fun closeDialog() = true
 }
 

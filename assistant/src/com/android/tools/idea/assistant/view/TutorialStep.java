@@ -34,12 +34,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -59,6 +62,9 @@ public class TutorialStep extends JPanel {
 
   // TODO: Refactor number related code to be an inner class + revisit colors.
   public final JBColor NUMBER_COLOR = new JBColor(0x52639B, 0x589df6);
+
+  // constant for top/bottom padding for images
+  private static final int IMAGE_PADDING = 10;
 
   private final int myIndex;
   private final StepData myStep;
@@ -125,7 +131,10 @@ public class TutorialStep extends JPanel {
             Image image = imageIcon.getImage();
             Image scaledImage = image.getScaledInstance(imageElement.getWidth(), imageElement.getHeight(), Image.SCALE_SMOOTH);
             imageIcon = new ImageIcon(scaledImage, imageElement.getDescription());
-            myContents.add(new JLabel(imageIcon, SwingConstants.LEFT));
+            JPanel containerPanel = new JPanel(new HorizontalLayout(0));
+            containerPanel.setBorder(new JBEmptyBorder(IMAGE_PADDING, 0, IMAGE_PADDING, 0));
+            containerPanel.add(new JLabel(imageIcon));
+            myContents.add(containerPanel);
           }
           catch (IOException e) {
             getLog().error("Cannot load image: " + imageElement.getSource(), e);
