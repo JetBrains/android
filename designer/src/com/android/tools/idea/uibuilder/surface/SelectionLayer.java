@@ -18,13 +18,15 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlSelectionModel;
+import com.android.tools.idea.uibuilder.model.SelectionHandle;
+import com.android.tools.idea.uibuilder.model.SelectionHandles;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -40,7 +42,7 @@ public class SelectionLayer extends Layer {
 
   @Override
   public void paint(@NotNull Graphics2D gc) {
-    SelectionModel model = myScreenView.getSelectionModel();
+    NlSelectionModel model = myScreenView.getSelectionModel();
     for (NlComponent component : model.getSelection()) {
       if (component.isRoot() || !component.isShowing()) {
         continue;

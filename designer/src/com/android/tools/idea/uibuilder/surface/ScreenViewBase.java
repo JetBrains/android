@@ -20,13 +20,13 @@ import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.model.NlSelectionModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -186,6 +186,12 @@ abstract class ScreenViewBase extends SceneView {
       g2d.setRenderingHints(hints);
       g2d.setPaint(paint);
     }
+  }
+
+  @NotNull
+  @Override
+  public NlSelectionModel getSelectionModel() {
+    return (NlSelectionModel)super.getSelectionModel();
   }
 
   /**

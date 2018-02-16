@@ -146,7 +146,7 @@ public class PreviewProvider implements Disposable {
     }
 
     NlModel model = sceneView.getModel();
-    ViewEditor editor = ViewEditorImpl.getOrCreate(sceneView);
+    ViewEditor editor = ViewEditorImpl.getOrCreate(sceneView.getScene());
     NlComponent component = ApplicationManager.getApplication()
       .runWriteAction(
         (Computable<NlComponent>)() -> NlModelHelperKt.createComponent(model, editor, tag, null, null, InsertType.CREATE_PREVIEW

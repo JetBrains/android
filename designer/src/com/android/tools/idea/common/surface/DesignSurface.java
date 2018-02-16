@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
-import com.android.tools.idea.uibuilder.surface.ConstraintsLayer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -129,7 +128,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   };
   private ZoomType myCurrentZoomType;
 
-  public DesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
+  public DesignSurface(@NotNull Project project, @NotNull SelectionModel selectionModel, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
     myProject = project;
@@ -138,7 +137,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     setFocusable(true);
     setRequestFocusEnabled(true);
 
-    mySelectionModel = new SelectionModel();
+    mySelectionModel = selectionModel;
     mySelectionModel.addListener(mySelectionListener);
     myInteractionManager = new InteractionManager(this);
 
@@ -382,13 +381,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void startDragDropInteraction() {
     for (Layer layer : myLayers) {
-      if (layer instanceof ConstraintsLayer) {
-        ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
-        if (!constraintsLayer.isShowOnHover()) {
-          constraintsLayer.setShowOnHover(true);
-          repaint();
-        }
-      }
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;
         if (!sceneLayer.isShowOnHover()) {
@@ -404,13 +396,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public void stopDragDropInteraction() {
     for (Layer layer : myLayers) {
-      if (layer instanceof ConstraintsLayer) {
-        ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
-        if (constraintsLayer.isShowOnHover()) {
-          constraintsLayer.setShowOnHover(false);
-          repaint();
-        }
-      }
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;
         if (sceneLayer.isShowOnHover()) {

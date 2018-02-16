@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor
 import com.android.tools.idea.uibuilder.model.TextDirection
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.collect.ImmutableList
 
 private const val DRAGGING_ANCHOR = "dragging_anchor"
@@ -299,7 +300,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     }
     val builder = ImmutableList.Builder<String>()
 
-    val viewEditor = myComponent.scene.sceneManager.viewEditor
+    val viewEditor = (myComponent.scene.sceneManager as LayoutlibSceneManager).viewEditor
     if (viewEditor.minSdkVersion.apiLevel < RtlSupportProcessor.RTL_TARGET_SDK_START) {
       builder.add(attribute)
     }

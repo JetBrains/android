@@ -53,11 +53,6 @@ public class DelegatingViewHandler extends ViewHandler {
   }
 
   @Override
-  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
-    return myHandler.paintConstraints(screenView, graphics, component);
-  }
-
-  @Override
   public FillPolicy getFillPolicy() {
     return myHandler.getFillPolicy();
   }

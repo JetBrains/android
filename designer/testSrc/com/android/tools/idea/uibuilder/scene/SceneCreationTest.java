@@ -20,12 +20,12 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
@@ -101,7 +101,7 @@ public class SceneCreationTest extends SceneTest {
     DesignSurface surface = spy(surfaceNoSpy);
     Disposer.register(surfaceNoSpy, surface); // When real object is disposed, dispose the spy and its registered children
 
-    SelectionModel selectionModel = spy(new SelectionModel());
+    NlSelectionModel selectionModel = spy(new NlSelectionModel());
     when(surface.getSelectionModel()).thenReturn(selectionModel);
 
     // Create a sample model

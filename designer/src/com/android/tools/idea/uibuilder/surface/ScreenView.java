@@ -42,10 +42,6 @@ public class ScreenView extends ScreenViewBase {
     builder.add(new ScreenViewLayer(this));
     builder.add(new SelectionLayer(this));
 
-    if (getSceneManager().getModel().getType().isLayout()) {
-      builder.add(new ConstraintsLayer(getSurface(), this, true));
-    }
-
     SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
