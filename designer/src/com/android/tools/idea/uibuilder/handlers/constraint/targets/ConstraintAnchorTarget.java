@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.BaseTarget;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
@@ -32,7 +32,6 @@ import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,54 +39,25 @@ import java.util.List;
 /**
  * Implements a target anchor for the ConstraintLayout.
  */
-public class AnchorTarget extends BaseTarget {
-
-  private static final boolean DEBUG_RENDERER = false;
-
-  private static final int EXPANDED_SIZE = 200;
-  private static final int ANCHOR_SIZE = 3;
+public class ConstraintAnchorTarget extends AnchorTarget {
 
   private final boolean myVisibility;
-  private final AnchorTarget.Type myType;
+  private final Type myType;
 
-  private AnchorTarget myCurrentClosestTarget; // used to define the closest target during drag;
+  private ConstraintAnchorTarget myCurrentClosestTarget; // used to define the closest target during drag;
   private boolean myInDrag = false;
   private boolean myRenderingTemporaryConnection = false;
-  private boolean myExpandArea = false;
-  @AndroidDpCoordinate private int myLastX = -1;
-  @AndroidDpCoordinate private int myLastY = -1;
   @AndroidDpCoordinate private int myConnectedX = -1;
   @AndroidDpCoordinate private int myConnectedY = -1;
 
   private final HashMap<String, String> mPreviousAttributes = new HashMap<>();
 
-  /**
-   * Type of possible anchors.
-   */
-  public enum Type {
-    LEFT, TOP, RIGHT, BOTTOM, BASELINE;
-    public int getMask() {
-      switch (this){
-        case LEFT:
-          return DecoratorUtilities.MASK_LEFT;
-        case TOP:
-          return DecoratorUtilities.MASK_TOP;
-        case RIGHT:
-          return DecoratorUtilities.MASK_RIGHT;
-        case BOTTOM:
-          return DecoratorUtilities.MASK_BOTTOM;
-        case BASELINE:
-          return DecoratorUtilities.MASK_BASELINE;
-      }
-      return 0;
-    }
-  }
-
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public AnchorTarget(@NotNull AnchorTarget.Type type, boolean visible) {
+  public ConstraintAnchorTarget(@NotNull Type type, boolean visible) {
+    super(type);
     myType = type;
     myVisibility = visible;
   }
@@ -97,20 +67,6 @@ public class AnchorTarget extends BaseTarget {
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
 
-  @Override
-  public boolean canChangeSelection() {
-    return false;
-  }
-
-  public Type getType() {
-    return myType;
-  }
-
-  @Override
-  public void setExpandSize(boolean expand) {
-    myExpandArea = expand;
-  }
-
   public boolean isHorizontalAnchor() {
     return myType == Type.LEFT || myType == Type.RIGHT;
   }
@@ -119,179 +75,21 @@ public class AnchorTarget extends BaseTarget {
     return myType == Type.TOP || myType == Type.BOTTOM;
   }
 
-  @Override
-  public void setMouseHovered(boolean over) {
-    if (over != mIsOver) {
-      changeMouseOverState(over);
-      myComponent.getScene().needsRebuildList();
-      myComponent.getScene().repaint();
-    }
-  }
-
-  private void changeMouseOverState(boolean newValue) {
-    mIsOver = newValue;
-    String dir;
-    switch (myType) {
-      case LEFT:
-        dir = DecoratorUtilities.LEFT_CONNECTION;
-        break;
-      case TOP:
-        dir = DecoratorUtilities.TOP_CONNECTION;
-        break;
-      case RIGHT:
-        dir = DecoratorUtilities.RIGHT_CONNECTION;
-        break;
-      case BOTTOM:
-        dir = DecoratorUtilities.BOTTOM_CONNECTION;
-        break;
-      default:
-        dir = DecoratorUtilities.BASELINE_CONNECTION;
-        break;
-    }
-    DecoratorUtilities.ViewStates mode = DecoratorUtilities.ViewStates.SELECTED;
-    if (isTargeted()) {
-      mode = DecoratorUtilities.ViewStates.WILL_DESTROY;
-    }
-    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
-  }
-
-  /**
-   * Returns true if this anchor is currently the destination target in a new constraint creation.
-   */
-  private boolean isTargeted() {
-    return mIsOver && !myComponent.isSelected();
-  }
-
-  @Override
-  public void onComponentSelectionChanged(boolean selection) {
-    String dir;
-    switch (myType) {
-      case LEFT:
-        dir = DecoratorUtilities.LEFT_CONNECTION;
-        break;
-      case TOP:
-        dir = DecoratorUtilities.TOP_CONNECTION;
-        break;
-      case RIGHT:
-        dir = DecoratorUtilities.RIGHT_CONNECTION;
-        break;
-      case BOTTOM:
-        dir = DecoratorUtilities.BOTTOM_CONNECTION;
-        break;
-      default:
-        dir = DecoratorUtilities.BASELINE_CONNECTION;
-        break;
-    }
-    DecoratorUtilities.ViewStates mode = (selection) ? DecoratorUtilities.ViewStates.SELECTED : DecoratorUtilities.ViewStates.NORMAL;
-
-    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
-  }
-
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
-  //region Layout
-  /////////////////////////////////////////////////////////////////////////////
-
-  @Override
-  public boolean layout(@NotNull SceneContext sceneTransform,
-                        @AndroidDpCoordinate int l,
-                        @AndroidDpCoordinate int t,
-                        @AndroidDpCoordinate int r,
-                        @AndroidDpCoordinate int b) {
-    float ratio = 1f / (float)sceneTransform.getScale();
-    if (ratio > 2) {
-      ratio = 2;
-    }
-    float size = (ANCHOR_SIZE * ratio);
-    float minWidth = 4 * size;
-    float minHeight = 4 * size;
-    if (r - l < minWidth) {
-      float d = (minWidth - (r - l)) / 2;
-      l -= d;
-      r += d;
-    }
-    if (b - t < minHeight) {
-      float d = (minHeight - (b - t)) / 2;
-      t -= d;
-      b += d;
-    }
-    int w = r - l;
-    int h = b - t;
-    int mw = l + w / 2;
-    int mh = t + h / 2;
-    switch (myType) {
-      case LEFT: {
-        myLeft = l - size;
-        myTop = mh - size;
-        myRight = l + size;
-        myBottom = mh + size;
-        if (myExpandArea) {
-          myLeft = l - EXPANDED_SIZE;
-          myTop = t;
-          myBottom = b;
-        }
-      }
-      break;
-      case TOP: {
-        myLeft = mw - size;
-        myTop = t - size;
-        myRight = mw + size;
-        myBottom = t + size;
-        if (myExpandArea) {
-          myTop = t - EXPANDED_SIZE;
-          myLeft = l;
-          myRight = r;
-        }
-      }
-      break;
-      case RIGHT: {
-        myLeft = r - size;
-        myTop = mh - size;
-        myRight = r + size;
-        myBottom = mh + size;
-        if (myExpandArea) {
-          myRight = r + EXPANDED_SIZE;
-          myTop = t;
-          myBottom = b;
-        }
-      }
-      break;
-      case BOTTOM: {
-        myLeft = mw - size;
-        myTop = b - size;
-        myRight = mw + size;
-        myBottom = b + size;
-        if (myExpandArea) {
-          myBottom = b + EXPANDED_SIZE;
-          myLeft = l;
-          myRight = r;
-        }
-      }
-      break;
-      case BASELINE: {
-        myLeft = l + size;
-        myTop = t + myComponent.getBaseline() - size / 2;
-        myRight = r - size;
-        myBottom = t + myComponent.getBaseline() + size / 2;
-      }
-      break;
-    }
-    return false;
-  }
-
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Display
   /////////////////////////////////////////////////////////////////////////////
 
-  private boolean isConnected(AnchorTarget target) {
+  private boolean isConnected(ConstraintAnchorTarget target) {
     if (target == null) {
       return false;
     }
     if (!isConnected()) {
       return false;
     }
+
     String attribute = null;
+    //noinspection EnumSwitchStatementWhichMissesCases
     switch (myType) {
       case LEFT: {
         attribute = ConstraintComponentUtilities.getConnectionId(myComponent.getAuthoritativeNlComponent(),
@@ -332,7 +130,8 @@ public class AnchorTarget extends BaseTarget {
     return attribute.equalsIgnoreCase(target.getComponent().getId());
   }
 
-  private boolean isConnected() {
+  @Override
+  protected boolean isConnected() {
     return ConstraintComponentUtilities.isAnchorConnected(myType, myComponent.getAuthoritativeNlComponent(), useRtlAttributes(), isRtl());
   }
 
@@ -342,66 +141,8 @@ public class AnchorTarget extends BaseTarget {
     if (!myVisibility) {
       return;
     }
-    if (!myComponent.getScene().allowsTarget(this)) {
-      return;
-    }
-    if (myComponent.isDragging() && !isConnected()) {
-      return;
-    }
 
-    if (DEBUG_RENDERER) {
-      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
-      list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
-      list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
-    }
-
-    Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
-
-    boolean can_connect = state != null && (state & myType.getMask()) != 0;
-    boolean is_connected = isConnected();
-    int drawState = ((can_connect)?1:0) | (mIsOver?2:0) | (is_connected?4:0) | (isTargeted()?8:0) | (myComponent.isSelected()?16:0);
-
-    int[] modeTable = {
-      DrawAnchor.DO_NOT_DRAW, //
-      DrawAnchor.CAN_CONNECT, // can_connect
-      DrawAnchor.OVER,        // mIsOver
-      DrawAnchor.CAN_CONNECT, // can_connect & mIsOver
-      DrawAnchor.NORMAL,      // is_connected
-      DrawAnchor.CAN_CONNECT, // is_connected & can_connect
-      DrawAnchor.OVER,        // is_connected & mIsOver
-      DrawAnchor.CAN_CONNECT, // is_connected & can_connect & mIsOver
-      DrawAnchor.NORMAL,      // myThisIsTheTarget
-      DrawAnchor.NORMAL,      // myThisIsTheTarget & can_connect
-      DrawAnchor.DO_NOT_DRAW, // myThisIsTheTarget & mIsOver
-      DrawAnchor.CAN_CONNECT, // myThisIsTheTarget & can_connect & mIsOver
-      DrawAnchor.NORMAL,      // myThisIsTheTarget & is_connected &
-      DrawAnchor.NORMAL,      // myThisIsTheTarget & is_connected & can_connect
-      DrawAnchor.CANNOT_CONNECT, // myThisIsTheTarget & is_connected & mIsOver
-      DrawAnchor.CAN_CONNECT, // myThisIsTheTarget & is_connected & can_connect & mIsOver
-      DrawAnchor.NORMAL,      // isSelected
-      DrawAnchor.NORMAL,      // isSelected & can_connect
-      DrawAnchor.OVER,        // isSelected & mIsOver
-      DrawAnchor.CAN_CONNECT, // isSelected & can_connect & mIsOver
-      DrawAnchor.NORMAL,      // isSelected & is_connected
-      DrawAnchor.NORMAL,      // isSelected & is_connected & can_connect
-      DrawAnchor.OVER,        // isSelected & is_connected & mIsOver
-      DrawAnchor.CAN_CONNECT, // isSelected & is_connected & can_connect & mIsOver
-      DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget
-      DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget & can_connect
-      DrawAnchor.CANNOT_CONNECT,   // isSelected & myThisIsTheTarget & mIsOver
-      DrawAnchor.CAN_CONNECT, // isSelected & myThisIsTheTarget & can_connect & mIsOver
-      DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget & is_connected &
-      DrawAnchor.NORMAL,      // isSelected & myThisIsTheTarget & is_connected & can_connect
-      DrawAnchor.OVER,        // isSelected & myThisIsTheTarget & is_connected & mIsOver
-      DrawAnchor.CAN_CONNECT, // isSelected & myThisIsTheTarget & is_connected & can_connect & mIsOver
-    };
-    int mode = modeTable[drawState];
-
-    if (mode != DrawAnchor.DO_NOT_DRAW) {
-      DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
-                     myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, is_connected && !isTargeted(),
-                     mode);
-    }
+    super.render(list, sceneContext);
 
     if (!myRenderingTemporaryConnection) {
       if (myLastX != -1 && myLastY != -1) {
@@ -413,6 +154,51 @@ public class AnchorTarget extends BaseTarget {
         }
       }
     }
+  }
+
+  @NotNull
+  @Override
+  protected DrawAnchor.Mode getDrawMode() {
+    Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
+    boolean can_connect = state != null && (state & myType.getMask()) != 0;
+    boolean is_connected = isConnected();
+    int drawState = ((can_connect)?1:0) | (mIsOver?2:0) | (is_connected?4:0) | (isTargeted()?8:0) | (myComponent.isSelected()?16:0);
+
+    DrawAnchor.Mode[] modeTable = {
+      DrawAnchor.Mode.DO_NOT_DRAW, //
+      DrawAnchor.Mode.CAN_CONNECT, // can_connect
+      DrawAnchor.Mode.OVER,        // mIsOver
+      DrawAnchor.Mode.CAN_CONNECT, // can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // is_connected
+      DrawAnchor.Mode.CAN_CONNECT, // is_connected & can_connect
+      DrawAnchor.Mode.OVER,        // is_connected & mIsOver
+      DrawAnchor.Mode.CAN_CONNECT, // is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget
+      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // myThisIsTheTarget & mIsOver
+      DrawAnchor.Mode.CAN_CONNECT, // myThisIsTheTarget & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & is_connected &
+      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & is_connected & can_connect
+      DrawAnchor.Mode.CANNOT_CONNECT, // myThisIsTheTarget & is_connected & mIsOver
+      DrawAnchor.Mode.CAN_CONNECT, // myThisIsTheTarget & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected
+      DrawAnchor.Mode.NORMAL,      // isSelected & can_connect
+      DrawAnchor.Mode.OVER,        // isSelected & mIsOver
+      DrawAnchor.Mode.CAN_CONNECT, // isSelected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & is_connected
+      DrawAnchor.Mode.NORMAL,      // isSelected & is_connected & can_connect
+      DrawAnchor.Mode.OVER,        // isSelected & is_connected & mIsOver
+      DrawAnchor.Mode.CAN_CONNECT, // isSelected & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget
+      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & can_connect
+      DrawAnchor.Mode.CANNOT_CONNECT,   // isSelected & myThisIsTheTarget & mIsOver
+      DrawAnchor.Mode.CAN_CONNECT, // isSelected & myThisIsTheTarget & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & is_connected &
+      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & is_connected & can_connect
+      DrawAnchor.Mode.OVER,        // isSelected & myThisIsTheTarget & is_connected & mIsOver
+      DrawAnchor.Mode.CAN_CONNECT, // isSelected & myThisIsTheTarget & is_connected & can_connect & mIsOver
+    };
+    return modeTable[drawState];
   }
 
   //endregion
@@ -449,10 +235,10 @@ public class AnchorTarget extends BaseTarget {
    * Return the correct attribute string given our type and the target type
    */
   private String getAttribute(@NotNull Target target) {
-    if (!(target instanceof AnchorTarget)) {
+    if (!(target instanceof ConstraintAnchorTarget)) {
       return null;
     }
-    AnchorTarget anchorTarget = (AnchorTarget)target;
+    ConstraintAnchorTarget anchorTarget = (ConstraintAnchorTarget)target;
     return ConstraintComponentUtilities.getAttribute(myType, anchorTarget.myType, useRtlAttributes(), isRtl());
   }
 
@@ -549,7 +335,8 @@ public class AnchorTarget extends BaseTarget {
 
   private int getDistance(String attribute, NlComponent targetComponent, Scene scene) {
     int marginValue;
-    AnchorTarget targetAnchor = ConstraintComponentUtilities.getTargetAnchor(scene, targetComponent, attribute, useRtlAttributes(), isRtl());
+    ConstraintAnchorTarget
+      targetAnchor = ConstraintComponentUtilities.getTargetAnchor(scene, targetComponent, attribute, useRtlAttributes(), isRtl());
     if (targetAnchor == null) {
       return 0;
     }
@@ -634,8 +421,8 @@ public class AnchorTarget extends BaseTarget {
 
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    myLastX = -1;
-    myLastY = -1;
+    super.mouseDown(x, y);
+
     myConnectedX = -1;
     myConnectedY = -1;
     NlComponent component = myComponent.getAuthoritativeNlComponent();
@@ -649,6 +436,7 @@ public class AnchorTarget extends BaseTarget {
     if (myComponent.getParent() != null) {
       myComponent.getParent().setExpandTargetArea(true);
     }
+    //noinspection EnumSwitchStatementWhichMissesCases
     switch (myType) {
       case LEFT:
       case RIGHT: {
@@ -704,11 +492,11 @@ public class AnchorTarget extends BaseTarget {
    */
   @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
-    myLastX = x;
-    myLastY = y;
+    super.mouseDrag(x, y, closestTargets);
+
     Target closestTarget = null;
     for (Target target : closestTargets) {
-      if (target instanceof AnchorTarget && target != this) {
+      if (target instanceof ConstraintAnchorTarget && target != this) {
         closestTarget = target;
         break;
       }
@@ -720,7 +508,7 @@ public class AnchorTarget extends BaseTarget {
     if (myCurrentClosestTarget != closestTarget) {
       myCurrentClosestTarget = null;
       if (closestTarget != null) {
-        myCurrentClosestTarget = ((AnchorTarget)closestTarget);
+        myCurrentClosestTarget = ((ConstraintAnchorTarget)closestTarget);
       }
     }
 
@@ -728,7 +516,7 @@ public class AnchorTarget extends BaseTarget {
       NlComponent component = myComponent.getAuthoritativeNlComponent();
       String attribute = getAttribute(closestTarget);
       if (attribute != null) {
-        AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
+        ConstraintAnchorTarget targetAnchor = (ConstraintAnchorTarget)closestTarget;
         if (targetAnchor.myComponent != myComponent && !targetAnchor.isConnected(this)) {
           if (myComponent.getParent() != targetAnchor.myComponent) {
             Integer state = DecoratorUtilities.getTryingToConnectState(targetAnchor.myComponent.getNlComponent());
@@ -758,16 +546,16 @@ public class AnchorTarget extends BaseTarget {
    */
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
-    myLastX = -1;
-    myLastY = -1;
+    super.mouseRelease(x, y, closestTargets);
+
     try {
       if (myComponent.getParent() != null) {
         myComponent.getParent().setExpandTargetArea(false);
       }
-      AnchorTarget closestTarget = null;
+      ConstraintAnchorTarget closestTarget = null;
       for (Target target : closestTargets) {
-        if (target instanceof AnchorTarget && target != this) {
-          closestTarget = (AnchorTarget) target;
+        if (target instanceof ConstraintAnchorTarget && target != this) {
+          closestTarget = (ConstraintAnchorTarget) target;
           break;
         }
       }
@@ -812,10 +600,6 @@ public class AnchorTarget extends BaseTarget {
     }
   }
 
-  @Override
-  public String getToolTipText() {
-    return (isConnected()) ? "Delete Connection" : "Create Connection";
-  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 }

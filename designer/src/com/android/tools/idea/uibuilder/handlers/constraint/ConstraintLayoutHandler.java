@@ -17,7 +17,6 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.api.DragType;
@@ -28,6 +27,7 @@ import com.android.tools.idea.common.scene.ComponentProvider;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ActionTarget;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -367,10 +367,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     return ImmutableList.of(
       new LassoTarget(),
-      new AnchorTarget(AnchorTarget.Type.LEFT, false),
-      new AnchorTarget(AnchorTarget.Type.TOP, false),
-      new AnchorTarget(AnchorTarget.Type.RIGHT, false),
-      new AnchorTarget(AnchorTarget.Type.BOTTOM, false)
+      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false)
     );
   }
 
@@ -421,10 +421,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM),
-      new AnchorTarget(AnchorTarget.Type.LEFT, true),
-      new AnchorTarget(AnchorTarget.Type.TOP, true),
-      new AnchorTarget(AnchorTarget.Type.RIGHT, true),
-      new AnchorTarget(AnchorTarget.Type.BOTTOM, true)
+      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, true),
+      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, true),
+      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, true),
+      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, true)
     );
 
     ActionTarget previousAction = new ClearConstraintsTarget(null);
@@ -436,7 +436,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       baseline = info.getBaseLine();
     }
     if (baseline > 0) {
-      listBuilder.add(new AnchorTarget(AnchorTarget.Type.BASELINE, true));
+      listBuilder.add(new ConstraintAnchorTarget(AnchorTarget.Type.BASELINE, true));
       ActionTarget baselineActionTarget =
         new ActionTarget(previousAction, BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
           @NotNull

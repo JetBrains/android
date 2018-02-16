@@ -23,10 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.common.scene.target.ActionTarget;
-import com.android.tools.idea.common.scene.target.DragBaseTarget;
-import com.android.tools.idea.common.scene.target.LassoTarget;
-import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.scene.target.*;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
@@ -458,8 +455,8 @@ public class Scene implements SelectionListener, Disposable {
     if (component.isSelected()) {
       boolean hasBaselineConnection = component.getAuthoritativeNlComponent().getAttribute(SHERPA_URI,
                                                                                            ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
-      if (target instanceof AnchorTarget) {
-        AnchorTarget anchor = (AnchorTarget)target;
+      if (target instanceof ConstraintAnchorTarget) {
+        ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)target;
         if (anchor.getType() == AnchorTarget.Type.BASELINE) {
           // only show baseline anchor as needed
           return component.canShowBaseline() || hasBaselineConnection;
@@ -482,8 +479,8 @@ public class Scene implements SelectionListener, Disposable {
     if (target instanceof CoordinatorSnapTarget) {
       return true;
     }
-    if (target instanceof AnchorTarget) {
-      AnchorTarget anchor = (AnchorTarget)target;
+    if (target instanceof ConstraintAnchorTarget) {
+      ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)target;
       if (myFilterTarget == FilterType.BASELINE_ANCHOR) {
         return anchor.getType() == AnchorTarget.Type.BASELINE;
       }
@@ -695,8 +692,8 @@ public class Scene implements SelectionListener, Disposable {
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
-      if (myHitTarget instanceof AnchorTarget) {
-        AnchorTarget anchor = (AnchorTarget)myHitTarget;
+      if (myHitTarget instanceof ConstraintAnchorTarget) {
+        ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)myHitTarget;
         if (anchor.isHorizontalAnchor()) {
           myFilterTarget = FilterType.HORIZONTAL_ANCHOR;
         }

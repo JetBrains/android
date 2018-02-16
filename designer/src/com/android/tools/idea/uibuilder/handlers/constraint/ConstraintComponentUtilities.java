@@ -23,12 +23,13 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Direction;
@@ -467,14 +468,14 @@ public final class ConstraintComponentUtilities {
   }
 
   /**
-   * Given a NlComponent and an attribute, return the corresponding AnchorTarget
+   * Given a NlComponent and an attribute, return the corresponding ConstraintAnchorTarget
    *
    * @param scene
    * @param targetComponent
    * @param attribute
    * @return
    */
-  public static AnchorTarget getOriginAnchor(Scene scene, NlComponent targetComponent, String attribute) {
+  public static ConstraintAnchorTarget getOriginAnchor(Scene scene, NlComponent targetComponent, String attribute) {
     AnchorTarget.Type type = ourMapSideToOriginAnchors.get(attribute);
     SceneComponent component = scene.getSceneComponent(targetComponent);
     if (component != null) {
@@ -484,13 +485,13 @@ public final class ConstraintComponentUtilities {
   }
 
   /**
-   * Given a NlComponent and an attribute, return the corresponding AnchorTarget
+   * Given a NlComponent and an attribute, return the corresponding ConstraintAnchorTarget
    */
-  public static AnchorTarget getTargetAnchor(Scene scene,
-                                             NlComponent targetComponent,
-                                             String attribute,
-                                             boolean supportsRtl,
-                                             boolean isInRtl) {
+  public static ConstraintAnchorTarget getTargetAnchor(Scene scene,
+                                                       NlComponent targetComponent,
+                                                       String attribute,
+                                                       boolean supportsRtl,
+                                                       boolean isInRtl) {
     SceneComponent component = scene.getSceneComponent(targetComponent);
     if (component == null) {
       return null;
@@ -506,11 +507,11 @@ public final class ConstraintComponentUtilities {
     return getAnchorTarget(component, ourLTRMapSideToTargetAnchors.get(attribute));
   }
 
-  public static AnchorTarget getAnchorTarget(@NotNull SceneComponent component, @NotNull AnchorTarget.Type type) {
+  public static ConstraintAnchorTarget getAnchorTarget(@NotNull SceneComponent component, @NotNull AnchorTarget.Type type) {
     for (Target target : component.getTargets()) {
-      if (target instanceof AnchorTarget) {
-        if (((AnchorTarget)target).getType() == type) {
-          return (AnchorTarget)target;
+      if (target instanceof ConstraintAnchorTarget) {
+        if (((ConstraintAnchorTarget)target).getType() == type) {
+          return (ConstraintAnchorTarget)target;
         }
       }
     }
@@ -1456,7 +1457,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
     return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT)
-           || component.getTag().getName().equals(CONSTRAINT_LAYOUT); // used during layout conversion
+           || CONSTRAINT_LAYOUT.isEquals(component.getTag().getName()); // used during layout conversion
   }
 
   // ordered the same as Direction enum
