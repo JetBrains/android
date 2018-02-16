@@ -31,6 +31,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbService;
@@ -116,6 +117,12 @@ public final class GuiTests {
       if (isNotEmpty(additionalInfo)) {
         messageBuilder.append(System.getProperty("line.separator")).append("Additional Info: ").append(additionalInfo);
       }
+
+      for (Attachment attachment : errorMessage.getAllAttachments()) {
+        messageBuilder.append(System.getProperty("line.separator")).append("Path: ").append(attachment.getPath()).
+          append(System.getProperty("line.separator")).append("Text: ").append(attachment.getDisplayText());
+      }
+
       Error error = new Error(messageBuilder.toString(), errorMessage.getThrowable());
       errors.add(error);
     }
