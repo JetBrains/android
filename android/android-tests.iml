@@ -20,7 +20,7 @@
     <orderEntry type="module" module-name="dom-impl" scope="TEST" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="module" module-name="analytics-protos" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="freemarker-2.3.20" level="project" />
+    <orderEntry type="library" scope="TEST" name="freemarker" level="project" />
     <orderEntry type="module" module-name="external-system-impl" scope="TEST" />
     <orderEntry type="module" module-name="observable" scope="TEST" />
     <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
