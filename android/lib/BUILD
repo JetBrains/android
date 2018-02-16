@@ -55,13 +55,6 @@ java_import(
 )
 
 java_import(
-    name = "jgraphx-3.4.0.1",
-    jars = ["jgraphx-3.4.0.1.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
     name = "libwebp",
     jars = ["libwebp.jar"],
     tags = ["managed"],
