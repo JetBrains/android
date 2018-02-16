@@ -200,8 +200,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       CompileOptionsModel compileOptions = android.compileOptions();
-      compileOptions.setSourceCompatibility(level);
-      compileOptions.setTargetCompatibility(level);
+      compileOptions.sourceCompatibility().setLanguageLevel(level);
+      compileOptions.targetCompatibility().setLanguageLevel(level);
     }
     else {
       JavaFacet javaFacet = JavaFacet.getInstance(module);
@@ -209,8 +209,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       JavaModel javaModel = buildModel.java();
-      javaModel.setSourceCompatibility(level);
-      javaModel.setTargetCompatibility(level);
+      javaModel.sourceCompatibility().setLanguageLevel(level);
+      javaModel.targetCompatibility().setLanguageLevel(level);
     }
 
     new WriteCommandAction(project, "Change Gradle Language Level") {

@@ -19,11 +19,13 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,10 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
 
   public ResolvedPropertyModelImpl(@NotNull GradlePropertyModel realModel) {
     myRealModel = realModel;
+  }
+
+  public ResolvedPropertyModelImpl(@NotNull GradleDslElement element) {
+    myRealModel = new GradlePropertyModelImpl(element);
   }
 
   @NotNull
@@ -163,6 +169,12 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @Override
   public Integer toInt() {
     return resolveModel().toInt();
+  }
+
+  @Nullable
+  @Override
+  public BigDecimal toBigDecimal() {
+    return resolveModel().toBigDecimal();
   }
 
   @Nullable

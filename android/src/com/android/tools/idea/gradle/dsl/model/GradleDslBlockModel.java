@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -74,6 +76,14 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   @NotNull
   protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
     return getModelForProperty(property, false);
+  }
+
+  @NotNull
+  protected LanguageLevelPropertyModel getLanguageModelForProperty(@NotNull String property) {
+    GradleDslElement element = myDslElement.getPropertyElement(property);
+
+    return element == null
+           ? new LanguageLevelPropertyModelImpl(myDslElement, REGULAR, property) : new LanguageLevelPropertyModelImpl(element);
   }
 
   @NotNull

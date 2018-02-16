@@ -20,6 +20,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -50,6 +51,7 @@ public interface GradlePropertyModel {
   // The following are TypeReferences used in calls to getValue and getRawValue.
   TypeReference<String> STRING_TYPE = new TypeReference<String>() {};
   TypeReference<Integer> INTEGER_TYPE = new TypeReference<Integer>() {};
+  TypeReference<BigDecimal> BIG_DECIMAL_TYPE = new TypeReference<BigDecimal>() {};
   TypeReference<Boolean> BOOLEAN_TYPE = new TypeReference<Boolean>() {};
   TypeReference<List<GradlePropertyModel>> LIST_TYPE = new TypeReference<List<GradlePropertyModel>>() {};
   TypeReference<Map<String, GradlePropertyModel>> MAP_TYPE = new TypeReference<Map<String, GradlePropertyModel>>() {};
@@ -62,6 +64,7 @@ public interface GradlePropertyModel {
    * <ul>
    *   <li>{@code STRING} - Pass {@link #STRING_TYPE} to {@link #getValue(TypeReference)}</li>
    *   <li>{@code INTEGER} - Pass {@link #INTEGER_TYPE} to {@link #getValue(TypeReference)}</li>
+   *   <li>{@code BIG_DECIMAL} - Pass {@link #BIG_DECIMAL_TYPE} to {@link #getValue(TypeReference)}</li>
    *   <li>{@code BOOLEAN} - Pass {@link #BOOLEAN_TYPE} to {@link #getValue(TypeReference)}</li>
    *   <li>{@code MAP} - Pass {@link #MAP_TYPE} to {@link #getValue(TypeReference)}</li>
    *   <li>{@code LIST} - Pass {@link #LIST_TYPE} to {@link #getValue(TypeReference)}</li>
@@ -74,6 +77,7 @@ public interface GradlePropertyModel {
   enum ValueType {
     STRING,
     INTEGER,
+    BIG_DECIMAL,
     BOOLEAN,
     MAP,
     LIST,
@@ -229,6 +233,12 @@ public interface GradlePropertyModel {
    */
   @Nullable
   Integer toInt();
+
+  /**
+   * @return the value of the property as a BigDecimal or null if no value exists or is of an incorrect type.
+   */
+  @Nullable
+  BigDecimal toBigDecimal();
 
   /**
    * @return the value of the property as a Boolean or null if no value exists or is of an incorrect type.

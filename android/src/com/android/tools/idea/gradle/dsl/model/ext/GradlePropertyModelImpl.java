@@ -27,6 +27,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -221,6 +222,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       else {
         newElement = new GradleDslReference(myPropertyHolder, name);
       }
+
+      newElement.setUseAssignment(!myIsMethodCall);
       newElement.setValue(value);
       bindToNewElement(newElement);
     }
@@ -370,6 +373,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Nullable
   @Override
+  public BigDecimal toBigDecimal() {
+    return getValue(BIG_DECIMAL_TYPE);
+  }
+
+  @Nullable
+  @Override
   public Boolean toBoolean() {
     return getValue(BOOLEAN_TYPE);
   }
@@ -413,6 +422,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       }
       else if (value instanceof String) {
         return STRING;
+      }
+      else if (value instanceof BigDecimal) {
+        return BIG_DECIMAL;
       }
       else {
         return UNKNOWN;

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
@@ -33,41 +34,13 @@ public class CompileOptionsModelImpl extends BaseCompileOptionsModelImpl impleme
 
   @Override
   @NotNull
-  public GradleNullableValue<String> encoding() {
-    return myDslElement.getLiteralProperty(ENCODING, String.class);
+  public ResolvedPropertyModel encoding() {
+    return getModelForProperty(ENCODING);
   }
 
   @Override
   @NotNull
-  public CompileOptionsModel setEncoding(@NotNull String encoding) {
-    myDslElement.setNewLiteral(ENCODING, encoding);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public CompileOptionsModel removeEncoding() {
-    myDslElement.removeProperty(ENCODING);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<Boolean> incremental() {
-    return myDslElement.getLiteralProperty(INCREMENTAL, Boolean.class);
-  }
-
-  @Override
-  @NotNull
-  public CompileOptionsModel setIncremental(boolean incremental) {
-    myDslElement.setNewLiteral(INCREMENTAL, incremental);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public CompileOptionsModel removeIncremental() {
-    myDslElement.removeProperty(INCREMENTAL);
-    return this;
+  public ResolvedPropertyModel incremental() {
+    return getModelForProperty(INCREMENTAL);
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.parser.java;
+package com.android.tools.idea.gradle.dsl.api.util;
 
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;

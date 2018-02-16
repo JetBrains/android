@@ -38,12 +38,12 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertNull(java.sourceCompatibility());
-    assertNull(java.targetCompatibility());
+    assertMissingProperty(java.sourceCompatibility());
+    assertMissingProperty(java.targetCompatibility());
 
     JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility().toLanguageLevel());
   }
 
   public void testSubProjectsSectionWithLocalProperties() throws Exception {
@@ -63,12 +63,12 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_4, java.sourceCompatibility()); // subprojects section applies only for sub projects.
-    assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility()); // subprojects section applies only for sub projects.
+    assertEquals(LanguageLevel.JDK_1_4, java.sourceCompatibility().toLanguageLevel()); // subprojects section applies only for sub projects.
+    assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility().toLanguageLevel()); // subprojects section applies only for sub projects.
 
     JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility()); // Subproject got 1_5 from SubProjects section
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility()); // Subproject got 1_6 from SubProjects section
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility().toLanguageLevel()); // Subproject got 1_5 from SubProjects section
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility().toLanguageLevel()); // Subproject got 1_6 from SubProjects section
   }
 
   public void testOverrideSubProjectsSection() throws Exception {
@@ -89,11 +89,11 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
 
     JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.sourceCompatibility()); // 1_4 is overridden with 1_6
-    assertEquals(LanguageLevel.JDK_1_7, subModuleJava.targetCompatibility()); // 1_5 is overridden with 1_7
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_6
+    assertEquals(LanguageLevel.JDK_1_7, subModuleJava.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_7
   }
 }

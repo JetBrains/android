@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,19 +33,6 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
 
   public BaseCompileOptionsDslElement(@NotNull GradleDslElement parent) {
     super(parent, GradleNameElement.create(COMPILE_OPTIONS_BLOCK_NAME));
-  }
-
-  @Override
-  public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if ((SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(property) || TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(property)) &&
-        (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
-
-      JavaVersionDslElement versionDslElement =
-        new JavaVersionDslElement(this, (GradleDslExpression)element, GradleNameElement.create(property));
-      super.setParsedElement(property, versionDslElement);
-      return;
-    }
-    super.setParsedElement(property, element);
   }
 
   @Override
