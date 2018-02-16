@@ -46,6 +46,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.EventResult;
+import com.intellij.build.events.Failure;
 import com.intellij.build.events.impl.FailureResultImpl;
 import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
@@ -235,8 +236,17 @@ public class PostSyncProjectSetup {
     }
 
     String message = "synced successfully";
-    // TODO: Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
-    EventResult result = new SuccessResultImpl();
+    // Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
+    EventResult result;
+    GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
+    List<Failure> failures = messages.showEvents(taskId);
+
+    if (failures.isEmpty()) {
+      result = new SuccessResultImpl();
+    }
+    else {
+      result = new FailureResultImpl(failures);
+    }
 
     FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, result);
     ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
@@ -245,8 +255,9 @@ public class PostSyncProjectSetup {
   private void finishFailedSync(@Nullable ExternalSystemTaskId taskId) {
     if (taskId != null) {
       String message = "sync failed";
-      // TODO: append failures
-      FailureResultImpl failureResult = new FailureResultImpl(Collections.emptyList());
+      GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
+      List<Failure> failures = messages.showEvents(taskId);
+      FailureResultImpl failureResult = new FailureResultImpl(failures);
       FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, failureResult);
       ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
     }
