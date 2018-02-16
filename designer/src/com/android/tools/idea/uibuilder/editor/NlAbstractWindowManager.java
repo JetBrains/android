@@ -113,7 +113,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
       return editor.getSurface();
     } else if (designer instanceof NlPreviewForm) {
       NlPreviewForm form = (NlPreviewForm)designer;
-      return form.getFile() != null ? form.getSurface() : null;
+      return form.hasFile() ? form.getSurface() : null;
     }
 
     // Unexpected facade

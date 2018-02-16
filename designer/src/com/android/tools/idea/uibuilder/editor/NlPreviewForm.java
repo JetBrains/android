@@ -44,6 +44,7 @@ import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
@@ -52,6 +53,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
@@ -80,7 +83,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private boolean myUseInteractiveSelector = true;
   private boolean myIgnoreListener;
   private RenderResult myRenderResult;
-  private XmlFile myFile;
+  private SmartPsiElementPointer<XmlFile> myFile;
   private boolean isActive = false;
   private ActionsToolbar myActionsToolbar;
   private JComponent myContentPanel;
@@ -195,9 +198,25 @@ public class NlPreviewForm implements Disposable, CaretListener {
     return myActionsToolbar.getToolbarComponent();
   }
 
+  /**
+   * True if this preview form has a file assigned to display
+   */
+  public boolean hasFile() {
+    return myFile != null && myFile.getElement() != null;
+  }
+
+  /**
+   * Returns the current file name or null. If no file is assigned, this method will return an empty string.
+   */
+  @NotNull
+  public String getFileName() {
+    XmlFile xmlFile = getFile();
+    return xmlFile != null ? xmlFile.getName() : "";
+  }
+
   @Nullable
-  public XmlFile getFile() {
-    return myFile;
+  private XmlFile getFile() {
+    return myFile != null ? myFile.getElement() : null;
   }
 
   @NotNull
@@ -276,7 +295,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
 
     myPendingEditor = editor;
-    myFile = myManager.getBoundXmlFile(psiFile);
+    XmlFile xmlFile = myManager.getBoundXmlFile(psiFile);
+    myFile = xmlFile != null ?
+             ReadAction.compute(() -> SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(xmlFile)) :
+             null;
 
     if (myPendingFile != null) {
       myPendingFile.invalidate();
@@ -293,8 +315,11 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   public void clearRenderResult() {
-    if (myRenderResult != null && myRenderResult.getFile() != myFile) {
-      myRenderResult = RenderResult.createBlank(myFile);
+    XmlFile file = getFile();
+    if (file == null) {
+      myRenderResult = null;
+    } else if (myRenderResult != null && myRenderResult.getFile() != file) {
+      myRenderResult = RenderResult.createBlank(file);
     }
   }
 
@@ -405,7 +430,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   private void initNeleModel() {
-    XmlFile xmlFile = myFile;
+    XmlFile xmlFile = getFile();
     AndroidFacet facet = xmlFile != null ? AndroidFacet.getInstance(xmlFile) : null;
     if (!isActive || facet == null || xmlFile.getVirtualFile() == null) {
       myPendingFile = null;
@@ -449,7 +474,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       myWorkBench.setToolContext(null);
     }
     else {
-      myFile = model.getFile();
+      myFile = ReadAction.compute(() -> SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(model.getFile()));
       if (!mySurface.isCanvasResizing()) {
         // If we are resizing, keep the zoom level constant
         // only if the zoom was previously set to FIT
