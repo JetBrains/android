@@ -660,7 +660,7 @@ public final class GuiTests {
     AtomicBoolean isProjectOpen = new AtomicBoolean();
     DumbService.getInstance(project).smartInvokeLater(() -> isProjectOpen.set(true));
 
-    Wait.seconds(60).expecting("Project import to finish")
+    Wait.seconds(90).expecting("Project import to finish")
       .until(isProjectOpen::get);
 
     waitForBackgroundTasks(robot);
