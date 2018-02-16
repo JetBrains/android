@@ -31,9 +31,7 @@ import java.util.List;
 
 public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
   private static final Icon DEFAULT_VIEW_ICON = AndroidDomElementDescriptorProvider.getIconForViewTag("View");
-  private static final String ID_KEY = "mID";
   private static final String EMPTY_ID = "NO_ID";
-  private static final int ID_START_INDEX = 3; // ids have "id/" prefix we want to strip before displaying
 
   private String myHighlight;
 
@@ -71,11 +69,9 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
 
   @Nullable
   public static String getId(@NotNull ViewNode node) {
-    ViewProperty id = node.getProperty(ID_KEY);
-    if (id != null && !id.getValue().equals(EMPTY_ID)) {
-      return id.getValue().substring(ID_START_INDEX);
-    }
-    return null;
+    String id = node.getId();
+    if (id == null || id.equals(EMPTY_ID)) return null;
+    return id;
   }
 
   @NotNull

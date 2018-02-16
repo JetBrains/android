@@ -17,12 +17,14 @@ package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.idea.editors.layoutInspector.LayoutFileDataTest;
+import com.android.tools.idea.editors.layoutInspector.LayoutInspectorCaptureTaskTest;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanelTest;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({LayoutInspectorTestSuite.class, LayoutFileDataTest.class, PropertiesTablePanelTest.class})
+@JarTestSuiteRunner.ExcludeClasses({LayoutInspectorTestSuite.class, LayoutFileDataTest.class, PropertiesTablePanelTest.class,
+  LayoutInspectorCaptureTaskTest.class})
 @SuppressWarnings("NewClassNamingConvention") // Not a test.
 public class LayoutInspectorTestSuite extends IdeaTestSuiteBase {
 

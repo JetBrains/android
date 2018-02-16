@@ -47,7 +47,7 @@ public class LayoutFileData {
       // Parse view node
       byte[] nodeBytes = new byte[input.readInt()];
       input.readFully(nodeBytes);
-      myNode = ViewNodeParser.parse(nodeBytes);
+      myNode = ViewNodeParser.parse(nodeBytes, options.getVersion());
       if (getNode() == null) {
         throw new IOException("Error parsing view node");
       }

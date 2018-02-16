@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.editors.layoutInspector;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
+import com.android.layoutinspector.ProtocolVersion;
 import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.LayoutInspectorBridge;
 import com.android.layoutinspector.LayoutInspectorCaptureOptions;
 import com.android.layoutinspector.LayoutInspectorResult;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -61,6 +63,7 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     LayoutInspectorCaptureOptions options = new LayoutInspectorCaptureOptions();
     options.setTitle(myWindow.getDisplayName());
+    options.setVersion(determineProtocolVersion(myClient.getDevice().getVersion().getApiLevel(), StudioFlags.LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED.get()));
 
     // Capture view hierarchy
     indicator.setText("Capturing View Hierarchy");
@@ -83,6 +86,11 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
     }
 
     myData = result.getData();
+  }
+
+  @VisibleForTesting
+  static ProtocolVersion determineProtocolVersion(int apiVersion, boolean v2Enabled) {
+    return apiVersion >= LayoutInspectorBridge.getV2_MIN_API() && v2Enabled ? ProtocolVersion.Version2 : ProtocolVersion.Version1;
   }
 
   @Override
