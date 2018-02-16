@@ -68,7 +68,6 @@ class AswbGotoDeclarationTest {
     return guiTest.ideFrame().editor.open(relativePath)
   }
 
-  @Ignore // b/72952881
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withExternalResources() {
@@ -85,7 +84,6 @@ class AswbGotoDeclarationTest {
     }
   }
 
-  @Ignore // b/72952881
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withLocalResources() {

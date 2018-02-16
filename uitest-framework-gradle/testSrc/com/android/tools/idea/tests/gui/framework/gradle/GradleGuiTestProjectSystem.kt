@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestPr
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import org.fest.swing.core.Robot
 import java.io.File
@@ -59,4 +60,6 @@ class GradleGuiTestProjectSystem : GuiTestProjectSystem {
   override fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture) {
     ideFrameFixture.waitForGradleProjectSyncToFinish()
   }
+
+  override fun getProjectRootDirectory(project: Project) = project.baseDir!!
 }
