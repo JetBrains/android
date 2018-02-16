@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework.guitestprojectsystem
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import org.fest.swing.core.Robot
 import java.io.File
 
@@ -58,6 +60,13 @@ interface GuiTestProjectSystem {
    * Waits for the project sync to finish using build system specific waiting logic.
    */
   fun waitForProjectSyncToFinish(ideFrameFixture: IdeFrameFixture)
+
+  /**
+   * Returns a [VirtualFile] corresponding to the given [project]'s root directory (i.e. the top-level directory containing all
+   * source files related to this project). This may be (but is not necessarily) the same as the [project]'s base directory
+   * (i.e. the directory containing .idea/ ).
+   */
+  fun getProjectRootDirectory(project: Project): VirtualFile
 
   companion object {
     val EP_NAME: ExtensionPointName<GuiTestProjectSystem> = ExtensionPointName.create("com.android.project.guitestprojectsystem")

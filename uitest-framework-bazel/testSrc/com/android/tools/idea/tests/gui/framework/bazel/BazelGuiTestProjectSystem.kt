@@ -26,7 +26,9 @@ import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBui
 import com.google.common.io.Files
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.vfs.VirtualFile
 import org.fest.swing.core.Robot
 import org.fest.swing.timing.Wait
 import java.io.File
@@ -114,6 +116,21 @@ This issue can be fixed by:
 
 """
     )
+  }
+
+  override fun getProjectRootDirectory(project: Project): VirtualFile {
+    val rootDir = project.baseDir!!.parent!!
+
+    if (rootDir.findChild("WORKSPACE") == null) {
+      throw IllegalStateException(
+"""
+Project root directory ${rootDir.canonicalPath} does not contain a Bazel WORKSPACE file. Check BazelGuiTestProjectSystem.kt to ensure that
+the location of the project data directory that is assigned during importProject() is consistent with the getProjectRootDirectory() method.
+"""
+      )
+    }
+
+    return rootDir
   }
 
   private fun openBazelImportWizard(robot: Robot): ImportBazelProjectWizardFixture {

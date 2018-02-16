@@ -36,6 +36,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
@@ -96,6 +97,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
   @NotNull private final Modules myModules;
 
+  private GuiTestProjectSystem myTestProjectSystem;
   private EditorFixture myEditor;
   private boolean myIsClosed;
 
@@ -350,19 +352,39 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return new FileFixture(getProject(), file);
   }
 
+  /**
+   * Returns the virtual file corresponding to the given path. The path must be relative to the project root directory
+   * (the top-level directory containing all source files associated with the project).
+   *
+   * @param relativePath a file path relative to the project root directory
+   * @param requireExists if true, this method asserts that the given path corresponds to an existing file
+   * @return the virtual file corresponding to the given path, or null if requireExists is false and the file does not exist
+   */
   @Nullable
   @Contract("_, true -> !null")
   public VirtualFile findFileByRelativePath(@NotNull String relativePath, boolean requireExists) {
     //noinspection Contract
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
-    VirtualFile projectBaseDir = getProject().getBaseDir();
-    projectBaseDir.refresh(false, true);
-    VirtualFile file = projectBaseDir.findFileByRelativePath(relativePath);
+
+    VirtualFile projectRootDir;
+    if (myTestProjectSystem != null) {
+      projectRootDir = myTestProjectSystem.getProjectRootDirectory(getProject());
+    }
+    else {
+      projectRootDir = getProject().getBaseDir();
+    }
+
+    projectRootDir.refresh(false, true);
+    VirtualFile file = projectRootDir.findFileByRelativePath(relativePath);
     if (requireExists) {
       //noinspection Contract
       assertNotNull("Unable to find file with relative path " + quote(relativePath), file);
     }
     return file;
+  }
+
+  public void setTestProjectSystem(GuiTestProjectSystem testProjectSystem) {
+    myTestProjectSystem = testProjectSystem;
   }
 
   @NotNull
