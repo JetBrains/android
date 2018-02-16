@@ -33,7 +33,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import static com.android.SdkConstants.TAG_DEEPLINK;
+import static com.android.SdkConstants.TAG_DEEP_LINK;
 
 /**
  * Tests for {@link NavigationSchema}.
@@ -42,7 +42,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] LEAF_DESTINATIONS = new String[] {
     "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2"
   };
-  private static final String[] DEEPLINK_ONLY = new String[] {"activity", "activity_sub"};
+  private static final String[] DEEP_LINK_ONLY = new String[] {"activity", "activity_sub"};
   private static final String[] EMPTIES = new String[] {"include" };
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
   private static final String[] ALL =
@@ -52,7 +52,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
           Arrays.stream(LEAF_DESTINATIONS),
           Arrays.stream(GROUPS)),
         Arrays.stream(EMPTIES)),
-      Arrays.stream(DEEPLINK_ONLY)).toArray(String[]::new);
+      Arrays.stream(DEEP_LINK_ONLY)).toArray(String[]::new);
 
   private static final String PREBUILT_AAR_PATH =
     "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.6.0-alpha1/runtime-0.6.0-alpha1.aar";
@@ -78,7 +78,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
     Multimap<Class<? extends AndroidDomElement>, String> expected = HashMultimap.create();
     expected.put(NavActionElement.class, NavigationSchema.TAG_ACTION);
-    expected.put(DeeplinkElement.class, TAG_DEEPLINK);
+    expected.put(DeeplinkElement.class, TAG_DEEP_LINK);
     expected.put(ArgumentElement.class, NavigationSchema.TAG_ARGUMENT);
     for (String leaf : LEAF_DESTINATIONS) {
       subtags = schema.getDestinationSubtags(leaf);
@@ -98,7 +98,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     // Non-destination types
     expected.clear();
     assertEquals(expected, schema.getDestinationSubtags(NavigationSchema.TAG_ARGUMENT));
-    assertEquals(expected, schema.getDestinationSubtags(TAG_DEEPLINK));
+    assertEquals(expected, schema.getDestinationSubtags(TAG_DEEP_LINK));
     expected.put(ArgumentElement.class, NavigationSchema.TAG_ARGUMENT);
     assertEquals(expected, schema.getDestinationSubtags(NavigationSchema.TAG_ACTION));
   }

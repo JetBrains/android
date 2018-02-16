@@ -49,7 +49,7 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
 
   private val hasDeepLink: Boolean
     get() {
-      return component.nlComponent.children.any { it.tagName == SdkConstants.TAG_DEEPLINK }
+      return component.nlComponent.children.any { it.tagName == SdkConstants.TAG_DEEP_LINK }
     }
 
   private val isStartDestination: Boolean

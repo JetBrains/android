@@ -199,7 +199,7 @@ object NavModelBuilderUtil {
     }
   }
 
-  class DeepLinkComponentDescriptor(uri: String) : NavComponentDescriptor(TAG_DEEPLINK) {
+  class DeepLinkComponentDescriptor(uri: String) : NavComponentDescriptor(TAG_DEEP_LINK) {
     init {
       withAttribute(AUTO_URI, "uri", uri)
     }
