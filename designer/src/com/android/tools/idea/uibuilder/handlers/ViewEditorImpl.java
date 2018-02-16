@@ -278,23 +278,11 @@ public class ViewEditorImpl extends ViewEditor {
     return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
   }
 
-
-  /**
-   * Try to get an existing View editor from the {@link SceneView}'s {@link SceneManager}
-   *
-   * @deprecated use {@link #getOrCreate(Scene)} instead.
-   */
-  @Deprecated
-  @NotNull
-  public static ViewEditor getOrCreate(@NotNull SceneView sceneView) {
-    return getOrCreate(sceneView.getScene());
-  }
-
   /**
    * Try to get an existing View editor from the {@link Scene}'s {@link SceneManager}
    */
   @NotNull
   public static ViewEditor getOrCreate(@NotNull Scene scene) {
-    return scene.getSceneManager().getViewEditor();
+    return ((LayoutlibSceneManager)scene.getSceneManager()).getViewEditor();
   }
 }

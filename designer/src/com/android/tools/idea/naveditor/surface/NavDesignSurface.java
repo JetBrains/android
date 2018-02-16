@@ -23,6 +23,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
@@ -87,7 +88,7 @@ public class NavDesignSurface extends DesignSurface {
   AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable);
+    super(project, new SelectionModel(), parentDisposable);
     setBackground(JBColor.white);
   }
 

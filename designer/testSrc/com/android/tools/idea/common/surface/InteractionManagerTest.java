@@ -16,18 +16,18 @@
 package com.android.tools.idea.common.surface;
 
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
@@ -198,7 +198,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    SelectionModel selectionModel = screenView.getSelectionModel();
+    NlSelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
     selectionModel.getHandles(textView.getNlComponent());
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
@@ -265,7 +265,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    SelectionModel selectionModel = screenView.getSelectionModel();
+    NlSelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
     selectionModel.getHandles(textView.getNlComponent());
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),

@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,19 +96,24 @@ public class TargetSnapper {
   public Point applyNotches(@NotNull SceneComponent component, @NotNull AttributesTransaction attributes, @NotNull Point snapLocation) {
     if (myCurrentNotchX != null) {
       snapLocation.x = myCurrentNotchX.trySnap(snapLocation.x);
-      if (component.allowsAutoConnect()) {
+      if (allowsAutoConnect(component)) {
         myCurrentNotchX.applyAction(attributes);
       }
       myCurrentNotchX = null;
     }
     if (myCurrentNotchY != null) {
       snapLocation.y = myCurrentNotchY.trySnap(snapLocation.y);
-      if (component.allowsAutoConnect()) {
+      if (allowsAutoConnect(component)) {
         myCurrentNotchY.applyAction(attributes);
       }
       myCurrentNotchY = null;
     }
     return snapLocation;
+  }
+
+  private static boolean allowsAutoConnect(@NotNull SceneComponent component) {
+    return !SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getNlComponent().getTagName()) &&
+           ConstraintLayoutHandler.isAutoconnectOn();
   }
 
   /**

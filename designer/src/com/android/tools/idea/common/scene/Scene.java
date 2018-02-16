@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
@@ -23,7 +22,10 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.*;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
@@ -31,20 +33,16 @@ import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchorTarget;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlSelectionModel;
+import com.android.tools.idea.uibuilder.model.SelectionHandle;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.*;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.Lists;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
@@ -113,7 +111,6 @@ public class Scene implements SelectionListener, Disposable {
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
-  private boolean myShowAllConstraints = false;
 
   public enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
@@ -240,19 +237,6 @@ public class Scene implements SelectionListener, Disposable {
 
   public Cursor getMouseCursor() {
     return myMouseCursor;
-  }
-
-  public boolean isAutoconnectOn() {
-    return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
-  }
-
-  public boolean isShowAllConstraints() {
-    return myShowAllConstraints || PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
-  }
-
-  @VisibleForTesting
-  public void setShowAllConstraints(boolean showAllConstraints) {
-    myShowAllConstraints = showAllConstraints;
   }
 
   /**
@@ -606,9 +590,10 @@ public class Scene implements SelectionListener, Disposable {
 
     SelectionModel selectionModel = myDesignSurface.getSelectionModel();
 
-    if (!selectionModel.isEmpty()) {
+    // TODO: remove selectionhandle reference
+    if (!selectionModel.isEmpty() && selectionModel instanceof NlSelectionModel) {
       int max = Coordinates.getAndroidDimensionDip(myDesignSurface, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(x, y, max, getDesignSurface());
+      SelectionHandle handle = ((NlSelectionModel)selectionModel).findHandle(x, y, max, getDesignSurface());
       if (handle != null) {
         myMouseCursor = handle.getCursor();
         return;
@@ -776,7 +761,7 @@ public class Scene implements SelectionListener, Disposable {
                         ((NlDesignSurface)myDesignSurface).getSceneMode() != SceneMode.BLUEPRINT_ONLY;
 
       if (renderOnLayout && manager instanceof LayoutlibSceneManager) {
-        ((LayoutlibSceneManager)manager).requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
+        manager.requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }
       else {
         manager.layout(mNeedsLayout == ANIMATED_LAYOUT);

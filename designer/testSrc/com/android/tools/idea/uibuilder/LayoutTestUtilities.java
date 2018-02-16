@@ -24,7 +24,6 @@ import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.InteractionManager;
@@ -32,6 +31,7 @@ import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponentMixin;
+import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
@@ -207,7 +207,7 @@ public class LayoutTestUtilities {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
     when(surface.getLayeredPane()).thenReturn(layeredPane);
-    when(surface.getSelectionModel()).thenReturn(new SelectionModel());
+    when(surface.getSelectionModel()).thenReturn(new NlSelectionModel());
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
     if (NlDesignSurface.class.equals(surfaceClass)) {

@@ -468,12 +468,13 @@ public class InteractionManager {
       SelectionModel selectionModel = sceneView.getSelectionModel();
       NlComponent component = Coordinates.findComponent(sceneView, x, y);
 
-      if (component == null) {
+      // TODO: remove selectionhandle reference
+      if (selectionModel instanceof NlSelectionModel && component == null) {
         // Clicked component resize handle?
         @AndroidDpCoordinate int mx = Coordinates.getAndroidXDip(sceneView, x);
         @AndroidDpCoordinate int my = Coordinates.getAndroidYDip(sceneView, y);
         @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle = selectionModel.findHandle(mx, my, max, mySurface);
+        SelectionHandle handle = ((NlSelectionModel)selectionModel).findHandle(mx, my, max, mySurface);
         if (handle != null) {
           component = handle.component;
         }
@@ -559,11 +560,15 @@ public class InteractionManager {
         int xDp = Coordinates.getAndroidXDip(sceneView, x);
         int yDp = Coordinates.getAndroidYDip(sceneView, y);
 
-        Interaction interaction = null;
+        Interaction interaction;
         // Dragging on top of a selection handle: start a resize operation
         @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle =
-          selectionModel.findHandle(Coordinates.getAndroidXDip(sceneView, x), Coordinates.getAndroidYDip(sceneView, y), max, mySurface);
+        SelectionHandle handle = null;
+        // TODO: remove selectionhandle reference
+        if (selectionModel instanceof NlSelectionModel) {
+          ((NlSelectionModel)selectionModel).findHandle(Coordinates.getAndroidXDip(sceneView, x), Coordinates.getAndroidYDip(sceneView, y),
+                                                        max, mySurface);
+        }
         if (handle != null) {
           SceneComponent component = scene.getSceneComponent(handle.component);
           assert component != null;

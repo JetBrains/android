@@ -54,7 +54,6 @@ public abstract class SceneTest extends LayoutTestCase {
   protected void buildScene() {
     mySceneManager = myModel.getSurface().getSceneManager();
     myScene = myModel.getSurface().getScene();
-    myScene.setShowAllConstraints(true);
     myScene.setAnimated(false);
     mySceneManager.update();
     myInteraction = new SceneMouseInteraction(myScene);

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -55,7 +54,6 @@ public class SceneComponent {
   @VisibleForTesting public static final int ANIMATION_DURATION = 350; // ms -- the duration of the animation
   public HashMap<String, Object> myCache = new HashMap<>();
   public SceneDecorator myDecorator;
-  private boolean myAllowsAutoconnect = true;
   private TargetProvider myTargetProvider;
   private ComponentProvider myComponentProvider;
 
@@ -113,7 +111,6 @@ public class SceneComponent {
     myScene.addComponent(this);
     SceneManager manager = scene.getSceneManager();
     myDecorator = manager.getSceneDecoratorFactory().get(component);
-    myAllowsAutoconnect = !SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(myNlComponent.getTagName());
     setSelected(myScene.getDesignSurface().getSelectionModel().isSelected(component));
   }
 
@@ -234,10 +231,6 @@ public class SceneComponent {
 
   private TargetProvider getTargetProvider() {
     return myTargetProvider;
-  }
-
-  public boolean allowsAutoConnect() {
-    return myScene.isAutoconnectOn() && myAllowsAutoconnect;
   }
 
   public boolean useRtlAttributes() {
@@ -681,7 +674,7 @@ public class SceneComponent {
     }
   }
 
-  protected void addTarget(@NotNull Target target) {
+  public void addTarget(@NotNull Target target) {
     target.setComponent(this);
     synchronized (myTargets) {
       myCachedTargetList = null;

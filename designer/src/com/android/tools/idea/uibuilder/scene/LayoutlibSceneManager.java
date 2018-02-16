@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
@@ -33,8 +34,11 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
@@ -94,7 +98,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
   private final ModelChangeListener myModelChangeListener = new ModelChangeListener();
   private final ConfigurationListener myConfigurationChangeListener = new ConfigurationChangeListener();
-  private boolean myAreListenersRegistered = false;
+  private boolean myAreListenersRegistered;
   private final Object myProgressLock = new Object();
   @GuardedBy("myProgressLock")
   private AndroidPreviewProgressIndicator myCurrentIndicator;
@@ -121,12 +125,8 @@ public class LayoutlibSceneManager extends SceneManager {
   private long myElapsedFrameTimeMs = -1;
   private final LinkedList<Runnable> myRenderCallbacks = new LinkedList<>();
   private final Semaphore myUpdateHierarchyLock = new Semaphore(1);
+  @NotNull private final ViewEditor myViewEditor;
 
-  /**
-   * Logs a render action.
-   *
-   * @param trigger The event that triggered the render action or null if not known.
-   */
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
       return null;
@@ -164,6 +164,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
     Scene scene = getScene();
 
+    myViewEditor = new ViewEditorImpl(model, scene);
+
     model.getConfiguration().addListener(myConfigurationChangeListener);
 
     List<NlComponent> components = model.getComponents();
@@ -183,6 +185,28 @@ public class LayoutlibSceneManager extends SceneManager {
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
+  }
+
+  @NotNull
+  public ViewEditor getViewEditor() {
+    return myViewEditor;
+  }
+
+  @Override
+  @NotNull
+  public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component) {
+    Scene scene = getScene();
+
+    assert scene.getRoot() != null;
+
+    TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
+    tempComponent.addTarget(new ConstraintDragDndTarget());
+    scene.setAnimated(false);
+    scene.getRoot().addChild(tempComponent);
+    updateFromComponent(tempComponent);
+    scene.setAnimated(true);
+
+    return tempComponent;
   }
 
   @Override

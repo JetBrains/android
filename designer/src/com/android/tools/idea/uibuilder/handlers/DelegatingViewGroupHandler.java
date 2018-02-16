@@ -117,11 +117,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView, @NotNull NlComponent component) {
-    return myHandler.drawGroup(gc, screenView, component);
-  }
-
-  @Override
   public void clearAttributes(@NotNull NlComponent component) {
     myHandler.clearAttributes(component);
   }
@@ -153,11 +148,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     return myHandler.onCreate(editor, parent, newChild, insertType);
-  }
-
-  @Override
-  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
-    return myHandler.paintConstraints(screenView, graphics, component);
   }
 
   @Override

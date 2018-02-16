@@ -282,7 +282,6 @@ UNClip
   private fun checkModelDrawCommand(model: SyncNlModel, expectedSerializedCommand: String) {
     val sceneManager = model.surface.sceneManager!!
     val scene = model.surface.scene!!
-    scene.isShowAllConstraints = true
     scene.isAnimated = false
     sceneManager.update()
     val interaction = SceneMouseInteraction(scene)

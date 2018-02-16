@@ -114,7 +114,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   // This is used to efficiently test if they are horizontal or vertical.
   private static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
-  private ArrayList<ViewAction> myActions = new ArrayList<>();
 
   /**
    * Base constructor
@@ -175,8 +174,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   @Override
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
-    myActions.clear();
-
     // noinspection unchecked
     actions.add(new NestedViewActionMenu("View Options", StudioIcons.Common.VISIBILITY_INLINE, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
@@ -322,30 +319,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   interface Enableable {
     void enable(List<NlComponent> selection);
-  }
-
-  /**
-   * This updates what is grayed out
-   *
-   * @param selection
-   */
-  private void updateActions(List<NlComponent> selection) {
-    if (myActions == null) {
-      return;
-    }
-    for (ViewAction action : myActions) {
-      if (action instanceof Enableable) {
-        Enableable e = (Enableable)action;
-        e.enable(selection);
-      }
-    }
-
-    for (ViewAction action : ConstraintViewActions.ALL_POPUP_ACTIONS) {
-      if (action instanceof Enableable) {
-        Enableable e = (Enableable)action;
-        e.enable(selection);
-      }
-    }
   }
 
   /**
@@ -495,21 +468,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   public boolean handlesPainting() {
     return true;
-  }
-
-  /**
-   * Paint the component and its children on the given context
-   *
-   * @param gc         graphics context
-   * @param screenView the current screenview
-   * @param component  the component to draw
-   * @return true to indicate that we will need to be repainted
-   */
-  @Override
-  public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
-                           @NotNull NlComponent component) {
-    updateActions(screenView.getSelectionModel().getSelection());
-    return false;
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
@@ -1289,6 +1247,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     }
     return component.getNlComponent();
+  }
+
+  public static boolean isAutoconnectOn() {
+    return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
   }
 
   private static class ConstraintViewActions {
