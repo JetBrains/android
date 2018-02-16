@@ -28,7 +28,7 @@ import com.intellij.util.containers.ContainerUtilRt;
 import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectOpenProcessor;
+import org.jetbrains.plugins.gradle.service.project.wizard.GradleJavaProjectOpenProcessor;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -61,8 +61,8 @@ class GradleSettingsCleanUpTask extends ProjectCleanUpTask {
         }
       }
       if (rootProjectCandidate == null) {
-        GradleProjectOpenProcessor gradleProjectOpenProcessor =
-          Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleProjectOpenProcessor.class);
+        GradleJavaProjectOpenProcessor gradleProjectOpenProcessor =
+          Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleJavaProjectOpenProcessor.class);
         if (gradleProjectOpenProcessor.canOpenProject(project.getBaseDir())) {
           rootProjectCandidate = new GradleProjectSettings();
           rootProjectCandidate.setExternalProjectPath(externalProjectPath);

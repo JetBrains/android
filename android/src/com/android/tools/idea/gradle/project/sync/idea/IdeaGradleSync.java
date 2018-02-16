@@ -39,7 +39,7 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectOpenProcessor;
+import org.jetbrains.plugins.gradle.service.project.wizard.GradleJavaProjectOpenProcessor;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -105,8 +105,8 @@ public class IdeaGradleSync implements GradleSync {
       GradleSettings gradleSettings = GradleSettings.getInstance(myProject);
       Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
       if (projectsSettings.isEmpty()) {
-        GradleProjectOpenProcessor gradleProjectOpenProcessor =
-          Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleProjectOpenProcessor.class);
+        GradleJavaProjectOpenProcessor gradleProjectOpenProcessor =
+          Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleJavaProjectOpenProcessor.class);
         if (myProject.getBasePath() != null && gradleProjectOpenProcessor.canOpenProject(myProject.getBaseDir())) {
           GradleProjectSettings projectSettings = new GradleProjectSettings();
           String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(myProject.getBasePath());
