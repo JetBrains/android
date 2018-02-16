@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.updater.Updater;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -28,7 +30,8 @@ public class ProfilerTimelineTest {
 
   @Test
   public void streaming() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, TimeUnit.SECONDS.toMicros(60));
@@ -63,7 +66,8 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomIn() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -88,7 +92,8 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomOut() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -125,7 +130,8 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomOutWhenDataNotFullyCoverView() {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(50, 100);
@@ -142,7 +148,8 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testPan() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -178,7 +185,8 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testPause() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -207,44 +215,60 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testReset() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    long resetTimeNs = TimeUnit.SECONDS.toNanos(10);
+    long updateTimeNs = TimeUnit.SECONDS.toNanos(15);
+    FakeTimer timer = new FakeTimer();
+    timer.setCurrentTimeNs(resetTimeNs);
+
+    Updater updater = new Updater(timer);
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
     assertFalse(timeline.isStreaming());
     Range dataRange = timeline.getDataRange();
-    long deviceStartTimeNs = 20;
-    timeline.reset(deviceStartTimeNs);
+    long startTimeNs = TimeUnit.SECONDS.toNanos(20);
+    long endTimeNs = TimeUnit.SECONDS.toNanos(40);
+    timeline.reset(startTimeNs, endTimeNs);
 
     // Timeline should be streaming after reset
     assertTrue(timeline.isStreaming());
     // Timeline should not be paused after reset
     assertFalse(timeline.isPaused());
 
-    // Timeline data range should be [deviceStartTimeUs, deviceStartTimeUs] after reset
-    assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs), timeline.getDataRange().getMin(), 0);
-    assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs), timeline.getDataRange().getMax(), 0);
+    // Timeline data range should be [startTimeNs, endTimeNs] after reset
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(startTimeNs), timeline.getDataRange().getMin(), 0);
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(endTimeNs), timeline.getDataRange().getMax(), 0);
 
-    // Timeline view range should be [deviceStartTimeUs - DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs] after reset
-    assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs) - ProfilerTimeline.DEFAULT_VIEW_LENGTH_US,
+    // Timeline view range should be [endTimeNs - DEFAULT_VIEW_LENGTH_US, endTimeNs] after reset
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(endTimeNs) - ProfilerTimeline.DEFAULT_VIEW_LENGTH_US,
                  timeline.getViewRange().getMin(), 0);
-    assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs), timeline.getViewRange().getMax(), 0);
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(endTimeNs), timeline.getViewRange().getMax(), 0);
 
-    timeline.update(TimeUnit.SECONDS.toNanos(1));
-    //Validate that our max is equal to our initial of DEFAULT_VIEW_LENGTH + 1 second update.
-    assertEquals(TimeUnit.SECONDS.toMicros(1),
-                 dataRange.getMax(),
-                 0);
+    timer.setCurrentTimeNs(updateTimeNs);
+    timeline.update(TimeUnit.SECONDS.toNanos(20));
+    // Validate that either those we pass in 20 seconds to update, the timeline is only update for the duration between the reset+update
+    // invocations.
+    assertEquals(TimeUnit.SECONDS.toMicros(20), dataRange.getMin(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(45), dataRange.getMax(), 0);
+
+    // Validate that subsequent update works as normal
+    timer.setCurrentTimeNs(updateTimeNs * 2);
+    timeline.update(TimeUnit.SECONDS.toNanos(20));
+    assertEquals(TimeUnit.SECONDS.toMicros(20), dataRange.getMin(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(65), dataRange.getMax(), 0);
   }
 
   @Test
   public void testIdentityTimeConversionConversion() {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
     assertEquals(1, timeline.convertToRelativeTimeUs(1000));
   }
 
   @Test
   public void testTimeConversionWithOffset() {
     final long OFFSET = 5000;
-    ProfilerTimeline timeline = new ProfilerTimeline();
-    timeline.reset(OFFSET);
+    Updater updater = new Updater(new FakeTimer());
+    ProfilerTimeline timeline = new ProfilerTimeline(updater);
+    timeline.reset(OFFSET, OFFSET);
     assertEquals(OFFSET, timeline.getDataStartTimeNs());
     assertEquals(0, timeline.convertToRelativeTimeUs(5000));
     assertEquals(6, timeline.convertToRelativeTimeUs(11000));

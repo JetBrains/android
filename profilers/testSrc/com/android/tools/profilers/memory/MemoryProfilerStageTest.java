@@ -122,6 +122,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
         AllocationsInfo.Status.COMPLETED).build()).build());
     myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
 
+    // The timeline has reset at this point so we need to advance the current time so data range is advanced during the next update.
+    myTimer.setCurrentTimeNs(FakeTimer.ONE_SECOND_IN_NS);
     // Advancing time (data range) should trigger MemoryProfilerStage to select the capture.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);

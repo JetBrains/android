@@ -60,6 +60,11 @@ public final class FpsTimer extends StopwatchTimer implements ActionListener {
   }
 
   @Override
+  public long getCurrentTimeNs() {
+    return System.nanoTime();
+  }
+
+  @Override
   public void actionPerformed(ActionEvent e) {
     long now = System.nanoTime();
     long frame = now - myFrameTime;

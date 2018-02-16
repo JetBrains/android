@@ -205,6 +205,13 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   }
 
   @Override
+  public void getSessionMetaData(GetSessionMetaDataRequest request,
+                                 StreamObserver<GetSessionMetaDataResponse> responseObserver) {
+    responseObserver.onNext(GetSessionMetaDataResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
     AgentStatusResponse.Builder builder = AgentStatusResponse.newBuilder();
     if (myAgentStatus != null) {
