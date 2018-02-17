@@ -34,6 +34,7 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
       .createBalloonBuilder(mainPanel)
       .setShadow(true)
       .setHideOnAction(false)
+      .setBlockClicksThroughBalloon(true)
       .setAnimationCycle(200)
     surface.currentSceneView?.colorSet?.subduedBackground?.let {
       balloonBuilder.setBorderColor(it)
