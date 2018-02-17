@@ -65,7 +65,7 @@ public class AndroidGradleProjectImportingTest extends GradleImportingTestCase {
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
   @Parameterized.Parameters(name = "with Gradle-{0}")
-  public static Collection<Object[]> data() throws Throwable {
+  public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{{BASE_GRADLE_VERSION}});
   }
 }
