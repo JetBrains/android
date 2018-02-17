@@ -417,7 +417,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
           if (myParseResult.isValid()) {
             BufferedImage image = myParseResult.getImage();
             myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
-            myOriginalSize.setValue(new Dimension(myParseResult.getOriginalWidth(), myParseResult.getOriginalHeight()));
+            myOriginalSize.setValue(
+                new Dimension(Math.round(myParseResult.getOriginalWidth()), Math.round(myParseResult.getOriginalHeight())));
           }
           else {
             myImagePreview.setIcon(null);
