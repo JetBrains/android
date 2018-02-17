@@ -77,9 +77,7 @@ public class ScoutArrangeTest3 extends SceneTest {
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />");
-    Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyRight, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.AlignHorizontallyRight, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -110,9 +108,7 @@ public class ScoutArrangeTest3 extends SceneTest {
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />");
-    Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.AlignHorizontallyLeft, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -143,9 +139,7 @@ public class ScoutArrangeTest3 extends SceneTest {
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />");
-    Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.AlignHorizontallyLeft, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -176,9 +170,7 @@ public class ScoutArrangeTest3 extends SceneTest {
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />");
-    Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyRight, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.AlignHorizontallyRight, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
