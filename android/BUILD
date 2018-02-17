@@ -99,7 +99,7 @@ iml_module(
         "//tools/adt/idea/observable[module]",
         "//tools/idea/plugins/gradle/tooling-extension-impl:gradle-tooling-extension-impl[module]",
         "//tools/adt/idea/wizard[module]",
-        "//tools/idea/.idea/libraries:commons-io-2.4",
+        "//tools/idea/.idea/libraries:commons-io",
         "//tools/adt/idea/smali[module]",
         "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module]",
         "//tools/base/build-system/java-lib-plugin/java-lib-model-builder:studio.java-lib-model-builder[module]",
