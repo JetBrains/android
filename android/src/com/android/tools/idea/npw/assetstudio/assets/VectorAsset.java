@@ -170,8 +170,8 @@ public final class VectorAsset extends BaseAsset {
     }
 
     BufferedImage image = null;
-    int originalWidth = 0;
-    int originalHeight = 0;
+    float originalWidth = 0;
+    float originalHeight = 0;
     if (!Strings.isNullOrEmpty(xmlFileContent)) {
       Document document = VdPreview.parseVdStringIntoDocument(xmlFileContent, errorBuffer.length() == 0 ? errorBuffer : null);
       if (document != null) {
@@ -187,7 +187,7 @@ public final class VectorAsset extends BaseAsset {
         }
 
         if (previewWidth <= 0) {
-          previewWidth = myOutputWidth.get() > 0 ? myOutputWidth.get() : originalWidth;
+          previewWidth = myOutputWidth.get() > 0 ? myOutputWidth.get() : Math.round(originalWidth);
         }
 
         VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(previewWidth);
@@ -222,8 +222,8 @@ public final class VectorAsset extends BaseAsset {
   @Nullable
   private String overrideXmlFileContent(@NotNull Document document, @NotNull VdPreview.SourceSize originalSize,
                                         @NotNull StringBuilder errorBuffer) {
-    int finalWidth = originalSize.getWidth();
-    int finalHeight = originalSize.getHeight();
+    float finalWidth = originalSize.getWidth();
+    float finalHeight = originalSize.getHeight();
 
     int outputWidth = myOutputWidth.get();
     int outputHeight = myOutputHeight.get();
@@ -249,8 +249,8 @@ public final class VectorAsset extends BaseAsset {
   public static final class ParseResult {
     @NotNull private final Validator.Result myValidityState;
     @Nullable private final BufferedImage myImage;
-    private final int myOriginalWidth;
-    private final int myOriginalHeight;
+    private final float myOriginalWidth;
+    private final float myOriginalHeight;
     private final boolean myIsValid;
     @NotNull private final String myXmlContent;
 
@@ -262,7 +262,7 @@ public final class VectorAsset extends BaseAsset {
       this(validityState, null, 0, 0, "");
     }
 
-    public ParseResult(@NotNull Validator.Result validityState, @Nullable BufferedImage image, int originalWidth, int originalHeight,
+    public ParseResult(@NotNull Validator.Result validityState, @Nullable BufferedImage image, float originalWidth, float originalHeight,
                        @NotNull String xmlContent) {
       myValidityState = validityState;
       myImage = image;
@@ -286,7 +286,7 @@ public final class VectorAsset extends BaseAsset {
      * The preferred width specified in the SVG file (although a vector drawable file can be rendered to any
      * width).
      */
-    public int getOriginalWidth() {
+    public float getOriginalWidth() {
       return myOriginalWidth;
     }
 
@@ -294,7 +294,7 @@ public final class VectorAsset extends BaseAsset {
      * The preferred height specified in the SVG file (although a vector drawable file can be rendered to
      * any height).
      */
-    public int getOriginalHeight() {
+    public float getOriginalHeight() {
       return myOriginalHeight;
     }
 
