@@ -1,11 +1,4 @@
 java_import(
-    name = "commons-io-2.4",
-    jars = ["commons-io-2.4.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
     name = "juniversalchardet-1.0.3",
     jars = ["juniversalchardet-1.0.3.jar"],
     tags = ["managed"],
