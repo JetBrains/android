@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent
 import com.android.tools.profiler.proto.Profiler
+import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -36,7 +37,8 @@ class EnergyDetailsViewTest {
     .addFlags(EnergyProfiler.WakeLockAcquired.CreationFlag.ACQUIRE_CAUSES_WAKEUP)
     .build()
   private val wakeLockDuration = EventDuration(Arrays.asList(
-    EnergyEvent.newBuilder().setTimestamp(1000L).setWakeLockAcquired(wakeLockAcquired).build()))
+    EnergyEvent.newBuilder().setTimestamp(1000L).setWakeLockAcquired(wakeLockAcquired).setTraceId("traceId").build()))
+  private val callstackText = "android.os.PowerManager\$WakeLock.acquire(PowerManager.java:32)\n"
 
   private val profilerService = FakeProfilerService(true)
   private val energyService = FakeEnergyService()
@@ -86,6 +88,17 @@ class EnergyDetailsViewTest {
       assertUiContainsLabelAndValue(this, "Flags", "ACQUIRE_CAUSES_WAKEUP")
     }
     // TODO: Test time data
+  }
+
+  @Test
+  fun callstackIsProperlyRendered() {
+    profilerService.addFile("traceId", ByteString.copyFromUtf8(callstackText))
+    view.setDuration(wakeLockDuration)
+    val nonEmptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
+    assertThat(nonEmptyView.components).isNotEmpty()
+    view.setDuration(null)
+    val emptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
+    assertThat(emptyView.components).isEmpty()
   }
 
   private fun assertUiContainsLabelAndValue(uiText: String, label: String, value: String) {

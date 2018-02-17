@@ -32,6 +32,7 @@ import java.awt.*;
 public class EnergyDetailsView extends JPanel {
 
   @NotNull private final JPanel myDetailsPanel = new JPanel(new BorderLayout());
+  @NotNull private final EnergyCallstackView myCallstackView;
 
   public EnergyDetailsView(@NotNull EnergyProfilerStageView stageView) {
     super(new BorderLayout());
@@ -45,6 +46,9 @@ public class EnergyDetailsView extends JPanel {
 
     CommonTabbedPane myTabsPanel = new CommonTabbedPane();
     myTabsPanel.addTab("Details", myDetailsPanel);
+
+    myCallstackView = new EnergyCallstackView(stageView);
+    myTabsPanel.add("Callstack", myCallstackView);
 
     CloseButton closeButton = new CloseButton(e -> stageView.getStage().setSelectedDuration(null));
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
@@ -64,5 +68,6 @@ public class EnergyDetailsView extends JPanel {
       JComponent wakeLockComponent = new WakeLockDetailsView(duration).getComponent();
       myDetailsPanel.add(wakeLockComponent);
     }
+    myCallstackView.setDuration(duration);
   }
 }
