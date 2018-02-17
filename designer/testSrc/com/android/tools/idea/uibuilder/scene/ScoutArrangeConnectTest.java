@@ -65,10 +65,7 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ConnectTop, list, false);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
-
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectTop, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -87,9 +84,7 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     System.out.println("list size" + list.size());
-    Scout.arrangeWidgets(Scout.Arrange.ConnectBottom, list, false);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectBottom, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -107,9 +102,7 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ConnectStart, list, false);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectStart, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -128,9 +121,7 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, list, false);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectEnd, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -149,9 +140,7 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, list, true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectEnd, list, true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
