@@ -42,7 +42,7 @@ import java.util.Collections;
 
 public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
-  public boolean isAvailableOnDataContext(DataContext dataContext) {
+  public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
     final Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
     if (editor == null) {
       return false;
@@ -97,7 +97,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   }
 
   @Override
-  public boolean isRenaming(DataContext dataContext) {
+  public boolean isRenaming(@NotNull DataContext dataContext) {
     return isAvailableOnDataContext(dataContext);
   }
 
