@@ -362,7 +362,8 @@ public class StateListPicker extends JPanel {
     resValue = resourceResolver.resolveResValue(resValue);
 
     if (resValue == null || resValue.getResourceType() == ResourceType.COLOR) {
-      final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, resValue, renderTask.getModule().getProject());
+      final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, resValue,
+                                                                      renderTask.getContext().getModule().getProject());
       ResourceSwatchComponent.SwatchIcon icon;
       if (colors.isEmpty()) {
         Color colorValue = ResourceHelper.parseColor(resourceName);

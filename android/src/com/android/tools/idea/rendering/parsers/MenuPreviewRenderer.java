@@ -25,6 +25,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.RenderTaskContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -88,17 +89,17 @@ class MenuPreviewRenderer {
   private boolean myThemeIsLight;
   private final XmlTag myRootTag;
 
-  public MenuPreviewRenderer(RenderTask renderTask, XmlFile file) {
+  public MenuPreviewRenderer(RenderTaskContext renderTaskContext, XmlFile file) {
     myRootTag = file.getRootTag();
-    myResolver = renderTask.getResourceResolver();
+    Configuration configuration = renderTaskContext.getConfiguration();
+    myResolver = configuration.getResourceResolver();
     assert myResolver != null;
 
     myDocument = DomPullParser.createEmptyPlainDocument();
     assert myDocument != null;
 
-    myModule = renderTask.getModule();
+    myModule = renderTaskContext.getModule();
 
-    Configuration configuration = renderTask.getConfiguration();
     IAndroidTarget target = configuration.getTarget();
     myApiLevel = target != null ? target.getVersion().getApiLevel() : 1;
     myThemeIsLight = isLightTheme(myResolver);

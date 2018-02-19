@@ -32,7 +32,6 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
@@ -43,6 +42,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import org.intellij.lang.annotations.MagicConstant;
@@ -221,11 +221,10 @@ public class RenderService extends AndroidFacetScopedService {
    * @return a {@link RenderService} which can perform rendering services
    */
   @Nullable
-  public RenderTask createTask(@Nullable PsiFile psiFile,
+  final public RenderTask createTask(@Nullable PsiFile psiFile,
                                @NotNull Configuration configuration,
-                               @NotNull RenderLogger logger,
-                               @Nullable EditorDesignSurface surface) {
-    return createTask(psiFile, configuration, logger, surface, null);
+                               @NotNull RenderLogger logger) {
+    return createTask(psiFile, configuration, logger, null);
   }
 
   /**
@@ -237,7 +236,6 @@ public class RenderService extends AndroidFacetScopedService {
   public RenderTask createTask(@Nullable PsiFile psiFile,
                                @NotNull Configuration configuration,
                                @NotNull RenderLogger logger,
-                               @Nullable EditorDesignSurface surface,
                                @Nullable ILayoutPullParserFactory parserFactory) {
     Module module = getModule();
     AndroidPlatform platform = getPlatform(module, logger);
@@ -302,10 +300,9 @@ public class RenderService extends AndroidFacetScopedService {
       RenderTask task =
           new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance(), myImagePool,
                          parserFactory);
-      if (psiFile != null) {
-        task.setPsiFile(psiFile);
+      if (psiFile instanceof XmlFile) {
+        task.setXmlFile((XmlFile)psiFile);
       }
-      task.setDesignSurface(surface);
 
       return task;
     } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {

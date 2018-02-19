@@ -66,8 +66,7 @@ public class ThumbnailManager extends AndroidFacetScopedService {
   }
 
   @Nullable
-  public CompletableFuture<ImagePool.Image> getThumbnail(@NotNull XmlFile file, @NotNull DesignSurface surface,
-                                                         @NotNull Configuration configuration) {
+  public CompletableFuture<ImagePool.Image> getThumbnail(@NotNull XmlFile file, @NotNull Configuration configuration) {
     ImagePool.Image cached = myImages.get(file, configuration);
     long version = myResourceRepository.getModificationCount();
     long modStamp = file.getModificationStamp();
@@ -79,7 +78,7 @@ public class ThumbnailManager extends AndroidFacetScopedService {
 
     RenderService renderService = RenderService.getInstance(getFacet());
     RenderLogger logger = renderService.createLogger();
-    RenderTask task = createTask(file, surface, configuration, renderService, logger);
+    RenderTask task = createTask(file, configuration, renderService, logger);
     CompletableFuture<ImagePool.Image> result = new CompletableFuture<>();
     if (task != null) {
       ListenableFuture<RenderResult> renderResult = task.render();
@@ -104,10 +103,9 @@ public class ThumbnailManager extends AndroidFacetScopedService {
 
   @Nullable
   protected RenderTask createTask(@NotNull XmlFile file,
-                                  @NotNull DesignSurface surface,
                                   @NotNull Configuration configuration,
                                   RenderService renderService, RenderLogger logger) {
-    RenderTask task = renderService.createTask(file, configuration, logger, surface);
+    RenderTask task = renderService.createTask(file, configuration, logger);
     if (task != null) {
       task.setDecorations(false);
     }

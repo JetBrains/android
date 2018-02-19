@@ -74,7 +74,7 @@ class DrawableRenderer implements Disposable {
       try {
         Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
         RenderService service = RenderService.getInstance(facet);
-        RenderTask renderTask = service.createTask(null, configuration, logger, null, myParserFactory);
+        RenderTask renderTask = service.createTask(null, configuration, logger, myParserFactory);
         assert renderTask != null;
         renderTask.getLayoutlibCallback().setLogger(logger);
         if (logger.hasProblems()) {

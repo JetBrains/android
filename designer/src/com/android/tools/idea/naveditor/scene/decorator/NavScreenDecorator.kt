@@ -86,7 +86,7 @@ abstract class NavScreenDecorator : SceneDecorator() {
     val manager = ThumbnailManager.getInstance(facet)
     val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return null
     val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return null
-    val thumbnail = manager.getThumbnail(psiFile, surface, configuration) ?: return null
+    val thumbnail = manager.getThumbnail(psiFile, configuration) ?: return null
     return try {
       // TODO: show progress icon during image creation
       thumbnail.get()

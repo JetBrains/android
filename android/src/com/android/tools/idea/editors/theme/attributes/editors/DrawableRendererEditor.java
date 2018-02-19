@@ -78,7 +78,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     int iconWidth = Math.max(iconSize.width, MIN_DRAWABLE_PREVIEW_SIZE);
     int iconHeight = Math.max(iconSize.height, MIN_DRAWABLE_PREVIEW_SIZE);
 
-    if (myRenderTask == null || myRenderTask.getModule() != context.getCurrentContextModule()) {
+    if (myRenderTask == null || myRenderTask.getContext().getModule() != context.getCurrentContextModule()) {
       myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
     }
 

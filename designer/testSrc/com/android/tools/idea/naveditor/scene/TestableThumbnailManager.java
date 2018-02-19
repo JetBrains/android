@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
@@ -49,11 +48,10 @@ public class TestableThumbnailManager extends ThumbnailManager {
   @Nullable
   @Override
   protected RenderTask createTask(@NotNull XmlFile file,
-                                  @NotNull DesignSurface surface,
                                   @NotNull Configuration configuration,
                                   RenderService renderService,
                                   RenderLogger logger) {
-    RenderTask task = super.createTask(file, surface, configuration, renderService, logger);
+    RenderTask task = super.createTask(file, configuration, renderService, logger);
     if (task != null) {
       task.disableSecurityManager();
     }

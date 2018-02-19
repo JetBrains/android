@@ -21,6 +21,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
@@ -138,13 +139,13 @@ public class PreviewProviderTest extends LayoutTestCase {
       super(facet);
     }
 
-    @Override
     @Nullable
+    @Override
     public RenderTask createTask(@Nullable PsiFile psiFile,
                                  @NotNull Configuration configuration,
                                  @NotNull RenderLogger logger,
-                                 @Nullable EditorDesignSurface surface) {
-      RenderTask task = super.createTask(psiFile, configuration, logger, surface);
+                                 @Nullable ILayoutPullParserFactory parserFactory) {
+      RenderTask task = super.createTask(psiFile, configuration, logger, parserFactory);
       assert task != null;
       task.disableSecurityManager();
       return task;

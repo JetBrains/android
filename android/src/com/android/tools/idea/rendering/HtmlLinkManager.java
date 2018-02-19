@@ -119,7 +119,7 @@ public class HtmlLinkManager {
   }
 
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
-                        @Nullable RenderResult result) {
+                        @Nullable RenderResult result, @Nullable EditorDesignSurface surface) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
       BrowserLauncher.getInstance().browse(url, null, module == null ? null : module.getProject());
     }
@@ -176,7 +176,7 @@ public class HtmlLinkManager {
     }
     else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
       assert result != null;
-      handleIgnoreFragments(url, result);
+      handleIgnoreFragments(url, surface);
     }
     else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
       assert result != null;
@@ -192,7 +192,7 @@ public class HtmlLinkManager {
     }
     else if (url.startsWith(URL_DISABLE_SANDBOX)) {
       assert module != null;
-      handleDisableSandboxUrl(module, result);
+      handleDisableSandboxUrl(module, surface);
     }
     else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
@@ -213,13 +213,13 @@ public class HtmlLinkManager {
       }
     }
     else if (url.startsWith(URL_REFRESH_RENDER)) {
-      handleRefreshRenderUrl(result);
+      handleRefreshRenderUrl(surface);
     }
     else if (url.startsWith(URL_CLEAR_CACHE_AND_NOTIFY)) {
       // This does the same as URL_REFRESH_RENDERER with the only difference of displaying a notification afterwards. The reason to have
       // handler is that we have different entry points for the action, one of which is "Clear cache". The user probably expects a result
       // of clicking that link that has something to do with the cache being cleared.
-      handleRefreshRenderUrl(result);
+      handleRefreshRenderUrl(surface);
       showNotification("Cache cleared");
     }
     else {
@@ -813,10 +813,10 @@ public class HtmlLinkManager {
     return URL_ACTION_IGNORE_FRAGMENTS;
   }
 
-  private static void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
+  private static void handleIgnoreFragments(@NotNull String url, @Nullable EditorDesignSurface surface) {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
-    requestRender(result);
+    requestRender(surface);
   }
 
   public String createEditAttributeUrl(String attribute, String value) {
@@ -898,9 +898,9 @@ public class HtmlLinkManager {
     return URL_DISABLE_SANDBOX;
   }
 
-  private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable RenderResult result) {
+  private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable EditorDesignSurface surface) {
     RenderSecurityManager.sEnabled = false;
-    requestRender(result);
+    requestRender(surface);
 
     Messages.showInfoMessage(module.getProject(),
                              "The custom view rendering sandbox was disabled for this session.\n\n" +
@@ -918,28 +918,16 @@ public class HtmlLinkManager {
     return URL_CLEAR_CACHE_AND_NOTIFY;
   }
 
-  private static void handleRefreshRenderUrl(@Nullable RenderResult result) {
-    if (result != null) {
-      RenderTask renderTask = result.getRenderTask();
-      if (renderTask != null) {
-        EditorDesignSurface surface = renderTask.getDesignSurface();
-        if (surface != null) {
-          RefreshRenderAction.clearCache(surface.getConfiguration());
-        }
+  private static void handleRefreshRenderUrl(@Nullable EditorDesignSurface surface) {
+      if (surface != null) {
+        RefreshRenderAction.clearCache(surface.getConfiguration());
       }
-    }
   }
 
-  private static void requestRender(@Nullable RenderResult result) {
-    if (result != null) {
-      RenderTask renderTask = result.getRenderTask();
-      if (renderTask != null) {
-        EditorDesignSurface surface = renderTask.getDesignSurface();
-        if (surface != null) {
-          surface.forceUserRequestedRefresh();
-        }
+  private static void requestRender(@Nullable EditorDesignSurface surface) {
+      if (surface != null) {
+        surface.forceUserRequestedRefresh();
       }
-    }
   }
 
   public String createAddDependencyUrl(GoogleMavenArtifactId artifactId) {

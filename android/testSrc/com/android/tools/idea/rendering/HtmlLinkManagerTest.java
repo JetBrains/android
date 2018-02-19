@@ -51,11 +51,11 @@ public class HtmlLinkManagerTest extends TestCase {
     String url1 = manager.createRunnableLink(runnable1);
     String url2 = manager.createRunnableLink(runnable2);
     assertFalse(result1.get());
-    manager.handleUrl(url1, null, null, null, null);
+    manager.handleUrl(url1, null, null, null, null, null);
     assertTrue(result1.get());
     assertFalse(result2.get());
     result1.set(false);
-    manager.handleUrl(url2, null, null, null, null);
+    manager.handleUrl(url2, null, null, null, null, null);
     assertFalse(result1.get());
     assertTrue(result2.get());
   }

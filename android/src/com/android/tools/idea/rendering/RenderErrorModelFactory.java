@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.DataContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,11 +35,11 @@ public class RenderErrorModelFactory {
    * Returns a new {@RenderErrorModel} with the {@link RenderErrorModel.Issue}s found in the passed {@link RenderResult}.
    */
   @NotNull
-  public static RenderErrorModel createErrorModel(@NotNull RenderResult result, @Nullable DataContext dataContext) {
+  public static RenderErrorModel createErrorModel(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
     for (RenderErrorContributor.Provider provider : RenderErrorContributor.Provider.EP_NAME.getExtensions()) {
       if (provider.isApplicable(result.getModule().getProject())) {
-        issues.addAll(provider.getContributor(result, dataContext).reportIssues());
+        issues.addAll(provider.getContributor(surface, result, dataContext).reportIssues());
       }
     }
     return new RenderErrorModel(issues);
