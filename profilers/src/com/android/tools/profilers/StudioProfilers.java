@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -93,6 +92,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   @NotNull private Common.Session myProfilingSession;
 
+  @NotNull private Common.SessionMetaData mySelectedSessionMetaData;
+
   @NotNull
   private Stage myStage;
 
@@ -139,6 +140,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
     // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
+    mySelectedSessionMetaData = Common.SessionMetaData.getDefaultInstance();
     mySessionsManager = new SessionsManager(this);
     mySessionsManager.addDependency(this)
       .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
@@ -350,6 +352,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     mySelectedSession = newSession;
+    mySelectedSessionMetaData = myClient.getProfilerClient()
+      .getSessionMetaData(GetSessionMetaDataRequest.newBuilder().setSessionId(mySelectedSession.getSessionId()).build()).getData();
     myAgentStatus = getAgentStatus(mySelectedSession);
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
@@ -406,9 +410,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return "";
     }
 
-    GetSessionMetaDataResponse response = myClient.getProfilerClient()
-      .getSessionMetaData(GetSessionMetaDataRequest.newBuilder().setSessionId(mySelectedSession.getSessionId()).build());
-    return response.getData().getSessionName();
+    return mySelectedSessionMetaData.getSessionName();
   }
 
   /**
@@ -515,11 +517,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private boolean isSessionAlive(@NotNull Common.Session session) {
     return session.getEndTimestamp() == Long.MAX_VALUE;
-  }
-
-  public boolean isLiveAllocationEnabled() {
-    return getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() && getDevice() != null &&
-           getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O && isAgentAttached();
   }
 
   public boolean isAgentAttached() {

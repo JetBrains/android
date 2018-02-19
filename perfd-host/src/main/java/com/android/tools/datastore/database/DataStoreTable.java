@@ -159,6 +159,9 @@ public abstract class DataStoreTable<T extends Enum> {
       else if (params[i] instanceof String) {
         statement.setString(i + 1, (String)params[i]);
       }
+      else if (params[i] instanceof Boolean) {
+        statement.setBoolean(i + 1, (boolean)params[i]);
+      }
       else if (params[i] instanceof Integer) {
         statement.setLong(i + 1, (int)params[i]);
       }

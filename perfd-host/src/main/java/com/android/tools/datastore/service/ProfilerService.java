@@ -123,7 +123,11 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
       BeginSessionResponse response = client.beginSession(request);
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
       // The downside is we will have a delay before getSessions will see the data
-      myTable.insertOrUpdateSession(response.getSession(), request.getSessionName(), request.getRequestTimeEpochMs());
+      myTable.insertOrUpdateSession(response.getSession(),
+                                    request.getSessionName(),
+                                    request.getRequestTimeEpochMs(),
+                                    request.getJvmtiConfig().getAttachAgent(),
+                                    request.getJvmtiConfig().getLiveAllocationEnabled());
       responseObserver.onNext(response);
     }
     responseObserver.onCompleted();

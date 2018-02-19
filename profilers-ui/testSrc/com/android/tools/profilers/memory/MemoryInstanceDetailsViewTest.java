@@ -17,10 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerComponents;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
@@ -43,7 +40,7 @@ import static org.junit.Assert.*;
 
 public class MemoryInstanceDetailsViewTest {
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeMemoryService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeProfilerService(), new FakeMemoryService());
 
   private MemoryProfilerStage myStage;
   private MemoryInstanceDetailsView myDetailsView;

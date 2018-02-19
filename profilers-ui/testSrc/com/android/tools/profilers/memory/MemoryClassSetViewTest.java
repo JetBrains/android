@@ -47,7 +47,8 @@ public class MemoryClassSetViewTest {
 
   @NotNull private final FakeMemoryService myMemoryService = new FakeMemoryService();
   @NotNull private final FakeIdeProfilerComponents myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", myMemoryService);
+  @Rule public final FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeProfilerService(), myMemoryService);
 
   private MemoryProfilerStage myStage;
 

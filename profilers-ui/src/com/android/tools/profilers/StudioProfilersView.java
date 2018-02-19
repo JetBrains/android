@@ -295,10 +295,11 @@ public class StudioProfilersView extends AspectObserver {
       .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
 
     Runnable toggleToolButtons = () -> {
-      boolean isAlive = myProfiler.getSessionsManager().isSessionAlive();
-      zoomOut.setEnabled(isAlive);
-      zoomIn.setEnabled(isAlive);
-      resetZoom.setEnabled(isAlive);
+      boolean isValidSession = !Common.Session.getDefaultInstance().equals(myProfiler.getSessionsManager().getSelectedSession());
+      boolean isAlive = isValidSession && myProfiler.getSessionsManager().isSessionAlive();
+      zoomOut.setEnabled(isValidSession);
+      zoomIn.setEnabled(isValidSession);
+      resetZoom.setEnabled(isValidSession);
       myGoLive.setEnabled(isAlive);
     };
     myProfiler.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleToolButtons);

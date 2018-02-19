@@ -30,6 +30,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -67,7 +68,7 @@ public class ProfilerTableTest {
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      myTable.insertOrUpdateSession(session, sessionName, startTime);
+      myTable.insertOrUpdateSession(session, sessionName, startTime, true, false);
       sessions.add(session);
     }
 
@@ -93,9 +94,12 @@ public class ProfilerTableTest {
   @Test
   public void testInsertAndGetSessionMetaData() {
     List<Common.SessionMetaData> metaDatas = new ArrayList<>();
+    Random rand = new Random();
     for (int i = 0; i < 10; i++) {
       long sessionId = 10 + i;
       long startTime = 40 + i;
+      boolean useJvmti = rand.nextBoolean();
+      boolean useLiveAllocation = rand.nextBoolean();
       String sessionName = Integer.toString(60 + i);
       Common.Session session = Common.Session.newBuilder()
         .setSessionId(sessionId)
@@ -104,9 +108,11 @@ public class ProfilerTableTest {
         .setSessionId(sessionId)
         .setStartTimestampEpochMs(startTime)
         .setSessionName(sessionName)
+        .setJvmtiEnabled(useJvmti)
+        .setLiveAllocationEnabled(useLiveAllocation)
         .build();
 
-      myTable.insertOrUpdateSession(session, sessionName, startTime);
+      myTable.insertOrUpdateSession(session, sessionName, startTime, useJvmti, useLiveAllocation);
       metaDatas.add(metaData);
     }
 

@@ -19,6 +19,7 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.MemoryService;
+import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -107,6 +108,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Before
   public void setUp() throws Exception {
+    when(myDataStore.getNativeSymbolizer()).thenReturn(new NopSymbolizer());
     when(myDataStore.getMemoryClient(any())).thenReturn(MemoryServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();
     getPollTicker().run();
@@ -470,6 +472,26 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     StreamObserver<DumpDataResponse> dumpObserver = mock(StreamObserver.class);
     myMemoryService.getLegacyAllocationDump(dumpRequest, dumpObserver);
     validateResponse(dumpObserver, dumpExpected);
+  }
+
+  @Test
+  public void testOnGoingLiveAllocationTrackingNotStopped() throws Exception {
+    myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LIVE_ALLOCATION_INFO);
+    getPollTicker().run();
+    StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
+    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(TEST_SESSION).build(), stopObserver);
+
+    MemoryRequest request = MemoryRequest.newBuilder()
+      .setSession(TEST_SESSION)
+      .setStartTime(0)
+      .setEndTime(Long.MAX_VALUE)
+      .build();
+    MemoryData expected = MemoryData.newBuilder()
+      .addAllocationsInfo(IN_PROGRESS_LIVE_ALLOCATION_INFO)
+      .build();
+    StreamObserver<MemoryData> observer = mock(StreamObserver.class);
+    myMemoryService.getData(request, observer);
+    validateResponse(observer, expected);
   }
 
   @Test

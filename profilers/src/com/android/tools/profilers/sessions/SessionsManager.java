@@ -145,6 +145,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       requestBuilder.setJvmtiConfig(BeginSessionRequest.JvmtiConfig.newBuilder()
                                       .setAttachAgent(true)
                                       .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
+                                      .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
                                       .build());
     }
 

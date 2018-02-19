@@ -43,7 +43,7 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
   }
 
   @NotNull
-  private List<MemoryProfiler.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
+  List<MemoryProfiler.AllocationsInfo> getInfoForTimeRangeNs(long rangeMinNs, long rangeMaxNs) {
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
       .setSession(mySession)
       .setStartTime(rangeMinNs)
@@ -58,7 +58,7 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
 
-    List<MemoryProfiler.AllocationsInfo> infos = getDataForXRange(rangeMin, rangeMax);
+    List<MemoryProfiler.AllocationsInfo> infos = getInfoForTimeRangeNs(rangeMin, rangeMax);
 
     List<SeriesData<CaptureDurationData<CaptureObject>>> seriesData = new ArrayList<>();
     for (MemoryProfiler.AllocationsInfo info : infos) {

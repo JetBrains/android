@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
@@ -415,8 +414,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   public boolean useLiveAllocationTracking() {
-    return getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
-           getStudioProfilers().getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+    return MemoryProfiler.isUsingLiveAllocation(getStudioProfilers(), mySessionData);
   }
 
   @NotNull
