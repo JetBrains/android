@@ -86,7 +86,7 @@ public class EnergyEventsFetcher implements Updatable {
           .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
           .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()))
           .build();
-        List<EnergyEvent> eventList = myClient.getEvents(request).getEventList();
+        List<EnergyEvent> eventList = myClient.getEvents(request).getEventsList();
         myDurationList = EventDuration.groupById(eventList);
       }
 

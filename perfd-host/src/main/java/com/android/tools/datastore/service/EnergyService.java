@@ -104,7 +104,7 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   public void getEvents(EnergyRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
     EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
     List<EnergyEvent> events = myEnergyTable.findEvents(request);
-    response.addAllEvent(events);
+    response.addAllEvents(events);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
