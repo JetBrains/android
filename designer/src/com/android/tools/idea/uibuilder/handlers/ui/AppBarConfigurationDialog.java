@@ -702,7 +702,7 @@ public class AppBarConfigurationDialog extends JDialog {
     RenderResult result = null;
     if (task != null) {
       task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
-      task.setFolderType(ResourceFolderType.LAYOUT);
+      task.getContext().setFolderType(ResourceFolderType.LAYOUT);
       result = Futures.getUnchecked(task.render());
       task.dispose();
     }

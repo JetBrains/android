@@ -122,7 +122,7 @@ public class LayoutPullParsers {
 
   @Nullable
   public static ILayoutPullParser create(@NotNull final RenderTask renderTask) {
-    final ResourceFolderType folderType = renderTask.getFolderType();
+    final ResourceFolderType folderType = renderTask.getContext().getFolderType();
     if (folderType == null) {
       return null;
     }
@@ -132,7 +132,7 @@ public class LayoutPullParsers {
       return ApplicationManager.getApplication().runReadAction((Computable<ILayoutPullParser>)() -> create(renderTask));
     }
 
-    XmlFile file = renderTask.getPsiFile();
+    XmlFile file = renderTask.getXmlFile();
     if (file == null) {
       throw new IllegalArgumentException("RenderTask always should always have PsiFile when it has ResourceFolderType");
     }
@@ -171,8 +171,10 @@ public class LayoutPullParsers {
         renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        return createFontFamilyParser(file, (fontName) -> renderTask.getResourceResolver() != null ? (new ProjectFonts(
-          renderTask.getResourceResolver())).getFont(fontName) : null);
+        return createFontFamilyParser(file, (fontName) -> renderTask.getContext().getConfiguration().getResourceResolver() != null
+                                                          ? (new ProjectFonts(
+          renderTask.getContext().getConfiguration().getResourceResolver())).getFont(fontName)
+                                                          : null);
       default:
         // Should have been prevented by isSupported(PsiFile)
         assert false : folderType;
@@ -236,7 +238,7 @@ public class LayoutPullParsers {
     task.setDecorations(false);
     task.setRenderingMode(FULL_EXPAND);
 
-    return new MenuPreviewRenderer(task, file).render();
+    return new MenuPreviewRenderer(task.getContext(), file).render();
   }
 
   @Nullable

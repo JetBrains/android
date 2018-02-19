@@ -76,7 +76,7 @@ public class RenderResult {
     Map<Object, PropertiesMap> defaultProperties = session.getDefaultProperties();
     return new RenderResult(
       file,
-      renderTask.getModule(),
+      renderTask.getContext().getModule(),
       logger,
       renderTask,
       session.getResult(),

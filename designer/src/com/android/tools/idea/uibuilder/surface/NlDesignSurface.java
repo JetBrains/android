@@ -486,7 +486,7 @@ public class NlDesignSurface extends DesignSurface {
           RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
                                    ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
                                    : RenderErrorModelFactory
-                                     .createErrorModel(result, DataManager.getInstance().getDataContext(getIssuePanel()));
+                                     .createErrorModel(NlDesignSurface.this, result, DataManager.getInstance().getDataContext(getIssuePanel()));
           getIssueModel().setRenderErrorModel(model);
         });
       }

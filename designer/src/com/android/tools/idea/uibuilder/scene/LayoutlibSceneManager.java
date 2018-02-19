@@ -712,7 +712,7 @@ public class LayoutlibSceneManager extends SceneManager {
       if (myRenderTask != null && !myRenderTask.isDisposed()) {
         myRenderTask.dispose();
       }
-      myRenderTask = renderService.createTask(getModel().getFile(), configuration, logger, getDesignSurface());
+      myRenderTask = renderService.createTask(getModel().getFile(), configuration, logger);
       setupRenderTask(myRenderTask);
       if (myRenderTask != null) {
         myRenderTask.getLayoutlibCallback()

@@ -57,7 +57,7 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
     setUpAndroidFacetWithGradleModelWithIssue();
 
     RenderResult result = createResultWithBrokenClass();
-    myRenderErrorModel = RenderErrorModelFactory.createErrorModel(result, null);
+    myRenderErrorModel = RenderErrorModelFactory.createErrorModel(null, result, null);
 
     // For the isApplicable tests.
     myProvider = new GradleRenderErrorContributor.GradleProvider();

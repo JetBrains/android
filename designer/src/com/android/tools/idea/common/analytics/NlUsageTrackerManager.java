@@ -276,7 +276,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
         .flatMap(s -> Stream.concat(s.getChildren().stream(), Stream.of(s)))
         .count());
 
-      RenderErrorModel errorModel = RenderErrorModelFactory.createErrorModel(result, null);
+      RenderErrorModel errorModel = RenderErrorModelFactory.createErrorModel(myDesignSurfaceRef.get(), result, null);
       builder.setTotalIssueCount(errorModel.getIssues().size());
       if (!errorModel.getIssues().isEmpty()) {
         int errorCount = 0;

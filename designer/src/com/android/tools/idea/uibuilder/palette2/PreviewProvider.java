@@ -44,6 +44,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.UIUtil;
@@ -202,13 +203,14 @@ public class PreviewProvider implements Disposable {
       return null;
     }
     PsiFile file = PsiFileFactory
-      .getInstance(renderTask.getModule().getProject()).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+      .getInstance(renderTask.getContext().getModule().getProject()).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
 
-    renderTask.setPsiFile(file);
+    assert file instanceof XmlFile;
+    renderTask.setXmlFile((XmlFile)file);
     renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
     renderTask.setDecorations(false);
     renderTask.setRenderingMode(SessionParams.RenderingMode.V_SCROLL);
-    renderTask.setFolderType(ResourceFolderType.LAYOUT);
+    renderTask.getContext().setFolderType(ResourceFolderType.LAYOUT);
 
     renderTask.inflate();
     try {
@@ -236,7 +238,7 @@ public class PreviewProvider implements Disposable {
   private RenderTask getRenderTask(@NotNull Configuration configuration) {
     Module module = configuration.getModule();
 
-    if (myRenderTask == null || myRenderTask.getModule() != module) {
+    if (myRenderTask == null || myRenderTask.getContext().getModule() != module) {
       disposeRenderTaskNoWait();
 
       if (module == null) {

@@ -22,7 +22,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -99,7 +98,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public boolean isOverflowPopupNeeded() {
-    return ourShowMenu || ResourceHelper.getFolderType(myRenderTask.getPsiFile()) == ResourceFolderType.MENU;
+    return ourShowMenu || myRenderTask.getContext().getFolderType() == ResourceFolderType.MENU;
   }
 
   @Override
@@ -110,13 +109,13 @@ public class ActionBarHandler extends ActionBarCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      final XmlFile xmlFile = myRenderTask.getPsiFile();
+      final XmlFile xmlFile = myRenderTask.getXmlFile();
       String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {
         myMenus = new ArrayList<String>();
         Iterables.addAll(myMenus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
       } else {
-        final String fqn = xmlFile == null ? null : AndroidPsiUtils.getDeclaredContextFqcn(myRenderTask.getModule(), xmlFile);
+        final String fqn = xmlFile == null ? null : AndroidPsiUtils.getDeclaredContextFqcn(myRenderTask.getContext().getModule(), xmlFile);
         if (fqn != null) {
           final Project project = xmlFile.getProject();
           DumbService.getInstance(project).smartInvokeLater(new Runnable() {
@@ -177,7 +176,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public int getNavigationMode() {
-    XmlFile xmlFile = myRenderTask.getPsiFile();
+    XmlFile xmlFile = myRenderTask.getXmlFile();
     String navMode = StringUtil.notNullize(xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
     if (navMode.equalsIgnoreCase(VALUE_NAV_MODE_TABS)) {
       return NAVIGATION_MODE_TABS;
@@ -200,8 +199,8 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributes getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      MergedManifest manifest = MergedManifest.get(myRenderTask.getModule());
-      String activity = StringUtil.notNullize(myRenderTask.getConfiguration().getActivity());
+      MergedManifest manifest = MergedManifest.get(myRenderTask.getContext().getModule());
+      String activity = StringUtil.notNullize(myRenderTask.getContext().getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {
       RenderSecurityManager.exitSafeRegion(token);

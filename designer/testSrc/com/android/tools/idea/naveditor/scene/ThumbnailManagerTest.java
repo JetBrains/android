@@ -60,17 +60,17 @@ public class ThumbnailManagerTest extends NavTestCase {
 
     DesignSurface surface = mock(NavDesignSurface.class);
     NlModel model = NlModel.create(getMyRootDisposable(), myFacet, psiFile.getVirtualFile());
-    CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
+    CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
-    imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     assertSame(image, imageFuture.get());
 
     psiFile.clearCaches();
-    imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     assertNotSame(image, imageFuture.get());
 
     image = imageFuture.get();
-    imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     assertSame(image, imageFuture.get());
 
     VirtualFile resDir = myFixture.findFileInTempDir("res");
@@ -78,11 +78,11 @@ public class ThumbnailManagerTest extends NavTestCase {
                                             Collections.singletonList(ResourceFolderType.VALUES.getName()), "bar");
     AppResourceRepository.getOrCreateInstance(myFacet).sync();
 
-    imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     assertNotSame(image, imageFuture.get());
 
     image = imageFuture.get();
-    imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     assertSame(image, imageFuture.get());
   }
 }

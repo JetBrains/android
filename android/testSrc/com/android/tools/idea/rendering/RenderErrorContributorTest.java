@@ -238,7 +238,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       logOperation.addErrors(logger, render);
     }
 
-    return RenderErrorModelFactory.createErrorModel(render, null).getIssues().stream().sorted().collect(Collectors.toList());
+    return RenderErrorModelFactory.createErrorModel(null, render, null).getIssues().stream().sorted().collect(Collectors.toList());
   }
 
   public void testPanel() {
@@ -354,7 +354,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "\tat java.lang.Thread.run(Thread.java:680)\n");
       logger.error(null, null, throwable, null);
       //noinspection ConstantConditions
-      target.set(render.getRenderTask().getConfiguration().getRealTarget());
+      target.set(render.getRenderTask().getContext().getConfiguration().getRealTarget());
 
       assertTrue(logger.hasProblems());
     };
@@ -581,7 +581,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       logger.error(null, null, throwable, null);
 
       //noinspection ConstantConditions
-      target.set(render.getRenderTask().getConfiguration().getRealTarget());
+      target.set(render.getRenderTask().getContext().getConfiguration().getRealTarget());
     };
 
     List<RenderErrorModel.Issue> issues =

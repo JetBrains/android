@@ -119,10 +119,12 @@ public class RenderErrorContributor {
   private final HyperlinkListener myLinkHandler;
   private final RenderResult myResult;
   private final DataContext myDataContext;
+  private final EditorDesignSurface myDesignSurface;
 
-  protected RenderErrorContributor(@NotNull RenderResult result, @Nullable DataContext dataContext) {
+  protected RenderErrorContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
     myResult = result;
 
+    myDesignSurface = surface;
     myLinkManager = myResult.getLogger().getLinkManager();
     myLinkHandler = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -323,8 +325,8 @@ public class RenderErrorContributor {
     }
   }
 
-  private void reportOldNinePathRenderLib(@NotNull RenderLogger logger, @NotNull RenderTask renderTask) {
-    if (renderTask.getConfiguration().getDensity() != Density.TV) {
+  private void reportOldNinePathRenderLib(@NotNull RenderLogger logger, @NotNull RenderTaskContext renderTaskContext) {
+    if (renderTaskContext.getConfiguration().getDensity() != Density.TV) {
       return;
     }
 
@@ -368,7 +370,9 @@ public class RenderErrorContributor {
       .newline();
   }
 
-  private void reportMissingSizeAttributes(@NotNull final RenderLogger logger, @NotNull RenderTask renderTask) {
+  private void reportMissingSizeAttributes(@NotNull final RenderLogger logger,
+                                           @NotNull RenderTaskContext renderTaskContext,
+                                           @Nullable XmlFile psiFile) {
     Module module = logger.getModule();
     if (module == null) {
       return;
@@ -380,8 +384,7 @@ public class RenderErrorContributor {
       // Emit hyperlink about missing attributes; the action will operate on all of them
       builder.addBold("NOTE: One or more layouts are missing the layout_width or layout_height attributes. " +
                       "These are required in most layouts.").newline();
-      final ResourceResolver resourceResolver = renderTask.getResourceResolver();
-      XmlFile psiFile = renderTask.getPsiFile();
+      final ResourceResolver resourceResolver = renderTaskContext.getConfiguration().getResourceResolver();
       if (psiFile == null) {
         LOG.error("PsiFile is missing in RenderTask used in RenderErrorPanel!");
         return;
@@ -458,7 +461,7 @@ public class RenderErrorContributor {
     Module module = result.getModule();
     PsiFile file = result.getFile();
 
-    myLinkManager.handleUrl(url, module, file, myDataContext, result);
+    myLinkManager.handleUrl(url, module, file, myDataContext, result, myDesignSurface);
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger, @NotNull RenderTask renderTask) {
@@ -655,7 +658,9 @@ public class RenderErrorContributor {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderTask() != null ? myResult.getRenderTask().getConfiguration().getRealTarget() : null;
+              IAndroidTarget target = myResult.getRenderTask() != null ?
+                                      myResult.getRenderTask().getContext().getConfiguration().getRealTarget() :
+                                      null;
               platformSource = target != null ? AndroidSdks.getInstance().findPlatformSources(target) : null;
               platformSourceExists = platformSource != null;
             }
@@ -736,9 +741,8 @@ public class RenderErrorContributor {
         .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createRunnableLink(() -> {
           new SetAttributeFix(project, applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).execute();
 
-          EditorDesignSurface surface = task != null ? task.getDesignSurface() : null;
-          if (surface != null) {
-            surface.forceUserRequestedRefresh();
+          if (myDesignSurface != null) {
+            myDesignSurface.forceUserRequestedRefresh();
           }
         })).add(")");
 
@@ -764,11 +768,11 @@ public class RenderErrorContributor {
     if (renderTask == null) {
       return;
     }
-    IAndroidTarget target = renderTask.getConfiguration().getRealTarget();
+    IAndroidTarget target = renderTask.getContext().getConfiguration().getRealTarget();
     if (target == null) {
       return;
     }
-    AndroidPlatform platform = renderTask.getPlatform();
+    AndroidPlatform platform = renderTask.getContext().getPlatform();
     if (platform == null) {
       return;
     }
@@ -956,7 +960,7 @@ public class RenderErrorContributor {
     return false;
   }
 
-  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger, @NotNull final RenderTask renderTask) {
+  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> fidelityWarnings = logger.getFidelityWarnings();
     if (fidelityWarnings.isEmpty()) {
       return;
@@ -973,9 +977,8 @@ public class RenderErrorContributor {
       if (clientData != null) {
         builder.addLink(" (Ignore for this session)", myLinkManager.createRunnableLink(() -> {
           RenderLogger.ignoreFidelityWarning(clientData);
-          EditorDesignSurface surface = renderTask.getDesignSurface();
-          if (surface != null) {
-            surface.forceUserRequestedRefresh();
+          if (myDesignSurface != null) {
+            myDesignSurface.forceUserRequestedRefresh();
           }
         }));
       }
@@ -994,9 +997,8 @@ public class RenderErrorContributor {
     builder.endList();
     builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createRunnableLink(() -> {
       RenderLogger.ignoreAllFidelityWarnings();
-      EditorDesignSurface surface = renderTask.getDesignSurface();
-      if (surface != null) {
-        surface.forceUserRequestedRefresh();
+      if (myDesignSurface != null) {
+        myDesignSurface.forceUserRequestedRefresh();
       }
     }));
     builder.newline();
@@ -1410,19 +1412,17 @@ public class RenderErrorContributor {
     reportMissingStyles(logger);
     reportAppCompatRequired(logger);
     if (renderTask != null) {
-      reportOldNinePathRenderLib(logger, renderTask);
+      reportOldNinePathRenderLib(logger, renderTask.getContext());
       reportRelevantCompilationErrors(logger, renderTask);
-      reportMissingSizeAttributes(logger, renderTask);
+      reportMissingSizeAttributes(logger, renderTask.getContext(), renderTask.getXmlFile());
       reportMissingClasses(logger);
     }
     reportBrokenClasses(logger);
     reportInstantiationProblems(logger);
     reportOtherProblems(logger, renderTask);
     reportUnknownFragments(logger);
+    reportRenderingFidelityProblems(logger);
 
-    if (renderTask != null) {
-      reportRenderingFidelityProblems(logger, renderTask);
-    }
     return getIssues();
   }
 
@@ -1496,8 +1496,8 @@ public class RenderErrorContributor {
       return true;
     }
 
-    public RenderErrorContributor getContributor(@NotNull RenderResult result, @Nullable DataContext dataContext) {
-      return new RenderErrorContributor(result, dataContext);
+    public RenderErrorContributor getContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
+      return new RenderErrorContributor(surface, result, dataContext);
     }
   }
 }
