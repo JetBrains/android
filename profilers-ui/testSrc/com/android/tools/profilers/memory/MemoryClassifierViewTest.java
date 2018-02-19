@@ -44,7 +44,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class MemoryClassifierViewTest {
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeMemoryService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeProfilerService(), new FakeMemoryService());
 
   private FakeIdeProfilerServices myFakeIdeProfilerServices;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;

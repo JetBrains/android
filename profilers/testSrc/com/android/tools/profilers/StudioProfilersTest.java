@@ -602,11 +602,9 @@ public final class StudioProfilersTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess()).isEqualTo(process1);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
-    assertThat(profilers.getProcess()).isEqualTo(process1);
 
     // Switch to another process.
     profilers.setProcess(process2);
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myGrpcServer.getProfiledProcessCount()).isEqualTo(1);
     assertThat(profilers.getProcess()).isEqualTo(process2);
 

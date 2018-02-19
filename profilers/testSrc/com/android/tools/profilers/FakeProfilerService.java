@@ -34,6 +34,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   private final MultiMap<Common.Device, Common.Process> myProcesses;
   private final Map<String, ByteString> myCache;
   private final Map<Long, Common.Session> mySessions;
+  private final Map<Long, Common.SessionMetaData> mySessionMetaDatas;
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
   private boolean myAttachAgentCalled;
@@ -55,6 +56,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myProcesses = MultiMap.create();
     myCache = new HashMap<>();
     mySessions = new HashMap<>();
+    mySessionMetaDatas = new HashMap<>();
     if (connected) {
       Common.Device device = Common.Device.newBuilder()
         .setDeviceId(FAKE_DEVICE_ID)
@@ -174,7 +176,15 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       .setStartTimestamp(myTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
+    Common.SessionMetaData metadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(sessionId)
+      .setSessionName(request.getSessionName())
+      .setStartTimestampEpochMs(request.getRequestTimeEpochMs())
+      .setJvmtiEnabled(request.getJvmtiConfig().getAttachAgent())
+      .setLiveAllocationEnabled(request.getJvmtiConfig().getLiveAllocationEnabled())
+      .build();
     mySessions.put(sessionId, session);
+    mySessionMetaDatas.put(sessionId, metadata);
     myAttachAgentCalled = request.getJvmtiConfig().getAttachAgent();
     builder.setSession(session);
     responseObserver.onNext(builder.build());
@@ -207,7 +217,12 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void getSessionMetaData(GetSessionMetaDataRequest request,
                                  StreamObserver<GetSessionMetaDataResponse> responseObserver) {
-    responseObserver.onNext(GetSessionMetaDataResponse.getDefaultInstance());
+    if (mySessionMetaDatas.containsKey(request.getSessionId())) {
+      responseObserver.onNext(GetSessionMetaDataResponse.newBuilder().setData(mySessionMetaDatas.get(request.getSessionId())).build());
+    }
+    else {
+      responseObserver.onNext(GetSessionMetaDataResponse.getDefaultInstance());
+    }
     responseObserver.onCompleted();
   }
 

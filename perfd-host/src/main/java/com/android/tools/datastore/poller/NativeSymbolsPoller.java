@@ -18,9 +18,10 @@ package com.android.tools.datastore.poller;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
+import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.Profiler;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -57,8 +58,9 @@ public class NativeSymbolsPoller extends PollRunner {
 
   @Override
   public void poll() {
-    if (mySymbolizer == null)
+    if (mySymbolizer == null || mySymbolizer instanceof NopSymbolizer) {
       return;
+    }
 
     if (myProcess == null) {
       myProcess = findProcess();
@@ -90,7 +92,7 @@ public class NativeSymbolsPoller extends PollRunner {
     Profiler.GetProcessesResponse resonse = myProfilerTable.getProcesses(request);
     for (Common.Process process : resonse.getProcessList()) {
       if (process.getPid() == mySession.getPid()) {
-        return  process;
+        return process;
       }
     }
     return null;
@@ -102,7 +104,8 @@ public class NativeSymbolsPoller extends PollRunner {
     Symbol symbol = null;
     try {
       symbol = mySymbolizer.symbolize(myProcess.getAbiCpuArch(), frame.getModuleName(), offset);
-    } catch (IOException | RuntimeException e) {
+    }
+    catch (IOException | RuntimeException e) {
       getLogger().error(e);
     }
     if (symbol == null) {

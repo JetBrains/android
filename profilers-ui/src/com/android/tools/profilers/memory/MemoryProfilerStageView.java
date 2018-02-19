@@ -262,7 +262,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void allocationTrackingChanged() {
-    //TODO enable/disable hprof/allocation if they cannot be performed
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
