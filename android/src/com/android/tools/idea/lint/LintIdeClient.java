@@ -134,6 +134,11 @@ public class LintIdeClient extends LintClient implements Disposable {
     ApplicationManager.getApplication().runReadAction(runnable);
   }
 
+  @Override
+  public <T> T runReadAction(@NonNull Computable<T> computable) {
+    return ApplicationManager.getApplication().runReadAction(computable);
+  }
+
   /**
    * Creates a lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.)
    */
