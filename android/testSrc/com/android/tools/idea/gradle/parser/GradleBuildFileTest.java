@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -23,7 +24,6 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -47,6 +47,8 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myDocument = null;
+    // Kotlin plugin requests Groovy JDK if ${...} is found in the editor.
+    IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   public void testGetTopLevelValue() throws Exception {
