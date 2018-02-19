@@ -142,7 +142,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myModule = module;
     myLogger = logger;
     myCredential = credential;
-    myLogger = logger;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
@@ -158,6 +157,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myFontFamilies = projectRes.getAllResourceItems().stream()
       .filter(r -> r.getType() == ResourceType.FONT)
       .map(r -> r.getResourceValue())
+      .filter(Objects::nonNull)
       .filter(value -> value.getRawXmlValue().endsWith(DOT_XML))
       .collect(Collectors.toMap(ResourceValue::getRawXmlValue, (ResourceValue value) -> value));
   }
@@ -407,7 +407,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
     myParserCount++;
 
-    if (myLayoutPullParserFactory != null) {
+    if (myLayoutPullParserFactory != null && xml != null) {
       ILayoutPullParser parser = myLayoutPullParserFactory.create(xml, this);
       if (parser != null) {
         return parser;
@@ -477,13 +477,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * been asked to provide parsers for
    */
   private boolean findCycles() {
-    Map<File, String> fileToLayout = new HashMap<>();
     Map<String, File> layoutToFile = new HashMap<>();
     Multimap<String, String> includeMap = ArrayListMultimap.create();
     for (File file : myParserFiles) {
       String layoutName = LintUtils.getLayoutName(file);
       layoutToFile.put(layoutName, file);
-      fileToLayout.put(file, layoutName);
       try {
         String xml = Files.toString(file, Charsets.UTF_8);
         Document document = XmlUtils.parseDocumentSilently(xml, true);
@@ -613,7 +611,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
     }
 
-    if (itemRef.isFramework()) {
+    if (itemRef.getNamespace() == ResourceNamespace.ANDROID) {
       // Special case for list_view_item_2 and friends
       if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
         return "Sub Item " + (fullPosition + 1);
@@ -830,7 +828,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static class ParserFactoryImpl extends ParserFactory {
     @NotNull
     @Override
-    public XmlPullParser createParser(@Nullable String debugName) throws XmlPullParserException {
+    public XmlPullParser createParser(@Nullable String debugName) {
       return new NamedParser(debugName);
     }
   }
