@@ -58,7 +58,7 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void allTreesShouldStartWithThreadName() throws IOException {
-    myParser.parse(myTraceFile);
+    myParser.parse(myTraceFile, 0);
     Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
 
     for (Map.Entry<CpuThreadInfo, CaptureNode> entry : callTrees.entrySet()) {
@@ -70,7 +70,7 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void checkKnownThreadsPresenceAndCount() throws IOException {
-    myParser.parse(myTraceFile);
+    myParser.parse(myTraceFile, 0);
     Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
 
     assertFalse(callTrees.values().isEmpty());
@@ -118,7 +118,7 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void nodeDepthsShouldBeCoherent() throws IOException {
-    myParser.parse(myTraceFile);
+    myParser.parse(myTraceFile, 0);
     CaptureNode anyTree = myParser.getCaptureTrees().values().iterator().next();
     assertEquals(0, anyTree.getDepth());
 
@@ -135,7 +135,7 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void mainProcessShouldBePresent() throws IOException {
-    myParser.parse(myTraceFile);
+    myParser.parse(myTraceFile, 0);
     CaptureNode mainThread = myParser.getCaptureTrees().entrySet().stream()
       .filter(entry -> entry.getKey().getId() == 24358 /* App pid */)
       .map(Map.Entry::getValue)
@@ -154,7 +154,7 @@ public class SimpleperfTraceParserTest {
     myParser = new SimpleperfTraceParser("some.app.id");
 
     try {
-      myParser.parse(trace);
+      myParser.parse(trace, 0);
       fail("IllegalStateException should have been thrown due to missing file.");
     } catch (IllegalStateException e) {
       assertTrue(e.getMessage().contains("Malformed trace file"));
@@ -164,7 +164,7 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void rangeShouldBeFromFirstToLastTimestamp() throws IOException {
-    myParser.parse(myTraceFile);
+    myParser.parse(myTraceFile, 0);
     long startTimeUs = TimeUnit.NANOSECONDS.toMicros(myParser.mySamples.get(0).getTime());
     long endTimeUs = TimeUnit.NANOSECONDS.toMicros( myParser.mySamples.get(myParser.mySamples.size() - 1).getTime());
     Range expected = new Range(startTimeUs, endTimeUs);

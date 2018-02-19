@@ -147,12 +147,28 @@ public class CpuCaptureTest {
     Range range = new Range(0, 30);
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
-    CpuCapture capture = new CpuCapture(new FakeTraceParser(range, captureTrees, true));
+    CpuCapture capture = new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20);
     assertThat(capture.isDualClock()).isTrue();
 
-    TraceParser parser = new FakeTraceParser(range, captureTrees, false);
-    capture = new CpuCapture(parser);
+    capture = new CpuCapture(new FakeTraceParser(range, captureTrees, false), 20);
     assertThat(capture.isDualClock()).isFalse();
+  }
+
+  @Test
+  public void traceIdPassedInConstructor() {
+    int traceId1 = 20;
+    CpuThreadInfo info = new CpuThreadInfo(10, "main");
+    Range range = new Range(0, 30);
+    Map<CpuThreadInfo, CaptureNode> captureTrees =
+      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
+    TraceParser parser = new FakeTraceParser(range, captureTrees, false);
+
+    CpuCapture capture = new CpuCapture(parser, traceId1);
+    assertThat(capture.getTraceId()).isEqualTo(traceId1);
+
+    int traceId2 = 50;
+    capture = new CpuCapture(parser, traceId2);
+    assertThat(capture.getTraceId()).isEqualTo(traceId2);
   }
 
   @Test

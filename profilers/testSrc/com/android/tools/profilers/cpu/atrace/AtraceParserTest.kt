@@ -29,7 +29,7 @@ class AtraceParserTest {
 
   @Before
   fun setup() {
-    myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+    myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
   }
 
   @Test

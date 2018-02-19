@@ -92,6 +92,7 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
                                                    CpuProfiler.CpuProfilerType profilerType) {
     File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + traceFile);
     TraceParser parser;
+    int traceId = 20;
     if (profilerType == CpuProfiler.CpuProfilerType.ART) {
       parser = new ArtTraceParser();
     }
@@ -102,7 +103,7 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
       throw new IllegalArgumentException("There is no parser available for profiler type " + profilerType);
     }
     try {
-      parser.parse(file);
+      parser.parse(file, traceId);
     }
     catch (IOException e) {
       e.printStackTrace();

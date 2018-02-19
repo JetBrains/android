@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public interface TraceParser {
 
-  CpuCapture parse(File file) throws IOException;
+  CpuCapture parse(File file, int traceId) throws IOException;
 
   Map<CpuThreadInfo, CaptureNode> getCaptureTrees();
 

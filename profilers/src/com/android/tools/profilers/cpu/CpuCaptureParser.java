@@ -155,7 +155,7 @@ public class CpuCaptureParser {
         throw new IllegalStateException("Trace file cannot be parsed. Profiler type (ART, simpleperf, or atrace) needs to be set.");
       }
 
-      return parser.parse(trace);
+      return parser.parse(trace, traceId);
     }
     catch (IOException | BufferUnderflowException e) {
       throw new IllegalStateException(e);
