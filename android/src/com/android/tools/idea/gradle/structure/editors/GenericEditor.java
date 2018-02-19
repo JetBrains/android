@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.tools.idea.structure.EditorPanel;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.util.ActionRunner;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,12 +78,7 @@ public class GenericEditor<E extends EditorPanel> implements ModuleConfiguration
       @Override
       public void run() {
         try {
-          ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
-            @Override
-            public void run() throws Exception {
-              myPanel.apply();
-            }
-          });
+          WriteAction.run(myPanel::apply);
         }
         catch (Exception e) {
           LOG.error("Error while applying changes", e);
