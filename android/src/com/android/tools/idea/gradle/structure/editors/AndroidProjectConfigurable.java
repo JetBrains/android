@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
@@ -30,7 +31,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ActionRunner;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,7 +120,7 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
 
     CommandProcessor.getInstance().runUndoTransparentAction(() -> {
       try {
-        ActionRunner.runInsideWriteAction(() -> {
+        WriteAction.run(() -> {
           for (BuildFileKey key : PROJECT_PROPERTIES) {
             if (key == BuildFileKey.GRADLE_WRAPPER_VERSION || !myModifiedKeys.contains(key)) {
               continue;
