@@ -58,7 +58,7 @@ import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralStr
  * methods for its subclasses to extract interesting pieces from Gradle files.
  *
  * Note that if you do any mutations on the PSI structure you must be inside a write action. See
- * {@link com.intellij.util.ActionRunner#runInsideWriteAction}.
+ * {@link com.intellij.openapi.application.Application#runWriteAction(Runnable)}.
  */
 class GradleGroovyFile {
   private static final Logger LOG = Logger.getInstance(GradleGroovyFile.class);

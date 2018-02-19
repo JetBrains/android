@@ -55,7 +55,7 @@ import java.util.Map;
  * GradleSettingsFile uses PSI to parse settings.gradle files and provides high-level methods to read and mutate the file.
  *
  * Note that if you do any mutations on the PSI structure you must be inside a write action. See
- * {@link com.intellij.util.ActionRunner#runInsideWriteAction}.
+ * {@link com.intellij.openapi.application.Application#runWriteAction(Runnable)}.
  */
 public class GradleSettingsFile extends GradleGroovyFile {
   private static final Logger LOG = Logger.getInstance(GradleGroovyFile.class.getName());
