@@ -205,8 +205,8 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     }
 
     @Override
-    public void getData(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergyDataResponse> response) {
-      response.onNext(EnergyProfiler.EnergyDataResponse.getDefaultInstance());
+    public void getSamples(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergySamplesResponse> response) {
+      response.onNext(EnergyProfiler.EnergySamplesResponse.getDefaultInstance());
       response.onCompleted();
     }
 
