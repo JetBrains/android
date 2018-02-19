@@ -31,6 +31,7 @@ import com.intellij.ide.util.ChooseElementsDialog;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -52,7 +53,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ActionRunner;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -465,7 +465,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
     }
     DumbService.getInstance(myProject).setAlternativeResolveEnabled(true);
     try {
-      ActionRunner.runInsideWriteAction(() -> myGradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies));
+      WriteAction.run(() -> myGradleBuildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies));
     }
     catch (Exception e) {
       LOG.error("Unable to commit dependency changes", e);
