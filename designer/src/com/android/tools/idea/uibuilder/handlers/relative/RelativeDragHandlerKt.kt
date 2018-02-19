@@ -28,7 +28,6 @@ import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTarget
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
-import com.intellij.openapi.diagnostic.Logger
 
 /**
  * TODO: don't allow dragging multiple component from Component Tree
@@ -68,36 +67,15 @@ internal class RelativeDragHandlerKt(editor: ViewEditor,
   }
 
   override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
-    when (insertType) {
-      InsertType.CREATE -> dragWidgetFromPalette(x, y)
-      InsertType.MOVE_INTO -> dragWidgetFromComponentTree(x, y)
-      else -> Logger.getInstance(javaClass.name).error("Unexpected InsertType in ${javaClass.name}#commit}")
-    }
-
     editor.insertChildren(layout.nlComponent, components, -1, insertType)
+    for (child in components) {
+      @AndroidDpCoordinate val dx = editor.pxToDp(x) + startX - component.drawWidth / 2
+      @AndroidDpCoordinate val dy = editor.pxToDp(y) + startY - component.drawHeight / 2
+      dragTarget.mouseRelease(dx, dy, child)
+    }
     // Remove Temporary SceneComponent
     layout.scene.removeComponent(component)
     layout.scene.checkRequestLayoutStatus()
-  }
-
-  private fun dragWidgetFromPalette(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
-    layout.scene.needsRebuildList()
-    for (child in components) {
-      @AndroidDpCoordinate val dx = x + startX - lastX - component.drawWidth / 2
-      @AndroidDpCoordinate val dy = y + startY - lastY - component.drawHeight / 2
-      component.targets.filterIsInstance<RelativeDragTarget>().forEach { it.mouseRelease(dx, dy, child) }
-    }
-  }
-
-  private fun dragWidgetFromComponentTree(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
-    for (child in components) {
-      val sceneComponent = layout.getSceneComponent(child) ?: continue
-      dragTarget.component = sceneComponent
-      @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
-      @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
-      dragTarget.mouseDrag(dx, dy, emptyList())
-      dragTarget.mouseRelease(dx, dy, emptyList())
-    }
   }
 
   override fun cancel() {
