@@ -18,7 +18,7 @@ import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 private val PROPERTY_NAME_UI_NAME_MAP = mapOf(
-    TYPE_EDITOR_PROPERTY_LABEL to "Kind",
+    TYPE_EDITOR_PROPERTY_LABEL to "Type",
     SdkConstants.ATTR_LABEL to "Title",
     SdkConstants.ATTR_ID to "ID",
     SdkConstants.ATTR_NAME to "Class",
