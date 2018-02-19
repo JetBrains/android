@@ -39,8 +39,7 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
     assertNotNull(virtualFile);
     File file = VfsUtilCore.virtualToIoFile(virtualFile);
 
-    LayoutlibCallback callback = new DummyCallback();
-    LayoutFilePullParser parser = LayoutFilePullParser.create(callback, file);
+    LayoutFilePullParser parser = LayoutFilePullParser.create(file);
 
     assertNull(parser.getName());
 

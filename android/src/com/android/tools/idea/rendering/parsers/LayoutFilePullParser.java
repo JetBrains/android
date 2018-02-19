@@ -39,15 +39,8 @@ import static com.android.SdkConstants.*;
  * Modified {@link KXmlParser} that adds the methods of {@link ILayoutPullParser}, and
  * performs other layout-specific parser behavior like translating fragment tags into
  * include tags.
- * <p/>
- * It will return a given parser when queried for one through
- * {@link ILayoutPullParser#getParser(String)} for a given name.
  */
 public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParser {
-  /**
-   * The callback to request parsers from
-   */
-  private final LayoutlibCallback myLayoutlibCallback;
   /**
    * The layout to be shown for the current {@code <fragment>} tag. Usually null.
    */
@@ -56,19 +49,19 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
   /**
    * Crates a new {@link LayoutFilePullParser} for the given XML file.
    */
-  public static LayoutFilePullParser create(@NotNull LayoutlibCallback layoutlibCallback, @NotNull File xml)
+  public static LayoutFilePullParser create(@NotNull File xml)
       throws XmlPullParserException, IOException {
     String xmlText = Files.toString(xml, Charsets.UTF_8);
-    return create(layoutlibCallback, xmlText);
+    return create(xmlText);
   }
 
   /**
    * Crates a new {@link LayoutFilePullParser} for the given XML text.
    */
   @NotNull
-  public static LayoutFilePullParser create(@NotNull LayoutlibCallback layoutlibCallback, @NotNull String xmlText)
+  public static LayoutFilePullParser create(@NotNull String xmlText)
       throws XmlPullParserException {
-    LayoutFilePullParser parser = new LayoutFilePullParser(layoutlibCallback);
+    LayoutFilePullParser parser = new LayoutFilePullParser();
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     parser.setInput(new StringReader(xmlText));
     return parser;
@@ -79,22 +72,10 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
    *
    * @param layoutlibCallback the associated callback
    */
-  private LayoutFilePullParser(LayoutlibCallback layoutlibCallback) {
+  private LayoutFilePullParser() {
     super();
-    myLayoutlibCallback = layoutlibCallback;
   }
   // --- Layout lib API methods
-
-  /**
-   * this is deprecated but must still be implemented for older layout libraries.
-   * @deprecated use {@link LayoutlibCallback#getParser(String)}.
-   */
-  @Override
-  @Deprecated
-  @SuppressWarnings("deprecation") // Required to support older layoutlib versions
-  public ILayoutPullParser getParser(String layoutName) {
-    return myLayoutlibCallback.getParser(layoutName);
-  }
 
   @Override
   @Nullable

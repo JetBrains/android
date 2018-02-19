@@ -346,16 +346,6 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     return null;
   }
 
-  /**
-   * This implementation does nothing for now as all the embedded XML will use a normal KXML
-   * parser.
-   */
-  @Nullable
-  @Override
-  public ILayoutPullParser getParser(String layoutName) {
-    return null;
-  }
-
   // ------------- XmlPullParser --------
 
   @Override
