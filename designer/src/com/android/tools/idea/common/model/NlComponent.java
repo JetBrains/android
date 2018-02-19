@@ -66,6 +66,7 @@ public class NlComponent implements NlAttributesHolder {
   @Nullable private XmlModelComponentMixin myMixin;
 
   private final List<NlComponent> children = Lists.newArrayList();
+  @Nullable private List<NlComponent> cachedChildrenCopy = null;
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
   //TODO(b/70264883): remove this reference to XmlTag to avoid problems with invalid Psi elements
@@ -179,12 +180,15 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
-    int index = before != null ? children.indexOf(before) : -1;
-    if (index != -1) {
-      children.add(index, component);
-    }
-    else {
-      children.add(component);
+    synchronized (children) {
+      cachedChildrenCopy = null;
+      int index = before != null ? children.indexOf(before) : -1;
+      if (index != -1) {
+        children.add(index, component);
+      }
+      else {
+        children.add(component);
+      }
     }
     component.setParent(this);
   }
@@ -193,16 +197,22 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
-    children.remove(component);
+    synchronized (children) {
+      cachedChildrenCopy = null;
+      children.remove(component);
+    }
     component.setParent(null);
   }
 
   public void setChildren(@Nullable List<NlComponent> components) {
-    children.clear();
-    if (components == null) {
-      return;
+    synchronized (children) {
+      cachedChildrenCopy = null;
+      children.clear();
+      if (components == null) {
+        return;
+      }
+      children.addAll(components);
     }
-    children.addAll(components);
     for (NlComponent component : components) {
       if (component == this) {
         throw new IllegalArgumentException();
@@ -213,15 +223,23 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public List<NlComponent> getChildren() {
-    return ImmutableList.copyOf(children);
+    List<NlComponent> childrenCopy = cachedChildrenCopy;
+    if (childrenCopy == null) {
+      synchronized (children) {
+        childrenCopy = ImmutableList.copyOf(children);
+        cachedChildrenCopy = childrenCopy;
+      }
+    }
+    return childrenCopy;
   }
 
   public int getChildCount() {
-    return children.size();
+    return getChildren().size();
   }
 
   @Nullable
   public NlComponent getChild(int index) {
+    List<NlComponent> children = getChildren();
     return index >= 0 && index < children.size() ? children.get(index) : null;
   }
 
@@ -818,7 +836,10 @@ public class NlComponent implements NlAttributesHolder {
       return ImmutableSet.of();
     }
 
-    public void beforeMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @NotNull Set<String> ids) {}
-    public void afterMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @Nullable DesignSurface surface) {}
+    public void beforeMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @NotNull Set<String> ids) {
+    }
+
+    public void afterMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @Nullable DesignSurface surface) {
+    }
   }
 }
