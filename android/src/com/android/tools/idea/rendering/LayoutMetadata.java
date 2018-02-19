@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;

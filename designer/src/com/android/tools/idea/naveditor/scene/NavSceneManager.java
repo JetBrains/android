@@ -37,7 +37,7 @@ import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
-import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

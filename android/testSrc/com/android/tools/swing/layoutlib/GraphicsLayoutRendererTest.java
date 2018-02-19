@@ -15,11 +15,12 @@
  */
 package com.android.tools.swing.layoutlib;
 
+import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.DomPullParser;
+import com.android.tools.idea.rendering.parsers.DomPullParser;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -62,9 +63,9 @@ public class GraphicsLayoutRendererTest extends AndroidTestCase {
 
     DocumentBuilderFactory builder = DocumentBuilderFactory.newInstance();
     builder.setNamespaceAware(true);
-    DomPullParser parser = new DomPullParser(
+    ILayoutPullParser parser = DomPullParser.createFromDocument(
       builder.newDocumentBuilder()
-        .parse(layout.getInputStream()).getDocumentElement());
+        .parse(layout.getInputStream()));
 
     AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
     assertNotNull(facet);

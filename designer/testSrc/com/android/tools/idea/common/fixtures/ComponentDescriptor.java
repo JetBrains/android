@@ -17,7 +17,7 @@ package com.android.tools.idea.common.fixtures;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
-import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;

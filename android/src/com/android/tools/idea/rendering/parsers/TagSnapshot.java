@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
@@ -65,7 +65,7 @@ public class TagSnapshot {
     this.namespaceDeclarations = tag != null ? tag.getLocalNamespaceDeclarations() : Collections.emptyMap();
   }
 
-  public static TagSnapshot createSyntheticTag(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix,
+  static TagSnapshot createSyntheticTag(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix,
                                                @Nullable String namespace, @NotNull List<AttributeSnapshot> attributes,
                                                @NotNull List<TagSnapshot> children) {
     return new TagSnapshot(tag, tagName, prefix, namespace, attributes, children, false);

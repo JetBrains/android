@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.scout;
 
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.rendering.AttributeSnapshot;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 
 import java.util.ArrayList;

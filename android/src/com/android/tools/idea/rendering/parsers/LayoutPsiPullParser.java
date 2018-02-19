@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutLog;
@@ -22,6 +22,9 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.IRenderLogger;
+import com.android.tools.idea.rendering.LayoutMetadata;
+import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.*;

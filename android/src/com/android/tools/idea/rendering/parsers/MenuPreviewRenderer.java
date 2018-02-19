@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.rendering.RenderTask;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.rendering.LayoutPullParsers.*;
+import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.*;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy
@@ -59,7 +59,7 @@ import static com.android.tools.idea.rendering.LayoutPullParsers.*;
  *   <li> Be more resilient for custom themes not inheriting the necessary menu resources</li>
  * </ul>
  */
-public class MenuPreviewRenderer {
+class MenuPreviewRenderer {
   private static final String ATTR_ORDER_IN_CATEGORY = "orderInCategory";
   private static final String ATTR_MENU_CATEGORY = "menuCategory";
   private static final String ATTR_CHECKABLE = "checkable";
@@ -149,12 +149,7 @@ public class MenuPreviewRenderer {
 
     addFidelityWarning(myDocument, root, "Menu");
 
-    if (DEBUG) {
-      //noinspection UseOfSystemOutOrSystemErr
-      System.out.println(XmlPrettyPrinter.prettyPrint(myDocument, true));
-    }
-
-    return new DomPullParser(myDocument.getDocumentElement()).setViewCookies(viewCookies);
+    return DomPullParser.createFromDocument(myDocument, viewCookies);
   }
 
   private Element createActionBar() {

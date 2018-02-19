@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
@@ -39,12 +39,12 @@ import static com.android.SdkConstants.AUTO_URI;
 
 /**
  * Simple wrapper around an XML document which provides its contents as a pull parser.
- * Most of this is based on the {@link com.android.tools.idea.rendering.LayoutPsiPullParser} but
+ * Most of this is based on the {@link LayoutPsiPullParser} but
  * with DOM nodes instead of PSI elements as the data model
  */
 public class DomPullParser extends LayoutPullParser {
   @NotNull
-  private final List<Element> myNodeStack = new ArrayList<Element>();
+  private final List<Element> myNodeStack;
 
   @Nullable
   private final Element myRoot;
@@ -57,16 +57,13 @@ public class DomPullParser extends LayoutPullParser {
    *
    * @param root the root element
    */
-  public DomPullParser(@Nullable Element root) {
+  private DomPullParser(@Nullable Element root, @Nullable Map<Element, ?> viewCookies) {
     myRoot = root;
-  }
-
-  /** Sets view cookies to be returned to the layout parser */
-  public DomPullParser setViewCookies(@Nullable Map<Element, ?> viewCookies) {
+    myNodeStack = new ArrayList<>();
     myViewCookies = viewCookies;
-    return this;
   }
 
+  @Nullable
   @VisibleForTesting
   public Element getRoot() {
     return myRoot;
@@ -99,6 +96,7 @@ public class DomPullParser extends LayoutPullParser {
     myNodeStack.add(node);
   }
 
+  @SuppressWarnings("UnusedReturnValue")
   @NotNull
   private Element pop() {
     return myNodeStack.remove(myNodeStack.size() - 1);
@@ -375,7 +373,7 @@ public class DomPullParser extends LayoutPullParser {
    * @return the new document builder
    */
   @Nullable
-  public static DocumentBuilder createNewDocumentBuilder() {
+  private static DocumentBuilder createNewDocumentBuilder() {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     factory.setNamespaceAware(true);
     factory.setValidating(false);
@@ -398,6 +396,27 @@ public class DomPullParser extends LayoutPullParser {
    */
   @Nullable
   public static Document createEmptyPlainDocument() {
-    return createNewDocumentBuilder().newDocument();
+    DocumentBuilder builder = createNewDocumentBuilder();
+    return builder != null ? builder.newDocument() : null;
+  }
+
+  /**
+   * Constructs a new {@link DomPullParser}, a parser which wraps an XML DOM and provides a pull parser interface
+   *
+   * @param root the root element
+   */
+  @NotNull
+  public static ILayoutPullParser createFromDocument(@NotNull Document document) {
+    return new DomPullParser(document.getDocumentElement(), null);
+  }
+
+  /**
+   * Constructs a new {@link DomPullParser}, a parser which wraps an XML DOM and provides a pull parser interface
+   *
+   * @param root the root element
+   */
+  @NotNull
+  public static ILayoutPullParser createFromDocument(@NotNull Document document, @NotNull Map<Element, ?> viewCookies) {
+    return new DomPullParser(document.getDocumentElement(), viewCookies);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.google.common.collect.ImmutableMap;
+import com.android.tools.idea.configurations.Configuration;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Interface for parsers that support declaration of inlined {@code aapt:attr} attributes
- */
-public interface AaptAttrParser {
-  /**
-   * Returns a {@link ImmutableMap} that contains all the {@code aapt:attr} elements declared in this or any children parsers. This list
-   * can be used to resolve {@code @aapt/_aapt} references into this parser.
-   */
+public class RenderTaskTestUtil {
+  private static final String DEFAULT_THEME_STYLE = "@android:style/Theme.Holo";
+
   @NotNull
-  ImmutableMap<String, TagSnapshot> getAaptDeclaredAttrs();
+  public static RenderTask createRenderTask(@NotNull Module module, @NotNull VirtualFile file) {
+    Configuration
+      configuration = RenderTestUtil.getConfiguration(module, file, RenderTestUtil.DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
+    return RenderTestUtil.createRenderTask(module, file, configuration);
+  }
 }

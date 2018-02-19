@@ -54,7 +54,6 @@ import static org.junit.Assert.*;
  */
 public class RenderTestUtil {
   public static final String DEFAULT_DEVICE_ID = "Nexus 4";
-  private static final String DEFAULT_THEME_STYLE = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 5.0f;
 
   /**
@@ -122,12 +121,6 @@ public class RenderTestUtil {
           e.printStackTrace();
         }
       });
-  }
-
-  @NotNull
-  protected static RenderTask createRenderTask(@NotNull Module module, @NotNull VirtualFile file) {
-    Configuration configuration = getConfiguration(module, file, DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
-    return createRenderTask(module, file, configuration);
   }
 
   @NotNull
