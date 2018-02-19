@@ -24,7 +24,7 @@ import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.rendering.AttributeSnapshot;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.*;
 import com.intellij.openapi.diagnostic.Logger;

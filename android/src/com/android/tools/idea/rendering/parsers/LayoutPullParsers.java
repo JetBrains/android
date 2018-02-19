@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
@@ -25,6 +25,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
+import com.android.tools.idea.rendering.IRenderLogger;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
@@ -213,7 +215,7 @@ public class LayoutPullParsers {
       setAndroidAttr(imageView, ATTR_SCALE_TYPE, scaleType);
     }
 
-    return new DomPullParser(document.getDocumentElement());
+    return DomPullParser.createFromDocument(document);
   }
 
   @NotNull
@@ -224,11 +226,11 @@ public class LayoutPullParsers {
     // LayoutLib to render it in a navigation view instead.
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), "navigation_view")) {
       task.setDecorations(false);
-      return new NavigationViewMenuLayoutPullParserFactory(task).render();
+      return MenuLayoutParserFactory.createInNavigationView(file);
     }
 
     if (task.supportsCapability(Features.ACTION_BAR)) {
-      return new MenuLayoutParserFactory(task).render();
+      return MenuLayoutParserFactory.create(file, task.getLayoutlibCallback());
     }
 
     task.setDecorations(false);
@@ -269,7 +271,7 @@ public class LayoutPullParsers {
       System.out.println(XmlPrettyPrinter.prettyPrint(document, true));
     }
 
-    return new DomPullParser(document.getDocumentElement());
+    return DomPullParser.createFromDocument(document);
   }
 
   @VisibleForTesting
@@ -337,7 +339,7 @@ public class LayoutPullParsers {
       return null;
     }
 
-    return new DomPullParser(document.getDocumentElement());
+    return DomPullParser.createFromDocument(document);
   }
 
   public static boolean needSave(@Nullable ResourceFolderType type) {
@@ -372,7 +374,7 @@ public class LayoutPullParsers {
     application.invokeAndWait(() -> application.runWriteAction(() -> fileManager.saveDocument(document)));
   }
 
-  protected static Element addRootElement(@NotNull Document document, @NotNull String tag) {
+  public static Element addRootElement(@NotNull Document document, @NotNull String tag) {
     Element root = document.createElement(tag);
 
     //root.setAttribute(XMLNS_ANDROID, ANDROID_URI);
@@ -386,7 +388,7 @@ public class LayoutPullParsers {
     return root;
   }
 
-  protected static Element setAndroidAttr(Element element, String name, String value) {
+  public static Element setAndroidAttr(Element element, String name, String value) {
     element.setAttributeNS(ANDROID_URI, name, value);
     //element.setAttribute(ANDROID_NS_NAME + ':' + name, value);
     //Attr attr = element.getOwnerDocument().createAttributeNS(XMLNS_URI, XMLNS_ANDROID);
@@ -402,6 +404,6 @@ public class LayoutPullParsers {
     Element root = addRootElement(document, FRAME_LAYOUT);
     setAndroidAttr(root, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(root, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
-    return new DomPullParser(document.getDocumentElement());
+    return DomPullParser.createFromDocument(document);
   }
 }

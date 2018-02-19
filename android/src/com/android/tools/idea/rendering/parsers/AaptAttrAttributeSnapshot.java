@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.psi.xml.XmlTag;
@@ -30,7 +30,7 @@ import static com.android.SdkConstants.ATTR_NAME;
  * Aapt attributes are attributes that instead of containing a reference, contain the inlined value of the reference. This snapshot will
  * generate a dynamic reference that will be used by the resource resolution to be able to retrieve the inlined value.
  */
-public class AaptAttrAttributeSnapshot extends AttributeSnapshot {
+class AaptAttrAttributeSnapshot extends AttributeSnapshot {
   /**
    * Each attribute must keep a dynamic unique ID so it can be referenced by the parent. We simply generate a sequential number.
    * This counter is thread safe in order to be able to use {@link AaptAttrAttributeSnapshot} in parallel streams.

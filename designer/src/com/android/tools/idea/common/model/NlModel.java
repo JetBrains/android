@@ -26,7 +26,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.rendering.RefreshRenderAction;
-import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;

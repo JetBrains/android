@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.android.ide.common.rendering.api.ILayoutLog;
+import com.android.tools.idea.rendering.RenderTask;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -28,7 +29,7 @@ import static com.android.SdkConstants.*;
 /**
  * An extension of {@link LayoutPsiPullParser} specific for Menu xml files.
  */
-public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParser {
+class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParser {
 
   // Some attributes are not supported by layoutlib and will throw an exception.
   private static final ImmutableSet<String> UNSUPPORTED_ATTRIBUTES = ImmutableSet.of("onClick", "actionViewClass");

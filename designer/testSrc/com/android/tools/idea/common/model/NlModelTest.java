@@ -27,7 +27,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;

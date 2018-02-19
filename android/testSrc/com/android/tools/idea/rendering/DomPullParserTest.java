@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.rendering.parsers.DomPullParser;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -60,7 +62,7 @@ public class DomPullParserTest extends AndroidTestCase {
     Document document = XmlUtils.parseDocumentSilently(file.getText(), true);
     assertNotNull(document);
     KXmlParser referenceParser = createReferenceParser(file);
-    DomPullParser parser = new DomPullParser(document.getDocumentElement());
+    ILayoutPullParser parser = DomPullParser.createFromDocument(document);
 
     assertEquals("Expected " + name(referenceParser.getEventType()) + " but was "
                  + name(parser.getEventType())

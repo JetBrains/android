@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
-import com.android.tools.idea.rendering.DomPullParser;
+import com.android.tools.idea.rendering.parsers.DomPullParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -91,7 +91,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
           }
         }
 
-        ILayoutPullParser parser = new DomPullParser(myDocument.getDocumentElement());
+        ILayoutPullParser parser = DomPullParser.createFromDocument(myDocument);
         GraphicsLayoutRenderer graphicsLayoutRenderer =
           myGraphicsLayoutRendererFactory.createGraphicsLayoutRenderer(myConfiguration, parser, getBackground());
         graphicsLayoutRenderer.setScale(myScale);

@@ -21,6 +21,8 @@ import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
+import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;

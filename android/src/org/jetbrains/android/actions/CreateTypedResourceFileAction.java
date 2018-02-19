@@ -19,7 +19,7 @@ package org.jetbrains.android.actions;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.rendering.LayoutPullParsers;
+import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.android.annotations.Nullable;
 import com.android.resources.Density;
+import com.android.tools.idea.rendering.IRenderLogger;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,7 @@ import static com.android.SdkConstants.*;
  * can add padding to a dedicated set of layout nodes, which for example can be used to
  * ensure that empty view groups have certain minimum size during a palette drop.
  */
-public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
+class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   private final static Pattern FLOAT_PATTERN = Pattern.compile("(-?[0-9]+(?:\\.[0-9]+)?)(.*)"); //$NON-NLS-1$
   private final static int PADDING_VALUE = 10;
 

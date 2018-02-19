@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
@@ -23,7 +23,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.InputStream;
 import java.io.Reader;
 
-public abstract class LayoutPullParser implements ILayoutPullParser {
+abstract class LayoutPullParser implements ILayoutPullParser {
   protected int myParsingState = START_DOCUMENT;
 
   @Override

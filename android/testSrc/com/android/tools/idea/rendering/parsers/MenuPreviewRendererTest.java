@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.RenderTaskTestUtil;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.utils.StringHelper;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -45,7 +48,7 @@ public class MenuPreviewRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
-    RenderTask task = RenderTestUtil.createRenderTask(myModule, file);
+    RenderTask task = RenderTaskTestUtil.createRenderTask(myModule, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);

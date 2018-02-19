@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.parsers;
 
-import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.tools.idea.rendering.ActionBarHandler;
+import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
-import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.PsiFile;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
-import static com.android.tools.idea.rendering.LayoutPullParsers.createEmptyParser;
+import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createEmptyParser;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy.
@@ -38,7 +37,7 @@ import static com.android.tools.idea.rendering.LayoutPullParsers.createEmptyPars
  * http://developer.android.com/guide/topics/ui/menus.html
  * http://developer.android.com/guide/topics/resources/menu-resource.html
  */
-public class MenuLayoutParserFactory {
+class MenuLayoutParserFactory {
   @NotNull
   private static final String FRAME_LAYOUT_XML =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -47,30 +46,34 @@ public class MenuLayoutParserFactory {
       "    android:layout_width=\"match_parent\"\n" +
       "    android:layout_height=\"match_parent\" />\n";
 
-  @NotNull
-  private final RenderTask myRenderTask;
-
-  public MenuLayoutParserFactory(@NotNull RenderTask renderTask) {
-    assert renderTask.supportsCapability(Features.ACTION_BAR) : "Action Bar not supported.";
-    myRenderTask = renderTask;
+  private MenuLayoutParserFactory() {
   }
 
+
   @NotNull
-  public ILayoutPullParser render() {
+  public static ILayoutPullParser create(@NotNull PsiFile psiFile, @NotNull LayoutlibCallbackImpl layoutlibCallback) {
     Document frameLayoutDocument = XmlUtils.parseDocumentSilently(FRAME_LAYOUT_XML, true);
     if (frameLayoutDocument == null) {
       return createEmptyParser();
     }
-    XmlFile psiFile = myRenderTask.getPsiFile();
-    if (psiFile == null) {
-      throw new IllegalStateException("RenderTask should have PsiFile to render menu files");
-    }
     String resourceName = ResourceHelper.getResourceName(psiFile);
-    ActionBarHandler actionBarHandler = myRenderTask.getLayoutlibCallback().getActionBarHandler();
+    ActionBarHandler actionBarHandler = layoutlibCallback.getActionBarHandler();
     if (actionBarHandler != null) {
       actionBarHandler.setMenuIdNames(Collections.singletonList(resourceName));
     }
-    Map<Element, Object> viewCookies = new HashMap<>();
-    return new DomPullParser(frameLayoutDocument.getDocumentElement()).setViewCookies(viewCookies);
+    return DomPullParser.createFromDocument(frameLayoutDocument, Collections.emptyMap());
+  }
+
+  @NotNull
+  public static ILayoutPullParser createInNavigationView(@NotNull PsiFile file) {
+    @Language("XML")
+    String xml = "<android.support.design.widget.NavigationView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                 "    android:layout_width=\"wrap_content\"\n" +
+                 "    android:layout_height=\"match_parent\"\n" +
+                 "    app:menu=\"@menu/" + ResourceHelper.getResourceName(file) + "\" />\n";
+
+    Document document = XmlUtils.parseDocumentSilently(xml, true);
+    return document == null ? createEmptyParser() : DomPullParser.createFromDocument(document);
   }
 }
