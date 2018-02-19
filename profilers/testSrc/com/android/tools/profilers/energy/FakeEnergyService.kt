@@ -38,10 +38,10 @@ class FakeEnergyService(val dataList: List<EnergySample> = ArrayList(), val even
     responseObserver.onCompleted()
   }
 
-  override fun getData(request: EnergyRequest, responseObserver: StreamObserver<EnergyDataResponse>) {
+  override fun getSamples(request: EnergyRequest, responseObserver: StreamObserver<EnergySamplesResponse>) {
     val listStream = dataList.stream().filter({d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp })
     val resultList = listStream.collect(Collectors.toList())
-    val response = EnergyDataResponse.newBuilder().addAllSampleData(resultList).build()
+    val response = EnergySamplesResponse.newBuilder().addAllSamples(resultList).build()
     responseObserver.onNext(response)
     responseObserver.onCompleted()
   }
