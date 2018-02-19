@@ -173,7 +173,7 @@ public class CreateDestinationMenu extends NavToolbarMenu {
     TabularLayout layout = new TabularLayout("Fit,20px,*");
     layout.setVGap(3);
     JPanel selectionGrid = new JPanel(layout);
-    selectionGrid.add(new JLabel("Kind"), new TabularLayout.Constraint(0, 0));
+    selectionGrid.add(new JLabel("Type"), new TabularLayout.Constraint(0, 0));
 
     myLabelLabel = new JLabel("Label");
     selectionGrid.add(myLabelLabel, new TabularLayout.Constraint(1, 0));

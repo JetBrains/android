@@ -21,7 +21,7 @@ import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION
 
-const val TYPE_EDITOR_PROPERTY_LABEL = "Kind"
+const val TYPE_EDITOR_PROPERTY_LABEL = "Type"
 
 class NavComponentTypeProperty(components: List<NlComponent>) : SimpleProperty(TYPE_EDITOR_PROPERTY_LABEL, components) {
   override fun getValue(): String {
