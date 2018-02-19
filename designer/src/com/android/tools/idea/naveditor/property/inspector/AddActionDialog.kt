@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDispla
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.util.Computable
 import com.intellij.ui.ListCellRendererWrapper
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
@@ -398,8 +399,8 @@ open class AddActionDialog(
   }
 
   @VisibleForTesting
-  fun writeUpdatedAction() {
-    WriteCommandAction.runWriteCommandAction(null) {
+  fun writeUpdatedAction(): NlComponent {
+    return WriteCommandAction.runWriteCommandAction(null, Computable<NlComponent> {
       val realComponent = existingAction ?: source.createAction()
       realComponent.actionDestinationId = destination?.id
       realComponent.enterAnimation = enterTransition
@@ -409,7 +410,8 @@ open class AddActionDialog(
       realComponent.singleTop = isSingleTop
       realComponent.document = isDocument
       realComponent.clearTask = isClearTask
-    }
+      realComponent
+    })
   }
 
   @VisibleForTesting

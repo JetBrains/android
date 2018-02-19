@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.LerpValue;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -31,10 +30,11 @@ import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -108,24 +108,31 @@ public class ActionHandleTarget extends NavBaseTarget {
     getComponent().setDragging(false);
   }
 
-  public void createAction(@NotNull SceneComponent destination) {
-    NlComponent destinationNlComponent = destination.getNlComponent();
+  /* When true, this causes Scene.mouseRelease to change the selection to the associated SceneComponent.
+  We don't have SceneComponents for actions so we need to return false here and set the selection to the
+  correct NlComponent in Scene.mouseRelease */
+  @Override
+  public boolean canChangeSelection() {
+    return false;
+  }
 
+  @Nullable
+  public NlComponent createAction(@NotNull SceneComponent destination) {
+    if (mIsOver) {
+      return null;
+    }
+
+    NlComponent destinationNlComponent = destination.getNlComponent();
     NavigationSchema schema = NavigationSchema.get(destinationNlComponent.getModel().getFacet());
 
     if (schema.getDestinationType(destinationNlComponent.getTagName()) == null) {
-      return;
+      return null;
     }
 
     NlComponent myNlComponent = getComponent().getNlComponent();
-    NlModel myModel = myNlComponent.getModel();
-
-    new WriteCommandAction(myModel.getProject(), "Create Action", myModel.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) {
-        NlComponent action = NavComponentHelperKt.createAction(myNlComponent, destinationNlComponent.getId());
-      }
-    }.execute();
+    return WriteCommandAction.runWriteCommandAction(myNlComponent.getModel().getProject(),
+                                                    (Computable<NlComponent>)() -> NavComponentHelperKt
+                                                      .createAction(myNlComponent, destinationNlComponent.getId()));
   }
 
   @Override

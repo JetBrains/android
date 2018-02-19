@@ -48,6 +48,8 @@ class NavActionTest : NavTestCase() {
     assertNotNull(globalAction.parent)
     assertNull(globalAction.parent?.id)
     assertEquals(globalAction.actionDestinationId, "fragment1")
+
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(globalAction)))
   }
 
   fun testReturnToSourceAction() {
@@ -71,6 +73,7 @@ class NavActionTest : NavTestCase() {
 
     assertEquals(component.id, returnToSourceAction.popUpTo)
     assertTrue(returnToSourceAction.inclusive)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(returnToSourceAction)))
   }
 
   fun testStartDestinationAction() {
@@ -111,8 +114,8 @@ class NavActionTest : NavTestCase() {
     )
 
     val selfAction = model.find("action")!!
-
     assertTrue(selfAction.isSelfAction)
+    assertTrue(model.surface.selectionModel.selection.equals(listOf(selfAction)))
   }
 
   /**
