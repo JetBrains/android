@@ -150,6 +150,11 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return getOrCreateDependencyCollection().findElement(spec);
   }
 
+  @Nullable
+  public PsModuleAndroidDependency findModuleDependency(@NotNull String modulePath) {
+    return getOrCreateDependencyCollection().findElement(modulePath, PsModuleAndroidDependency.class);
+  }
+
   @NotNull
   private PsAndroidDependencyCollection getOrCreateDependencyCollection() {
     return myDependencyCollection == null ? myDependencyCollection = new PsAndroidDependencyCollection(this) : myDependencyCollection;
