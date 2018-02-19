@@ -90,6 +90,32 @@ public class LayoutTestUtilities {
     }
   }
 
+  public static void moveMouse(InteractionManager manager,
+                               @SwingCoordinate int x1,
+                               @SwingCoordinate int y1,
+                               @SwingCoordinate int x2,
+                               @SwingCoordinate int y2) {
+    Object listener = manager.getListener();
+    assertTrue(listener instanceof MouseMotionListener);
+    MouseMotionListener mouseListener = (MouseMotionListener)listener;
+
+    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    int frames = 5;
+    double x = x1;
+    double y = y1;
+    double xSlope = (x2 - x) / frames;
+    double ySlope = (y2 - y) / frames;
+    for (int i = 0; i < frames + 1; i++) {
+      MouseEvent event = new MouseEventBuilder((int)x, (int)y)
+        .withSource(layeredPane)
+        .withId(MouseEvent.MOUSE_MOVED)
+        .build();
+      mouseListener.mouseMoved(event);
+      x += xSlope;
+      y += ySlope;
+    }
+  }
+
   public static void pressMouse(InteractionManager manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);

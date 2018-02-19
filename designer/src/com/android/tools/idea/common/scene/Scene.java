@@ -42,6 +42,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -813,7 +814,10 @@ public class Scene implements SelectionListener, Disposable {
       SceneComponent closestComponent = myHitListener.getClosestComponent();
       if (closestComponent != null && closestComponent != myRoot) {
         ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
-        actionHandleTarget.createAction(closestComponent);
+        NlComponent action = actionHandleTarget.createAction(closestComponent);
+        if (action != null) {
+          myDesignSurface.getSelectionModel().setSelection(ImmutableList.of(action));
+        }
       }
     }
     boolean canChangeSelection = true;

@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.SdkConstants.*
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
@@ -26,7 +27,7 @@ import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 class NavDeeplinkInspectorProvider :
   NavListInspectorProvider<NavDeeplinkProperty>(NavDeeplinkProperty::class.java, DEEPLINK, "Add Deep Link") {
 
-  override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
+  override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
     assert(parents.size == 1)
 
     val deeplinkDialog = AddDeeplinkDialog(existing)

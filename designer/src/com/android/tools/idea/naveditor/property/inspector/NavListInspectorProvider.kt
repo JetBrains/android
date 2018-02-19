@@ -24,6 +24,7 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorPanel
 import com.android.tools.idea.common.property.inspector.InspectorProvider
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.property.ListProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -76,16 +77,15 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
   protected open fun plusClicked(event: ActionEvent,
                                  parents: List<NlComponent>,
-                                 resourceResolver: ResourceResolver?,
-                                 surface: NavDesignSurface) =
-      addItem(null, parents, resourceResolver)
+                                 surface: NavDesignSurface?) =
+      addItem(null, parents, surface)
 
-  private fun addItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?) {
-    doAddItem(existing, parents, resourceResolver)
+  private fun addItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
+    doAddItem(existing, parents, surface)
     inspector.refresh()
   }
 
-  protected abstract fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, resourceResolver: ResourceResolver?)
+  protected abstract fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, surface : DesignSurface?)
 
   protected abstract fun getTitle(components: List<NlComponent>, surface: NavDesignSurface?): String
 
@@ -146,7 +146,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
         override fun mouseClicked(e: MouseEvent) {
           if (e.clickCount == 2 && list.selectedValuesList.size == 1) {
-            addItem(list.selectedValue.components[0], components, markerProperties[0].resolver)
+            addItem(list.selectedValue.components[0], components, surface)
           }
         }
       })
@@ -167,7 +167,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       val plus = InplaceButton(tooltip, addIcon) {
         @Suppress("UnnecessaryVariable")
         val event = it
-        surface?.let { plusClicked(event, components, markerProperties[0].resolver, it) }
+        surface?.let { plusClicked(event, components, it) }
         refresh()
       }
 
@@ -212,7 +212,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           }
 
           override fun actionPerformed(e: AnActionEvent?) {
-            addItem(items[0], components, markerProperties[0].resolver)
+            addItem(items[0], components, surface)
           }
         })
         actions.add(Separator.getInstance())

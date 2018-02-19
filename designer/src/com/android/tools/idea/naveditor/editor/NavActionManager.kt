@@ -99,7 +99,7 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
 
   private fun createAddActionGroup(component: NlComponent): DefaultActionGroup {
     val group = DefaultActionGroup("Add Action", true)
-    mySurface?.configuration?.resourceResolver?.let { group.add(ToDestinationAction(component, it)) }
+    mySurface?.configuration?.resourceResolver?.let { group.add(ToDestinationAction(mySurface, component, it)) }
     group.add(ToSelfAction(mySurface, component))
     group.add(ReturnToSourceAction(mySurface, component))
     group.add(AddGlobalAction(mySurface, component))

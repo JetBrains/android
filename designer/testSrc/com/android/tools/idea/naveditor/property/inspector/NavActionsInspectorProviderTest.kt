@@ -78,6 +78,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     `when`(navInspectorProviders.providers).thenReturn(listOf(provider))
     `when`(manager.getInspectorProviders(any())).thenReturn(navInspectorProviders)
     `when`(manager.facet).thenReturn(myFacet)
+    `when`(manager.designSurface).thenReturn(model.surface)
 
     val panel = NavInspectorPanel(myRootDisposable)
     val f1 = model.find("f1")
@@ -100,9 +101,11 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     `when`(dialog.source).thenReturn(f2)
     `when`(dialog.showAndGet()).thenReturn(true)
 
-    provider.showAndUpdateFromDialog(dialog)
+    provider.showAndUpdateFromDialog(dialog, manager.designSurface)
 
     assertEquals(1, actionsList.itemsCount)
+    val newAction = model.find("action")!!
+    assertTrue(model.surface.selectionModel.selection.contains(newAction))
   }
 
   fun testPopupContents() {
@@ -213,7 +216,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
 
     val provider = NavActionsInspectorProvider()
     val surface = model.surface as NavDesignSurface
-    val actions = provider.getPopupActions(listOf(model.find("f1")!!), null, surface)
+    val actions = provider.getPopupActions(listOf(model.find("f1")!!), surface)
     assertEquals(4, actions.size)
     assertEquals("Add Action...", actions[0].templatePresentation.text)
     assertEquals("Return to Source...", actions[1].templatePresentation.text)
@@ -221,7 +224,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     assertEquals("Add Global...", actions[3].templatePresentation.text)
 
     `when`(surface.currentNavigation).thenReturn(model.find("subnav"))
-    val rootActions = provider.getPopupActions(listOf(model.find("subnav")!!), null, surface)
+    val rootActions = provider.getPopupActions(listOf(model.find("subnav")!!), surface)
     assertEquals(2, rootActions.size)
     assertEquals("Add Action...", rootActions[0].templatePresentation.text)
     assertEquals("Return to Source...", rootActions[1].templatePresentation.text)
