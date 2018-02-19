@@ -613,7 +613,7 @@ public class RenderTask implements IImageFactory {
         }
 
         if (topParser == null) {
-          topParser = LayoutFilePullParser.create(myLayoutlibCallback, myIncludedWithin.getFromPath());
+          topParser = LayoutFilePullParser.create(myIncludedWithin.getFromPath());
         }
 
         return topParser;
