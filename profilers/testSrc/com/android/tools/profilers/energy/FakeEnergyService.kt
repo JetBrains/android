@@ -47,7 +47,7 @@ class FakeEnergyService(val dataList: List<EnergySample> = ArrayList(), val even
   }
 
   override fun getEvents(request: EnergyRequest, responseObserver: StreamObserver<EnergyProfiler.EnergyEventsResponse>) {
-    val response = EnergyProfiler.EnergyEventsResponse.newBuilder().addAllEvent(eventList).build()
+    val response = EnergyProfiler.EnergyEventsResponse.newBuilder().addAllEvents(eventList).build()
     responseObserver.onNext(response)
     responseObserver.onCompleted()
   }
