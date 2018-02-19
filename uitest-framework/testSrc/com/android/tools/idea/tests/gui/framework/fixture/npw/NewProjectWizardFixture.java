@@ -91,7 +91,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
         return !newOpenProjects.isEmpty();
       });
 
-    GuiTests.waitForProjectImport(robot(), newOpenProjects.get(0));
+    GuiTests.waitForProjectImport(newOpenProjects.get(0));
 
     return myself();
   }
