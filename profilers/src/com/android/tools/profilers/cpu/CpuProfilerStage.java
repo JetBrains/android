@@ -40,8 +40,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -189,6 +188,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private boolean mySelectionFailure;
 
+  /**
+   * Used to navigate across {@link CpuCapture}. The iterator navigates through trace IDs of captures generated in the current session.
+   * It's responsibility of the stage to notify to populate the iterator initially with the trace IDs already created before the stage
+   * creation, and notifying the iterator about newly parsed captures.
+   */
+  @NotNull
+  private final TraceIdsIterator myTraceIdsIterator;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myCpuTraceDataSeries = new CpuTraceDataSeries();
@@ -253,6 +260,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myCaptureModel = new CaptureModel(this);
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
     myCaptureParser = new CpuCaptureParser(getStudioProfilers().getIdeServices());
+    // Populate the iterator with all TraceInfo existing in the current session.
+    myTraceIdsIterator = new TraceIdsIterator(this, getTraceInfoFromRange(new Range(-Double.MAX_VALUE, Double.MAX_VALUE)));
   }
 
   private static Logger getLogger() {
@@ -430,6 +439,50 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return TimeUnit.NANOSECONDS.toMicros(currentTimeNs() - myCaptureStartTimeNs);
   }
 
+  /**
+   * Returns the list of {@link TraceInfo} that intersect with the given range.
+   */
+  private List<TraceInfo> getTraceInfoFromRange(Range rangeUs) {
+    // Converts the range to nanoseconds before calling the service.
+    long rangeMinNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
+    long rangeMaxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
+
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
+    GetTraceInfoResponse response = cpuService.getTraceInfo(
+      GetTraceInfoRequest.newBuilder().
+        setSession(getStudioProfilers().getSession()).
+        setFromTimestamp(rangeMinNs).setToTimestamp(rangeMaxNs).build());
+    return response.getTraceInfoList();
+  }
+
+  @NotNull
+  public TraceIdsIterator getTraceIdsIterator() {
+    return myTraceIdsIterator;
+  }
+
+  /**
+   * Sets and selects the next capture. No-op if there is none.
+   */
+  void navigateNext() {
+    handleCaptureNavigation(myTraceIdsIterator.next());
+  }
+
+  /**
+   * Sets and selects the previous capture. No-op if there is none.
+   */
+  void navigatePrevious() {
+    handleCaptureNavigation(myTraceIdsIterator.previous());
+  }
+
+  private void handleCaptureNavigation(int traceId) {
+    // Sanity check to see if myTraceIdsIterator returned a valid trace. Return early otherwise.
+    if (traceId == TraceIdsIterator.INVALID_TRACE_ID) {
+      return;
+    }
+    // Select the next capture if a valid trace was returned.
+    setAndSelectCapture(traceId);
+  }
+
   private void stopCapturingCallback(CpuProfilingAppStopResponse response) {
     CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerModel.getActiveConfig());
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
@@ -501,6 +554,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         getLogger().warn("Unable to parse capture: " + exception.getMessage(), exception);
       }
       parsingCallback.accept(parsedCapture);
+      // If capture is correctly parsed, notify the iterator.
+      myTraceIdsIterator.addTrace(traceId);
       return parsedCapture;
     }, getStudioProfilers().getIdeServices().getMainExecutor());
   }
@@ -614,6 +669,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax());
   }
 
+  @VisibleForTesting
   void setCapture(@Nullable CpuCapture capture) {
     myCaptureModel.setCapture(capture);
     setProfilerMode(capture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
@@ -835,17 +891,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
     public List<SeriesData<CpuTraceInfo>> getDataForXRange(Range xRange) {
-      long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
-      long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
-
-      CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
-      GetTraceInfoResponse response = cpuService.getTraceInfo(
-        GetTraceInfoRequest.newBuilder().
-          setSession(getStudioProfilers().getSession()).
-          setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
+      List<TraceInfo> traceInfo = getTraceInfoFromRange(xRange);
 
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
-      for (TraceInfo protoTraceInfo : response.getTraceInfoList()) {
+      for (TraceInfo protoTraceInfo : traceInfo) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
         seriesData.add(new SeriesData<>((long)info.getRange().getMin(), info));
       }

@@ -54,7 +54,7 @@ public class AtraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File file) throws IOException {
+  public CpuCapture parse(File file, int traceId) throws IOException {
     AtraceDecompressor reader = new AtraceDecompressor(file);
     ImportTask task = new ImportTask(new PrintlnImportFeedback());
     myModel = task.importBuffer(reader);
@@ -67,7 +67,7 @@ public class AtraceParser implements TraceParser {
     assert myProcessModel != null;
     myCaptureTreeNodes = buildCaptureTreeNodes();
     buildThreadStateData();
-    return new AtraceCpuCapture(this);
+    return new AtraceCpuCapture(this, traceId);
   }
 
   @Override

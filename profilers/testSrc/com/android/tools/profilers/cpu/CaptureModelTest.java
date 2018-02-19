@@ -107,7 +107,7 @@ public class CaptureModelTest {
                                              new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
                                                .put(info, root)
                                                .build(), false);
-    CpuCapture capture = new CpuCapture(parser);
+    CpuCapture capture = new CpuCapture(parser, 200);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);

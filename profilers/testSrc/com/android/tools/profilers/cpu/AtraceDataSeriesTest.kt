@@ -40,8 +40,8 @@ class AtraceDataSeriesTest {
     val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
     myStage = CpuProfilerStage(profilers)
     val parser = AtraceParser(1)
-    val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
-    myStage.capture = capture;
+    val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 2)
+    myStage.capture = capture
   }
 
   @Test

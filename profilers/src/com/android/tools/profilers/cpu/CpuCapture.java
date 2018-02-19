@@ -37,8 +37,14 @@ public class CpuCapture implements ConfigurableDurationData {
   @NotNull
   private final TraceParser myParser;
 
-  public CpuCapture(@NotNull TraceParser parser) {
+  /**
+   * ID of the trace used to generate the capture.
+   */
+  private final int myTraceId;
+
+  public CpuCapture(@NotNull TraceParser parser, int traceId) {
     myParser = parser;
+    myTraceId = traceId;
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
@@ -102,6 +108,10 @@ public class CpuCapture implements ConfigurableDurationData {
   @Override
   public boolean getSelectableWhenMaxDuration() {
     return false;
+  }
+
+  public int getTraceId() {
+    return myTraceId;
   }
 
   @Override

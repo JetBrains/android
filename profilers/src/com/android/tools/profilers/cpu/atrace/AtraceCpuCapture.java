@@ -22,14 +22,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class AtraceCpuCapture extends CpuCapture {
 
   private final AtraceParser myParser;
 
-  public AtraceCpuCapture(AtraceParser parser) {
-    super(parser);
+  public AtraceCpuCapture(AtraceParser parser, int traceId) {
+    super(parser, traceId);
     myParser = parser;
   }
 

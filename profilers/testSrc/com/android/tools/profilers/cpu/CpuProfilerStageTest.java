@@ -1010,6 +1010,65 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void captureNavigationChangesCaptureSelection() {
+    int traceId1 = 1;
+    int traceId2 = 2;
+
+    myCpuService.setTraceId(traceId1);
+    captureSuccessfully();
+    CpuCapture capture1 = myStage.getCapture();
+
+    myCpuService.setTraceId(traceId2);
+    captureSuccessfully();
+    CpuCapture capture2 = myStage.getCapture();
+
+    // Sanity check to show we have different captures.
+    assertThat(capture1).isNotEqualTo(capture2);
+
+    myStage.setCapture(null);
+
+    // We have 2 captures where we can navigate to. When nothing is selected, we should be able to navigate to the first one.
+    assertThat(myStage.getTraceIdsIterator().hasNext()).isTrue();
+    myStage.navigateNext();
+    assertThat(myStage.getCapture()).isEqualTo(capture1);
+    // Now we can still navigate to the second capture.
+    assertThat(myStage.getTraceIdsIterator().hasNext()).isTrue();
+    myStage.navigateNext();
+    assertThat(myStage.getCapture()).isEqualTo(capture2);
+    // We're already selecting the last capture and can't navigate next
+    assertThat(myStage.getTraceIdsIterator().hasNext()).isFalse();
+
+    myStage.setCapture(null);
+
+    // We have 2 captures where we can navigate to. When nothing is selected, we should be able to navigate to the last one.
+    assertThat(myStage.getTraceIdsIterator().hasPrevious()).isTrue();
+    myStage.navigatePrevious();
+    assertThat(myStage.getCapture()).isEqualTo(capture2);
+    // Now we can still navigate to the first capture.
+    assertThat(myStage.getTraceIdsIterator().hasPrevious()).isTrue();
+    myStage.navigatePrevious();
+    assertThat(myStage.getCapture()).isEqualTo(capture1);
+    // We're already selecting the first capture and can't navigate previous
+    assertThat(myStage.getTraceIdsIterator().hasPrevious()).isFalse();
+  }
+
+  @Test
+  public void captureNavigationEnabledInSessionsWithTraces() {
+    // There are no traces/captures in the current session. We can't navigate anywhere.
+    assertThat(myStage.getTraceIdsIterator().hasNext()).isFalse();
+    assertThat(myStage.getTraceIdsIterator().hasPrevious()).isFalse();
+
+    // Add a trace to the session
+    myCpuService.addTraceInfo(CpuProfiler.TraceInfo.getDefaultInstance());
+    myStage = new CpuProfilerStage(myStage.getStudioProfilers());
+
+    // Verify we can now navigate. Note we didn't have to parse any captures. The model should fetch all the trace info when it's created.
+    assertThat(myStage.getTraceIdsIterator().hasNext()).isTrue();
+    assertThat(myStage.getTraceIdsIterator().hasPrevious()).isTrue();
+  }
+
+
+  @Test
   public void testHasUserUsedCapture() {
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedCpuCapture()).isFalse();

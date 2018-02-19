@@ -22,7 +22,6 @@ import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -43,8 +42,8 @@ public class FakeTraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File file) {
-    return new CpuCapture(this);
+  public CpuCapture parse(File file, int traceId) {
+    return new CpuCapture(this, traceId);
   }
 
   @Override

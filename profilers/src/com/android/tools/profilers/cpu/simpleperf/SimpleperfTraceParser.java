@@ -147,10 +147,10 @@ public class SimpleperfTraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File trace) throws IOException {
+  public CpuCapture parse(File trace, int traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new CpuCapture(this);
+    return new CpuCapture(this, traceId);
   }
 
   @Override

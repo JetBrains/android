@@ -167,5 +167,7 @@ class CpuCaptureParserTest {
     val nonExistentThreadId = -1
     assertThat(capture.containsThread(nonExistentThreadId)).isFalse()
     assertThat(capture.getCaptureNode(nonExistentThreadId)).isNull()
+
+    assertThat(capture.traceId).isEqualTo(ANY_TRACE_ID)
   }
 }
