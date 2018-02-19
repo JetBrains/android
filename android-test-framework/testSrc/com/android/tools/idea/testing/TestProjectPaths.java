@@ -47,6 +47,7 @@ public final class TestProjectPaths {
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_DATA_BINDING = "projects/projectWithDataBinding";
   public static final String PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB = "projects/projectWithDataBindingAndSimpleLib";
+  public static final String PSD_DEPENDENCY = "projects/psdDependency";
   public static final String PSD_SAMPLE = "projects/psdSample";
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
   public static final String PURE_JAVA_PROJECT = "projects/pureJavaProject";

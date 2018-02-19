@@ -20,7 +20,6 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +49,11 @@ public class AndroidGradleTests {
 
   public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
     doUpdateGradleVersions(folderRootPath, getLocalRepositories(), null);
+  }
+
+  public static void updateGradleVersions(@NotNull File path, @NotNull String repositories, @Nullable String gradlePluginVersion)
+    throws IOException {
+    doUpdateGradleVersions(path, repositories, gradlePluginVersion);
   }
 
   private static void doUpdateGradleVersions(@NotNull File path, @NotNull String localRepositories, @Nullable String gradlePluginVersion)
