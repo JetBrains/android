@@ -38,7 +38,6 @@ import javax.swing.*;
 import java.io.File;
 import java.util.EventListener;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 

@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.parser.java.ParserTestUtilKt;
 
 import java.util.List;
 
@@ -200,10 +199,10 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertEquals("signingConfig", "myReleaseKey", signingConfig.keyAlias());
     assertEquals("signingConfig", new SigningConfigPassword(PLAIN_TEXT, "releaseKeyPassword"), signingConfig.keyPassword());
 
-    signingConfig.setStoreFile("debug.keystore");
+    signingConfig.storeFile().setValue("debug.keystore");
     signingConfig.setStorePassword(PLAIN_TEXT, "debug_password");
-    signingConfig.setStoreType("debug_type");
-    signingConfig.setKeyAlias("myDebugKey");
+    signingConfig.storeType().setValue("debug_type");
+    signingConfig.keyAlias().setValue("myDebugKey");
     signingConfig.setKeyPassword(PLAIN_TEXT, "debugKeyPassword");
 
     applyChanges(buildModel);
@@ -261,10 +260,10 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertEquals("signingConfig", "myReleaseKey", signingConfig.keyAlias());
     assertEquals("signingConfig", new SigningConfigPassword(PLAIN_TEXT, "releaseKeyPassword"), signingConfig.keyPassword());
 
-    signingConfig.removeKeyAlias();
+    signingConfig.keyAlias().delete();
     signingConfig.removeKeyPassword();
-    signingConfig.removeStoreType();
-    signingConfig.removeStoreFile();
+    signingConfig.storeType().delete();
+    signingConfig.storeFile().delete();
     signingConfig.removeStorePassword();
 
     applyChanges(buildModel);
@@ -274,10 +273,10 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     signingConfig = signingConfigs.get(0);
 
-    assertNull(signingConfig.storeFile());
+    assertMissingProperty(signingConfig.storeFile());
     assertNull(signingConfig.storePassword());
-    assertNull(signingConfig.storeType());
-    assertNull(signingConfig.keyAlias());
+    assertMissingProperty(signingConfig.storeType());
+    assertMissingProperty(signingConfig.keyAlias());
     assertNull(signingConfig.keyPassword());
 
     buildModel.reparse();
@@ -304,15 +303,15 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     SigningConfigModel signingConfig = signingConfigs.get(0);
 
-    assertNull(signingConfig.storeFile());
+    assertMissingProperty(signingConfig.storeFile());
     assertNull(signingConfig.storePassword());
-    assertNull(signingConfig.keyAlias());
+    assertMissingProperty(signingConfig.keyAlias());
     assertNull(signingConfig.keyPassword());
 
-    signingConfig.setStoreFile("release.keystore");
+    signingConfig.storeFile().setValue("release.keystore");
     signingConfig.setStorePassword(PLAIN_TEXT, "password");
-    signingConfig.setStoreType("type");
-    signingConfig.setKeyAlias("myReleaseKey");
+    signingConfig.storeType().setValue("type");
+    signingConfig.keyAlias().setValue("myReleaseKey");
     signingConfig.setKeyPassword(PLAIN_TEXT, "releaseKeyPassword");
 
     applyChanges(buildModel);

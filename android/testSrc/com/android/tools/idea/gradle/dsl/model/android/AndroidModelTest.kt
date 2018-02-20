@@ -948,7 +948,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(1)
     var signingConfig = signingConfigs[0]
-    signingConfig.setKeyAlias("myKeyAlias")
+    signingConfig.keyAlias().setValue("myKeyAlias")
 
     signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(1)

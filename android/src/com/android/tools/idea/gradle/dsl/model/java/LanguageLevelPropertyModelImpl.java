@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
@@ -29,13 +30,8 @@ import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.conve
 import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString;
 
 public class LanguageLevelPropertyModelImpl extends ResolvedPropertyModelImpl implements LanguageLevelPropertyModel {
-  public LanguageLevelPropertyModelImpl(@NotNull GradleDslElement element) {
-    super(element);
-  }
-
-  // Used to create an empty property with no backing element.
-  public LanguageLevelPropertyModelImpl(@NotNull GradleDslElement element, @NotNull PropertyType type, @NotNull String name) {
-    super(new GradlePropertyModelImpl(element, type, name));
+  public LanguageLevelPropertyModelImpl(@NotNull GradlePropertyModel realModel) {
+    super(realModel);
   }
 
   @Override
