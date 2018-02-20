@@ -664,13 +664,19 @@ public final class GuiTests {
   }
 
   public static void waitForProjectImport(@NotNull Robot robot, @NotNull Project project) {
+    waitForProjectImport(robot, project, null);
+  }
+
+  public static void waitForProjectImport(@NotNull Robot robot,
+                                          @NotNull Project project,
+                                          @Nullable Wait wait) {
     AtomicBoolean isProjectOpen = new AtomicBoolean();
     DumbService.getInstance(project).smartInvokeLater(() -> isProjectOpen.set(true));
 
     Wait.seconds(90).expecting("Project import to finish")
       .until(isProjectOpen::get);
 
-    waitForBackgroundTasks(robot);
+    waitForBackgroundTasks(robot, wait);
   }
 
   /**

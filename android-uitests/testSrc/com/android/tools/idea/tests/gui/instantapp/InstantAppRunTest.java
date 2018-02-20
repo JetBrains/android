@@ -181,7 +181,8 @@ public class InstantAppRunTest {
   @Test
   @RunIn(TestGroup.QA)
   public void runFromCmdLine() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
+    IdeFrameFixture ideFrame = guiTest.importProject("TopekaInstantApp", null, Wait.seconds(150));
+    guiTest.testSystem().waitForProjectSyncToFinish(ideFrame);
 
     emulator.createAVD(
       ideFrame.invokeAvdManager(),
