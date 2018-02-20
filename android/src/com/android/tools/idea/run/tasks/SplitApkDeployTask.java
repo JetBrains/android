@@ -17,13 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
-import com.android.tools.ir.client.InstantRunArtifact;
-import com.android.tools.ir.client.InstantRunArtifactType;
-import com.android.tools.ir.client.InstantRunBuildInfo;
-import com.android.tools.idea.fd.DeployType;
-import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.InstallResult;
 import com.android.tools.idea.run.RetryingInstaller;
@@ -45,16 +39,16 @@ public class SplitApkDeployTask implements LaunchTask {
   @NotNull
   private final Project myProject;
   @NotNull
-  private final InstantRunContext myInstantRunContext;
+  private final SplitApkDeployTaskContext myContext;
   private final boolean myDontKill;
 
-  public SplitApkDeployTask(@NotNull Project project, @NotNull InstantRunContext context) {
+  public SplitApkDeployTask(@NotNull Project project, @NotNull SplitApkDeployTaskContext context) {
     this(project, context, false);
   }
 
-  public SplitApkDeployTask(@NotNull Project project, @NotNull InstantRunContext context, boolean dontKill) {
+  public SplitApkDeployTask(@NotNull Project project, @NotNull SplitApkDeployTaskContext context, boolean dontKill) {
     myProject = project;
-    myInstantRunContext = context;
+    myContext = context;
     myDontKill = dontKill;
   }
 
@@ -71,10 +65,8 @@ public class SplitApkDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    InstantRunBuildInfo buildInfo = myInstantRunContext.getInstantRunBuildInfo();
-    assert buildInfo != null;
-
-    List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
+    // TODO: should we pass in pm install options?
+    List<String> installOptions = Lists.newArrayList();
     installOptions.add("-t");
 
     // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user interaction/display.
@@ -84,35 +76,26 @@ public class SplitApkDeployTask implements LaunchTask {
       installOptions.add("-g");
     }
 
-    if (buildInfo.isPatchBuild()) {
+    if (myContext.isPatchBuild()) {
       installOptions.add("-p"); // partial install
-      installOptions.add(myInstantRunContext.getApplicationId());
+      installOptions.add(myContext.getApplicationId());
     }
 
     if (myDontKill) {
       installOptions.add("--dont-kill");
     }
 
-    List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
-    List<File> apks = Lists.newArrayListWithExpectedSize(artifacts.size());
-    for (InstantRunArtifact artifact : artifacts) {
-      if (artifact.type == InstantRunArtifactType.SPLIT_MAIN || artifact.type == InstantRunArtifactType.SPLIT) {
-        apks.add(artifact.file);
-      }
-    }
-
+    List<File> apks = myContext.getArtifacts();
     RetryingInstaller.Installer installer = new SplitApkInstaller(printer, apks, installOptions);
 
     RetryingInstaller retryingInstaller =
-      new RetryingInstaller(myProject, device, installer, myInstantRunContext.getApplicationId(), printer, launchStatus);
+      new RetryingInstaller(myProject, device, installer, myContext.getApplicationId(), printer, launchStatus);
     boolean status = retryingInstaller.install();
     if (status) {
       printer.stdout("Split APKs installed");
     }
 
-    assert myInstantRunContext.getBuildSelection() != null;
-    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext, device);
-
+    myContext.notifyInstall(myProject, device, status);
     return status;
   }
 
