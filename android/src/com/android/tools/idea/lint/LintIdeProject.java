@@ -156,6 +156,10 @@ public class LintIdeProject extends Project {
   /** Find an Android module that depends on this module; prefer app modules over library modules */
   @Nullable
   private static Module findAndroidModule(@NonNull final Module module) {
+    if (module.isDisposed()) {
+      return null;
+    }
+
     // Search for dependencies of this module
     Graph<Module> graph = ApplicationManager.getApplication().runReadAction((Computable<Graph<Module>>)() -> {
       com.intellij.openapi.project.Project project = module.getProject();
