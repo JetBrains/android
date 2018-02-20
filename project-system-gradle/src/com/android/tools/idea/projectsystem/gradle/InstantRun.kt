@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.tools.idea.fd.InstantRunConfigurable
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -43,7 +44,7 @@ fun getInstantRunCapabilityStatus(module: Module): CapabilityStatus {
 /** Update versions relevant for Instant Run. Returns true if an upgrade was performed successfully. */
 fun updateProjectToInstantRunTools(project: Project): Boolean {
   var pluginVersion = InstantRunGradleUtils.MINIMUM_GRADLE_PLUGIN_VERSION
-  val pluginMinRecommendedVersion = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION)
+  val pluginMinRecommendedVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.latestKnownVersion)
   val gradleLatestVersion = GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
   // Pick max version of "recommended Gradle plugin" and "minimum required for instant run"
   if (pluginMinRecommendedVersion > pluginVersion) {
