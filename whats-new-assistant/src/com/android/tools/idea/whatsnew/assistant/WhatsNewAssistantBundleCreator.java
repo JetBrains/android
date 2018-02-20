@@ -16,10 +16,13 @@
 package com.android.tools.idea.whatsnew.assistant;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.repository.Revision;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,11 +51,16 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
   @Nullable
   @Override
   public URL getConfig() {
-    return getClass().getResource( "/" + StudioHelpManagerImpl.getVersion() + ".xml");
+    return getClass().getResource("/" + getVersion() + ".xml");
+  }
+
+  private static String getVersion() {
+    Revision revision = Revision.parseRevision(ApplicationInfo.getInstance().getStrictVersion());
+    return revision.toShortString();
   }
 
   public static boolean isAssistantEnabled() {
-    if (!StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.get()) return false;
+    if (!StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.get() || !IdeInfo.getInstance().isAndroidStudio()) return false;
 
     Optional<AssistantBundleCreator> creator = getCreator();
     try {
