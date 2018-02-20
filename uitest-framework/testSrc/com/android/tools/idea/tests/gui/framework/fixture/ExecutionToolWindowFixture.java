@@ -80,13 +80,25 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
      * Note: This method may not terminate if the console view cannot be found.
      */
     public void waitForOutput(@NotNull final TextMatcher matcher, long secondsToWait) {
-      Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(() -> outputMatches(matcher));
+      Wait.seconds(secondsToWait).
+        expecting("LogCat tool window output check for package name")
+        .until(() -> outputMatches(matcher));
     }
 
     public boolean outputMatches(@NotNull TextMatcher matcher) {
-      return matcher.isMatching(getOutput());
+      String output = pollOutput();
+      if (output == null) {
+        return false;
+      }
+      return matcher.isMatching(output);
     }
 
+    /**
+     * Don't use this method. It does a spin wait for a condition, which may
+     * never happen. This can cause the test to block indefinitely until the
+     * test thread gets interrupted.
+     */
+    @Deprecated
     @NotNull
     public String getOutput() {
       ConsoleViewImpl consoleView;
@@ -95,6 +107,18 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
         JComponent consoleComponent = getTabComponent("Console");
         myRobot.click(consoleComponent);
       }
+      return consoleView.getEditor().getDocument().getText();
+    }
+
+    @Nullable
+    private String pollOutput() {
+      ConsoleViewImpl consoleView = findVisibleConsoleView();
+      if (consoleView == null) {
+        JComponent consoleComponent = getTabComponent("Console");
+        myRobot.click(consoleComponent);
+        return null;
+      }
+
       return consoleView.getEditor().getDocument().getText();
     }
 
