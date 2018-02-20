@@ -16,17 +16,14 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IotInstallChecker;
 import com.android.tools.idea.fd.BuildSelection;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.intellij.openapi.project.Project;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -37,14 +34,13 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.fd.BuildCause.APP_NOT_INSTALLED;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 public class SplitApkDeployTaskTest {
-  private final String PACKAGE_NAME = "com.somepackage";
+  private static final String PACKAGE_NAME = "com.somepackage";
   @Mock private Project myProject;
   @Mock private InstantRunContext myContext;
   @Mock private InstantRunBuildInfo myBuildInfo;
@@ -54,7 +50,7 @@ public class SplitApkDeployTaskTest {
   @Mock ConsolePrinter myPrinter;
 
   @Before
-  public void initMocks() throws Exception {
+  public void initMocks() {
     MockitoAnnotations.initMocks(this);
     when(myEmbeddedDevice.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true);
     when(myContext.getInstantRunBuildInfo()).thenReturn(myBuildInfo);
@@ -69,6 +65,7 @@ public class SplitApkDeployTaskTest {
       @Override
       public Void answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
+        //noinspection unchecked
         List<String> installOptions = (List<String>)args[2];
         assertThat(installOptions).containsExactly("-t", "-g");
         return null;
@@ -76,7 +73,8 @@ public class SplitApkDeployTaskTest {
     }).when(myEmbeddedDevice).installPackages(anyList(), anyBoolean(), anyList(), anyLong(), any(TimeUnit.class));
     try {
       assertTrue(task.perform(myEmbeddedDevice, myLaunchStatus, myPrinter));
-    } catch(Exception e) {
+    }
+    catch (Exception e) {
       // Expected because we did not mock InstantRunStatsService.
     }
   }
@@ -88,6 +86,7 @@ public class SplitApkDeployTaskTest {
       @Override
       public Void answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
+        //noinspection unchecked
         List<String> installOptions = (List<String>)args[2];
         assertThat(installOptions).containsExactly("-t");
         return null;
@@ -95,9 +94,9 @@ public class SplitApkDeployTaskTest {
     }).when(myDevice).installPackages(anyList(), anyBoolean(), anyList(), anyLong(), any(TimeUnit.class));
     try {
       assertTrue(task.perform(myDevice, myLaunchStatus, myPrinter));
-    } catch(Exception e) {
+    }
+    catch (Exception e) {
       // Expected because we did not mock InstantRunStatsService.
     }
   }
-
 }
