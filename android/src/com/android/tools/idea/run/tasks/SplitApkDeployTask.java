@@ -37,21 +37,22 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class SplitApkDeployTask implements LaunchTask {
 
   private static final Pattern DEVICE_NOT_FOUND_ERROR = Pattern.compile("device '.*' not found");
 
+  @NotNull
   private final Project myProject;
+  @NotNull
   private final InstantRunContext myInstantRunContext;
   private final boolean myDontKill;
 
-  public SplitApkDeployTask(Project project, InstantRunContext context) {
+  public SplitApkDeployTask(@NotNull Project project, @NotNull InstantRunContext context) {
     this(project, context, false);
   }
 
-  public SplitApkDeployTask(Project project, InstantRunContext context, boolean dontKill) {
+  public SplitApkDeployTask(@NotNull Project project, @NotNull InstantRunContext context, boolean dontKill) {
     myProject = project;
     myInstantRunContext = context;
     myDontKill = dontKill;
