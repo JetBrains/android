@@ -664,12 +664,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
       myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range, RoundedSegmentInterpolator);
       myGcDurationLegend =
-        new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT.getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDuration(), true));
+        new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT
+          .getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDuration(), true));
 
       List<Legend> legends = isTooltip ? Arrays.asList(myTotalLegend, myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
                                                        myNativeLegend, myJavaLegend, myObjectsLegend, myGcDurationLegend)
                                        : Arrays.asList(myTotalLegend, myJavaLegend, myNativeLegend,
-                                                       myGraphicsLegend, myStackLegend, myCodeLegend, myObjectsLegend, myOtherLegend);
+                                                       myGraphicsLegend, myStackLegend, myCodeLegend, myOtherLegend, myObjectsLegend);
       legends.forEach(this::add);
     }
 

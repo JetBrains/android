@@ -546,22 +546,18 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testTooltipLegendsOrder() {
-    long time = TimeUnit.MICROSECONDS.toNanos(2);
-    MemoryData memoryData = MemoryData.newBuilder()
-      .setEndTimestamp(time)
-      .addMemSamples(MemoryData.MemorySample.newBuilder()
-                       .setTimestamp(time)
-                       .setJavaMem(10)
-                       .setNativeMem(20)
-                       .setGraphicsMem(30)
-                       .setStackMem(40)
-                       .setCodeMem(50)
-                       .setOthersMem(60)).build();
-    myService.setMemoryData(memoryData);
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
-    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
+  public void testLegendsOrder() {
+    MemoryProfilerStage.MemoryStageLegends legends = myStage.getLegends();
+    List<String> legendNames = legends.getLegends().stream()
+      .map(legend -> legend.getName())
+      .collect(Collectors.toList());
+    assertThat(legendNames).containsExactly("Total", "Java", "Native", "Graphics", "Stack", "Code", "Others", "Allocated")
+      .inOrder();
+  }
 
+  @Test
+  public void testTooltipLegendsOrder() {
+    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
     List<String> legendNames = legends.getLegends().stream()
       .map(legend -> legend.getName())
       .collect(Collectors.toList());
