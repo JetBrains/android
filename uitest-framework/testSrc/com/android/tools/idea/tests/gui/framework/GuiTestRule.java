@@ -35,6 +35,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Wait;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -301,9 +302,15 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName, @Nullable String buildFilePath) throws IOException {
+    return importProject(projectDirName, buildFilePath, null);
+  }
+
+  public IdeFrameFixture importProject(@NotNull String projectDirName,
+                                       @Nullable String buildFilePath,
+                                       @Nullable Wait wait) throws IOException {
     File testProjectDir = setUpProject(projectDirName);
     testSystem().importProject(testProjectDir, robot(), buildFilePath);
-    GuiTests.waitForProjectImport(robot(), ideFrame().getProject());
+    GuiTests.waitForProjectImport(robot(), ideFrame().getProject(), wait);
     return ideFrame();
   }
 
