@@ -118,7 +118,7 @@ public class InstantRunBuildAnalyzer {
         ImmutableList.Builder<LaunchTask> taskBuilder = new ImmutableList.Builder<>();
         // Deploy resources APK(s) for O and above
         if (myBuildInfo.hasOneOf(SPLIT)) {
-          taskBuilder.add(new SplitApkDeployTask(myProject, myContext, true));
+          taskBuilder.add(new SplitApkDeployTask(myProject, new SplitApkDeployTaskInstantRunContext(myContext), true));
           taskBuilder.add(new UpdateAppInfoTask(myProject, myContext));
         }
         // Deploy Code and Resources changes below O
@@ -127,7 +127,7 @@ public class InstantRunBuildAnalyzer {
         }
         return taskBuilder.add(updateStateTask).build();
       case SPLITAPK:
-        tasks.add(new SplitApkDeployTask(myProject, myContext));
+        tasks.add(new SplitApkDeployTask(myProject, new SplitApkDeployTaskInstantRunContext(myContext)));
         tasks.add(updateStateTask);
         return ImmutableList.copyOf(tasks);
       case FULLAPK:
