@@ -100,8 +100,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * store the element.
    */
   private ElementState removePropertyInternal(@NotNull GradleDslElement element) {
-    if (myProperties.containsKey(element.getName())) {
-      return myProperties.get(element.getName()).remove(element);
+    // Note: The name of the element is not guaranteed to be the same as the key in the map.
+    // In order to address this we must search through all of the elements.
+    for (Map.Entry<String, ElementList> e : myProperties.entrySet()) {
+      ElementState oldState = e.getValue().remove(element);
+      if (oldState !=  null) {
+        return oldState;
+      }
     }
     return null;
   }
@@ -587,7 +592,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
     @Nullable
     private ElementState remove(@NotNull GradleDslElement element) {
-      ElementItem item = myElements.stream().filter(e -> element == e.myElement).findFirst().orElseGet(null);
+      ElementItem item = myElements.stream().filter(e -> element == e.myElement).findFirst().orElse(null);
       if (item == null) {
         return null;
       }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword.Type;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -25,13 +27,7 @@ public interface SigningConfigModel {
   String name();
 
   @NotNull
-  GradleNullableValue<String> storeFile();
-
-  @NotNull
-  SigningConfigModel setStoreFile(@NotNull String storeFile);
-
-  @NotNull
-  SigningConfigModel removeStoreFile();
+  ResolvedPropertyModel storeFile();
 
   @NotNull
   GradleNullableValue<SigningConfigPassword> storePassword();
@@ -43,22 +39,10 @@ public interface SigningConfigModel {
   SigningConfigModel removeStorePassword();
 
   @NotNull
-  GradleNullableValue<String> storeType();
+  ResolvedPropertyModel storeType();
 
   @NotNull
-  SigningConfigModel setStoreType(@NotNull String storeType);
-
-  @NotNull
-  SigningConfigModel removeStoreType();
-
-  @NotNull
-  GradleNullableValue<String> keyAlias();
-
-  @NotNull
-  SigningConfigModel setKeyAlias(@NotNull String keyAlias);
-
-  @NotNull
-  SigningConfigModel removeKeyAlias();
+  ResolvedPropertyModel keyAlias();
 
   @NotNull
   GradleNullableValue<SigningConfigPassword> keyPassword();

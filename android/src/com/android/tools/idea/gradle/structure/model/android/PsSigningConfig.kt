@@ -21,10 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.parseFile
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
-import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
-import com.android.tools.idea.gradle.structure.model.meta.dsl
-import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.meta.*
 import java.io.File
 
 class PsSigningConfig(
@@ -63,11 +60,11 @@ class PsSigningConfig(
     val storeFile: ModelSimpleProperty<PsSigningConfig, File> = property(
         "Store File",
         getResolvedValue = { storeFile },
-        getParsedValue = { File(storeFile().value()) },
-        getParsedRawValue = { storeFile().dsl() },
+        getParsedValue = { File(storeFile().asString()) },
+        getParsedRawValue = { storeFile().dslText() },
         // TODO: Store project relative path if possible.
-        setParsedValue = { setStoreFile(it.absolutePath) },
-        clearParsedValue = { removeStoreFile() },
+        setParsedValue = { storeFile().setValue(it.absolutePath) },
+        clearParsedValue = { storeFile().delete() },
         parse = { parseFile(it) }
     )
     val storePassword: ModelSimpleProperty<PsSigningConfig, String> = property(
@@ -84,19 +81,19 @@ class PsSigningConfig(
         "Store Type",
         getResolvedValue = { storeType },
         // TODO: Properly handle other password types.
-        getParsedValue = { storeType().value() },
-        getParsedRawValue = { storeType().dsl() },
-        setParsedValue = { setStoreType(it) },
-        clearParsedValue = { removeStoreType() },
+        getParsedValue = { storeType().asString() },
+        getParsedRawValue = { storeType().dslText() },
+        setParsedValue = { storeType().setValue(it) },
+        clearParsedValue = { storeType().delete() },
         parse = { parseString(it) }
     )
     val keyAlias: ModelSimpleProperty<PsSigningConfig, String> = property(
         "Key Alias",
         getResolvedValue = { keyAlias },
-        getParsedValue = { keyAlias().value() },
-        getParsedRawValue = { keyAlias().dsl() },
-        setParsedValue = { setKeyAlias(it) },
-        clearParsedValue = { removeKeyAlias() },
+        getParsedValue = { keyAlias().asString() },
+        getParsedRawValue = { keyAlias().dslText() },
+        setParsedValue = { storeType().setValue(it) },
+        clearParsedValue = { storeType().delete() },
         parse = { parseString(it) }
     )
     val keyPassword: ModelSimpleProperty<PsSigningConfig, String> = property(

@@ -17,8 +17,12 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword.Type;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyTransform.ElementBindingFunction;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
@@ -29,16 +33,68 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword.Type.*;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyTransform.ElementTransform;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyTransform.TransformCondition;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 
 public class SigningConfigModelImpl extends GradleDslBlockModel implements SigningConfigModel {
   @NonNls private static final String SYSTEM_GETENV = "System.getenv";
   @NonNls private static final String SYSTEM_CONSOLE_READ_LINE = "System.console().readLine";
 
   @NonNls private static final String STORE_FILE = "storeFile";
+  @NonNls private static final String STORE_FILE_METHOD = "file";
   @NonNls private static final String STORE_PASSWORD = "storePassword";
   @NonNls private static final String STORE_TYPE = "storeType";
   @NonNls private static final String KEY_ALIAS = "keyAlias";
   @NonNls private static final String KEY_PASSWORD = "keyPassword";
+
+  @NotNull
+  private static final TransformCondition STORE_FILE_COND = e -> e == null || e instanceof GradleDslMethodCall;
+
+  @NotNull
+  private static final ElementTransform STORE_FILE_ELEMENT_TRANSFORM = e -> {
+    if (STORE_FILE_COND.test(e)) {
+      GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
+      if (methodCall.getArguments().isEmpty()) {
+        return null;
+      }
+      GradleDslElement arg = methodCall.getArguments().get(0);
+      if (arg instanceof GradleDslExpression) {
+        return (GradleDslExpression)arg;
+      }
+      return null;
+    }
+    else {
+      return defaultElementTransform.transform(e);
+    }
+  };
+
+  @NotNull
+  private static final ElementBindingFunction STORE_FILE_BINDING = (holder, oldElement, value, name) -> {
+    if (oldElement == null) {
+      // No element currently exists.
+      GradleDslMethodCall methodCall = new GradleDslMethodCall(holder, GradleNameElement.create(STORE_FILE_METHOD), name);
+      GradleDslExpression literal = createOrReplaceBasicExpression(methodCall, null, value, "");
+      methodCall.addNewArgument(literal);
+      return methodCall;
+    }
+    else {
+      // Replace the argument.
+      GradleDslMethodCall methodCall = (GradleDslMethodCall)oldElement;
+      GradleDslElement element = STORE_FILE_ELEMENT_TRANSFORM.transform(methodCall);
+      GradleDslExpression expression = createOrReplaceBasicExpression(methodCall, element, value, "");
+      if (element != expression) {
+        // We needed to create a new element, replace the old one.
+        methodCall.remove(element);
+        methodCall.addNewArgument(expression);
+      }
+      return methodCall;
+    }
+  };
+
+  @NotNull private static final PropertyTransform STORE_FILE_TRANSFORM =
+    new PropertyTransform(STORE_FILE_COND, STORE_FILE_ELEMENT_TRANSFORM, STORE_FILE_BINDING);
+
 
   public SigningConfigModelImpl(@NotNull SigningConfigDslElement dslElement) {
     super(dslElement);
@@ -53,51 +109,9 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
 
   @Override
   @NotNull
-  public GradleNullableValue<String> storeFile() {
-    GradleDslExpression expression = getStoreFileExpression();
-    if (expression == null) {
-      return new GradleNullableValueImpl<>(myDslElement, null);
-    }
-    return new GradleNullableValueImpl<>(expression, expression.getValue(String.class));
-  }
-
-  @Override
-  @NotNull
-  public SigningConfigModel setStoreFile(@NotNull String storeFile) {
-    if (myDslElement.getPropertyElement(STORE_FILE) == null) {
-      GradleDslMethodCall methodCall = new GradleDslMethodCall(myDslElement, GradleNameElement.create("file"), STORE_FILE);
-      GradleDslLiteral literal = new GradleDslLiteral(methodCall, GradleNameElement.fake(""));
-      literal.setValue(storeFile);
-      methodCall.addNewArgument(literal);
-      myDslElement.setNewElement(STORE_FILE, methodCall);
-    }
-    else {
-      GradleDslExpression expression = getStoreFileExpression();
-      if (expression != null) {
-        expression.setValue(storeFile);
-      }
-    }
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public SigningConfigModel removeStoreFile() {
-    myDslElement.removeProperty(STORE_FILE);
-    return this;
-  }
-
-  @Nullable
-  private GradleDslExpression getStoreFileExpression() {
-    GradleDslMethodCall methodCall = myDslElement.getPropertyElement(STORE_FILE, GradleDslMethodCall.class);
-    if (methodCall == null || methodCall.getArguments().isEmpty()) {
-      return null;
-    }
-    GradleDslElement argument = methodCall.getArguments().get(0);
-    if (argument instanceof GradleDslExpression) {
-      return (GradleDslExpression)argument;
-    }
-    return null;
+  public ResolvedPropertyModel storeFile() {
+    return GradlePropertyModelBuilder.create(myDslElement, STORE_FILE).asMethod(true)
+      .addTransform(STORE_FILE_TRANSFORM).buildResolved();
   }
 
   @Override
@@ -122,42 +136,14 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
 
   @Override
   @NotNull
-  public GradleNullableValue<String> storeType() {
-    return myDslElement.getLiteralProperty(STORE_TYPE, String.class);
+  public ResolvedPropertyModel storeType() {
+    return getModelForProperty(STORE_TYPE);
   }
 
   @Override
   @NotNull
-  public SigningConfigModel setStoreType(@NotNull String storeType) {
-    myDslElement.setNewLiteral(STORE_TYPE, storeType);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public SigningConfigModel removeStoreType() {
-    myDslElement.removeProperty(STORE_TYPE);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<String> keyAlias() {
-    return myDslElement.getLiteralProperty(KEY_ALIAS, String.class);
-  }
-
-  @Override
-  @NotNull
-  public SigningConfigModel setKeyAlias(@NotNull String keyAlias) {
-    myDslElement.setNewLiteral(KEY_ALIAS, keyAlias);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public SigningConfigModel removeKeyAlias() {
-    myDslElement.removeProperty(KEY_ALIAS);
-    return this;
+  public ResolvedPropertyModel keyAlias() {
+    return getModelForProperty(KEY_ALIAS);
   }
 
   @Override

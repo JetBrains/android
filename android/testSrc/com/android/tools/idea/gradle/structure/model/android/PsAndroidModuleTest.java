@@ -31,9 +31,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
-import static com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE;
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static java.util.stream.Collectors.toList;
