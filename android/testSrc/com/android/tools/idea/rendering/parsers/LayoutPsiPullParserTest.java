@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -252,10 +256,10 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEmptyParser(LayoutPsiPullParser.create(emptyFile, logger));
 
     XmlTag emptyTag = mock(XmlTag.class);
-    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true));
+    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true, null));
 
     when(emptyTag.isValid()).thenReturn(true);
-    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true));
+    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true, null));
   }
 
   public void testAaptAttr() throws Exception {
@@ -489,6 +493,42 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     // when using AppCompat, the srcCompat value takes precedence over the src. This is done to avoid the AppCompat vector drawable loader
     // from trying to load drawables since it does not support the layoutlib resources and it would fail.
     assertEquals("srcCompatValue", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+  }
+
+  public void testNavigation() throws XmlPullParserException {
+    @Language("XML")
+    String layout = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                    "          xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                          "    android:layout_width=\"match_parent\"\n" +
+                          "    android:layout_height=\"match_parent\">\n" +
+                          "  <fragment\n" +
+                          "      android:id=\"@+id/fragment\"\n" +
+                          "      android:name=\"android.arch.navigation.NavHostFragment\"\n" +
+                          "      android:layout_width=\"match_parent\"\n" +
+                          "      android:layout_height=\"match_parent\"\n" +
+                          "      app:navGraph=\"@navigation/mobile_navigation\" />\n" +
+                          "</LinearLayout>";
+
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/my_layout.xml", layout);
+
+    String nav = "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                 "    app:startDestination=\"@+id/launcher_home\">\n" +
+                 "    <fragment\n" +
+                 "        android:id=\"@+id/launcher_home\"\n" +
+                 "        tools:layout=\"@layout/main_fragment\">\n";
+    myFixture.addFileToProject("res/navigation/mobile_navigation.xml", nav);
+
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = manager.getConfiguration(xmlFile.getVirtualFile());
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, resourceResolver);
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("include", parser.getName());
+    assertEquals("@layout/main_fragment", parser.getAttributeValue(null, ATTR_LAYOUT));
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }

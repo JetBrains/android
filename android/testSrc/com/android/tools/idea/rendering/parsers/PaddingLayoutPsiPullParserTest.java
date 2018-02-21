@@ -55,7 +55,7 @@ public class PaddingLayoutPsiPullParserTest extends AndroidTestCase {
     assertNull(element.getAttributeValue(ATTR_ID, ATTR_PADDING));
 
     Set<XmlTag> explode = Sets.newHashSet(element);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), explode, Density.MEDIUM);
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), explode, Density.MEDIUM, null);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag());

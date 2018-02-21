@@ -20,6 +20,7 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -137,11 +138,12 @@ public class LayoutPullParsers {
       throw new IllegalArgumentException("RenderTask always should always have PsiFile when it has ResourceFolderType");
     }
 
+    ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
     switch (folderType) {
       case LAYOUT: {
         IRenderLogger logger = renderTask.getLogger();
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
-        return LayoutPsiPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity());
+        return LayoutPsiPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver);
       }
       case DRAWABLE:
       case MIPMAP:
@@ -162,7 +164,7 @@ public class LayoutPullParsers {
           else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
-            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity());
+            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver);
           }
         }
         return null;
@@ -171,9 +173,9 @@ public class LayoutPullParsers {
         renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        return createFontFamilyParser(file, (fontName) -> renderTask.getContext().getConfiguration().getResourceResolver() != null
+        return createFontFamilyParser(file, (fontName) -> resourceResolver != null
                                                           ? (new ProjectFonts(
-          renderTask.getContext().getConfiguration().getResourceResolver())).getFont(fontName)
+          resourceResolver)).getFont(fontName)
                                                           : null);
       default:
         // Should have been prevented by isSupported(PsiFile)
