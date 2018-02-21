@@ -16,7 +16,6 @@
 package com.intellij.openapi.wm.impl.content;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -25,8 +24,8 @@ import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 
 public class ContentTabLabelFixture {
-  private final ContentTabLabel myContentTabLabel;
-  private final Robot robot;
+  @NotNull private final ContentTabLabel myContentTabLabel;
+  @NotNull private final Robot robot;
 
   private ContentTabLabelFixture(@NotNull Robot robot, @NotNull ContentTabLabel label) {
     this.myContentTabLabel = label;
@@ -35,12 +34,17 @@ public class ContentTabLabelFixture {
 
   @NotNull
   public static ContentTabLabelFixture find(@NotNull Robot robot, @NotNull ComponentMatcher matcher) {
-    ContentTabLabel label = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<ContentTabLabel>(ContentTabLabel.class) {
+    return find(robot, matcher, 10);
+  }
+
+  @NotNull
+  public static ContentTabLabelFixture find(@NotNull Robot robot, @NotNull ComponentMatcher matcher, long secondsToWait) {
+    ContentTabLabel label = GuiTests.waitUntilShowing(robot, null, new GenericTypeMatcher<ContentTabLabel>(ContentTabLabel.class) {
       @Override
       protected boolean isMatching(@NotNull ContentTabLabel component) {
         return matcher.matches(component);
       }
-    });
+    }, secondsToWait);
     return new ContentTabLabelFixture(robot, label);
   }
 

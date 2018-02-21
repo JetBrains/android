@@ -16,12 +16,16 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.tests.gui.debugger.DebuggerTestBase;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizardFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.wm.impl.content.BaseLabel;
+import com.intellij.openapi.wm.impl.content.ContentTabLabelFixture;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -215,9 +219,26 @@ public class LaunchAndroidApplicationTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
+    // wait for both debugger tabs to be available and visible
+    ContentTabLabelFixture.find(
+      ideFrameFixture.robot(),
+      Matchers.byText(BaseLabel.class, APP_NAME),
+      EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS
+    );
+    ContentTabLabelFixture.find(
+      ideFrameFixture.robot(),
+      Matchers.byText(BaseLabel.class, APP_NAME + "-java"),
+      EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS
+    );
+
+    // wait for native debugger to receive a fatal signal. Use DebuggerTestBase to check for when the app has paused.
+    String[] expectedDebuggerPatterns = {
+      "Signal = (SIGABRT|SIGSEGV).*"
+    };
+    DebuggerTestBase.checkAppIsPaused(ideFrameFixture, expectedDebuggerPatterns, APP_NAME);
     // Look for text indicating a crash. Check for both SIGSEGV and SIGABRT since they are both given in some cases.
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getDebugToolWindow().findContent(APP_NAME);
-    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11_OR_6, Pattern.DOTALL)), 120);
+    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11_OR_6, Pattern.DOTALL)), 10);
     contentWindow.stop();
   }
 
