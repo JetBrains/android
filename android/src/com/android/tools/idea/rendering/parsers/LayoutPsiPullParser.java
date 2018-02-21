@@ -440,7 +440,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
           return layout;
         }
       } else if (myUseSrcCompat && ATTR_SRC.equals(localName) && TAGS_SUPPORTING_SRC_COMPAT.contains(tag.tagName)) {
-        String srcCompatValue = tag.getAttribute("srcCompat", AUTO_URI);
+        String srcCompatValue = getAttributeValue(AUTO_URI, ATTR_SRC_COMPAT);
         if (srcCompatValue != null) {
           return srcCompatValue;
         }
