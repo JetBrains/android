@@ -310,6 +310,20 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     }
   }
 
+  void addModuleDependency(@NotNull String modulePath,
+                           @NotNull PsAndroidArtifact artifact,
+                           @Nullable Module resolvedModel,
+                           @Nullable ModuleDependencyModel parsedModel) {
+    PsModuleAndroidDependency dependency = myModuleDependenciesByGradlePath.get(modulePath);
+    if (dependency == null) {
+      dependency = new PsModuleAndroidDependency(myParent, modulePath, artifact, null, resolvedModel, parsedModel);
+      myModuleDependenciesByGradlePath.put(modulePath, dependency);
+    }
+    else {
+      updateDependency(dependency, artifact, parsedModel);
+    }
+  }
+
   private static void updateDependency(@NotNull PsAndroidDependency dependency,
                                        @NotNull PsAndroidArtifact artifact,
                                        @Nullable DependencyModel parsedModel) {

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Objects;
 
 public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
   @NotNull public static final String TITLE = "Add Module Dependency";
@@ -35,7 +36,11 @@ public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
 
   @Override
   public void addNewDependencies() {
+    List<PsModule> modules = myModuleDependenciesForm.getSelectedModules();
+    AbstractDependencyScopesPanel scopesPanel = getScopesPanel();
+    List<String> scopesNames = scopesPanel.getSelectedScopeNames();
 
+    modules.forEach(module -> getModule().addModuleDependency(Objects.requireNonNull(module.getGradlePath()), scopesNames));
   }
 
   @Override
