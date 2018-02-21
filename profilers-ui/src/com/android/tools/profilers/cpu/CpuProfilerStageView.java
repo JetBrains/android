@@ -29,7 +29,9 @@ import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.atrace.AtraceExporter;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
@@ -68,9 +70,7 @@ import java.time.format.DateTimeFormatter;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
 import static com.android.tools.profilers.ProfilerLayout.*;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
-import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+import static java.awt.event.InputEvent.*;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
@@ -548,7 +548,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     // Copy temp trace file to the output stream.
     try (FileInputStream input = new FileInputStream(traceInfo.getTraceFilePath())) {
-      FileUtil.copy(input, output);
+      // Atrace Format = [HEADER|ZlibData][HEADER|ZlibData]
+      // Systrace Expected format = [HEADER|ZlipData]
+      // As such exporting the file raw Systrace will only read the first header/data chunk.
+      // Atrace captures come over as several parts combined into one file. As such we need an exporter
+      // to handle converting the format to a format that Systrace can support. The reason for the multi-part file
+      // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
+      // the individual dumps.
+      if (traceInfo.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
+        AtraceExporter.export(input, output);
+      } else {
+        FileUtil.copy(input, output);
+      }
     }
     catch (IOException e) {
       getLogger().warn("Failed to export CPU trace file:\n" + e);

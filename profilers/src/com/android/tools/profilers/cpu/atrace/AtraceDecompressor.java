@@ -47,10 +47,10 @@ public class AtraceDecompressor implements BufferProducer {
   /**
    * The TRACE:\n header comes from atrace when it dumps data to disk. Each compressed chunk starts with this.
    */
-  private static final ByteString HEADER = ByteString.copyFrom("TRACE:\n", Charsets.UTF_8);
+  public static final ByteString HEADER = ByteString.copyFrom("TRACE:\n", Charsets.UTF_8);
 
-  public AtraceDecompressor(File file) throws IOException {
-    myInputStream = new FileInputStream(file);
+  public AtraceDecompressor(FileInputStream inputStream) throws IOException {
+    myInputStream = inputStream;
     myInflater = new Inflater();
 
     // Read the inital header off the input file.
@@ -58,6 +58,10 @@ public class AtraceDecompressor implements BufferProducer {
     verifyHeader();
     myInputBufferOffset = 0;
     myLineQueue.add("# Initial Data Required by Importer");
+  }
+
+  public AtraceDecompressor(File file) throws IOException {
+    this(new FileInputStream(file));
   }
 
   private void verifyHeader() throws IOException {
