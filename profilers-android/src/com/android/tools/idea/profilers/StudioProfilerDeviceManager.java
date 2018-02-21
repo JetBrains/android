@@ -404,6 +404,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         // Using "@" to indicate an abstract socket in unix.
         .setServiceSocketName("@" + DEVICE_SOCKET_NAME)
         .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
+        .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
         .build();
 
       File configFile = FileUtil.createTempFile(fileName, null, true);

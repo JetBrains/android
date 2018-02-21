@@ -104,6 +104,11 @@ public final class StudioFlags {
     "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
     false);
 
+  public static final Flag<Boolean> PROFILER_CPU_API_TRACING = Flag.create(
+    PROFILER, "cpu.api.tracing", "Enable CPU API Tracing",
+    "Support method tracing through APIs from android.os.Debug.",
+    false);
+
   public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
     PROFILER, "threads.view", "Show network threads view",
     "Show a view in the network profiler that groups connections by their creation thread.",
