@@ -39,33 +39,33 @@ public class GradleBuildFile extends GradleDslFile {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (APPLY_BLOCK_NAME.equals(property) && element instanceof GradleDslExpressionMap) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (APPLY_BLOCK_NAME.equals(element.getName()) && element instanceof GradleDslExpressionMap) {
       ApplyDslElement applyDslElement = getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
       if (applyDslElement == null) {
         applyDslElement = new ApplyDslElement(this);
-        super.addParsedElement(APPLY_BLOCK_NAME, applyDslElement);
+        super.addParsedElement(applyDslElement);
       }
       for (Map.Entry<String, GradleDslElement> entry : ((GradleDslExpressionMap)element).getPropertyElements().entrySet()) {
-        applyDslElement.addParsedElement(entry.getKey(), entry.getValue());
+        applyDslElement.addParsedElement(entry.getValue());
       }
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 
   @Override
-  public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if ((SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(property) || TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(property)) &&
+  public void setParsedElement(@NotNull GradleDslElement element) {
+    if ((SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(element.getName()) || TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(element.getName())) &&
         (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
       JavaDslElement javaDslElement = getPropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
       if (javaDslElement == null) {
         javaDslElement = new JavaDslElement(this);
-        super.setParsedElement(JAVA_BLOCK_NAME, javaDslElement);
+        super.setParsedElement(javaDslElement);
       }
-      javaDslElement.setParsedElement(property, element);
+      javaDslElement.setParsedElement(element);
       return;
     }
-    super.setParsedElement(property, element);
+    super.setParsedElement(element);
   }
 }

@@ -27,7 +27,8 @@ public class SourceDirectoryDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("srcDirs") || property.equals("srcDir")) {
       addToParsedExpressionList("srcDirs", element);
       return;
@@ -38,6 +39,6 @@ public class SourceDirectoryDslElement extends GradleDslBlockElement {
       return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

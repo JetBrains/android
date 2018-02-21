@@ -142,9 +142,9 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       return;
     }
 
-    buildDslFile.setParsedElement(SUBPROJECTS_BLOCK_NAME, subProjectsDslElement);
+    buildDslFile.setParsedElement(subProjectsDslElement);
     for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
-      buildDslFile.setParsedElement(entry.getKey(), entry.getValue());
+      buildDslFile.setParsedElement(entry.getValue());
     }
   }
 
@@ -253,7 +253,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     AndroidDslElement androidDslElement = myGradleDslFile.getPropertyElement(ANDROID_BLOCK_NAME, AndroidDslElement.class);
     if (androidDslElement == null) {
       androidDslElement = new AndroidDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(ANDROID_BLOCK_NAME, androidDslElement);
+      myGradleDslFile.setNewElement(androidDslElement);
     }
     return new AndroidModelImpl(androidDslElement);
   }
@@ -264,7 +264,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     BuildScriptDslElement buildScriptDslElement = myGradleDslFile.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
     if (buildScriptDslElement == null) {
       buildScriptDslElement = new BuildScriptDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(BUILDSCRIPT_BLOCK_NAME, buildScriptDslElement);
+      myGradleDslFile.setNewElement(buildScriptDslElement);
     }
     return new BuildScriptModelImpl(buildScriptDslElement);
   }
@@ -276,7 +276,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       myGradleDslFile.getPropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
     if (dependenciesDslElement == null) {
       dependenciesDslElement = new DependenciesDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(DEPENDENCIES_BLOCK_NAME, dependenciesDslElement);
+      myGradleDslFile.setNewElement(dependenciesDslElement);
     }
     return new DependenciesModelImpl(dependenciesDslElement);
   }
@@ -287,7 +287,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     ExtDslElement extDslElement = myGradleDslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
     if (extDslElement == null) {
       extDslElement = new ExtDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(EXT_BLOCK_NAME, extDslElement);
+      myGradleDslFile.setNewElement(extDslElement);
     }
     return new ExtModelImpl(extDslElement);
   }
@@ -298,7 +298,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     JavaDslElement javaDslElement = myGradleDslFile.getPropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
     if (javaDslElement == null) {
       javaDslElement = new JavaDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(JAVA_BLOCK_NAME, javaDslElement);
+      myGradleDslFile.setNewElement(javaDslElement);
     }
     return new JavaModelImpl(javaDslElement);
   }
@@ -310,7 +310,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       myGradleDslFile.getPropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
     if (repositoriesDslElement == null) {
       repositoriesDslElement = new RepositoriesDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(REPOSITORIES_BLOCK_NAME, repositoriesDslElement);
+      myGradleDslFile.setNewElement(repositoriesDslElement);
     }
     return new RepositoriesModelImpl(repositoriesDslElement);
   }
@@ -328,7 +328,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     for (GradleDslExpressionMap applyMap : myToBeAppliedPlugins) {
       applyMap.create();
       applyMap.applyChanges();
-      myGradleDslFile.addParsedElement(APPLY_BLOCK_NAME, applyMap);
+      myGradleDslFile.addParsedElement(applyMap);
     }
     myToBeAppliedPlugins.clear();
     super.applyChanges();

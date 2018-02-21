@@ -61,14 +61,13 @@ public class PropertyUtil {
 
   public static void replaceElement(@NotNull GradleDslElement holder,
                                     @Nullable GradleDslElement oldElement,
-                                    @NotNull GradleDslElement newElement,
-                                    @NotNull String name) {
+                                    @NotNull GradleDslElement newElement) {
     if (holder instanceof GradlePropertiesDslElement) {
       if (oldElement != null) {
-        ((GradlePropertiesDslElement)holder).replaceElement(name, oldElement, newElement);
+        ((GradlePropertiesDslElement)holder).replaceElement(oldElement, newElement);
       }
       else {
-        ((GradlePropertiesDslElement)holder).setNewElement(name, newElement);
+        ((GradlePropertiesDslElement)holder).setNewElement(newElement);
       }
     }
     else if (holder instanceof GradleDslExpressionList) {

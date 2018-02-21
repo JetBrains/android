@@ -3299,9 +3299,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       propertyModel.rename("prop2")
       varModel.rename("var2")
 
-      // TODO: Names aren't updated until after a reparse
-      //verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
-      //verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2", "ext.var2")
+      verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
+      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2", "ext.var2")
     }
 
     applyChangesAndReparse(buildModel)
@@ -3342,11 +3341,10 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       firstMapModel.rename("newMap1")
       secondMapModel.rename("newMap2")
 
-      // TODO: Names aren't updated until after a reparse
-      // verifyMapProperty(firstMapModel, mapOf("key1" to "a", "key2" to "b", "key3" to "c"), "map1", "ext.map1")
-      // verifyMapProperty(secondMapModel, mapOf("key4" to 4), "map2", "ext.map2")
-      // verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "key2", "ext.map1.key2")
-      // verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, REGULAR, 0, "key4", "ext.map2.key4")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1", "ext.newMap1")
+      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2", "ext.newMap2")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1", "ext.newMap1.newKey1")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2", "ext.newMap2.newKey2")
     }
 
     applyChangesAndReparse(buildModel)
@@ -3391,9 +3389,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       firstListModel.rename("varList")
       secondListModel.rename("propertyList")
 
-      // TODO: Names aren't updated until after a reparse
-      // verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "varList", "ext.varList")
-      // verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "propertyList", "ext.propertyList")
+      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "varList", "ext.varList")
+      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "propertyList", "ext.propertyList")
     }
 
     applyChangesAndReparse(buildModel)

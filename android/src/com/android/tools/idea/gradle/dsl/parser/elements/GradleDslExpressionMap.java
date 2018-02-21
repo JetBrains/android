@@ -39,7 +39,7 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
   }
 
   public GradleDslExpressionMap(@Nullable GradleDslElement parent,
-                                @NotNull PsiElement psiElement,
+                                @Nullable PsiElement psiElement,
                                 @NotNull GradleNameElement name,
                                 boolean isLiteralMap) {
     super(parent, psiElement, name);
@@ -54,7 +54,7 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
     }
     GradleNameElement name = GradleNameElement.create(key);
     GradleDslLiteral gradleDslLiteral = new GradleDslLiteral(this, name);
-    setNewElement(key, gradleDslLiteral);
+    setNewElement(gradleDslLiteral);
     gradleDslLiteral.setValue(value);
   }
 

@@ -30,11 +30,11 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("flavorDimensions") && element instanceof GradleDslExpression) {
-      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element.getName().equals("flavorDimensions") && element instanceof GradleDslExpression) {
+      addAsParsedDslExpressionList((GradleDslExpression)element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

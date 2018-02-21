@@ -28,11 +28,11 @@ public class GradleSettingsFile extends GradleDslFile {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (INCLUDE.equals(property)) {
-      addToParsedExpressionList(property, element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (INCLUDE.equals(element.getName())) {
+      addToParsedExpressionList(element.getName(), element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

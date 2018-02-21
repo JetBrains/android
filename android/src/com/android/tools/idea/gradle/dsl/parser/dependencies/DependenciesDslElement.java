@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser.dependencies;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DependenciesDslElement extends GradleDslBlockElement {
   @NonNls public static final String DEPENDENCIES_BLOCK_NAME = "dependencies";
@@ -28,14 +27,14 @@ public class DependenciesDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String configurationName, @NotNull GradleDslElement dependency) {
+  public void addParsedElement(@NotNull GradleDslElement dependency) {
     // Treat all expressions and expression maps as dependencies
     if (dependency instanceof GradleDslExpression || dependency instanceof GradleDslExpressionMap) {
-      GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
+      GradleDslElementList elementList = getOrCreateParsedElement(dependency.getName());
       elementList.addParsedElement(dependency);
     }
     else if (dependency instanceof GradleDslExpressionList) {
-      GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
+      GradleDslElementList elementList = getOrCreateParsedElement(dependency.getName());
       for (GradleDslExpression expression : ((GradleDslExpressionList)dependency).getExpressions()) {
         GradleDslClosure dependencyClosureElement = dependency.getClosureElement();
         if (expression.getClosureElement() == null && dependencyClosureElement != null) {
@@ -52,7 +51,7 @@ public class DependenciesDslElement extends GradleDslBlockElement {
     if (elementList == null) {
       GradleNameElement name = GradleNameElement.create(configurationName);
       elementList = new GradleDslElementList(this, name);
-      super.addParsedElement(configurationName, elementList);
+      super.addParsedElement(elementList);
     }
     return elementList;
   }

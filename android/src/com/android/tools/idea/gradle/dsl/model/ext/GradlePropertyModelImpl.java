@@ -351,6 +351,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     myElement.rename(name);
+    // myName needs to be consistent with the elements name.
+    myName = name;
   }
 
   @Override
@@ -505,7 +507,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       return;
     }
 
-    replaceElement(myPropertyHolder, myElement, newElement, myName);
+    replaceElement(myPropertyHolder, myElement, newElement);
     newElement.setElementType(myPropertyType);
     newElement.setUseAssignment(!myIsMethodCall);
     myElement = newElement;

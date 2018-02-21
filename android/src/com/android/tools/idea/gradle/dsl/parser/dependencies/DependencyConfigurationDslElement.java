@@ -31,16 +31,17 @@ public class DependencyConfigurationDslElement extends GradleDslClosure {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("exclude")) {
       GradleDslElementList elementList = getPropertyElement(property, GradleDslElementList.class);
       if (elementList == null) {
         elementList = new GradleDslElementList(this, GradleNameElement.create(property));
-        super.addParsedElement(property, elementList);
+        super.addParsedElement(elementList);
       }
       elementList.addParsedElement(element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

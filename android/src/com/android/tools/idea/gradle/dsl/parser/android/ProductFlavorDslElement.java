@@ -28,7 +28,8 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("resConfigs") || property.equals("resConfig")) {
       addToParsedExpressionList("resConfigs", element);
       return;
@@ -36,7 +37,8 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
 
     if (property.equals("testInstrumentationRunnerArguments")) {
       // This deals with references to maps.
-      if (element instanceof GradleDslReference) {
+      GradleDslElement oldElement = element;
+      while (element instanceof GradleDslReference) {
         GradleDslReference reference = (GradleDslReference)element;
         if (reference.getReferenceInjection() != null) {
           element = reference.getReferenceInjection().getToBeInjected();
@@ -49,14 +51,16 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
         getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        setParsedElement("testInstrumentationRunnerArguments", element);
+        testInstrumentationRunnerArgumentsElement =
+          new GradleDslExpressionMap(this, element.getPsiElement(), oldElement.getNameElement(), true);
+        setParsedElement(testInstrumentationRunnerArgumentsElement);
       }
-      else {
-        testInstrumentationRunnerArgumentsElement.setPsiElement(element.getPsiElement());
-        GradleDslExpressionMap elementsToAdd = (GradleDslExpressionMap)element;
-        for (Map.Entry<String, GradleDslElement> entry : elementsToAdd.getPropertyElements().entrySet()) {
-          testInstrumentationRunnerArgumentsElement.setParsedElement(entry.getKey(), entry.getValue());
-        }
+
+
+      testInstrumentationRunnerArgumentsElement.setPsiElement(element.getPsiElement());
+      GradleDslExpressionMap elementsToAdd = (GradleDslExpressionMap)element;
+      for (Map.Entry<String, GradleDslElement> entry : elementsToAdd.getPropertyElements().entrySet()) {
+        testInstrumentationRunnerArgumentsElement.setParsedElement(entry.getValue());
       }
       return;
     }
@@ -76,16 +80,19 @@ public final class ProductFlavorDslElement extends AbstractFlavorTypeDslElement 
         return;
       }
       GradleDslExpression value = elements.get(1);
+      // Set the name element of the value to be the previous element.
+      value.getNameElement().commitNameChange(elements.get(0).getPsiElement());
 
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
         getPropertyElement("testInstrumentationRunnerArguments", GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        testInstrumentationRunnerArgumentsElement = new GradleDslExpressionMap(this, GradleNameElement.create("testInstrumentationRunnerArguments"));
+        testInstrumentationRunnerArgumentsElement =
+          new GradleDslExpressionMap(this, GradleNameElement.create("testInstrumentationRunnerArguments"));
       }
-      testInstrumentationRunnerArgumentsElement.setParsedElement(key, value);
+      testInstrumentationRunnerArgumentsElement.setParsedElement(value);
       return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

@@ -124,6 +124,35 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("noCompress", ImmutableList.of("a", "c"), aaptOptions.noCompress());
   }
 
+  public void testEditIgnoreAssetPattern() throws Exception {
+    String text = "android {\n" +
+                  "  aaptOptions {\n" +
+                  "    additionalParameters 'abcd', 'efgh'\n" +
+                  "    ignoreAssetsPattern 'ijkl'\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    AaptOptionsModel aaptOptions = android.aaptOptions();
+    assertEquals("additionalParameters", ImmutableList.of("abcd", "efgh"), aaptOptions.additionalParameters());
+    assertEquals("ignoreAssets", "ijkl", aaptOptions.ignoreAssets());
+
+    aaptOptions
+      .setIgnoreAssets("mnop");
+
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+    assertNotNull(android);
+
+    aaptOptions = android.aaptOptions();
+    assertEquals("ignoreAssets", "mnop", aaptOptions.ignoreAssets());
+  }
+
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  aaptOptions {\n" +

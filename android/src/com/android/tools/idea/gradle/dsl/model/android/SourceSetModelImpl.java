@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +47,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
   @NonNls private static final String RES = "res";
   @NonNls private static final String RESOURCES = "resources";
   @NonNls private static final String ROOT = "root";
+  @NonNls private static final String SET_ROOT = "setRoot";
 
   public SourceSetModelImpl(@NotNull SourceSetDslElement dslElement) {
     super(dslElement);
@@ -60,7 +62,8 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
   @Override
   @NotNull
   public GradleNullableValue<String> root() {
-    GradleDslExpression rootElement = myDslElement.getPropertyElement(ROOT, GradleDslExpression.class);
+    GradleDslExpression rootElement = myDslElement.getPropertyElement(ImmutableList.of(ROOT, SET_ROOT), GradleDslExpression.class);
+
     if (rootElement == null) {
       return new GradleNullableValueImpl<>(myDslElement, null);
     }
@@ -85,7 +88,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
   @Override
   @NotNull
   public SourceSetModel setRoot(@NotNull String root) {
-    GradleDslExpression rootElement = myDslElement.getPropertyElement(ROOT, GradleDslExpression.class);
+    GradleDslExpression rootElement = myDslElement.getPropertyElement(ImmutableList.of(ROOT, SET_ROOT), GradleDslExpression.class);
     if (rootElement == null) {
       myDslElement.setNewLiteral(ROOT, root);
       return this;
@@ -110,6 +113,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
   @NotNull
   public SourceSetModel removeRoot() {
     myDslElement.removeProperty(ROOT);
+    myDslElement.removeProperty(SET_ROOT);
     return this;
   }
 
@@ -120,7 +124,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (aidl == null) {
       GradleNameElement name = GradleNameElement.create(AIDL);
       aidl = new SourceDirectoryDslElement(myDslElement, name);
-      myDslElement.setNewElement(AIDL, aidl);
+      myDslElement.setNewElement(aidl);
     }
     return new SourceDirectoryModelImpl(aidl);
   }
@@ -139,7 +143,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (assets == null) {
       GradleNameElement name = GradleNameElement.create(ASSETS);
       assets = new SourceDirectoryDslElement(myDslElement, name);
-      myDslElement.setNewElement(ASSETS, assets);
+      myDslElement.setNewElement(assets);
     }
     return new SourceDirectoryModelImpl(assets);
   }
@@ -158,7 +162,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (java == null) {
       GradleNameElement name = GradleNameElement.create(JAVA);
       java = new SourceDirectoryDslElement(myDslElement, name);
-      myDslElement.setNewElement(JAVA, java);
+      myDslElement.setNewElement(java);
     }
     return new SourceDirectoryModelImpl(java);
   }
@@ -177,7 +181,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (jni == null) {
       GradleNameElement name = GradleNameElement.create(JNI);
       jni = new SourceDirectoryDslElement(myDslElement, name);
-      myDslElement.setNewElement(JNI, jni);
+      myDslElement.setNewElement(jni);
     }
     return new SourceDirectoryModelImpl(jni);
   }
@@ -196,7 +200,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (jniLibs == null) {
       GradleNameElement name = GradleNameElement.create(JNI_LIBS);
       jniLibs = new SourceDirectoryDslElement(myDslElement, name);
-      myDslElement.setNewElement(JNI_LIBS, jniLibs);
+      myDslElement.setNewElement(jniLibs);
     }
     return new SourceDirectoryModelImpl(jniLibs);
   }
@@ -215,7 +219,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (manifest == null) {
       GradleNameElement name = GradleNameElement.create(MANIFEST);
       manifest = new SourceFileDslElement(myDslElement, name);
-      myDslElement.setNewElement(MANIFEST, manifest);
+      myDslElement.setNewElement(manifest);
     }
     return new SourceFileModelImpl(manifest);
   }
@@ -234,7 +238,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (renderscript == null) {
       GradleNameElement name = GradleNameElement.create(RENDERSCRIPT);
       renderscript = new SourceDirectoryDslElement(myDslElement, name);
-      myDslElement.setNewElement(RENDERSCRIPT, renderscript);
+      myDslElement.setNewElement(renderscript);
     }
     return new SourceDirectoryModelImpl(renderscript);
   }
@@ -253,7 +257,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (res == null) {
       GradleNameElement name = GradleNameElement.create(RES);
       res = new SourceDirectoryDslElement(myDslElement, name);
-      myDslElement.setNewElement(RES, res);
+      myDslElement.setNewElement(res);
     }
     return new SourceDirectoryModelImpl(res);
   }
@@ -272,7 +276,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     if (resources == null) {
       GradleNameElement name = GradleNameElement.create(RESOURCES);
       resources = new SourceDirectoryDslElement(myDslElement, name);
-      myDslElement.setNewElement(RESOURCES, resources);
+      myDslElement.setNewElement(resources);
     }
     return new SourceDirectoryModelImpl(resources);
   }

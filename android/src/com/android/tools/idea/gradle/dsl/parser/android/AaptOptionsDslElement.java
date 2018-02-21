@@ -30,24 +30,17 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("ignoreAssetsPattern")) {
-      super.addParsedElement("ignoreAssets", element);
-      return;
-    }
-    super.addParsedElement(property, element);
+  public void setParsedElement(@NotNull GradleDslElement element) {
+    super.addParsedElement(element);
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (element instanceof GradleDslExpression && (property.equals("additionalParameters") || property.equals("noCompress"))) {
-      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element instanceof GradleDslExpression &&
+        (element.getName().equals("additionalParameters") || element.getName().equals("noCompress"))) {
+      addAsParsedDslExpressionList((GradleDslExpression)element);
       return;
     }
-    if (property.equals("ignoreAssetsPattern")) {
-      super.addParsedElement("ignoreAssets", element);
-      return;
-    }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

@@ -86,7 +86,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
                   "android.sourceSets.set4.root = \"override4\"";
 
     writeToBuildFile(text);
-    verifySourceSetRoot(getGradleBuildModel(), "override");
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifySourceSetRoot(buildModel, "override");
   }
 
   public void testSetRootEditAndReset() throws Exception {

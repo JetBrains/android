@@ -36,7 +36,7 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    setParsedElement(property, element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    setParsedElement(element);
   }
 }

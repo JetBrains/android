@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class SourceSetDslElement extends GradleDslBlockElement {
   public SourceSetDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
@@ -27,11 +26,7 @@ public class SourceSetDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("setRoot")) {
-      super.addParsedElement("root", element);
-      return;
-    }
-    super.addParsedElement(property, element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    super.addParsedElement(element);
   }
 }

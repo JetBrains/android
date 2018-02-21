@@ -186,7 +186,7 @@ public class DensityModelImpl extends GradleDslBlockModel implements DensityMode
   @NotNull
   public DensityModel addReset() {
     GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), RESET);
-    myDslElement.setNewElement(RESET, resetMethod); // TODO: reset include
+    myDslElement.setNewElement(resetMethod); // TODO: reset include
     return this;
   }
 

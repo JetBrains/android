@@ -30,9 +30,12 @@ import java.util.List;
  */
 public final class GradleDslNewExpression extends GradleDslExpression {
   private final @NotNull List<GradleDslExpression> myArguments = Lists.newArrayList();
+  private final @NotNull GradleNameElement myInvokedConstructor;
 
-  public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull PsiElement newExpression, @NotNull GradleNameElement name) {
+  public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull PsiElement newExpression, @NotNull GradleNameElement name,
+                                @NotNull GradleNameElement invokedConstructor) {
     super(parent, newExpression, name, newExpression);
+    myInvokedConstructor = invokedConstructor;
   }
 
   public void addParsedExpression(@NotNull GradleDslExpression expression) {
@@ -99,7 +102,7 @@ public final class GradleDslNewExpression extends GradleDslExpression {
 
   @Nullable
   private File getFileValue() {
-    if (!myName.name().equals("File")) {
+    if (!myInvokedConstructor.name().equals("File")) {
       return null;
     }
 

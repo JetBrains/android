@@ -31,11 +31,11 @@ public class MavenRepositoryDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("artifactUrls")) {
-      addToParsedExpressionList(property, element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element.getName().equals("artifactUrls")) {
+      addToParsedExpressionList(element.getName() ,element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

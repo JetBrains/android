@@ -30,11 +30,11 @@ public class DexOptionsDslElement extends GradlePropertiesDslElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (element instanceof GradleDslExpression && (property.equals("additionalParameters"))) {
-      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element instanceof GradleDslExpression && (element.getName().equals("additionalParameters"))) {
+      addAsParsedDslExpressionList((GradleDslExpression)element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }
