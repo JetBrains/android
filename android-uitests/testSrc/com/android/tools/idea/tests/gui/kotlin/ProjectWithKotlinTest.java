@@ -157,8 +157,6 @@ public class ProjectWithKotlinTest {
     // Check app successfully builds and deploys on emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP)
       .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 60);
-
-    // b/67846310 Plugin Error: NoReadAccessException. Test will fail during tearing down.
   }
 
   private void newKotlinFileAndClass(@NotNull ProjectViewFixture.PaneFixture projectPane,
