@@ -1,1 +1,1 @@
-include ':app', ':mainModule', ':moduleA', ':moduleB', ':moduleC'
+include ':app', ':jModuleK', ':jModuleL', ':mainModule', ':moduleA', ':moduleB', ':moduleC'
