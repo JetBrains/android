@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositories
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_REPO
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
@@ -29,6 +30,9 @@ import org.junit.Assert.assertThat
 import java.io.File
 
 class DependencyManagementTest : AndroidGradleTestCase() {
+
+  private lateinit var resolvedProject: Project
+  private lateinit var project: PsProject
 
   override fun updateVersionAndDependencies(projectRoot: File) {
     val localRepositories = getLocalRepositories()
@@ -43,16 +47,41 @@ class DependencyManagementTest : AndroidGradleTestCase() {
     AndroidGradleTests.updateGradleVersions(projectRoot, repositories, null)
   }
 
-  fun testDependencies() {
+  override fun setUp() {
+    super.setUp()
     loadProject(PSD_DEPENDENCY)
+    reparse()
+  }
 
-    val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+  private fun reparse() {
+    resolvedProject = myFixture.project
+    project = PsProject(resolvedProject)
+  }
 
+  fun testDependencies() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
     assertThat(appModule.findModuleDependency(":mainModule"), notNullValue())
     val libModule = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(libModule.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+  }
+
+  fun testAddLibraryDependency() {
+    var module = project.findModuleByName("moduleA") as PsAndroidModule
+    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+    module.addLibraryDependency("com.example.libs:lib1:1.0", listOf("implementation"))
+    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+
+    // TODO(solodkyy): Fix adding the second dependency without syncing.
+//    module.addLibraryDependency("com.example.libs:lib2:1.0", listOf("implementation"))
+//    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+//    assertThat(module.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("moduleA") as PsAndroidModule
+    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
   }
 }

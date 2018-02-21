@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public class PsAllModulesFakeModule extends PsModule {
   public PsAllModulesFakeModule(@NotNull PsProject parent) {
     super(parent, "<All Modules>");
@@ -35,5 +37,10 @@ public class PsAllModulesFakeModule extends PsModule {
 
   private PsProject getProject() {
     return getParent();
+  }
+
+  @Override
+  public void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames) {
+    throw new UnsupportedOperationException();
   }
 }

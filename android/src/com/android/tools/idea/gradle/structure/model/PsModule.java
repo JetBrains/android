@@ -207,6 +207,8 @@ public abstract class PsModule extends PsChildModel {
     return myVariables;
   }
 
+  public abstract void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames);
+
   public interface DependenciesChangeListener extends EventListener {
     void dependencyChanged(@NotNull DependencyChangedEvent event);
   }

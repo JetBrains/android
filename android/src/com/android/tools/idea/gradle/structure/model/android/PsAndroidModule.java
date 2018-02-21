@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.google.common.collect.Lists;
@@ -217,7 +216,8 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return repositories;
   }
 
-  public void addLibraryDependency(@NotNull String library, @NotNull PsNewDependencyScopes newScopes, @NotNull List<String> scopesNames) {
+  @Override
+  public void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames) {
     // Update/reset the "parsed" model.
     addLibraryDependencyToParsedModel(scopesNames, library);
 
@@ -225,9 +225,10 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     myDependencyCollection = null;
     PsAndroidDependencyCollection dependencyCollection = getOrCreateDependencyCollection();
 
+    Set<String> configurationNames = Sets.newHashSet(scopesNames);
     List<PsAndroidArtifact> targetArtifacts = Lists.newArrayList();
     forEachVariant(variant -> variant.forEachArtifact(artifact -> {
-      if (newScopes.contains(artifact)) {
+      if (artifact.containsAnyConfigurationName(configurationNames)) {
         targetArtifacts.add(artifact);
       }
     }));
