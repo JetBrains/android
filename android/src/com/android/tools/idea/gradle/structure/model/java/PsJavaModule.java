@@ -90,6 +90,7 @@ public class PsJavaModule extends PsModule {
     return myDependencyCollection == null ? myDependencyCollection = new PsJavaDependencyCollection(this) : myDependencyCollection;
   }
 
+  @Override
   public void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames) {
     // Update/reset the "parsed" model.
     addLibraryDependencyToParsedModel(scopesNames, library);
