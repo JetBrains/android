@@ -55,6 +55,16 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   private boolean myIsPaused = false;
   private long myPausedTime;
 
+  /**
+   * When not negative, interpolates {@link #myViewRangeUs}'s max to it while keeping the view range length.
+   */
+  private double myTargetRangeMaxUs = -1;
+
+  /**
+   * Interpolation factor of the animation that happens when jumping to a target value.
+   */
+  private float myJumpFactor;
+
   public ProfilerTimeline(@NotNull Updater updater) {
     myDataRangeUs = new Range(0, 0);
     myViewRangeUs = new Range(0, 0);
@@ -176,6 +186,60 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     double left = Updater.lerp(myZoomLeft, 0.0, 0.95f, elapsedNs, myViewRangeUs.getLength() * 0.0001f);
     zoom(myZoomLeft - left, myStreaming ? 1.0 : 0.5f);
     myZoomLeft = left;
+
+    handleJumpToTargetMax(elapsedNs);
+  }
+
+  /**
+   * If {@link #myTargetRangeMaxUs} is not negative, interpolates {@link #myViewRangeUs}'s max to it.
+   */
+  private void handleJumpToTargetMax(long elapsedNs) {
+    if (myTargetRangeMaxUs < 0) {
+      return; // No need to jump. Return early.
+    }
+
+    // Update the view range
+    myJumpFactor = Updater.lerp(myJumpFactor, 1.0f, 0.95f, elapsedNs, Float.MIN_VALUE);
+    double targetMin = myTargetRangeMaxUs - myViewRangeUs.getLength();
+    double min = Updater.lerp(myViewRangeUs.getMin(), targetMin, myJumpFactor);
+    double max = Updater.lerp(myViewRangeUs.getMax(), myTargetRangeMaxUs, myJumpFactor);
+    myViewRangeUs.set(min, max);
+
+    // Reset the jump factor and myTargetRangeMaxUs when finish jumping to target.
+    if (Double.compare(myTargetRangeMaxUs, max) == 0) {
+      myTargetRangeMaxUs = -1;
+      myJumpFactor = 0.0f;
+    }
+  }
+
+  /**
+   * Makes sure the given target {@link Range} fits {@link #myViewRangeUs}. That means the timeline should zoom out until the view range is
+   * bigger than (or equals to) the target range and then shift until the it totally fits the view range.
+   */
+  public void ensureRangeFitsViewRange(@NotNull Range target) {
+    setStreaming(false);
+    if (myViewRangeUs.contains(target.getMin()) && myViewRangeUs.contains(target.getMax())) {
+      // Target already visible. No need to animate to it.
+      return;
+    }
+
+    // First, zoom out until the target range fits the view range.
+    double delta = target.getLength() - myViewRangeUs.getLength();
+    if (delta > 0) {
+      myZoomLeft += delta;
+      // If we need to zoom out, it means the target range will occupy the full view range, so the target max should be its max.
+      myTargetRangeMaxUs = target.getMax();
+    }
+    // Otherwise, we move the timeline as little as possible to reach the target range. At this point, there are only two possible
+    // scenarios: a) The target range is on the right of the view range, so we adjust the view range relatively to the target's max.
+    else if (target.getMax() > myViewRangeUs.getMax()) {
+      myTargetRangeMaxUs = target.getMax();
+    }
+    // b) The target range is on the left of the view range, so we adjust the view range relatively to the target's min.
+    else {
+      assert target.getMin() < myViewRangeUs.getMin();
+      myTargetRangeMaxUs = target.getMin() + myViewRangeUs.getLength();
+    }
   }
 
   public void zoom(double deltaUs, double percent) {

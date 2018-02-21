@@ -214,6 +214,20 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     installContextMenu();
   }
 
+  /**
+   * Makes sure the selected capture fits entirely in user's view range.
+   */
+  private void ensureCaptureInViewRange() {
+    CpuCapture capture = myStage.getCapture();
+    assert capture != null;
+
+    // Give a padding to the capture. 5% of the view range on each side.
+    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    double padding = timeline.getViewRange().getLength() * 0.05;
+    // Now makes sure the capture range + padding is within view range.
+    timeline.ensureRangeFitsViewRange(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
+  }
+
   private void configureProfilingConfigCombo() {
     JComboBoxView<ProfilingConfiguration, CpuProfilerAspect> profilingConfiguration =
       new JComboBoxView<>(myProfilingConfigurationCombo, myStage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
@@ -718,6 +732,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       // Capture has finished. Create a CpuCaptureView to display it.
       myCaptureView = new CpuCaptureView(this);
       mySplitter.setSecondComponent(myCaptureView.getComponent());
+      ensureCaptureInViewRange();
     }
   }
 
