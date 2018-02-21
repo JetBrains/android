@@ -113,7 +113,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     @Nullable
     private String pollOutput() {
       ConsoleViewImpl consoleView = findVisibleConsoleView();
-      if (consoleView == null) {
+      if (consoleView == null || consoleView.getEditor() == null) {
         JComponent consoleComponent = getTabComponent("Console");
         myRobot.click(consoleComponent);
         return null;
