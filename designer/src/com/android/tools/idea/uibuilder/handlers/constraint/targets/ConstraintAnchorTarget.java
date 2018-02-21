@@ -44,7 +44,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   private final boolean myVisibility;
   private final Type myType;
 
-  private ConstraintAnchorTarget myCurrentClosestTarget; // used to define the closest target during drag;
   private boolean myInDrag = false;
   private boolean myRenderingTemporaryConnection = false;
   @AndroidDpCoordinate private int myConnectedX = -1;
@@ -506,7 +505,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       myInDrag = true;
       DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, true);
     }
-    myCurrentClosestTarget = targetAnchor;
 
     if (targetAnchor != null) {
       NlComponent component = myComponent.getAuthoritativeNlComponent();
