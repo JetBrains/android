@@ -25,9 +25,9 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import java.io.File
 
 class PsSigningConfig(
-    parent: PsAndroidModule,
-    private val resolvedModel: SigningConfig?,
-    private val parsedModel: SigningConfigModel?
+  parent: PsAndroidModule,
+  private val resolvedModel: SigningConfig?,
+  private val parsedModel: SigningConfigModel?
 ) : PsChildModel(parent), PsAndroidModel {
 
   private var name = when {
@@ -58,53 +58,54 @@ class PsSigningConfig(
     }
 
     val storeFile: ModelSimpleProperty<PsSigningConfig, File> = property(
-        "Store File",
-        getResolvedValue = { storeFile },
-        getParsedValue = { File(storeFile().asString()) },
-        getParsedRawValue = { storeFile().dslText() },
-        // TODO: Store project relative path if possible.
-        setParsedValue = { storeFile().setValue(it.absolutePath) },
-        clearParsedValue = { storeFile().delete() },
-        parse = { parseFile(it) }
+      "Store File",
+      getResolvedValue = { storeFile },
+      getParsedProperty = { storeFile() },
+      getter = { asFile() },
+      // TODO: Store project relative path if possible.
+      setter = { setValue(it.absolutePath) },
+      parse = { parseFile(it) }
     )
+
     val storePassword: ModelSimpleProperty<PsSigningConfig, String> = property(
-        "Store Password",
-        getResolvedValue = { storePassword },
-        // TODO: Properly handle other password types.
-        getParsedValue = { storePassword().value()?.passwordText },
-        getParsedRawValue = { storePassword().dsl() },
-        setParsedValue = { setStorePassword(SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT, it) },
-        clearParsedValue = { removeStorePassword() },
-        parse = { parseString(it) }
+      "Store Password",
+      getResolvedValue = { storePassword },
+      // TODO: Properly handle other password types.
+      getParsedValue = { storePassword().value()?.passwordText },
+      getParsedRawValue = { storePassword().dsl() },
+      setParsedValue = { setStorePassword(SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT, it) },
+      clearParsedValue = { removeStorePassword() },
+      parse = { parseString(it) }
     )
+
     val storeType: ModelSimpleProperty<PsSigningConfig, String> = property(
-        "Store Type",
-        getResolvedValue = { storeType },
-        // TODO: Properly handle other password types.
-        getParsedValue = { storeType().asString() },
-        getParsedRawValue = { storeType().dslText() },
-        setParsedValue = { storeType().setValue(it) },
-        clearParsedValue = { storeType().delete() },
-        parse = { parseString(it) }
+      "Store Type",
+      getResolvedValue = { storeType },
+      // TODO: Properly handle other password types.
+      getParsedProperty = { storeType() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
     )
+
     val keyAlias: ModelSimpleProperty<PsSigningConfig, String> = property(
-        "Key Alias",
-        getResolvedValue = { keyAlias },
-        getParsedValue = { keyAlias().asString() },
-        getParsedRawValue = { keyAlias().dslText() },
-        setParsedValue = { storeType().setValue(it) },
-        clearParsedValue = { storeType().delete() },
-        parse = { parseString(it) }
+      "Key Alias",
+      getResolvedValue = { keyAlias },
+      getParsedProperty = { keyAlias() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
     )
+
     val keyPassword: ModelSimpleProperty<PsSigningConfig, String> = property(
-        "Key Password",
-        getResolvedValue = { keyPassword },
-        // TODO: Properly handle other password types.
-        getParsedValue = { keyPassword().value()?.passwordText },
-        getParsedRawValue = { keyPassword().dsl() },
-        setParsedValue = { setKeyPassword(SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT, it) },
-        clearParsedValue = { removeKeyPassword() },
-        parse = { parseString(it) }
+      "Key Password",
+      getResolvedValue = { keyPassword },
+      // TODO: Properly handle other password types.
+      getParsedValue = { keyPassword().value()?.passwordText },
+      getParsedRawValue = { keyPassword().dsl() },
+      setParsedValue = { setKeyPassword(SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT, it) },
+      clearParsedValue = { removeKeyPassword() },
+      parse = { parseString(it) }
     )
   }
 }
