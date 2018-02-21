@@ -59,10 +59,7 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
     rules.add(attrArrangementRule("name", "^$", KEEP));
     rules.add(attrArrangementRule("style", "^$", KEEP));
     rules.add(attrArrangementRule(".*", "^$", BY_NAME));
-    rules.add(attrArrangementRule(".*:layout_.*", SdkConstants.NS_RESOURCES, AndroidLayoutAttributeOrder.INSTANCE));
-    rules.add(attrArrangementRule(".*:width", SdkConstants.NS_RESOURCES, BY_NAME));
-    rules.add(attrArrangementRule(".*:height", SdkConstants.NS_RESOURCES, BY_NAME));
-    rules.add(attrArrangementRule(".*", SdkConstants.NS_RESOURCES, BY_NAME));
+    rules.add(attrArrangementRule(".*", SdkConstants.NS_RESOURCES, AndroidAttributeOrder.INSTANCE));
     rules.add(attrArrangementRule(".*", ".*", BY_NAME));
 
     return StdArrangementSettings.createByMatchRules(Collections.emptyList(), rules);

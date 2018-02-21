@@ -71,15 +71,15 @@ public final class AndroidXmlArrangementTest extends AndroidTestCase {
                               "    <TextView\n" +
                               "        android:layout_width=\"\"\n" +
                               "        android:layout_height=\"\"\n" +
+                              "        android:layout_a=\"\"\n" +
+                              "        android:layout_b=\"\"\n" +
+                              "        android:layout_c=\"\"\n" +
                               "        android:layout_marginVertical=\"\"\n" +
                               "        android:layout_marginTop=\"\"\n" +
                               "        android:layout_toStartOf=\"\"\n" +
                               "        android:layout_toLeftOf=\"\"\n" +
                               "        android:layout_toEndOf=\"\"\n" +
-                              "        android:layout_toRightOf=\"\"\n" +
-                              "        android:layout_a=\"\"\n" +
-                              "        android:layout_b=\"\"\n" +
-                              "        android:layout_c=\"\" />\n" +
+                              "        android:layout_toRightOf=\"\" />\n" +
                               "</RelativeLayout>\n";
 
     assertEquals(arrangedContents, FileDocumentManager.getInstance().getDocument(virtualFile).getText());

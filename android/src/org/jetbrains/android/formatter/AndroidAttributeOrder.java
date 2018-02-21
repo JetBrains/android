@@ -22,17 +22,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
-final class AndroidLayoutAttributeOrder extends CustomArrangementOrderToken {
-  static final AndroidLayoutAttributeOrder INSTANCE = new AndroidLayoutAttributeOrder();
+final class AndroidAttributeOrder extends CustomArrangementOrderToken {
+  static final AndroidAttributeOrder INSTANCE = new AndroidAttributeOrder();
 
-  private AndroidLayoutAttributeOrder() {
-    super("ANDROID_LAYOUT_ATTRIBUTE_ORDER", "Android layout attribute order");
+  private AndroidAttributeOrder() {
+    super("ANDROID_ATTRIBUTE_ORDER", "Android attribute order");
   }
 
   @NotNull
   @Override
   public Comparator<ArrangementEntry> getEntryComparator() {
-    return new AttributeComparator<>(AndroidLayoutAttributeOrder::getLocalPart);
+    return new AttributeComparator<>(AndroidAttributeOrder::getLocalPart);
   }
 
   @NotNull
