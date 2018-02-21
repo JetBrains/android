@@ -274,4 +274,127 @@ public class ProfilerTimelineTest {
     assertEquals(6, timeline.convertToRelativeTimeUs(11000));
     assertEquals(-6, timeline.convertToRelativeTimeUs(-1000));
   }
+
+  @Test
+  public void jumpToTargetOnTheLeft() {
+    FakeTimer timer = new FakeTimer();
+    ProfilerTimeline timeline = new ProfilerTimeline(new Updater(timer));
+    Range viewRange = timeline.getViewRange();
+    // View range initially:      #####
+    //         target range: #
+    //     View range after: #####
+    viewRange.set(50, 100);
+    Range targetRange = new Range(0, 10);
+    timeline.setStreaming(true);
+    timeline.ensureRangeFitsViewRange(targetRange);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(timeline.isStreaming());
+
+    // target range is smaller than view range, so view range keeps the same length
+    assertEquals(0, viewRange.getMin(), DELTA);
+    assertEquals(50, viewRange.getMax(), DELTA);
+
+    // View range initially:           #####
+    //         target range: ##########
+    //     View range after: ##########
+    viewRange.set(100, 150);
+    targetRange.set(0, 100);
+    timeline.setStreaming(true);
+    timeline.ensureRangeFitsViewRange(targetRange);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(timeline.isStreaming());
+    // target range is larger than view range, so view range zooms out and grows to fit the target
+    assertEquals(0, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
+
+    // View range initially:           #####
+    //         target range:         ####
+    //     View range after:         #####
+    viewRange.set(100, 150);
+    targetRange.set(90, 120);
+    timeline.setStreaming(true);
+    timeline.ensureRangeFitsViewRange(targetRange);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(timeline.isStreaming());
+    // target range is partially outside of the view range, bring it back just enough so it fits the view range
+    assertEquals(90, viewRange.getMin(), DELTA);
+    assertEquals(140, viewRange.getMax(), DELTA);
+  }
+
+  @Test
+  public void jumpToTargetOnTheRight() {
+    FakeTimer timer = new FakeTimer();
+    ProfilerTimeline timeline = new ProfilerTimeline(new Updater(timer));
+    Range viewRange = timeline.getViewRange();
+    // View range initially: #####
+    //         target range:      #
+    //     View range after:  #####
+    viewRange.set(50, 100);
+    Range targetRange = new Range(100, 110);
+    timeline.setStreaming(true);
+    timeline.ensureRangeFitsViewRange(targetRange);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(timeline.isStreaming());
+    // target range is smaller than view range, so view range keeps the same length
+    assertEquals(60, viewRange.getMin(), DELTA);
+    assertEquals(110, viewRange.getMax(), DELTA);
+
+    // View range initially: #####
+    //         target range:      ##########
+    //     View range after:      ##########
+    viewRange.set(100, 150);
+    targetRange.set(150, 250);
+    timeline.setStreaming(true);
+    timeline.ensureRangeFitsViewRange(targetRange);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(timeline.isStreaming());
+    // target range is larger than view range, so view range zooms out and grows to fit the target
+    assertEquals(150, viewRange.getMin(), DELTA);
+    assertEquals(250, viewRange.getMax(), DELTA);
+
+    // View range initially: #####
+    //         target range:    ####
+    //     View range after:   #####
+    viewRange.set(100, 150);
+    targetRange.set(130, 170);
+    timeline.setStreaming(true);
+    timeline.ensureRangeFitsViewRange(targetRange);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(timeline.isStreaming());
+    // target range is partially outside of the view range, bring it back just enough so it fits the view range
+    assertEquals(120, viewRange.getMin(), DELTA);
+    assertEquals(170, viewRange.getMax(), DELTA);
+  }
+
+  @Test
+  public void jumpToTargetWithinViewRange() {
+    FakeTimer timer = new FakeTimer();
+    ProfilerTimeline timeline = new ProfilerTimeline(new Updater(timer));
+    Range viewRange = timeline.getViewRange();
+    // View range initially: #####
+    //         target range:  ##
+    //     View range after: #####
+    viewRange.set(50, 100);
+    Range targetRange = new Range(60, 80);
+    timeline.setStreaming(true);
+    timeline.ensureRangeFitsViewRange(targetRange);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(timeline.isStreaming());
+    // target range is smaller than view range, so view range keeps the same length and there is no need to move
+    assertEquals(50, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
+
+    // View range initially:      #####
+    //         target range: ###############
+    //     View range after: ###############
+    viewRange.set(50, 100);
+    targetRange.set(0, 150);
+    timeline.setStreaming(true);
+    timeline.ensureRangeFitsViewRange(targetRange);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Give plenty of time to animate.
+    assertFalse(timeline.isStreaming());
+    // target range is larger than view range (in fact contains the view range) so view range zooms out and grows to fit the target
+    assertEquals(0, viewRange.getMin(), DELTA);
+    assertEquals(150, viewRange.getMax(), DELTA);
+  }
 }
