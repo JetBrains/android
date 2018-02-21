@@ -19,6 +19,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.DataFormatException;
@@ -31,17 +32,19 @@ import java.util.zip.DeflaterOutputStream;
 public final class AtraceExporter {
   /**
    * This method reads data from an {@link AtraceDecompressor} and writes it out compressed to a {@link File}.
-   * @param data Profiler captured atrace data.
-   * @param exportFile The file to write systrace compatible data to.
+   * @param input Input stream to read data from.
+   * @param output The file stream to write systrace compatible data to.
    * @throws IOException if the trace file failed to decompress or fails to write.
    */
-  public static void export(@NotNull AtraceDecompressor data, @NotNull File exportFile) throws IOException {
-    try (DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(new FileOutputStream(exportFile))) {
+  public static void export(@NotNull FileInputStream input, @NotNull FileOutputStream output) throws IOException {
+    AtraceDecompressor data = new AtraceDecompressor(input);
+    try (DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(output)) {
       // The first line is added by the AtraceDecompressor, for the atrace-parser. Systrace will throw an error
       // if this line is detected in the file parsing so we throw away the line.
       String line = data.getNextLine();
+      output.write(AtraceDecompressor.HEADER.toByteArray());
       while (!StringUtil.isEmpty(line = data.getNextLine())) {
-          deflaterOutputStream.write(String.format("%s\n", line).getBytes());
+        deflaterOutputStream.write(String.format("%s\n", line).getBytes());
       }
       deflaterOutputStream.flush();
       deflaterOutputStream.close();

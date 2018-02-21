@@ -28,25 +28,44 @@ import java.util.zip.InflaterInputStream
 class AtraceExporterTest {
 
   @Test
-  fun testFirstLineIsTracerNop() {
-    val parser = AtraceDecompressor(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+  fun testTracerHeaderFollowedByFirstLine() {
+    val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
     val exportedFile = FileUtil.createTempFile("atrace", ".trace")
-    AtraceExporter.export(parser, exportedFile)
-    val readCompressedFile = InflaterInputStream(FileInputStream(exportedFile))
+    AtraceExporter.export(FileInputStream(file), FileOutputStream(exportedFile))
+
+    // Read in header.
+    val inputStream = FileInputStream(exportedFile)
+    val headerData = ByteArray(AtraceDecompressor.HEADER.size())
+    inputStream.read(headerData)
+    assertThat(headerData).isEqualTo(AtraceDecompressor.HEADER.toByteArray())
+
+    // Read in rest of file deflated.
+    val readCompressedFile = InflaterInputStream(inputStream)
     val buffer = ByteArray(1024)
     readCompressedFile.read(buffer, 0, 1024)
     val lines = String(buffer).split("\n")
     assertThat(lines[0]).matches("# tracer: nop")
   }
 
+  @Test
+  fun testExportedFileCanBeImported() {
+    val file = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
+    val exportedFile = FileUtil.createTempFile("atrace", ".trace")
+    AtraceExporter.export(FileInputStream(file), FileOutputStream(exportedFile))
+    val decompressor = AtraceDecompressor(exportedFile)
+    var line = decompressor.nextLine
+    assertThat(line).matches("# Initial Data Required by Importer")
+    line = decompressor.nextLine
+    assertThat(line).matches("# tracer: nop")
+  }
+
   @Test(expected = IOException::class)
   fun testLoadingInvalidFileThrowsException() {
     //Create temp invalid file
     val tempFile = createTempTraceFile()
-    val parser = AtraceDecompressor(tempFile)
     val exportedFile = FileUtil.createTempFile("atrace", ".trace")
     exportedFile.deleteOnExit()
-    AtraceExporter.export(parser, exportedFile)
+    AtraceExporter.export(FileInputStream(tempFile), FileOutputStream(exportedFile))
   }
 
   fun createTempTraceFile() : File {
