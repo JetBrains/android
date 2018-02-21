@@ -160,11 +160,11 @@ public class GradleNameElement {
   @Nullable
   private String findName() {
     String name = null;
-    if (mySavedName != null) {
-      name = mySavedName;
-    }
-    else if (myUnsavedName != null) {
+    if (myUnsavedName != null) {
       name = myUnsavedName;
+    }
+    else if (mySavedName != null) {
+      name = mySavedName;
     }
 
     if (name == null && myFakeName != null) {

@@ -30,17 +30,18 @@ public class DensityDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("compatibleScreens") || property.equals("include") || property.equals("exclude")) {
       addToParsedExpressionList(property, element);
       return;
     }
 
     if (property.equals("reset") && element instanceof GradleDslMethodCall) {
-      addParsedResettingElement("reset", element, "include");
+      addParsedResettingElement(element, "include");
       return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

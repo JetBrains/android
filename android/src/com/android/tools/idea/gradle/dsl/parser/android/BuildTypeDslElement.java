@@ -28,8 +28,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("buildConfigField")) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element.getName().equals("buildConfigField")) {
       if (!(element instanceof GradleDslExpressionList)) {
         return;
       }
@@ -42,12 +42,12 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
       if (elementList == null) {
         GradleNameElement name = GradleNameElement.create("buildConfigField");
         elementList = new GradleDslElementList(this, name);
-        setParsedElement(name.name(), elementList);
+        setParsedElement(elementList);
       }
       elementList.addParsedElement(element);
       return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

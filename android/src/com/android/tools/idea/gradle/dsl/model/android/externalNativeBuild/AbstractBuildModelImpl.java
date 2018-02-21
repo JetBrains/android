@@ -69,7 +69,7 @@ public abstract class AbstractBuildModelImpl extends GradleDslBlockModel impleme
       // Only adding new path element is supported. Updating an existing path entry is not supported as there is no use case right now.
       GradleDslLiteral pathLiteral = new GradleDslLiteral(myDslElement, name);
       pathLiteral.setValue(toSystemIndependentName(path.getPath()));
-      myDslElement.setNewElement(PATH, pathLiteral);
+      myDslElement.setNewElement(pathLiteral);
     }
     return this;
   }

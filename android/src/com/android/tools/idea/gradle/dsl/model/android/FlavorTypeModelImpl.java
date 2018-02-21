@@ -293,7 +293,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     GradleDslElementList elementList = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
     if (elementList == null) {
       elementList = new GradleDslElementList(myDslElement, nameElement);
-      myDslElement.setNewElement(elementName, elementList);
+      myDslElement.setNewElement(elementList);
     }
 
     GradleDslExpressionList expressionList = new GradleDslExpressionList(myDslElement, nameElement, false);

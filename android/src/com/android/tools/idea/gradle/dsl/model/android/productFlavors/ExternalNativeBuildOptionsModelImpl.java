@@ -41,7 +41,7 @@ public class ExternalNativeBuildOptionsModelImpl extends GradleDslBlockModel imp
     CMakeOptionsDslElement cMakeOptionsDslElement = myDslElement.getPropertyElement(CMAKE_BLOCK_NAME, CMakeOptionsDslElement.class);
     if (cMakeOptionsDslElement == null) {
       cMakeOptionsDslElement = new CMakeOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(CMAKE_BLOCK_NAME, cMakeOptionsDslElement);
+      myDslElement.setNewElement(cMakeOptionsDslElement);
     }
     return new CMakeOptionsModelImpl(cMakeOptionsDslElement);
   }
@@ -60,7 +60,7 @@ public class ExternalNativeBuildOptionsModelImpl extends GradleDslBlockModel imp
       myDslElement.getPropertyElement(NDK_BUILD_BLOCK_NAME, NdkBuildOptionsDslElement.class);
     if (ndkBuildOptionsDslElement == null) {
       ndkBuildOptionsDslElement = new NdkBuildOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(NDK_BUILD_BLOCK_NAME, ndkBuildOptionsDslElement);
+      myDslElement.setNewElement(ndkBuildOptionsDslElement);
     }
     return new NdkBuildOptionsModelImpl(ndkBuildOptionsDslElement);
   }

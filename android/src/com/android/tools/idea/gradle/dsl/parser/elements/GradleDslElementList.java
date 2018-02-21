@@ -89,7 +89,7 @@ public class GradleDslElementList extends GradleDslElement {
   @Override
   @NotNull
   public String getName() {
-    return ""; // This is just a collection of elements and doesn't have a name.
+    return myName.name();
   }
 
   @Override

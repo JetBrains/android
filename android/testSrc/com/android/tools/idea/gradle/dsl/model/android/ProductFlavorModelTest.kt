@@ -386,11 +386,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                   android.defaultConfig.testInstrumentationRunnerArguments.key7 = "value7"""".trimIndent()
     writeToBuildFile(text)
 
-    val android = gradleBuildModel.android()
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
     assertNotNull(android)
 
     val defaultConfig = android!!.defaultConfig()
-    assertEquals("manifestPlaceholders", 
+    assertEquals("manifestPlaceholders",
         mapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2", "activityLabel3" to "defaultName3",
             "activityLabel4" to "defaultName4"), defaultConfig.manifestPlaceholders())
     assertEquals("proguardFiles", listOf("pro-1.txt", "pro-2.txt", "pro-3.txt", "pro-4.txt", "pro-5.txt"),

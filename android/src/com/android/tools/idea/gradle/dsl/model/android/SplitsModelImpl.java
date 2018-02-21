@@ -44,7 +44,7 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
     AbiDslElement abiDslElement = myDslElement.getPropertyElement(ABI_BLOCK_NAME, AbiDslElement.class);
     if (abiDslElement == null) {
       abiDslElement = new AbiDslElement(myDslElement);
-      myDslElement.setNewElement(ABI_BLOCK_NAME, abiDslElement);
+      myDslElement.setNewElement(abiDslElement);
     }
     return new AbiModelImpl(abiDslElement);
   }
@@ -63,7 +63,7 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
     DensityDslElement densityDslElement = myDslElement.getPropertyElement(DENSITY_BLOCK_NAME, DensityDslElement.class);
     if (densityDslElement == null) {
       densityDslElement = new DensityDslElement(myDslElement);
-      myDslElement.setNewElement(DENSITY_BLOCK_NAME, densityDslElement);
+      myDslElement.setNewElement(densityDslElement);
     }
     return new DensityModelImpl(densityDslElement);
   }
@@ -81,7 +81,7 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
     LanguageDslElement languageDslElement = myDslElement.getPropertyElement(LANGUAGE_BLOCK_NAME, LanguageDslElement.class);
     if (languageDslElement == null) {
       languageDslElement = new LanguageDslElement(myDslElement);
-      myDslElement.setNewElement(LANGUAGE_BLOCK_NAME, languageDslElement);
+      myDslElement.setNewElement(languageDslElement);
     }
     return new LanguageModelImpl(languageDslElement);
   }

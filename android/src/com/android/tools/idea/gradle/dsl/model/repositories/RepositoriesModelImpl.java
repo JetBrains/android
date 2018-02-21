@@ -190,7 +190,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     if (repositoriesElementList == null) {
       GradleNameElement name = GradleNameElement.create(REPOSITORIES_BLOCK_NAME);
       repositoriesElementList = new GradleDslElementList(myDslElement, name);
-      myDslElement.addParsedElement(REPOSITORIES_BLOCK_NAME, repositoriesElementList);
+      myDslElement.addParsedElement(repositoriesElementList);
     }
     return repositoriesElementList;
   }

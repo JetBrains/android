@@ -65,7 +65,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     AaptOptionsDslElement aaptOptionsElement = myDslElement.getPropertyElement(AAPT_OPTIONS_BLOCK_NAME, AaptOptionsDslElement.class);
     if (aaptOptionsElement == null) {
       aaptOptionsElement = new AaptOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(AAPT_OPTIONS_BLOCK_NAME, aaptOptionsElement);
+      myDslElement.setNewElement(aaptOptionsElement);
     }
     return new AaptOptionsModelImpl(aaptOptionsElement);
   }
@@ -76,7 +76,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     AdbOptionsDslElement adbOptionsElement = myDslElement.getPropertyElement(ADB_OPTIONS_BLOCK_NAME, AdbOptionsDslElement.class);
     if (adbOptionsElement == null) {
       adbOptionsElement = new AdbOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(ADB_OPTIONS_BLOCK_NAME, adbOptionsElement);
+      myDslElement.setNewElement(adbOptionsElement);
     }
     return new AdbOptionsModelImpl(adbOptionsElement);
   }
@@ -100,13 +100,13 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
     if (buildTypes == null) {
       buildTypes = new BuildTypesDslElement(myDslElement);
-      myDslElement.setNewElement(BUILD_TYPES_BLOCK_NAME, buildTypes);
+      myDslElement.setNewElement(buildTypes);
     }
 
     BuildTypeDslElement buildTypeElement = buildTypes.getPropertyElement(buildType, BuildTypeDslElement.class);
     if (buildTypeElement == null) {
       buildTypeElement = new BuildTypeDslElement(buildTypes, GradleNameElement.create(buildType));
-      buildTypes.setNewElement(buildType, buildTypeElement);
+      buildTypes.setNewElement(buildTypeElement);
     }
     return new BuildTypeModelImpl(buildTypeElement);
   }
@@ -125,7 +125,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     CompileOptionsDslElement element = myDslElement.getPropertyElement(COMPILE_OPTIONS_BLOCK_NAME, CompileOptionsDslElement.class);
     if (element == null) {
       element = new CompileOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(COMPILE_OPTIONS_BLOCK_NAME, element);
+      myDslElement.setNewElement(element);
     }
     return new CompileOptionsModelImpl(element, false);
   }
@@ -142,7 +142,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     DataBindingDslElement dataBindingElement = myDslElement.getPropertyElement(DATA_BINDING_BLOCK_NAME, DataBindingDslElement.class);
     if (dataBindingElement == null) {
       dataBindingElement = new DataBindingDslElement(myDslElement);
-      myDslElement.setNewElement(DATA_BINDING_BLOCK_NAME, dataBindingElement);
+      myDslElement.setNewElement(dataBindingElement);
     }
     return new DataBindingModelImpl(dataBindingElement);
   }
@@ -153,7 +153,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     ProductFlavorDslElement defaultConfigElement = myDslElement.getPropertyElement(DEFAULT_CONFIG, ProductFlavorDslElement.class);
     if (defaultConfigElement == null) {
       defaultConfigElement = new ProductFlavorDslElement(myDslElement, GradleNameElement.create(DEFAULT_CONFIG));
-      myDslElement.setNewElement(DEFAULT_CONFIG, defaultConfigElement);
+      myDslElement.setNewElement(defaultConfigElement);
     }
     return new ProductFlavorModelImpl(defaultConfigElement);
   }
@@ -170,7 +170,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     DexOptionsDslElement dexOptionsElement = myDslElement.getPropertyElement(DEX_OPTIONS_BLOCK_NAME, DexOptionsDslElement.class);
     if (dexOptionsElement == null) {
       dexOptionsElement = new DexOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(DEX_OPTIONS_BLOCK_NAME, dexOptionsElement);
+      myDslElement.setNewElement(dexOptionsElement);
     }
     return new DexOptionsModelImpl(dexOptionsElement);
   }
@@ -182,7 +182,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
                                                                                                   ExternalNativeBuildDslElement.class);
     if (externalNativeBuildDslElement == null) {
       externalNativeBuildDslElement = new ExternalNativeBuildDslElement(myDslElement);
-      myDslElement.setNewElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME, externalNativeBuildDslElement);
+      myDslElement.setNewElement(externalNativeBuildDslElement);
     }
     return new ExternalNativeBuildModelImpl(externalNativeBuildDslElement);
   }
@@ -205,7 +205,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     LintOptionsDslElement lintOptionsDslElement = myDslElement.getPropertyElement(LINT_OPTIONS_BLOCK_NAME, LintOptionsDslElement.class);
     if (lintOptionsDslElement == null) {
       lintOptionsDslElement = new LintOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(LINT_OPTIONS_BLOCK_NAME, lintOptionsDslElement);
+      myDslElement.setNewElement(lintOptionsDslElement);
     }
     return new LintOptionsModelImpl(lintOptionsDslElement);
   }
@@ -217,7 +217,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
       myDslElement.getPropertyElement(PACKAGING_OPTIONS_BLOCK_NAME, PackagingOptionsDslElement.class);
     if (packagingOptionsDslElement == null) {
       packagingOptionsDslElement = new PackagingOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(PACKAGING_OPTIONS_BLOCK_NAME, packagingOptionsDslElement);
+      myDslElement.setNewElement(packagingOptionsDslElement);
     }
     return new PackagingOptionsModelImpl(packagingOptionsDslElement);
   }
@@ -235,14 +235,14 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
     if (productFlavors == null) {
       productFlavors = new ProductFlavorsDslElement(myDslElement);
-      myDslElement.setNewElement(PRODUCT_FLAVORS_BLOCK_NAME, productFlavors);
+      myDslElement.setNewElement(productFlavors);
     }
 
     ProductFlavorDslElement flavorElement = productFlavors.getPropertyElement(flavor, ProductFlavorDslElement.class);
     if (flavorElement == null) {
       GradleNameElement name = GradleNameElement.create(flavor);
       flavorElement = new ProductFlavorDslElement(productFlavors, name);
-      productFlavors.setNewElement(flavor, flavorElement);
+      productFlavors.setNewElement(flavorElement);
     }
     return new ProductFlavorModelImpl(flavorElement);
   }
@@ -268,14 +268,14 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
     if (signingConfigs == null) {
       signingConfigs = new SigningConfigsDslElement(myDslElement);
-      myDslElement.setNewElement(SIGNING_CONFIGS_BLOCK_NAME, signingConfigs);
+      myDslElement.setNewElement(signingConfigs);
     }
 
     SigningConfigDslElement configElement = signingConfigs.getPropertyElement(config, SigningConfigDslElement.class);
     if (configElement == null) {
       GradleNameElement name = GradleNameElement.create(config);
       configElement = new SigningConfigDslElement(signingConfigs, name);
-      signingConfigs.setNewElement(config, configElement);
+      signingConfigs.setNewElement(configElement);
     }
     return new SigningConfigModelImpl(configElement);
   }
@@ -301,14 +301,14 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
     if (sourceSets == null) {
       sourceSets = new SourceSetsDslElement(myDslElement);
-      myDslElement.setNewElement(SOURCE_SETS_BLOCK_NAME, sourceSets);
+      myDslElement.setNewElement(sourceSets);
     }
 
     SourceSetDslElement sourceSetElement = sourceSets.getPropertyElement(sourceSet, SourceSetDslElement.class);
     if (sourceSetElement == null) {
       GradleNameElement name = GradleNameElement.create(sourceSet);
       sourceSetElement = new SourceSetDslElement(sourceSets, name);
-      sourceSets.setNewElement(sourceSet, sourceSetElement);
+      sourceSets.setNewElement(sourceSetElement);
     }
     return new SourceSetModelImpl(sourceSetElement);
   }
@@ -327,7 +327,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     SplitsDslElement splitsDslElement = myDslElement.getPropertyElement(SPLITS_BLOCK_NAME, SplitsDslElement.class);
     if (splitsDslElement == null) {
       splitsDslElement = new SplitsDslElement(myDslElement);
-      myDslElement.setNewElement(SPLITS_BLOCK_NAME, splitsDslElement);
+      myDslElement.setNewElement(splitsDslElement);
     }
     return new SplitsModelImpl(splitsDslElement);
   }
@@ -338,7 +338,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     TestOptionsDslElement testOptionsDslElement = myDslElement.getPropertyElement(TEST_OPTIONS_BLOCK_NAME, TestOptionsDslElement.class);
     if (testOptionsDslElement == null) {
       testOptionsDslElement = new TestOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(TEST_OPTIONS_BLOCK_NAME, testOptionsDslElement);
+      myDslElement.setNewElement(testOptionsDslElement);
     }
     return new TestOptionsModelImpl(testOptionsDslElement);
   }

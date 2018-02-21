@@ -131,7 +131,7 @@ public class AbiModelImpl extends GradleDslBlockModel implements AbiModel {
   @NotNull
   public AbiModel addReset() {
     GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), RESET);
-    myDslElement.setNewElement(RESET, resetMethod); // TODO: reset include
+    myDslElement.setNewElement(resetMethod); // TODO: reset include
     return this;
   }
 

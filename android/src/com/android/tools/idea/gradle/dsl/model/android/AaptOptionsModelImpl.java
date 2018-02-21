@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,7 @@ public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOpt
   @NonNls private static final String CRUNCHER_PROCESSES = "cruncherProcesses";
   @NonNls private static final String FAIL_ON_MISSING_CONFIG_ENTRY = "failOnMissingConfigEntry";
   @NonNls private static final String IGNORE_ASSETS = "ignoreAssets";
+  @NonNls private static final String IGNORE_ASSETS_PATTERN = "ignoreAssetsPattern";
   @NonNls private static final String NO_COMPRESS = "noCompress";
 
   public AaptOptionsModelImpl(@NotNull AaptOptionsDslElement dslElement) {
@@ -75,13 +77,18 @@ public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOpt
   @Override
   @NotNull
   public GradleNullableValue<String> ignoreAssets() {
-    return myDslElement.getLiteralProperty(IGNORE_ASSETS, String.class);
+    GradleNullableValue<String> result = myDslElement.getLiteralProperty(IGNORE_ASSETS, String.class);
+    if (result.value() == null) {
+      return myDslElement.getLiteralProperty(IGNORE_ASSETS_PATTERN, String.class);
+    }
+    return result;
   }
 
   @Override
   @NotNull
   public AaptOptionsModel setIgnoreAssets(@NotNull String ignoreAssets) {
     myDslElement.setNewLiteral(IGNORE_ASSETS, ignoreAssets);
+    myDslElement.removeProperty(IGNORE_ASSETS_PATTERN);
     return this;
   }
 
@@ -89,6 +96,7 @@ public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOpt
   @NotNull
   public AaptOptionsModel removeIgnoreAssets() {
     myDslElement.removeProperty(IGNORE_ASSETS);
+    myDslElement.removeProperty(IGNORE_ASSETS_PATTERN);
     return this;
   }
 

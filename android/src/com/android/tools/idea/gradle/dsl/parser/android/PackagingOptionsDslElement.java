@@ -29,7 +29,8 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("excludes") || property.equals("exclude")) {
       addToParsedExpressionList("excludes", element);
       return;
@@ -45,6 +46,6 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
       return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

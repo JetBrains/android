@@ -29,11 +29,11 @@ public class FlatDirRepositoryDslElement extends GradleDslBlockElement {
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("dir") || property.equals("dirs")) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element.getName().equals("dir") || element.getName().equals("dirs")) {
       addToParsedExpressionList("dirs", element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

@@ -270,12 +270,12 @@ public class GroovyDslParser implements GradleDslParser {
     if (argumentList.getAllArguments().length > 0) {
       // This element is a method call with arguments and an optional closure associated with it.
       // ex: compile("dependency") {}
-      GradleDslExpression methodCall = getMethodCall(dslElement, expression, GradleNameElement.empty(), argumentList, name.fullName());
+      GradleDslExpression methodCall = getMethodCall(dslElement, expression, name, argumentList, name.fullName());
       if (closureArguments.length > 0) {
         methodCall.setParsedClosureElement(getClosureElement(methodCall, closureArguments[0], name));
       }
       methodCall.setElementType(REGULAR);
-      dslElement.addParsedElement(name.name(), methodCall);
+      dslElement.addParsedElement(methodCall);
       return true;
     }
 
@@ -283,9 +283,9 @@ public class GroovyDslParser implements GradleDslParser {
       // This element is a pure method call, i.e a method call with no arguments and no closure arguments.
       // ex: jcenter()
       GradleDslMethodCall methodCall =
-        new GradleDslMethodCall(dslElement, expression, GradleNameElement.empty(), expression.getArgumentList(), name.fullName());
+        new GradleDslMethodCall(dslElement, expression, name, expression.getArgumentList(), name.fullName());
       methodCall.setElementType(REGULAR);
-      dslElement.addParsedElement(name.name(), methodCall);
+      dslElement.addParsedElement(methodCall);
       return true;
     }
 
@@ -414,7 +414,7 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     propertyElement.setElementType(REGULAR);
-    blockElement.addParsedElement(propertyName.name(), propertyElement);
+    blockElement.addParsedElement(propertyElement);
     return true;
   }
 
@@ -462,7 +462,7 @@ public class GroovyDslParser implements GradleDslParser {
       }
 
       variableElement.setElementType(VARIABLE);
-      blockElement.setParsedElement(name.name(), variableElement);
+      blockElement.setParsedElement(variableElement);
     }
     return true;
   }
@@ -501,7 +501,7 @@ public class GroovyDslParser implements GradleDslParser {
     propertyElement.setUseAssignment(true);
     propertyElement.setElementType(REGULAR);
 
-    blockElement.setParsedElement(name.name(), propertyElement);
+    blockElement.setParsedElement(propertyElement);
     return true;
   }
 
@@ -548,7 +548,7 @@ public class GroovyDslParser implements GradleDslParser {
           GrArgumentList argumentList = newExpression.getArgumentList();
           if (argumentList != null) {
             if (argumentList.getAllArguments().length > 0) {
-              return getNewExpression(parentElement, newExpression, objectName, argumentList);
+              return getNewExpression(parentElement, newExpression, propertyName, argumentList, objectName);
             }
           }
         }
@@ -604,8 +604,9 @@ public class GroovyDslParser implements GradleDslParser {
   private static GradleDslNewExpression getNewExpression(@NotNull GradleDslElement parentElement,
                                                          @NotNull GrNewExpression psiElement,
                                                          @NotNull GradleNameElement propertyName,
-                                                         @NotNull GrArgumentList argumentList) {
-    GradleDslNewExpression newExpression = new GradleDslNewExpression(parentElement, psiElement, propertyName);
+                                                         @NotNull GrArgumentList argumentList,
+                                                         @NotNull GradleNameElement objectName) {
+    GradleDslNewExpression newExpression = new GradleDslNewExpression(parentElement, psiElement, propertyName, objectName);
 
     for (GrExpression expression : argumentList.getExpressionArguments()) {
       if (expression instanceof GrListOrMap) {
@@ -634,7 +635,7 @@ public class GroovyDslParser implements GradleDslParser {
                                                            boolean isLiteral) {
     GradleDslExpressionList expressionList = new GradleDslExpressionList(parentElement, listPsiElement, isLiteral, propertyName);
     for (GrExpression expression : propertyExpressions) {
-      GradleDslExpression expressionElement = getExpressionElement(expressionList, listPsiElement, propertyName, expression);
+      GradleDslExpression expressionElement = getExpressionElement(expressionList, expression, propertyName, expression);
       expressionList.addParsedExpression(expressionElement);
     }
     return expressionList;
@@ -670,7 +671,7 @@ public class GroovyDslParser implements GradleDslParser {
           valueElement = getExpressionList(expressionMap, listOrMap, argName, Arrays.asList(listOrMap.getInitializers()), true);
         }
       }
-      expressionMap.setParsedElement(argName.name(), valueElement);
+      expressionMap.setParsedElement(valueElement);
     }
     return expressionMap;
   }
@@ -901,7 +902,7 @@ public class GroovyDslParser implements GradleDslParser {
         else {
           return null;
         }
-        resultElement.setParsedElement(elementName.name(), newElement);
+        resultElement.setParsedElement(newElement);
         resultElement = newElement;
       }
       else if (element instanceof GradlePropertiesDslElement) {
