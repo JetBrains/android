@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -299,7 +300,14 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       attributes.setAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute), null);
     }
 
-    if (ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute) != null) {
+    // If the other side is already connected to the same component, the user is trying to
+    // center this component to targetComponent, so we remove the margin.
+    String otherSideAttr = ConstraintComponentUtilities.ourOtherSideAttributes.get(attribute);
+    String otherSideAttrValue = otherSideAttr != null ? component.getAttribute(SdkConstants.SHERPA_URI, otherSideAttr) : null;
+    if (isOppositeSideConnectedToSameTarget(targetId, otherSideAttrValue)) {
+      removeOppositeSideMargin(attributes, otherSideAttr);
+    }
+    else if (ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute) != null) {
       Scene scene = myComponent.getScene();
       int marginValue = getDistance(attribute, targetComponent, scene);
       if (!scene.isControlDown()) {
@@ -331,6 +339,42 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
     myRenderingTemporaryConnection = true;
     return attributes;
+  }
+
+  private void removeOppositeSideMargin(@NotNull AttributesTransaction attributes, @NotNull String otherSideAttr) {
+    String otherSideMargin = ConstraintComponentUtilities.ourMapMarginAttributes.get(otherSideAttr);
+    if (otherSideMargin == null) {
+      return;
+    }
+    String alternateAttr;
+
+    boolean rtl = isRtl();
+    switch (otherSideMargin) {
+      case SdkConstants.ATTR_LAYOUT_MARGIN_LEFT:
+        alternateAttr = rtl ? SdkConstants.ATTR_LAYOUT_MARGIN_END : SdkConstants.ATTR_LAYOUT_MARGIN_START;
+        break;
+      case SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT:
+        alternateAttr = rtl ? SdkConstants.ATTR_LAYOUT_MARGIN_START : SdkConstants.ATTR_LAYOUT_MARGIN_END;
+        break;
+      case SdkConstants.ATTR_LAYOUT_MARGIN_START:
+        alternateAttr = rtl ? SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT : SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+        break;
+      case SdkConstants.ATTR_LAYOUT_MARGIN_END:
+        alternateAttr = rtl ? SdkConstants.ATTR_LAYOUT_MARGIN_LEFT : SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+        break;
+      default:
+        alternateAttr = null;
+    }
+
+    attributes.setAttribute(SdkConstants.ANDROID_URI, otherSideMargin, null);
+    if (alternateAttr != null) {
+      attributes.setAttribute(SdkConstants.ANDROID_URI, alternateAttr, null);
+    }
+  }
+
+  private static boolean isOppositeSideConnectedToSameTarget(@NotNull String targetId, @Nullable String otherSideAttrValue) {
+    String strippedId = NlComponent.stripId(otherSideAttrValue);
+    return strippedId != null && strippedId.equals(NlComponent.stripId(targetId));
   }
 
   private int getDistance(String attribute, NlComponent targetComponent, Scene scene) {

@@ -34,14 +34,12 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Direction;
 import com.android.utils.Pair;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.Float;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.*;
@@ -53,6 +51,7 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuid
 public final class ConstraintComponentUtilities {
 
   public static final HashMap<String, String> ourReciprocalAttributes;
+  public static final Map<String, String> ourOtherSideAttributes;
   public static final HashMap<String, String> ourMapMarginAttributes;
   private static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
   public static final ArrayList<String> ourLeftAttributes;
@@ -280,6 +279,15 @@ public final class ConstraintComponentUtilities {
     ourReciprocalAttributes.put(ATTR_LAYOUT_START_TO_END_OF, ATTR_LAYOUT_START_TO_START_OF);
     ourReciprocalAttributes.put(ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF);
     ourReciprocalAttributes.put(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_END_TO_START_OF);
+
+    ourOtherSideAttributes = new ImmutableMap.Builder()
+      .put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF)
+      .put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_LEFT_TO_LEFT_OF)
+      .put(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_START_TO_START_OF)
+      .put(ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF)
+      .put(ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF)
+      .put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_TOP_TO_TOP_OF)
+      .build();
 
     ourMapMarginAttributes = new HashMap<>();
     ourMapMarginAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_MARGIN_LEFT);
