@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
@@ -43,7 +44,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRunner.class)
 public class LaunchAndroidApplicationTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
@@ -365,7 +366,7 @@ public class LaunchAndroidApplicationTest {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
-      .waitForGradleProjectSyncToFail()
+      .waitForGradleProjectSyncToFail(Wait.seconds(20))
       .getEditor()
       .open("Application/build.gradle")
       .select("buildToolsVersion \"(.*)\"")
@@ -389,7 +390,7 @@ public class LaunchAndroidApplicationTest {
       .clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(appName)
-      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 
   /**
