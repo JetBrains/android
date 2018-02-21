@@ -22,9 +22,9 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import java.io.File
 
 open class PsProductFlavor(
-    parent: PsAndroidModule,
-    private val resolvedModel: ProductFlavor?,
-    private val parsedModel: ProductFlavorModel?
+  parent: PsAndroidModule,
+  private val resolvedModel: ProductFlavor?,
+  private val parsedModel: ProductFlavorModel?
 ) : PsChildModel(parent), PsAndroidModel {
 
   private var name = when {
@@ -64,143 +64,119 @@ open class PsProductFlavor(
     }
 
     val applicationId: ModelSimpleProperty<PsProductFlavor, String> = property(
-        "Application ID",
-        getResolvedValue = { applicationId },
-        getParsedValue = { applicationId().asString() },
-        getParsedRawValue = { applicationId().dslText() },
-        setParsedValue = { applicationId().setValue(it) },
-        clearParsedValue = { applicationId().clear() },
-        setParsedRawValue = { applicationId().setDslText(it) },
-        parse = { parseString(it) }
+      "Application ID",
+      getResolvedValue = { applicationId },
+      getParsedProperty = { applicationId() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
     )
 
     val dimension: ModelSimpleProperty<PsProductFlavor, String> = property(
       "Dimension",
       getResolvedValue = { dimension },
-      getParsedValue = { dimension().asString() },
-      getParsedRawValue = { dimension().dslText() },
-      setParsedValue = { dimension().setValue(it) },
-      clearParsedValue = { dimension().clear() },
-      setParsedRawValue = { dimension().setDslText(it) },
+      getParsedProperty = { dimension() },
+      getter = { asString() },
+      setter = { setValue(it) },
       parse = { parseString(it) },
       getKnownValues = { it.parent.flavorDimensions.map { ValueDescriptor(it, it) } }
     )
 
     val maxSdkVersion: ModelSimpleProperty<PsProductFlavor, Int> = property(
-        "Max SDK Version",
-        getResolvedValue = { maxSdkVersion },
-        getParsedValue = { maxSdkVersion().asInt() },
-        getParsedRawValue = { maxSdkVersion().dslText() },
-        setParsedValue = { maxSdkVersion().setValue(it) },
-        clearParsedValue = { maxSdkVersion().clear() },
-        setParsedRawValue = { maxSdkVersion().setDslText(it) },
-        parse = { parseInt(it) },
-        getKnownValues = { installedSdksAsInts() }
+      "Max SDK Version",
+      getResolvedValue = { maxSdkVersion },
+      getParsedProperty = { maxSdkVersion() },
+      getter = { asInt() },
+      setter = { setValue(it) },
+      parse = { parseInt(it) },
+      getKnownValues = { installedSdksAsInts() }
     )
 
     val minSdkVersion: ModelSimpleProperty<PsProductFlavor, String> = property(
-        "Min SDK Version",
-        getResolvedValue = { minSdkVersion?.apiLevel?.toString() },
-        getParsedValue = { minSdkVersion().asString() },
-        getParsedRawValue = { minSdkVersion().dslText() },
-        setParsedValue = { minSdkVersion().setValue(it) },
-        clearParsedValue = { minSdkVersion().clear() },
-        setParsedRawValue = { minSdkVersion().setDslText(it) },
-        parse = { parseString(it) },
-        getKnownValues = { installedSdksAsStrings() }
+      "Min SDK Version",
+      getResolvedValue = { minSdkVersion?.apiLevel?.toString() },
+      getParsedProperty = { minSdkVersion() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) },
+      getKnownValues = { installedSdksAsStrings() }
     )
 
     val multiDexEnabled: ModelSimpleProperty<PsProductFlavor, Boolean> = property(
-        "Multi Dex Enabled",
-        getResolvedValue = { multiDexEnabled },
-        getParsedValue = { multiDexEnabled().asBoolean() },
-        getParsedRawValue = { multiDexEnabled().dslText() },
-        setParsedValue = { multiDexEnabled().setValue(it) },
-        clearParsedValue = { multiDexEnabled().clear() },
-        setParsedRawValue = { multiDexEnabled().setDslText(it) },
-        parse = { parseBoolean(it) },
-        getKnownValues = { booleanValues() }
+      "Multi Dex Enabled",
+      getResolvedValue = { multiDexEnabled },
+      getParsedProperty = { multiDexEnabled() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parse = { parseBoolean(it) },
+      getKnownValues = { booleanValues() }
     )
 
     val targetSdkVersion: ModelSimpleProperty<PsProductFlavor, String> = property(
-        "Target SDK Version",
-        getResolvedValue = { targetSdkVersion?.apiLevel?.toString() },
-        getParsedValue = { targetSdkVersion().asString() },
-        getParsedRawValue = { targetSdkVersion().dslText() },
-        setParsedValue = { targetSdkVersion().setValue(it) },
-        clearParsedValue = { targetSdkVersion().clear() },
-        setParsedRawValue = { targetSdkVersion().setDslText(it) },
-        parse = { parseString(it) },
-        getKnownValues = { installedSdksAsStrings() }
+      "Target SDK Version",
+      getResolvedValue = { targetSdkVersion?.apiLevel?.toString() },
+      getParsedProperty = { targetSdkVersion() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) },
+      getKnownValues = { installedSdksAsStrings() }
 
     )
 
     val testApplicationId: ModelSimpleProperty<PsProductFlavor, String> = property(
-        "Test Application ID",
-        getResolvedValue = { testApplicationId },
-        getParsedValue = { testApplicationId().asString() },
-        getParsedRawValue = { testApplicationId().dslText() },
-        setParsedValue = { testApplicationId().setValue(it) },
-        clearParsedValue = { testApplicationId().clear() },
-        setParsedRawValue = { testApplicationId().setDslText(it) },
-        parse = { parseString(it) }
+      "Test Application ID",
+      getResolvedValue = { testApplicationId },
+      getParsedProperty = { testApplicationId() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
     )
 
     val testFunctionalTest: ModelSimpleProperty<PsProductFlavor, Boolean> = property(
-        "Test Functional Test",
-        getResolvedValue = { testFunctionalTest },
-        getParsedValue = { testFunctionalTest().asBoolean() },
-        getParsedRawValue = { testFunctionalTest().dslText() },
-        setParsedValue = { testFunctionalTest().setValue(it) },
-        clearParsedValue = { testFunctionalTest().clear() },
-        setParsedRawValue = { testFunctionalTest().setDslText(it) },
-        parse = { parseBoolean(it) },
-        getKnownValues = { booleanValues() }
+      "Test Functional Test",
+      getResolvedValue = { testFunctionalTest },
+      getParsedProperty = { testFunctionalTest() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parse = { parseBoolean(it) },
+      getKnownValues = { booleanValues() }
     )
 
     val testHandleProfiling: ModelSimpleProperty<PsProductFlavor, Boolean> = property(
-        "Test Handle Profiling",
-        getResolvedValue = { testHandleProfiling },
-        getParsedValue = { testHandleProfiling().asBoolean() },
-        getParsedRawValue = { testHandleProfiling().dslText() },
-        setParsedValue = { testHandleProfiling().setValue(it) },
-        clearParsedValue = { testHandleProfiling().clear() },
-        setParsedRawValue = { testHandleProfiling().setDslText(it) },
-        parse = { parseBoolean(it) },
-        getKnownValues = { booleanValues() }
+      "Test Handle Profiling",
+      getResolvedValue = { testHandleProfiling },
+      getParsedProperty = { testHandleProfiling() },
+      getter = { asBoolean() },
+      setter = { setValue(it) },
+      parse = { parseBoolean(it) },
+      getKnownValues = { booleanValues() }
     )
 
     val testInstrumentationRunner: ModelSimpleProperty<PsProductFlavor, String> = property(
-        "Test instrumentation runner class name",
-        getResolvedValue = { testInstrumentationRunner },
-        getParsedValue = { testInstrumentationRunner().asString() },
-        getParsedRawValue = { testInstrumentationRunner().dslText() },
-        setParsedValue = { testInstrumentationRunner().setValue(it) },
-        clearParsedValue = { testInstrumentationRunner().clear() },
-        setParsedRawValue = { testInstrumentationRunner().setDslText(it) },
-        parse = { parseString(it) }
+      "Test instrumentation runner class name",
+      getResolvedValue = { testInstrumentationRunner },
+      getParsedProperty = { testInstrumentationRunner() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
     )
 
     val versionCode: ModelSimpleProperty<PsProductFlavor, String> = property(
-        "Version Code",
-        getResolvedValue = { versionCode?.toString() },
-        getParsedValue = { versionCode().asString() },
-        getParsedRawValue = { versionCode().dslText() },
-        setParsedValue = { versionCode().setValue(it) },
-        clearParsedValue = { versionCode().clear() },
-        setParsedRawValue = { versionCode().setDslText(it) },
-        parse = { parseString(it) }
+      "Version Code",
+      getResolvedValue = { versionCode?.toString() },
+      getParsedProperty = { versionCode() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
     )
 
     val versionName: ModelSimpleProperty<PsProductFlavor, String> = property(
-        "Version Name",
-        getResolvedValue = { versionName },
-        getParsedValue = { versionName().asString() },
-        getParsedRawValue = { versionName().dslText() },
-        setParsedValue = { versionName().setValue(it) },
-        clearParsedValue = { versionName().clear() },
-        setParsedRawValue = { versionName().setDslText(it) },
-        parse = { parseString(it) }
+      "Version Name",
+      getResolvedValue = { versionName },
+      getParsedProperty = { versionName() },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parse = { parseString(it) }
     )
 
     val proGuardFiles: ModelListProperty<PsProductFlavor, File> = listProperty(
@@ -231,4 +207,3 @@ open class PsProductFlavor(
     )
   }
 }
-

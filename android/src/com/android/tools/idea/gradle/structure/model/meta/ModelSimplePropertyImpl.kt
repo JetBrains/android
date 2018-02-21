@@ -15,7 +15,52 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import kotlin.reflect.KProperty
+
+/**
+ * Makes a descriptor of a simple-typed property of a model of type [ModelT] described by the model descriptor.
+ *
+ * @param description the description of the property as it should appear int he UI
+ * @param default the default value the property takes if not configured or null
+ * @param defaultValueGetter the function returning the default value of the property for the given model (overwrites [default] if
+ *        defined)
+ * @param getResolvedValue the function to get the value of the property as it was resolved by Gradle
+ * @param getParsedProperty the function to get the [ResolvedPropertyModel] of the property of the parsed model
+ * @param getter the getter function to get the value of the [ResolvedPropertyModel]
+ * @param setter the setter function to change the value of the [ResolvedPropertyModel]
+ * @param parse the parser of the text representation of [PropertyT]. See notes in: [ModelSimpleProperty]
+ * @param getKnownValues the function to get a list of the known value for the given instance of [ModelT]. See: [ModelSimpleProperty]
+ */
+// NOTE: This is an extension function supposed to be invoked on model descriptors to make the type inference work.
+fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
+    ModelT,
+    ResolvedT,
+    ParsedT,
+    ResolvedPropertyModelT : ResolvedPropertyModel,
+    PropertyT : Any> T.property(
+  description: String,
+  default: PropertyT? = null,
+  defaultValueGetter: (ModelT) -> PropertyT? = { default },
+  getResolvedValue: ResolvedT.() -> PropertyT?,
+  getParsedProperty: ParsedT.() -> ResolvedPropertyModelT,
+  getter: ResolvedPropertyModelT.() -> PropertyT?,
+  setter: ResolvedPropertyModelT.(PropertyT) -> Unit,
+  parse: (String) -> ParsedValue<PropertyT>,
+  getKnownValues: ((ModelT) -> List<ValueDescriptor<PropertyT>>)? = null
+) =
+  ModelSimplePropertyImpl(
+    this,
+    description,
+    defaultValueGetter,
+    getResolvedValue,
+    { getParsedProperty().getter() },
+    { getParsedProperty().dslText() },
+    { if (it != null) getParsedProperty().setter(it) else getParsedProperty().delete() },
+    { getParsedProperty().setDslText(it) },
+    { if (it.isBlank()) ParsedValue.NotSet() else parse(it.trim()) },
+    { if (getKnownValues != null) getKnownValues(it) else null }
+  )
 
 /**
  * Makes a descriptor of a simple-typed property of a model of type [ModelT] described by the model descriptor.
