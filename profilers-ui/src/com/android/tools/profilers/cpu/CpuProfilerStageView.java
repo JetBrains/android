@@ -70,6 +70,7 @@ import static com.android.tools.profilers.ProfilerColors.CPU_CAPTURE_BACKGROUND;
 import static com.android.tools.profilers.ProfilerLayout.*;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
@@ -454,10 +455,33 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isExportCpuTraceEnabled()) {
       installExportTraceMenuItem(contextMenuInstaller);
     }
-    // TODO(b/73338399): add actions to navigate through captures.
+    installCaptureNavigationMenuItems(contextMenuInstaller);
 
     // Add the profilers common menu items
     getProfilersView().installCommonMenuItems(mySelection);
+  }
+
+  /**
+   * Installs both {@link ContextMenuItem} corresponding to the CPU capture navigation feature on {@link #mySelection}.
+   */
+  private void installCaptureNavigationMenuItems(ContextMenuInstaller contextMenuInstaller) {
+    int shortcutModifier = (SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK) | SHIFT_DOWN_MASK;
+
+    ProfilerAction navigateNext =
+      new ProfilerAction.Builder("Next capture")
+        .setActionRunnable(() -> myStage.navigateNext())
+        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasNext())
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, shortcutModifier)).build();
+
+    ProfilerAction navigatePrevious =
+      new ProfilerAction.Builder("Previous capture")
+        .setActionRunnable(() -> myStage.navigatePrevious())
+        .setEnableBooleanSupplier(() -> myStage.getTraceIdsIterator().hasPrevious())
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, shortcutModifier)).build();
+
+    contextMenuInstaller.installGenericContextMenu(mySelection, navigateNext);
+    contextMenuInstaller.installGenericContextMenu(mySelection, navigatePrevious);
+    contextMenuInstaller.installGenericContextMenu(mySelection, ContextMenuItem.SEPARATOR);
   }
 
   /**
