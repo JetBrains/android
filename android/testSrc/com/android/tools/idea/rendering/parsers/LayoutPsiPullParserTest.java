@@ -472,6 +472,25 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertNull(parser.getNamespace("android"));
   }
 
+  public void testSrcCompatTools() throws XmlPullParserException {
+    @Language("XML")
+    final String layout = "<ImageView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                          "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                          "    android:layout_width=\"wrap_content\"\n" +
+                          "    android:layout_height=\"wrap_content\"\n" +
+                          "    android:src=\"value\"" +
+                          "    tools:srcCompat=\"srcCompatValue\" />";
+
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/my_layout.xml", layout);
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    parser.setUseSrcCompat(true); // Enable srcCompat replacing src values
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("ImageView", parser.getName());
+    // when using AppCompat, the srcCompat value takes precedence over the src. This is done to avoid the AppCompat vector drawable loader
+    // from trying to load drawables since it does not support the layoutlib resources and it would fail.
+    assertEquals("srcCompatValue", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+  }
+
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
