@@ -34,7 +34,14 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   private final
   @NotNull List<GradleDslElement> myToBeRemovedArguments = Lists.newArrayList();
 
-  @Nullable private String myStatementName;
+  /**
+   * The name of the method that this method call is invoking.
+   * For example:
+   *   storeFile file('file.txt') -> myMethodName = file
+   *   google()                   -> myMethodName = google
+   *   System.out.println('text') -> myMethodName = System.out.println
+   */
+  @NotNull private String myMethodName;
 
   @Nullable private GradleDslElement myToBeAddedArgument;
 
@@ -43,23 +50,24 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   /**
    * Create a new method call.
    *
-   * @param parent        the parent element.
-   * @param methodName    method name.
-   * @param statementName the statement name this method call need to be added to,  Ex: to create "compile project(':xyz')",
-   *                      use "compile" as statement name and "project" as method name, or {@code null} if the method needs to be added
-   *                      without any application statement.
+   * @param parent     the parent element.
+   * @param name       element name, this should be null if the method call is on its own, Ex: "jcenter()"
+   * @param methodName the method name of this method call,  Ex: to create "compile project(':xyz')",
+   *                   use "project" as statement name and "compile" as element name.
    */
-  public GradleDslMethodCall(@NotNull GradleDslElement parent, @NotNull GradleNameElement methodName, @Nullable String statementName) {
-    super(parent, null, methodName, null);
-    myStatementName = statementName;
+  public GradleDslMethodCall(@NotNull GradleDslElement parent, @NotNull GradleNameElement name, @NotNull String methodName) {
+    super(parent, null, name, null);
+    myMethodName = methodName;
   }
 
   public GradleDslMethodCall(@NotNull GradleDslElement parent,
                              @NotNull PsiElement methodCall,
                              @NotNull GradleNameElement name,
-                             @NotNull PsiElement argumentListPsiElement) {
+                             @NotNull PsiElement argumentListPsiElement,
+                             @NotNull String methodName) {
     super(parent, methodCall, name, methodCall);
     myArgumentListPsiElement = argumentListPsiElement;
+    myMethodName = methodName;
   }
 
   public void addParsedExpression(@NotNull GradleDslExpression expression) {
@@ -140,10 +148,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
       result.add(myToBeAddedArgument);
     }
 
-    for (GradleDslElement argument : myToBeRemovedArguments) {
-      result.remove(argument);
-    }
-
+    result.removeAll(myToBeRemovedArguments);
     return result;
   }
 
@@ -193,7 +198,7 @@ public final class GradleDslMethodCall extends GradleDslExpression {
 
   @Nullable
   private File getFileValue() {
-    if (!myName.name().equals("file")) {
+    if (!myMethodName.equals("file")) {
       return null;
     }
 
@@ -226,13 +231,13 @@ public final class GradleDslMethodCall extends GradleDslExpression {
   }
 
   private void setFileValue(@NotNull File file) {
-    if (!myName.name().equals("file")) {
+    if (!myMethodName.equals("file")) {
       return;
     }
 
     List<GradleDslElement> arguments = getArguments();
     if (arguments.isEmpty()) {
-      GradleDslLiteral argument = new GradleDslLiteral(this, myName);
+      GradleDslLiteral argument = new GradleDslLiteral(this, GradleNameElement.empty());
       argument.setValue(file.getPath());
       myToBeAddedArgument = argument;
       return;
@@ -246,9 +251,16 @@ public final class GradleDslMethodCall extends GradleDslExpression {
     ((GradleDslExpression)pathArgument).setValue(file.getPath());
   }
 
-  @Nullable
-  public String getStatementName() {
-    return myStatementName;
+  @NotNull
+  public String getMethodName() {
+    return myMethodName;
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    String name = super.getName();
+    return name.isEmpty() ? getMethodName() : name;
   }
 
   public void remove(GradleDslElement argument) {

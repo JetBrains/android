@@ -34,7 +34,7 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
 
   static Collection<FileDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<FileDependencyModel> result = new ArrayList<>();
-    if (FILES.equals(methodCall.getName())) {
+    if (FILES.equals(methodCall.getMethodName())) {
       List<GradleDslElement> arguments = methodCall.getArguments();
       for (GradleDslElement argument : arguments) {
         if (argument instanceof GradleDslExpression) {
@@ -48,9 +48,9 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
   static void createAndAddToList(@NotNull GradleDslElementList list,
                                  @NotNull String configurationName,
                                  @NotNull String file) {
-    GradleNameElement methodName = GradleNameElement.create(FILES);
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
-    GradleDslLiteral fileDslLiteral = new GradleDslLiteral(methodCall, methodName);
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, name, FILES);
+    GradleDslLiteral fileDslLiteral = new GradleDslLiteral(methodCall, name);
     fileDslLiteral.setValue(file);
     methodCall.addNewArgument(fileDslLiteral);
     list.addNewElement(methodCall);

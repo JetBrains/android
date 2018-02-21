@@ -54,9 +54,11 @@ import java.util.List;
 public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl implements
                                                                               ArtifactDependencyModel {
   @Nullable private DependencyConfigurationDslElement myConfigurationElement;
+  @NotNull private String myConfigurationName;
 
-  public ArtifactDependencyModelImpl(@Nullable DependencyConfigurationDslElement configurationElement) {
+  public ArtifactDependencyModelImpl(@Nullable DependencyConfigurationDslElement configurationElement, @NotNull String configurationName) {
     myConfigurationElement = configurationElement;
+    myConfigurationName = configurationName;
   }
 
   @NotNull
@@ -95,13 +97,20 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     return new DependencyConfigurationModelImpl(myConfigurationElement);
   }
 
+  @Override
   @NotNull
-  static List<ArtifactDependencyModel> create(@NotNull GradleDslElement element) {
-    return create(element, null);
+  public String configurationName() {
+    return myConfigurationName;
   }
 
   @NotNull
-  static List<ArtifactDependencyModel> create(@NotNull GradleDslElement element,
+  static List<ArtifactDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslElement element) {
+    return create(configurationName, element, null);
+  }
+
+  @NotNull
+  static List<ArtifactDependencyModel> create(@NotNull String configurationName,
+                                              @NotNull GradleDslElement element,
                                               @Nullable DependencyConfigurationDslElement configurationElement) {
     if (configurationElement == null) {
       GradleDslClosure closureElement = element.getClosureElement();
@@ -112,21 +121,21 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     List<ArtifactDependencyModel> results = Lists.newArrayList();
     assert element instanceof GradleDslExpression || element instanceof GradleDslExpressionMap;
     if (element instanceof GradleDslExpressionMap) {
-      MapNotation mapNotation = MapNotation.create((GradleDslExpressionMap)element, configurationElement);
+      MapNotation mapNotation = MapNotation.create(configurationName, (GradleDslExpressionMap)element, configurationElement);
       if (mapNotation != null) {
         results.add(mapNotation);
       }
     }
     else if (element instanceof GradleDslMethodCall) {
-      String name = element.getName();
+      String name = ((GradleDslMethodCall)element).getMethodName();
       if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
         for (GradleDslElement argument : ((GradleDslMethodCall)element).getArguments()) {
-          results.addAll(create(argument, configurationElement));
+          results.addAll(create(configurationName, argument, configurationElement));
         }
       }
     }
     else {
-      CompactNotation compactNotation = CompactNotation.create((GradleDslExpression)element, configurationElement);
+      CompactNotation compactNotation = CompactNotation.create(configurationName, (GradleDslExpression)element, configurationElement);
       if (compactNotation != null) {
         results.add(compactNotation);
       }
@@ -166,16 +175,20 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @NotNull private GradleDslExpressionMap myDslElement;
 
     @Nullable
-    static MapNotation create(GradleDslExpressionMap dslElement, DependencyConfigurationDslElement configurationElement) {
+    static MapNotation create(@NotNull String configurationName,
+                              @NotNull GradleDslExpressionMap dslElement,
+                              @Nullable DependencyConfigurationDslElement configurationElement) {
       if (dslElement.getLiteralProperty("name", String.class).value() == null) {
         return null; // not a artifact dependency element.
       }
 
-      return new MapNotation(dslElement, configurationElement);
+      return new MapNotation(configurationName, dslElement, configurationElement);
     }
 
-    private MapNotation(@NotNull GradleDslExpressionMap dslElement, @Nullable DependencyConfigurationDslElement configurationElement) {
-      super(configurationElement);
+    private MapNotation(@NotNull String configurationName,
+                        @NotNull GradleDslExpressionMap dslElement,
+                        @Nullable DependencyConfigurationDslElement configurationElement) {
+      super(configurationElement, configurationName);
       myDslElement = dslElement;
     }
 
@@ -239,7 +252,9 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @NotNull private ArtifactDependencySpec mySpec;
 
     @Nullable
-    static CompactNotation create(GradleDslExpression dslExpression, DependencyConfigurationDslElement configurationElement) {
+    static CompactNotation create(@NotNull String configurationName,
+                                  @NotNull GradleDslExpression dslExpression,
+                                  @Nullable DependencyConfigurationDslElement configurationElement) {
       String value = dslExpression.getValue(String.class);
       if (value == null) {
         return null;
@@ -248,13 +263,14 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       if (spec == null) {
         return null;
       }
-      return new CompactNotation(dslExpression, spec, configurationElement);
+      return new CompactNotation(configurationName, dslExpression, spec, configurationElement);
     }
 
-    private CompactNotation(@NotNull GradleDslExpression dslExpression,
+    private CompactNotation(@NotNull String configurationName,
+                            @NotNull GradleDslExpression dslExpression,
                             @NotNull ArtifactDependencySpec spec,
                             @Nullable DependencyConfigurationDslElement configurationElement) {
-      super(configurationElement);
+      super(configurationElement, configurationName);
       myDslExpression = dslExpression;
       mySpec = spec;
     }
