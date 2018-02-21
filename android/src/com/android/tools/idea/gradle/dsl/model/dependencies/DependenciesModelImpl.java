@@ -45,7 +45,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
       if (list != null) {
         for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
-          dependencies.addAll(ArtifactDependencyModelImpl.create(element));
+          dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
           if (element instanceof GradleDslMethodCall) {
             GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
             dependencies.addAll(ModuleDependencyModelImpl.create(configurationName, methodCall));
@@ -78,7 +78,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
     if (list != null) {
       for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
-        dependencies.addAll(ArtifactDependencyModelImpl.create(element));
+        dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
       }
     }
   }

@@ -51,7 +51,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @NotNull
   static List<ModuleDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<ModuleDependencyModel> result = Lists.newArrayList();
-    if (PROJECT.equals(methodCall.getName())) {
+    if (PROJECT.equals(methodCall.getMethodName())) {
       for (GradleDslElement argument : methodCall.getArguments()) {
         if (argument instanceof GradleDslExpression) {
           result.add(new ModuleDependencyModelImpl(configurationName, methodCall, (GradleDslExpression)argument, null));
@@ -77,9 +77,9 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
                                  @NotNull String configurationName,
                                  @NotNull String path,
                                  @Nullable String config) {
-    GradleNameElement methodName = GradleNameElement.create(PROJECT);
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
-    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, name, PROJECT);
+    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, name);
     mapArguments.setNewLiteral(PATH, path);
     if (config != null) {
       mapArguments.setNewLiteral(CONFIGURATION, config);

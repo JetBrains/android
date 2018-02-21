@@ -35,9 +35,7 @@ public abstract class DependencyModelImpl implements DependencyModel {
 
   @Override
   @NotNull
-  public String configurationName() {
-    return getDslElement().getName();
-  }
+  public abstract String configurationName();
 
   @Override
   @Nullable

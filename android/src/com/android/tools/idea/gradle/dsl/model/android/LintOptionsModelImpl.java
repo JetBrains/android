@@ -650,8 +650,7 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   private void setFileValue(@NotNull String property, @NotNull File file) {
     GradleDslMethodCall fileElement = myDslElement.getPropertyElement(property, GradleDslMethodCall.class);
     if (fileElement == null) {
-      GradleNameElement name = GradleNameElement.create("file");
-      fileElement = new GradleDslMethodCall(myDslElement, name, property);
+      fileElement = new GradleDslMethodCall(myDslElement, GradleNameElement.create(property), "file");
       myDslElement.setNewElement(property, fileElement);
     }
     fileElement.setValue(file);

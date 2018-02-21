@@ -157,7 +157,8 @@ public abstract class GradleDslElement {
       return getName();
     }
 
-    return myParent.getQualifiedName() + "." + getName();
+    String ourName = getName();
+    return myParent.getQualifiedName() + (ourName.isEmpty() ? "" : "." + getName());
   }
 
   @NotNull

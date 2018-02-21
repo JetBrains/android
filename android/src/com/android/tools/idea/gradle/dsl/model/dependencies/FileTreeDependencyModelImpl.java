@@ -46,7 +46,7 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
 
   static Collection<FileTreeDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
     List<FileTreeDependencyModel> result = Lists.newArrayList();
-    if (FILE_TREE.equals(methodCall.getName())) {
+    if (FILE_TREE.equals(methodCall.getMethodName())) {
       List<GradleDslElement> arguments = methodCall.getArguments();
       for (GradleDslElement argument : arguments) {
         if (argument instanceof GradleDslExpression) {
@@ -75,9 +75,8 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
                                  @NotNull String dir,
                                  @Nullable List<String> includes,
                                  @Nullable List<String> excludes) {
-    String methodName = FILE_TREE;
-    GradleNameElement name = GradleNameElement.create(methodName);
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, name, configurationName);
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, name, FILE_TREE);
     if ((includes == null || includes.isEmpty()) && (excludes == null || excludes.isEmpty())) {
       GradleDslLiteral directory = new GradleDslLiteral(methodCall, name);
       directory.setValue(dir);

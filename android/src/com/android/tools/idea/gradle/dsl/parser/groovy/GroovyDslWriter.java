@@ -272,7 +272,8 @@ public class GroovyDslWriter implements GradleDslWriter {
     }
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String statementText = (methodCall.getStatementName() != null ? methodCall.getStatementName() + " " : "") + methodCall.getFullName() + "()";
+    String statementText =
+      (!methodCall.getFullName().isEmpty() ? methodCall.getFullName() + " " : "") + methodCall.getMethodName() + "()";
     GrStatement statement = factory.createStatementFromText(statementText);
     PsiElement addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
 
@@ -324,7 +325,8 @@ public class GroovyDslWriter implements GradleDslWriter {
         return createNamedArgumentList(expressionList);
       }
       psiElement = createDslElement(expressionList);
-    } else {
+    }
+    else {
       return psiElement;
     }
 
@@ -389,7 +391,8 @@ public class GroovyDslWriter implements GradleDslWriter {
     PsiElement psiElement;
     if (expressionMap.getElementType() == PropertyType.DERIVED && expressionMap.isLiteralMap()) {
       psiElement = createDerivedMap(expressionMap);
-    } else {
+    }
+    else {
       psiElement = createDslElement(expressionMap);
     }
     if (psiElement == null) {

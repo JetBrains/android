@@ -73,7 +73,7 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   private static final ElementBindingFunction STORE_FILE_BINDING = (holder, oldElement, value, name) -> {
     if (oldElement == null) {
       // No element currently exists.
-      GradleDslMethodCall methodCall = new GradleDslMethodCall(holder, GradleNameElement.create(STORE_FILE_METHOD), name);
+      GradleDslMethodCall methodCall = new GradleDslMethodCall(holder, GradleNameElement.create(name), STORE_FILE_METHOD);
       GradleDslExpression literal = createOrReplaceBasicExpression(methodCall, null, value, "");
       methodCall.addNewArgument(literal);
       return methodCall;
@@ -168,22 +168,23 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
 
   @NotNull
   private GradleNullableValue<SigningConfigPassword> getPasswordValue(@NotNull String property) {
-    GradleDslExpression passwordElement = getPasswordElement(property);
-    if (passwordElement == null) {
-      return new GradleNullableValueImpl<>(myDslElement, null);
+    GradleDslExpression element = myDslElement.getPropertyElement(property, GradleDslExpression.class);
+
+    Type passwordType = PLAIN_TEXT;
+    if (element instanceof GradleDslMethodCall) {
+      switch (((GradleDslMethodCall)element).getMethodName()) {
+        case SYSTEM_GETENV:
+          passwordType = ENVIRONMENT_VARIABLE;
+          break;
+        case SYSTEM_CONSOLE_READ_LINE:
+          passwordType = CONSOLE_READ;
+          break;
+      }
     }
 
-    Type passwordType;
-    switch (passwordElement.getFullName()) {
-      case SYSTEM_GETENV:
-        passwordType = ENVIRONMENT_VARIABLE;
-        break;
-      case SYSTEM_CONSOLE_READ_LINE:
-        passwordType = CONSOLE_READ;
-        break;
-      default:
-        passwordType = PLAIN_TEXT;
-        break;
+    GradleDslExpression passwordElement = getPasswordElement(element);
+    if (passwordElement == null) {
+      return new GradleNullableValueImpl<>(myDslElement, null);
     }
 
     String passwordText = passwordElement.getValue(String.class);
@@ -195,14 +196,9 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   }
 
   @Nullable
-  private GradleDslExpression getPasswordElement(@NotNull String property) {
-    GradleDslExpression passwordElement = myDslElement.getPropertyElement(property, GradleDslExpression.class);
-    if (passwordElement == null) {
-      return null;
-    }
-
-    if (passwordElement instanceof GradleDslMethodCall) {
-      List<GradleDslElement> arguments = ((GradleDslMethodCall)passwordElement).getArguments();
+  private GradleDslExpression getPasswordElement(@Nullable GradleDslExpression expression) {
+    if (expression instanceof GradleDslMethodCall) {
+      List<GradleDslElement> arguments = ((GradleDslMethodCall)expression).getArguments();
       if (!arguments.isEmpty()) {
         GradleDslElement argumentElement = arguments.get(0);
         if (argumentElement instanceof GradleDslExpression) {
@@ -210,11 +206,8 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
         }
       }
     }
-    else {
-      return passwordElement;
-    }
 
-    return null;
+    return expression;
   }
 
   private void setPasswordValue(@NotNull String property, @NotNull Type type, @NotNull String text) {
@@ -226,22 +219,21 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
     GradleNullableValue<SigningConfigPassword> passwordValue = getPasswordValue(property);
     SigningConfigPassword password = passwordValue.value();
     if (password != null && password.getType() == type) {
-      GradleDslExpression element = getPasswordElement(property);
-      if (element != null) {
-        element.setValue(text);
+      GradleDslExpression element = myDslElement.getPropertyElement(property, GradleDslExpression.class);
+      GradleDslExpression passwordElement = getPasswordElement(element);
+      if (passwordElement != null) {
+        passwordElement.setValue(text);
         return;
       }
     }
 
     GradleDslMethodCall methodCall = null;
-    GradleNameElement name = null;
+    GradleNameElement name = GradleNameElement.create(property);
     if (type == ENVIRONMENT_VARIABLE) {
-      name = GradleNameElement.create(SYSTEM_GETENV);
-      methodCall = new GradleDslMethodCall(myDslElement, name, property);
+      methodCall = new GradleDslMethodCall(myDslElement, name, SYSTEM_GETENV);
     }
     else if (type == CONSOLE_READ) {
-      name = GradleNameElement.create(SYSTEM_CONSOLE_READ_LINE);
-      methodCall = new GradleDslMethodCall(myDslElement, name, property);
+      methodCall = new GradleDslMethodCall(myDslElement, name, SYSTEM_CONSOLE_READ_LINE);
     }
 
     if (methodCall != null) {
