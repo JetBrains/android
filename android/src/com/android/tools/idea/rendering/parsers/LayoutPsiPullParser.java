@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.parsers;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
@@ -34,6 +35,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.navigation.NavXmlHelperKt;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -53,6 +55,8 @@ import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
  * are of type {@link XmlTag}.
  */
 public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrParser {
+  @Nullable final ResourceResolver myResourceResolver;
+
   /**
    * Set of views that support the use of the app:srcCompat attribute when the support library is being used. This list must contain
    * ImageView and all the framework views that inherit from ImageView and support srcCompat.
@@ -159,13 +163,14 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   public static LayoutPsiPullParser create(@NotNull XmlFile file,
                                            @NotNull IRenderLogger logger,
                                            @Nullable Set<XmlTag> explodeNodes,
-                                           @NotNull Density density) {
+                                           @NotNull Density density,
+                                           @Nullable ResourceResolver resourceResolver) {
     if (explodeNodes != null && !explodeNodes.isEmpty()) {
       return new PaddingLayoutPsiPullParser(file, logger, explodeNodes, density);
     } else {
       // This method is only called to create layouts from the preview/editor (not inflated by custom components) so we always honor
       // the tools:parentTag
-      return new LayoutPsiPullParser(file, logger, true);
+      return new LayoutPsiPullParser(file, logger, true, resourceResolver);
     }
   }
 
@@ -186,7 +191,14 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag);
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, null);
+  }
+
+  protected LayoutPsiPullParser(@NotNull XmlFile file,
+                                @NotNull ILayoutLog logger,
+                                boolean honorMergeParentTag,
+                                @Nullable ResourceResolver resourceResolver) {
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver);
   }
 
   /**
@@ -219,7 +231,11 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * Use one of the {@link #create} factory methods instead
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
-  protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
+  protected LayoutPsiPullParser(@Nullable final XmlTag root,
+                                @NotNull ILayoutLog logger,
+                                boolean honorMergeParentTag,
+                                @Nullable ResourceResolver resourceResolver) {
+    myResourceResolver = resourceResolver;
     myLogger = logger;
 
     if (root != null) {
@@ -240,6 +256,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   protected LayoutPsiPullParser(@NotNull TagSnapshot root, @NotNull ILayoutLog log) {
+    myResourceResolver = null;
     myLogger = log;
     myDeclaredAaptAttrs = ImmutableMap.of();
     myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
@@ -439,6 +456,10 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
         if (layout != null) {
           return layout;
         }
+        String navGraph = tag.getAttribute(ATTR_NAV_GRAPH, AUTO_URI);
+        if (navGraph != null) {
+          return NavXmlHelperKt.getStartDestLayoutId(navGraph, myRoot.tag.getProject(), myResourceResolver);
+        }
       } else if (myUseSrcCompat && ATTR_SRC.equals(localName) && TAGS_SUPPORTING_SRC_COMPAT.contains(tag.tagName)) {
         String srcCompatValue = getAttributeValue(AUTO_URI, ATTR_SRC_COMPAT);
         if (srcCompatValue != null) {
@@ -544,6 +565,12 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
         // we will also provide a layout-attribute for the corresponding
         // fragment name attribute)
         String layout = currentNode.getAttribute(LayoutMetadata.KEY_FRAGMENT_LAYOUT, TOOLS_URI);
+        if (layout == null) {
+          String navGraph = currentNode.getAttribute(ATTR_NAV_GRAPH, AUTO_URI);
+          if (navGraph != null && myResourceResolver != null) {
+            layout = NavXmlHelperKt.getStartDestLayoutId(navGraph, myRoot.tag.getProject(), myResourceResolver);
+          }
+        }
         if (layout != null) {
           return VIEW_INCLUDE;
         } else {
@@ -874,7 +901,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     private final AttributeFilter myFilter;
 
     public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
-      super(root, logger, true);
+      super(root, logger, true, null);
       this.myFilter = filter;
     }
 
