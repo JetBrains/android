@@ -103,25 +103,6 @@
           </action>
         </stepElement>
       </step>
-      <step label="Submit a bug report">
-        <stepElement>
-          <section>
-            <![CDATA[If this guide did not help resolve your issue, please submit a bug report by clicking the button below.
-            In the meantime, consider <a href="https://d.android.com/studio/run/emulator.html">running your app on the emulator</a>.]]>
-          </section>
-        </stepElement>
-        <stepElement>
-          <section>
-            <![CDATA[Clicking <b>Finish</b> below closes the Connection Assistant.]]>
-          </section>
-        </stepElement>
-        <stepElement>
-          <action
-            key="connection.submit.report"
-            label="Submit bug report">
-          </action>
-        </stepElement>
-      </step>
     </tutorial>
   </feature>
 </tutorialBundle>

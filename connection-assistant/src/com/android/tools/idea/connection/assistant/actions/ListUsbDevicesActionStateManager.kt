@@ -33,6 +33,7 @@ import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.android.util.AndroidBundle
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -98,7 +99,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
   private fun generateMessage(): String {
     if (!myDevicesFuture.isDone) return "Loading..."
-    if (myDevicesFuture.get().isEmpty()) return "No USB device detected."
+    if (myDevicesFuture.get().isEmpty()) return AndroidBundle.message("connection.assistant.usb.no_devices")
 
     val devices = myDevicesFuture.get().sortedBy { it.name }
     val htmlBuilder = HtmlBuilder()
