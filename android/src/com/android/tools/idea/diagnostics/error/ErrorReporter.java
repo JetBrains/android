@@ -88,7 +88,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
 
     // Android Studio: SystemHealthMonitor is always calling submit with a null parentComponent. In order to determine the data context
     // associated with the currently-focused component, we run that query on the UI thread and delay the rest of the invocation below.
-    Consumer<DataContext> submitter = dataContext -> {
+    java.util.function.Consumer<DataContext> submitter = dataContext -> {
     if (dataContext == null) {
       return;
     }
@@ -134,9 +134,11 @@ public class ErrorReporter extends ErrorReportSubmitter {
     };
 
     if (parentComponent != null) {
-      submitter.consume(DataManager.getInstance().getDataContext(parentComponent));
+      submitter.accept(DataManager.getInstance().getDataContext(parentComponent));
     } else {
-      DataManager.getInstance().getDataContextFromFocus().doWhenDone(submitter);
+      DataManager.getInstance()
+                 .getDataContextFromFocusAsync()
+                 .onSuccess(submitter);
     }
 
     return true;
