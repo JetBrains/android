@@ -43,4 +43,9 @@ public class PsAllModulesFakeModule extends PsModule {
   public void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames) {
+    throw new UnsupportedOperationException();
+  }
 }

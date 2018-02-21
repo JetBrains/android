@@ -111,4 +111,9 @@ public class PsJavaModule extends PsModule {
     fireLibraryDependencyAddedEvent(spec);
     setModified(true);
   }
+
+  @Override
+  public void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames) {
+    throw new UnsupportedOperationException();
+  }
 }

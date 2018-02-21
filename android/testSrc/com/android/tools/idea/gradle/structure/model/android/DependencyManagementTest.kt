@@ -83,5 +83,55 @@ class DependencyManagementTest : AndroidGradleTestCase() {
 
     module = project.findModuleByName("moduleA") as PsAndroidModule
     assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+//    assertThat(module.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+  }
+
+  fun testAddModuleDependency() {
+    var module = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(module.findModuleDependency(":moduleA"), nullValue())
+    module.addModuleDependency(":moduleA", listOf("implementation"))
+    assertThat(module.findModuleDependency(":moduleA"), notNullValue())
+
+    // TODO(solodkyy): Fix adding the second dependency without syncing.
+//    module.addModuleDependency(":moduleB", listOf("implementation"))
+//    assertThat(module.findModuleDependency(":moduleA"), notNullValue())
+//    assertThat(module.findModuleDependency(":moduleB"), notNullValue())
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(module.findModuleDependency(":moduleA"), notNullValue())
+//    assertThat(module.findModuleDependency(":moduleB"), notNullValue())
+  }
+
+  fun testAddJavaModuleDependency() {
+    var module = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(module.findModuleDependency(":jModuleK"), nullValue())
+    module.addModuleDependency(":jModuleK", listOf("implementation"))
+    assertThat(module.findModuleDependency(":jModuleK"), notNullValue())
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(module.findModuleDependency(":jModuleK"), notNullValue())
+  }
+
+  // TODO(solodkyy): Implement support for Java to Java module dependencies.
+  fun /*test*/AddJavaModuleDependencyToJavaModule() {
+//    var module = project.findModuleByName("jModuleK") as PsJavaModule
+//    assertThat(module.findModuleDependency(":jModuleL"), nullValue())
+//    module.addModuleDependency(":jModuleL", listOf("implementation"))
+//    assertThat(module.findModuleDependency(":jModuleL"), notNullValue())
+//
+//    project.applyChanges()
+//    requestSyncAndWait()
+//    reparse()
+//
+//    module = project.findModuleByName("jModuleL") as PsJavaModule
+//    assertThat(module.findModuleDependency(":jModuleL"), notNullValue())
   }
 }

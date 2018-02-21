@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
@@ -246,6 +247,37 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     }
 
     fireLibraryDependencyAddedEvent(spec);
+    setModified(true);
+  }
+
+  @Override
+  public void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames) {
+    // Update/reset the "parsed" model.
+    addModuleDependencyToParsedModel(scopesNames, modulePath);
+
+    // Reset dependencies.
+    myDependencyCollection = null;
+    PsAndroidDependencyCollection dependencyCollection = getOrCreateDependencyCollection();
+
+    Set<String> configurationNames = Sets.newHashSet(scopesNames);
+    List<PsAndroidArtifact> targetArtifacts = Lists.newArrayList();
+    forEachVariant(variant -> variant.forEachArtifact(artifact -> {
+      if (artifact.containsAnyConfigurationName(configurationNames)) {
+        targetArtifacts.add(artifact);
+      }
+    }));
+    assert !targetArtifacts.isEmpty();
+
+    PsParsedDependencies parsedDependencies = getParsedDependencies();
+    for (PsAndroidArtifact artifact : targetArtifacts) {
+      @Nullable ModuleDependencyModel parsedDependency = parsedDependencies.findModuleDependency(modulePath, artifact::contains);
+      if (parsedDependency != null) {
+        // TODO(solodkyy) : Revisit passing null instead of a resolved model.
+        dependencyCollection.addModuleDependency(modulePath, artifact, null, parsedDependency);
+      }
+    }
+
+    fireModuleDependencyAddedEvent(modulePath);
     setModified(true);
   }
 
