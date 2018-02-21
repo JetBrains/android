@@ -162,7 +162,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
     boolean can_connect = state != null && (state & myType.getMask()) != 0;
     boolean is_connected = isConnected();
-    int drawState = ((can_connect)?1:0) | (mIsOver?2:0) | (is_connected?4:0) | (isTargeted()?8:0) | (myComponent.isSelected()?16:0);
+    int drawState =
+      ((can_connect) ? 1 : 0) | (mIsOver ? 2 : 0) | (is_connected ? 4 : 0) | (isTargeted() ? 8 : 0) | (myComponent.isSelected() ? 16 : 0);
 
     DrawAnchor.Mode[] modeTable = {
       DrawAnchor.Mode.DO_NOT_DRAW, //
@@ -255,11 +256,11 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
       }
       else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_TOP)
-            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)
-            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)
-            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT)
-            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_START)
-            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_END)) {
+               || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)
+               || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)
+               || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT)
+               || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_START)
+               || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_END)) {
         attributes.setAttribute(SdkConstants.ANDROID_URI, key, mPreviousAttributes.get(key));
       }
       else {
@@ -494,10 +495,10 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     super.mouseDrag(x, y, closestTargets);
 
-    Target closestTarget = null;
+    ConstraintAnchorTarget targetAnchor = null;
     for (Target target : closestTargets) {
       if (target instanceof ConstraintAnchorTarget && target != this) {
-        closestTarget = target;
+        targetAnchor = (ConstraintAnchorTarget)target;
         break;
       }
     }
@@ -505,18 +506,12 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       myInDrag = true;
       DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, true);
     }
-    if (myCurrentClosestTarget != closestTarget) {
-      myCurrentClosestTarget = null;
-      if (closestTarget != null) {
-        myCurrentClosestTarget = ((ConstraintAnchorTarget)closestTarget);
-      }
-    }
+    myCurrentClosestTarget = targetAnchor;
 
-    if (closestTarget != null) {
+    if (targetAnchor != null) {
       NlComponent component = myComponent.getAuthoritativeNlComponent();
-      String attribute = getAttribute(closestTarget);
+      String attribute = getAttribute(targetAnchor);
       if (attribute != null) {
-        ConstraintAnchorTarget targetAnchor = (ConstraintAnchorTarget)closestTarget;
         if (targetAnchor.myComponent != myComponent && !targetAnchor.isConnected(this)) {
           if (myComponent.getParent() != targetAnchor.myComponent) {
             Integer state = DecoratorUtilities.getTryingToConnectState(targetAnchor.myComponent.getNlComponent());
@@ -555,7 +550,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       ConstraintAnchorTarget closestTarget = null;
       for (Target target : closestTargets) {
         if (target instanceof ConstraintAnchorTarget && target != this) {
-          closestTarget = (ConstraintAnchorTarget) target;
+          closestTarget = (ConstraintAnchorTarget)target;
           break;
         }
       }
