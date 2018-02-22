@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Base class for dragging targets.
  */
-public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappable, MultiComponentTarget {
+public abstract class DragBaseTarget extends BaseTarget implements MultiComponentTarget {
 
   private static final boolean DEBUG_RENDERER = false;
 
@@ -45,8 +45,7 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
   @AndroidDpCoordinate protected int myFirstMouseY;
   protected boolean myChangedComponent;
 
-  private final Point mySnappedCoordinates = new Point();
-  private final TargetSnapper myTargetSnapper;
+  @NotNull private final TargetSnapper myTargetSnapper;
 
   private DragBaseTarget(@NotNull TargetSnapper targetSnapper) {
     super();
@@ -141,9 +140,9 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
     myComponent.setDragging(true);
     NlComponent component = myComponent.getAuthoritativeNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
-    mySnappedCoordinates.x = myTargetSnapper.trySnapX(x - myOffsetX);
-    mySnappedCoordinates.y = myTargetSnapper.trySnapY(y - myOffsetY);
-    updateAttributes(attributes, mySnappedCoordinates.x, mySnappedCoordinates.y);
+    int snappedX = myTargetSnapper.trySnapX(x - myOffsetX);
+    int snappedY = myTargetSnapper.trySnapY(y - myOffsetY);
+    updateAttributes(attributes, snappedX, snappedY);
     attributes.apply();
     component.fireLiveChangeEvent();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
@@ -163,10 +162,10 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
       }
       NlComponent component = myComponent.getAuthoritativeNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
-      mySnappedCoordinates.x = myTargetSnapper.trySnapX(x - myOffsetX);
-      mySnappedCoordinates.y = myTargetSnapper.trySnapY(y - myOffsetY);
-      myTargetSnapper.applyNotches(myComponent, attributes, mySnappedCoordinates);
-      updateAttributes(attributes, mySnappedCoordinates.x, mySnappedCoordinates.y);
+      int snappedX = myTargetSnapper.trySnapX(x - myOffsetX);
+      int snappedY = myTargetSnapper.trySnapY(y - myOffsetY);
+      myTargetSnapper.applyNotches(myComponent, attributes, snappedX, snappedY);
+      updateAttributes(attributes, snappedX, snappedY);
       attributes.apply();
 
       if (commitChanges) {
@@ -195,7 +194,6 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 
-  @Override
   @NotNull
   public TargetSnapper getTargetNotchSnapper() {
     return myTargetSnapper;

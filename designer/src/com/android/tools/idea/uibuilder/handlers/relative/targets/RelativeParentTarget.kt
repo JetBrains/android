@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.scene.target.Notch
 import com.intellij.ui.JBColor
 import java.awt.BasicStroke
 import java.awt.Graphics2D
-import java.util.*
 
 const private val DEBUG = false
 const private val NOTCH_GAP_SIZE = 10
@@ -88,6 +87,7 @@ class RelativeParentTarget(val type: Type) : BaseRelativeTarget() {
       list.add(DrawLine(sceneContext.getSwingXDip(x1.toFloat()), sceneContext.getSwingYDip(y1.toFloat()),
           sceneContext.getSwingXDip(x2.toFloat()), sceneContext.getSwingYDip(y2.toFloat())))
     }
+    @Suppress("ConstantConditionIf")
     if (DEBUG) {
       drawDebug(list, sceneContext)
     }
@@ -100,7 +100,7 @@ class RelativeParentTarget(val type: Type) : BaseRelativeTarget() {
       list.addRect(sceneContext, x1.toFloat(), y1.toFloat(), x2.toFloat(), y2.toFloat(), if (myIsHighlight) JBColor.GREEN else JBColor.RED)
 
   override fun fill(owner: SceneComponent, snappableComponent: SceneComponent,
-                    horizontalNotches: ArrayList<Notch>, verticalNotches: ArrayList<Notch>) {
+                    horizontalNotches: MutableList<Notch>, verticalNotches: MutableList<Notch>) {
     val notch: Notch
     when (type) {
       RelativeParentTarget.Type.LEFT -> {

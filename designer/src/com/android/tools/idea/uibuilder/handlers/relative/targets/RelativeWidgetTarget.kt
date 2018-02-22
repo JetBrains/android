@@ -84,6 +84,7 @@ class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
     if (myIsHighlight) {
       list.addLine(sceneContext, x1.toFloat(), y1.toFloat(), x2.toFloat(), y2.toFloat(), sceneContext.colorSet.dragReceiverFrames)
     }
+    @Suppress("ConstantConditionIf")
     if (DEBUG) {
       drawDebug(list, sceneContext)
     }
@@ -97,7 +98,7 @@ class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
           if (myIsHighlight) JBColor.GREEN else if (type == Type.BASELINE) JBColor.YELLOW else JBColor.RED)
 
   override fun fill(owner: SceneComponent, snappableComponent: SceneComponent,
-                    horizontalNotches: ArrayList<Notch>, verticalNotches: ArrayList<Notch>) {
+                    horizontalNotches: MutableList<Notch>, verticalNotches: MutableList<Notch>) {
     // TODO: if the owner doesn't have ID, added it.
 
     if (hasDependency(owner, snappableComponent)) {
