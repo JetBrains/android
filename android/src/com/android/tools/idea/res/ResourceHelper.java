@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.AbstractResourceRepository;
@@ -36,6 +38,7 @@ import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
@@ -1259,6 +1262,38 @@ public class ResourceHelper {
 
       destination.add(PREFIX_RESOURCE_REF + type.getName() + '/' + resourceName);
     }
+  }
+
+  /**
+   * Returns a {@link ResourceNamespace.Resolver} for the specified tag.
+   */
+  @NotNull
+  public static ResourceNamespace.Resolver getNamespaceResolver(@NotNull XmlTag tag) {
+    // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
+    return new ResourceNamespace.Resolver() {
+      @Nullable
+      @Override
+      public String uriToPrefix(@NonNull String namespaceUri) {
+        return ReadAction.compute(() -> {
+          if (!tag.isValid()) {
+            return null;
+          }
+          return StringUtil.nullize(tag.getPrefixByNamespace(namespaceUri));
+        });
+      }
+
+      @Nullable
+      @Override
+      public String prefixToUri(@NonNull String namespacePrefix) {
+        return ReadAction.compute(() -> {
+          if (!tag.isValid()) {
+
+            return null;
+          }
+          return StringUtil.nullize(tag.getNamespaceByPrefix(namespacePrefix));
+        });
+      }
+    };
   }
 
   /**
