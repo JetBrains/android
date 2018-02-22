@@ -51,6 +51,7 @@ iml_module(
         "//tools/adt/idea/android[module, test]",
         "//tools/adt/idea/wizard-model[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/idea/platform/testFramework",
         "//tools/idea:community-main[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools:fest-swing[module, test]",
