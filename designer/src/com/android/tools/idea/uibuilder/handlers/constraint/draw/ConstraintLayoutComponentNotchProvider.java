@@ -19,7 +19,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Supply notches behavior to ConstraintLayout children
@@ -28,7 +28,7 @@ public class ConstraintLayoutComponentNotchProvider implements Notch.Provider {
 
   @Override
   public void fill(@NotNull SceneComponent owner, @NotNull SceneComponent snappableComponent,
-                   @NotNull ArrayList<Notch> horizontalNotches, @NotNull ArrayList<Notch> verticalNotches) {
+                   @NotNull List<Notch> horizontalNotches, @NotNull List<Notch> verticalNotches) {
     int x1 = owner.getDrawX();
     int x2 = x1 + owner.getDrawWidth();
     // int midX = x1 + (x2 - x1) / 2 - target.getDrawWidth() / 2;

@@ -89,7 +89,7 @@ public class SceneComponent {
 
   private boolean myShowBaseline = false;
 
-  private Notch.Provider myNotchProvider;
+  @Nullable private Notch.Provider myNotchProvider = null;
 
   @AndroidDpCoordinate
   public int getCenterX() {
@@ -575,11 +575,12 @@ public class SceneComponent {
     return myDecorator;
   }
 
+  @Nullable
   public Notch.Provider getNotchProvider() {
     return myNotchProvider;
   }
 
-  public void setNotchProvider(Notch.Provider notchProvider) {
+  public void setNotchProvider(@Nullable Notch.Provider notchProvider) {
     myNotchProvider = notchProvider;
   }
 

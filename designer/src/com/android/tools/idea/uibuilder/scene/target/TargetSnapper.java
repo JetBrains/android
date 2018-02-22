@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -25,13 +26,13 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHand
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Point;
+import java.util.List;
 import java.util.ArrayList;
 
 /**
  * {@link Target} that are linked with {@link SceneComponent} providing {@link Notch}s ({@link Notch.Provider})
- * shall use this class to interact with the {@link Notch} and shall implement {@link Notch.Snappable} to
- * show that they are using {@link Notch}
+ * shall use this class to interact with the {@link Notch} and use {@link TargetSnapper} to snap to {@link Notch}
  */
 public class TargetSnapper {
 
@@ -47,13 +48,13 @@ public class TargetSnapper {
    *
    * @see SceneComponent#getTargets()
    */
-  public static final int PARENT_TARGET = 2;
+  public static final int PARENT_TARGET = 1 << 1;
 
   /**
    * Mask to gather the {@link Notch}es from the siblings of the snappable component
    * when calling {@link #gatherNotches(SceneComponent)}
    */
-  public static final int CHILD = 4;
+  public static final int CHILD = 1 << 2;
 
   /**
    * Mask to gather the {@link Notch}es from the siblings's targets of the snappable component
@@ -61,11 +62,11 @@ public class TargetSnapper {
    *
    * @see SceneComponent#getTargets()
    */
-  public static final int CHILD_TARGET = 8;
+  public static final int CHILD_TARGET = 1 << 3;
   public static final int ALL = PARENT | PARENT_TARGET | CHILD | CHILD_TARGET;
 
-  private final ArrayList<Notch> myHorizontalNotches = new ArrayList<>();
-  private final ArrayList<Notch> myVerticalNotches = new ArrayList<>();
+  private final List<Notch> myHorizontalNotches = new ArrayList<>();
+  private final List<Notch> myVerticalNotches = new ArrayList<>();
   @Nullable private Notch myCurrentNotchY;
   @Nullable private Notch myCurrentNotchX;
   private int myNotchesSourcesMask = ALL;
@@ -80,35 +81,25 @@ public class TargetSnapper {
    * @param mouseY     The y coordinate to try to snap
    * @return A {@link Point} with the provided coordinate
    */
-  public Point applyNotches(SceneComponent component, AttributesTransaction attributes, int mouseX, int mouseY) {
-    return applyNotches(component, attributes, new Point(mouseX, mouseY));
-  }
-
-  /**
-   * Tries to snap the provided coordinates to a Notch and if the coordinates were snapped
-   * runs the {@link Notch.Action} associated with the snapped Notch
-   *
-   * @param component    The component being modified
-   * @param attributes   The component's attribute
-   * @param snapLocation The coordinate to try to snap
-   * @return snapLocation modified if its x or y coordinates have been snapped
-   */
-  public Point applyNotches(@NotNull SceneComponent component, @NotNull AttributesTransaction attributes, @NotNull Point snapLocation) {
+  public Point applyNotches(@NotNull SceneComponent component,
+                            @NotNull AttributesTransaction attributes,
+                            @AndroidDpCoordinate int mouseX,
+                            @AndroidDpCoordinate int mouseY) {
     if (myCurrentNotchX != null) {
-      snapLocation.x = myCurrentNotchX.trySnap(snapLocation.x);
+      mouseX = myCurrentNotchX.trySnap(mouseX);
       if (allowsAutoConnect(component)) {
         myCurrentNotchX.applyAction(attributes);
       }
       myCurrentNotchX = null;
     }
     if (myCurrentNotchY != null) {
-      snapLocation.y = myCurrentNotchY.trySnap(snapLocation.y);
+      mouseY = myCurrentNotchY.trySnap(mouseY);
       if (allowsAutoConnect(component)) {
         myCurrentNotchY.applyAction(attributes);
       }
       myCurrentNotchY = null;
     }
-    return snapLocation;
+    return new Point(mouseX, mouseY);
   }
 
   private static boolean allowsAutoConnect(@NotNull SceneComponent component) {
@@ -122,10 +113,9 @@ public class TargetSnapper {
    * @param x The coordinate to snap
    * @return x if the coordinate has not been snapped or the snapped {@link Notch} value if a Notch was snapped
    */
-  public int trySnapX(int x) {
-    int count = myHorizontalNotches.size();
-    for (int i = 0; i < count; i++) {
-      Notch notch = myHorizontalNotches.get(i);
+  @AndroidDpCoordinate
+  public int trySnapX(@AndroidDpCoordinate int x) {
+    for (Notch notch : myHorizontalNotches) {
       x = notch.trySnap(x);
       if (notch.didApply()) {
         myCurrentNotchX = notch;
@@ -142,10 +132,9 @@ public class TargetSnapper {
    * @param y The coordinate to snap
    * @return x if the coordinate has not been snapped or the snapped {@link Notch} value if a Notch was snapped
    */
-  public int trySnapY(int y) {
-    int count = myVerticalNotches.size();
-    for (int i = 0; i < count; i++) {
-      Notch notch = myVerticalNotches.get(i);
+  @AndroidDpCoordinate
+  public int trySnapY(@AndroidDpCoordinate int y) {
+    for (Notch notch : myVerticalNotches) {
       y = notch.trySnap(y);
       if (notch.didApply()) {
         myCurrentNotchY = notch;
@@ -181,7 +170,7 @@ public class TargetSnapper {
     }
 
     if ((myNotchesSourcesMask & PARENT_TARGET) > 0) {
-      gatherNotchFromTargets(snappable, parent);
+      gatherNotchFromTargets(parent, snappable, myHorizontalNotches, myVerticalNotches);
     }
 
     if ((myNotchesSourcesMask & (CHILD_TARGET | CHILD)) > 0) {
@@ -199,7 +188,7 @@ public class TargetSnapper {
         }
 
         if ((myNotchesSourcesMask & CHILD_TARGET) > 0) {
-          gatherNotchFromTargets(snappable, child);
+          gatherNotchFromTargets(child, snappable, myHorizontalNotches, myVerticalNotches);
         }
       }
     }
@@ -216,10 +205,13 @@ public class TargetSnapper {
     myNotchesSourcesMask = sourceMask;
   }
 
-  private void gatherNotchFromTargets(@NotNull SceneComponent snappable, @NotNull SceneComponent owner) {
+  private static void gatherNotchFromTargets(@NotNull SceneComponent owner,
+                                             @NotNull SceneComponent snappableComponent,
+                                             @NotNull List<Notch> horizontalNotches,
+                                             @NotNull List<Notch> verticalNotches) {
     for (Target target : owner.getTargets()) {
       if (target instanceof Notch.Provider) {
-        ((Notch.Provider)target).fill(owner, snappable, myHorizontalNotches, myVerticalNotches);
+        ((Notch.Provider)target).fill(owner, snappableComponent, horizontalNotches, verticalNotches);
       }
     }
   }

@@ -30,7 +30,7 @@ import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -172,8 +172,8 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
   @Override
   public void fill(@NotNull SceneComponent owner,
                    @NotNull SceneComponent snappableComponent,
-                   @NotNull ArrayList<Notch> horizontalNotches,
-                   @NotNull ArrayList<Notch> verticalNotches) {
+                   @NotNull List<Notch> horizontalNotches,
+                   @NotNull List<Notch> verticalNotches) {
 
     if (myLayoutVertical) {
       int value = owner.getDrawY();

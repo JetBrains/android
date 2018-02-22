@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalNotch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Used to snap component during a drag
@@ -54,18 +54,10 @@ public abstract class Notch {
      * @param horizontalNotches
      * @param verticalNotches
      */
-    void fill(@NotNull SceneComponent owner, @NotNull SceneComponent snappableComponent,
-              @NotNull ArrayList<Notch> horizontalNotches, @NotNull ArrayList<Notch> verticalNotches);
-  }
-
-  /**
-   * A {@link Target} that can be snapped to a {@link Notch}es should implement this class
-   * to provide a {@link TargetSnapper}.
-   */
-  public interface Snappable {
-
-    @NotNull
-    TargetSnapper getTargetNotchSnapper();
+    void fill(@NotNull SceneComponent owner,
+              @NotNull SceneComponent snappableComponent,
+              @NotNull List<Notch> horizontalNotches,
+              @NotNull List<Notch> verticalNotches);
   }
 
   SceneComponent myOwner;
@@ -75,17 +67,6 @@ public abstract class Notch {
   @Nullable Action myAction;
   boolean myDidApply = false;
   @Nullable Target myTarget;
-
-  /**
-   * Create a new notch associated with the provided {@link SceneComponent} owner.
-   *
-   * @param owner        The {@link SceneComponent} holding the notch
-   * @param value        The position where element will be snapped
-   * @param displayValue The position where the Notch will be displayed
-   */
-  private Notch(@NotNull SceneComponent owner, int value, int displayValue) {
-    this(owner, value, displayValue, null);
-  }
 
   /**
    * Create a new notch associated with the provided {@link SceneComponent} owner.
