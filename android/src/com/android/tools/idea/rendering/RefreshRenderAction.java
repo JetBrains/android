@@ -28,8 +28,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.stream.Stream;
 
 public class RefreshRenderAction extends AnAction {
   private final EditorDesignSurface mySurface;
@@ -65,11 +69,12 @@ public class RefreshRenderAction extends AnAction {
             targetData.clearLayoutBitmapCache(module);
           }
         }
-      }
 
-      AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
-      if (facet != null) {
-        ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches();
+        // Reset resources for the current module and all the dependencies
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        Stream.concat(AndroidUtils.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
+          .filter(Objects::nonNull)
+          .forEach(f -> ResourceRepositoryManager.getOrCreateInstance(f).resetAllCaches());
       }
 
       configuration.updated(ConfigurationListener.MASK_RENDERING);
