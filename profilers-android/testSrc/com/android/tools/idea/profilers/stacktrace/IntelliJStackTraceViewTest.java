@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.picocontainer.PicoContainer;
 
@@ -129,6 +130,7 @@ public class IntelliJStackTraceViewTest {
     assertThat(list.getSelectedValue()).isNull();
   }
 
+  @Ignore("b/73322442")
   @Test
   public void doubleClickingStackViewNavigatesToSelectedElement() throws InvocationTargetException, InterruptedException {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
