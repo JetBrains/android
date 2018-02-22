@@ -426,7 +426,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
 
       PsiFile file = psiItem.getPsiFile();
-      if (file.isValid() && file instanceof XmlFile) {
+      if (file instanceof XmlFile && file.isValid()) {
         XmlFile xmlFile = (XmlFile)file;
         XmlTag rootTag = xmlFile.getRootTag();
         if (rootTag != null && rootTag.isValid()) {
