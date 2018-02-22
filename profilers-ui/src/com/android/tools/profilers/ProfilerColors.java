@@ -219,6 +219,8 @@ public class ProfilerColors {
 
   public static final Color ENERGY_WAKE_LOCK = new JBColor(new Color(0xf44271), new Color(0xf44271));
 
+  public static final Color ENERGY_ALARM = new JBColor(new Color(0xf2e35c), new Color(0xf2e35c));
+
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 
   public static final Color MONITORS_HEADER_TEXT = new JBColor(0x545454, 0xCACACA);

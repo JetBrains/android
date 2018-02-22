@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent.MetadataCase;
 import com.android.tools.profilers.ProfilerColors;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +36,8 @@ public final class DurationStateChart extends StateChart<MetadataCase> {
   private static final EnumColors<MetadataCase> DURATION_STATE_ENUM_COLORS = new EnumColors.Builder<MetadataCase>(1)
     .add(MetadataCase.WAKE_LOCK_ACQUIRED, ProfilerColors.ENERGY_WAKE_LOCK)
     .add(MetadataCase.WAKE_LOCK_RELEASED, ProfilerColors.TRANSPARENT_COLOR)
+    .add(MetadataCase.ALARM_SET, ProfilerColors.ENERGY_ALARM)
+    .add(MetadataCase.ALARM_CANCELLED, ProfilerColors.TRANSPARENT_COLOR)
     .add(MetadataCase.METADATA_NOT_SET, ProfilerColors.TRANSPARENT_COLOR)
     .build();
 
