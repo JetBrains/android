@@ -45,7 +45,7 @@ public interface GradlePropertyModel {
    */
   @NotNull
   static String iStr(@NotNull String in) {
-    return DOUBLE_QUOTES + in.replace("\"", "\\\"") + DOUBLE_QUOTES;
+    return DOUBLE_QUOTES + in + DOUBLE_QUOTES;
   }
 
   // The following are TypeReferences used in calls to getValue and getRawValue.

@@ -40,7 +40,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
-import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 import java.util.Collection;
 
@@ -49,6 +48,7 @@ import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOLON;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mCOMMA;
+import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.*;
 
 public final class GroovyDslUtil {
 
@@ -278,16 +278,24 @@ public final class GroovyDslUtil {
     return (GrExpression)newElement;
   }
 
+  private static String escapeString(@NotNull String str, boolean forGString) {
+    StringBuilder sb = new StringBuilder();
+    escapeStringCharacters(str.length(), str, forGString ? "\"" : "'", true, true, sb);
+    return sb.toString();
+  }
+
   @Nullable
   static PsiElement createLiteral(@NotNull GradleDslElement context, @NotNull Object unsavedValue) {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
       String stringValue = (String)unsavedValue;
-      if (stringValue.startsWith(GrStringUtil.DOUBLE_QUOTES) && stringValue.endsWith(GrStringUtil.DOUBLE_QUOTES)) {
-        unsavedValueText = (String)unsavedValue;
+      if (isQuotedString(stringValue)) {
+        // We need to escape the string without the quotes and then add them back.
+        String unquotedString = removeQuotes(stringValue);
+        unsavedValueText = addQuotes(escapeString(unquotedString, true), true);
       }
       else {
-        unsavedValueText = GrStringUtil.getLiteralTextByValue((String)unsavedValue);
+        unsavedValueText = addQuotes(escapeString((String)unsavedValue, false), false);
       }
     }
     else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean) {
