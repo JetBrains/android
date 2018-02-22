@@ -21,14 +21,19 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.PopupActionTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -286,6 +291,7 @@ public class SceneComponent {
 
   /**
    * Returns true if the widget is parent(0,0) - 0x0
+   *
    * @return true if no dimension
    */
   public boolean hasNoDimension() {
@@ -857,6 +863,13 @@ public class SceneComponent {
       if (provider != null) {
         provider.createChildTargets(parent, this).forEach(this::addTarget);
       }
+    }
+    AndroidFacet facet = getNlComponent().getModel().getFacet();
+    ComponentAssistant.PanelFactory panelFactory = ViewHandlerManager.get(facet).getHandlerOrDefault(getNlComponent())
+      .getComponentAssistant(getScene().getDesignSurface(), getNlComponent());
+
+    if (panelFactory != null) {
+      addTarget(new PopupActionTarget(() -> panelFactory.createComponent(getNlComponent(), () -> null), null, null, null));
     }
 
     // update the Targets created by myTargetProvider
