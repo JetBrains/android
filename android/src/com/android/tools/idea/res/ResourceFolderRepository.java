@@ -530,7 +530,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                                          boolean idGenerating,
                                          PsiFile file) {
     // XML or Image
-    ResourceItem item = new PsiResourceItem(ResourceHelper.getResourceName(file), type, myNamespace, null, file);
+    ResourceItem item = PsiResourceItem.forFile(ResourceHelper.getResourceName(file), type, myNamespace, file);
 
     if (idGenerating) {
       List<ResourceItem> items = new ArrayList<>();
@@ -819,7 +819,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     if (!pendingResourceIds.isEmpty()) {
       for (Map.Entry<String, XmlTag> entry : pendingResourceIds.entrySet()) {
         String id = entry.getKey();
-        PsiResourceItem remainderItem = new PsiResourceItem(id, ResourceType.ID, myNamespace, entry.getValue(), file);
+        PsiResourceItem remainderItem = PsiResourceItem.forXmlTag(id, ResourceType.ID, myNamespace, entry.getValue());
         items.add(remainderItem);
         addToResult(result, remainderItem);
       }
@@ -868,7 +868,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
 
       pendingResourceIds.remove(id);
-      PsiResourceItem item = new PsiResourceItem(id, ResourceType.ID, myNamespace, tag, file);
+      PsiResourceItem item = PsiResourceItem.forXmlTag(id, ResourceType.ID, myNamespace, tag);
       items.add(item);
 
       addToResult(result, item);
@@ -914,7 +914,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (!StringUtil.isEmpty(name)) {
             ResourceType type = AndroidResourceUtil.getType(tag);
             if (type != null) {
-              ResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, file);
+              ResourceItem item = PsiResourceItem.forXmlTag(name, type, myNamespace, tag);
               addToResult(result, item);
               items.add(item);
               added = true;
@@ -930,7 +930,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         // Only add attr nodes for elements that specify a format or have flag/enum children; otherwise
                         // it's just a reference to an existing attr
                         && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
-                      ResourceItem attrItem = new PsiResourceItem(attrName, ResourceType.ATTR, myNamespace, child, file);
+                      ResourceItem attrItem = PsiResourceItem.forXmlTag(attrName, ResourceType.ATTR, myNamespace, child);
                       items.add(attrItem);
                       addToResult(result, attrItem);
                     }
@@ -1347,7 +1347,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       return;
                     }
                     if (type != null) {
-                      ResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, psiFile);
+                      ResourceItem item = PsiResourceItem.forXmlTag(name, type, myNamespace, tag);
                       synchronized (ITEM_MAP_LOCK) {
                         getMap(myNamespace, type, true).put(name, item);
                         resourceFile.addItems(Collections.singletonList(item));
@@ -1747,7 +1747,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                               map.remove(oldName, item);
                               resourceFile.removeItem(item);
                               if (!StringUtil.isEmpty(newName)) {
-                                ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
+                                ResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag);
                                 map.put(newName, newItem);
                                 resourceFile.addItem(newItem);
                               }
@@ -1797,7 +1797,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                               map.remove(oldName, item);
                               resourceFile.removeItem(item);
                               if (!StringUtil.isEmpty(newName)) {
-                                ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
+                                ResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag);
                                 map.put(newName, newItem);
                                 resourceFile.addItem(newItem);
                               }
@@ -1922,7 +1922,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                           // Found the relevant item: delete it and create a new one in a new location
                           map.remove(oldName, item);
                           if (!StringUtil.isEmpty(newName)) {
-                            ResourceItem newItem = new PsiResourceItem(newName, type, myNamespace, xmlTag, psiFile);
+                            ResourceItem newItem = PsiResourceItem.forXmlTag(newName, type, myNamespace, xmlTag);
                             map.put(newName, newItem);
                             ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
                             if (resFile != null) {
@@ -2351,8 +2351,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         PsiResourceFile resourceFile = (PsiResourceFile)resFile;
         for (ResourceItem item : resourceFile) {
           PsiResourceItem pri = (PsiResourceItem)item;
-          XmlTag xmlTag = pri.getTag();
-          if (xmlTag == tag) {
+          if (pri.wasTag(tag)) {
             return item;
           }
         }
@@ -2393,7 +2392,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (resourceFile != null && FileUtil.filesEqual(resourceFile.getFile(), ioFile)) {
             assert item instanceof PsiResourceItem;
             PsiResourceItem psiItem = (PsiResourceItem)item;
-            if (psiItem.getTag() == tag) {
+            if (psiItem.wasTag(tag)) {
               return item;
             }
           }

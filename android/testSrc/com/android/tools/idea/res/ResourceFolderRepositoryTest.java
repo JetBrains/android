@@ -29,6 +29,8 @@ import com.google.common.collect.Collections2;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -4216,6 +4218,44 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Make sure that the resource value is still of type DensityBasedResourceValue.
     densityValue = (DensityBasedResourceValue)value;
     assertEquals(Density.XHIGH, densityValue.getResourceDensity());
+  }
+
+  /**
+   * Checks that we handle PSI invalidation behaviour for PsiResourceItem.
+   * When getting out of dumb mode, if the file has been modified during the dumb mode,
+   * the file (and tags) will be invalidated.
+   * Regression test for b/73623886
+   */
+  public void testFileInvalidationAfterDumbMode() {
+    DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
+    dumbService.setDumb(true);
+    VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+
+
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile);
+    assertNotNull(document);
+
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("DarkTheme");
+      document.replaceString(offset, offset + 4, "Grey");
+      documentManager.commitDocument(document);
+    });
+    // First edit won't be incremental (file -> Psi).
+    assertTrue(resources.isScanPending(psiFile));
+    UIUtil.dispatchAllInvocationEvents();
+
+    ResourceItem item = resources.getResourceItems(ResourceNamespace.RES_AUTO,
+                                                   ResourceType.STYLE,
+                                                   "GreyTheme").get(0);
+    dumbService.setDumb(false);
+    // Before the fix, item.getResourceValue would return null since the file is not invalid after getting out of dumb mode
+    assertNotNull(item.getResourceValue());
   }
 
   private static void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
