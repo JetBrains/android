@@ -36,9 +36,38 @@ class EnergyDetailsViewTest {
     .setLevel(EnergyProfiler.WakeLockAcquired.Level.SCREEN_DIM_WAKE_LOCK)
     .addFlags(EnergyProfiler.WakeLockAcquired.CreationFlag.ACQUIRE_CAUSES_WAKEUP)
     .build()
-  private val wakeLockDuration = EventDuration(Arrays.asList(
-    EnergyEvent.newBuilder().setTimestamp(1000L).setWakeLockAcquired(wakeLockAcquired).setTraceId("traceId").build()))
+  private val wakeLockAcquireEvent = EnergyEvent.newBuilder()
+    .setTimestamp(TimeUnit.MILLISECONDS.toNanos(200))
+    .setWakeLockAcquired(wakeLockAcquired)
+    .setTraceId("traceId")
+    .setEventId(123)
+    .build()
+  private val wakeLockReleased = EnergyProfiler.WakeLockReleased.newBuilder().setIsHeld(false).build()
+  private val wakeLockReleaseEvent = EnergyEvent.newBuilder()
+    .setTimestamp(TimeUnit.MILLISECONDS.toNanos(400))
+    .setWakeLockReleased(wakeLockReleased)
+    .setEventId(123)
+    .build()
   private val callstackText = "android.os.PowerManager\$WakeLock.acquire(PowerManager.java:32)\n"
+
+  private val alarmSet = EnergyProfiler.AlarmSet.newBuilder()
+    .setTriggerMs(1000)
+    .setIntervalMs(100)
+    .setWindowMs(200)
+    .setType(EnergyProfiler.AlarmSet.Type.ELAPSED_REALTIME_WAKEUP)
+    .setOperation(EnergyProfiler.PendingIntent.newBuilder().setCreatorPackage("package").setCreatorUid(1234).build())
+    .build()
+  private val alarmSetEvent =  EnergyEvent.newBuilder()
+    .setTimestamp(TimeUnit.MILLISECONDS.toNanos(600))
+    .setAlarmSet(alarmSet)
+    .build()
+  private val alarmCancelled = EnergyProfiler.AlarmCancelled.newBuilder()
+    .setListener(EnergyProfiler.AlarmListener.newBuilder().setTag("cancelledTag").build())
+    .build()
+  private val alarmCancelledEvent = EnergyEvent.newBuilder()
+    .setTimestamp(TimeUnit.MILLISECONDS.toNanos(900))
+    .setAlarmCancelled(alarmCancelled)
+    .build()
 
   private val profilerService = FakeProfilerService(true)
   private val energyService = FakeEnergyService()
@@ -67,7 +96,7 @@ class EnergyDetailsViewTest {
   @Test
   fun viewIsVisibleWhenDataIsNotNull() {
     view.isVisible = false
-    view.setDuration(wakeLockDuration)
+    view.setDuration(EventDuration(Arrays.asList(wakeLockAcquireEvent)))
     assertThat(view.isVisible).isTrue()
   }
 
@@ -80,20 +109,46 @@ class EnergyDetailsViewTest {
 
   @Test
   fun wakeLockIsProperlyRendered() {
-    view.setDuration(wakeLockDuration)
+    view.setDuration(EventDuration(Arrays.asList(wakeLockAcquireEvent, wakeLockReleaseEvent)))
     val wakeLockTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(wakeLockTextPane.text) {
       assertUiContainsLabelAndValue(this, "Name", "wakeLockTag")
       assertUiContainsLabelAndValue(this, "Level", "SCREEN_DIM_WAKE_LOCK")
       assertUiContainsLabelAndValue(this, "Flags", "ACQUIRE_CAUSES_WAKEUP")
+
+      assertUiContainsLabelAndValue(this, "WAKE_LOCK_ACQUIRED", "200ms")
+      assertUiContainsLabelAndValue(this, "WAKE_LOCK_RELEASED", "400ms")
     }
-    // TODO: Test time data
+  }
+
+  @Test
+  fun alarmSetIsProperlyRendered() {
+    view.setDuration(EventDuration(Arrays.asList(alarmSetEvent)))
+    val alarmTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
+    with(alarmTextPane.text) {
+      assertUiContainsLabelAndValue(this, "ALARM_SET", "600ms")
+      assertUiContainsLabelAndValue(this, "TriggerTime", "1s")
+      assertUiContainsLabelAndValue(this, "IntervalTime", "100ms")
+      assertUiContainsLabelAndValue(this, "WindowTime", "200ms")
+      assertUiContainsLabelAndValue(this, "Creator", "package\\b.+\\bUID\\b.+\\b1234")
+    }
+  }
+
+  @Test
+  fun alarmCancelledIsProperlyRendered() {
+    view.setDuration(EventDuration(Arrays.asList(alarmSetEvent, alarmCancelledEvent)))
+    val alarmTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
+    with(alarmTextPane.text) {
+      assertUiContainsLabelAndValue(this, "ALARM_SET", "600ms")
+      assertUiContainsLabelAndValue(this, "ALARM_CANCELLED", "900ms")
+      assertUiContainsLabelAndValue(this, "ListenerTag", "cancelledTag")
+    }
   }
 
   @Test
   fun callstackIsProperlyRendered() {
     profilerService.addFile("traceId", ByteString.copyFromUtf8(callstackText))
-    view.setDuration(wakeLockDuration)
+    view.setDuration(EventDuration(Arrays.asList(wakeLockAcquireEvent)))
     val nonEmptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
     assertThat(nonEmptyView.components).isNotEmpty()
     view.setDuration(null)

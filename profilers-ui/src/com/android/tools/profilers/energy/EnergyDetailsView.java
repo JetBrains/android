@@ -19,7 +19,6 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.profilers.CloseButton;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,8 +30,8 @@ import java.awt.*;
  */
 public class EnergyDetailsView extends JPanel {
 
-  @NotNull private final JPanel myDetailsPanel = new JPanel(new BorderLayout());
   @NotNull private final EnergyCallstackView myCallstackView;
+  @NotNull private final EnergyDetailsOverview myDetailsOverview;
 
   public EnergyDetailsView(@NotNull EnergyProfilerStageView stageView) {
     super(new BorderLayout());
@@ -45,7 +44,8 @@ public class EnergyDetailsView extends JPanel {
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
     CommonTabbedPane myTabsPanel = new CommonTabbedPane();
-    myTabsPanel.addTab("Details", myDetailsPanel);
+    myDetailsOverview = new EnergyDetailsOverview(stageView);
+    myTabsPanel.addTab("Details", myDetailsOverview);
 
     myCallstackView = new EnergyCallstackView(stageView);
     myTabsPanel.add("Callstack", myCallstackView);
@@ -61,13 +61,10 @@ public class EnergyDetailsView extends JPanel {
    */
   public void setDuration(@Nullable EventDuration duration) {
     setBackground(JBColor.background());
-    myDetailsPanel.removeAll();
-    setVisible(duration != null);
-    if (duration != null && duration.getEventList().get(0).hasWakeLockAcquired()) {
-      myDetailsPanel.setBorder(new JBEmptyBorder(10, 10, 5, 5));
-      JComponent wakeLockComponent = new WakeLockDetailsView(duration).getComponent();
-      myDetailsPanel.add(wakeLockComponent);
-    }
+    setVisible(duration != null && !duration.getEventList().isEmpty());
+    myDetailsOverview.setDuration(duration);
     myCallstackView.setDuration(duration);
+    revalidate();
+    repaint();
   }
 }

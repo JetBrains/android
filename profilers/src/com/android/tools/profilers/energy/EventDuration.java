@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +32,7 @@ public final class EventDuration implements Comparable<EventDuration> {
   @NotNull private final ImmutableList<EnergyProfiler.EnergyEvent> myEventList;
 
   public EventDuration(@NotNull List<EnergyProfiler.EnergyEvent> eventList) {
+    assert !eventList.isEmpty();
     myEventList = ImmutableList.copyOf(eventList);
   }
 
@@ -48,11 +50,15 @@ public final class EventDuration implements Comparable<EventDuration> {
    */
   @NotNull
   public String getName() {
-    if (myEventList.get(0).hasWakeLockAcquired()) {
-      // TODO(b/73852076): Handle if the first event item is a released wakelock
-      return myEventList.get(0).getWakeLockAcquired().getTag();
+    switch (myEventList.get(0).getMetadataCase()) {
+      case WAKE_LOCK_ACQUIRED:
+        // TODO(b/73852076): Handle if the first event item is a released wakelock
+        return myEventList.get(0).getWakeLockAcquired().getTag();
+      case ALARM_SET:
+        return "alarm" + TimeUnit.NANOSECONDS.toMillis(getInitialTimestamp());
+      default:
+        return "unspecified";
     }
-    return "unspecified";
   }
 
   @NotNull
@@ -62,10 +68,13 @@ public final class EventDuration implements Comparable<EventDuration> {
         // fall through
       case WAKE_LOCK_RELEASED:
         return "wakelock";
+      case ALARM_SET:
+        // fall through
+      case ALARM_CANCELLED:
+        return "alarm";
       default:
-        break;
+        return "unspecified";
     }
-    return "unspecified";
   }
 
   @NotNull
