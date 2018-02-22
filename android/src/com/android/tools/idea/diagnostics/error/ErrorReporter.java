@@ -17,8 +17,8 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.diagnostics.crash.CrashReport;
-import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.android.tools.analytics.crash.CrashReport;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
@@ -152,17 +152,17 @@ public class ErrorReporter extends ErrorReportSubmitter {
     if ("Exception".equals(type)) {
       ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
                                                                  "summary", (String)map.get("summary"));
-      CrashReporter.getInstance().submit(
+      StudioCrashReporter.getInstance().submit(
         CrashReport.Builder.createForException(t).addProductData(productData).build());
     }
     else if ("ANR".equals(type)) {
-      CrashReporter.getInstance().submit(
+      StudioCrashReporter.getInstance().submit(
         CrashReport.Builder.createForPerfReport((String)map.get("file"), (String)map.get("threadDump")).build());
     }
     else if ("Crashes".equals(type)) {
       //noinspection unchecked
       List<String> descriptions = (List<String>)map.get("descriptions");
-      CrashReporter.getInstance().submit(
+      StudioCrashReporter.getInstance().submit(
         CrashReport.Builder.createForCrashes(descriptions).build());
     }
     return true;

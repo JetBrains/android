@@ -23,7 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
@@ -298,7 +298,7 @@ public class RenderService extends AndroidFacetScopedService {
 
     try {
       RenderTask task =
-          new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance(), myImagePool,
+          new RenderTask(this, configuration, logger, layoutLib, device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                          parserFactory);
       if (psiFile instanceof XmlFile) {
         task.setXmlFile((XmlFile)psiFile);

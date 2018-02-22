@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.diagnostics.exception.NoPiiException;
+import com.android.tools.analytics.crash.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
