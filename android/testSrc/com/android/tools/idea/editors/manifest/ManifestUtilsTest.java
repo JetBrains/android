@@ -16,10 +16,16 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
+import com.android.manifmerger.Actions;
+import com.android.manifmerger.XmlNode;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.PositionXmlParser;
+import com.google.common.collect.ImmutableList;
 import com.intellij.lang.xml.XMLLanguage;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -30,7 +36,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import java.io.IOException;
+import java.util.*;
+
 import static com.android.SdkConstants.ANDROID_URI;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class ManifestUtilsTest extends AndroidTestCase {
 
@@ -253,4 +265,101 @@ public class ManifestUtilsTest extends AndroidTestCase {
                 "</application>\n" +
                 "</manifest>");
   }
+
+  /** Test that getRecords() returns the same records for an intent-filter and its children elements and attributes */
+  public void testGetRecordsForIntentFilter() throws Exception {
+    MergedManifest mergedManifest =
+      getMergedManifest(
+        "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+        "    package='com.example.app1'>\n" +
+        "    <application android:name=\"com.example.app1.TheApp\">\n" +
+        "        <activity android:name=\"com.example.app1.Activity1\">\n" +
+        "            <intent-filter>\n" +
+        "                <action android:name=\"android.intent.action.VIEW\"/>\n" +
+        "                <category android:name=\"android.intent.category.DEFAULT\"/>\n" +
+        "                <category android:name=\"android.intent.category.BROWSABLE\"/>\n" +
+        "                <data android:scheme=\"https\"/>\n" +
+        "                <data android:host=\"www.example.com\"/>\n" +
+        "                <data android:path=\"/\"/>\n" +
+        "            </intent-filter>\n" +
+        "        </activity>\n" +
+        "    </application>\n" +
+        "</manifest>\n");
+
+    Element intentFilterElement = (Element) mergedManifest.getActivities().get(0).getElementsByTagName("intent-filter").item(0);
+    XmlNode.NodeKey nodeKey = XmlNode.NodeKey.fromXml(intentFilterElement);
+    Set<XmlNode.NodeKey> nodeKeySet = new HashSet<>(Collections.singletonList(nodeKey));
+
+    MergedManifest mockMergedManifest = spy(mergedManifest);
+    Actions mockActions = mock(Actions.class);
+    ImmutableList<Actions.NodeRecord> mockRecordList = ImmutableList.of(mock(Actions.NodeRecord.class));
+
+    when(mockMergedManifest.getActions()).thenReturn(mockActions);
+    when(mockActions.getNodeKeys()).thenReturn(nodeKeySet);
+    when(mockActions.getNodeRecords(nodeKey)).thenReturn(mockRecordList);
+
+    assertEquals(mockRecordList, ManifestUtils.getRecords(mockMergedManifest, intentFilterElement));
+
+    Element intentFilterChildElement = (Element) intentFilterElement.getElementsByTagName("action").item(0);
+    assertEquals(mockRecordList, ManifestUtils.getRecords(mockMergedManifest, intentFilterChildElement));
+
+    Attr intentFilterChildAttr = intentFilterChildElement.getAttributeNodeNS(ANDROID_URI, "name");
+    assertEquals(mockRecordList, ManifestUtils.getRecords(mockMergedManifest, intentFilterChildAttr));
+  }
+
+  /**
+   * Test that getNodeKey() returns null for an unexpected element.
+   * Regression test for b/73329785; previously getNodeKey() would throw an AssertionError for an unexpected element.
+   */
+  public void testGetNodeKeyForUnexpectedElement() throws Exception {
+
+    MergedManifest mergedManifest =
+      getMergedManifest(
+        "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+        "    package='com.example.app1'>\n" +
+        "    <application android:name=\"com.example.app1.TheApp\">\n" +
+        "        <activity android:name=\"com.example.app1.Activity1\">\n" +
+        "            <foo/>\n" +
+        "        </activity>\n" +
+        "    </application>\n" +
+        "</manifest>\n");
+
+    Element unexpectedElement = (Element) mergedManifest.getActivities().get(0).getElementsByTagName("foo").item(0);
+
+    mergedManifest =
+      getMergedManifest(
+        "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+        "    package='com.example.app1'>\n" +
+        "</manifest>\n");
+
+    assertEquals(null, ManifestUtils.getNodeKey(mergedManifest, unexpectedElement));
+  }
+
+
+  private MergedManifest getMergedManifest(String manifestContents) throws Exception {
+    String path = "AndroidManifest.xml";
+
+    final VirtualFile manifest = myFixture.findFileInTempDir(path);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+
+        if (manifest != null) {
+          try {
+            manifest.delete(this);
+          }
+          catch (IOException e) {
+            fail("Could not delete manifest");
+          }
+        }
+      }
+    });
+
+    myFixture.addFileToProject(path, manifestContents);
+
+    MergedManifest info = MergedManifest.get(myModule);
+    info.clear();
+    return info;
+  }
+
 }
