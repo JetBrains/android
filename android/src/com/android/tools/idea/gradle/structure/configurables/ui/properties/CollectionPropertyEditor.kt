@@ -42,6 +42,7 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
 ) : JPanel(BorderLayout()) {
 
   val component: JComponent get() = this
+  val statusComponent: JComponent? = null
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null ; private set
   protected val valueToText: Map<ValueT, String> = buildValueToTextMap()
