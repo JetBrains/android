@@ -66,16 +66,14 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.Timer;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -126,6 +124,12 @@ public class LayoutlibSceneManager extends SceneManager {
   private final LinkedList<Runnable> myRenderCallbacks = new LinkedList<>();
   private final Semaphore myUpdateHierarchyLock = new Semaphore(1);
   @NotNull private final ViewEditor myViewEditor;
+  /**
+   * {@code Executor} to run the {@code Runnable} that disposes {@code RenderTask}s. This allows
+   * {@code SyncLayoutlibSceneManager} to use a different strategy to dispose the tasks that does not involve using
+   * pooled threads.
+   */
+  @NotNull private final Executor myRenderTaskDisposerExecutor;
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -155,8 +159,9 @@ public class LayoutlibSceneManager extends SceneManager {
     return null;
   }
 
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
+  protected LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface, @NotNull Executor renderTaskDisposerExecutor) {
     super(model, designSurface);
+    myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     createSceneView();
     updateTrackingConfiguration();
 
@@ -185,6 +190,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
     // let's make sure the selection is correct
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
+  }
+
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
+    this(model, designSurface, PooledThreadExecutor.INSTANCE);
   }
 
   @NotNull
@@ -226,7 +235,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     super.dispose();
     // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+    myRenderTaskDisposerExecutor.execute(() -> {
       synchronized (myRenderingTaskLock) {
         if (myRenderTask != null) {
           myRenderTask.dispose();
