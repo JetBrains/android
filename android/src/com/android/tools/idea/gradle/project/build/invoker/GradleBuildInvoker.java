@@ -30,10 +30,7 @@ import com.intellij.build.BuildViewManager;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
-import com.intellij.build.events.impl.FinishBuildEventImpl;
-import com.intellij.build.events.impl.OutputBuildEventImpl;
-import com.intellij.build.events.impl.StartBuildEventImpl;
-import com.intellij.build.events.impl.SuccessResultImpl;
+import com.intellij.build.events.impl.*;
 import com.intellij.build.output.BuildOutputInstantReaderImpl;
 import com.intellij.build.output.BuildOutputParser;
 import com.intellij.build.output.JavacOutputParser;
@@ -441,6 +438,15 @@ public class GradleBuildInvoker {
           String title = executionName + " failed";
           FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
           buildViewManager.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
+        }
+
+        @Override
+        public void onCancel(@NotNull ExternalSystemTaskId id) {
+          super.onCancel(id);
+          // Cause build view to show as skipped all pending tasks (b/73397414)
+          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
+          buildViewManager.onEvent(event);
+          myReader.close();
         }
       };
     }
