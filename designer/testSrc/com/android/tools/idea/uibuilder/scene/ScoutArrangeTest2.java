@@ -346,9 +346,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.HorizontalPack, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.HorizontalPack, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -365,9 +363,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.VerticalPack, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.VerticalPack, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -383,9 +379,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ExpandHorizontally, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ExpandHorizontally, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -402,9 +396,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ExpandVertically, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ExpandVertically, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -421,9 +413,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.DistributeVertically, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.DistributeVertically, list,true);
 
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
@@ -457,9 +447,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.DistributeHorizontally, list,true);
-    NlWriteCommandAction
-      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.DistributeHorizontally, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
