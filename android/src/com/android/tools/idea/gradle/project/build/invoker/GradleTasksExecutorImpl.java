@@ -571,6 +571,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     @Override
     void onCancel() {
       stopAppIconProgress();
+      // Let listener know that the task was cancelled
+      ExternalSystemTaskNotificationListener taskListener = myRequest.getTaskListener();
+      if (taskListener != null) {
+        taskListener.onCancel(myRequest.getTaskId());
+      }
     }
 
     @Override
