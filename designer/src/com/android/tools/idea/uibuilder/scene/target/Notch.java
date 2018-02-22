@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -22,15 +23,35 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawHorizontalNotch;
 import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalNotch;
+import com.google.common.collect.ImmutableList;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.awt.*;
 
 /**
  * Used to snap component during a drag
  */
 public abstract class Notch {
+
+  protected static final int DEFAULT_GAP = 8;
+
+  /**
+   * Indicate that this {@link Notch} is vertical and only cares about the value on X-axis
+   * Component snap to this notch when distance of X-axis is smaller than gap.
+   *
+   * @see #setGap(int)
+   */
+  static final int TYPE_HORIZONTAL = 1;
+
+  /**
+   * Indicate that this {@link Notch} is vertical and only cares about the value on Y-axis.
+   * Component snap to this notch when distance of Y-axis is smaller than gap.
+   *
+   * @see #setGap(int)
+   */
+  static final int TYPE_VERTICAL = 1 << 1;
 
   public interface Action {
     void apply(@NotNull AttributesTransaction attributes);
@@ -51,35 +72,31 @@ public abstract class Notch {
      * @param owner              {@link SceneComponent} holding the reference to this {@link Provider}.
      *                           It can be use to compute the position of the {@link Notch}
      * @param snappableComponent {@link SceneComponent} that will be snapped
-     * @param horizontalNotches
-     * @param verticalNotches
+     * @param notchBuilder       Builder to collect Notches. Provider should fill up its Notches into this builder.
      */
     void fill(@NotNull SceneComponent owner,
               @NotNull SceneComponent snappableComponent,
-              @NotNull List<Notch> horizontalNotches,
-              @NotNull List<Notch> verticalNotches);
+              @NotNull ImmutableList.Builder<Notch> notchBuilder);
   }
 
-  SceneComponent myOwner;
-  int myNotchValue;
-  int myDisplayValue;
-  int myGap = 8;
+  @NotNull protected SceneComponent myOwner;
+  @MagicConstant(flags = {TYPE_HORIZONTAL, TYPE_VERTICAL}) protected int myType;
+  protected int myGap = DEFAULT_GAP;
   @Nullable Action myAction;
-  boolean myDidApply = false;
   @Nullable Target myTarget;
 
   /**
    * Create a new notch associated with the provided {@link SceneComponent} owner.
    *
-   * @param owner        The {@link SceneComponent} holding the notch
-   * @param value        The position where element will be snapped
-   * @param displayValue The position where the Notch will be displayed
-   * @param action       The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
+   * @param owner         The {@link SceneComponent} holding the notch
+   * @param type          The Notch type, should be one of {@link #TYPE_HORIZONTAL} or {@link #TYPE_VERTICAL}
+   * @param action        The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called
    */
-  private Notch(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
+  protected Notch(@NotNull SceneComponent owner,
+                  @MagicConstant(flags = {TYPE_HORIZONTAL, TYPE_VERTICAL}) int type,
+                  @Nullable Action action) {
     myOwner = owner;
-    myNotchValue = value;
-    myDisplayValue = displayValue;
+    myType = type;
     myAction = action;
   }
 
@@ -96,38 +113,34 @@ public abstract class Notch {
    *
    * @param attributes The transaction that the {@link Action} can use to modify the component
    */
-  public void applyAction(AttributesTransaction attributes) {
-    if (myDidApply && myAction != null) {
+  public void applyAction(@NotNull AttributesTransaction attributes) {
+    if (myAction != null) {
       myAction.apply(attributes);
     }
   }
 
-  public boolean didApply() {
-    return myDidApply;
-  }
-
   /**
-   * Check if the provided value is close enough to this {@link Notch} coordinates and returns the
-   * {@link Notch} snapping coordinate. If value is not close enough then the provided value is returned
+   * @param valueX   The value on x-axis to try to snap
+   * @param valueY   The value on y-axis to try to snap
+   * @param retPoint The point given by caller to fill up the snapped point
    *
-   * @param value The value to try to snap
-   * @return The provided value if it is too far from the notch or the notch vlau
+   * @return true if (valueX, valueY) is snappable to this Notch, false otherwise
    */
-  public int trySnap(int value) {
-    myDidApply = false;
-    if (Math.abs(value - myNotchValue) <= myGap) {
-      myDidApply = true;
-      return myNotchValue;
-    }
-    return value;
+  abstract boolean isSnappable(@AndroidDpCoordinate int valueX,
+                               @AndroidDpCoordinate int valueY,
+                               @AndroidDpCoordinate @NotNull Point retPoint);
+
+  @MagicConstant(flags = {TYPE_HORIZONTAL, TYPE_VERTICAL})
+  public final int getType() {
+    return myType;
   }
 
-  public void setTarget(@Nullable Target target) {
+  public final void setTarget(@Nullable Target target) {
     myTarget = target;
   }
 
   @Nullable
-  public Target getTarget() {
+  public final Target getTarget() {
     return myTarget;
   }
 
@@ -137,35 +150,55 @@ public abstract class Notch {
    * A notch snapping on a motion on the <B>X (horizontal) axis</B>, so the line will be <b>vertical</b>.
    */
   public static class Horizontal extends Notch {
+
+    @AndroidDpCoordinate protected int myValueX;
+    @AndroidDpCoordinate protected int myDisplayValueX;
+
     /**
      * Create a new notch associated with the provided {@link SceneComponent} owner.
      *
-     * @param owner        The {@link SceneComponent} holding the notch
-     * @param value        The position where element will be snapped
-     * @param displayValue The position where the Notch will be displayed
+     * @param owner         The {@link SceneComponent} holding the notch
+     * @param valueX        The position where element will be snapped on x-axis
+     * @param displayValueX The position where the Notch will be displayed on x-axis
      */
-    public Horizontal(@NotNull SceneComponent owner, int value, int displayValue) {
-      this(owner, value, displayValue, null);
+    public Horizontal(@NotNull SceneComponent owner, @AndroidDpCoordinate int valueX, @AndroidDpCoordinate int displayValueX) {
+      this(owner, valueX, displayValueX, null);
     }
 
     /**
      * Create a new notch associated with the provided {@link SceneComponent} owner.
      *
-     * @param owner        The {@link SceneComponent} holding the notch
-     * @param value        The position where element will be snapped
-     * @param displayValue The position where the Notch will be displayed
-     * @param action       The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
+     * @param owner         The {@link SceneComponent} holding the notch
+     * @param valueX        The position where element will be snapped on x-axis
+     * @param displayValueX The position where the Notch will be displayed on x-axis
+     * @param action        The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
      */
-    public Horizontal(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
-      super(owner, value, displayValue, action);
+    public Horizontal(@NotNull SceneComponent owner,
+                      @AndroidDpCoordinate int valueX,
+                      @AndroidDpCoordinate int displayValueX,
+                      @Nullable Action action) {
+      super(owner, TYPE_HORIZONTAL, action);
+      myValueX = valueX;
+      myDisplayValueX = displayValueX;
+    }
+
+    @Override
+    public boolean isSnappable(@AndroidDpCoordinate int valueX,
+                               @AndroidDpCoordinate int valueY,
+                               @AndroidDpCoordinate @NotNull Point retPoint) {
+      if (Math.abs(valueX - myValueX) <= myGap) {
+        retPoint.x = myValueX;
+        retPoint.y = valueY;
+        return true;
+      }
+      return false;
     }
 
     @Override
     public void render(@NotNull DisplayList list, @NotNull SceneContext context, @NotNull SceneComponent component) {
       SceneComponent parent = component.getParent();
       if (parent != null) {
-        DrawVerticalNotch.add(list, context, myDisplayValue, parent.getDrawY(),
-                              parent.getDrawY() + parent.getDrawHeight());
+        DrawVerticalNotch.add(list, context, myDisplayValueX, parent.getDrawY(), parent.getDrawY() + parent.getDrawHeight());
       }
     }
   }
@@ -175,46 +208,61 @@ public abstract class Notch {
    */
   public static class Vertical extends Notch {
 
+    @AndroidDpCoordinate protected int myValueY;
+    @AndroidDpCoordinate protected int myDisplayValueY;
+
     /**
      * Create a new notch associated with the provided {@link SceneComponent} owner.
      *
-     * @param owner        The {@link SceneComponent} holding the notch
-     * @param value        The position where element will be snapped
-     * @param displayValue The position where the Notch will be displayed
+     * @param owner         The {@link SceneComponent} holding the notch
+     * @param valueY        The position where element will be snapped on y-axis
+     * @param displayValueY The position where the Notch will be displayed on y-axis
      */
-    public Vertical(@NotNull SceneComponent owner, int value, int displayValue) {
-      this(owner, value, displayValue, null);
+    public Vertical(@NotNull SceneComponent owner, @AndroidDpCoordinate int valueY, @AndroidDpCoordinate int displayValueY) {
+      this(owner, valueY, displayValueY, null);
     }
 
     /**
      * Create a new notch associated with the provided {@link SceneComponent} owner.
      *
-     * @param owner        The {@link SceneComponent} holding the notch
-     * @param value        The position where element will be snapped
-     * @param displayValue The position where the Notch will be displayed
-     * @param action       The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
+     * @param owner         The {@link SceneComponent} holding the notch
+     * @param valueY        The position where element will be snapped on y-axis
+     * @param displayValueY The position where the Notch will be displayed on y-axis
+     * @param action        The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
      */
-    public Vertical(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
-      super(owner, value, displayValue, action);
+    public Vertical(@NotNull SceneComponent owner,
+                    @AndroidDpCoordinate int valueY,
+                    @AndroidDpCoordinate int displayValueY,
+                    @Nullable Action action) {
+      super(owner, TYPE_VERTICAL, action);
+      myValueY = valueY;
+      myDisplayValueY = displayValueY;
+    }
+
+    @Override
+    public boolean isSnappable(@AndroidDpCoordinate int valueX,
+                               @AndroidDpCoordinate int valueY,
+                               @AndroidDpCoordinate @NotNull Point retPoint) {
+      if (Math.abs(valueY - myValueY) <= myGap) {
+        retPoint.x = valueX;
+        retPoint.y = myValueY;
+        return true;
+      }
+      return false;
     }
 
     @Override
     public void render(@NotNull DisplayList list, @NotNull SceneContext context, @NotNull SceneComponent component) {
       SceneComponent parent = component.getParent();
       if (parent != null) {
-        DrawHorizontalNotch.add(list, context, parent.getDrawX(), myDisplayValue,
-                                parent.getDrawX() + parent.getDrawWidth());
+        DrawHorizontalNotch.add(list, context, parent.getDrawX(), myDisplayValueY, parent.getDrawX() + parent.getDrawWidth());
       }
     }
   }
 
-  public static class SmallHorizontal extends Notch {
-    public SmallHorizontal(@NotNull SceneComponent owner, int value, int displayValue) {
-      this(owner, value, displayValue, null);
-    }
-
-    public SmallHorizontal(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
-      super(owner, value, displayValue, action);
+  public static class SmallHorizontal extends Horizontal {
+    public SmallHorizontal(@NotNull SceneComponent owner, @AndroidDpCoordinate int valueX, @AndroidDpCoordinate int displayValueX) {
+      super(owner, valueX, displayValueX, null);
       myGap = 6;
     }
 
@@ -223,17 +271,13 @@ public abstract class Notch {
       int gap = 16;
       int y1 = Math.min(myOwner.getDrawY(), component.getDrawY()) - gap;
       int y2 = Math.max(myOwner.getDrawY() + myOwner.getDrawHeight(), component.getDrawY() + component.getDrawHeight()) + gap;
-      DrawVerticalNotch.add(list, context, myDisplayValue, y1, y2);
+      DrawVerticalNotch.add(list, context, myDisplayValueX, y1, y2);
     }
   }
 
-  public static class SmallVertical extends Notch {
-    public SmallVertical(@NotNull SceneComponent owner, int value, int displayValue) {
-      this(owner, value, displayValue, null);
-    }
-
-    public SmallVertical(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
-      super(owner, value, displayValue, action);
+  public static class SmallVertical extends Vertical {
+    public SmallVertical(@NotNull SceneComponent owner, @AndroidDpCoordinate int valueY, @AndroidDpCoordinate int displayValueY) {
+      super(owner, valueY, displayValueY, null);
       myGap = 6;
     }
 
@@ -242,7 +286,7 @@ public abstract class Notch {
       int gap = 16;
       int x1 = Math.min(myOwner.getDrawX(), component.getDrawX()) - gap;
       int x2 = Math.max(myOwner.getDrawX() + myOwner.getDrawWidth(), component.getDrawX() + component.getDrawWidth()) + gap;
-      DrawHorizontalNotch.add(list, context, x1, myDisplayValue, x2);
+      DrawHorizontalNotch.add(list, context, x1, myDisplayValueY, x2);
     }
   }
 }

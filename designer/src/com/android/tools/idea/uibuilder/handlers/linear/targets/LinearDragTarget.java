@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import org.jetbrains.annotations.NotNull;
@@ -78,33 +77,29 @@ public class LinearDragTarget extends DragBaseTarget {
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     SceneComponent sceneParent = myComponent.getParent();
     assert sceneParent != null;
-    TargetSnapper snapper = getTargetNotchSnapper();
-    Notch snappedNotch;
-    Target closestTarget = null;
     myComponent.setDragging(true);
 
+    TargetSnapper snapper = getTargetNotchSnapper();
+    Target closestTarget;
     x -= myOffsetX;
     y -= myOffsetY;
     if (myHandler.isVertical(sceneParent.getNlComponent())) {
       int middle = myComponent.getDrawHeight() / 2;
       int parentHeight = sceneParent.getDrawHeight();
       int nx = myIsDragFromPalette ? x : myComponent.getDrawX();
-      int ny = snapper.trySnapY(min(max(y, -middle), parentHeight + middle));
+      int ny = min(max(y, -middle), parentHeight + middle);
+      ny = snapper.trySnapVertical(ny).orElse(ny);
       myComponent.setPosition(nx, ny, false);
-      snappedNotch = snapper.getSnappedNotchY();
+      closestTarget = snapper.getSappedVerticalTarget();
     }
     else {
       int middle = myComponent.getDrawWidth() / 2;
       int parentWidth = sceneParent.getDrawWidth();
-      int nx = snapper.trySnapX(min(max(x, -middle), parentWidth + middle));
+      int nx = min(max(x, -middle), parentWidth + middle);
+      nx = snapper.trySnapHorizontal(nx).orElse(nx);
       int ny = myIsDragFromPalette ? y : myComponent.getDrawY();
       myComponent.setPosition(nx, ny, false);
-      snappedNotch = snapper.getSnappedNotchX();
-    }
-
-    // We get the snapped Notch
-    if (snappedNotch != null) {
-      closestTarget = snappedNotch.getTarget();
+      closestTarget = snapper.getSappedHorizontalTarget();
     }
 
     if (myClosest != closestTarget) {

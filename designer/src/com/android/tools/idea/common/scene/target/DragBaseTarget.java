@@ -101,7 +101,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, JBColor.red);
     }
-    myTargetSnapper.renderCurrentNotches(list, sceneContext, myComponent);
+    myTargetSnapper.renderSnappedNotches(list, sceneContext, myComponent);
   }
 
   protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
@@ -139,8 +139,10 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     myComponent.setDragging(true);
     NlComponent component = myComponent.getAuthoritativeNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
-    int snappedX = myTargetSnapper.trySnapX(x - myOffsetX);
-    int snappedY = myTargetSnapper.trySnapY(y - myOffsetY);
+    x -= myOffsetX;
+    y -= myOffsetY;
+    int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
+    int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
     updateAttributes(attributes, snappedX, snappedY);
     attributes.apply();
     component.fireLiveChangeEvent();
@@ -161,8 +163,10 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
       }
       NlComponent component = myComponent.getAuthoritativeNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
-      int snappedX = myTargetSnapper.trySnapX(x - myOffsetX);
-      int snappedY = myTargetSnapper.trySnapY(y - myOffsetY);
+      x -= myOffsetX;
+      y -= myOffsetY;
+      int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
+      int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
       if (isAutoConnectionEnabled()) {
         myTargetSnapper.applyNotches(attributes);
       }
@@ -192,7 +196,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
    */
   public void cancel() {
     myComponent.setDragging(false);
-    myTargetSnapper.cleanNotch();
+    myTargetSnapper.reset();
     myChangedComponent = false;
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }

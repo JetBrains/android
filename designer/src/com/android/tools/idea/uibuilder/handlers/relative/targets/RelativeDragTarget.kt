@@ -25,7 +25,6 @@ import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.util.text.StringUtil
-import java.awt.Point
 
 /**
  * Target to handle the drag of RelativeLayout's children
@@ -33,8 +32,6 @@ import java.awt.Point
 class RelativeDragTarget : DragBaseTarget() {
   private var myTargetX: BaseRelativeTarget? = null
   private var myTargetY: BaseRelativeTarget? = null
-
-  private val mySnappedPoint = Point()
 
   /**
    * Calculate the align and margin on x axis.
@@ -92,31 +89,17 @@ class RelativeDragTarget : DragBaseTarget() {
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
     myComponent.isDragging = true
-    trySnap(x, y)
-    myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
-
     val attributes = myComponent.authoritativeNlComponent.startAttributeTransaction()
-    updateAttributes(attributes, mySnappedPoint.x, mySnappedPoint.y)
+    updateAttributes(attributes, x, y)
     attributes.apply()
 
     myTargetX?.myIsHighlight = false
-    myTargetX = targetNotchSnapper.snappedNotchX?.target as BaseRelativeTarget?
+    myTargetX = targetNotchSnapper.sappedHorizontalTarget as BaseRelativeTarget?
     myTargetX?.myIsHighlight = true
 
     myTargetY?.myIsHighlight = false
-    myTargetY = targetNotchSnapper.snappedNotchY?.target as BaseRelativeTarget?
+    myTargetY = targetNotchSnapper.sappedVerticalTarget as BaseRelativeTarget?
     myTargetY?.myIsHighlight = true
-  }
-
-  private fun trySnap(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
-    val sceneParent = myComponent?.parent ?: return
-
-    val dragX = x - myOffsetX
-    val dragY = y - myOffsetY
-    val nx = Math.max(sceneParent.drawX, Math.min(dragX, sceneParent.drawX + sceneParent.drawWidth - myComponent.drawWidth))
-    val ny = Math.max(sceneParent.drawY, Math.min(dragY, sceneParent.drawY + sceneParent.drawHeight - myComponent.drawHeight))
-    mySnappedPoint.x = targetNotchSnapper.trySnapX(nx)
-    mySnappedPoint.y = targetNotchSnapper.trySnapY(ny)
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
@@ -126,10 +109,7 @@ class RelativeDragTarget : DragBaseTarget() {
     if (myComponent.parent != null) {
       val component = myComponent.authoritativeNlComponent
       val attributes = component.startAttributeTransaction()
-      trySnap(x, y)
-      myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
-
-      updateAttributes(attributes, mySnappedPoint.x, mySnappedPoint.y)
+      updateAttributes(attributes, x, y)
       attributes.apply()
 
       if (!(Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1)) {
@@ -151,11 +131,7 @@ class RelativeDragTarget : DragBaseTarget() {
     myComponent.isDragging = false
     if (myComponent.parent != null) {
       val attributes = component.startAttributeTransaction()
-      trySnap(x, y)
-      myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
-      myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
-
-      updateAttributes(attributes, mySnappedPoint.x, mySnappedPoint.y)
+      updateAttributes(attributes, x, y)
       attributes.apply()
 
       if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
@@ -172,8 +148,22 @@ class RelativeDragTarget : DragBaseTarget() {
 
     clearAlignAttributes(attributes)
 
-    targetNotchSnapper.snappedNotchX?.applyAction(attributes) ?: updateMarginOnX(attributes, x)
-    targetNotchSnapper.snappedNotchY?.applyAction(attributes) ?: updateMarginOnY(attributes, y)
+    val sceneParent = myComponent?.parent ?: return
+
+    val nx = Math.max(sceneParent.drawX, Math.min(x - myOffsetX, sceneParent.drawX + sceneParent.drawWidth - myComponent.drawWidth))
+    val ny = Math.max(sceneParent.drawY, Math.min(y - myOffsetY, sceneParent.drawY + sceneParent.drawHeight - myComponent.drawHeight))
+    val snappedX = targetNotchSnapper.trySnapHorizontal(nx)
+    val snappedY = targetNotchSnapper.trySnapVertical(ny)
+
+    myComponent.setPosition(snappedX.orElse(nx), snappedY.orElse(ny), false)
+
+    targetNotchSnapper.applyNotches(attributes)
+    if (!snappedX.isPresent) {
+      updateMarginOnX(attributes, nx)
+    }
+    if (!snappedY.isPresent) {
+      updateMarginOnY(attributes, ny)
+    }
 
     if (attributes.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL) == "true"
         && attributes.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL) == "true") {

@@ -26,11 +26,10 @@ import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -172,9 +171,7 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
   @Override
   public void fill(@NotNull SceneComponent owner,
                    @NotNull SceneComponent snappableComponent,
-                   @NotNull List<Notch> horizontalNotches,
-                   @NotNull List<Notch> verticalNotches) {
-
+                   @NotNull ImmutableList.Builder<Notch> notchesBuilder) {
     if (myLayoutVertical) {
       int value = owner.getDrawY();
       int displayValue = owner.getDrawY();
@@ -194,7 +191,7 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       Notch.Vertical notch = new Notch.Vertical(owner, value, displayValue);
       notch.setGap(owner.getDrawHeight() / 2);
       notch.setTarget(this);
-      verticalNotches.add(notch);
+      notchesBuilder.add(notch);
     }
     else {
       int value = owner.getDrawX();
@@ -215,7 +212,7 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       Notch.Horizontal notch = new Notch.Horizontal(owner, value, displayValue);
       notch.setGap(owner.getDrawWidth() / 2);
       notch.setTarget(this);
-      horizontalNotches.add(notch);
+      notchesBuilder.add(notch);
     }
   }
 
