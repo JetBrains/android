@@ -25,6 +25,7 @@ private const val LIGHT_BLUE = 94
 private const val LIGHT_RED = 91
 private const val LIGHT_MAGENTA = 95
 private const val LIGHT_CYAN = 96
+private const val LIGHT_YELLOW = 93
 private fun color(code : Int) : String {
   return "\u001B[${code}m"
 }
@@ -48,9 +49,11 @@ private val String.blue get() = if (isEmpty()) "" else color(LIGHT_BLUE) + this 
 private val String.red get() = if (isEmpty()) "" else color(LIGHT_RED) + this + color(RESET)
 private val String.magenta get() = if (isEmpty()) "" else color(LIGHT_MAGENTA) + this + color(RESET)
 private val String.cyan get() = if (isEmpty()) "" else color(LIGHT_CYAN) + this + color(RESET)
+private val String.yellow get() = if (isEmpty()) "" else color(LIGHT_YELLOW) + this + color(RESET)
 
 private fun GradleDslElement.printElement(builder : StringBuilder, indent : Int) {
   when(this) {
+    is GradleDslMethodCall -> builder.append("${javaClass.simpleName.red} : ${name.magenta} ${methodName.yellow} : ${value.toString().cyan}")
     is GradleDslExpression -> builder.append("${javaClass.simpleName.red} : ${name.magenta} : ${value.toString().cyan}")
     is GradleDslExpressionList -> {
       builder.append("${javaClass.simpleName.red} : ${name.magenta} ->\n")
