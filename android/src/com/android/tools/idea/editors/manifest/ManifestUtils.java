@@ -79,42 +79,44 @@ public class ManifestUtils {
   }
 
   @NotNull
-  public static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node item) {
+  public static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node node) {
     Actions actions = manifest.getActions();
     if (actions != null) {
-      if (item instanceof Element) {
-        Element element = (Element)item;
-        Node parentNode = element.getParentNode();
-        if (parentNode instanceof Element) {
-          Element parentElement = (Element)parentNode;
-          // special case when parent element is an intent-filter because the intent-filter sub-element node keys are not necessarily
-          // unique in the xml file, but the sub-elements have the same history as the intent-filter
-          if (TAG_INTENT_FILTER.equals(parentElement.getTagName())) {
-            return actions.getNodeRecords(getNodeKey(manifest, parentElement));
-          }
-        }
-        return actions.getNodeRecords(getNodeKey(manifest, element));
+      // if node is an Attr, element is node's owner element; otherwise element is (Element)node
+      final Element element;
+      if (node instanceof Element) {
+        element = (Element)node;
+      } else if (node instanceof Attr) {
+        Attr attribute = (Attr)node;
+        element = attribute.getOwnerElement();
+      } else {
+        return Collections.emptyList();
       }
-      else if (item instanceof Attr) {
-        Attr attribute = (Attr)item;
-        Element element = attribute.getOwnerElement();
-        Node parentNode = element.getParentNode();
-        if (parentNode instanceof Element) {
-          Element parentElement = (Element)parentNode;
-          // special case when parent element is an intent-filter because the intent-filter sub-element node keys are not necessarily
-          // unique in the xml file, but the sub-elements' attributes have the same history as the intent-filter
-          if (TAG_INTENT_FILTER.equals(parentElement.getTagName())) {
-            return actions.getNodeRecords(getNodeKey(manifest, parentElement));
+      Node parentNode = element.getParentNode();
+      if (parentNode instanceof Element) {
+        Element parentElement = (Element)parentNode;
+        // special case when parent element is an intent-filter because the intent-filter sub-element node keys are not necessarily
+        // unique in the xml file, but the sub-elements have the same history as the intent-filter
+        if (TAG_INTENT_FILTER.equals(parentElement.getTagName())) {
+          XmlNode.NodeKey parentKey = getNodeKey(manifest, parentElement);
+          if (parentKey != null) {
+            return actions.getNodeRecords(parentKey);
           }
         }
-        XmlNode.NodeKey key = getNodeKey(manifest, element);
-        XmlNode.NodeName name = XmlNode.fromXmlName(attribute.getName());
-        List<? extends Actions.Record> attributeRecords = actions.getAttributeRecords(key, name);
+      }
+      XmlNode.NodeKey key = getNodeKey(manifest, element);
+      if (key == null) {
+        return Collections.emptyList();
+      }
+      if (node instanceof Attr) {
+        Attr attribute = (Attr)node;
+        XmlNode.NodeName nodeName = XmlNode.fromXmlName(attribute.getName());
+        List<? extends Actions.Record> attributeRecords = actions.getAttributeRecords(key, nodeName);
         if (!attributeRecords.isEmpty()) {
           return attributeRecords;
         }
-        return actions.getNodeRecords(key);
       }
+      return actions.getNodeRecords(key);
     }
     return Collections.emptyList();
   }
@@ -131,9 +133,10 @@ public class ManifestUtils {
         Attr glEsVersionAttribute = element.getAttributeNodeNS(ANDROID_URI, ATTRIBUTE_GLESVERSION);
         if (glEsVersionAttribute != null) {
           key = manifest.getNodeKey(element.getTagName() + "#" + glEsVersionAttribute.getValue());
-        }
-        else {
+        } else if (TAG_INTENT_FILTER.equals(element.getTagName())) {
           key = manifest.getNodeKey(element.getTagName() + "#" + IntentFilterNodeKeyResolver.INSTANCE.getKey(element));
+        } else {
+          key = null;
         }
       }
     }
