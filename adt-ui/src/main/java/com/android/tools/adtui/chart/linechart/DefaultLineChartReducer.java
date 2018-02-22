@@ -41,6 +41,13 @@ class DefaultLineChartReducer implements LineChartReducer {
    */
   @Override
   public List<SeriesData<Long>> reduceData(@NotNull List<SeriesData<Long>> dataList, @NotNull LineConfig config) {
+    if (config.getDataBucketInterval() > 0) {
+      // If the line chart is showing bars, we don't want to reduce points - because repeating the
+      // same value multiple times in a row should generate new bars!
+      // TODO(b/73784793): Remove this code once we refactor a new BarChart class
+      return dataList;
+    }
+
     List<SeriesData<Long>> reduced = new ArrayList<>();
     for (SeriesData<Long> data: dataList) {
       while (reduced.size() >= 2) {

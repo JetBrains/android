@@ -72,6 +72,7 @@ public class LineConfig {
    * each data point are drawn at previous x + interval. If this is 0, the series is not buckets.
    * The amount unit is same as x axis unit.
    */
+  // TODO(b/73784793): Remove this config once we refactor a new BarChart class
   private double myDataBucketInterval = 0;
 
   /**
