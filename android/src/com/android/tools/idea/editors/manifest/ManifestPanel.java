@@ -495,8 +495,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   @NotNull
-  private Color getNodeColor(@NotNull Node item) {
-    List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, item);
+  private Color getNodeColor(@NotNull Node node) {
+    List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
     if (!records.isEmpty()) {
       Actions.Record record = records.get(0);
       File file;

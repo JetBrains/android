@@ -307,6 +307,34 @@ public class ManifestUtilsTest extends AndroidTestCase {
     assertEquals(mockRecordList, ManifestUtils.getRecords(mockMergedManifest, intentFilterChildAttr));
   }
 
+  /**
+   * Test that getNodeKey() returns null for an unexpected element.
+   * Regression test for b/73329785; previously getNodeKey() would throw an AssertionError for an unexpected element.
+   */
+  public void testGetNodeKeyForUnexpectedElement() throws Exception {
+
+    MergedManifest mergedManifest =
+      getMergedManifest(
+        "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+        "    package='com.example.app1'>\n" +
+        "    <application android:name=\"com.example.app1.TheApp\">\n" +
+        "        <activity android:name=\"com.example.app1.Activity1\">\n" +
+        "            <foo/>\n" +
+        "        </activity>\n" +
+        "    </application>\n" +
+        "</manifest>\n");
+
+    Element unexpectedElement = (Element) mergedManifest.getActivities().get(0).getElementsByTagName("foo").item(0);
+
+    mergedManifest =
+      getMergedManifest(
+        "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+        "    package='com.example.app1'>\n" +
+        "</manifest>\n");
+
+    assertEquals(null, ManifestUtils.getNodeKey(mergedManifest, unexpectedElement));
+  }
+
 
   private MergedManifest getMergedManifest(String manifestContents) throws Exception {
     String path = "AndroidManifest.xml";
