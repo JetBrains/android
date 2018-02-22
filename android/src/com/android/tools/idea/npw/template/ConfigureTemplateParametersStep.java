@@ -228,8 +228,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
         property.addListener(sender -> {
-          // If not evaluating, change comes from the user
-          if (myEvaluationState != EvaluationState.EVALUATING) {
+          // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
+          if (myEvaluationState != EvaluationState.EVALUATING && myRootPanel.isShowing()) {
             myUserValues.put(parameter, property.get());
             // Evaluate later to prevent modifying Swing values that are locked during read
             enqueueEvaluateParameters();
