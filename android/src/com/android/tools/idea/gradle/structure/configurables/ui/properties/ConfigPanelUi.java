@@ -16,17 +16,17 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties;
 
 import com.intellij.ui.components.JBLabel;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class ConfigPanelUi {
   public static final int V_GAP = 4;
-  public static final int SEPARATOR_HEIGHT = 8;
+  public static final int H_GAP = 4;
+  private int myLastRow = -1;
   private JPanel myPanel;
   private JPanel myComponentPanel;
 
@@ -35,75 +35,61 @@ public class ConfigPanelUi {
   }
 
   protected final void setNumberOfProperties(int numberOfProperties) {
-    GridLayoutManager layoutManager = new GridLayoutManager(numberOfProperties * 3 + 1, 1, JBUI.insets(8), 0, V_GAP, false, false);
-    myPanel.setLayout(layoutManager);
-    myPanel.add(new JPanel(), new GridConstraints(
+    myPanel.add(new JPanel(), new GridBagConstraints(
+      0,
       numberOfProperties * 3,
-      0,
       1,
       1,
-      GridConstraints.ANCHOR_CENTER,
-      GridConstraints.FILL_BOTH,
-      GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-      GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-      null,
-      null,
-      null,
-      0,
-      false));
+      1,
+      1,
+      GridBagConstraints.CENTER,
+      GridBagConstraints.VERTICAL,
+      JBUI.emptyInsets(),
+      0, 0));
   }
 
-  protected final void addPropertyComponents(String label, JComponent editor) {
-    int index = myPanel.getComponentCount() / 3;
+  protected final void addPropertyComponents(@NotNull String label, @NotNull JComponent editor, @Nullable JComponent statusComponent) {
+    myLastRow++;
     JBLabel labelComponent = new JBLabel(label);
     labelComponent.setLabelFor(editor);
-    myPanel.add(labelComponent, new GridConstraints(
-      index * 3,
+    myPanel.add(labelComponent, new GridBagConstraints(
       0,
+      myLastRow * 3,
+      2,
       1,
       1,
-      GridConstraints.ANCHOR_WEST,
-      GridConstraints.ALIGN_LEFT,
-      GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-      GridConstraints.SIZEPOLICY_CAN_GROW,
-      null,
-      null,
-      null,
       0,
-      false));
-    myPanel.add(editor, new GridConstraints(
-      index * 3 + 1,
+
+      GridBagConstraints.WEST,
+      GridBagConstraints.HORIZONTAL,
+      JBUI.insets(2 * V_GAP, H_GAP, 0, H_GAP),
       0,
+      0));
+    myPanel.add(editor, new GridBagConstraints(
+      0,
+      myLastRow * 3 + 1,
+      statusComponent == null ? 2 : 1,
       1,
       1,
-      GridConstraints.ANCHOR_WEST,
-      GridConstraints.ALIGN_LEFT,
-      GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-      GridConstraints.SIZEPOLICY_CAN_GROW,
-      null,
-      null,
-      null,
       0,
-      false));
-    Spacer panel = new Spacer() {
-      @Override
-      public Dimension getMinimumSize() {
-        return new Dimension(1, SEPARATOR_HEIGHT);
-      }
-    };
-    myPanel.add(panel, new GridConstraints(
-      index * 3 + 2,
+      GridBagConstraints.WEST,
+      GridBagConstraints.HORIZONTAL,
+      JBUI.insets(0, H_GAP, 0, H_GAP),
       0,
-      1,
-      1,
-      GridConstraints.ANCHOR_WEST,
-      GridConstraints.ALIGN_LEFT,
-      GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-      GridConstraints.SIZEPOLICY_CAN_GROW,
-      null,
-      null,
-      null,
-      0,
-      false));
+      0));
+    if (statusComponent != null) {
+      myPanel.add(statusComponent, new GridBagConstraints(
+        1,
+        myLastRow * 3 + 1,
+        1,
+        1,
+        2,
+        0,
+        GridBagConstraints.WEST,
+        GridBagConstraints.HORIZONTAL,
+        JBUI.insets(0, H_GAP, 0, H_GAP),
+        0,
+        0));
+    }
   }
 }

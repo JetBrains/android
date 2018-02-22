@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.ComboBox
-import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
-import javax.swing.JTextField
+import javax.swing.text.DefaultCaret
 
 /**
  * A property editor [ModelPropertyEditor] for properties of simple (not complex) types.
@@ -48,6 +48,11 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
 
 
   override val component: JComponent = this
+  override val statusComponent: HtmlLabel = HtmlLabel().also {
+    // Note: this is important to be the first step to prevent automatic scrolling of the container to the last added label.
+    (it.caret as DefaultCaret).updatePolicy = DefaultCaret.NEVER_UPDATE
+    HtmlLabel.setUpAsHtmlLabel(it, font)
+  }
 
   override fun getPreferredSize(): Dimension {
     val dimensions = super.getPreferredSize()
@@ -90,14 +95,6 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     selectedItem = text
   }
 
-  private fun setColorAndTooltip(toolTipText: String? = null, background: Color? = null) {
-    val jTextField = editor.editorComponent as? JTextField
-    if (jTextField != null) {
-      if (toolTipText != null) jTextField.toolTipText = toolTipText
-      if (background != null) jTextField.background = background
-    }
-  }
-
   @VisibleForTesting
   fun loadKnownValues() {
     val availableVariables = getAvailableVariables()
@@ -115,37 +112,6 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
     beingLoaded = true
     try {
       setText(value.parsedValue.getText(valueToText))
-      val defaultValue = property.getDefaultValue(model)
-      when {
-        value.resolved is ResolvedValue.NotResolved && value.parsedValue is ParsedValue.Set -> {
-          setColorAndTooltip(
-            toolTipText = "[Set but not resolved - not yet synced?]",
-            background = Color.GREEN
-          )
-        }
-        value.resolved is ResolvedValue.Set &&
-            (value.parsedValue is ParsedValue.Set.Parsed &&
-                value.resolved.resolved != value.parsedValue.value ||
-                value.parsedValue is ParsedValue.NotSet &&
-                value.resolved.resolved != defaultValue)
-        -> {
-          setColorAndTooltip(
-            toolTipText = "[Set does not match resolved? - '${value.resolved.resolved.toString()}']",
-            background = Color.YELLOW
-          )
-        }
-        value.parsedValue is ParsedValue.Set.Invalid -> {
-          setColorAndTooltip(
-            toolTipText = "[Invalid?]",
-            background = Color.RED
-          )
-        }
-        value.parsedValue is ParsedValue.Set.Parsed -> {
-          setColorAndTooltip(
-            toolTipText = " = ${value.parsedValue.value.toString()}"
-          )
-        }
-      }
     } finally {
       beingLoaded = false
     }
