@@ -34,5 +34,6 @@
     <orderEntry type="module" module-name="cidr-lang" />
     <orderEntry type="module" module-name="dom-openapi" />
     <orderEntry type="module" module-name="native-symbolizer" />
+    <orderEntry type="module" module-name="analytics-crash" />
   </component>
 </module>

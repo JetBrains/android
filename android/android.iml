@@ -110,5 +110,6 @@
     </orderEntry>
     <orderEntry type="library" name="batik" level="project" />
     <orderEntry type="library" name="xml-apis-ext" level="project" />
+    <orderEntry type="module" module-name="analytics-crash" />
   </component>
 </module>

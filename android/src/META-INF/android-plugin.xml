@@ -398,8 +398,7 @@
     <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
                         serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
                         overrides="true"/>
-    <applicationService serviceInterface="com.android.tools.idea.diagnostics.crash.CrashReporter"
-                        serviceImplementation="com.android.tools.idea.diagnostics.crash.GoogleCrash" />
+    <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.StudioCrashReporter" />
     <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>

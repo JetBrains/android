@@ -116,6 +116,7 @@ iml_module(
         "//tools/adt/idea/android/lib:instantapps-api-1.0",
         "//tools/idea/.idea/libraries:batik",
         "//tools/idea/.idea/libraries:xml-apis-ext",
+        "//tools/analytics-library/crash:analytics-crash[module]",
     ],
 )
 
@@ -247,6 +248,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/android-lang[module, test]",
         "//tools/adt/idea/android/lib:instantapps-api-1.0",
+        "//tools/analytics-library/crash:analytics-crash[module, test]",
     ],
 )
 

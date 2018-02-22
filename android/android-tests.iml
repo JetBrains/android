@@ -79,5 +79,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="analytics-crash" scope="TEST" />
   </component>
 </module>
