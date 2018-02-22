@@ -28,8 +28,8 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutArrange;
 import com.android.tools.idea.uibuilder.scout.ScoutWidget;
@@ -58,8 +58,8 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTarget) {
     if (myComponent instanceof TemporarySceneComponent) {
       Scene scene = myComponent.getScene();
-      int dx = getTargetNotchSnapper().trySnapX(x);
-      int dy = getTargetNotchSnapper().trySnapY(y);
+      int dx = getTargetNotchSnapper().trySnapHorizontal(x).orElse(x);
+      int dy = getTargetNotchSnapper().trySnapVertical(y).orElse(y);
       myComponent.setPosition(dx, dy);
       scene.needsRebuildList();
     }
@@ -79,9 +79,10 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
       int dy = y - myOffsetY;
-      Point snappedCoordinates = new Point(getTargetNotchSnapper().trySnapX(dx), getTargetNotchSnapper().trySnapY(dy));
+      TargetSnapper snapper = getTargetNotchSnapper();
+      Point snappedCoordinates = new Point(snapper.trySnapHorizontal(dx).orElse(dx), snapper.trySnapVertical(dy).orElse(dy));
       if (isAutoConnectionEnabled()) {
-        getTargetNotchSnapper().applyNotches(attributes);
+        snapper.applyNotches(attributes);
       }
       updateAttributes(attributes, snappedCoordinates.x, snappedCoordinates.y);
       setGuidelineBegin(attributes, x, y);

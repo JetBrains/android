@@ -23,8 +23,8 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.model.getBaseline
 import com.android.tools.idea.uibuilder.scene.target.Notch
+import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
-import java.util.*
 
 const private val DEBUG = false
 const private val NOTCH_GAP_SIZE = 6
@@ -97,8 +97,7 @@ class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
       list.addRect(sceneContext, x1.toFloat(), x1.toFloat(), x2.toFloat(), y2.toFloat(),
           if (myIsHighlight) JBColor.GREEN else if (type == Type.BASELINE) JBColor.YELLOW else JBColor.RED)
 
-  override fun fill(owner: SceneComponent, snappableComponent: SceneComponent,
-                    horizontalNotches: MutableList<Notch>, verticalNotches: MutableList<Notch>) {
+  override fun fill(owner: SceneComponent, snappableComponent: SceneComponent, notchBuilder: ImmutableList.Builder<Notch>) {
     // TODO: if the owner doesn't have ID, added it.
 
     if (hasDependency(owner, snappableComponent)) {
@@ -110,32 +109,32 @@ class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
       Type.LEFT -> {
         val value = myComponent.drawX
         val shift = snappableComponent.drawWidth
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value, value, ATTR_LAYOUT_ALIGN_START))
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value - shift, value, ATTR_LAYOUT_TO_START_OF))
+        notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Horizontal, owner, value, value, ATTR_LAYOUT_ALIGN_START))
+        notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Horizontal, owner, value - shift, value, ATTR_LAYOUT_TO_START_OF))
       }
       Type.TOP -> {
         val value = myComponent.drawY
         val shift = snappableComponent.drawHeight
-        verticalNotches.add(createNotch(Notch::Vertical, owner, value, value, ATTR_LAYOUT_ALIGN_TOP))
-        verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ABOVE))
+        notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Vertical, owner, value, value, ATTR_LAYOUT_ALIGN_TOP))
+        notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ABOVE))
       }
       Type.RIGHT -> {
         val value = myComponent.drawX + myComponent.drawWidth
         val shift = snappableComponent.drawWidth
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value, value, ATTR_LAYOUT_TO_END_OF))
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value - shift, value, ATTR_LAYOUT_ALIGN_END))
+        notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Horizontal, owner, value, value, ATTR_LAYOUT_TO_END_OF))
+        notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Horizontal, owner, value - shift, value, ATTR_LAYOUT_ALIGN_END))
       }
       Type.BOTTOM -> {
         val value = myComponent.drawY + myComponent.drawHeight
         val shift = snappableComponent.drawHeight
-        verticalNotches.add(createNotch(Notch::Vertical, owner, value, value, ATTR_LAYOUT_BELOW))
-        verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ALIGN_BOTTOM))
+        notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Vertical, owner, value, value, ATTR_LAYOUT_BELOW))
+        notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ALIGN_BOTTOM))
       }
       Type.BASELINE -> {
         if (snappableComponent.nlComponent.getBaseline() != -1) {
           val value = owner.drawY + owner.baseline
           val shift = snappableComponent.baseline
-          verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ALIGN_BASELINE))
+          notchBuilder.add(createNotch(com.android.tools.idea.uibuilder.scene.target.Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ALIGN_BASELINE))
         }
       }
     }

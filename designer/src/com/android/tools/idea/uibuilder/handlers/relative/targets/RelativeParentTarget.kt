@@ -21,7 +21,10 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.scene.target.Notch.Horizontal
 import com.android.tools.idea.uibuilder.scene.target.Notch
+import com.android.tools.idea.uibuilder.scene.target.Notch.Vertical
+import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
 import java.awt.BasicStroke
 import java.awt.Graphics2D
@@ -99,45 +102,28 @@ class RelativeParentTarget(val type: Type) : BaseRelativeTarget() {
   private fun drawDebug(list: DisplayList, sceneContext: SceneContext) =
       list.addRect(sceneContext, x1.toFloat(), y1.toFloat(), x2.toFloat(), y2.toFloat(), if (myIsHighlight) JBColor.GREEN else JBColor.RED)
 
-  override fun fill(owner: SceneComponent, snappableComponent: SceneComponent,
-                    horizontalNotches: MutableList<Notch>, verticalNotches: MutableList<Notch>) {
-    val notch: Notch
-    when (type) {
-      RelativeParentTarget.Type.LEFT -> {
-        notch = Notch.Horizontal(owner, owner.drawX, owner.drawX)
-        horizontalNotches.add(notch)
-      }
-      RelativeParentTarget.Type.TOP -> {
-        notch = Notch.Vertical(owner, owner.drawY, owner.drawY)
-        verticalNotches.add(notch)
-      }
-      RelativeParentTarget.Type.RIGHT -> {
-        notch = Notch.Horizontal(owner, owner.drawX + owner.drawWidth - snappableComponent.drawWidth,
-            owner.drawX + owner.drawWidth)
-        horizontalNotches.add(notch)
-      }
-      RelativeParentTarget.Type.BOTTOM -> {
-        notch = Notch.Vertical(owner, owner.drawY + owner.drawHeight - snappableComponent.drawHeight,
-            owner.drawY + owner.drawHeight)
-        verticalNotches.add(notch)
-      }
-      RelativeParentTarget.Type.CENTER_HORIZONTAL -> {
-        notch = Notch.Horizontal(owner, owner.drawX + (owner.drawWidth - snappableComponent.drawWidth) / 2,
-            owner.drawX + owner.drawWidth / 2)
-        horizontalNotches.add(notch)
-      }
-      RelativeParentTarget.Type.CENTER_VERTICAL -> {
-        notch = Notch.Vertical(owner, owner.drawY + (owner.drawHeight - snappableComponent.drawHeight) / 2,
-            owner.drawY + owner.drawHeight / 2)
-        verticalNotches.add(notch)
-      }
+  override fun fill(owner: SceneComponent, snappableComponent: SceneComponent, notchBuilder: ImmutableList.Builder<Notch>) {
+    val notch = when (type) {
+      RelativeParentTarget.Type.LEFT -> Horizontal(owner, owner.drawX, owner.drawX)
+      RelativeParentTarget.Type.TOP -> Vertical(owner, owner.drawY, owner.drawY)
+      RelativeParentTarget.Type.RIGHT -> Horizontal(
+        owner, owner.drawX + owner.drawWidth - snappableComponent.drawWidth, owner.drawX + owner.drawWidth
+      )
+      RelativeParentTarget.Type.BOTTOM -> Vertical(
+        owner, owner.drawY + owner.drawHeight - snappableComponent.drawHeight, owner.drawY + owner.drawHeight
+      )
+      RelativeParentTarget.Type.CENTER_HORIZONTAL -> Horizontal(
+        owner, owner.drawX + (owner.drawWidth - snappableComponent.drawWidth) / 2, owner.drawX + owner.drawWidth / 2
+      )
+      RelativeParentTarget.Type.CENTER_VERTICAL -> Vertical(
+        owner, owner.drawY + (owner.drawHeight - snappableComponent.drawHeight) / 2, owner.drawY + owner.drawHeight / 2
+      )
     }
+    notchBuilder.add(notch)
 
-    with(notch) {
-      setAction(ACTION_MAP[type])
-      setGap(NOTCH_GAP_SIZE)
-      target = this@RelativeParentTarget
-    }
+    notch.setAction(ACTION_MAP[type])
+    notch.setGap(NOTCH_GAP_SIZE)
+    notch.target = this
   }
 
   private class DrawLine(val x1: Int, val y1: Int, val x2: Int, val y2: Int) : DrawRegion() {
