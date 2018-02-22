@@ -17,8 +17,9 @@ package com.android.tools.idea.uibuilder.handlers.assistant;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.adtui.HorizontalSpinner;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -27,7 +28,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
 import kotlin.Unit;
@@ -40,8 +40,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
@@ -170,6 +168,30 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
     new Template("Two lines template", TWO_LINES_TEMPLATE),
     new Template("Three lines template", THREE_LINES_TEMPLATE));
 
+  public RecyclerViewAssistant(@NotNull NlComponent component, @NotNull Function0<Unit> close) {
+    super(new BorderLayout());
+
+    AndroidFacet facet = component.getModel().getFacet();
+    VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
+    assert resourceDir != null;
+    Project project = facet.getModule().getProject();
+    String resourceName = getTemplateName(facet, "recycler_view");
+
+    HorizontalSpinner<Template> spinner = HorizontalSpinner.forModel(
+      JBList.createDefaultListModel(TEMPLATES.toArray(new Template[0])));
+
+    spinner.addListSelectionListener(event -> {
+      if (event.getValueIsAdjusting()) {
+        return;
+      }
+      Template template = spinner.getModel().getElementAt(spinner.getSelectedIndex());
+      setTemplate(project, component, resourceName, template.myTemplate);
+    });
+    add(spinner, BorderLayout.NORTH);
+
+    setBackground(UIUtil.getListBackground());
+  }
+
   private static String getTemplateName(@NotNull AndroidFacet facet, @NotNull String templateRootName) {
     AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
     String resourceNameRoot = AndroidResourceUtil.getValidResourceFileName(templateRootName);
@@ -183,7 +205,10 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
     return resourceName;
   }
 
-  private static void setTemplate(@NotNull Project project, @NotNull NlComponent component, @NotNull String resourceName, @NotNull String content) {
+  private static void setTemplate(@NotNull Project project,
+                                  @NotNull NlComponent component,
+                                  @NotNull String resourceName,
+                                  @NotNull String content) {
     AndroidFacet facet = component.getModel().getFacet();
     VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
@@ -227,46 +252,10 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
       myTemplateName = templateName;
       myTemplate = template;
     }
-  }
 
-  public RecyclerViewAssistant(@NotNull NlComponent component, @NotNull Function0<Unit> close) {
-    super(new BorderLayout());
-
-    AndroidFacet facet = component.getModel().getFacet();
-    VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
-    assert resourceDir != null;
-    Project project = facet.getModule().getProject();
-    String resourceName = getTemplateName(facet, "recycler_view");
-
-    JBList<Template> templatesList = new JBList<>(TEMPLATES.toArray(new Template[0]));
-    templatesList.setCellRenderer( new ListCellRendererWrapper<Template>() {
-      @Override
-      public void customize(JList list,
-                            Template value,
-                            int index,
-                            boolean selected,
-                            boolean hasFocus) {
-        setText(value.myTemplateName);
-      }
-    });
-    templatesList.addListSelectionListener(event -> {
-      if (event.getValueIsAdjusting()) {
-        return;
-      }
-      Template template = templatesList.getModel().getElementAt(templatesList.getSelectedIndex());
-      setTemplate(project, component, resourceName, template.myTemplate);
-    });
-    templatesList.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        boolean isDoubleClick = e.getClickCount() > 0 && e.getClickCount() % 2 == 0;
-        if (isDoubleClick) {
-          close.invoke();
-        }
-      }
-    });
-    add(templatesList, BorderLayout.NORTH);
-
-    setBackground(UIUtil.getListBackground());
+    @Override
+    public String toString() {
+      return myTemplateName;
+    }
   }
 }
