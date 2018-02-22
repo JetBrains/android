@@ -43,7 +43,7 @@ class JdkPreSyncCheck extends AndroidStudioSyncCheck {
     Sdk jdk = IdeSdks.getInstance().getJdk();
     if (!isValidJdk(jdk)) {
       String msg = "Please use JDK 8 or newer.";
-      SyncMessage message = new SyncMessage("Project sync error", MessageType.ERROR, msg);
+      SyncMessage message = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, msg);
       List<NotificationHyperlink> quickFixes = Jdks.getInstance().getWrongJdkQuickFixes(project);
       message.add(quickFixes);
 

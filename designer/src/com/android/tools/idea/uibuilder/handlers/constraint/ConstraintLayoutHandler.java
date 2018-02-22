@@ -1020,7 +1020,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       // noinspection AssignmentToMethodParameter
       modifiers &= InputEvent.CTRL_MASK;
-      Scout.arrangeWidgets(myActionType, selectedChildren, modifiers == 0 || ourAutoConnect);
+      Scout.arrangeWidgetsAndCommit(myActionType, selectedChildren, modifiers == 0 || ourAutoConnect);
       ensureLayersAreShown(editor, 1000);
     }
 

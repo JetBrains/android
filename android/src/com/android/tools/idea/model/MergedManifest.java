@@ -236,7 +236,13 @@ public class MergedManifest {
     // "If that attribute is also not set, the default system theme is used."
     int targetSdk;
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assert facet != null;
+    if (facet == null) {
+      // Should not happen, but has been observed to happen in rare scenarios
+      // (such as 73332530), probably related to race condition between
+      // Gradle sync and layout rendering
+      return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light";
+    }
+
     AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
     targetSdk = info.getTargetSdkVersion().getApiLevel();
 

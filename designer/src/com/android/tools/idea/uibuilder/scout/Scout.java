@@ -83,6 +83,17 @@ public class Scout {
   }
 
   /**
+   * Arrange widgets and commit the result
+   * @param type type of arranging
+   * @param widgets list of widgets to work on
+   * @param applyConstraints only align or apply constraints
+   */
+  public static void arrangeWidgetsAndCommit(Arrange type, List<NlComponent> widgets, boolean applyConstraints) {
+    arrangeWidgets(type, widgets, applyConstraints);
+    commit(widgets, "Arrange Widgets");
+  }
+
+  /**
    * Provide catagories of test
    */
   public enum ChainTest {

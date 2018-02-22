@@ -86,7 +86,10 @@ java_test(
 
 java_test(
     name = "DataBindingTest",
-    data = COMMON_DATA + ["//tools/data-binding:data_binding_runtime.zip"] + glob([
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/data-binding:data_binding_runtime.zip",
+    ] + glob([
         "testData/DatabindingMethodsTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
