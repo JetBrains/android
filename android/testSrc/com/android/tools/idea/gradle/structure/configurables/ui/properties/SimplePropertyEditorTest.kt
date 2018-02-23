@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.gradle.structure.model.VariablesProvider
 import com.android.tools.idea.gradle.structure.model.meta.*
 import org.hamcrest.CoreMatchers
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
-import org.junit.Assert.*
+import org.junit.Assert.assertThat
 import org.junit.Assume.assumeThat
 import org.junit.Ignore
 import org.junit.Test
@@ -34,13 +35,14 @@ class SimplePropertyEditorTest {
     var modified: Boolean = false
   }
 
-  class ResolvedModel {
-    var value: String? = "resolved"
+  class ParsedModel {
+    var value: String? = "value"
+    var dsl: DslText? = null
   }
 
-  class ParsedModel {
-    var value: String? = "parsed"
-    var dsl: DslText? = null
+  class ResolvedModel {
+    // Be default the resolved value should match the configured one since this is what we expect from a successful sync.
+    var value: String? = "value"
   }
 
   private val model = Model()
@@ -77,14 +79,25 @@ class SimplePropertyEditorTest {
   @Test
   fun loadsValue() {
     val editor = simplePropertyEditor(model, property)
-    assertThat(editor.selectedItem as String, equalTo("parsed"))
+    assertThat(editor.selectedItem as String, equalTo("value"))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
+  }
+
+  @Test
+  fun loadsValueNotMatchingResolved() {
+    resolvedModel.value = "other"
+    val editor = simplePropertyEditor(model, property)
+    assertThat(editor.selectedItem as String, equalTo("value"))
+    assertThat(editor.testPlainTextStatus, equalTo(" -> other"))
   }
 
   @Test
   fun loadsWellKnownValue() {
     parsedModel.value = "1"
+    resolvedModel.value = "1"
     val editor = simplePropertyEditor(model, property)
     assertThat(editor.selectedItem as String, equalTo("one"))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
   }
 
   @Test
@@ -92,21 +105,36 @@ class SimplePropertyEditorTest {
     parsedModel.dsl = DslText(DslMode.REFERENCE, "some_reference")
     val editor = simplePropertyEditor(model, property)
     assertThat(editor.selectedItem as String, equalTo("\$some_reference"))
+    assertThat(editor.testPlainTextStatus, equalTo(" = value"))
+  }
+
+  @Test
+  fun loadsReferenceNotMatchingResolved() {
+    resolvedModel.value = "other"
+    parsedModel.dsl = DslText(DslMode.REFERENCE, "some_reference")
+    val editor = simplePropertyEditor(model, property)
+    assertThat(editor.selectedItem as String, equalTo("\$some_reference"))
+    assertThat(editor.testPlainTextStatus, equalTo(" = value -> other"))
   }
 
   @Test
   fun loadsReferenceResolvedIntoKnownValue() {
     parsedModel.dsl = DslText(DslMode.REFERENCE, "some_reference")
     parsedModel.value = "1"
+    resolvedModel.value = "1"
     val editor = simplePropertyEditor(model, property)
     assertThat(editor.selectedItem as String, equalTo("\$some_reference"))
+    assertThat(editor.testPlainTextStatus, equalTo(" = 1"))
   }
 
   @Test
   fun loadsInterpolatedString() {
     parsedModel.dsl = DslText(DslMode.INTERPOLATED_STRING, "some \${reference}")
+    parsedModel.value = "some value"
+    resolvedModel.value = "some value"
     val editor = simplePropertyEditor(model, property)
     assertThat(editor.selectedItem as String, equalTo("\"some \${reference}\""))
+    assertThat(editor.testPlainTextStatus, equalTo(" = some value"))
   }
 
   @Test
@@ -115,6 +143,7 @@ class SimplePropertyEditorTest {
     parsedModel.value = null
     val editor = simplePropertyEditor(model, property)
     assertThat(editor.selectedItem as String, equalTo("\$\$1 + z(x)"))
+    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
   }
 
   @Test
@@ -163,6 +192,8 @@ class SimplePropertyEditorTest {
     val editor = simplePropertyEditor(model, property)
     editor.selectedItem = "abc"
     assertThat(parsedModel.value, equalTo("abc"))
+    // TODO(b/73811870): Assert the status message was updated correctly.
+    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
   }
 
   @Test
@@ -170,6 +201,8 @@ class SimplePropertyEditorTest {
     val editor = simplePropertyEditor(model, property)
     editor.selectedItem = ""
     assertThat(parsedModel.value, nullValue())
+    // TODO(b/73811870): Assert the status message was updated correctly.
+    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
   }
 
   @Test
@@ -179,6 +212,8 @@ class SimplePropertyEditorTest {
     assertThat(parsedModel.value, nullValue())
     assertThat(parsedModel.dsl?.mode, equalTo(DslMode.REFERENCE))
     assertThat(parsedModel.dsl?.text, equalTo("other.reference"))
+    // TODO(b/73811870): Assert the status message was updated correctly.
+    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
   }
 
   @Test
@@ -189,6 +224,8 @@ class SimplePropertyEditorTest {
     assertThat(parsedModel.value, nullValue())
     assertThat(parsedModel.dsl?.mode, equalTo(DslMode.INTERPOLATED_STRING))
     assertThat(parsedModel.dsl?.text, equalTo("\$a and \$b"))
+    // TODO(b/73811870): Assert the status message was updated correctly.
+    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
   }
 
   @Test
@@ -196,6 +233,8 @@ class SimplePropertyEditorTest {
     val editor = simplePropertyEditor(model, property)
     editor.selectedItem = "two"
     assertThat(parsedModel.value, equalTo("2"))
+    // TODO(b/73811870): Assert the status message was updated correctly.
+    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
   }
 
   @Test
@@ -234,14 +273,16 @@ class SimplePropertyEditorTest {
     val editor = simplePropertyEditor(model, property)
     editor.dispose()
     editor.selectedItem = "abc"
-    assertThat(parsedModel.value, equalTo("parsed"))
+    assertThat(parsedModel.value, equalTo("value"))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
   }
+
   @Test
   fun handlesInvalidInput() {
     val editor = simplePropertyEditor(model, property)
     editor.selectedItem = "invalid"  // "invalid" is recognised as an invalid input by the test parser.
     // Right now invalid input is ignored.
-    assertThat(parsedModel.value, equalTo("parsed"))
+    assertThat(parsedModel.value, equalTo("value"))
   }
 }
 
@@ -250,6 +291,11 @@ private fun SimplePropertyEditor<*, *, *>.simulateEditorGotFocus() {
   loadKnownValues()
   reloadValue()
 }
+
+private val spacesMatcher = Regex("\\s+")
+private val HtmlLabel.normalizedPlainText: String get() = document.getText(0, document.length).replace(spacesMatcher, " ")
+private val SimplePropertyEditor<*, *, *>.testPlainTextStatus: String
+  get() = (this.statusComponent as? HtmlLabel)?.normalizedPlainText.orEmpty()
 
 private fun <T> ListModel<T>.getItems(): List<T> {
   val result = mutableListOf<T>()
