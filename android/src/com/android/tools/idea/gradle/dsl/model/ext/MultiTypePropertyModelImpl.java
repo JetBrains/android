@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 import com.android.tools.idea.gradle.dsl.api.ext.MultiTypePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +31,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 /**
  * Base implementation of a MultiTypePropertyModel.
  *
- * Note: The {@link PropertyTransform} for the current type in {@link #setUpTransforms(Map)} will take priority over any transforms added by
+ * Note: The {@link PropertyTransform} for the current type in {@link #setUpTransforms()} will take priority over any transforms added by
  * {@link #addTransform(PropertyTransform)}.
  *
  * @param <T> the enum type to represent this properties types
@@ -44,7 +45,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
    * @param defaultType the type to default to if no transforms in trasformMap are active.
    * @param element the element that the model should represent.
    * @param transformMap a map of types to the {@link PropertyTransform}s that should be used for them.
-   *                     The order of this map is the order in which {@link PropertyTransform#condition} will be called
+   *                     The order of this map is the order in which {@link PropertyTransform#test(GradleDslElement)} will be called
    *                     to work out the initial type {@link T}.
    */
   public MultiTypePropertyModelImpl(@NotNull T defaultType,
@@ -58,13 +59,12 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
   }
 
   /**
-   *
-   * @param defaultType the type to default to if no transforms in trasformMap are active.
-   * @param holder the holder of the property. Any {@link GradleDslElement}s created by this model will have this as a parent.
+   * @param defaultType  the type to default to if no transforms in transformMap are active.
+   * @param holder       the holder of the property. Any {@link GradleDslElement}s created by this model will have this as a parent.
    * @param propertyType the {@link PropertyType} that any new elements should have.
-   * @param name the name of the property represented by this model.
+   * @param name         the name of the property represented by this model.
    * @param transformMap a map of types to the {@link PropertyTransform}s that should be used for them.
-   *                     The order of this map is the order in which {@link PropertyTransform#condition} will be called
+   *                     The order of this map is the order in which {@link PropertyTransform#test(GradleDslElement)} will be called
    *                     to work out the initial type {@link T
    */
   public MultiTypePropertyModelImpl(@NotNull T defaultType,
@@ -81,7 +81,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
 
   private void setUpTransforms() {
     for (Map.Entry<T, PropertyTransform> e : myTransforms.entrySet()) {
-      if (e.getValue().condition.test(myElement)) {
+      if (e.getValue().test(myElement)) {
         myType = e.getKey();
         break;
       }

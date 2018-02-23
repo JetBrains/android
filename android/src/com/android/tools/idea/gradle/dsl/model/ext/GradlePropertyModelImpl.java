@@ -17,6 +17,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.ImmutableList;
@@ -55,7 +56,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   public GradlePropertyModelImpl(@NotNull GradleDslElement element) {
     myElement = element;
-    myTransforms.add(defaultTransform);
+    myTransforms.add(DEFAULT_TRANSFORM);
 
     GradleDslElement parent = element.getParent();
     assert parent != null &&
@@ -75,7 +76,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myPropertyHolder = element;
     myPropertyType = type;
     myName = name;
-    myTransforms.add(defaultTransform);
+    myTransforms.add(DEFAULT_TRANSFORM);
 
     myIsMethodCall = false;
   }
@@ -212,7 +213,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   public void setValue(@NotNull Object value) {
-    GradleDslElement newElement = getTransform().binding.bind(myPropertyHolder, myElement, value, myName);
+    GradleDslElement newElement = getTransform().bind(myPropertyHolder, myElement, value, myName);
     bindToNewElement(newElement);
   }
 
@@ -514,13 +515,13 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     if (myElement == null) {
       return null;
     }
-    return getTransform().transform.transform(myElement);
+    return getTransform().transform(myElement);
   }
 
   @NotNull
   protected PropertyTransform getTransform() {
     for (PropertyTransform transform : myTransforms) {
-      if (transform.condition.test(myElement)) {
+      if (transform.test(myElement)) {
         return transform;
       }
     }
