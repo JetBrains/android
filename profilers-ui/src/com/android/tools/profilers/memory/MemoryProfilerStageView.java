@@ -31,6 +31,7 @@ import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;

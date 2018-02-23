@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.profilers.sessions.SessionArtifact;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 

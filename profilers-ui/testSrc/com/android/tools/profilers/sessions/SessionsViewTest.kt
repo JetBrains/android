@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers
+package com.android.tools.profilers.sessions
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.FakeGrpcServer
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -25,7 +29,10 @@ import org.junit.Test
 class SessionsViewTest {
 
   @get:Rule
-  var myGrpcServer = FakeGrpcServer("StudioProfilerTestChannel", FakeProfilerService(false))
+  var myGrpcServer = FakeGrpcServer(
+      "StudioProfilerTestChannel",
+      FakeProfilerService(false)
+  )
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var mySessionsManager: SessionsManager
@@ -33,7 +40,11 @@ class SessionsViewTest {
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(myGrpcServer.client, FakeIdeProfilerServices(), FakeTimer())
+    myProfilers = StudioProfilers(
+        myGrpcServer.client,
+        FakeIdeProfilerServices(),
+        FakeTimer()
+    )
     mySessionsManager = myProfilers.sessionsManager
     mySessionsView = SessionsView(mySessionsManager)
   }

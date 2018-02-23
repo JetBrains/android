@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers
+package com.android.tools.profilers.sessions
 
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.FakeGrpcServer
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -29,7 +33,10 @@ class SessionsManagerTest {
   @get:Rule
   val myThrown = ExpectedException.none()
   @get:Rule
-  var myGrpcServer = FakeGrpcServer("StudioProfilerTestChannel", FakeProfilerService(false))
+  var myGrpcServer = FakeGrpcServer(
+      "StudioProfilerTestChannel",
+      FakeProfilerService(false)
+  )
 
   private lateinit var myManager: SessionsManager
   private lateinit var myObserver: SessionsAspectObserver
@@ -37,7 +44,11 @@ class SessionsManagerTest {
   @Before
   fun setup() {
     myObserver = SessionsAspectObserver()
-    val profilers = StudioProfilers(myGrpcServer.client, FakeIdeProfilerServices(), FakeTimer())
+    val profilers = StudioProfilers(
+        myGrpcServer.client,
+        FakeIdeProfilerServices(),
+        FakeTimer()
+    )
     myManager = profilers.sessionsManager
     myManager.addDependency(myObserver)
       .onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
