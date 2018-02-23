@@ -258,16 +258,16 @@ public class ConstraintLayoutTest {
    *   5. Preview layout is rendered for the selected activity.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/69792022
+  @RunIn(TestGroup.QA)
   @Test
   public void layoutPreviewRendering() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     EditorFixture editorFixture = ideFrameFixture.getEditor()
-      .open("app/src/main/res/layout/layout2.xml", Tab.DESIGN);
+      .open("app/src/main/res/layout/layout2.xml", Tab.EDITOR);
 
     NlPreviewFixture preview = editorFixture
-      .getLayoutPreview(true)
+      .getLayoutPreview(false)
       .waitForRenderToFinish();
 
     preview.getConfigToolbar()
@@ -312,10 +312,10 @@ public class ConstraintLayoutTest {
       .requireTheme("Material");
 
     editorFixture = ideFrameFixture.getEditor()
-      .open("app/src/main/res/layout/layout1.xml", Tab.DESIGN);
+      .open("app/src/main/res/layout/layout1.xml", Tab.EDITOR);
 
     preview = editorFixture
-      .getLayoutPreview(true)
+      .getLayoutPreview(false)
       .waitForRenderToFinish();
 
     preview.getConfigToolbar()
