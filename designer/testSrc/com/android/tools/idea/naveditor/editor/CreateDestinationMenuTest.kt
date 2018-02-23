@@ -17,6 +17,7 @@ import com.android.SdkConstants.ATTR_LABEL
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.model.startDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.utils.Pair
 import com.google.common.collect.ImmutableList
@@ -208,6 +209,7 @@ class CreateDestinationMenuTest : NavTestCase() {
     val added = model.find("myId")!!
     assertEquals(TAG_NAVIGATION, added.tagName)
     assertEquals("myLabel", added.getAndroidAttribute(ATTR_LABEL))
+    assertEquals(surface.currentNavigation.startDestination, "myId")
   }
 
   fun testCreateFragment() {
@@ -222,6 +224,7 @@ class CreateDestinationMenuTest : NavTestCase() {
     val added = model.find("myId")!!
     assertEquals("fragment", added.tagName)
     assertEquals("myLabel", added.getAndroidAttribute(ATTR_LABEL))
+    assertEquals(surface.currentNavigation.startDestination, "myId")
   }
 
   fun testCreateActivity() {
@@ -237,6 +240,7 @@ class CreateDestinationMenuTest : NavTestCase() {
     assertEquals("activity", added.tagName)
     assertEquals("myLabel", added.getAndroidAttribute(ATTR_LABEL))
     assertEquals(ImmutableList.of(added), surface.selectionModel.selection)
+    assertEquals(surface.currentNavigation.startDestination, "myId")
   }
 
   fun testCreateInclude() {
