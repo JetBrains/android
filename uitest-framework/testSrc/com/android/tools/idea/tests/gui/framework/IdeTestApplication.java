@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.BootstrapClassLoaderUtil;
 import com.intellij.ide.WindowsCommandLineProcessor;
-import com.intellij.ide.startup.StartupActionScriptManager;
 import com.intellij.idea.Main;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -35,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Iterator;
@@ -49,7 +47,6 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
 import static com.intellij.util.PlatformUtils.PLATFORM_PREFIX_KEY;
-import static com.intellij.util.ui.UIUtil.initDefaultLAF;
 import static org.fest.reflect.core.Reflection.method;
 
 public class IdeTestApplication implements Disposable {
@@ -131,6 +128,7 @@ public class IdeTestApplication implements Disposable {
     pluginManagerStart(args);
 
     myIdeClassLoader = createClassLoader();
+    Thread.currentThread().setContextClassLoader(myIdeClassLoader);
 
     WindowsCommandLineProcessor.ourMirrorClass = Class.forName(WindowsCommandLineProcessor.class.getName(), true, myIdeClassLoader);
 
@@ -151,7 +149,7 @@ public class IdeTestApplication implements Disposable {
   // containing the URLs for the plugin jars is loaded by a different ClassLoader and it gets ignored. The result is test failing because
   // classes like AndroidPlugin cannot be found.
   @NotNull
-  private static ClassLoader createClassLoader() throws MalformedURLException, URISyntaxException {
+  private static ClassLoader createClassLoader() throws MalformedURLException {
     Collection<URL> classpath = Sets.newLinkedHashSet();
     addIdeaLibraries(classpath);
     addAdditionalClassPath(classpath);
@@ -165,18 +163,7 @@ public class IdeTestApplication implements Disposable {
       builder.allowBootstrapResources();
     }
 
-    UrlClassLoader newClassLoader = builder.get();
-
-    // prepare plugins
-    try {
-      StartupActionScriptManager.executeActionScript();
-    }
-    catch (IOException e) {
-      Main.showMessage("Plugin Installation Error", e);
-    }
-
-    Thread.currentThread().setContextClassLoader(newClassLoader);
-    return newClassLoader;
+    return builder.get();
   }
 
   private static void addIdeaLibraries(@NotNull Collection<URL> classpath) throws MalformedURLException {
@@ -229,7 +216,6 @@ public class IdeTestApplication implements Disposable {
   private static void pluginManagerStart(@NotNull String[] args) {
     // Duplicates what PluginManager#start does.
     Main.setFlags(args);
-    initDefaultLAF();
   }
 
   @NotNull
