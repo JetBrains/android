@@ -27,8 +27,6 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import javax.swing.*
 
 

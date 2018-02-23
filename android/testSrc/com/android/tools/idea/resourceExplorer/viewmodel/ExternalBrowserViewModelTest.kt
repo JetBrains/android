@@ -21,9 +21,9 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.resourceExplorer.*
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
-import com.android.tools.idea.resourceExplorer.model.getAssetSets
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationStatus
+import com.android.tools.idea.resourceExplorer.model.getAssetSets
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.collect.testing.Helpers
 import com.intellij.openapi.util.Disposer

@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.android.ide.common.rendering.api.ResourceValue
+import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.ModuleResourcesBrowserViewModel
 import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
+import com.intellij.ui.CollectionListModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
@@ -37,17 +40,19 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
   BorderFactory.createEmptyBorder(0, 0, 8, 0),
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
+
 /**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
  * in the project.
  * It uses an [ModuleResourcesBrowserViewModel] to populates the views
  */
 class ModuleResourceBrowser(
-  resourcesBrowserViewModel: ModuleResourcesBrowserViewModel
+  private val resourcesBrowserViewModel: ModuleResourcesBrowserViewModel
 ) : JPanel(BorderLayout()) {
 
   private val listeners = mutableListOf<SelectionListener>()
   private val designAssetsList: DesignAssetsList = DesignAssetsList(resourcesBrowserViewModel)
+
   private val sectionListModel: SectionListModel = SectionListModel()
   private val sectionList: SectionList = SectionList(sectionListModel)
 
@@ -67,6 +72,14 @@ class ModuleResourceBrowser(
     add(sections, BorderLayout.WEST)
   }
 
+  private fun createColorList(resourcesBrowserViewModel: ModuleResourcesBrowserViewModel): JList<ResourceValue> {
+    return JList<ResourceValue>().apply {
+      model = CollectionListModel(resourcesBrowserViewModel.getResourceValues(ResourceType.COLOR))
+      cellRenderer = ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project, resourcesBrowserViewModel.resourceResolver)
+      setupListUI()
+    }
+  }
+
   private fun setupDesignAssetList() {
     designAssetsList.fixedCellWidth = 200
     designAssetsList.fixedCellHeight = 200
@@ -79,6 +92,7 @@ class ModuleResourceBrowser(
   private fun populateSectionListModel(sectionListModel: SectionListModel) {
     // TODO : remove this and populate from the viewModel
     sectionListModel.addSection(AssetSection("Drawable", designAssetsList))
+    sectionListModel.addSection(AssetSection("Colors", createColorList(resourcesBrowserViewModel)))
   }
 
   private fun createSectionListCellRenderer(): ListCellRenderer<Section<*>> {
@@ -92,7 +106,12 @@ class ModuleResourceBrowser(
           BorderFactory.createEmptyBorder(SECTION_CELL_MARGIN, SECTION_CELL_MARGIN_LEFT, SECTION_CELL_MARGIN, SECTION_CELL_MARGIN)
         )
       } else {
-        label.border = BorderFactory.createEmptyBorder(SECTION_CELL_MARGIN, COLORED_BORDER_WIDTH + SECTION_CELL_MARGIN_LEFT, SECTION_CELL_MARGIN, SECTION_CELL_MARGIN)
+        label.border = BorderFactory.createEmptyBorder(
+          SECTION_CELL_MARGIN,
+          COLORED_BORDER_WIDTH + SECTION_CELL_MARGIN_LEFT,
+          SECTION_CELL_MARGIN,
+          SECTION_CELL_MARGIN
+        )
       }
       label
     }
@@ -110,11 +129,17 @@ class ModuleResourceBrowser(
     fun onDesignAssetSetSelected(designAssetSet: DesignAssetSet?)
   }
 
-  class AssetSection(
-    override var name: String,
-    override var list: JList<DesignAssetSet>
-  ) : Section<DesignAssetSet> {
+  private fun <T : Any> JList<T>.setupListUI() {
+    fixedCellWidth = 300
+    fixedCellHeight = 200
+    layoutOrientation = JList.HORIZONTAL_WRAP
+    visibleRowCount = 0
+  }
 
+  class AssetSection<T>(
+    override var name: String,
+    override var list: JList<T>
+  ) : Section<T> {
 
     override var header: JComponent = createHeaderComponent()
 
