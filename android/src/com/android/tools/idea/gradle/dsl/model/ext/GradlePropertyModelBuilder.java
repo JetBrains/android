@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
@@ -111,15 +112,19 @@ public class GradlePropertyModelBuilder {
     GradleDslElement currentElement = myHolder.getPropertyElement(myName);
     GradlePropertyModelImpl model = currentElement == null
                                     ? new GradlePropertyModelImpl(myHolder, myType, myName) : new GradlePropertyModelImpl(currentElement);
-    if (myIsMethod) {
-      model.markAsMethodCall();
-    }
+    return setUpModel(model);
+  }
 
-    for (PropertyTransform t : myTransforms) {
-      model.addTransform(t);
-    }
-
-    return model;
+  /**
+   *  Builds a {@link PasswordPropertyModel} with the properties defined by this builder.
+   *
+   * @return the built model
+   */
+  public PasswordPropertyModel buildPassword() {
+    GradleDslElement currentElement = myHolder.getPropertyElement(myName);
+    PasswordPropertyModelImpl model = currentElement == null
+                                    ? new PasswordPropertyModelImpl(myHolder, myType, myName) : new PasswordPropertyModelImpl(currentElement);
+    return setUpModel(model);
   }
 
   /**
@@ -138,5 +143,17 @@ public class GradlePropertyModelBuilder {
    */
   public LanguageLevelPropertyModel buildLanguage() {
     return new LanguageLevelPropertyModelImpl(build());
+  }
+
+  @NotNull
+  private <T extends GradlePropertyModelImpl> T setUpModel(@NotNull T model) {
+    if (myIsMethod) {
+      model.markAsMethodCall();
+    }
+
+    for (PropertyTransform t : myTransforms) {
+      model.addTransform(t);
+    }
+    return model;
   }
 }

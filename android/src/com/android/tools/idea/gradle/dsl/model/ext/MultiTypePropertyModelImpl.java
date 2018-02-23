@@ -79,7 +79,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     setUpTransforms();
   }
 
-  protected void setUpTransforms() {
+  private void setUpTransforms() {
     for (Map.Entry<T, PropertyTransform> e : myTransforms.entrySet()) {
       if (e.getValue().condition.test(myElement)) {
         myType = e.getKey();
