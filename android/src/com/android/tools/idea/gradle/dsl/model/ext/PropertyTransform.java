@@ -77,7 +77,9 @@ public class PropertyTransform {
      *                   {@link GradleDslElement} returned will be attached to the {@code holder}.
      * @param value the new value that the property should be set to.
      * @param name the name of the property, this may be useful in replacing existing elements or creating new ones.
-     * @return
+     * @return the new element to bind. If this is not the same object as oldElement then GradlePropertyModel will handle
+     *         ensuring that the property element is correctly replaced, otherwise it is assumed that this method has already
+     *         created the correct tree structure.
      */
     @NotNull
     GradleDslElement bind(@NotNull GradleDslElement holder,
