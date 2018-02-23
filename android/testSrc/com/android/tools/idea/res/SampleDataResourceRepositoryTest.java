@@ -275,6 +275,6 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // Check that none of the items are empty or fail
     assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).values().stream()
-      .anyMatch(item -> item.getValueText().isEmpty()));
+      .anyMatch(item -> item.getResourceValue().getValue().isEmpty()));
   }
 }

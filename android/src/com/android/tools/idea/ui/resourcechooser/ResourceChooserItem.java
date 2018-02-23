@@ -175,7 +175,7 @@ public abstract class ResourceChooserItem {
     @Nullable
     public String getFileForQualifiers(String qualifiers) {
       for (ResourceItem item : myResourceItems) {
-        if (qualifiers.equals(item.getQualifiers())) {
+        if (qualifiers.equals(item.getConfiguration().getQualifierString())) {
           File file = item.getFile();
           if (file != null) {
             return file.getPath();
@@ -197,7 +197,7 @@ public abstract class ResourceChooserItem {
     public List<String> getQualifiers() {
       Set<String> set = Sets.newHashSet();
       for (ResourceItem item : myResourceItems) {
-        String q = item.getQualifiers();
+        String q = item.getConfiguration().getQualifierString();
         if (!q.isEmpty()) {
           set.add(q);
         }

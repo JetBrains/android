@@ -17,6 +17,7 @@ package com.android.tools.idea.resourceExplorer.model
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.configuration.ResourceQualifier
@@ -24,7 +25,6 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-
 
 val externalResourceNamespace = ResourceNamespace.fromPackageName("external.design.resource")
 
@@ -38,12 +38,12 @@ data class DesignAsset(
   val qualifiers: List<ResourceQualifier>,
   val type: ResourceType,
   val name: String = file.nameWithoutExtension,
-  val resourceItem: ResourceItem = ResourceItem(name, externalResourceNamespace, type, null, "external")
+  val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, "external")
 
 ) {
   constructor(resourceItem: ResourceItem) : this(
     file = VfsUtil.findFileByIoFile(resourceItem.file!!, true)!!, // TODO handle assertion
-    qualifiers = FolderConfiguration.getConfigForFolder(resourceItem.qualifiers)?.qualifiers?.toList() ?: emptyList(),
+    qualifiers = resourceItem.configuration?.qualifiers?.toList() ?: emptyList(),
     type = resourceItem.type,
     name = resourceItem.name,
     resourceItem = resourceItem

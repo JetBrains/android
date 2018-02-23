@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.MergerResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.ResourceRepositoryFixture;
 import com.android.resources.ResourceType;
@@ -66,7 +66,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testResourceClassGenerator() throws Exception {
-    final ResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
+    final MergerResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
       "layout-land/layout1.xml", "<!--contents doesn't matter-->",
@@ -204,7 +204,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testStyleableMerge() throws Exception {
-    final ResourceRepository repositoryA = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
+    final MergerResourceRepository repositoryA = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
@@ -304,7 +304,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       attributes.append("    <attr name=\"overflow_").append(i).append("\" />\n");
     }
 
-    final ResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
+    final MergerResourceRepository repository = resourceFixture.createTestResources(ResourceNamespace.TODO, new Object[] {
       "values/styles.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
                            "    <declare-styleable name=\"AppStyleable\">\n" +
@@ -331,9 +331,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
 
   private static class LocalResourceRepositoryDelegate extends LocalResourceRepository {
 
-    private final ResourceRepository myDelegate;
+    private final MergerResourceRepository myDelegate;
 
-    protected LocalResourceRepositoryDelegate(@NotNull String displayName, ResourceRepository delegate) {
+    protected LocalResourceRepositoryDelegate(@NotNull String displayName, MergerResourceRepository delegate) {
       super(displayName);
       myDelegate = delegate;
     }

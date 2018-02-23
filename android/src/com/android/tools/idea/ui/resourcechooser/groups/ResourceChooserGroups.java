@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.AbstractResourceRepository;
-import com.android.ide.common.resources.DataFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
@@ -85,10 +84,8 @@ public class ResourceChooserGroups {
     for (Map.Entry<String, List<ResourceItem>> entry : itemsByName.entrySet()) {
       List<ResourceItem> items = entry.getValue();
       String resourceName = entry.getKey();
-      if (!includeFileResources) {
-        if (items.get(0).getSourceType() != DataFile.FileType.XML_VALUES) {
-          continue;
-        }
+      if (!includeFileResources && items.get(0).isFileBased()) {
+        continue;
       }
       chooserItems.add(ResourceChooserItem.createFrameworkItem(asType, resourceName, items));
     }
@@ -109,10 +106,8 @@ public class ResourceChooserGroups {
       if (items == null || items.isEmpty()) {
         continue;
       }
-      if (!includeFileResources) {
-        if (items.get(0).getSourceType() != DataFile.FileType.XML_VALUES) {
-          continue;
-        }
+      if (!includeFileResources && items.get(0).isFileBased()) {
+        continue;
       }
 
       chooserItems.add(ResourceChooserItem.createProjectItem(type, resourceName, items));

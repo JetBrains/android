@@ -28,6 +28,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.Disposable;
@@ -36,6 +38,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -46,15 +49,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.*;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 
 /**
@@ -249,7 +247,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
     for (ResourceItem item : items.values()) {
       String name = item.getName();
-      String qualifiers = item.getQualifiers();
+      String qualifiers = item.getConfiguration().getQualifierString();
       if (!result.containsKey(name) || type == ResourceType.DECLARE_STYLEABLE || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
         // We only add a duplicate item if there isn't an item with the same qualifiers (and it's
         // not an id; id's are allowed to be defined in multiple places even with the same
@@ -295,34 +293,78 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   @Nullable
   public VirtualFile getMatchingFile(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
-    List<VirtualFile> matches = getMatchingFiles(file, type, config);
-    return matches.isEmpty() ? null : matches.get(0);
+    return Iterables.getFirst(getMatchingFiles(file, type, config), null);
   }
 
   @NonNull
   public List<VirtualFile> getMatchingFiles(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
-    List<ResourceFile> matches = super.getMatchingFiles(ResourceHelper.getResourceName(file), type, config);
-    List<VirtualFile> matchesFiles = new ArrayList<>(matches.size());
-    for (ResourceFile match : matches) {
-      if (match != null) {
-        if (match instanceof PsiResourceFile) {
-          matchesFiles.add(((PsiResourceFile)match).getPsiFile().getVirtualFile());
+    return getMatchingFiles(ResourceHelper.getResourceName(file), type, config, new HashSet<>(), 0);
+  }
+
+
+  @NonNull
+  private List<VirtualFile> getMatchingFiles(@NonNull String name,
+                                             @NonNull ResourceType type,
+                                             @NonNull FolderConfiguration config,
+                                             @NonNull Set<String> seenNames,
+                                             int depth) {
+    assert !seenNames.contains(name);
+    if (depth >= MAX_RESOURCE_INDIRECTION) {
+      return Collections.emptyList();
+    }
+    List<VirtualFile> output;
+    synchronized (ITEM_MAP_LOCK) {
+      ListMultimap<String, ResourceItem> typeItems =
+        getMap(ResourceNamespace.TODO, type, false);
+      if (typeItems == null) {
+        return Collections.emptyList();
+      }
+      seenNames.add(name);
+      output = new ArrayList<>();
+      List<ResourceItem> matchingItems = typeItems.get(name);
+      List<ResourceItem> matches = config.findMatchingConfigurables(matchingItems);
+      for (ResourceItem match : matches) {
+        // if match is an alias, check if the name is in seen names.
+        ResourceValue resourceValue = match.getResourceValue();
+        if (resourceValue != null) {
+          String value = resourceValue.getValue();
+          if (value != null && value.startsWith(PREFIX_RESOURCE_REF)) {
+            ResourceUrl url = ResourceUrl.parse(value);
+            // TODO: namespaces
+            if (url != null && url.type == type && !url.isFramework()) {
+              if (!seenNames.contains(url.name)) {
+                // This resource alias needs to be resolved again.
+                output.addAll(getMatchingFiles(url.name, type, config, seenNames, depth + 1));
+              }
+              continue;
+            }
+          }
         }
-        else {
-          matchesFiles.add(LocalFileSystem.getInstance().findFileByIoFile(match.getFile()));
+        if (match instanceof PsiResourceItem) {
+          VirtualFile virtualFile = ((PsiResourceItem)match).getPsiFile().getVirtualFile();
+          if (virtualFile != null) {
+            output.add(virtualFile);
+          }
+        } else {
+          File ioFile = match.getFile();
+          if (ioFile != null) {
+            output.add(VfsUtil.findFileByIoFile(ioFile, false));
+          }
         }
       }
     }
-    return matchesFiles;
+
+    return output;
   }
 
   /** @deprecated Use {@link #getMatchingFile(VirtualFile, ResourceType, FolderConfiguration)} in the plugin code */
   @Nullable
-  @Override
   @Deprecated
   public ResourceFile getMatchingFile(@NonNull String name, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
     assert name.indexOf('.') == -1 : name;
-    return super.getMatchingFile(name, type, config);
+    // TODO
+    //return super.getMatchingFile(name, type, config);
+    return null;
   }
 
   @Nullable
@@ -352,16 +394,13 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       return psiResourceItem.getPsiFile();
     }
 
-    ResourceFile source = item.getSource();
-    if (source == null) { // Most likely a merged resource or a dynamically defined value.
-      return null;
-    }
-
-    File file = source.getFile();
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
-    if (virtualFile != null) {
-      PsiManager psiManager = PsiManager.getInstance(project);
-      return psiManager.findFile(virtualFile);
+    File file = item.getFile();
+    if (file != null) {
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+      if (virtualFile != null) {
+        PsiManager psiManager = PsiManager.getInstance(project);
+        return psiManager.findFile(virtualFile);
+      }
     }
 
     return null;
@@ -375,13 +414,12 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       return psiFile == null ? null : psiFile.getVirtualFile();
     }
 
-    ResourceFile source = item.getSource();
+    File source = item.getFile();
     if (source == null) { // Most likely a merged resource or a dynamically defined value.
       return null;
     }
 
-    File file = source.getFile();
-    return LocalFileSystem.getInstance().findFileByIoFile(file);
+    return LocalFileSystem.getInstance().findFileByIoFile(source);
   }
 
   /**

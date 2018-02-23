@@ -169,8 +169,8 @@ public class NlXmlPropertyBuilder {
     if (!StringUtil.isEmpty(resource.getLibraryName())) {
       return formatLibraryName(resource.getLibraryName()) + " " + type;
     }
-    if (item != null && item.getSource() != null) {
-      return generateFileHeader(item.getSource().getFile().getPath());
+    if (item != null && item.getFile() != null) {
+      return generateFileHeader(item.getFile().getPath());
     }
     return type;
   }
