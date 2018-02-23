@@ -59,9 +59,8 @@ public class ApkViewerTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void launchApkViewer() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("SimpleLocalApplication");
-    guiTest.waitForBackgroundTasks();
-    List<String> apkEntries = ideFrame.invokeMenuPath("Build", "Build APK(s)")
+    List<String> apkEntries = guiTest.importSimpleLocalApplication()
+      .invokeMenuPath("Build", "Build APK(s)")
       .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180))
       .openFromMenu(SelectPathFixture::find, "Build", "Analyze APK...")
       .clickOK()
