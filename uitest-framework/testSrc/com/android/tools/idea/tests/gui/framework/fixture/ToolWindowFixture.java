@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.intellij.idea.LoggerFactory;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -38,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 public abstract class ToolWindowFixture {
 
   private static final int SECONDS_TO_WAIT = 120;
-  private static final Logger LOG = Logger.getInstance(LoggerFactory.class);
 
   @NotNull protected final String myToolWindowId;
   @NotNull protected final Project myProject;
@@ -118,14 +115,7 @@ public abstract class ToolWindowFixture {
     return GuiQuery.getNonNull(() -> {
       Content content = myToolWindow.getContentManager().getSelectedContent();
       Component owner = IdeFocusManager.getInstance(myProject).getFocusOwner();
-
-      boolean isActive = myToolWindow.isActive();
-      boolean contentIsNotNull = content != null;
-      boolean isDescending = UIUtil.isDescendingFrom(owner, content.getPreferredFocusableComponent());
-      LOG.debug("isActive = " + Boolean.toString(isActive) +
-                ", contentIsNotNull = " + Boolean.toString(contentIsNotNull) +
-                ", isDescending = " + Boolean.toString(isDescending));
-      return isActive && contentIsNotNull && isDescending;
+      return myToolWindow.isActive() && content != null && UIUtil.isDescendingFrom(owner, content.getPreferredFocusableComponent());
     });
   }
 
