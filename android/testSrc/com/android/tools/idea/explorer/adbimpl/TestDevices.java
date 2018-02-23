@@ -638,6 +638,158 @@ public class TestDevices {
     addCommand(shellCommands, "rm /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
   }
 
+  static void addLogcatSupportsEpochFormatModifierCommands(@NotNull TestShellCommands commands) {
+    addCommand(
+      commands,
+      "logcat --help",
+      "Usage: logcat [options] [filterspecs]\n" +
+      "options include:\n" +
+      "  -s              Set default filter to silent. Equivalent to filterspec '*:S'\n" +
+      "  -f <file>, --file=<file>               Log to file. Default is stdout\n" +
+      "  -r <kbytes>, --rotate-kbytes=<kbytes>\n" +
+      "                  Rotate log every kbytes. Requires -f option\n" +
+      "  -n <count>, --rotate-count=<count>\n" +
+      "                  Sets max number of rotated logs to <count>, default 4\n" +
+      "  --id=<id>       If the signature id for logging to file changes, then clear\n" +
+      "                  the fileset and continue\n" +
+      "  -v <format>, --format=<format>\n" +
+      "                  Sets log print format verb and adverbs, where <format> is:\n" +
+      "                    brief help long process raw tag thread threadtime time\n" +
+      "                  and individually flagged modifying adverbs can be added:\n" +
+      "                    color descriptive epoch monotonic printable uid\n" +
+      "                    usec UTC year zone\n" +
+      "                  Multiple -v parameters or comma separated list of format and\n" +
+      "                  format modifiers are allowed.\n" +
+      "  -D, --dividers  Print dividers between each log buffer\n" +
+      "  -c, --clear     Clear (flush) the entire log and exit\n" +
+      "                  if Log to File specified, clear fileset instead\n" +
+      "  -d              Dump the log and then exit (don't block)\n" +
+      "  -e <expr>, --regex=<expr>\n" +
+      "                  Only print lines where the log message matches <expr>\n" +
+      "                  where <expr> is a regular expression\n" +
+      "  -m <count>, --max-count=<count>\n" +
+      "                  Quit after printing <count> lines. This is meant to be\n" +
+      "                  paired with --regex, but will work on its own.\n" +
+      "  --print         Paired with --regex and --max-count to let content bypass\n" +
+      "                  regex filter but still stop at number of matches.\n" +
+      "  -t <count>      Print only the most recent <count> lines (implies -d)\n" +
+      "  -t '<time>'     Print most recent lines since specified time (implies -d)\n" +
+      "  -T <count>      Print only the most recent <count> lines (does not imply -d)\n" +
+      "  -T '<time>'     Print most recent lines since specified time (not imply -d)\n" +
+      "                  count is pure numerical, time is 'MM-DD hh:mm:ss.mmm...'\n" +
+      "                  'YYYY-MM-DD hh:mm:ss.mmm...' or 'sssss.mmm...' format\n" +
+      "  -g, --buffer-size                      Get the size of the ring buffer.\n" +
+      "  -G <size>, --buffer-size=<size>\n" +
+      "                  Set size of log ring buffer, may suffix with K or M.\n" +
+      "  -L, --last      Dump logs from prior to last reboot\n" +
+      "  -b <buffer>, --buffer=<buffer>         Request alternate ring buffer, 'main',\n" +
+      "                  'system', 'radio', 'events', 'crash', 'default' or 'all'.\n" +
+      "                  Multiple -b parameters or comma separated list of buffers are\n" +
+      "                  allowed. Buffers interleaved. Default -b main,system,crash.\n" +
+      "  -B, --binary    Output the log in binary.\n" +
+      "  -S, --statistics                       Output statistics.\n" +
+      "  -p, --prune     Print prune white and ~black list. Service is specified as\n" +
+      "                  UID, UID/PID or /PID. Weighed for quicker pruning if prefix\n" +
+      "                  with ~, otherwise weighed for longevity if unadorned. All\n" +
+      "                  other pruning activity is oldest first. Special case ~!\n" +
+      "                  represents an automatic quicker pruning for the noisiest\n" +
+      "                  UID as determined by the current statistics.\n" +
+      "  -P '<list> ...', --prune='<list> ...'\n" +
+      "                  Set prune white and ~black list, using same format as\n" +
+      "                  listed above. Must be quoted.\n" +
+      "  --pid=<pid>     Only prints logs from the given pid.\n" +
+      "  --wrap          Sleep for 2 hours or when buffer about to wrap whichever\n" +
+      "                  comes first. Improves efficiency of polling by providing\n" +
+      "                  an about-to-wrap wakeup.\n" +
+      "\n" +
+      "filterspecs are a series of \n" +
+      "  <tag>[:priority]\n" +
+      "\n" +
+      "where <tag> is a log component tag (or * for all) and priority is:\n" +
+      "  V    Verbose (default for <tag>)\n" +
+      "  D    Debug (default for '*')\n" +
+      "  I    Info\n" +
+      "  W    Warn\n" +
+      "  E    Error\n" +
+      "  F    Fatal\n" +
+      "  S    Silent (suppress all output)\n" +
+      "\n" +
+      "'*' by itself means '*:D' and <tag> by itself means <tag>:V.\n" +
+      "If no '*' filterspec or -s on command line, all filter defaults to '*:V'.\n" +
+      "eg: '*:S <tag>' prints only <tag>, '<tag>:S' suppresses all <tag> log messages.\n" +
+      "\n" +
+      "If not specified on the command line, filterspec is set from ANDROID_LOG_TAGS.\n" +
+      "\n" +
+      "If not specified with -v on command line, format is set from ANDROID_PRINTF_LOG\n" +
+      "or defaults to \"threadtime\"\n" +
+      "\n");
+  }
+
+  static void addLogcatDoesntSupportEpochFormatModifierCommands(@NotNull TestShellCommands commands) {
+    addCommand(
+      commands,
+      "logcat --help",
+      "Usage: logcat [options] [filterspecs]\n" +
+      "options include:\n" +
+      "  -s              Set default filter to silent.\n" +
+      "                  Like specifying filterspec '*:S'\n" +
+      "  -f <filename>   Log to file. Default is stdout\n" +
+      "  -r <kbytes>     Rotate log every kbytes. Requires -f\n" +
+      "  -n <count>      Sets max number of rotated logs to <count>, default 4\n" +
+      "  -v <format>     Sets the log print format, where <format> is:\n" +
+      "\n" +
+      "                      brief color long printable process raw tag thread\n" +
+      "                      threadtime time usec\n" +
+      "\n" +
+      "  -D              print dividers between each log buffer\n" +
+      "  -c              clear (flush) the entire log and exit\n" +
+      "  -d              dump the log and then exit (don't block)\n" +
+      "  -t <count>      print only the most recent <count> lines (implies -d)\n" +
+      "  -t '<time>'     print most recent lines since specified time (implies -d)\n" +
+      "  -T <count>      print only the most recent <count> lines (does not imply -d)\n" +
+      "  -T '<time>'     print most recent lines since specified time (not imply -d)\n" +
+      "                  count is pure numerical, time is 'MM-DD hh:mm:ss.mmm'\n" +
+      "  -g              get the size of the log's ring buffer and exit\n" +
+      "  -L              dump logs from prior to last reboot\n" +
+      "  -b <buffer>     Request alternate ring buffer, 'main', 'system', 'radio',\n" +
+      "                  'events', 'crash' or 'all'. Multiple -b parameters are\n" +
+      "                  allowed and results are interleaved. The default is\n" +
+      "                  -b main -b system -b crash.\n" +
+      "  -B              output the log in binary.\n" +
+      "  -S              output statistics.\n" +
+      "  -G <size>       set size of log ring buffer, may suffix with K or M.\n" +
+      "  -p              print prune white and ~black list. Service is specified as\n" +
+      "                  UID, UID/PID or /PID. Weighed for quicker pruning if prefix\n" +
+      "                  with ~, otherwise weighed for longevity if unadorned. All\n" +
+      "                  other pruning activity is oldest first. Special case ~!\n" +
+      "                  represents an automatic quicker pruning for the noisiest\n" +
+      "                  UID as determined by the current statistics.\n" +
+      "  -P '<list> ...' set prune white and ~black list, using same format as\n" +
+      "                  printed above. Must be quoted.\n" +
+      "\n" +
+      "filterspecs are a series of \n" +
+      "  <tag>[:priority]\n" +
+      "\n" +
+      "where <tag> is a log component tag (or * for all) and priority is:\n" +
+      "  V    Verbose (default for <tag>)\n" +
+      "  D    Debug (default for '*')\n" +
+      "  I    Info\n" +
+      "  W    Warn\n" +
+      "  E    Error\n" +
+      "  F    Fatal\n" +
+      "  S    Silent (suppress all output)\n" +
+      "\n" +
+      "'*' by itself means '*:D' and <tag> by itself means <tag>:V.\n" +
+      "If no '*' filterspec or -s on command line, all filter defaults to '*:V'.\n" +
+      "eg: '*:S <tag>' prints only <tag>, '<tag>:S' suppresses all <tag> log messages.\n" +
+      "\n" +
+      "If not specified on the command line, filterspec is set from ANDROID_LOG_TAGS.\n" +
+      "\n" +
+      "If not specified with -v on command line, format is set from ANDROID_PRINTF_LOG\n" +
+      "or defaults to \"threadtime\"\n" +
+      "\n");
+  }
+
   static void addWhenLsEscapesCommands(@NotNull TestShellCommands commands) {
     addCommand(
       commands,
