@@ -46,6 +46,7 @@ public class AdbDeviceCapabilities {
   @Nullable private Boolean mySupportsSuRootCommand;
   @Nullable private Boolean myIsRoot;
   @Nullable private Boolean mySupportsCpCommand;
+  @Nullable private Boolean myLogcatThatSupportsEpochFormatModifier;
   @Nullable private Boolean myEscapingLs;
   @Nullable private Boolean mySupportsMkTempCommand;
 
@@ -99,6 +100,16 @@ public class AdbDeviceCapabilities {
       mySupportsCpCommand = supportsCpCommandWorker();
     }
     return mySupportsCpCommand;
+  }
+
+  synchronized boolean hasLogcatThatSupportsEpochFormatModifier()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+
+    if (myLogcatThatSupportsEpochFormatModifier == null) {
+      myLogcatThatSupportsEpochFormatModifier = hasLogcatThatSupportsEpochFormatModifierWorker();
+    }
+
+    return myLogcatThatSupportsEpochFormatModifier;
   }
 
   synchronized boolean hasEscapingLs()
@@ -267,6 +278,23 @@ public class AdbDeviceCapabilities {
         return false;
       }
     }
+  }
+
+  private boolean hasLogcatThatSupportsEpochFormatModifierWorker()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+
+    String command = new AdbShellCommandBuilder()
+      .withText("logcat --help")
+      .build();
+
+    AdbShellCommandResult result = AdbShellCommandsUtil.executeCommand(myDevice, command);
+
+    if (result.isError()) {
+      LOGGER.info("Device \"" + getDeviceTraceInfo(myDevice) + "\" does not seem to support the logcat --help command");
+      return false;
+    }
+
+    return result.getOutput().stream().anyMatch(line -> line.contains("epoch"));
   }
 
   private boolean hasEscapingLsWorker()
