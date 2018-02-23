@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.FlavorsTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
-import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,8 +53,7 @@ public class FlavorsExecutionTest {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importProject("SimpleLocalApplication");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
+    guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
