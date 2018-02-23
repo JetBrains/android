@@ -25,28 +25,26 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.ActionEvent
 
 class SessionsViewTest {
 
-  @get:Rule
-  var myGrpcServer = FakeGrpcServer(
-      "StudioProfilerTestChannel",
-      FakeProfilerService(false)
-  )
+  private val myProfilerService = FakeProfilerService(false)
 
+  @get:Rule
+  var myGrpcServer = FakeGrpcServer("StudioProfilerTestChannel", myProfilerService)
+
+  private lateinit var myTimer: FakeTimer
   private lateinit var myProfilers: StudioProfilers
   private lateinit var mySessionsManager: SessionsManager
   private lateinit var mySessionsView: SessionsView
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(
-        myGrpcServer.client,
-        FakeIdeProfilerServices(),
-        FakeTimer()
-    )
+    myTimer = FakeTimer()
+    myProfilers = StudioProfilers(myGrpcServer.client, FakeIdeProfilerServices(), myTimer)
     mySessionsManager = myProfilers.sessionsManager
-    mySessionsView = SessionsView(mySessionsManager)
+    mySessionsView = SessionsView(myProfilers)
   }
 
   @Test
@@ -75,5 +73,133 @@ class SessionsViewTest {
     assertThat(sessionArtifacts.getElementAt(0).session).isEqualTo(session2)
     assertThat(sessionArtifacts.getElementAt(1).session).isEqualTo(session1)
     assertThat(mySessionsView.sessionsList.selectedIndex).isEqualTo(0)
+  }
+
+  @Test
+  fun testProcessDropdownUpToDate() {
+    val device1 = Common.Device.newBuilder()
+      .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
+    val device2 = Common.Device.newBuilder()
+      .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder()
+      .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder()
+      .setPid(20).setDeviceId(1).setName("Process2").setState(Common.Process.State.ALIVE).build()
+    val process3 = Common.Process.newBuilder()
+      .setPid(10).setDeviceId(2).setName("Process3").setState(Common.Process.State.ALIVE).build()
+
+    var selectionAction = mySessionsView.processSelectionAction
+    assertThat(selectionAction.childrenActionCount).isEqualTo(0)
+
+    myProfilerService.addDevice(device1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(1)
+    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isSelected).isTrue()
+    assertThat(deviceAction1.isEnabled).isFalse()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(0)
+
+    myProfilerService.addProcess(device1, process1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(1)
+    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isSelected).isTrue()
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
+    var processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1" }
+    assertThat(processAction1.isSelected).isTrue()
+    assertThat(processAction1.childrenActionCount).isEqualTo(0)
+
+    myProfilerService.addProcess(device1, process2)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(1)
+    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isSelected).isTrue()
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(2)
+    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1" }
+    assertThat(processAction1.isSelected).isTrue()
+    var processAction2 = deviceAction1.childrenActions.first { c -> c.text == "Process2" }
+    assertThat(processAction2.isSelected).isFalse()
+
+    myProfilerService.addDevice(device2)
+    myProfilerService.addProcess(device2, process3)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
+    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isSelected).isTrue()
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(2)
+    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1" }
+    assertThat(processAction1.isSelected).isTrue()
+    processAction2 = deviceAction1.childrenActions.first { c -> c.text == "Process2" }
+    assertThat(processAction2.isSelected).isFalse()
+    var deviceAction2 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
+    assertThat(deviceAction2.isSelected).isFalse()
+    assertThat(deviceAction2.isEnabled).isTrue()
+    assertThat(deviceAction2.childrenActionCount).isEqualTo(1)
+    var processAction3 = deviceAction2.childrenActions.first { c -> c.text == "Process3" }
+    assertThat(processAction3.isSelected).isFalse()
+  }
+
+  @Test
+  fun testDropdownActionsTriggerProcessChange() {
+    val device1 = Common.Device.newBuilder()
+      .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
+    val device2 = Common.Device.newBuilder()
+      .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder()
+      .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.ALIVE).build()
+    val process2 = Common.Process.newBuilder()
+      .setPid(20).setDeviceId(1).setName("Process2").setState(Common.Process.State.ALIVE).build()
+    val process3 = Common.Process.newBuilder()
+      .setPid(10).setDeviceId(2).setName("Process3").setState(Common.Process.State.ALIVE).build()
+
+    myProfilerService.addDevice(device1)
+    myProfilerService.addProcess(device1, process1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(myProfilers.device).isEqualTo(device1)
+    assertThat(myProfilers.process).isEqualTo(process1)
+
+    myProfilerService.addProcess(device1, process2)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    var selectionAction = mySessionsView.processSelectionAction
+    var processAction2 = selectionAction.childrenActions
+      .first { c -> c.text == "Manufacturer1 Model1" }.childrenActions
+      .first { c -> c.text == "Process2" }
+    processAction2.actionPerformed(ActionEvent(processAction2, 0, ""))
+    assertThat(myProfilers.device).isEqualTo(device1)
+    assertThat(myProfilers.process).isEqualTo(process2)
+
+    myProfilerService.addDevice(device2)
+    myProfilerService.addProcess(device2, process3)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    var processAction3 = selectionAction.childrenActions
+      .first { c -> c.text == "Manufacturer2 Model2" }.childrenActions
+      .first { c -> c.text == "Process3" }
+    processAction3.actionPerformed(ActionEvent(processAction3, 0, ""))
+    assertThat(myProfilers.device).isEqualTo(device2)
+    assertThat(myProfilers.process).isEqualTo(process3)
+  }
+
+  @Test
+  fun testStopProfiling() {
+    val device1 = Common.Device.newBuilder()
+      .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder()
+      .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.ALIVE).build()
+
+    val stopProfilingButton = mySessionsView.stopProfilingButton
+    assertThat(stopProfilingButton.isEnabled).isFalse()
+
+    myProfilerService.addDevice(device1)
+    myProfilerService.addProcess(device1, process1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(stopProfilingButton.isEnabled).isTrue()
+    assertThat(mySessionsManager.profilingSession).isNotEqualTo(Common.Session.getDefaultInstance())
+
+    stopProfilingButton.doClick()
+    assertThat(stopProfilingButton.isEnabled).isFalse()
+    assertThat(mySessionsManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
   }
 }
