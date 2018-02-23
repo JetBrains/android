@@ -19,6 +19,7 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.startDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -39,15 +40,25 @@ abstract class AddToGraphAction(
       val graph = newParent()
       val currentNavigation = mySurface.currentNavigation
       val ids = components.map { it.id }
+      // Pick an arbitrary destination to be the start destination,
+      // but give preference to destinations with incoming actions
+      // TODO: invoke dialog to have user select the best start destination?
+      var candidate = components[0].id
 
       // All actions that point to any component in this set should now point to the
       // new parent graph, unless they are children of an element in the set
       currentNavigation.children.filter { !ids.contains(it.id) && it != graph }
         .flatMap { it.flatten().toList() }
         .filter { it.isAction && ids.contains(it.actionDestinationId) }
-        .forEach { it.actionDestinationId = graph.id }
+        .forEach {
+          candidate = it.actionDestinationId
+          it.actionDestinationId = graph.id
+        }
 
       graph.model.addComponents(components, graph, null, InsertType.MOVE_WITHIN, mySurface)
+      if (graph.startDestination == null) {
+        graph.startDestination = candidate
+      }
       mySurface.selectionModel.setSelection(listOf(graph))
     }
   }

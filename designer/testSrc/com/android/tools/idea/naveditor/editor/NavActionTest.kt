@@ -172,6 +172,7 @@ class NavActionTest : NavTestCase() {
 
     val newNavigation = model.find("navigation")
     assertEquals(newNavigation?.parent, root)
+    assertEquals(newNavigation?.startDestination, "fragment2")
 
     assertEquals(fragment2.parent, newNavigation)
     assertEquals(fragment3.parent, newNavigation)
@@ -209,7 +210,7 @@ class NavActionTest : NavTestCase() {
           action("action2", "fragment3")
         }
         fragment("fragment3")
-        navigation("navigation1") {
+        navigation("navigation1", startDestination = "fragment4") {
           fragment("fragment4") {
             action("action3", "fragment2")
           }
@@ -236,6 +237,8 @@ class NavActionTest : NavTestCase() {
             "            NlComponent{tag=<action>, instance=7}\n" +
             "        NlComponent{tag=<fragment>, instance=8}", NlTreeDumper().toTree(model.components)
     )
+
+    assertEquals(navigation1.startDestination, "fragment4")
 
     val root = surface.currentNavigation
     val fragment1 = model.find("fragment1")!!

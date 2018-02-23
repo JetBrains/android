@@ -19,14 +19,14 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.model.schema
+import com.android.tools.idea.naveditor.model.setAsStartDestination
+import com.android.tools.idea.naveditor.model.startDestination
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
-import icons.AndroidIcons
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import java.awt.Color
 import java.awt.Image
 
 sealed class Destination {
@@ -67,6 +67,9 @@ sealed class Destination {
           newComponent.assignId(idBase)
           newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, qualifiedName)
           newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
+          if (parent.startDestination == null) {
+            newComponent.setAsStartDestination()
+          }
           layoutFile?.let {
             // TODO: do this the right way
             val layoutId = "@${ResourceType.LAYOUT.getName()}/${FileUtil.getNameWithoutExtension(it.name)}"
