@@ -22,9 +22,6 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ext.PropertyTransform;
-import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
-import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -34,8 +31,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 /**
  * Base class for the models representing block elements.

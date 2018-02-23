@@ -16,22 +16,16 @@
 package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.DefaultTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyTransform.*;
-
 public class PropertyUtil {
-  @NotNull
-  public static final TransformCondition defaultTransformCondition = e -> true;
-
-  @NotNull
-  public static final ElementTransform defaultElementTransform = e -> e;
-
-  @NotNull
-  public static final ElementBindingFunction defaultBindingFunction =
-    (holder, oldElement, value, name) -> createOrReplaceBasicExpression(holder, oldElement, value, GradleNameElement.create(name));
+  @NonNls private static final String FILE_METHOD_NAME = "file";
 
   @NotNull
   public static GradleDslExpression createOrReplaceBasicExpression(@NotNull GradleDslElement parent,
@@ -115,6 +109,6 @@ public class PropertyUtil {
     return index;
   }
 
-  public static final PropertyTransform defaultTransform =
-    new PropertyTransform(defaultTransformCondition, defaultElementTransform, defaultBindingFunction);
+  public static final PropertyTransform DEFAULT_TRANSFORM = new DefaultTransform();
+  public static final PropertyTransform FILE_TRANSFORM = new SingleArgumentMethodTransform(FILE_METHOD_NAME);
 }
