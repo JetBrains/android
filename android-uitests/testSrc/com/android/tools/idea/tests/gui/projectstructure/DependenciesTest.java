@@ -28,12 +28,15 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.DependencyTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.table.JBTable;
+import org.fest.swing.exception.LocationUnavailableException;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -41,7 +44,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.nio.file.Paths;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
@@ -397,13 +402,39 @@ public class DependenciesTest {
   private void createJavaClassInModule(@NotNull IdeFrameFixture ideFrame,
                                        @NotNull String moduleName,
                                        @NotNull String className) {
-    ideFrame.getProjectView()
-      .selectProjectPane()
-      .clickPath(APP_NAME, moduleName, "src", "main", "java", "android.com." + moduleName);
+
+
+    ProjectViewFixture.PaneFixture paneFixture;
+    try {
+      paneFixture = ideFrame.getProjectView().selectProjectPane();
+    } catch(WaitTimedOutError timeout) {
+      throw new RuntimeException(getUiHierarchy(ideFrame), timeout);
+    }
+
+    Wait.seconds(30).expecting("Path is loaded for clicking").until(() -> {
+      try {
+        paneFixture.clickPath(APP_NAME, moduleName, "src", "main", "java", "android.com." + moduleName);
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
 
     guiTest.ideFrame().invokeMenuPath("File", "New", "Java Class");
     CreateFileFromTemplateDialogFixture dialog = CreateFileFromTemplateDialogFixture.find(guiTest.robot());
     dialog.setName(className);
     dialog.clickOk();
+  }
+
+  private static String getUiHierarchy(IdeFrameFixture ideFrame) {
+    try(
+      ByteArrayOutputStream outputBuffer = new ByteArrayOutputStream();
+      PrintStream printBuffer = new PrintStream(outputBuffer)
+    ) {
+      ideFrame.robot().printer().printComponents(printBuffer);
+      return outputBuffer.toString();
+    } catch (java.io.IOException ignored) {
+      return "Failed to print UI tree";
+    }
   }
 }
