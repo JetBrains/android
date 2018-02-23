@@ -266,7 +266,7 @@ public class LaunchAndroidApplicationTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/70732009
   @Test
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
     BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
@@ -281,7 +281,7 @@ public class LaunchAndroidApplicationTest {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
     // HACK: This is needed until the github project is updated
     ideFrameFixture
-      .waitForGradleProjectSyncToFail()
+      .waitForGradleProjectSyncToFail(Wait.seconds(60))
       .getEditor()
       .open("build.gradle")
       .select("com.android.tools.build:gradle:(3.0.1)")
@@ -297,7 +297,7 @@ public class LaunchAndroidApplicationTest {
       .enterText("2")
       .open("gradle/wrapper/gradle-wrapper.properties")
       .select("gradle-(4.1)-all.zip")
-      .enterText("4.4")
+      .enterText("4.5")
       .getIdeFrame()
       .requestProjectSync()
       .waitForGradleProjectSyncToFinish(Wait.seconds(60));
