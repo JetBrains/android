@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.profilers.sessions;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 /**

@@ -31,6 +31,8 @@ import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfiler;
 import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.android.tools.profilers.sessions.SessionAspect;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
