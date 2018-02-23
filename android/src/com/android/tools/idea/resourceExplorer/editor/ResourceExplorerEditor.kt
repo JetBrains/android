@@ -20,7 +20,7 @@ import com.android.tools.idea.resourceExplorer.view.DesignAssetDetailView
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
-import com.android.tools.idea.resourceExplorer.view.InternalResourceBrowser
+import com.android.tools.idea.resourceExplorer.view.ModuleResourceBrowser
 import com.android.tools.idea.resourceExplorer.view.QualifierMatcherPanel
 import com.android.tools.idea.resourceExplorer.viewmodel.*
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
@@ -54,7 +54,7 @@ class ResourceExplorerEditor(facet: AndroidFacet) : UserDataHolderBase(), FileEd
     val qualifierParserPanel = QualifierMatcherPanel(qualifierPanelPresenter)
     val externalResourceBrowser = ExternalResourceBrowser(facet, externalResourceBrowserViewModel, qualifierParserPanel)
 
-    val internalResourceBrowser = InternalResourceBrowser(InternalBrowserViewModel(facet, synchronizationManager))
+    val internalResourceBrowser = ModuleResourceBrowser(ModuleResourcesBrowserViewModel(facet, synchronizationManager))
     val designAssetDetailView = DesignAssetDetailView(DesignAssetDetailViewModel(facet.module))
     internalResourceBrowser.addSelectionListener(designAssetDetailView)
 

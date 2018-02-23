@@ -16,7 +16,7 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
-import com.android.tools.idea.resourceExplorer.viewmodel.InternalBrowserViewModel
+import com.android.tools.idea.resourceExplorer.viewmodel.ModuleResourcesBrowserViewModel
 import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
@@ -40,14 +40,14 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
 /**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
  * in the project.
- * It uses an [InternalBrowserViewModel] to populates the views
+ * It uses an [ModuleResourcesBrowserViewModel] to populates the views
  */
-class InternalResourceBrowser(
-  resourceBrowserViewModel: InternalBrowserViewModel
+class ModuleResourceBrowser(
+  resourcesBrowserViewModel: ModuleResourcesBrowserViewModel
 ) : JPanel(BorderLayout()) {
 
   private val listeners = mutableListOf<SelectionListener>()
-  private val designAssetsList: DesignAssetsList = DesignAssetsList(resourceBrowserViewModel)
+  private val designAssetsList: DesignAssetsList = DesignAssetsList(resourcesBrowserViewModel)
   private val sectionListModel: SectionListModel = SectionListModel()
   private val sectionList: SectionList = SectionList(sectionListModel)
 

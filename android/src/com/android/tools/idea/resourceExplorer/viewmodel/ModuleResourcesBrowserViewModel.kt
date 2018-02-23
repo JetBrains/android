@@ -34,10 +34,10 @@ import java.awt.Dimension
 import java.awt.Image
 
 /**
- * ViewModel for [InternalBrowserViewModel] to manage resources in the
- * provided [facet].
+ * ViewModel for [com.android.tools.idea.resourceExplorer.view.ModuleResourceBrowser]
+ * to manage resources in the provided [facet].
  */
-class InternalBrowserViewModel(
+class ModuleResourcesBrowserViewModel(
   val facet: AndroidFacet,
   synchronizationManager: SynchronizationManager
 ) : DesignAssetExplorer {

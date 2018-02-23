@@ -31,7 +31,7 @@ class DesignAssetDetailView(
   private val designAssetDetailViewModel: DesignAssetDetailViewModel
 ) :
   JPanel(FlowLayout(FlowLayout.CENTER, 40, 40)),
-  InternalResourceBrowser.SelectionListener {
+  ModuleResourceBrowser.SelectionListener {
 
   private var designAssetSet: DesignAssetSet? = null
     set(value) {
