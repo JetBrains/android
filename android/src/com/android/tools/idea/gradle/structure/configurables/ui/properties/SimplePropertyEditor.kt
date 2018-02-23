@@ -111,9 +111,55 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   private fun loadValue(value: PropertyValue<PropertyT>) {
     beingLoaded = true
     try {
-      setText(value.parsedValue.getText(valueToText))
+      val text = value.parsedValue.getText(valueToText)
+      setText(text)
+      setStatusHtmlText(getStatusHtmlText(value))
     } finally {
       beingLoaded = false
+    }
+  }
+
+  private fun setStatusHtmlText(statusHtmlText: String) {
+    statusComponent.text = statusHtmlText
+  }
+
+  private fun getStatusHtmlText(value: PropertyValue<PropertyT>): String {
+    // TODO(solodkyy): Consider resolving well-known values and handling long string.
+    fun PropertyT?.formatValue() = this?.toString()
+
+    val parsedValue = value.parsedValue
+    val resolvedValue = value.resolved
+    val defaultValue = property.getDefaultValue(model)
+
+    val editorValueText = when (parsedValue) {
+      is ParsedValue.Set.Parsed<PropertyT> ->
+        when (parsedValue.dslText?.mode) {
+          DslMode.REFERENCE, DslMode.INTERPOLATED_STRING -> parsedValue.value.formatValue()
+          else -> null
+        }
+      else -> null
+    }
+    val effectiveEditorValue = when (parsedValue) {
+      is ParsedValue.Set.Parsed -> parsedValue.value
+      is ParsedValue.NotSet -> defaultValue
+      else -> null
+    }
+    val resolvedValueText = when (resolvedValue) {
+      is ResolvedValue.Set -> when {
+        effectiveEditorValue != resolvedValue.resolved -> resolvedValue.resolved.formatValue()
+        else -> null
+      }
+      is ResolvedValue.NotResolved -> null
+    }
+    return buildString {
+      if (editorValueText != null) {
+        append(" = ")
+        append(editorValueText)
+      }
+      if (resolvedValueText != null) {
+        append(" -> ")
+        append(resolvedValueText)
+      }
     }
   }
 
