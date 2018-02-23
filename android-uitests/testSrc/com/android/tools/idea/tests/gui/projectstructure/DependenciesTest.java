@@ -28,14 +28,12 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.DependencyTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.table.JBTable;
-import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -399,18 +397,9 @@ public class DependenciesTest {
   private void createJavaClassInModule(@NotNull IdeFrameFixture ideFrame,
                                        @NotNull String moduleName,
                                        @NotNull String className) {
-
-
-    ProjectViewFixture.PaneFixture paneFixture = ideFrame.getProjectView().selectProjectPane();
-
-    Wait.seconds(30).expecting("Path is loaded for clicking").until(() -> {
-      try {
-        paneFixture.clickPath(APP_NAME, moduleName, "src", "main", "java", "android.com." + moduleName);
-        return true;
-      } catch (LocationUnavailableException e) {
-        return false;
-      }
-    });
+    ideFrame.getProjectView()
+      .selectProjectPane()
+      .clickPath(APP_NAME, moduleName, "src", "main", "java", "android.com." + moduleName);
 
     guiTest.ideFrame().invokeMenuPath("File", "New", "Java Class");
     CreateFileFromTemplateDialogFixture dialog = CreateFileFromTemplateDialogFixture.find(guiTest.robot());
