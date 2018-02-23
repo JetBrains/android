@@ -31,13 +31,13 @@ public class PropertyUtil {
 
   @NotNull
   public static final ElementBindingFunction defaultBindingFunction =
-    (holder, oldElement, value, name) -> createOrReplaceBasicExpression(holder, oldElement, value, name);
+    (holder, oldElement, value, name) -> createOrReplaceBasicExpression(holder, oldElement, value, GradleNameElement.create(name));
 
   @NotNull
   public static GradleDslExpression createOrReplaceBasicExpression(@NotNull GradleDslElement parent,
                                                                    @Nullable GradleDslElement oldElement,
                                                                    @NotNull Object value,
-                                                                   @NotNull String name) {
+                                                                   @NotNull GradleNameElement name) {
     boolean isReference = value instanceof ReferenceTo;
 
     // Check if we can reuse the element.
@@ -49,12 +49,11 @@ public class PropertyUtil {
     }
     else {
       GradleDslExpression newElement;
-      GradleNameElement nameElement = GradleNameElement.create(name);
       if (!isReference) {
-        newElement = new GradleDslLiteral(parent, nameElement);
+        newElement = new GradleDslLiteral(parent, name);
       }
       else {
-        newElement = new GradleDslReference(parent, nameElement);
+        newElement = new GradleDslReference(parent, name);
       }
 
       newElement.setValue(value);

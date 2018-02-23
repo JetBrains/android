@@ -62,8 +62,10 @@ public class PropertyTransform {
   @FunctionalInterface
   public interface ElementTransform {
     /**
-     * @param e the element contained by a property
-     * @return the element that should be used to represent the property's value if this transform is active.
+     * @param e the element contained by a property. When used in a {@link PropertyTransform} this argument is
+     *          guaranteed to have had a previous call to {@link PropertyTransform#condition} return {@code true}.
+     * @return the element that should be used to represent the property's value if this transform is active,
+     *         if the transform can't correctly transform the element then {@code null} should be returned.
      */
     @Nullable
     GradleDslElement transform(@NotNull GradleDslElement e);

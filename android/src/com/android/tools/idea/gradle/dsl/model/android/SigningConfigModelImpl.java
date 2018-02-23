@@ -74,7 +74,7 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
     if (oldElement == null) {
       // No element currently exists.
       GradleDslMethodCall methodCall = new GradleDslMethodCall(holder, GradleNameElement.create(name), STORE_FILE_METHOD);
-      GradleDslExpression literal = createOrReplaceBasicExpression(methodCall, null, value, "");
+      GradleDslExpression literal = createOrReplaceBasicExpression(methodCall, null, value, GradleNameElement.empty());
       methodCall.addNewArgument(literal);
       return methodCall;
     }
@@ -82,7 +82,7 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
       // Replace the argument.
       GradleDslMethodCall methodCall = (GradleDslMethodCall)oldElement;
       GradleDslElement element = STORE_FILE_ELEMENT_TRANSFORM.transform(methodCall);
-      GradleDslExpression expression = createOrReplaceBasicExpression(methodCall, element, value, "");
+      GradleDslExpression expression = createOrReplaceBasicExpression(methodCall, element, value, GradleNameElement.empty());
       if (element != expression) {
         // We needed to create a new element, replace the old one.
         methodCall.remove(element);
