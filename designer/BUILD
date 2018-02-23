@@ -84,6 +84,7 @@ iml_module(
         "//tools/idea/platform/credential-store",
         "//tools/idea/java/compiler/instrumentation-util-8",
     ],
+    test_shard_count = 8,
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
