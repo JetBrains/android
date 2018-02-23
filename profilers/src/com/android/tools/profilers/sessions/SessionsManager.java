@@ -20,11 +20,12 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.StudioProfilers;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.android.tools.profilers.StudioProfilers.buildSessionName;
 
 /**
  * A wrapper class for keeping track of the list of sessions that the profilers have seen, along with their associated artifacts (e.g.
@@ -201,24 +202,5 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     mySessionArtifacts = new ArrayList<>(mySessionItems.values());
     Collections.sort(mySessionArtifacts, Comparator.comparingLong(SessionArtifact::getTimestampNs).reversed());
     changed(SessionAspect.SESSIONS);
-  }
-
-  @NotNull
-  private static String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
-    StringBuilder deviceNameBuilder = new StringBuilder();
-    String manufacturer = device.getManufacturer();
-    String model = device.getModel();
-    String serial = device.getSerial();
-    String suffix = String.format("-%s", serial);
-    if (model.endsWith(suffix)) {
-      model = model.substring(0, model.length() - suffix.length());
-    }
-    if (!StringUtil.isEmpty(manufacturer)) {
-      deviceNameBuilder.append(manufacturer);
-      deviceNameBuilder.append(" ");
-    }
-    deviceNameBuilder.append(model);
-
-    return String.format("%s (%s)", process.getName(), deviceNameBuilder.toString());
   }
 }

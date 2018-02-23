@@ -95,7 +95,7 @@ public class StudioProfilersView extends AspectObserver {
     mySplitter.setDividerWidth(JBUI.scale(2));
     mySplitter.setSecondComponent(myStageComponent);
     if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      mySessionsView = new SessionsView(myProfiler.getSessionsManager());
+      mySessionsView = new SessionsView(myProfiler);
       mySplitter.setFirstComponent(mySessionsView.getComponent());
 
       // Prevent resize in collapse mode
@@ -148,36 +148,11 @@ public class StudioProfilersView extends AspectObserver {
   }
 
   private void initializeStageUi() {
-    JComboBox<Common.Device> deviceCombo = new FlatComboBox<>();
-    JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
-                                                myProfiler::getDevices,
-                                                myProfiler::getDevice,
-                                                myProfiler::setDevice);
-    myProfiler.addDependency(this)
-      .onChange(ProfilerAspect.DEVICES, () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeDevice(myProfiler.getDevice()));
-    devices.bind();
-    deviceCombo.setRenderer(new DeviceComboBoxRenderer());
-
-    JComboBox<Common.Process> processCombo = new FlatComboBox<>();
-    JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
-                                                  myProfiler::getProcesses,
-                                                  myProfiler::getProcess,
-                                                  myProfiler::setProcess);
-    myProfiler.addDependency(this)
-      .onChange(ProfilerAspect.PROCESSES,
-                () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess(myProfiler.getProcess()));
-    processes.bind();
-    processCombo.setRenderer(new ProcessComboBoxRenderer());
-
     JPanel toolbar = new JPanel(new BorderLayout());
     JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
     toolbar.setBorder(DEFAULT_BOTTOM_BORDER);
     toolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
-
-    myMonitoringToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    myMonitoringToolbar.add(deviceCombo);
-    myMonitoringToolbar.add(processCombo);
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     JButton button = new CommonButton(StudioIcons.Common.BACK_ARROW);
@@ -202,7 +177,33 @@ public class StudioProfilersView extends AspectObserver {
     myCommonToolbar.add(stageCombo);
     myCommonToolbar.add(new FlatSeparator());
 
-    leftToolbar.add(myMonitoringToolbar);
+    myMonitoringToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
+    if (!myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
+      JComboBox<Common.Device> deviceCombo = new FlatComboBox<>();
+      JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
+                                                  myProfiler::getDevices,
+                                                  myProfiler::getDevice,
+                                                  myProfiler::setDevice);
+      myProfiler.addDependency(this)
+        .onChange(ProfilerAspect.DEVICES, () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeDevice(myProfiler.getDevice()));
+      devices.bind();
+      deviceCombo.setRenderer(new DeviceComboBoxRenderer());
+
+      JComboBox<Common.Process> processCombo = new FlatComboBox<>();
+      JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
+                                                    myProfiler::getProcesses,
+                                                    myProfiler::getProcess,
+                                                    myProfiler::setProcess);
+      myProfiler.addDependency(this)
+        .onChange(ProfilerAspect.PROCESSES,
+                  () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess(myProfiler.getProcess()));
+      processes.bind();
+      processCombo.setRenderer(new ProcessComboBoxRenderer());
+
+      myMonitoringToolbar.add(deviceCombo);
+      myMonitoringToolbar.add(processCombo);
+      leftToolbar.add(myMonitoringToolbar);
+    }
     leftToolbar.add(myCommonToolbar);
     toolbar.add(leftToolbar, BorderLayout.WEST);
 
@@ -210,9 +211,15 @@ public class StudioProfilersView extends AspectObserver {
     toolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    CommonButton endSession = new CommonButton("End Session");
-    endSession.setFont(endSession.getFont().deriveFont(12.f));
-    endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
+    CommonButton endSession;
+    if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
+      endSession = new CommonButton(StudioIcons.Common.CLOSE);
+    }
+    else {
+      endSession = new CommonButton("End Session");
+      endSession.setFont(endSession.getFont().deriveFont(12.f));
+      endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
+    }
     endSession.addActionListener(event -> myProfiler.stop());
     endSession.setToolTipText("Stop profiling and close tab");
     rightToolbar.add(endSession);

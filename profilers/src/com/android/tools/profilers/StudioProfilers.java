@@ -36,6 +36,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -172,6 +173,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // inconsistency worse if we call these lines again.
     setDevice(null);
     changed(ProfilerAspect.STAGE);
+  }
+
+  public Map<Common.Device, List<Common.Process>> getDeviceProcessMap() {
+    return myProcesses;
   }
 
   public List<Common.Device> getDevices() {
@@ -362,6 +367,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return;
     }
 
+    // Set the stage before updating the timeline, otherwise the stage's scrollbar would not pick up the initial timeline changes.
+    setStage(new StudioMonitorStage(this));
     if (isSessionAlive(mySelectedSession)) {
       // The session is live - move the timeline to the current time.
       TimeResponse timeResponse = myClient.getProfilerClient()
@@ -376,7 +383,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       myTimeline.getViewRange().set(myTimeline.getDataRange());
       myTimeline.setIsPaused(true);
     }
-    setStage(new StudioMonitorStage(this));
 
     // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the session
     // is properly assigned before firing this aspect change.
@@ -578,5 +584,29 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
       // will not happen
     }
+  }
+
+  @NotNull
+  public static String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
+    return String.format("%s (%s)", process.getName(), buildDeviceName(device));
+  }
+
+  @NotNull
+  public static String buildDeviceName(@NotNull Common.Device device) {
+    StringBuilder deviceNameBuilder = new StringBuilder();
+    String manufacturer = device.getManufacturer();
+    String model = device.getModel();
+    String serial = device.getSerial();
+    String suffix = String.format("-%s", serial);
+    if (model.endsWith(suffix)) {
+      model = model.substring(0, model.length() - suffix.length());
+    }
+    if (!StringUtil.isEmpty(manufacturer)) {
+      deviceNameBuilder.append(manufacturer);
+      deviceNameBuilder.append(" ");
+    }
+    deviceNameBuilder.append(model);
+
+    return deviceNameBuilder.toString();
   }
 }

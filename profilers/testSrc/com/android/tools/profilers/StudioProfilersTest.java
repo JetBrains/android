@@ -914,6 +914,55 @@ public final class StudioProfilersTest {
       EnergyProfilerStage.class).inOrder();
   }
 
+  @Test
+  public void testBuildSessionName() {
+    Common.Device device1 = Common.Device.newBuilder()
+      .setManufacturer("Manufacturer")
+      .setModel("Model")
+      .setSerial("Serial")
+      .build();
+    Common.Device device2 = Common.Device.newBuilder()
+      .setModel("Model-Serial")
+      .setSerial("Serial")
+      .build();
+    Common.Process process1 = Common.Process.newBuilder()
+      .setPid(10)
+      .setAbiCpuArch("x86")
+      .setName("Process1")
+      .build();
+    Common.Process process2 = Common.Process.newBuilder()
+      .setPid(20)
+      .setAbiCpuArch("arm")
+      .setName("Process2")
+      .build();
+
+    assertThat(StudioProfilers.buildSessionName(device1, process1)).isEqualTo("Process1 (Manufacturer Model)");
+    assertThat(StudioProfilers.buildSessionName(device2, process2)).isEqualTo("Process2 (Model)");
+  }
+
+  @Test
+  public void testBuildDeviceName() {
+    Common.Device device = Common.Device.newBuilder()
+      .setManufacturer("Manufacturer")
+      .setModel("Model")
+      .setSerial("Serial")
+      .build();
+    assertThat(StudioProfilers.buildDeviceName(device)).isEqualTo("Manufacturer Model");
+
+    Common.Device deviceWithEmptyManufacturer = Common.Device.newBuilder()
+      .setModel("Model")
+      .setSerial("Serial")
+      .build();
+    assertThat(StudioProfilers.buildDeviceName(deviceWithEmptyManufacturer)).isEqualTo("Model");
+
+    Common.Device deviceWithSerialInModel = Common.Device.newBuilder()
+      .setManufacturer("Manufacturer")
+      .setModel("Model-Serial")
+      .setSerial("Serial")
+      .build();
+    assertThat(StudioProfilers.buildDeviceName(deviceWithSerialInModel)).isEqualTo("Manufacturer Model");
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
