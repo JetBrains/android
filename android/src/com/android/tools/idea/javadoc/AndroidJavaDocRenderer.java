@@ -20,7 +20,6 @@ import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.AbstractResourceRepository;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
@@ -430,9 +429,9 @@ public class AndroidJavaDocRenderer {
       List<ResourceItem> items = resources.getResourceItems(namespace, type, name);
       for (ResourceItem item : items) {
         String folderName = "?";
-        ResourceFile source = item.getSource();
+        File source = item.getFile();
         if (source != null) {
-          folderName = source.getFile().getParentFile().getName();
+          folderName = source.getParentFile().getName();
         }
         String folder = renderFolderName(folderName);
         ResourceValue value = item.getResourceValue();

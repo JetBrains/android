@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ArrayListMultimap;
@@ -82,10 +83,10 @@ public class IdeResourceNameValidatorTest {
   @Test
   public void testIds2() throws Exception {
     ListMultimap<String, ResourceItem> multimap = ArrayListMultimap.create();
-    multimap.put("foo1", new ResourceItem("foo1", null, ResourceType.ID, null, null));
-    multimap.put("foo3", new ResourceItem("foo3", null, ResourceType.ID, null, null));
-    multimap.put("foo.4", new ResourceItem("foo.4", null, ResourceType.ID, null, null));
-    multimap.put("foo_5", new ResourceItem("foo_5", null, ResourceType.ID, null, null));
+    multimap.put("foo1", new ResourceMergerItem("foo1", null, ResourceType.ID, null, null));
+    multimap.put("foo3", new ResourceMergerItem("foo3", null, ResourceType.ID, null, null));
+    multimap.put("foo.4", new ResourceMergerItem("foo.4", null, ResourceType.ID, null, null));
+    multimap.put("foo_5", new ResourceMergerItem("foo_5", null, ResourceType.ID, null, null));
 
     LocalResourceRepository resources = new TestLocalResourceRepository();
     resources.getItems().put(RES_AUTO, ResourceType.ID, multimap);

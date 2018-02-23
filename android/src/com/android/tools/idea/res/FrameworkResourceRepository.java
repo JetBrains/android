@@ -119,9 +119,9 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     }
 
     ResourceTable resourceTable = repository.getFullTable();
-    ListMultimap<String, ResourceItem> resourceItems = resourceSet.getDataMap();
+    ListMultimap<String, ResourceMergerItem> resourceItems = resourceSet.getDataMap();
     for (String key : resourceItems.keys()) {
-      List<ResourceItem> items = resourceItems.get(key);
+      List<ResourceMergerItem> items = resourceItems.get(key);
       for (int i = items.size(); --i >= 0;) {
         ResourceItem item = items.get(i);
         ListMultimap<String, ResourceItem> multimap = resourceTable.getOrPutEmpty(item.getNamespace(), item.getType());
@@ -344,17 +344,17 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
           for (int k = 0; k < n; k++) {
             Node node = in.readNode();
             ResourceItemType itemType = ResourceItemType.values()[in.readUnsignedByte()];
-            ResourceItem item = null;
+            ResourceMergerItem item = null;
             switch (itemType) {
               case VALUE: {
-                item = new ResourceItem(resourceName, ANDROID_NAMESPACE, resourceType, node, null);
+                item = new ResourceMergerItem(resourceName, ANDROID_NAMESPACE, resourceType, node, null);
                 int fileIndex = in.readUnsignedShort();
                 ResourceFile resourceFile = resourceFiles[fileIndex];
                 resourceFile.addItem(item);
                 break;
               }
               case FILE: {
-                item = new ResourceItem(resourceName, ANDROID_NAMESPACE, resourceType, node, null);
+                item = new ResourceMergerItem(resourceName, ANDROID_NAMESPACE, resourceType, node, null);
                 int folderConfigurationIndex = in.readUnsignedShort();
                 FolderConfiguration folderConfig = folderConfigurations[folderConfigurationIndex];
                 String path = in.readUTF();
@@ -522,14 +522,16 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
       Map<ResourceType, ListMultimap<String, ResourceItem>> mapByType = getMapByType();
       for (ListMultimap<String, ResourceItem> map : mapByType.values()) {
         for (ResourceItem resourceItem : map.values()) {
+          // All items in this repo are ResourceMergerItems (for now).
+          ResourceMergerItem resourceMergerItem = (ResourceMergerItem)resourceItem;
           FolderConfiguration folderConfiguration = resourceItem.getConfiguration();
           if (!folderConfigurationIndexes.containsKey(folderConfiguration)) {
             folderConfigurationIndexes.put(folderConfiguration, folderConfigurations.size());
             folderConfigurations.add(folderConfiguration);
           }
 
-          if (resourceItem.getSourceType() != DataFile.FileType.SINGLE_FILE) {
-            ResourceFile resourceFile = resourceItem.getSource();
+          if (resourceMergerItem.getSourceType() != DataFile.FileType.SINGLE_FILE) {
+            ResourceFile resourceFile = resourceMergerItem.getSource();
             if (resourceFile != null) {
               File file = resourceFile.getFile();
               if (!multiResourceFileIndexes.containsKey(file)) {
@@ -592,11 +594,12 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
             out.writeShort(resourceItems.size());
             for (ResourceItem resourceItem : resourceItems) {
-              out.writeNode(resourceItem.getValue());
-              ResourceFile resourceFile = resourceItem.getSource();
+              ResourceMergerItem resourceMergerItem = (ResourceMergerItem)resourceItem;
+              out.writeNode(resourceMergerItem.getValue());
+              ResourceFile resourceFile = resourceMergerItem.getSource();
               assert resourceFile != null;
               ResourceItemType itemType;
-              if (resourceItem.getSourceType() == DataFile.FileType.SINGLE_FILE) {
+              if (resourceItem.isFileBased()) {
                 itemType = ResourceItemType.FILE;
               } else {
                 itemType = ResourceItemType.VALUE;
@@ -1473,7 +1476,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     return exception;
   }
 
-  private enum ResourceItemType {
+  public enum ResourceItemType {
     /** Resource associated with a {@linkplain DataFile.FileType#XML_VALUES} file. */
     VALUE,
     /** Resource associated with a {@linkplain DataFile.FileType#SINGLE_FILE} file. */

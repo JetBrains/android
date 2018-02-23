@@ -16,7 +16,6 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -35,11 +34,9 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 
@@ -150,11 +147,11 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> ids = resources.getResourceItem(ResourceType.ID, "my_id");
     assertNotNull(ids);
     assertSize(2, ids);
-    Collections.sort(ids, (item1, item2) -> item1.getSource().getFile().getName().compareTo(item2.getSource().getFile().getName()));
+    Collections.sort(ids, Comparator.comparing(item -> item.getFile().getName()));
     //noinspection ConstantConditions
-    assertEquals("layout_ids1.xml", ids.get(0).getSource().getFile().getName());
+    assertEquals("layout_ids1.xml", ids.get(0).getFile().getName());
     //noinspection ConstantConditions
-    assertEquals("layout_ids2.xml", ids.get(1).getSource().getFile().getName());
+    assertEquals("layout_ids2.xml", ids.get(1).getFile().getName());
   }
 
   public void testOverlayUpdates1() {
@@ -283,7 +280,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     List<ResourceItem> list = resources.getResourceItem(ResourceType.STRING, "app_name");
     assertNotNull(list);
     assertSize(2, list);
-    appName = ContainerUtil.find(list, resourceItem -> resourceItem.getQualifiers().isEmpty());
+    appName = ContainerUtil.find(list, resourceItem -> resourceItem.getConfiguration().getQualifierString().isEmpty());
     assertNotNull(appName);
     assertItemIsInDir(res3, appName);
     ResourceValue appNameResourceValue = appName.getResourceValue();
@@ -302,7 +299,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     appName = getFirstItem(resources, ResourceType.STRING, "app_name");
     // The item is still under res3, but now it's in the Norwegian translation
-    assertEquals("no", appName.getSource().getQualifiers());
+    assertEquals("no", appName.getConfiguration().getQualifierString());
     assertStringIs(resources, "app_name", "Forskjellig Navn", false);
 
     // Delete that file:
@@ -430,9 +427,9 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   // Unit test support methods
 
   static void assertItemIsInDir(VirtualFile dir, ResourceItem item) {
-    ResourceFile resourceFile = item.getSource();
+    File resourceFile = item.getFile();
     assertNotNull(resourceFile);
-    VirtualFile parent = VfsUtil.findFileByIoFile(resourceFile.getFile(), false);
+    VirtualFile parent = VfsUtil.findFileByIoFile(resourceFile, false);
     assertNotNull(parent);
     assertEquals(dir, parent.getParent().getParent());
   }

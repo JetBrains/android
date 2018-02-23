@@ -17,7 +17,6 @@ package org.jetbrains.android;
 
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -711,12 +710,11 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     List<String> descriptions = Lists.newArrayList();
     for (ResourceItem item : all) {
       if (!local.contains(item)) {
-        ResourceFile source = item.getSource();
         if (libraries == null) {
           libraries = AppResourceRepository.findAarLibraries(facet);
         }
-        if (source != null) {
-          File sourceFile = source.getFile();
+        File sourceFile = item.getFile();
+        if (sourceFile != null) {
 
           // TODO: Look up the corresponding AAR artifact, and then use library.getRequestedCoordinates() or
           // library.getResolvedCoordinates() here and append the coordinate. However, until b.android.com/77341

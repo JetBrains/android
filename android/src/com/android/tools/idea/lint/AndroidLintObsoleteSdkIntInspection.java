@@ -16,9 +16,10 @@
 package com.android.tools.idea.lint;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.DataFile;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
@@ -223,17 +224,17 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       List<ResourceItem> srcItems = Lists.newArrayList();
       for (ListMultimap<String, ResourceItem> multimap : repository.getItems().values()) {
         for (ResourceItem item : multimap.values()) {
-          if (item.getSourceType() == DataFile.FileType.GENERATED_FILES) {
+          if (item instanceof ResourceMergerItem && ((ResourceMergerItem)item).getSourceType() == DataFile.FileType.GENERATED_FILES) {
             continue;
           }
           FolderConfiguration configuration = item.getConfiguration();
           if (oldConfig.equals(configuration)) {
-            ResourceFile source = item.getSource();
+            File source = item.getFile();
             if (source == null) {
               continue;
             }
 
-            VirtualFile sourceFile = fileSystem.findFileByPath(source.getFile().getPath());
+            VirtualFile sourceFile = fileSystem.findFileByPath(source.getPath());
             if (sourceFile != null && dir.equals(sourceFile.getParent())) {
               srcItems.add(item);
             }
@@ -252,8 +253,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       try {
         VirtualFile destDir = res.findOrCreateChildData(requestor, targetDir);
         for (ResourceItem item : srcItems) {
-          DataFile.FileType sourceType = item.getSourceType();
-          if (sourceType == DataFile.FileType.GENERATED_FILES) {
+          if (item instanceof ResourceMergerItem && ((ResourceMergerItem)item).getSourceType() == DataFile.FileType.GENERATED_FILES) {
             continue;
           }
 
@@ -261,19 +261,24 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
 
           // Already checked above
           //noinspection ConstantConditions
-          if (item.getSource().getFile().getParentFile().getName().startsWith(SdkConstants.FD_RES_VALUES)) {
+          if (item.getFile().getParentFile().getName().startsWith(SdkConstants.FD_RES_VALUES)) {
             // Merge XML values
-            String value = StringUtil.notNullize(item.getValueText());
+            String textValue = null;
+            ResourceValue resourceValue = item.getResourceValue();
+            if (resourceValue != null) {
+              textValue = resourceValue.getValue();
+            }
+            textValue = StringUtil.notNullize(textValue);
 
-            ResourceFile source = item.getSource();
-            String fileName = source != null ? source.getFile().getName() : "values.xml";
+            File source = item.getFile();
+            String fileName = source != null ? source.getName() : "values.xml";
             List<String> dirNames = Collections.singletonList(targetDir);
             if (isInDest) {
-              AndroidResourceUtil.changeValueResource(project, res, item.getName(), item.getType(), value, fileName, dirNames, false);
+              AndroidResourceUtil.changeValueResource(project, res, item.getName(), item.getType(), textValue, fileName, dirNames, false);
             }
             else {
               AndroidResourceUtil.createValueResource(project, res, item.getName(), item.getType(), fileName,
-                                                      dirNames, value);
+                                                      dirNames, textValue);
             }
           }
           else {

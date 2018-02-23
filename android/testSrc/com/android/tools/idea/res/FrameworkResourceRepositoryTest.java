@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.DataFile;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -27,6 +28,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -122,15 +124,19 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
 
   private static void compareContents(@NotNull FrameworkResourceRepository fromSourceFiles,
                                       @NotNull FrameworkResourceRepository fromCache) {
-    List<ResourceItem> resourceItems = fromSourceFiles.getAllResourceItems();
-    List<ResourceItem> cacheResourceItems = fromCache.getAllResourceItems();
+    @SuppressWarnings("unchecked") // We know that items in FrameworkResourceRepository are ResourceMergerItems.
+    List<ResourceMergerItem> resourceItems = (List) fromSourceFiles.getAllResourceItems();
+
+    @SuppressWarnings("unchecked") // We know that items in FrameworkResourceRepository are ResourceMergerItems.
+    List<ResourceMergerItem> cacheResourceItems = (List) fromCache.getAllResourceItems();
+
     Collections.sort(resourceItems);
     Collections.sort(cacheResourceItems);
     assertEquals(resourceItems.size(), cacheResourceItems.size());
     for (int i = 0; i < resourceItems.size(); i++) {
-      ResourceItem withoutCache = resourceItems.get(i);
-      ResourceItem withCache = cacheResourceItems.get(i);
-      assertTrue("Different ResourceItem at position " + i, isEquivalentResourceItem(withoutCache, withCache));
+      ResourceMergerItem withoutCache = resourceItems.get(i);
+      ResourceMergerItem withCache = cacheResourceItems.get(i);
+      assertTrue("Different ResourceMergerItem at position " + i, isEquivalentResourceItem(withoutCache, withCache));
       assertEquals("Different FolderConfiguration at position " + i, withoutCache.getConfiguration(), withCache.getConfiguration());
       assertEquals("Different ResourceValue at position " + i,
                    withoutCache.getResourceValue(), withCache.getResourceValue());
@@ -142,15 +148,15 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       assertEquals("Number of public resources doesn't match for type " + type.getName(),
                    publicResources.size(), publicResources2.size());
       for (int i = 0; i < publicResources.size(); i++) {
-        ResourceItem withoutCache = publicResources.get(i);
-        ResourceItem withCache = publicResources2.get(i);
+        ResourceMergerItem withoutCache = (ResourceMergerItem)publicResources.get(i);
+        ResourceMergerItem withCache = (ResourceMergerItem)publicResources2.get(i);
         assertTrue("Public resource difference at position " + i + " for type " + type.getName(),
                    isEquivalentResourceItem(withoutCache, withCache));
       }
     }
   }
 
-  private static boolean isEquivalentResourceItem(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
+  private static boolean isEquivalentResourceItem(@NotNull ResourceMergerItem item1, @NotNull ResourceMergerItem item2) {
     if (!item1.getType().equals(item2.getType())) {
       return false;
     }
@@ -171,7 +177,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     if ((source1 == null) != (source2 == null)) {
       return false;
     }
-    return source1.getFile().getPath().equals(source2.getFile().getPath());
+    return FileUtil.filesEqual(source1.getFile(), source2.getFile());
   }
 
   private static void checkContents(@NotNull FrameworkResourceRepository repository) {

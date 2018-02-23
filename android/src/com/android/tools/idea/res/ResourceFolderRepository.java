@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.TextResourceValue;
 import com.android.ide.common.resources.*;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
@@ -29,9 +30,11 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.ILogger;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Table;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -104,7 +107,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @GuardedBy("AbstractResourceRepository.ITEM_MAP_LOCK")
   private final ResourceTable myFullTable = new ResourceTable();
 
-  private final Map<VirtualFile, ResourceFile> myResourceFiles = new HashMap<>();
+  private final Map<VirtualFile, ResourceItemSource<? extends ResourceItem>> sources = new HashMap<>();
   // qualifiedName -> PsiResourceFile
   private Map<String, DataBindingInfo> myDataBindingResourceFiles = new HashMap<>();
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
@@ -188,7 +191,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       ResourcePreprocessor preprocessor = NoOpResourcePreprocessor.INSTANCE;
       File tempDirectory = FileUtil.createTempDirectory("resource", "tmp", false);
       try {
-        MergeConsumer<ResourceItem> consumer =
+        MergeConsumer<ResourceMergerItem> consumer =
             MergedResourceWriter.createWriterWithoutPngCruncher(blobRoot, null, null, preprocessor, tempDirectory);
         myInitialScanState.myResourceMerger.writeBlobToWithTimestamps(blobRoot, consumer);
       } finally {
@@ -253,18 +256,18 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     // Items to be inserted into the repo, while holding ITEM_MAP_LOCK. The loop below does too much I/O to hold the lock the whole time.
     Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
 
-    for (ResourceItem item: dataSet.getDataMap().values()) {
+    for (ResourceMergerItem item: dataSet.getDataMap().values()) {
       ResourceFile file = item.getSource();
       if (file != null) {
         if (!resourceFiles.contains(file)) {
           VirtualFile vFile = VfsUtil.findFileByIoFile(file.getFile(), false);
           if (vFile == null) {
-            // Cannot handle this item, mark it ignored to that it doesn't persist.
+            // Cannot handle this item, mark it ignored so that it doesn't persist.
             item.setIgnoredFromDiskMerge(true);
             continue;
           }
           resourceFiles.add(file);
-          myResourceFiles.put(vFile, file);
+          sources.put(vFile, new ResourceFileAdapter(file));
         }
         addToResult(result, item);
       } else {
@@ -448,7 +451,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(fileResource.folderType);
         assert resourceTypes.size() >= 1 : fileResource.folderType;
         ResourceType type = resourceTypes.get(0);
-        scanFileResourceFileAsPsi(result, fileResource.qualifiers, fileResource.folderType, fileResource.folderConfiguration,
+        scanFileResourceFileAsPsi(result, fileResource.folderType, fileResource.folderConfiguration,
                                   type, true, file);
       }
     }
@@ -523,27 +526,26 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   private void scanFileResourceFileAsPsi(Map<ResourceType, ListMultimap<String, ResourceItem>> result,
-                                         String qualifiers,
                                          ResourceFolderType folderType,
                                          FolderConfiguration folderConfiguration,
                                          ResourceType type,
                                          boolean idGenerating,
                                          PsiFile file) {
     // XML or Image
-    ResourceItem item = new PsiResourceItem(ResourceHelper.getResourceName(file), type, myNamespace, null, file);
+    PsiResourceItem item = new PsiResourceItem(ResourceHelper.getResourceName(file), type, myNamespace, null, file);
 
     if (idGenerating) {
-      List<ResourceItem> items = new ArrayList<>();
+      List<PsiResourceItem> items = new ArrayList<>();
       items.add(item);
       addToResult(result, item);
       addIds(result, items, file);
 
-      PsiResourceFile resourceFile = new PsiResourceFile(file, items, qualifiers, folderType, folderConfiguration);
+      PsiResourceFile resourceFile = new PsiResourceFile(file, items, folderType, folderConfiguration);
       scanDataBinding(resourceFile, getModificationCount());
-      myResourceFiles.put(file.getVirtualFile(), resourceFile);
+      sources.put(file.getVirtualFile(), resourceFile);
     } else {
-      PsiResourceFile resourceFile = new PsiResourceFile(file, item, qualifiers, folderType, folderConfiguration);
-      myResourceFiles.put(file.getVirtualFile(), resourceFile);
+      PsiResourceFile resourceFile = new PsiResourceFile(file, Collections.singletonList(item), folderType, folderConfiguration);
+      sources.put(file.getVirtualFile(), resourceFile);
       addToResult(result, item);
     }
   }
@@ -557,7 +559,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                                     VirtualFile file) {
     ResourceFile resourceFile;
     if (idGenerating) {
-      if (myResourceFiles.containsKey(file)) {
+      if (sources.containsKey(file)) {
         myInitialScanState.countCacheHit();
         return;
       }
@@ -575,7 +577,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         if (!isDensityBasedResource) {
           myInitialScanState.countCacheMiss();
         }
-        for (ResourceItem item : resourceFile.getItems()) {
+        for (ResourceMergerItem item : resourceFile.getItems()) {
           addToResult(result, item);
           // It's not yet safe to serialize density-based resources items to blob files.
           // The ResourceValue should be an instance of DensityBasedResourceValue, but no flags are
@@ -596,12 +598,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       // We create the items without adding it to the resource set / resource merger.
       // No need to write these out to blob files, as the item is easily reconstructed from the filename.
       String name = ResourceHelper.getResourceName(file);
-      ResourceItem item = new ResourceItem(name, myNamespace, type, null, getLibraryName());
+      ResourceMergerItem item = new ResourceMergerItem(name, myNamespace, type, null, getLibraryName());
       addToResult(result, item);
       resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, qualifiers, folderConfiguration);
       item.setIgnoredFromDiskMerge(true);
     }
-    myResourceFiles.put(file, resourceFile);
+    sources.put(file, new ResourceFileAdapter(resourceFile));
   }
 
   @Nullable
@@ -609,9 +611,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
     List<ResourceItem> resourceItems = getResourceItems(myNamespace, ResourceType.LAYOUT, layoutName);
     for (ResourceItem item : resourceItems) {
-      ResourceFile source = item.getSource();
-      if (source instanceof PsiResourceFile && ((PsiResourceFile) source).getDataBindingInfo() != null) {
-        return ((PsiResourceFile) source).getDataBindingInfo();
+      if (item instanceof PsiResourceItem) {
+        PsiResourceFile source = ((PsiResourceItem)item).getSource();
+        if (source != null) {
+          return source.getDataBindingInfo();
+        }
       }
     }
     return null;
@@ -625,7 +629,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       return myDataBindingResourceFiles;
     }
     myDataBindingResourceFilesModificationCount = modificationCount;
-    Map<String, List<LayoutDataBindingInfo>> infoFilesByConfiguration = myResourceFiles.values().stream()
+    Map<String, List<LayoutDataBindingInfo>> infoFilesByConfiguration = sources.values().stream()
       .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getDataBindingInfo()) : null)
       .filter(Objects::nonNull)
       .collect(Collectors.groupingBy(LayoutDataBindingInfo::getFileName));
@@ -685,8 +689,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       String name = StringUtil.unescapeXml(nameValue);
       if (StringUtil.isNotEmpty(name)) {
         if (usedNames.add(name)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag);
-          item.setSource(resourceFile);
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.VARIABLE, tag, resourceFile);
           items.add(item);
         }
       }
@@ -711,8 +714,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
       if (StringUtil.isNotEmpty(alias)) {
         if (usedAliases.add(name)) {
-          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.IMPORT, tag);
-          item.setSource(resourceFile);
+          PsiDataBindingResourceItem item = new PsiDataBindingResourceItem(name, DataBindingResourceType.IMPORT, tag, resourceFile);
           items.add(item);
         }
       }
@@ -798,11 +800,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return Collections.singleton(myNamespace);
   }
 
-  private void addIds(Map<ResourceType, ListMultimap<String, ResourceItem>>result, List<ResourceItem> items, PsiFile file) {
+  private void addIds(Map<ResourceType, ListMultimap<String, ResourceItem>>result, List<PsiResourceItem> items, PsiFile file) {
     addIds(result, items, file, file);
   }
 
-  private void addIds(Map<ResourceType, ListMultimap<String, ResourceItem>> result, List<ResourceItem> items, PsiElement element,
+  private void addIds(Map<ResourceType, ListMultimap<String, ResourceItem>> result, List<PsiResourceItem> items, PsiElement element,
                       PsiFile file) {
     // "@+id/" names found before processing the view tag corresponding to the id.
     Map<String, XmlTag> pendingResourceIds = new HashMap<>();
@@ -827,7 +829,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   private void addId(Map<ResourceType, ListMultimap<String, ResourceItem>> result,
-                     List<ResourceItem> items,
+                     List<PsiResourceItem> items,
                      PsiFile file,
                      XmlTag tag,
                      Map<String, XmlTag> pendingResourceIds) {
@@ -908,13 +910,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           return false;
         }
         XmlTag[] subTags = root.getSubTags(); // Not recursive, right?
-        List<ResourceItem> items = new ArrayList<>(subTags.length);
+        List<PsiResourceItem> items = new ArrayList<>(subTags.length);
         for (XmlTag tag : subTags) {
           String name = tag.getAttributeValue(ATTR_NAME);
           if (!StringUtil.isEmpty(name)) {
             ResourceType type = AndroidResourceUtil.getType(tag);
             if (type != null) {
-              ResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, file);
+              PsiResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, file);
               addToResult(result, item);
               items.add(item);
               added = true;
@@ -930,7 +932,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         // Only add attr nodes for elements that specify a format or have flag/enum children; otherwise
                         // it's just a reference to an existing attr
                         && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
-                      ResourceItem attrItem = new PsiResourceItem(attrName, ResourceType.ATTR, myNamespace, child, file);
+                      PsiResourceItem attrItem = new PsiResourceItem(attrName, ResourceType.ATTR, myNamespace, child, file);
                       items.add(attrItem);
                       addToResult(result, attrItem);
                     }
@@ -941,8 +943,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           }
         }
 
-        PsiResourceFile resourceFile = new PsiResourceFile(file, items, qualifiers, VALUES, folderConfiguration);
-        myResourceFiles.put(file.getVirtualFile(), resourceFile);
+        PsiResourceFile resourceFile = new PsiResourceFile(file, items, VALUES, folderConfiguration);
+        sources.put(file.getVirtualFile(), resourceFile);
       }
     }
 
@@ -955,7 +957,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                              FolderConfiguration folderConfiguration) {
     FileType fileType = virtualFile.getFileType();
     if (fileType == StdFileTypes.XML) {
-      if (myResourceFiles.containsKey(virtualFile)) {
+      if (sources.containsKey(virtualFile)) {
         myInitialScanState.countCacheHit();
         return;
       }
@@ -971,7 +973,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           addToResult(result, item);
         }
         myInitialScanState.countCacheMiss();
-        myResourceFiles.put(virtualFile, resourceFile);
+        sources.put(virtualFile, new ResourceFileAdapter(resourceFile));
       }
       catch (MergingException e) {
         // The file-based parser failed for some reason. Fall back to Psi in case it is more lax.
@@ -983,7 +985,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   // Schedule a rescan to convert any map ResourceItems to Psi if needed, and return true if conversion
   // is needed (incremental updates which rely on Psi are not possible).
   private boolean convertToPsiIfNeeded(@NotNull PsiFile psiFile, ResourceFolderType folderType) {
-    ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
+    ResourceItemSource resFile = sources.get(psiFile.getVirtualFile());
     if (resFile instanceof PsiResourceFile) {
       return false;
     }
@@ -1099,14 +1101,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       ourFullRescans++;
 
       // First delete out the previous items
-      ResourceFile resourceFile = myResourceFiles.get(file.getVirtualFile());
+      ResourceItemSource<? extends ResourceItem> source = this.sources.get(file.getVirtualFile());
       boolean removed = false;
-      if (resourceFile != null) {
-        for (ResourceItem item : resourceFile.getItems()) {
-          removed |= removeItems(resourceFile, item.getType(), item.getName(), false);  // Will throw away file
+      if (source != null) {
+        for (ResourceItem item : source) {
+          removed |= removeItems(source, item.getType(), item.getName(), false);  // Will throw away file
         }
 
-        myResourceFiles.remove(file.getVirtualFile());
+        this.sources.remove(file.getVirtualFile());
       }
 
       file = ensureValid(file);
@@ -1132,10 +1134,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         invalidateParentCaches();
       }
     } else {
-      ResourceFile resFile = myResourceFiles.get(file.getVirtualFile());
+      ResourceItemSource<? extends ResourceItem> source = sources.get(file.getVirtualFile());
       // If the old file was a PsiResourceFile, we could try to update ID ResourceItems in place.
-      if (resFile != null && resFile instanceof PsiResourceFile) {
-        PsiResourceFile resourceFile = (PsiResourceFile)resFile;
+      if (source instanceof PsiResourceFile) {
+        PsiResourceFile psiResourceFile = (PsiResourceFile)source;
         // Already seen this file; no need to do anything unless it's an XML file with generated ids;
         // in that case we may need to update the id's
         if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
@@ -1152,8 +1154,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           synchronized (ITEM_MAP_LOCK) {
             ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, ResourceType.ID);
             if (map != null) {
-              List<ResourceItem> idItems = new ArrayList<>();
-              for (ResourceItem item : resourceFile) {
+              List<PsiResourceItem> idItems = new ArrayList<>();
+              for (PsiResourceItem item : psiResourceFile) {
                 if (item.getType() == ResourceType.ID) {
                   idsBefore.add(item.getName());
                   idItems.add(item);
@@ -1167,7 +1169,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (mapItems != null && !mapItems.isEmpty()) {
                   List<ResourceItem> toDelete = new ArrayList<>(mapItems.size());
                   for (ResourceItem mapItem : mapItems) {
-                    if (mapItem.getSource() == resourceFile) {
+                    if (mapItem instanceof PsiResourceItem && ((PsiResourceItem)mapItem).getSource() == psiResourceFile) {
                       toDelete.add(mapItem);
                     }
                   }
@@ -1176,18 +1178,22 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   }
                 }
               }
-              resourceFile.removeItems(idItems);
+              for (PsiResourceItem item : idItems) {
+                psiResourceFile.removeItem(item);
+              }
             }
           }
 
           // Add items for this file
-          List<ResourceItem> idItems = new ArrayList<>();
+          List<PsiResourceItem> idItems = new ArrayList<>();
           file = ensureValid(file);
           if (file != null) {
             addIds(result, idItems, file);
           }
           if (!idItems.isEmpty()) {
-            resourceFile.addItems(idItems);
+            for (PsiResourceItem item : idItems) {
+              psiResourceFile.addItem(item);
+            }
             for (ResourceItem item : idItems) {
               idsAfter.add(item.getName());
             }
@@ -1196,15 +1202,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (!idsBefore.equals(idsAfter)) {
             setModificationCount(ourModificationCounter.incrementAndGet());
           }
-          scanDataBinding(resourceFile, getModificationCount());
+          scanDataBinding(psiResourceFile, getModificationCount());
           // Identities may have changed even if the ids are the same, so update maps
           invalidateParentCaches(myNamespace, ResourceType.ID);
         }
       } else {
         // Remove old items first, if switching to Psi. Rescan below to add back, but with a possibly different multimap list order.
-        boolean switchingToPsi = resFile != null;
+        boolean switchingToPsi = source != null;
         if (switchingToPsi) {
-          removeItemsFromFile(resFile);
+          removeItemsFromSource(source);
         }
         // For unit test tracking purposes only
         //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -1227,7 +1233,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
             if (folderConfiguration != null) {
               boolean idGeneratingFile = idGeneratingFolder && file.getFileType() == StdFileTypes.XML;
-              scanFileResourceFileAsPsi(result, getQualifiers(dirName), folderType, folderConfiguration, type, idGeneratingFile, file);
+              scanFileResourceFileAsPsi(result, folderType, folderConfiguration, type, idGeneratingFile, file);
             }
           }
           setModificationCount(ourModificationCounter.incrementAndGet());
@@ -1239,7 +1245,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     commitToRepository(result);
   }
 
-  private boolean removeItems(ResourceFile resourceFile, ResourceType type, String name, boolean removeFromFile) {
+  private boolean removeItems(ResourceItemSource source, ResourceType type, String name, boolean removeFromFile) {
     boolean removed = false;
 
     synchronized (ITEM_MAP_LOCK) {
@@ -1253,11 +1259,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         if (mapItems != null) {
           ListIterator<ResourceItem> iterator = mapItems.listIterator();
           while (iterator.hasNext()) {
-            ResourceItem next = iterator.next();
-            if (next.getSource() == resourceFile) {
+            ResourceItem item = iterator.next();
+            if (source.isSourceOf(item)) {
               iterator.remove();
               if (removeFromFile) {
-                resourceFile.removeItem(next);
+                //noinspection unchecked - we checked source and item are of compatible types in isSourceOf.
+                source.removeItem(item);
               }
               removed = true;
             }
@@ -1334,10 +1341,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
-                ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
-                if (resFile != null) {
-                  assert resFile instanceof PsiResourceFile;
-                  PsiResourceFile resourceFile = (PsiResourceFile)resFile;
+                ResourceItemSource<? extends ResourceItem> source = sources.get(psiFile.getVirtualFile());
+                if (source != null) {
+                  assert source instanceof PsiResourceFile;
+                  PsiResourceFile psiResourceFile = (PsiResourceFile)source;
                   String name = tag.getAttributeValue(ATTR_NAME);
                   if (!StringUtil.isEmpty(name)) {
                     ResourceType type = AndroidResourceUtil.getType(tag);
@@ -1347,10 +1354,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       return;
                     }
                     if (type != null) {
-                      ResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, psiFile);
+                      PsiResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, psiFile);
                       synchronized (ITEM_MAP_LOCK) {
                         getMap(myNamespace, type, true).put(name, item);
-                        resourceFile.addItems(Collections.singletonList(item));
+                        psiResourceFile.addItem(item);
                         setModificationCount(ourModificationCounter.incrementAndGet());
                         invalidateParentCaches(myNamespace, type);
                         return;
@@ -1407,16 +1414,18 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
-                List<ResourceItem> ids = new ArrayList<>();
+                List<PsiResourceItem> ids = new ArrayList<>();
                 Map<ResourceType, ListMultimap<String, ResourceItem>> result = new HashMap<>();
                 addIds(result, ids, child, psiFile);
                 commitToRepository(result);
                 if (!ids.isEmpty()) {
-                  ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
+                  ResourceItemSource<? extends ResourceItem> resFile = sources.get(psiFile.getVirtualFile());
                   if (resFile != null) {
                     assert resFile instanceof PsiResourceFile;
-                    PsiResourceFile resourceFile = (PsiResourceFile)resFile;
-                    resourceFile.addItems(ids);
+                    PsiResourceFile psiResourceFile = (PsiResourceFile)resFile;
+                    for (PsiResourceItem id : ids) {
+                      psiResourceFile.addItem(id);
+                    }
                     setModificationCount(ourModificationCounter.incrementAndGet());
                     invalidateParentCaches(myNamespace, ResourceType.ID);
                   }
@@ -1484,11 +1493,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             }
 
             // Copy file map so we can delete while iterating
-            Collection<ResourceFile> resourceFiles = new ArrayList<>(myResourceFiles.values());
-            for (ResourceFile file : resourceFiles) {
-              ResourceFolderType resFolderType = ResourceHelper.getFolderType(file);
-              if (folderType == resFolderType && qualifiers.equals(file.getQualifiers())) {
-                removeFile(file);
+            Collection<ResourceItemSource<? extends ResourceItem>> sources = new ArrayList<>(ResourceFolderRepository.this.sources.values());
+            for (ResourceItemSource<? extends ResourceItem> source : sources) {
+              ResourceFolderType resFolderType = source.getFolderType();
+              if (folderType == resFolderType && qualifiers.equals(source.getFolderConfiguration().getQualifierString())) {
+                removeFile(source);
               }
             }
           }
@@ -1541,9 +1550,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (convertToPsiIfNeeded(psiFile, folderType)) {
                   return;
                 }
-                ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
-                if (resFile != null) {
-                  PsiResourceFile resourceFile = (PsiResourceFile)resFile;
+                ResourceItemSource<? extends ResourceItem> source = sources.get(psiFile.getVirtualFile());
+                if (source != null) {
+                  PsiResourceFile resourceFile = (PsiResourceFile)source;
                   String name;
                   if (!tag.isValid()) {
                     ResourceItem item = findValueResourceItem(tag, psiFile);
@@ -1602,49 +1611,34 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myIgnoreChildrenChanged = true;
     }
 
-    private void removeFile(@Nullable ResourceFile resourceFile) {
-      if (resourceFile == null) {
+    private void removeFile(@Nullable ResourceItemSource<? extends ResourceItem> source) {
+      if (source == null) {
         // No resources for this file
         return;
       }
-      // Do an exhaustive search, because the resourceFile's underlying VirtualFile is already deleted.
-      for (Map.Entry<VirtualFile, ResourceFile> entry : myResourceFiles.entrySet()) {
-        ResourceFile file = entry.getValue();
-        if (resourceFile == file) {
+      // Do an exhaustive search, because the source's underlying VirtualFile is already deleted.
+      for (Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>> entry : sources.entrySet()) {
+        if (source == entry.getValue()) {
           VirtualFile keyFile = entry.getKey();
-          myResourceFiles.remove(keyFile);
+          sources.remove(keyFile);
           break;
         }
       }
 
       setModificationCount(ourModificationCounter.incrementAndGet());
       invalidateParentCaches();
-
-      ResourceFolderType folderType = ResourceHelper.getFolderType(resourceFile);
-      // Check if there may be multiple items to remove.
-      if ((folderType == VALUES) || ((folderType != null) && FolderTypeRelationship.isIdGeneratingFolderType(folderType))) {
-        removeItemsFromFile(resourceFile);
-      } else if (folderType != null) {
-        // Simpler: remove the file item
-        List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
-        for (ResourceType type : resourceTypes) {
-          if (type != ResourceType.ID) {
-            String name = LintUtils.getBaseName(resourceFile.getFile().getName());
-            removeItems(resourceFile, type, name, false);  // no need since we're discarding the file
-          }
-        }
-      } // else: not a resource folder
+      removeItemsFromSource(source);
     }
 
     private void removeFile(@NotNull PsiFile psiFile) {
       assert !psiFile.isValid() || PsiProjectListener.isRelevantFile(psiFile);
 
-      ResourceFile resourceFile = myResourceFiles.get(psiFile.getVirtualFile());
-      if (resourceFile == null) {
+      ResourceItemSource<? extends ResourceItem> source = sources.get(psiFile.getVirtualFile());
+      if (source == null) {
         // No resources for this file
         return;
       }
-      myResourceFiles.remove(psiFile.getVirtualFile());
+      sources.remove(psiFile.getVirtualFile());
       setModificationCount(ourModificationCounter.incrementAndGet());
       invalidateParentCaches();
 
@@ -1652,7 +1646,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       // Check if there may be multiple items to remove.
       if (folderType == VALUES ||
           (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) && psiFile.getFileType() == StdFileTypes.XML)) {
-        removeItemsFromFile(resourceFile);
+        removeItemsFromSource(source);
       } else if (folderType != null) {
         // Simpler: remove the file item
         if (folderType == DRAWABLE) {
@@ -1666,7 +1660,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         for (ResourceType type : resourceTypes) {
           if (type != ResourceType.ID) {
             String name = ResourceHelper.getResourceName(psiFile);
-            removeItems(resourceFile, type, name, false);  // no need since we're discarding the file
+            removeItems(source, type, name, false);  // no need since we're discarding the file
           }
         }
       } // else: not a resource folder
@@ -1722,8 +1716,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (ATTR_ID.equals(attribute.getLocalName()) &&
                     ANDROID_URI.equals(attribute.getNamespace())) {
                   // for each id attribute!
-                  ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
-                  if (resFile != null) {
+                  ResourceItemSource<? extends ResourceItem> source = sources.get(psiFile.getVirtualFile());
+                  if (source != null) {
                     XmlTag xmlTag = attribute.getParent();
                     PsiElement oldChild = event.getOldChild();
                     PsiElement newChild = event.getNewChild();
@@ -1736,8 +1730,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         // Can happen when there are error nodes (e.g. attribute value not yet closed during typing etc)
                         return;
                       }
-                      if (resFile instanceof PsiResourceFile) {
-                        PsiResourceFile resourceFile = (PsiResourceFile)resFile;
+                      if (source instanceof PsiResourceFile) {
+                        PsiResourceFile psiResourceFile = (PsiResourceFile)source;
                         ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
                         synchronized (ITEM_MAP_LOCK) {
                           if (item != null) {
@@ -1745,11 +1739,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                             if (map != null) {
                               // Found the relevant item: delete it and create a new one in a new location
                               map.remove(oldName, item);
-                              resourceFile.removeItem(item);
+
+                              if (psiResourceFile.isSourceOf(item)) {
+                                psiResourceFile.removeItem((PsiResourceItem)item);
+                              }
+
                               if (!StringUtil.isEmpty(newName)) {
-                                ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
+                                PsiResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
                                 map.put(newName, newItem);
-                                resourceFile.addItem(newItem);
+                                psiResourceFile.addItem(newItem);
                               }
                               setModificationCount(ourModificationCounter.incrementAndGet());
                               invalidateParentCaches(myNamespace, ResourceType.ID);
@@ -1775,7 +1773,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 if (ATTR_ID.equals(attribute.getLocalName()) &&
                     ANDROID_URI.equals(attribute.getNamespace())) {
                   // for each id attribute!
-                  ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
+                  ResourceItemSource<? extends ResourceItem> resFile = sources.get(psiFile.getVirtualFile());
                   if (resFile != null) {
                     XmlTag xmlTag = attribute.getParent();
                     PsiElement oldChild = event.getOldChild();
@@ -1787,7 +1785,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       return;
                     }
                     if (resFile instanceof PsiResourceFile) {
-                      PsiResourceFile resourceFile = (PsiResourceFile)resFile;
+                      PsiResourceFile psiResourceFile = (PsiResourceFile)resFile;
                         ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
                         if (item != null) {
                           synchronized (ITEM_MAP_LOCK) {
@@ -1795,11 +1793,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                             if (map != null) {
                               // Found the relevant item: delete it and create a new one in a new location
                               map.remove(oldName, item);
-                              resourceFile.removeItem(item);
+                              if (psiResourceFile.isSourceOf(item)) {
+                                psiResourceFile.removeItem((PsiResourceItem)item);
+                              }
                               if (!StringUtil.isEmpty(newName)) {
-                                ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
+                                PsiResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
                                 map.put(newName, newItem);
-                                resourceFile.addItem(newItem);
+                                psiResourceFile.addItem(newItem);
                               }
                               setModificationCount(ourModificationCounter.incrementAndGet());
                               invalidateParentCaches(myNamespace, ResourceType.ID);
@@ -1813,7 +1813,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   rescan(psiFile, folderType);
                 } else if (ArrayUtil.contains(attribute.getLocalName(), ATTRS_DATA_BINDING)
                            && ArrayUtil.contains(attribute.getParent().getLocalName(), TAGS_DATA_BINDING)) {
-                  ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
+                  ResourceItemSource<? extends ResourceItem> resFile = sources.get(psiFile.getVirtualFile());
                   if (resFile != null) {
                     // Data-binding files are always scanned as PsiResourceFiles.
                     PsiResourceFile resourceFile = (PsiResourceFile)resFile;
@@ -1924,10 +1924,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                           if (!StringUtil.isEmpty(newName)) {
                             ResourceItem newItem = new PsiResourceItem(newName, type, myNamespace, xmlTag, psiFile);
                             map.put(newName, newItem);
-                            ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
+                            ResourceItemSource<? extends ResourceItem> resFile = sources.get(psiFile.getVirtualFile());
                             if (resFile != null) {
                               PsiResourceFile resourceFile = (PsiResourceFile)resFile;
-                              resourceFile.replace(item, newItem);
+                              resourceFile.removeItem((PsiResourceItem)item);
+                              resourceFile.addItem((PsiResourceItem)newItem);
                             }
                             else {
                               assert false : item;
@@ -2134,30 +2135,34 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
             // Moved a resource file from one resource folder to another: we need to update
             // the ResourceFile entries for this file. We may also need to update the types.
-            ResourceFile resourceFile = findResourceFile(oldDirName, name);
-            if (resourceFile != null) {
+            ResourceItemSource<? extends ResourceItem> source = findSource(oldDirName, name);
+            if (source != null) {
               if (oldFolderType != newFolderType) {
                 // In some cases we can do this cheaply, e.g. if you move from layout to menu
                 // we can just look up and change @layout/foo to @menu/foo, but if you move
                 // to or from values folder it gets trickier, so for now just treat this as a delete
                 // followed by an add
-                removeFile(resourceFile);
+                removeFile(source);
                 addFile(psiFile);
               } else {
-                VirtualFile vFile = VfsUtil.findFileByIoFile(resourceFile.getFile(), false);
-                if (!(resourceFile instanceof PsiResourceFile) || vFile == null) {
+                VirtualFile vFile = source.getVirtualFile();
+                if (!(source instanceof PsiResourceFile) || vFile == null) {
                   // We can't do the simple Psi-based surgery below, so removeFile and addFile to rescan.
-                  removeFile(resourceFile);
+                  removeFile(source);
                   addFile(psiFile);
                   return;
                 }
-                myResourceFiles.remove(vFile);
-                myResourceFiles.put(psiFile.getVirtualFile(), resourceFile);
-                PsiResourceFile psiResourceFile = (PsiResourceFile)resourceFile;
+                sources.remove(vFile);
+                sources.put(psiFile.getVirtualFile(), source);
+                PsiResourceFile psiResourceFile = (PsiResourceFile)source;
                 PsiDirectory newParent = psiFile.getParent();
                 assert newParent != null; // Since newFolderType != null
                 String newDirName = newParent.getName();
-                psiResourceFile.setPsiFile(psiFile, getQualifiers(newDirName));
+                FolderConfiguration config = FolderConfiguration.getConfigForFolder(newDirName);
+                if (config == null) {
+                  config = new FolderConfiguration();
+                }
+                psiResourceFile.setPsiFile(psiFile, config);
                 setModificationCount(ourModificationCounter.incrementAndGet()); // qualifiers may have changed: can affect configuration matching
                 // We need to recompute resource values too, since some of these can point to
                 // the old file (e.g. a drawable resource could have a DensityBasedResourceValue
@@ -2184,7 +2189,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             // The only trick here is that we don't actually have the PsiFile anymore.
             // Work around this by searching our PsiFile to ResourceFile map for a match.
             String dirName = oldParentDir.getName();
-            ResourceFile resourceFile = findResourceFile(dirName, name);
+            ResourceItemSource<? extends ResourceItem> resourceFile = findSource(dirName, name);
             if (resourceFile != null) {
               removeFile(resourceFile);
             }
@@ -2283,7 +2288,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 PsiDirectory parent = psiFile.getParent();
                 String oldName = (String)oldValue;
                 if (parent != null && parent.findFile(oldName) == null) {
-                  removeFile(findResourceFile(parent.getName(), oldName));
+                  removeFile(findSource(parent.getName(), oldName));
                 }
               }
             }
@@ -2301,7 +2306,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   @Nullable
-  private ResourceFile findResourceFile(String dirName, String fileName) {
+  private ResourceItemSource<? extends ResourceItem> findSource(String dirName, String fileName) {
     int index = dirName.indexOf('-');
     String qualifiers;
     String folderTypeName;
@@ -2313,22 +2318,34 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       folderTypeName = dirName.substring(0, index);
     }
     ResourceFolderType folderType = getTypeByName(folderTypeName);
+    FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForQualifierString(qualifiers);
+    if (folderConfiguration == null) {
+      folderConfiguration = new FolderConfiguration();
+    }
 
-    for (ResourceFile resourceFile : myResourceFiles.values()) {
-      String name = resourceFile.getFile().getName();
-      ResourceFolderType resFolderType = ResourceHelper.getFolderType(resourceFile);
-      if (folderType == resFolderType && fileName.equals(name) && qualifiers.equals(resourceFile.getQualifiers())) {
-        return resourceFile;
+    for (ResourceItemSource<? extends  ResourceItem> source : sources.values()) {
+      String sourceFilename;
+      // The file may not exist anymore in the filesystem, so VFS won't find it. For the case of ResourceFile, get the File object directly.
+      if (source instanceof ResourceFileAdapter) {
+        sourceFilename = ((ResourceFileAdapter)source).getResourceFile().getFile().getName();
+      } else {
+        VirtualFile virtualFile = source.getVirtualFile();
+        sourceFilename = virtualFile == null ? null : virtualFile.getName();
+      }
+      if (folderType == source.getFolderType() &&
+          fileName.equals(sourceFilename) &&
+          folderConfiguration.equals(source.getFolderConfiguration())) {
+        return source;
       }
     }
 
     return null;
   }
 
-  private void removeItemsFromFile(ResourceFile resourceFile) {
+  private void removeItemsFromSource(ResourceItemSource<? extends ResourceItem> source) {
     synchronized (ITEM_MAP_LOCK) {
-      for (ResourceItem item : resourceFile.getItems()) {
-        removeItems(resourceFile, item.getType(), item.getName(), false);  // no need since we're discarding the file
+      for (ResourceItem item : source) {
+        removeItems(source, item.getType(), item.getName(), false);  // no need since we're discarding the file
       }
     }
   }
@@ -2345,7 +2362,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private ResourceItem findValueResourceItem(XmlTag tag, @NotNull PsiFile file) {
     if (!tag.isValid()) {
       // This function should only be used if we know file's items are PsiResourceItems.
-      ResourceFile resFile = myResourceFiles.get(file.getVirtualFile());
+      ResourceItemSource<? extends ResourceItem> resFile = sources.get(file.getVirtualFile());
       if (resFile != null) {
         assert resFile instanceof PsiResourceFile;
         PsiResourceFile resourceFile = (PsiResourceFile)resFile;
@@ -2388,23 +2405,30 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       List<ResourceItem> items = map.get(name);
       assert items != null;
       if (tag != null) {
-        for (ResourceItem item : items) {
-          ResourceFile resourceFile = item.getSource();
-          if (resourceFile != null && FileUtil.filesEqual(resourceFile.getFile(), ioFile)) {
-            assert item instanceof PsiResourceItem;
-            PsiResourceItem psiItem = (PsiResourceItem)item;
-            if (psiItem.getTag() == tag) {
-              return item;
+        // Only PsiResourceItems can match.
+        for (ResourceItem resourceItem : items) {
+          if (resourceItem instanceof PsiResourceItem) {
+            PsiResourceItem psiResourceItem = (PsiResourceItem)resourceItem;
+            if (Objects.equals(psiResourceItem.getPsiFile(), file) && psiResourceItem.getTag() == tag) {
+              return resourceItem;
             }
           }
         }
-        return null;
       }
-
-      for (ResourceItem item : items) {
-        ResourceFile resourceFile = item.getSource();
-        if (resourceFile != null && FileUtil.filesEqual(resourceFile.getFile(), ioFile)) {
-          return item;
+      else {
+        // Check all items for the right source file.
+        for (ResourceItem item : items) {
+          if (item instanceof PsiResourceItem) {
+            if (Objects.equals(((PsiResourceItem)item).getPsiFile(), file)) {
+              return item;
+            }
+          }
+          else {
+            ResourceFile resourceFile = ((ResourceMergerItem)item).getSource();
+            if (resourceFile != null && FileUtil.filesEqual(resourceFile.getFile(), ioFile)) {
+              return item;
+            }
+          }
         }
       }
     }
@@ -2436,15 +2460,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       return false;
     }
 
-    if (myResourceFiles.size() != other.myResourceFiles.size()) {
+    if (sources.size() != other.sources.size()) {
       return false;
     }
-    for (Map.Entry<VirtualFile, ResourceFile> fileEntry : myResourceFiles.entrySet()) {
-      ResourceFile otherResFile = other.myResourceFiles.get(fileEntry.getKey());
+    for (Map.Entry<VirtualFile, ResourceItemSource<? extends ResourceItem>> fileEntry : sources.entrySet()) {
+      ResourceItemSource<? extends ResourceItem> otherResFile = other.sources.get(fileEntry.getKey());
       if (otherResFile == null) {
         return false;
       }
-      if (!FileUtil.filesEqual(fileEntry.getValue().getFile(), otherResFile.getFile())) {
+      if (!Objects.equals(fileEntry.getValue().getVirtualFile(), otherResFile.getVirtualFile())) {
         return false;
       }
     }
@@ -2480,50 +2504,37 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             return false;
           }
           ResourceItem item = itemEntry.getValue();
-          if (!ContainerUtil.exists(otherItemsList, resourceItem -> {
-            // Use #compareTo instead of #equals because #equals compares pointers of mSource.
-            if (resourceItem.compareTo(item) != 0) {
+          if (!ContainerUtil.exists(otherItemsList, otherItem -> {
+            if (!item.getReferenceToSelf().equals(otherItem.getReferenceToSelf())) {
               return false;
             }
-            // #compareTo doesn't check the ResourceValue. At least check that getValue is equivalent (getRawXmlText may be different).
-            // Skip ID type resources, where the ResourceValues are not important and where blob writing doesn't preserve the value.
-            if (item.getType() != ResourceType.ID) {
-              ResourceValue resValue = item.getResourceValue();
-              ResourceValue otherResValue = resourceItem.getResourceValue();
-              if (resValue == null || otherResValue == null) {
-                if (resValue != otherResValue) {
-                  return false;
-                }
-              }
-              else {
-                String resValueStr = resValue.getValue();
-                String otherResValueStr = otherResValue.getValue();
-                if (resValueStr == null || otherResValueStr == null) {
-                  if (resValueStr != otherResValueStr) {
+
+            if (Objects.equals(item.getFile(), otherItem.getFile())) {
+              // Items with the same references and same files should produce equal ResourceValues, including DensityResourceValues.
+              ResourceValue resourceValue = item.getResourceValue();
+              ResourceValue otherResourceValue = otherItem.getResourceValue();
+              switch (item.getType()) {
+                case ID:
+                  // Skip ID type resources, where the ResourceValues are not important and where blob writing doesn't preserve the value.
+                  break;
+                case STRING:
+                  if (resourceValue instanceof TextResourceValue && otherResourceValue instanceof TextResourceValue) {
+                    // Resource merger changes the namespace prefix for the XLIFF namespace, so the raw XML values are not equal. For now
+                    // compare the escaped values.
+                    if (!Objects.equals(resourceValue.getValue(), otherResourceValue.getValue())) {
+                      return false;
+                    }
+                    break;
+                  }
+                  // otherwise, fall through.
+                default:
+                  if (!Objects.equals(resourceValue, otherResourceValue)) {
                     return false;
                   }
-                }
-                else {
-                  if (!resValueStr.equals(otherResValueStr)) {
-                    return false;
-                  }
-                }
+                  break;
               }
             }
-            // We can only compareValueWith (compare equivalence of XML nodes) for VALUE items.
-            // For others, the XML node may be different before and after serialization.
-            ResourceFile source = item.getSource();
-            ResourceFile otherSource = resourceItem.getSource();
-            if (source != null && otherSource != null) {
-              ResourceFolderType ownFolderType = ResourceHelper.getFolderType(source);
-              ResourceFolderType otherFolderType = ResourceHelper.getFolderType(otherSource);
-              if (otherFolderType != ownFolderType) {
-                return false;
-              }
-              if (otherFolderType == VALUES) {
-                return resourceItem.compareValueWith(item);
-              }
-            }
+
             return true;
           })) {
             return false;

@@ -18,34 +18,33 @@ package com.android.tools.idea.res;
 import com.android.annotations.NonNull;
 import com.android.builder.model.ClassField;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.SourcelessResourceItem;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+
 /**
  * A {@link ResourceItem} for an item that is dynamically defined in a Gradle file. This needs a special class because (1) we can't rely on
  * the normal resource value parser to create resource values from XML, and (2) we need to implement getQualifiers since there is no source
  * file.
  */
-public class DynamicResourceValueItem extends SourcelessResourceItem {
+public class DynamicResourceValueItem implements ResourceItem {
+  @NotNull private final ResourceValue myResourceValue;
+
   public DynamicResourceValueItem(@NotNull ResourceNamespace namespace,
                                   @NonNull ResourceType type,
                                   @NonNull ClassField field) {
     // Dynamic values are always in the "current module", so they don't live in a namespace.
-    super(field.getName(), namespace, type, null, null);
-    mResourceValue = new ResourceValue(namespace, type, field.getName(), field.getValue());
+    myResourceValue = new ResourceValue(namespace, type, field.getName(), field.getValue());
   }
 
-  @NonNull
-  @Override
-  public String getQualifiers() {
-    return "";
-  }
 
   @NotNull
   public ResolveResult createResolveResult() {
@@ -62,5 +61,64 @@ public class DynamicResourceValueItem extends SourcelessResourceItem {
         return false;
       }
     };
+  }
+
+  @NonNull
+  @Override
+  public String getName() {
+    return myResourceValue.getName();
+  }
+
+  @NonNull
+  @Override
+  public ResourceType getType() {
+    return myResourceValue.getResourceType();
+  }
+
+  @Nullable
+  @Override
+  public String getLibraryName() {
+    return null;
+  }
+
+  @NonNull
+  @Override
+  public ResourceNamespace getNamespace() {
+    return myResourceValue.getNamespace();
+  }
+
+  @NonNull
+  @Override
+  public ResourceReference getReferenceToSelf() {
+    return myResourceValue.asReference();
+  }
+
+  @NonNull
+  @Override
+  public FolderConfiguration getConfiguration() {
+    return new FolderConfiguration();
+  }
+
+  @NonNull
+  @Override
+  public String getKey() {
+    return myResourceValue.getResourceUrl().toString().substring(1);
+  }
+
+  @Nullable
+  @Override
+  public ResourceValue getResourceValue() {
+    return myResourceValue;
+  }
+
+  @Nullable
+  @Override
+  public File getFile() {
+    return null;
+  }
+
+  @Override
+  public boolean isFileBased() {
+    return false;
   }
 }

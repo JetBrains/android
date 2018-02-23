@@ -116,7 +116,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       // Should still be defined:
       assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
       ResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
-      assertNotNull(newItem.getSource());
+      assertNotNull(newItem.getFile());
       // However, should be a different item
       assertNotSame(item, newItem);
     });
@@ -422,7 +422,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(appFacet);
     List<ResourceItem> resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
     assertEquals(1, resolved.size());
-    assertEquals("LEVEL 1", resolved.get(0).getValueText());
+    assertEquals("LEVEL 1", resolved.get(0).getResourceValue().getValue());
 
     // Retry reversing the library dependency to ensure the order does not depend on anything other than the
     // dependency order (like for example, alphabetical order of the modules).
@@ -441,7 +441,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     appResources = AppResourceRepository.getOrCreateInstance(appFacet);
     resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
     assertEquals(1, resolved.size());
-    assertEquals("LEVEL 2", resolved.get(0).getValueText());
+    assertEquals("LEVEL 2", resolved.get(0).getResourceValue().getValue());
   }
 
   private static void addModuleDependency(Module from, Module to) {

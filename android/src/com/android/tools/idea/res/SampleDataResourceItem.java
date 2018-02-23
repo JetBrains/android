@@ -18,9 +18,11 @@ package com.android.tools.idea.res;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
-import com.android.ide.common.resources.SourcelessResourceItem;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.sampledata.SampleDataCsvParser;
 import com.android.ide.common.resources.sampledata.SampleDataHolder;
 import com.android.ide.common.resources.sampledata.SampleDataJsonParser;
@@ -36,7 +38,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Node;
 
 import java.io.*;
 import java.util.*;
@@ -51,7 +52,7 @@ import static com.android.SdkConstants.EXT_JSON;
  * This class defines a sample data source. It also handles the caching and invalidation according
  * to the given functions passed in the creation.
  */
-public class SampleDataResourceItem extends SourcelessResourceItem {
+public class SampleDataResourceItem implements ResourceItem {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceItem.class);
 
   private static final Cache<String, SampleDataHolder> sSampleDataCache =
@@ -62,9 +63,13 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       .maximumWeight(50) // MB
       .build();
 
-  private final Function<OutputStream, Exception> myDataSource;
-  private final SmartPsiElementPointer<PsiElement> mySourceElement;
-  private final Supplier<Long> myDataSourceModificationStamp;
+  @NotNull private final String myName;
+  @NotNull private final ResourceNamespace myNamespace;
+  @NotNull private final Function<OutputStream, Exception> myDataSource;
+  @NotNull private final Supplier<Long> myDataSourceModificationStamp;
+  @Nullable private final SmartPsiElementPointer<PsiElement> mySourceElement;
+
+  @Nullable private ResourceValue myResourceValue;
   private final ContentType myContentType;
 
   /**
@@ -85,8 +90,8 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
                                  @Nullable SmartPsiElementPointer<PsiElement> sourceElement,
                                  @NonNull ContentType contentType) {
-    super(name, namespace, ResourceType.SAMPLE_DATA, null, null);
-
+    myName = name;
+    myNamespace = namespace;
     myDataSource = dataSource;
     myDataSourceModificationStamp = dataSourceModificationStamp;
     // We use SourcelessResourceItem as parent because we don't really obtain a FolderConfiguration or Qualifiers from
@@ -240,12 +245,6 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
     }
   }
 
-  @Nullable
-  @Override
-  public Node getValue() {
-    throw new UnsupportedOperationException("SampleDataResourceItem does not support getValue");
-  }
-
   /**
    * Retrieves the content from the Sample Data cache. If the data was out of date and needed to be refreshed, the passed callback will
    * be called.
@@ -279,7 +278,6 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   }
 
   @Nullable
-  @Override
   public String getValueText() {
     byte[] content = getContent(null);
     return content != null ? new String(content, Charsets.UTF_8) : null;
@@ -287,18 +285,65 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
 
   @NonNull
   @Override
-  public String getQualifiers() {
-    return "";
+  public String getName() {
+    return myName;
+  }
+
+  @NonNull
+  @Override
+  public ResourceType getType() {
+    return ResourceType.SAMPLE_DATA;
+  }
+
+  @Nullable
+  @Override
+  public String getLibraryName() {
+    return null;
+  }
+
+  @NonNull
+  @Override
+  public ResourceNamespace getNamespace() {
+    return myNamespace;
+  }
+
+  @NonNull
+  @Override
+  public ResourceReference getReferenceToSelf() {
+    return new ResourceReference(getNamespace(), getType(), getName());
+  }
+
+  @NonNull
+  @Override
+  public FolderConfiguration getConfiguration() {
+    return new FolderConfiguration();
+  }
+
+  @NonNull
+  @Override
+  public String getKey() {
+    return getType() + "/" + getName();
   }
 
   @NotNull
   @Override
   public ResourceValue getResourceValue() {
-    byte[] content = getContent(this::wasTouched);
-    if (mResourceValue == null) {
-      mResourceValue = new SampleDataResourceValue(getReferenceToSelf(), content);
+    byte[] content = getContent(() -> myResourceValue = null);
+    if (myResourceValue == null) {
+      myResourceValue = new SampleDataResourceValue(getReferenceToSelf(), content);
     }
-    return mResourceValue;
+    return myResourceValue;
+  }
+
+  @Nullable
+  @Override
+  public File getFile() {
+    return null;
+  }
+
+  @Override
+  public boolean isFileBased() {
+    return false;
   }
 
   @Nullable

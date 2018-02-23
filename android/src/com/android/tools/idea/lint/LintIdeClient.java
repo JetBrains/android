@@ -21,7 +21,6 @@ import com.android.builder.model.LintOptions;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.AbstractResourceRepository;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.manifmerger.Actions;
 import com.android.repository.Revision;
@@ -979,9 +978,9 @@ public class LintIdeClient extends LintClient implements Disposable {
   public Location.Handle createResourceItemHandle(@NonNull ResourceItem item) {
     XmlTag tag = LocalResourceRepository.getItemTag(myProject, item);
     if (tag != null) {
-      ResourceFile source = item.getSource();
+      File source = item.getFile();
       assert source != null : item;
-      return new LocationHandle(source.getFile(), tag);
+      return new LocationHandle(source, tag);
     }
     return super.createResourceItemHandle(item);
   }

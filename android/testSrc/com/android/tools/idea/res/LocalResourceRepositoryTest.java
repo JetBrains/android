@@ -27,7 +27,7 @@ import java.util.Collection;
 public class LocalResourceRepositoryTest extends AndroidTestCase {
   private static final String TEST_FILE = "xmlpull/layout.xml";
 
-  public void test1() {
+  public void testLocalResourceRepository() {
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf");

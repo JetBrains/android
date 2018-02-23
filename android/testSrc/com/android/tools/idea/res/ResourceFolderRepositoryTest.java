@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.DataBindingResourceType;
-import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
@@ -146,7 +144,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     return ResourceFolderRegistry.get(myFacet, dir);
   }
 
-  public void testComputeResourceStrings() throws Exception {
+  public void testComputeResourceStrings() {
     // Tests the handling of markup to raw strings
     // For example, for this strings definition
     //   <string name="title_template_step">Step <xliff:g id="step_number">%1$d</xliff:g>: Lorem Ipsum</string>
@@ -180,7 +178,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   @SuppressWarnings("ConstantConditions")
-  public void testXliff() throws Exception {
+  public void testXliff() {
     // Tests the handling of xliff markup
     VirtualFile file1 = myFixture.copyFileToProject(XLIFF, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -197,7 +195,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
                  resources.getResourceItem(ResourceType.STRING, "other").get(0).getResourceValue().getValue());
   }
 
-  public void testInitialCreate() throws Exception {
+  public void testInitialCreate() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
 
@@ -211,7 +209,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout2"));
   }
 
-  public void testAddFile() throws Exception {
+  public void testAddFile() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     ResourceFolderRepository resources = createRepository();
@@ -235,7 +233,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(3, layouts.size());
   }
 
-  public void testAddUnrelatedFile() throws Exception {
+  public void testAddUnrelatedFile() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     ResourceFolderRepository resources = createRepository();
@@ -321,7 +319,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.getModificationCount() > generation);
   }
 
-  public void testDeleteResourceDirectory() throws Exception {
+  public void testDeleteResourceDirectory() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     final VirtualFile file3 = myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout3.xml");
@@ -348,7 +346,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.getModificationCount() > generation);
   }
 
-  public void testDeleteRemainderResourceIDs() throws Exception {
+  public void testDeleteRemainderResourceIDs() {
     final VirtualFile file = myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout-xlarge-land/layout.xml");
     final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile1);
@@ -377,7 +375,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.ID, "nonExistent"));
   }
 
-  public void testRenameLayoutFile() throws Exception {
+  public void testRenameLayoutFile() {
     final VirtualFile file2 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
 
     ResourceFolderRepository resources = createRepository();
@@ -406,7 +404,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.getModificationCount() > generation);
   }
 
-  public void testRenameDrawableFile() throws Exception {
+  public void testRenameDrawableFile() {
     //  rename drawable file
     final VirtualFile file5 = myFixture.copyFileToProject(LAYOUT1, "res/drawable-xhdpi/foo2.png");
     ResourceFolderRepository resources = createRepository();
@@ -436,7 +434,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.getModificationCount() > generation);
   }
 
-  public void testRenameValueFile() throws Exception {
+  public void testRenameValueFile() {
     final VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -448,7 +446,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(items);
     assertEquals(1, items.size());
     ResourceItem item = items.get(0);
-    assertEquals("myvalues.xml", item.getSource().getFile().getName());
+    assertEquals("myvalues.xml", item.getFile().getName());
 
     // We need to make sure there is a document. PsiVFSListener uses createFileCopyWithNewName
     // to populate the new Psi file with the old Psi file's content. However, by the time that runs,
@@ -476,7 +474,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(items);
     assertEquals(1, items.size());
     item = items.get(0);
-    assertEquals("renamedvalues.xml", item.getSource().getFile().getName());
+    assertEquals("renamedvalues.xml", item.getFile().getName());
 
     // TODO: Optimize this such that there's no modification change for this. It's tricky because
     // for file names we get separate notification from the old file deletion (beforePropertyChanged)
@@ -486,7 +484,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     //assertEquals(generation, resources.getModificationCount());
   }
 
-  public void testRenameValueFileToInvalid() throws Exception {
+  public void testRenameValueFileToInvalid() {
     final VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -518,7 +516,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     return item.get(0);
   }
 
-  public void testMoveFileResourceFileToNewConfiguration() throws Exception {
+  public void testMoveFileResourceFileToNewConfiguration() {
     // Move a file-based resource file from one configuration to another; verify that
     // items are preserved, generation changed (since it can affect config matching),
     // and resource files updated.
@@ -529,9 +527,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     ResourceItem item = getOnlyItem(resources, ResourceType.LAYOUT, "layout1");
-    assertEquals("land", item.getSource().getQualifiers());
+    assertEquals("land", item.getConfiguration().getQualifierString());
     ResourceItem idItem = getOnlyItem(resources, ResourceType.ID, "btn_title_refresh");
-    assertEquals("layout-land", idItem.getSource().getFile().getParentFile().getName());
+    assertEquals("layout-land", idItem.getFile().getParentFile().getName());
 
     long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -549,12 +547,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
     item = getOnlyItem(resources, ResourceType.LAYOUT, "layout1");
-    assertEquals("port", item.getSource().getQualifiers());
+    assertEquals("port", item.getConfiguration().getQualifierString());
     idItem = getOnlyItem(resources, ResourceType.ID, "btn_title_refresh");
-    assertEquals("layout-port", idItem.getSource().getFile().getParentFile().getName());
+    assertEquals("layout-port", idItem.getFile().getParentFile().getName());
   }
 
-  public void testMoveValueResourceFileToNewConfiguration() throws Exception {
+  public void testMoveValueResourceFileToNewConfiguration() {
     // Move a value file from one configuration to another; verify that
     // items are preserved, generation changed (since it can affect config matching),
     // and resource files updated.
@@ -565,7 +563,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "app_name");
-    assertEquals("en", item.getSource().getQualifiers());
+    assertEquals("en", item.getConfiguration().getQualifierString());
     assertEquals("en", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue().getValue());
@@ -585,13 +583,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
     assertTrue(generation < resources.getModificationCount());
     item = getOnlyItem(resources, ResourceType.STRING, "app_name");
-    assertEquals("no", item.getSource().getQualifiers());
+    assertEquals("no", item.getConfiguration().getQualifierString());
     assertEquals("no", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
     assertEquals("Animations Demo", item.getResourceValue().getValue());
   }
 
-  public void testMoveResourceFileBetweenDensityFolders() throws Exception {
+  public void testMoveResourceFileBetweenDensityFolders() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=61648
     // Make sure we flush resource values when reusing resource items incrementally
 
@@ -605,9 +603,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     ResourceItem item = getOnlyItem(resources, ResourceType.DRAWABLE, "picture");
-    ResourceFile source = item.getSource();
-    assertNotNull(source);
-    assertEquals("mdpi", source.getQualifiers());
+    assertEquals("mdpi", item.getConfiguration().getQualifierString());
     ResourceValue resourceValue = item.getResourceValue();
     assertNotNull(resourceValue);
     String valuePath = resourceValue.getValue().replace(File.separatorChar, '/');
@@ -629,16 +625,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "picture"));
     item = getOnlyItem(resources, ResourceType.DRAWABLE, "picture");
-    source = item.getSource();
-    assertNotNull(source);
-    assertEquals("hdpi", source.getQualifiers());
+    assertEquals("hdpi", item.getConfiguration().getQualifierString());
     resourceValue = item.getResourceValue();
     assertNotNull(resourceValue);
     valuePath = resourceValue.getValue().replace(File.separatorChar, '/');
     assertTrue(valuePath, valuePath.endsWith("res/drawable-hdpi/picture.png"));
   }
 
-  public void testMoveFileResourceFileToNewType() throws Exception {
+  public void testMoveFileResourceFileToNewType() {
     // Move a file resource file file from one folder to another, changing the type
     // (e.g. anim to animator), verify that resource types are updated
     final VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
@@ -665,10 +659,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.MENU, "layout1"));
     assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
     ResourceItem item = getOnlyItem(resources, ResourceType.MENU, "layout1");
-    assertSame(ResourceFolderType.MENU, ((PsiResourceFile)item.getSource()).getFolderType());
+    assertSame(ResourceFolderType.MENU, ((PsiResourceItem)item).getSource().getFolderType());
   }
 
-  public void testMoveOutOfResourceFolder() throws Exception {
+  public void testMoveOutOfResourceFolder() {
     // Move value files out of its resource folder; items should disappear
     final VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     final VirtualFile javaFile = myFixture.copyFileToProject(VALUES1, "src/my/pkg/Dummy.java");
@@ -694,7 +688,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
   }
 
-  public void testMoveIntoResourceFolder() throws Exception {
+  public void testMoveIntoResourceFolder() {
     // Move value files out of its resource folder; items should disappear
     final VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/dummy.ignore");
     final VirtualFile xmlFile = myFixture.copyFileToProject(VALUES1, "src/my/pkg/values.xml");
@@ -721,7 +715,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
   }
 
-  public void testReplaceResourceFile() throws Exception {
+  public void testReplaceResourceFile() {
     final VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
 
     ResourceFolderRepository resources = createRepository();
@@ -749,7 +743,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     //assertTrue(generation < resources.getModificationCount());
   }
 
-  public void testAddEmptyValueFile() throws Exception {
+  public void testAddEmptyValueFile() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
@@ -757,7 +751,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(generation, resources.getModificationCount());
   }
 
-  public void testRawFolder() throws Exception {
+  public void testRawFolder() {
     // In this folder, any file extension is allowed
     myFixture.copyFileToProject(LAYOUT1, "res/raw/raw1.xml");
     ResourceFolderRepository resources = createRepository();
@@ -788,7 +782,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResourceItem(ResourceType.RAW, "numbers"));
   }
 
-  public void testEditLayoutNoOp() throws Exception {
+  public void testEditLayoutNoOp() {
     resetScanCounter();
 
     // Make some miscellaneous edits in the file that have no bearing on the
@@ -940,7 +934,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  public void testEditValueFileNoOp() throws Exception {
+  public void testEditValueFileNoOp() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -984,7 +978,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testInsertNewElementWithId() throws Exception {
+  public void testInsertNewElementWithId() {
     resetScanCounter();
 
     // Make some miscellaneous edits in the file that have no bearing on the
@@ -1046,7 +1040,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.ID, "newid4"));
   }
 
-  public void testEditIdAttributeValue() throws Exception {
+  public void testEditIdAttributeValue() {
     resetScanCounter();
     // Edit the id attribute value of a layout item to change the set of available ids
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
@@ -1095,7 +1089,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditIdAttributeValue2() throws Exception {
+  public void testEditIdAttributeValue2() {
     // Edit the id attribute value: rather than by making a full value replacement,
     // perform a tiny edit on the character content; this takes a different code
     // path in the incremental updater
@@ -1163,7 +1157,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
 
-  public void testEditIdFromDrawable() throws Exception {
+  public void testEditIdFromDrawable() {
     resetScanCounter();
 
     // Mix PNGs and XML in the same directory.
@@ -1294,7 +1288,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
   }
 
-  public void testEditValueText() throws Exception {
+  public void testEditValueText() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1367,7 +1361,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testNestedEditValueText() throws Exception {
+  public void testNestedEditValueText() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1439,7 +1433,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditValueName() throws Exception {
+  public void testEditValueName() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1493,7 +1487,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddValue() throws Exception {
+  public void testAddValue() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1542,7 +1536,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testRemoveValue() throws Exception {
+  public void testRemoveValue() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1596,7 +1590,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddIdValue() throws Exception {
+  public void testAddIdValue() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1646,7 +1640,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemoveIdValue() throws Exception {
+  public void testRemoveIdValue() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1695,7 +1689,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testChangeType() throws Exception {
+  public void testChangeType() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1731,7 +1725,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testBreakNameAttribute() throws Exception {
+  public void testBreakNameAttribute() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1766,7 +1760,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testChangeValueTypeByTagNameEdit() throws Exception {
+  public void testChangeValueTypeByTagNameEdit() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1799,7 +1793,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testEditStyleName() throws Exception {
+  public void testEditStyleName() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1851,7 +1845,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditStyleParent() throws Exception {
+  public void testEditStyleParent() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1929,7 +1923,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testEditStyleItemText() throws Exception {
+  public void testEditStyleItemText() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1996,7 +1990,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditStyleItemName() throws Exception {
+  public void testEditStyleItemName() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -2063,7 +2057,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddStyleItem() throws Exception {
+  public void testAddStyleItem() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -2137,7 +2131,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemoveStyleItem() throws Exception {
+  public void testRemoveStyleItem() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -2210,7 +2204,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditDeclareStyleableAttr() throws Exception {
+  public void testEditDeclareStyleableAttr() {
     // Check edits of the name in a <declare-styleable> element.
     resetScanCounter();
 
@@ -2291,7 +2285,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditAttr() throws Exception {
+  public void testEditAttr() {
     // Insert, remove and change <attr> attributes inside a <declare-styleable> and ensure that
     resetScanCounter();
 
@@ -2406,7 +2400,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testEditDeclareStyleableFlag() throws Exception {
+  public void testEditDeclareStyleableFlag() {
     // Rename, add and remove <flag> and <enum> nodes under a declare styleable and assert
     // that the declare styleable parent is updated
     resetScanCounter();
@@ -2501,7 +2495,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testEditPluralItems() throws Exception {
+  public void testEditPluralItems() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2564,7 +2558,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddPluralItems() throws Exception {
+  public void testAddPluralItems() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2632,7 +2626,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemovePluralItems() throws Exception {
+  public void testRemovePluralItems() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2702,7 +2696,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditArrayItemText() throws Exception {
+  public void testEditArrayItemText() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2767,7 +2761,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddStringArrayItemElements() throws Exception {
+  public void testAddStringArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2842,7 +2836,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemoveStringArrayItemElements() throws Exception {
+  public void testRemoveStringArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2910,7 +2904,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddIntegerArrayItemElements() throws Exception {
+  public void testAddIntegerArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2983,7 +2977,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemoveIntegerArrayItemElements() throws Exception {
+  public void testRemoveIntegerArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -3050,7 +3044,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddTypedArrayItemElements() throws Exception {
+  public void testAddTypedArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -3124,7 +3118,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testGradualEdits() throws Exception {
+  public void testGradualEdits() {
     resetScanCounter();
 
     // Gradually type in the contents of a value file and make sure we end up with a valid view of the world
@@ -3209,7 +3203,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testEmptyNames_values() throws Exception {
+  public void testEmptyNames_values() {
     VirtualFile file1 = myFixture.copyFileToProject(VALUES_EMPTY, "res/values/empty.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -3251,7 +3245,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resources.getConfiguredResources(new FolderConfiguration());
   }
 
-  public void testEmptyNames_layouts() throws Exception {
+  public void testEmptyNames_layouts() {
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -3277,7 +3271,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resources.getConfiguredResources(new FolderConfiguration());
   }
 
-  public void testIssue56799() throws Exception {
+  public void testIssue56799() {
     // Test deleting a string; ensure that the whole repository is updated correctly.
     // Regression test for
     //   https://code.google.com/p/android/issues/detail?id=56799
@@ -3335,7 +3329,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditXmlProcessingInstructionAttrInValues() throws Exception {
+  public void testEditXmlProcessingInstructionAttrInValues() {
     // Test editing an attribute in the XML prologue of a values file.
     VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -3369,7 +3363,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  public void testEditXmlProcessingInstructionAttrInLayout() throws Exception {
+  public void testEditXmlProcessingInstructionAttrInLayout() {
     // Test editing an attribute in the XML prologue of a layout file with IDs.
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -3401,7 +3395,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  public void testIssue64239() throws Exception {
+  public void testIssue64239() {
     // If you duplicate a string, then change its contents (which still duplicated),
     // and then finally rename the string, then the value of the second clone will
     // continue to be referred from the first string:
@@ -3515,7 +3509,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testLoadDuplicatedValues() throws Exception {
+  public void testLoadDuplicatedValues() {
     resetScanCounter();
 
     // Test loading up a file that already illegally had duplicates.
@@ -3577,7 +3571,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testLoadValuesWithBadName() throws Exception {
+  public void testLoadValuesWithBadName() {
     resetScanCounter();
 
     // If a file had bad value names, test that it can still be parsed.
@@ -3617,7 +3611,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testIdScanFromLayout() throws Exception {
+  public void testIdScanFromLayout() {
     // Test for http://b.android.com/172239
     myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout/layout1.xml");
     ResourceFolderRepository resources = createRepository();
@@ -3627,7 +3621,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertContainsElements(ids, "header", "image", "styledView", "imageView", "imageView2", "imageButton", "nonExistent");
   }
 
-  public void testSync() throws Exception {
+  public void testSync() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=79629
     // Ensure that sync() handles rescanning immediately
     VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
@@ -3702,28 +3696,23 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(1, variables.size());
     final PsiDataBindingResourceItem variable1 = variables.get(0);
     assertEquals("variable1", variable1.getName());
-    assertEquals("String", variable1.getExtra(SdkConstants.ATTR_TYPE));
+    assertEquals("String", variable1.getExtra(ATTR_TYPE));
     assertNotNull(variable1.getXmlTag());
 
     List<PsiDataBindingResourceItem> imports = new ArrayList<>();// clone to be able to sort
     imports.addAll(info.getItems(DataBindingResourceType.IMPORT));
     assertEquals(2, imports.size());
 
-    Collections.sort(imports, new Comparator<PsiDataBindingResourceItem>() {
-      @Override
-      public int compare(PsiDataBindingResourceItem item1, PsiDataBindingResourceItem item2) {
-        return item1.getExtra(SdkConstants.ATTR_TYPE).compareTo(item2.getExtra(SdkConstants.ATTR_TYPE));
-      }
-    });
+    Collections.sort(imports, Comparator.comparing(item -> item.getExtra(ATTR_TYPE)));
 
     PsiDataBindingResourceItem import1 = imports.get(0);
-    assertEquals("p1.p2.import1", import1.getExtra(SdkConstants.ATTR_TYPE));
-    assertNull(import1.getExtra(SdkConstants.ATTR_ALIAS));
+    assertEquals("p1.p2.import1", import1.getExtra(ATTR_TYPE));
+    assertNull(import1.getExtra(ATTR_ALIAS));
     assertNotNull(import1.getXmlTag());
 
     PsiDataBindingResourceItem import2 = imports.get(1);
-    assertEquals("p1.p2.import2", import2.getExtra(SdkConstants.ATTR_TYPE));
-    assertEquals("i2", import2.getExtra(SdkConstants.ATTR_ALIAS));
+    assertEquals("p1.p2.import2", import2.getExtra(ATTR_TYPE));
+    assertEquals("i2", import2.getExtra(ATTR_ALIAS));
     assertNotNull(import2.getXmlTag());
 
     List<DataBindingInfo.ViewWithId> viewsWithIds = info.getViewsWithIds();
@@ -3753,7 +3742,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ExecutorService executorService = new SequentialTaskExecutor("", PooledThreadExecutor.INSTANCE);
     Future<ResourceFolderRepository> loadJob = executorService.submit(new Callable<ResourceFolderRepository>() {
       @Override
-      public ResourceFolderRepository call() throws Exception {
+      public ResourceFolderRepository call() {
         return createRepository();
       }
     });
@@ -3761,13 +3750,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
     AndroidFacet facet = resources.getFacet();
     assertEquals(1, resources.getDataBindingResourceFiles().size());
-    assertEquals("land", getOnlyItem(resources, ResourceType.LAYOUT, "layout_with_data_binding").getQualifiers());
+    assertEquals("land", getOnlyItem(resources, ResourceType.LAYOUT, "layout_with_data_binding").getConfiguration().getQualifierString());
     ResourceItem dupedStringItem = resources.getResourceItem(ResourceType.STRING, "app_name").get(0);
     assertNotNull(dupedStringItem);
-    assertEquals("en", dupedStringItem.getQualifiers());
+    assertEquals("en", dupedStringItem.getConfiguration().getQualifierString());
   }
 
-  public void testEditColorStateList() throws Exception {
+  public void testEditColorStateList() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(COLOR_STATELIST, "res/color/my_state_list.xml");
@@ -3831,7 +3820,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   /**
    * Check that whitespace edits do not trigger a rescan
    */
-  public void testEmptyEdits() throws Exception {
+  public void testEmptyEdits() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -3934,7 +3923,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(0, resourcesReloaded.myInitialScanState.numXmlReparsed);
   }
 
-  public void testSerialization() throws Exception {
+  public void testSerialization() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout.xml");
     myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
@@ -3964,7 +3953,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(fromBlob.equalFilesItems(resources));
   }
 
-  public void testInvalidateCache() throws Exception {
+  public void testInvalidateCache() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout.xml");
     myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
@@ -3982,7 +3971,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(resourcesReloaded.myInitialScanState.numXml, resourcesReloaded.myInitialScanState.numXmlReparsed);
   }
 
-  public void testSerializationRemoveXmlFileAndLoad() throws Exception {
+  public void testSerializationRemoveXmlFileAndLoad() {
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -4043,7 +4032,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(fromBlob2.hasResourceItem(ResourceType.STRING, "hello_world"));
   }
 
-  public void testSerializationRemoveDrawableFileAndLoad() throws Exception {
+  public void testSerializationRemoveDrawableFileAndLoad() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     VirtualFile file1 = myFixture.copyFileToProject(DRAWABLE, "res/drawable/logo.png");
     final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -4105,7 +4094,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_there"));
   }
 
-  public void testSerializationAddXmlFileAndLoad() throws Exception {
+  public void testSerializationAddXmlFileAndLoad() {
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
@@ -4128,7 +4117,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(fromBlob.hasResourceItem(ResourceType.ID, "noteArea"));
   }
 
-  public void testSerializationAddDrawableFileAndLoad() throws Exception {
+  public void testSerializationAddDrawableFileAndLoad() {
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
@@ -4149,7 +4138,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(fromBlob.hasResourceItem(ResourceType.DRAWABLE, "logo"));
   }
 
-  public void testSerializeLayoutAndIdResourceValues() throws Exception {
+  public void testSerializeLayoutAndIdResourceValues() {
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/activity_foo.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/activity_foo.xml");
@@ -4181,7 +4170,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(valueString.contains("layout-xlarge-land"));
   }
 
-  public void testSerializeDensityBasedResourceValues() throws Exception {
+  public void testSerializeDensityBasedResourceValues() {
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-hdpi/drawable_foo.xml");
     myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-xhdpi/drawable_foo.xml");

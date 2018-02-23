@@ -25,10 +25,9 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.repository.ResourceVisibilityLookup
 import com.android.ide.common.resources.AbstractResourceRepository
 import com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION
-import com.android.ide.common.resources.DataFile
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
-import com.android.ide.common.resources.ResourceItem.*
+import com.android.ide.common.resources.ResourceMergerItem.*
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.xml.AndroidManifestParser
 import com.android.io.FileWrapper
@@ -774,8 +773,8 @@ private fun addFrameworkItems(
   val items = frameworkResources.getPublicResourcesOfType(type)
   for (item in items) {
     if (!includeFileResources) {
-      val sourceFile = item.source
-      if (sourceFile != null && !sourceFile.file.parent.startsWith(FD_RES_VALUES)) {
+      val sourceFile = item.file
+      if (sourceFile != null && !sourceFile.parent.startsWith(FD_RES_VALUES)) {
         continue
       }
     }
@@ -797,10 +796,8 @@ private fun addProjectItems(
       continue
     }
     val items = repository.getResourceItem(type, resourceName) ?: continue
-    if (!includeFileResources) {
-      if (items[0].sourceType != DataFile.FileType.XML_VALUES) {
-        continue
-      }
+    if (!includeFileResources && items[0].isFileBased) {
+      continue
     }
 
     destination.add(PREFIX_RESOURCE_REF + type.getName() + '/'.toString() + resourceName)

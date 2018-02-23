@@ -318,8 +318,8 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
   @Nullable
   private PsiDirectory getOrCreateTargetDirectory(ResourceFolderRepository base, ResourceItem resourceItem) {
     PsiManager manager = PsiManager.getInstance(myProject);
-    if (resourceItem.getSource() != null) {
-      ResourceFolderType folderType = ResourceHelper.getFolderType(resourceItem.getSource());
+    if (resourceItem.getFile() != null) {
+      ResourceFolderType folderType = ResourceFolderType.getFolderType(resourceItem.getFile().getParentFile().getName());
       if (folderType != null) {
         try {
           return manager.findDirectory(
@@ -336,9 +336,9 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   @Nullable
   private PsiFile getOrCreateTargetValueFile(ResourceFolderRepository base, ResourceItem resourceItem) {
-    if (resourceItem.getSource() != null) {
+    if (resourceItem.getFile() != null) {
       try {
-        String name = resourceItem.getSource().getFile().getName();
+        String name = resourceItem.getFile().getName();
         PsiDirectory dir = getOrCreateTargetDirectory(base, resourceItem);
         if (dir != null) {
           PsiFile result = dir.findFile(name);

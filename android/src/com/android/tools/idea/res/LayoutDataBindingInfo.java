@@ -35,7 +35,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +42,7 @@ import java.util.Map;
 /**
  * A data class that keeps data binding related information that was extracted from a layout file.
  */
-class LayoutDataBindingInfo implements DataBindingInfo {
+public class LayoutDataBindingInfo implements DataBindingInfo {
   private final Map<DataBindingResourceType, List<PsiDataBindingResourceItem>> myItems =
     Maps.newEnumMap(DataBindingResourceType.class);
 
@@ -212,9 +211,8 @@ class LayoutDataBindingInfo implements DataBindingInfo {
 
   @Override
   public List<ViewWithId> getViewsWithIds() {
-    Collection<ResourceItem> resourceItems = myPsiResourceFile.getItems();
     List<ViewWithId> result = Lists.newArrayList();
-    for (ResourceItem item : resourceItems) {
+    for (ResourceItem item : myPsiResourceFile) {
       if (!ResourceType.ID.equals(item.getType())) {
         continue;
       }
