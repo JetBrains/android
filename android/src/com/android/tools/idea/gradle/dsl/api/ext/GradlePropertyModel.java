@@ -217,6 +217,12 @@ public interface GradlePropertyModel {
   ResolvedPropertyModel resolve();
 
   /**
+   * @return an unresolved model representing this property.
+   */
+  @NotNull
+  GradlePropertyModel getUnresolvedModel();
+
+  /**
    * @return the {@link PsiElement} that this property originated from.
    */
   @Nullable

@@ -60,6 +60,7 @@ public interface ResolvedPropertyModel extends GradlePropertyModel {
   /**
    * Returns the {@link GradlePropertyModel} representing this property.
    */
+  @Override
   @NotNull
   GradlePropertyModel getUnresolvedModel();
 

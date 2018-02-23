@@ -327,6 +327,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     return new ResolvedPropertyModelImpl(this);
   }
 
+  @NotNull
+  @Override
+  public GradlePropertyModel getUnresolvedModel() {
+    return this;
+  }
+
   @Nullable
   @Override
   public PsiElement getPsiElement() {

@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword.Type;
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public interface SigningConfigModel {
@@ -30,13 +27,7 @@ public interface SigningConfigModel {
   ResolvedPropertyModel storeFile();
 
   @NotNull
-  GradleNullableValue<SigningConfigPassword> storePassword();
-
-  @NotNull
-  SigningConfigModel setStorePassword(@NotNull Type type, @NotNull String storePassword);
-
-  @NotNull
-  SigningConfigModel removeStorePassword();
+  PasswordPropertyModel storePassword();
 
   @NotNull
   ResolvedPropertyModel storeType();
@@ -45,62 +36,5 @@ public interface SigningConfigModel {
   ResolvedPropertyModel keyAlias();
 
   @NotNull
-  GradleNullableValue<SigningConfigPassword> keyPassword();
-
-  @NotNull
-  SigningConfigModel setKeyPassword(@NotNull Type type, @NotNull String keyPassword);
-
-  @NotNull
-  SigningConfigModel removeKeyPassword();
-
-  final class SigningConfigPassword {
-    public enum Type {
-      PLAIN_TEXT, // Password specified in the gradle file as plain text.
-      ENVIRONMENT_VARIABLE, // Password read from an environment variable. Ex: System.getenv("KSTOREPWD")
-      CONSOLE_READ // Password read from Console. Ex: System.console().readLine("\nKeystore password: ")
-    }
-
-    @NotNull private final Type myType;
-    @NotNull private final String myPasswordText;
-
-    public SigningConfigPassword(@NotNull Type type, @NotNull String passwordText) {
-      myType = type;
-      myPasswordText = passwordText;
-    }
-
-    @NotNull
-    public Type getType() {
-      return myType;
-    }
-
-    @NotNull
-    public String getPasswordText() {
-      return myPasswordText;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("Type: %1$s, Text: %2$s", myType, myPasswordText);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(myType, myPasswordText);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof SigningConfigPassword)) {
-        return false;
-      }
-
-      SigningConfigPassword other = (SigningConfigPassword)o;
-      return myType.equals(other.myType)
-             && myPasswordText.equals(other.myPasswordText);
-    }
-  }
+  PasswordPropertyModel keyPassword();
 }

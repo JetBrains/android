@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.TypeNameValueElemen
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
@@ -49,6 +50,7 @@ import java.util.Objects;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.*;
 import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.*;
@@ -358,6 +360,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
            model.getFullyQualifiedName().equals(other.getFullyQualifiedName());
   }
 
+  public static <T> void verifyPasswordModel(@NotNull PasswordPropertyModel model, T value, PasswordType passwordType) {
+    assertEquals(value, model.getValue(OBJECT_TYPE));
+    assertEquals(passwordType, model.getType());
+  }
 
   public static <T> void verifyPropertyModel(GradlePropertyModel model, TypeReference<T> type, T value,
                                              ValueType valueType, PropertyType propertyType, int dependencies) {

@@ -71,10 +71,10 @@ class PsSigningConfig(
       "Store Password",
       getResolvedValue = { storePassword },
       // TODO: Properly handle other password types.
-      getParsedValue = { storePassword().value()?.passwordText },
-      getParsedRawValue = { storePassword().dsl() },
-      setParsedValue = { setStorePassword(SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT, it) },
-      clearParsedValue = { removeStorePassword() },
+      getParsedValue = { storePassword().resolve().asString() },
+      getParsedRawValue = { storePassword().resolve().dslText() },
+      setParsedValue = { storePassword().setValue(it) },
+      clearParsedValue = { storePassword().delete() },
       parse = { parseString(it) }
     )
 
@@ -101,10 +101,10 @@ class PsSigningConfig(
       "Key Password",
       getResolvedValue = { keyPassword },
       // TODO: Properly handle other password types.
-      getParsedValue = { keyPassword().value()?.passwordText },
-      getParsedRawValue = { keyPassword().dsl() },
-      setParsedValue = { setKeyPassword(SigningConfigModel.SigningConfigPassword.Type.PLAIN_TEXT, it) },
-      clearParsedValue = { removeKeyPassword() },
+      getParsedValue = { keyPassword().resolve().asString() },
+      getParsedRawValue = { keyPassword().resolve().dslText() },
+      setParsedValue = { keyPassword().setValue(it) },
+      clearParsedValue = { keyPassword().delete() },
       parse = { parseString(it) }
     )
   }
