@@ -112,6 +112,7 @@ class SimplePropertyEditorTest {
   @Test
   fun loadsOtherUnparsedDslText() {
     parsedModel.dsl = DslText(DslMode.OTHER_UNPARSED_DSL_TEXT, "1 + z(x)")
+    parsedModel.value = null
     val editor = simplePropertyEditor(model, property)
     assertThat(editor.selectedItem as String, equalTo("\$\$1 + z(x)"))
   }

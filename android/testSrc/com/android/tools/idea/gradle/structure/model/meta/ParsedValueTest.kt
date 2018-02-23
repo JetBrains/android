@@ -40,6 +40,6 @@ class ParsedValueTest {
       ParsedValue.Set.Parsed("Z QQ Z", DslText(mode = DslMode.INTERPOLATED_STRING, text = "Z \$var Z")).getText(),
       equalTo("\"Z \$var Z\"")
     )
-    assertThat(ParsedValue.Set.Invalid<String>("fun1()", "cannot be parsed").getText(), equalTo("fun1()"))
+    assertThat(ParsedValue.Set.Invalid<String>("fun1()", "cannot be parsed").getText(), equalTo("\$\$fun1()"))
   }
 }
