@@ -49,8 +49,15 @@ public final class EnergyEventStateChart {
     StateChartModel<EnergyEvent> model = new StateChartModel<>();
     model.addSeries(new RangedSeries<>(range, series));
 
-    return new StateChart<>(model, evt -> !evt.getIsTerminal()
-                                          ? DURATION_STATE_ENUM_COLORS.getColor(duration.getKind())
-                                          : TRANSPARENT_COLOR);
+    return create(model);
+  }
+
+  @NotNull
+  public static StateChart<EnergyEvent> create(@NotNull StateChartModel<EnergyEvent> model) {
+    StateChart<EnergyEvent> chart = new StateChart<>(model, evt -> !evt.getIsTerminal()
+                                                                   ? DURATION_STATE_ENUM_COLORS.getColor(EnergyDuration.Kind.from(evt))
+                                                                   : TRANSPARENT_COLOR);
+    chart.detach(); // No mouse handling, because we don't want the event bars to resize on mouse-over
+    return chart;
   }
 }

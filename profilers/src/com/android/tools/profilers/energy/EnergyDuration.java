@@ -39,7 +39,30 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
     UNKNOWN,
     WAKE_LOCK,
     ALARM,
-    JOB
+    JOB;
+
+    @NotNull
+    public static Kind from(@NotNull EnergyProfiler.EnergyEvent event) {
+      switch (event.getMetadataCase()) {
+        case WAKE_LOCK_ACQUIRED:
+        case WAKE_LOCK_RELEASED:
+          return WAKE_LOCK;
+
+        case ALARM_SET:
+        case ALARM_CANCELLED:
+          return ALARM;
+
+        case JOB_SCHEDULED:
+        case JOB_STARTED:
+        case JOB_STOPPED:
+        case JOB_FINISHED:
+          return JOB;
+
+        default:
+          getLogger().warn("Unsupported Kind for " + event.getMetadataCase().name());
+          return UNKNOWN;
+      }
+    }
   }
 
   // Non-empty event list that the events share the same id in time order.
@@ -57,15 +80,6 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
 
   public long getInitialTimestamp() {
     return myEventList.get(0).getTimestamp();
-  }
-
-  public long getFinalTimestamp() {
-    if (myEventList.size() <= 1) {
-      return Long.MAX_VALUE;
-    }
-
-    EnergyProfiler.EnergyEvent lastEvent = myEventList.get(myEventList.size() - 1);
-    return lastEvent.getIsTerminal() ? lastEvent.getTimestamp() : Long.MAX_VALUE;
   }
 
   /**
@@ -102,27 +116,8 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
     return "unspecified";
   }
 
-  @NotNull
-  public Kind getKind() {
-    switch (myEventList.get(0).getMetadataCase()) {
-      case WAKE_LOCK_ACQUIRED:
-      case WAKE_LOCK_RELEASED:
-        return Kind.WAKE_LOCK;
-
-      case ALARM_SET:
-      case ALARM_CANCELLED:
-        return Kind.ALARM;
-
-      case JOB_SCHEDULED:
-      case JOB_STARTED:
-      case JOB_STOPPED:
-      case JOB_FINISHED:
-        return Kind.JOB;
-
-      default:
-        getLogger().warn("Unsupported Kind for " + myEventList.get(0).getMetadataCase().name());
-        return Kind.UNKNOWN;
-    }
+  @NotNull Kind getKind() {
+    return Kind.from(myEventList.get(0));
   }
 
   @NotNull
