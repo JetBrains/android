@@ -172,8 +172,11 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
-    layout.setRowSizing(2, "*"); // Give as much space as possible to the main monitor panel
-    panel.add(monitorPanel, new TabularLayout.Constraint(2, 0));
+    layout.setRowSizing(1, "*"); // Give as much space as possible to the main monitor panel
+    panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
+
+    layout.setRowSizing(2, "50px");
+    panel.add(new EnergyEventMinibar(this).getComponent(), new TabularLayout.Constraint(2, 0));
 
     return panel;
   }

@@ -16,6 +16,7 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.collect.Lists;
@@ -35,6 +36,7 @@ public class EnergyProfilerStage extends Stage {
   @NotNull private final EnergyLegends myTooltipLegends;
   @NotNull private final SelectionModel mySelectionModel;
   @NotNull private final EnergyEventsFetcher myFetcher;
+  @NotNull private final StateChartModel<EnergyEvent> myEventModel;
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
@@ -65,24 +67,37 @@ public class EnergyProfilerStage extends Stage {
       }
     });
     myFetcher = new EnergyEventsFetcher(profilers.getClient().getEnergyClient(), profilers.getSession(), profilers.getTimeline().getSelectionRange());
+
+    EnergyEventsDataSeries sourceSeries = new EnergyEventsDataSeries(profilers.getClient(), profilers.getSession());
+
+    myEventModel = new StateChartModel<>();
+    Range range = profilers.getTimeline().getViewRange();
+    // StateChart renders series in reverse order
+    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.JOB)));
+    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.ALARM)));
+    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.WAKE_LOCK)));
   }
 
   @Override
   public void enter() {
     myEventMonitor.enter();
+
+    getStudioProfilers().getUpdater().register(myAxis);
+    getStudioProfilers().getUpdater().register(myDetailedUsage);
+    getStudioProfilers().getUpdater().register(myEventModel);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
-    getStudioProfilers().getUpdater().register(myDetailedUsage);
-    getStudioProfilers().getUpdater().register(myAxis);
   }
 
   @Override
   public void exit() {
     myEventMonitor.exit();
+
+    getStudioProfilers().getUpdater().unregister(myAxis);
+    getStudioProfilers().getUpdater().unregister(myDetailedUsage);
+    getStudioProfilers().getUpdater().unregister(myEventModel);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
-    getStudioProfilers().getUpdater().unregister(myDetailedUsage);
-    getStudioProfilers().getUpdater().unregister(myAxis);
   }
 
   @NotNull
@@ -98,6 +113,10 @@ public class EnergyProfilerStage extends Stage {
   @NotNull
   public DetailedEnergyUsage getDetailedUsage() {
     return myDetailedUsage;
+  }
+
+  @NotNull StateChartModel<EnergyEvent> getEventModel() {
+    return myEventModel;
   }
 
   @NotNull
