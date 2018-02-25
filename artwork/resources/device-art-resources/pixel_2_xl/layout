@@ -11,6 +11,10 @@ parts {
     background {
       image port_back.webp
     }
+    foreground {
+      mask    round_corners.webp
+      padding 20
+    }
     onion {
       image port_fore.webp
     }
