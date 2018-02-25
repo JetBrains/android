@@ -171,9 +171,12 @@ public abstract class DataStoreTable<T extends Enum> {
       else if (params[i] instanceof byte[]) {
         statement.setBytes(i + 1, (byte[])params[i]);
       }
+      else if (params[i] instanceof Boolean) {
+        statement.setBoolean(i + 1, (boolean)params[i]);
+      }
       else {
         //Not implemented type cast
-        assert false;
+        assert false : "No DataStoreTable support for arguments of type: " + params[i].getClass();
       }
     }
   }

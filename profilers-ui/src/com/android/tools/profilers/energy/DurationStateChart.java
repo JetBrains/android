@@ -34,8 +34,6 @@ import java.util.concurrent.TimeUnit;
  */
 public final class DurationStateChart extends StateChart<MetadataCase> {
 
-  private static final float EPSILON = 1e-4f;
-
   private static final EnumColors<MetadataCase> DURATION_STATE_ENUM_COLORS = new EnumColors.Builder<MetadataCase>(1)
     .add(MetadataCase.WAKE_LOCK_ACQUIRED, ProfilerColors.ENERGY_WAKE_LOCK)
     .add(MetadataCase.WAKE_LOCK_RELEASED, ProfilerColors.TRANSPARENT_COLOR)
@@ -51,15 +49,7 @@ public final class DurationStateChart extends StateChart<MetadataCase> {
     DefaultDataSeries<MetadataCase> series = new DefaultDataSeries<>();
     series.add(0, MetadataCase.METADATA_NOT_SET);
     for (EnergyProfiler.EnergyEvent event : data.getEventList()) {
-      long timeUs = TimeUnit.NANOSECONDS.toMicros(event.getTimestamp());
-      // Skip event that is not included in range.
-      if (range.getMin() - timeUs > EPSILON) {
-        continue;
-      }
-      if (timeUs - range.getMax() > EPSILON) {
-        break;
-      }
-      series.add(timeUs, event.getMetadataCase());
+      series.add(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()), event.getMetadataCase());
     }
 
     StateChartModel<MetadataCase> stateModel = new StateChartModel<>();

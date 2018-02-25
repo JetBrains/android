@@ -28,13 +28,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatements> {
+
+  public enum EventStatements {
+    INSERT_SAMPLE,
+    QUERY_SAMPLE,
+    INSERT_EVENT,
+    QUERY_EVENT,
+  }
+
   @Override
   public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
     try {
       createTable("Energy_Sample", "Session INTEGER NOT NULL", "Timestamp INTEGER NOT NULL", "Sample BLOB NOT NULL");
-      createTable("Energy_Event", "Session INTEGER NOT NULL", "Timestamp INTEGER NOT NULL", "Event BLOB NOT NULL");
+      createTable("Energy_Event",
+                  "Session INTEGER NOT NULL",
+                  "Id INTEGER NOT NULL",
+                  "Timestamp INTEGER NOT NULL",
+                  "IsTerminal BIT NOT NULL", // If terminal, this marks the end of an ongoing event
+                  "Event BLOB NOT NULL");
       createUniqueIndex("Energy_Sample", "Session", "Timestamp");
+      createUniqueIndex("Energy_Event", "Session", "Id", "Timestamp");
     }
     catch (SQLException ex) {
       onError(ex);
@@ -45,12 +59,30 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
   public void prepareStatements() {
     try {
       createStatement(EventStatements.INSERT_SAMPLE, "INSERT OR REPLACE INTO Energy_Sample (Session, Timestamp, Sample) values (?, ?, ?)");
-      createStatement(EventStatements.INSERT_EVENT, "INSERT OR REPLACE INTO Energy_Event (Session, Timestamp, Event) values (?, ?, ?)");
+      createStatement(EventStatements.INSERT_EVENT,
+                      "INSERT OR REPLACE INTO Energy_Event (Session, Id, Timestamp, IsTerminal, Event) values (?, ?, ?, ?, ?)");
       createStatement(EventStatements.QUERY_SAMPLE,
                       "SELECT Sample from Energy_Sample WHERE Session = ? AND Timestamp >= ? AND Timestamp < ?;");
+
+      // The following query is a union of two tables: the first, all events still alive right
+      // before t0, and the second, all events between t0 and t1
       createStatement(EventStatements.QUERY_EVENT,
-                      "SELECT Event from Energy_Event WHERE Session = ? AND Timestamp >= ? AND Timestamp < ?;");
-    }
+                      // First part: For every event group, get the most recent event that occurred
+                      // before t0. Then, filter out if it represents the end of that group.
+                      "SELECT Latest_Events.Event, Latest_Events.Timestamp " +
+                      " FROM " +
+                      "  (SELECT Event, Id, MAX(Timestamp) AS Timestamp, IsTerminal " +
+                      "   FROM Energy_Event " +
+                      "   WHERE Session = ? AND TimeStamp < ? " +
+                      "   GROUP BY Id) AS Latest_Events " +
+                      " WHERE IsTerminal = 0 " +
+                      // Second part: Query all events between t0 and t1
+                      "UNION " +
+                      "SELECT Event, Timestamp" +
+                      " FROM Energy_Event " +
+                      " WHERE Session = ? AND Timestamp >= ? AND Timestamp < ?" +
+                      "ORDER BY Timestamp;");
+      }
     catch (SQLException ex) {
       onError(ex);
     }
@@ -61,7 +93,13 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
   }
 
   public void insertOrReplace(@NotNull Common.Session session, @NotNull EnergyProfiler.EnergyEvent event) {
-    execute(EventStatements.INSERT_EVENT, session.getSessionId(), event.getTimestamp(), event.toByteArray());
+    boolean isTerminalEvent =
+      (event.hasWakeLockReleased() && !event.getWakeLockReleased().getIsHeld())
+      || event.hasAlarmCancelled()
+      || event.hasJobFinished();
+
+    execute(EventStatements.INSERT_EVENT, session.getSessionId(), event.getEventId(), event.getTimestamp(), isTerminalEvent,
+            event.toByteArray());
   }
 
   /**
@@ -81,26 +119,39 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
   }
 
   /**
+   * Return all events that fall within the passed in {@code request}'s time range, in addition to
+   * any related events that occurred most recently before the it. This is to ensure that callers
+   * know whether an event is continuing into this time range or just started within it.
+   *
+   * For example, if I acquired a wakelock @ t = 1000 and released it @ t = 2000...
+   *
+   * findEvents(0, 500) -> returns nothing
+   * findEvents(0, 9999) -> returns acquire and release (both in range)
+   * findEvents(1500, 2500) -> returns acquire (before range) and release (in range)
+   * findEvents(500, 1500) -> returns acquire (in range)
+   * findEvents(1250, 1750) -> returns acquire (before range)
+   *
    * @return The list of matching events given the {@code request} parameter, or {@code null} if there's a SQL-related error.
    */
   @Nullable
   public List<EnergyProfiler.EnergyEvent> findEvents(EnergyProfiler.EnergyRequest request) {
     try {
-      ResultSet results = executeQuery(EventStatements.QUERY_EVENT, request.getSession().getSessionId(), request.getStartTimestamp(),
-                                       request.getEndTimestamp());
+      ResultSet results = executeQuery(
+        EventStatements.QUERY_EVENT,
+        // Args for the first select statement (query recent events)
+        request.getSession().getSessionId(),
+        request.getStartTimestamp(),
+        // Args for the second select statement (events within a time range)
+        request.getSession().getSessionId(),
+        request.getStartTimestamp(),
+        request.getEndTimestamp());
+
       return getEventsFromResultSet(results);
     }
     catch (SQLException ex) {
       onError(ex);
     }
     return null;
-  }
-
-  public enum EventStatements {
-    INSERT_SAMPLE,
-    QUERY_SAMPLE,
-    INSERT_EVENT,
-    QUERY_EVENT,
   }
 
   @NotNull

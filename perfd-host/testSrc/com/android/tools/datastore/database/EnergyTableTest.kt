@@ -147,33 +147,52 @@ class EnergyTableTest {
 
   @Test
   fun testGetEvents() {
+    // Events: 0->500, 1000->1500, 2000->2500, ...
     TablePopulator().setWakeLockEventValues(10, 1000, 500).populate(table, MAIN_SESSION)
 
     with(table.findEvents(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE))!!) {
       assertThat(this).hasSize(10 * 2) // 2 events per event group
     }
 
-    with(table.findEvents(newEnergyRequest(900, 2900))!!) {
-      assertThat(this).hasSize(4)
-      assertThat(this[0].hasWakeLockAcquired())
-      assertThat(this[1].hasWakeLockReleased())
-      assertThat(this[2].hasWakeLockAcquired())
-      assertThat(this[3].hasWakeLockReleased())
-    }
-
-    with(table.findEvents(newEnergyRequest(1100, 1900))!!) {
-      assertThat(this).hasSize(1)
-      assertThat(this[0].hasWakeLockReleased())
-    }
-
     // t1 is exclusive
-    with(table.findEvents(newEnergyRequest(300, 1000))!!) {
-      assertThat(this).hasSize(1)
+    with(table.findEvents(newEnergyRequest(800, 1000))!!) {
+      assertThat(this).hasSize(0)
     }
 
-    // t0 is inclusive
-    with(table.findEvents(newEnergyRequest(500, 1100))!!) {
+    //     t0              t1
+    //      |              | [-----]
+    with(table.findEvents(newEnergyRequest(1600, 1800))!!) {
+      assertThat(this).hasSize(0)
+    }
+
+    //     t0              t1
+    //  [---|---]          |
+    with(table.findEvents(newEnergyRequest(1250, 1750))!!) {
       assertThat(this).hasSize(2)
+      assertThat(this[0].hasWakeLockAcquired()).isTrue()
+      assertThat(this[1].hasWakeLockReleased()).isTrue()
+    }
+
+    //     t0              t1
+    //      |   [------]   |
+    with(table.findEvents(newEnergyRequest(750, 1750))!!) {
+      assertThat(this).hasSize(2)
+      assertThat(this[0].hasWakeLockAcquired()).isTrue()
+      assertThat(this[1].hasWakeLockReleased()).isTrue()
+    }
+
+    //     t0              t1
+    //      |          [---|---]
+    with(table.findEvents(newEnergyRequest(750, 1250))!!) {
+      assertThat(this).hasSize(1)
+      assertThat(this[0].hasWakeLockAcquired()).isTrue()
+    }
+
+    //     t0              t1
+    //  [---|--------------|---]
+    with(table.findEvents(newEnergyRequest(1100, 1450))!!) {
+      assertThat(this).hasSize(1)
+      assertThat(this[0].hasWakeLockAcquired()).isTrue()
     }
 
     with(table.findEvents(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE, ANOTHER_SESSION))!!) {

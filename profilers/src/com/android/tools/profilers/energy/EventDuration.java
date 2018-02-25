@@ -49,6 +49,7 @@ public final class EventDuration implements Comparable<EventDuration> {
   @NotNull
   public String getName() {
     if (myEventList.get(0).hasWakeLockAcquired()) {
+      // TODO(b/73852076): Handle if the first event item is a released wakelock
       return myEventList.get(0).getWakeLockAcquired().getTag();
     }
     return "unspecified";
