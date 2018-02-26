@@ -75,7 +75,7 @@ public abstract class GradleDslElement {
       myDslFile = (GradleDslFile)this;
     }
     else {
-      myDslFile = parent.myDslFile;
+      myDslFile = parent.getDslFile();
     }
 
     myUseAssignment = false;

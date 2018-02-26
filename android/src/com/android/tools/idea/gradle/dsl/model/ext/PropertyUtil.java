@@ -42,6 +42,10 @@ public class PropertyUtil {
       return expression;
     }
     else {
+      if (oldElement != null) {
+        name = oldElement.getNameElement();
+      }
+
       GradleDslExpression newElement;
       if (!isReference) {
         newElement = new GradleDslLiteral(parent, name);

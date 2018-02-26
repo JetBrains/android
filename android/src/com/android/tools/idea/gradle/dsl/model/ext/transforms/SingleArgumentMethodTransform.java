@@ -49,9 +49,22 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
 
   @Override
   public boolean test(@Nullable GradleDslElement e) {
-    return e == null ||
-           (e instanceof GradleDslMethodCall &&
-           ((GradleDslMethodCall)e).getMethodName().equals(myMethodName));
+    // We can deal with a null element, we will just create one.
+    if (e == null) {
+      return true;
+    }
+
+    if (!(e instanceof GradleDslMethodCall)) {
+      return false;
+    }
+
+    GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
+    if (!methodCall.getMethodName().equals(myMethodName) ||
+        methodCall.getArguments().isEmpty()) {
+      return false;
+    }
+
+    return true;
   }
 
   @Nullable
@@ -59,29 +72,38 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
   public GradleDslElement transform(@NotNull GradleDslElement e) {
     // This cast is safe, we are guaranteed to have test(e) return true.
     GradleDslMethodCall methodCall = (GradleDslMethodCall)e;
-    if (!methodCall.getArguments().isEmpty()) {
-      GradleDslElement arg = methodCall.getArguments().get(0);
-      if (arg instanceof GradleDslExpression) {
-        return arg;
-      }
+    GradleDslElement arg = methodCall.getArguments().get(0);
+    if (arg instanceof GradleDslExpression) {
+      return arg;
     }
     return null;
   }
 
+  /**
+   *
+   * @param holder     the parent of the property being represented by the {@link GradlePropertyModel}
+   * @param oldElement the old element being represented by the {@link GradlePropertyModel}, if this is {@code null} then the
+   *                   {@link GradleDslElement} returned will have to be created, otherwise it may be possible to reuse some elements
+   * @param value      the new value that the property should be set to.
+   * @param name       the name of the property, this is ONLY used when creating new properties,
+   *                   all other names are kept the same.
+   * @return the new element to be bound to the property.
+   */
   @NotNull
   @Override
   public GradleDslElement bind(@NotNull GradleDslElement holder,
                                @Nullable GradleDslElement oldElement,
                                @NotNull Object value,
                                @NotNull String name) {
+    GradleDslMethodCall methodCall;
     GradleNameElement nameElement = GradleNameElement.create(name);
-    // This cast is safe, we are guaranteed to have test(e) return true.
-    GradleDslMethodCall methodCall = (GradleDslMethodCall)oldElement;
-    if (methodCall != null) {
+    if (oldElement != null && oldElement instanceof GradleDslMethodCall) {
+      // This cast is safe, we are guaranteed to have test(e) return true.
+      methodCall = (GradleDslMethodCall)oldElement;
       if (methodCall.getMethodName().equals(myMethodName)) {
         GradleDslElement baseElement = transform(oldElement);
         if (baseElement != null) {
-          GradleDslExpression newBaseElement = createOrReplaceBasicExpression(holder, baseElement, value, nameElement);
+          GradleDslExpression newBaseElement = createOrReplaceBasicExpression(methodCall, baseElement, value, nameElement);
           if (baseElement != newBaseElement) {
             methodCall.remove(baseElement);
             methodCall.addNewArgument(newBaseElement);
