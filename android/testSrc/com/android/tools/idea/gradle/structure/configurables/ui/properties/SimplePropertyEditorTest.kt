@@ -56,15 +56,17 @@ class SimplePropertyEditorTest {
       model.modified = true
     }
   }
+  private var defaultValue: String? = "default"
   private var wellKnownValues = listOf(ValueDescriptor("1", "one"), ValueDescriptor("2", "two"))
+
 
   private val property = ModelSimplePropertyImpl(
     modelDescriptor,
     "Description",
-    defaultValueGetter = { "default" },
+    defaultValueGetter = { defaultValue },
     getResolvedValue = { value },
     getParsedValue = { value },
-    getParsedRawValue = { dsl ?: DslText(mode = DslMode.LITERAL, text = value.orEmpty()) },
+    getParsedRawValue = { dsl ?: if (value != null) DslText(mode = DslMode.LITERAL, text = value) else null },
     setParsedValue = { value = it; dsl = null },
     setParsedRawValue = { value = null; dsl = it; },
     parser = {
@@ -97,6 +99,25 @@ class SimplePropertyEditorTest {
     resolvedModel.value = "1"
     val editor = simplePropertyEditor(model, property)
     assertThat(editor.selectedItem as String, equalTo("one"))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
+  }
+
+  @Test
+  fun loadsNotSetValue() {
+    parsedModel.value = null
+    resolvedModel.value = null
+    val editor = simplePropertyEditor(model, property)
+    assertThat(editor.selectedItem as String, equalTo("(default)"))
+    assertThat(editor.testPlainTextStatus, equalTo(""))
+  }
+
+  @Test
+  fun loadsNotSetValue_noDefault() {
+    parsedModel.value = null
+    resolvedModel.value = null
+    defaultValue = null
+    val editor = simplePropertyEditor(model, property)
+    assertThat(editor.selectedItem as String, equalTo(""))
     assertThat(editor.testPlainTextStatus, equalTo(""))
   }
 
@@ -200,6 +221,15 @@ class SimplePropertyEditorTest {
   fun updatesToNullValue() {
     val editor = simplePropertyEditor(model, property)
     editor.selectedItem = ""
+    assertThat(parsedModel.value, nullValue())
+    // TODO(b/73811870): Assert the status message was updated correctly.
+    assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
+  }
+
+  @Test
+  fun updatesToNullValue_defaultLabel() {
+    val editor = simplePropertyEditor(model, property)
+    editor.selectedItem = "(default)"
     assertThat(parsedModel.value, nullValue())
     // TODO(b/73811870): Assert the status message was updated correctly.
     assertThat(editor.testPlainTextStatus, equalTo(" -> value"))
