@@ -1,6 +1,7 @@
 package org.jetbrains.android.compiler;
 
 import com.android.jarutils.SignedJarBuilder;
+import com.android.manifmerger.Merger;
 import com.android.prefs.AndroidLocation;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
@@ -22,6 +23,7 @@ public class AndroidBuildProcessParametersProvider extends BuildProcessParameter
                             PathManager.getJarPathForClass(SignedJarBuilder.class),
                             PathManager.getJarPathForClass(ImmutableList.class),    // guava
                             PathManager.getJarPathForClass(AndroidLocation.class),
+                            PathManager.getJarPathForClass(Merger.class),           // manifest merger
                             PathManager.getJarPathForClass(BuildException.class)); // gradle tooling
   }
 }
