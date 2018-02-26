@@ -196,7 +196,7 @@ public class NavDesignSurface extends DesignSurface {
     AtomicBoolean didAdd = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(
       () -> didAdd.set(DependencyManagementUtil.addDependencies(
-        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION), true, false, true).isEmpty()));
+        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT), true, false, true).isEmpty()));
     return didAdd.get();
   }
 

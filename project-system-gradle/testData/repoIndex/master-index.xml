@@ -16,5 +16,5 @@
   -->
 <metadata>
   <com.android.support.constraint/>
-  <android.arch.navigation/>
+  <androidx.navigation/>
 </metadata>

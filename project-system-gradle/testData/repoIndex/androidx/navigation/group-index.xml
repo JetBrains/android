@@ -1,4 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<android.arch.navigation>
+<androidx.navigation>
   <runtime versions="0.0.1-alpha1"/>
-</android.arch.navigation>
+</androidx.navigation>

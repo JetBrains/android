@@ -37,5 +37,5 @@ dependencies {
     api 'com.android.support:appcompat-v7:+'
     api 'com.android.support:design:26.1.0'
     api 'com.android.support.constraint:constraint-layout:1.0.2'
-    api 'android.arch.navigation:runtime:+'
+    api 'androidx.navigation:fragment:+'
 }
