@@ -132,7 +132,7 @@ public class GuiTestRule implements TestRule {
           if (!TestUtils.runningFromBazel()) {
             // when state can be bad from previous tests, check and skip in that case
             assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
-            assumeOnlyWelcomeFrameShowing(description);
+            assumeOnlyWelcomeFrameShowing();
           }
           setUp(description.getMethodName());
           List<Throwable> errors = new ArrayList<>();
@@ -159,11 +159,10 @@ public class GuiTestRule implements TestRule {
     }
   }
 
-  private void assumeOnlyWelcomeFrameShowing(Description description) {
+  private void assumeOnlyWelcomeFrameShowing() {
     try {
       WelcomeFrameFixture.find(robot());
     } catch (WaitTimedOutError e) {
-      new ScreenshotOnFailure().failed(e, description);
       throw new AssumptionViolatedException("didn't find welcome frame", e);
     }
     assume().that(GuiTests.windowsShowing()).named("windows showing").hasSize(1);
