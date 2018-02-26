@@ -500,7 +500,7 @@ public class ConfigurationMatcher {
         // contains FAKE_REGION_VALUE). If we don't find a perfect region match
         // we take the fake region. Since it's last in the list, this makes the
         // test easy.
-        if (qualifier.getLanguage().equals(currentLanguage) &&
+        if (Objects.equals(qualifier.getLanguage(), currentLanguage) &&
             (qualifier.getRegion() == null || qualifier.getRegion().equals(currentRegion))) {
           return l;
         }
@@ -515,7 +515,7 @@ public class ConfigurationMatcher {
         // contains FAKE_REGION_VALUE). If we don't find a perfect region match
         // we take the fake region. Since it's last in the list, this makes the
         // test easy.
-        if (qualifier.getLanguage().equals(currentLanguage)) {
+        if (Objects.equals(qualifier.getLanguage(), currentLanguage)) {
           return l;
         }
       }

@@ -278,7 +278,9 @@ public final class StringResource {
     ResourceItemEntry item = myLocaleToTranslationMap.get(locale);
 
     if (isTranslationMissing(item) && locale.hasRegion()) {
-      locale = Locale.create(locale.qualifier.getLanguage());
+      String language = locale.qualifier.getLanguage();
+      assert language != null; // qualifiers from Locale objects have the language set.
+      locale = Locale.create(language);
       item = myLocaleToTranslationMap.get(locale);
     }
 

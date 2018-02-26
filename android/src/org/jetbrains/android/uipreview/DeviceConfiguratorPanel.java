@@ -1261,10 +1261,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         ListModel languageModel = myLanguageList.getModel();
         ListModel regionModel = myRegionList.getModel();
 
-        for (int i = 0, n = languageModel.getSize(); i < n; i++) {
-          if (language.equals(languageModel.getElementAt(i))) {
-            myLanguageList.setSelectedIndex(i);
-            break;
+        if (language != null) {
+          for (int i = 0, n = languageModel.getSize(); i < n; i++) {
+            if (language.equals(languageModel.getElementAt(i))) {
+              myLanguageList.setSelectedIndex(i);
+              break;
+            }
           }
         }
         if (region != null) {
