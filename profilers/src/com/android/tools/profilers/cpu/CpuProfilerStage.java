@@ -369,10 +369,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
       .setSession(getStudioProfilers().getSession())
-      .setMode(config.getMode())
-      .setProfilerType(config.getProfilerType())
-      .setBufferSizeInMb(config.getProfilingBufferSizeInMb())
-      .setSamplingIntervalUs(config.getProfilingSamplingIntervalUs())
+      .setConfiguration(CpuProfilerConfiguration.newBuilder()
+                          .setMode(config.getMode())
+                          .setProfilerType(config.getProfilerType())
+                          .setBufferSizeInMb(config.getProfilingBufferSizeInMb())
+                          .setSamplingIntervalUs(config.getProfilingSamplingIntervalUs())
+      )
       .setAbiCpuArch(getStudioProfilers().getProcess().getAbiCpuArch())
       .build();
 
@@ -569,9 +571,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
 
       // Sets the properties of myActiveConfig
-      CpuProfilingAppStartRequest startRequest = response.getStartRequest();
-      myProfilerModel.setActiveConfig(startRequest.getProfilerType(), startRequest.getMode(), startRequest.getBufferSizeInMb(),
-                                      startRequest.getSamplingIntervalUs());
+      CpuProfilerConfiguration configuration = response.getConfiguration();
+      myProfilerModel.setActiveConfig(configuration.getProfilerType(), configuration.getMode(), configuration.getBufferSizeInMb(),
+                                      configuration.getSamplingIntervalUs());
     }
     else {
       // otherwise, invalidate capture start time

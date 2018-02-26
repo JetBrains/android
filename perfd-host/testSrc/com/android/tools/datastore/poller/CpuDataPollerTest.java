@@ -227,7 +227,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void traceProfilerTypeShouldBeCorrectlySet() {
     CpuProfilerType traceType = CpuProfilerType.SIMPLEPERF;
     CpuProfilingAppStartRequest startRequest = CpuProfilingAppStartRequest.newBuilder()
-      .setProfilerType(traceType)
+      .setConfiguration(CpuProfilerConfiguration.newBuilder().setProfilerType(traceType))
       .build();
     StreamObserver<CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
     myCpuService.startProfilingApp(startRequest, startObserver);

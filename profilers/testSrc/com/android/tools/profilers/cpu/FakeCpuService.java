@@ -77,7 +77,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private CpuProfiler.CpuProfilerType myProfilerType = CpuProfiler.CpuProfilerType.ART;
 
-  private CpuProfiler.CpuProfilingAppStartRequest myLastSuccessfulStartRequest;
+  private CpuProfiler.CpuProfilerConfiguration myProfilerConfiguration;
 
   private List<CpuProfiler.GetThreadsResponse.Thread> myAdditionalThreads = new ArrayList<>();
 
@@ -93,9 +93,9 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     if (!myStartProfilingStatus.equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
       response.setErrorMessage("StartProfilingApp error");
     } else {
-      myLastSuccessfulStartRequest = request;
+      myProfilerConfiguration = request.getConfiguration();
       myIsAppBeingProfiled = true;
-      myProfilerType = request.getProfilerType();
+      myProfilerType = request.getConfiguration().getProfilerType();
     }
 
     responseObserver.onNext(response.build());
@@ -146,8 +146,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     CpuProfiler.ProfilingStateResponse.Builder response = CpuProfiler.ProfilingStateResponse.newBuilder();
     response.setBeingProfiled(myIsAppBeingProfiled);
     if (myIsAppBeingProfiled) {
-      response.setStartRequest(myLastSuccessfulStartRequest);
-      myProfilerType = myLastSuccessfulStartRequest.getProfilerType();
+      response.setConfiguration(myProfilerConfiguration);
+      myProfilerType = myProfilerConfiguration.getProfilerType();
     }
 
     responseObserver.onNext(response.build());

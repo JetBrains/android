@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.google.common.collect.ImmutableList;
@@ -53,7 +54,7 @@ public class ProfilingConfiguration {
   /**
    * Profiling mode (Sampled or Instrumented).
    */
-  private CpuProfilingAppStartRequest.Mode myMode;
+  private CpuProfiler.CpuProfilerConfiguration.Mode myMode;
 
   private int myProfilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB;
 
@@ -73,13 +74,13 @@ public class ProfilingConfiguration {
 
   public ProfilingConfiguration(String name,
                                 CpuProfilerType profilerType,
-                                CpuProfilingAppStartRequest.Mode mode) {
+                                CpuProfiler.CpuProfilerConfiguration.Mode mode) {
     this(name, profilerType, mode, false);
   }
 
   private ProfilingConfiguration(String name,
                                  CpuProfilerType profilerType,
-                                 CpuProfilingAppStartRequest.Mode mode,
+                                 CpuProfiler.CpuProfilerConfiguration.Mode mode,
                                  boolean isDefault) {
     myName = name;
     myProfilerType = profilerType;
@@ -87,11 +88,11 @@ public class ProfilingConfiguration {
     myIsDefault = isDefault;
   }
 
-  public CpuProfilingAppStartRequest.Mode getMode() {
+  public CpuProfiler.CpuProfilerConfiguration.Mode getMode() {
     return myMode;
   }
 
-  public void setMode(CpuProfilingAppStartRequest.Mode mode) {
+  public void setMode(CpuProfiler.CpuProfilerConfiguration.Mode mode) {
     myMode = mode;
   }
 
@@ -150,19 +151,19 @@ public class ProfilingConfiguration {
     if (ourDefaultConfigurations == null) {
       ProfilingConfiguration artSampled = new ProfilingConfiguration(ART_SAMPLED,
                                                                      CpuProfilerType.ART,
-                                                                     CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                                                     CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED,
                                                                      true);
       ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ART_INSTRUMENTED,
                                                                           CpuProfilerType.ART,
-                                                                          CpuProfilingAppStartRequest.Mode.INSTRUMENTED,
+                                                                          CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED,
                                                                           true);
       ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
                                                                      CpuProfilerType.SIMPLEPERF,
-                                                                     CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                                                     CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED,
                                                                      true);
       ProfilingConfiguration atrace = new ProfilingConfiguration(ATRACE,
                                                                  CpuProfilerType.ATRACE,
-                                                                 CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                                                 CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED,
                                                                  true);
       ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
     }
