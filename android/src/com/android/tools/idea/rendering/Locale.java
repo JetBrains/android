@@ -181,12 +181,13 @@ public class Locale {
     public int compare(Locale locale1, Locale locale2) {
       String language1 = locale1.qualifier.getLanguage();
       String language2 = locale2.qualifier.getLanguage();
-      if (locale1.qualifier.hasFakeValue()) {
-        return locale2.qualifier.hasFakeValue() ? 0 : -1;
+      if (!locale1.qualifier.hasLanguage()) {
+        return !locale2.qualifier.hasLanguage() ? 0 : -1;
       }
       else if (locale2.qualifier.hasFakeValue()) {
         return 1;
       }
+      assert language1 != null && language2 != null; // hasLanguage above.
       String name1 = LocaleManager.getLanguageName(language1);
       String name2 = LocaleManager.getLanguageName(language2);
       int compare = StringUtil.compare(name1, name2, false);

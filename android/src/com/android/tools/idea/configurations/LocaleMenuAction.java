@@ -218,6 +218,8 @@ public class LocaleMenuAction extends DropDownAction {
     }
 
     String languageCode = locale.qualifier.getLanguage();
+    assert languageCode != null; // hasLanguage() above.
+
     String languageName = LocaleManager.getLanguageName(languageCode);
 
     if (!locale.hasRegion()) {

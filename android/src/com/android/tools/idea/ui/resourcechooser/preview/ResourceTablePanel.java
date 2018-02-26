@@ -168,6 +168,7 @@ public class ResourceTablePanel implements HyperlinkListener {
         LocaleQualifier locale = configuration.getLocaleQualifier();
         if (locale != null) {
           if (locale.hasLanguage()) {
+            assert locale.getLanguage() != null; // hasLanguage() above.
             String language = LocaleManager.getLanguageName(locale.getLanguage());
             if (language != null) {
               if (locale.hasRegion()) {
