@@ -24,7 +24,6 @@ import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.ImmutableList;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,17 +47,11 @@ public class NetworkRadioDataSeriesTest {
   @Rule public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("NetworkRadioDataSeriesTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkRadioDataSeries mySeries;
-  private StudioProfilers myProfilers;
 
   @Before
   public void setUp() {
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    mySeries = new NetworkRadioDataSeries(myProfilers.getClient().getNetworkClient(), ProfilersTestData.SESSION_DATA);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    myProfilers.stop();
+    StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    mySeries = new NetworkRadioDataSeries(profiler.getClient().getNetworkClient(), ProfilersTestData.SESSION_DATA);
   }
 
   @Test
