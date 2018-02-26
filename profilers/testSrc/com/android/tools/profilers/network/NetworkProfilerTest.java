@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -35,7 +34,7 @@ public class NetworkProfilerTest {
 
   @Before
   public void setUp() {
-    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer()));
+    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
   }
 
   @Test

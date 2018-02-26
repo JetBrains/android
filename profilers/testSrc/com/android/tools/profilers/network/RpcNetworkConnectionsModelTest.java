@@ -22,7 +22,6 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -77,12 +76,11 @@ public class RpcNetworkConnectionsModelTest {
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("RpcNetworkConnectionsModelTest", myProfilerService,
                                                                    FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkConnectionsModel myModel;
-  private StudioProfilers myProfilers;
 
   @Before
   public void setUp() {
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    myModel = new RpcNetworkConnectionsModel(myProfilers.getClient().getProfilerClient(), myProfilers.getClient().getNetworkClient(),
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getClient().getNetworkClient(),
                                              ProfilersTestData.SESSION_DATA);
 
     for (int i = 0; i < FAKE_DATA.size(); i++) {
@@ -90,11 +88,6 @@ public class RpcNetworkConnectionsModelTest {
       myProfilerService.addFile(FAKE_REQUEST_PAYLOAD_ID + id, ByteString.copyFromUtf8("Request Body " + i));
       myProfilerService.addFile(FAKE_RESPONSE_PAYLOAD_ID + id, ByteString.copyFromUtf8("Response Body " + i));
     }
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    myProfilers.stop();
   }
 
   @Test

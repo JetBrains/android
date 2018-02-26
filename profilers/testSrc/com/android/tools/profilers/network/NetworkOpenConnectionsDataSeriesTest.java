@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -49,7 +48,7 @@ public class NetworkOpenConnectionsDataSeriesTest {
 
   @Before
   public void setUp() {
-    StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profiler = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     mySeries = new NetworkOpenConnectionsDataSeries(profiler.getClient().getNetworkClient(), ProfilersTestData.SESSION_DATA);
   }
 
