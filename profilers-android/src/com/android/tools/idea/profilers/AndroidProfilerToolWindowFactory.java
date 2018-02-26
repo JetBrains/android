@@ -38,6 +38,7 @@ import java.util.Map;
 
 public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
   public static final String ID = "Android Profiler";
+  private static final String PROFILER_TOOL_WINDOW_TITLE = "Profiler";
   private static final String ANDROID_PROFILER_ACTIVE = "android.profiler.active";
   private static final Map<Content, AndroidProfilerToolWindow> PROJECT_PROFILER_MAP = new HashMap<>();
 
@@ -73,6 +74,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     Disposer.register(content, view);
     toolWindow.getContentManager().addContent(content);
     toolWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
+    toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
 
     PROJECT_PROFILER_MAP.put(content, view);
     Disposer.register(content, () -> PROJECT_PROFILER_MAP.remove(content));
