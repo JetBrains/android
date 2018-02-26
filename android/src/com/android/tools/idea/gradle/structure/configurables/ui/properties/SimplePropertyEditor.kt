@@ -98,14 +98,30 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   @VisibleForTesting
   fun loadKnownValues() {
     val availableVariables = getAvailableVariables()
-    val possibleValues = property.getKnownValues(model) ?: listOf()
+    val possibleValues = getKnowValues()
     textToParsedValue =
-        (possibleValues.map { it.description to ParsedValue.Set.Parsed(value = it.value) } + (availableVariables ?: listOf())).toMap()
+        (possibleValues.map { it.description to ParsedValue.Set.Parsed(value = it.value) } +
+            availableVariables.orEmpty()).toMap()
     valueToText = possibleValues.associate { it.value to it.description }
     val comboBoxModel = DefaultComboBoxModel<String>(textToParsedValue.keys.toTypedArray()).apply {
       selectedItem = super.getSelectedItem()
     }
     super.setModel(comboBoxModel)
+  }
+
+  private fun getKnowValues(): List<ValueDescriptor<PropertyT>> {
+    val defaultValue = property.getDefaultValue(model)
+    val result = mutableListOf<ValueDescriptor<PropertyT>>()
+    if (defaultValue != null) {
+      // Note: having this value prevents users from inputting string value "($default)". However, since there are just few properties with
+      // default string values and the values in parentheses do not make sense it is safe to recognize this value as NotSet.
+      result.add(ValueDescriptor(null, "($defaultValue)"))
+    }
+    val knownValues = property.getKnownValues(model)
+    if (knownValues != null) {
+      result.addAll(knownValues)
+    }
+    return result.toList()
   }
 
   private fun loadValue(value: PropertyValue<PropertyT>) {
