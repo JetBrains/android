@@ -31,6 +31,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -158,5 +159,11 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     myGradleDslFile.applyChanges();
 
     saveAllRelatedFiles();
+  }
+
+  @TestOnly
+  @NotNull
+  public GradleDslFile getDslFile() {
+    return myGradleDslFile;
   }
 }
