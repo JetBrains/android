@@ -18,4 +18,4 @@ package com.android.tools.idea.gradle.structure.model.meta
 /**
  * A short-text description of a value of type [T] for use in the UI.
  */
-data class ValueDescriptor<out T>(val value: T, val description: String)
+data class ValueDescriptor<out T>(val value: T?, val description: String)
