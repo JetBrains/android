@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -47,6 +46,11 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
   @Rule public final ScreenshotsDuringTest movieMaker = new ScreenshotsDuringTest();
 
+  private static final String C_FILE_NAME = "app/src/main/jni/native-lib.c";
+  private static final String C_BP_LINE = "return (*env)->NewStringUTF(env, message);";
+  private static final String JAVA_FILE_NAME = "app/src/main/java/com/example/basiccmakeapp/MainActivity.java";
+  private static final String JAVA_BP_LINE = "setContentView(tv);";
+
   @Before
   public void setUp() throws Exception {
     guiTest.importProject("BasicCmakeAppForUI");
@@ -63,16 +67,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/72699808
   public void testSessionRestart() throws Exception{
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
-
-    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Auto")
-      .clickOk();
-
-    // Setup breakpoints
-    openAndToggleBreakPoints(projectFrame,
-                             "app/src/main/jni/native-lib.c",
-                             "return (*env)->NewStringUTF(env, message);");
+    DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.AUTO);
+    openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())
@@ -113,19 +109,12 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   public void testNativeDebuggerBreakpoints() throws Exception {
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
-    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Native")
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.NATIVE);
 
     // Set breakpoint in java code, but it wouldn't be hit when it is native debugger type.
-    openAndToggleBreakPoints(projectFrame,
-                             "app/src/main/java/com/example/basiccmakeapp/MainActivity.java",
-                             "setContentView(tv);");
+    openAndToggleBreakPoints(projectFrame, JAVA_FILE_NAME, JAVA_BP_LINE);
 
-    openAndToggleBreakPoints(projectFrame,
-                             "app/src/main/jni/native-lib.c",
-                             "return (*env)->NewStringUTF(env, message);");
+    openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())
@@ -140,7 +129,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
       variableToSearchPattern("quotient", "int", "512")
     };
     checkAppIsPaused(projectFrame, expectedPatterns);
-    assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNull();
+    assertThat(debugToolWindowFixture.getDebuggerContent(DebuggerTestUtil.JAVA_DEBUGGER_CONF_NAME)).isNull();
     stopDebugSession(debugToolWindowFixture);
   }
 
@@ -149,14 +138,9 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   public void testNativeDebuggerCleanWhileDebugging() throws  Exception {
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
-    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Native")
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.NATIVE);
 
-    openAndToggleBreakPoints(projectFrame,
-                             "app/src/main/jni/native-lib.c",
-                             "return (*env)->NewStringUTF(env, message);");
+    openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())
@@ -182,15 +166,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testNativeDebuggerNewLibraryWhileDebugging() throws Exception {
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
-
-    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Native")
-      .clickOk();
-
-    openAndToggleBreakPoints(projectFrame,
-                             "app/src/main/jni/native-lib.c",
-                             "return (*env)->NewStringUTF(env, message);");
+    DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.NATIVE);
+    openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())
@@ -250,14 +227,11 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   public void testDualDebuggerBreakpoints() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Dual")
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(ideFrameFixture, DebuggerTestUtil.DUAL);
 
     // Setup C++ and Java breakpoints.
-    openAndToggleBreakPoints(ideFrameFixture, "app/src/main/jni/native-lib.c", "return (*env)->NewStringUTF(env, message);");
-    openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/basiccmakeapp/MainActivity.java", "setContentView(tv);");
+    openAndToggleBreakPoints(ideFrameFixture, C_FILE_NAME, C_BP_LINE);
+    openAndToggleBreakPoints(ideFrameFixture, JAVA_FILE_NAME, JAVA_BP_LINE);
 
     ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())

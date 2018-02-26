@@ -84,10 +84,7 @@ public class SmartStepIntoTest extends DebuggerTestBase {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("SmartStepIntoCmakeApp");
 
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Dual")
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.DUAL);
 
     openAndToggleBreakPoints(
       ideFrame,
