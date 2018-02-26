@@ -26,20 +26,31 @@ class ParsedValueTest {
     assertThat(ParsedValue.NotSet<String>().getText(), equalTo(""))
     assertThat(ParsedValue.Set.Parsed(1, DslText(mode = DslMode.LITERAL, text = "1")).getText(), equalTo("1"))
     assertThat(ParsedValue.Set.Parsed("a", DslText(mode = DslMode.LITERAL, text = "1")).getText(), equalTo("a"))
-    assertThat(ParsedValue.Set.Parsed("a").getText(mapOf("AA" to "Long text")), equalTo("a"))
-    assertThat(ParsedValue.Set.Parsed("AA").getText(mapOf("AA" to "Long text")), equalTo("Long text"))
     assertThat(ParsedValue.Set.Parsed("AA", DslText(mode = DslMode.REFERENCE, text = "var")).getText(), equalTo("\$var"))
-    assertThat(
-      ParsedValue.Set.Parsed(
-        "AA",
-        DslText(mode = DslMode.REFERENCE, text = "var")
-      ).getText(mapOf("AA" to "Variables are more important")),
-      equalTo("\$var")
-    )
     assertThat(
       ParsedValue.Set.Parsed("Z QQ Z", DslText(mode = DslMode.INTERPOLATED_STRING, text = "Z \$var Z")).getText(),
       equalTo("\"Z \$var Z\"")
     )
     assertThat(ParsedValue.Set.Invalid<String>("fun1()", "cannot be parsed").getText(), equalTo("\$\$fun1()"))
+  }
+
+  @Test
+  fun parsedValueGetText_wellKnownValue() {
+    assertThat(ParsedValue.NotSet<Int>().getText(mapOf(null to "(def)", 1 to "one")), equalTo("(def)"))
+    assertThat(
+      ParsedValue.Set.Parsed(1, DslText(mode = DslMode.LITERAL, text = "1")).getText(
+        mapOf(null to "(def)", 1 to "one")
+      ), equalTo("one")
+    )
+    assertThat(ParsedValue.Set.Parsed("a").getText(mapOf("AA" as String? to "Long text")), equalTo("a"))
+    assertThat(ParsedValue.Set.Parsed("AA").getText(mapOf("AA" as String? to "Long text")), equalTo("Long text"))
+    assertThat(ParsedValue.Set.Parsed(1, DslText(mode = DslMode.REFERENCE, text = "var")).getText(), equalTo("\$var"))
+    assertThat(
+      ParsedValue.Set.Parsed(
+        "AA",
+        DslText(mode = DslMode.REFERENCE, text = "var")
+      ).getText(mapOf("AA" as String? to "Variables are more important")),
+      equalTo("\$var")
+    )
   }
 }

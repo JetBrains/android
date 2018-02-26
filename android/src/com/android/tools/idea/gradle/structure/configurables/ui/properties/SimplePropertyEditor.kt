@@ -40,7 +40,7 @@ class SimplePropertyEditor<ModelT, PropertyT : Any, out ModelPropertyT : ModelSi
   private val variablesProvider: VariablesProvider?
 ) : ComboBox<String>(), ModelPropertyEditor<ModelT, PropertyT> {
   private var textToParsedValue: Map<String, ParsedValue<PropertyT>> = mapOf()
-  private var valueToText: Map<PropertyT, String> = mapOf()
+  private var valueToText: Map<PropertyT?, String> = mapOf()
   private var beingLoaded = false
   private var disposed = false
   private var lastTextSet: String? = null

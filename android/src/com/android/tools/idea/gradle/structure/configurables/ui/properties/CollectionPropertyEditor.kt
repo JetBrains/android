@@ -45,7 +45,7 @@ abstract class CollectionPropertyEditor<ModelT, out ModelPropertyT : ModelCollec
   val statusComponent: JComponent? = null
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null ; private set
-  protected val valueToText: Map<ValueT, String> = buildValueToTextMap()
+  protected val valueToText: Map<ValueT?, String> = buildValueToTextMap()
 
   protected val table: JBTable = JBTable()
     .apply {
