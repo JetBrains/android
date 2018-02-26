@@ -33,11 +33,6 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
-  private final String AUTO = "Auto";
-  private final String DUAL = "Dual";
-  private final String NATIVE = "Native";
-  private final String JAVA_DEBUGER_CONF_NAME = "app-java";
-
   /**
    * Verifies that Auto-debugger works fine with NDK build project.
    * <p>
@@ -59,7 +54,7 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA)
   public void testAutoDebugger() throws Exception {
-    processToTest(AUTO);
+    processToTest(DebuggerTestUtil.AUTO);
   }
 
   /**
@@ -84,7 +79,7 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/70306472
   public void testDualDebugger() throws Exception {
-    processToTest(DUAL);
+    processToTest(DebuggerTestUtil.DUAL);
   }
 
   /**
@@ -109,22 +104,19 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA)
   public void testNativeDebugger() throws Exception {
-    processToTest(NATIVE);
+    processToTest(DebuggerTestUtil.NATIVE);
   }
 
   private void processToTest(@NotNull String debuggerType) throws Exception {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("NdkHelloJni");
     emulator.createDefaultAVD(ideFrame.invokeAvdManager());
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType(debuggerType)
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(ideFrame, debuggerType);
 
     // Setup C++ and Java breakpoints.
-    if (debuggerType.equals(AUTO)) {
+    if (debuggerType.equals(DebuggerTestUtil.AUTO)) {
       // Don't set Java breakpoint.
-    } else if (debuggerType.equals(DUAL) || debuggerType.equals(NATIVE)) {
+    } else if (debuggerType.equals(DebuggerTestUtil.DUAL) || debuggerType.equals(DebuggerTestUtil.NATIVE)) {
       openAndToggleBreakPoints(ideFrame,
                                "app/src/main/java/com/example/hellojni/HelloJni.java",
                                "setContentView(tv);");
@@ -149,28 +141,28 @@ public class DebuggerInNdkProjectTest extends DebuggerTestBase {
     };
     checkAppIsPaused(ideFrame, expectedPatterns);
 
-    if (debuggerType.equals(DUAL)) {
+    if (debuggerType.equals(DebuggerTestUtil.DUAL)) {
       resume(DEBUG_CONFIG_NAME, ideFrame);
 
       expectedPatterns = new String[]{
         variableToSearchPattern("s", "\"ABI x86.\""),
       };
-      checkAppIsPaused(ideFrame, expectedPatterns);
+      checkAppIsPaused(ideFrame, expectedPatterns, DebuggerTestUtil.JAVA_DEBUGGER_CONF_NAME);
     }
 
-    if (debuggerType.equals(AUTO)) {
+    if (debuggerType.equals(DebuggerTestUtil.AUTO)) {
       // Don't check Java debugger window for auto debugger here.
-    } else if (debuggerType.equals(DUAL)) {
-      assertThat(debugToolWindowFixture.getDebuggerContent(JAVA_DEBUGER_CONF_NAME)).isNotNull();
-    } else if (debuggerType.equals(NATIVE)) {
-      assertThat(debugToolWindowFixture.getDebuggerContent(JAVA_DEBUGER_CONF_NAME)).isNull();
+    } else if (debuggerType.equals(DebuggerTestUtil.DUAL)) {
+      assertThat(debugToolWindowFixture.getDebuggerContent(DebuggerTestUtil.JAVA_DEBUGGER_CONF_NAME)).isNotNull();
+    } else if (debuggerType.equals(DebuggerTestUtil.NATIVE)) {
+      assertThat(debugToolWindowFixture.getDebuggerContent(DebuggerTestUtil.JAVA_DEBUGGER_CONF_NAME)).isNull();
     } else {
       throw new RuntimeException("Not supported debugger type provide: " + debuggerType);
     }
 
-    if (debuggerType.equals(AUTO) || debuggerType.equals(NATIVE)) {
+    if (debuggerType.equals(DebuggerTestUtil.AUTO) || debuggerType.equals(DebuggerTestUtil.NATIVE)) {
       stopDebugSession(debugToolWindowFixture);
-    } else if (debuggerType.equals(DUAL)) {
+    } else if (debuggerType.equals(DebuggerTestUtil.DUAL)) {
       // TODO: stop session.
     } else {
       throw new RuntimeException("Not supported debugger type provide: " + debuggerType);

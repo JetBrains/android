@@ -60,10 +60,7 @@ public class WatchpointTest extends DebuggerTestBase {
 
     final IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Native")
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
 
     emulator.createDefaultAVD(ideFrame.invokeAvdManager());
 

@@ -98,10 +98,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     IdeFrameFixture ideFrame = guiTest.importProject("BasicCmakeAppForUI");
     ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
 
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Native")
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
 
     ideFrame.getEditor()
       .open("app/build.gradle", EditorFixture.Tab.EDITOR)

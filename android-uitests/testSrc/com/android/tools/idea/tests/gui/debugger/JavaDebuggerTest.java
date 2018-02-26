@@ -67,10 +67,7 @@ public class JavaDebuggerTest extends DebuggerTestBase {
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-        .selectDebuggerType("Java")
-        .clickOk();
+    DebuggerTestUtil.setDebuggerType(ideFrameFixture, DebuggerTestUtil.JAVA);
 
     // Setup C++ and Java breakpoints. C++ breakpoint won't be hit here.
     openAndToggleBreakPoints(ideFrameFixture, "app/src/main/jni/native-lib.c", "return (*env)->NewStringUTF(env, message);");
