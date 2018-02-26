@@ -72,7 +72,7 @@ public class HandleRunAsErrorsTest {
    *   1. Application should run successfully without any errors.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/38376451
+  @RunIn(TestGroup.QA)
   @Test
   public void testHandleRunAsErrors() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
@@ -113,7 +113,7 @@ public class HandleRunAsErrorsTest {
     ExecutionToolWindowFixture.ContentFixture contentFixture = runToolWindowFixture
         .findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 20);
-    contentFixture.waitForOutput(new PatternTextMatcher(INSTALL_APP_PATTERN), 20);
+    contentFixture.waitForOutput(new PatternTextMatcher(INSTALL_APP_PATTERN), 60);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_CONNECTED_PATTERN), 120);
   }
 }
