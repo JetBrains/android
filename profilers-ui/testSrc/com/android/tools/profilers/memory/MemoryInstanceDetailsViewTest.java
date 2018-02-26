@@ -16,13 +16,13 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableSet;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,22 +47,16 @@ public class MemoryInstanceDetailsViewTest {
   private MemoryInstanceDetailsView myDetailsView;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private FakeCaptureObject myFakeCaptureObject;
-  private StudioProfilers myProfilers;
 
   @Before
   public void setup() {
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    myStage = new MemoryProfilerStage(myProfilers, loader);
+    myStage =
+      new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer()), loader);
     myDetailsView = new MemoryInstanceDetailsView(myStage, myFakeIdeProfilerComponents);
     myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE").build();
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    myProfilers.stop();
   }
 
   @Test

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -56,19 +57,12 @@ public class LiveAllocationCaptureObjectTest {
   protected MemoryProfilerStage myStage;
 
   protected final AspectObserver myAspectObserver = new AspectObserver();
-  private StudioProfilers myProfilers;
 
   @NotNull protected FakeIdeProfilerServices myIdeProfilerServices;
 
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices);
-    myStage = new MemoryProfilerStage(myProfilers);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    myProfilers.stop();
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, new FakeTimer()));
   }
 
   @RunWith(value = Parameterized.class)
