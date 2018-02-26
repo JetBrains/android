@@ -29,7 +29,7 @@ public class ProfilerTimelineTest {
   public static final double DELTA = 0.001;
 
   @Test
-  public void streaming() throws Exception {
+  public void streaming() {
     Updater updater = new Updater(new FakeTimer());
     ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
@@ -65,7 +65,7 @@ public class ProfilerTimelineTest {
   }
 
   @Test
-  public void testZoomIn() throws Exception {
+  public void testZoomIn() {
     Updater updater = new Updater(new FakeTimer());
     ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
@@ -91,7 +91,7 @@ public class ProfilerTimelineTest {
   }
 
   @Test
-  public void testZoomOut() throws Exception {
+  public void testZoomOut() {
     Updater updater = new Updater(new FakeTimer());
     ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
@@ -147,7 +147,7 @@ public class ProfilerTimelineTest {
   }
 
   @Test
-  public void testPan() throws Exception {
+  public void testPan() {
     Updater updater = new Updater(new FakeTimer());
     ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
@@ -184,7 +184,7 @@ public class ProfilerTimelineTest {
   }
 
   @Test
-  public void testPause() throws Exception {
+  public void testPause() {
     Updater updater = new Updater(new FakeTimer());
     ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
@@ -214,7 +214,7 @@ public class ProfilerTimelineTest {
   }
 
   @Test
-  public void testReset() throws Exception {
+  public void testReset() {
     long resetTimeNs = TimeUnit.SECONDS.toNanos(10);
     long updateTimeNs = TimeUnit.SECONDS.toNanos(15);
     FakeTimer timer = new FakeTimer();
