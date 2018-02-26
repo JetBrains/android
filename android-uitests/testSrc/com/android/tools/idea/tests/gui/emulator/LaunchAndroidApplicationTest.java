@@ -142,43 +142,6 @@ public class LaunchAndroidApplicationTest {
   }
 
   /**
-   * To verify NDK project compiles when running two files with same filename in different libs.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 1a36d98e-a0bf-4a4f-8eed-6fd55aa61a30
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Open Android Studio
-   *   2. Import NdkDupeFilename project.
-   *   3. Compile and run on the emulator.
-   *   Verify:
-   *   1. Application can run without errors.
-   *   </pre>
-   * <p>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void testNdkHandlesDupeFilename() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("NdkDupeFilename");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
-    ideFrameFixture
-      .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
-    ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
-
-    // Workaround:
-    // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(ADB_SHELL_AM_START), 120);
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess("com.example.hellojni");
-
-    contentWindow.stop();
-  }
-
-  /**
    * To verify app crashes if vulkan graphics is not supported.
    * <p>
    * The ideal test would launch the app on a real device (Nexus 5X or 6P). Since there
