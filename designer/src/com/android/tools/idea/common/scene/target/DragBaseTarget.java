@@ -23,7 +23,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
-import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
@@ -164,7 +163,9 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
       AttributesTransaction attributes = component.startAttributeTransaction();
       int snappedX = myTargetSnapper.trySnapX(x - myOffsetX);
       int snappedY = myTargetSnapper.trySnapY(y - myOffsetY);
-      myTargetSnapper.applyNotches(myComponent, attributes, snappedX, snappedY);
+      if (isAutoConnectionEnabled()) {
+        myTargetSnapper.applyNotches(attributes);
+      }
       updateAttributes(attributes, snappedX, snappedY);
       attributes.apply();
 
@@ -178,6 +179,13 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
   }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @return true if the constraint should be applied, false otherwise.
+   */
+  protected boolean isAutoConnectionEnabled() {
+    return true;
+  }
 
   /**
    * Reset the status when the dragging is canceled.
