@@ -32,7 +32,6 @@
     <orderEntry type="module" module-name="intellij.platform.jps.build" />
     <orderEntry type="module" module-name="intellij.spellchecker" />
     <orderEntry type="module" module-name="android.sdktools.draw9patch" />
-    <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
     <orderEntry type="library" name="freemarker-2.3.20" level="project" />
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
@@ -112,5 +111,6 @@
     <orderEntry type="library" name="lombok-ast" level="project" />
     <orderEntry type="library" name="XStream" level="project" />
     <orderEntry type="library" name="jgraphx" level="project" />
+    <orderEntry type="library" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
   </component>
 </module>

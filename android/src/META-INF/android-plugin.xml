@@ -1058,7 +1058,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-common.jar;build-common.jar;android-rt.jar;sdk-common.jar"/>
-    <compileServer.plugin classpath="repository.jar;sdklib.jar;../../../lib/android-base-common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
+    <compileServer.plugin classpath="repository.jar;sdklib.jar;../../../lib/android-base-common.jar;jarutils.jar;layoutlib-api.jar"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>

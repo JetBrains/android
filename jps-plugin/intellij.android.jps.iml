@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="intellij.platform.jps.model.serialization" />
     <orderEntry type="module" module-name="intellij.platform.jps.model.impl" />
     <orderEntry type="module" module-name="intellij.maven.jps" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="library" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
   </component>
 </module>
