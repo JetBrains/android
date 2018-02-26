@@ -54,19 +54,23 @@ public class NavigationSchemaTest extends AndroidTestCase {
         Arrays.stream(EMPTIES)),
       Arrays.stream(DEEP_LINK_ONLY)).toArray(String[]::new);
 
-  private static final String PREBUILT_AAR_PATH =
-    "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.6.0-alpha1/runtime-0.6.0-alpha1.aar";
+  private static final String[] PREBUILT_AAR_PATHS = {
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/runtime/0.7.0-alpha1/runtime-0.7.0-alpha1.aar",
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/fragment/0.7.0-alpha1/fragment-0.7.0-alpha1.aar",
+    "../../prebuilts/tools/common/m2/repository/androidx/navigation/common/0.7.0-alpha1/common-0.7.0-alpha1.aar"
+  };
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyDirectoryToProject("navschematest", "src");
 
-    File aar = new File(PathManager.getHomePath(), PREBUILT_AAR_PATH);
-    File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
-    ZipUtil.extract(aar, tempDir, null);
-
-    PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
+    for (String prebuiltPath : PREBUILT_AAR_PATHS) {
+      File aar = new File(PathManager.getHomePath(), prebuiltPath);
+      File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
+      ZipUtil.extract(aar, tempDir, null);
+      PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
+    }
     NavigationSchema.createIfNecessary(myFacet);
   }
 
@@ -105,9 +109,9 @@ public class NavigationSchemaTest extends AndroidTestCase {
 
   public void testDestinationClassByTag() {
     NavigationSchema schema = NavigationSchema.get(myFacet);
-    PsiClass activityNavigator = findClass("android.arch.navigation.ActivityNavigator");
-    PsiClass fragmentNavigator = findClass("android.arch.navigation.FragmentNavigator");
-    PsiClass navGraphNavigator = findClass("android.arch.navigation.NavGraphNavigator");
+    PsiClass activityNavigator = findClass("androidx.navigation.ActivityNavigator");
+    PsiClass fragmentNavigator = findClass("androidx.navigation.fragment.FragmentNavigator");
+    PsiClass navGraphNavigator = findClass("androidx.navigation.NavGraphNavigator");
     PsiClass activityNavigatorSub = findClass("ActivityNavigatorSub");
     PsiClass activityNavigatorSub2 = findClass("ActivityNavigatorSub2");
     PsiClass fragmentNavigatorSub = findClass("FragmentNavigatorSub");

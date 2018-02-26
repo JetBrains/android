@@ -59,16 +59,16 @@ public class NavigationSchema implements Disposable {
   public static final String INCLUDE_GRAPH_LABEL = "Include Graph";
   public static final String ACTION_LABEL = "Action";
 
-  private static final String NAVIGATOR_CLASS_NAME = "android.arch.navigation.Navigator";
-  private static final String ACTION_CLASS_NAME = "android.arch.navigation.NavAction";
+  private static final String NAVIGATOR_CLASS_NAME = "androidx.navigation.Navigator";
+  private static final String ACTION_CLASS_NAME = "androidx.navigation.NavAction";
 
   // TODO: it would be nice if this mapping were somehow supplied by the platform
   private static final Map<String, DestinationType> NAV_CLASS_TO_TYPE = ImmutableMap.of(
-    "android.arch.navigation.NavGraph", NAVIGATION,
-    "android.arch.navigation.FragmentNavigator.Destination", FRAGMENT,
-    "android.arch.navigation.ActivityNavigator.Destination", ACTIVITY);
+    "androidx.navigation.NavGraph", NAVIGATION,
+    "androidx.navigation.fragment.FragmentNavigator.Destination", FRAGMENT,
+    "androidx.navigation.ActivityNavigator.Destination", ACTIVITY);
 
-  private static final String ANNOTATION_NAV_TAG_NAME = "android.arch.navigation.Navigator.Name";
+  private static final String ANNOTATION_NAV_TAG_NAME = "androidx.navigation.Navigator.Name";
 
   public static final String ATTR_NAV_TYPE = "navType";
   public static final String ATTR_START_DESTINATION = "startDestination";
@@ -106,7 +106,7 @@ public class NavigationSchema implements Disposable {
   private final AndroidFacet myFacet;
   private PsiClass myActionClass;
   public static final String ATTR_DEFAULT_VALUE = "defaultValue";
-  public static final String NAV_HOST_FRAGMENT = "android.arch.navigation.NavHostFragment";
+  public static final String NAV_HOST_FRAGMENT = "androidx.navigation.NavHostFragment";
 
   public enum DestinationType {
     NAVIGATION,

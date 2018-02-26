@@ -42,7 +42,8 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   FLEXBOX_LAYOUT("com.google.android", "flexbox", false),
 
   // Navigation
-  NAVIGATION("android.arch.navigation", "runtime", false),
+  NAVIGATION("androidx.navigation", "runtime", false),
+  NAVIGATION_FRAGMENT("androidx.navigation", "fragment", false),
 
   // Testing
   TEST_RUNNER("com.android.support.test", "runner", false),

@@ -58,8 +58,13 @@ abstract class NavTestCase : AndroidTestCase() {
       PsiTestUtil.addLibrary(myFixture.module, classes.path)
 
       myFixture.testDataPath = tempDir.path
-      myFixture.copyDirectoryToProject("res", "res")
 
+      val values = File(tempDir, "res/values/values.xml")
+      if (values.exists()) {
+        Preconditions.checkState(values.renameTo(File(tempDir, "res/values/values$i.xml")))
+      }
+
+      myFixture.copyDirectoryToProject("res", "res")
       myFixture.testDataPath = testDataPath
     }
 
@@ -91,8 +96,10 @@ abstract class NavTestCase : AndroidTestCase() {
 
     val TAG_NAVIGATION = "navigation"
     private val PREBUILT_AAR_PATHS = arrayOf(
-        "../../prebuilts/tools/common/m2/repository/android/arch/navigation/runtime/0.6.0-alpha1/runtime-0.6.0-alpha1.aar",
-        "../../prebuilts/tools/common/m2/repository/com/android/support/support-fragment/27.0.2/support-fragment-27.0.2.aar")
+      "../../prebuilts/tools/common/m2/repository/androidx/navigation/runtime/0.7.0-alpha1/runtime-0.7.0-alpha1.aar",
+      "../../prebuilts/tools/common/m2/repository/androidx/navigation/common/0.7.0-alpha1/common-0.7.0-alpha1.aar",
+      "../../prebuilts/tools/common/m2/repository/androidx/navigation/fragment/0.7.0-alpha1/fragment-0.7.0-alpha1.aar",
+      "../../prebuilts/tools/common/m2/repository/com/android/support/support-fragment/27.0.2/support-fragment-27.0.2.aar")
 
     val testDataPath: String
       get() = designerPluginHome + "/testData"
