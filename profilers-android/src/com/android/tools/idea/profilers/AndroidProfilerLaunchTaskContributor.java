@@ -220,7 +220,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     @NotNull
     @Override
     public String getDescription() {
-      return "Presents the Android Profiler Tool Window";
+      return "Presents the Profiler Tool Window";
     }
 
     @Override
