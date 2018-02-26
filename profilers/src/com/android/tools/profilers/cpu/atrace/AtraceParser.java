@@ -62,7 +62,7 @@ public class AtraceParser implements TraceParser {
     double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
     myRange = new Range(startTimestampUs, endTimestampUs);
     myProcessModel = myModel.getProcesses().get(myProcessId);
-    
+
     // TODO (b/69910215): Handle case capture does not contain process we are looking for.
     assert myProcessModel != null;
     myCaptureTreeNodes = buildCaptureTreeNodes();
