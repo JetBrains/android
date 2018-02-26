@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.Point;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -72,39 +69,19 @@ public class TargetSnapper {
   private int myNotchesSourcesMask = ALL;
 
   /**
-   * Tries to snap the provided coordinates to a Notch and if the coordinates were snapped
-   * runs the {@link Notch.Action} associated with the snapped Notch
+   * Runs the {@link Notch.Action} associated with the snapped Notch(es).
    *
-   * @param component  The component being modified
    * @param attributes The component's attribute
-   * @param mouseX     The x coordinate to try to snap
-   * @param mouseY     The y coordinate to try to snap
-   * @return A {@link Point} with the provided coordinate
    */
-  public Point applyNotches(@NotNull SceneComponent component,
-                            @NotNull AttributesTransaction attributes,
-                            @AndroidDpCoordinate int mouseX,
-                            @AndroidDpCoordinate int mouseY) {
+  public void applyNotches(@NotNull AttributesTransaction attributes) {
     if (myCurrentNotchX != null) {
-      mouseX = myCurrentNotchX.trySnap(mouseX);
-      if (allowsAutoConnect(component)) {
-        myCurrentNotchX.applyAction(attributes);
-      }
+      myCurrentNotchX.applyAction(attributes);
       myCurrentNotchX = null;
     }
     if (myCurrentNotchY != null) {
-      mouseY = myCurrentNotchY.trySnap(mouseY);
-      if (allowsAutoConnect(component)) {
-        myCurrentNotchY.applyAction(attributes);
-      }
+      myCurrentNotchY.applyAction(attributes);
       myCurrentNotchY = null;
     }
-    return new Point(mouseX, mouseY);
-  }
-
-  private static boolean allowsAutoConnect(@NotNull SceneComponent component) {
-    return !SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getNlComponent().getTagName()) &&
-           ConstraintLayoutHandler.isAutoconnectOn();
   }
 
   /**
@@ -235,7 +212,7 @@ public class TargetSnapper {
 
   /**
    * @return The snapped {@link Notch} after a call to {@link #trySnapX(int)} or null if no {@link Notch} was selected.
-   * <p> If {@link #applyNotches(SceneComponent, AttributesTransaction, int, int)} was called, it will return null
+   * <p> If {@link #applyNotches(AttributesTransaction)} was called, it will return null
    */
   @Nullable
   public Notch getSnappedNotchX() {
@@ -244,7 +221,7 @@ public class TargetSnapper {
 
   /**
    * @return The snapped {@link Notch} after a call to {@link #trySnapY(int)} or null if no {@link Notch} was selected.
-   * <p> If {@link #applyNotches(SceneComponent, AttributesTransaction, int, int)} was called, it will return null
+   * <p> If {@link #applyNotches(AttributesTransaction)} was called, it will return null
    */
   @Nullable
   public Notch getSnappedNotchY() {

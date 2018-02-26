@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutArrange;
@@ -78,7 +79,10 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
       int dy = y - myOffsetY;
-      Point snappedCoordinates = getTargetNotchSnapper().applyNotches(myComponent, attributes, dx, dy);
+      Point snappedCoordinates = new Point(getTargetNotchSnapper().trySnapX(dx), getTargetNotchSnapper().trySnapY(dy));
+      if (isAutoConnectionEnabled()) {
+        getTargetNotchSnapper().applyNotches(attributes);
+      }
       updateAttributes(attributes, snappedCoordinates.x, snappedCoordinates.y);
       setGuidelineBegin(attributes, x, y);
       boolean horizontalMatchParent = false;

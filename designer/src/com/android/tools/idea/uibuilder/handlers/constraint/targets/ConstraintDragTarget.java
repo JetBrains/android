@@ -22,7 +22,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +32,7 @@ import java.util.ArrayList;
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
  */
 @SuppressWarnings("ForLoopReplaceableByForEach")
-public class ConstraintDragTarget extends DragBaseTarget  implements MultiComponentTarget {
+public class ConstraintDragTarget extends DragBaseTarget implements MultiComponentTarget {
 
   @AndroidDpCoordinate protected int myOffsetX;
   @AndroidDpCoordinate protected int myOffsetY;
@@ -40,6 +40,12 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
   @AndroidDpCoordinate private final static int ourSnapMarginDistance = 4; // snap on 4dp
 
   private final ChainChecker myChainChecker = new ChainChecker();
+
+  @Override
+  protected boolean isAutoConnectionEnabled() {
+    return !SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(myComponent.getNlComponent().getTagName()) &&
+           ConstraintLayoutHandler.isAutoconnectOn();
+  }
 
   @Nullable
   private SceneComponent getTargetComponent(@NotNull String uri, @NotNull ArrayList<String> attributes) {
@@ -317,6 +323,4 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
       }
     }
   }
-
-  //endregion
 }
