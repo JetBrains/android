@@ -83,13 +83,13 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       // com.android.ddmlib.HandleProfiling.sendSPSS(..) has buffer size as a parameter, but we cannot call it
       // because the class is not public. To set buffer size, we modify DdmPreferences which will be read by
       // client.startSamplingProfiler(..) and client.startMethodTracer().
-      DdmPreferences.setProfilerBufferSizeMb(request.getBufferSizeInMb());
+      DdmPreferences.setProfilerBufferSizeMb(request.getConfiguration().getBufferSizeInMb());
       long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
       record = new LegacyProfilingRecord(request, nowNs, responseBuilder);
       myLegacyProfilingRecord.put(pid, record);
       try {
-        if (request.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED) {
-          client.startSamplingProfiler(request.getSamplingIntervalUs(), TimeUnit.MICROSECONDS);
+        if (request.getConfiguration().getMode() == CpuProfilerConfiguration.Mode.SAMPLED) {
+          client.startSamplingProfiler(request.getConfiguration().getSamplingIntervalUs(), TimeUnit.MICROSECONDS);
         }
         else {
           client.startMethodTracer();
@@ -137,7 +137,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
       record.setStopResponseBuilder(responseBuilder);
       try {
-        if (record.myStartRequest.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED) {
+        if (record.myStartRequest.getConfiguration().getMode() == CpuProfilerConfiguration.Mode.SAMPLED) {
           client.stopSamplingProfiler();
         }
         else {
@@ -174,7 +174,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       else {
         return responseBuilder
           .setBeingProfiled(true)
-          .setStartRequest(record.myStartRequest)
+          .setConfiguration(record.myStartRequest.getConfiguration())
           .setStartTimestamp(record.myStartRequestTimestamp)
           .setCheckTimestamp(nowNs)
           .build();

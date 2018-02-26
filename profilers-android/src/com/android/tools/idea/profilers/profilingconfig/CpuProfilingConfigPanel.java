@@ -182,11 +182,11 @@ public class CpuProfilingConfigPanel {
     // There is a flag check before adding this button to the UI, so we can safely set it to enabled here.
     mySimpleperfButton.setEnabled(true);
     if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
-      if (configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
+      if (configuration.getMode() == CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED) {
         myArtSampledButton.setSelected(true);
         setEnabledSamplingIntervalPanel(true);
       }
-      else if (configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
+      else if (configuration.getMode() == CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED) {
         myArtInstrumentedButton.setSelected(true);
         setEnabledSamplingIntervalPanel(false);
       }
@@ -195,7 +195,7 @@ public class CpuProfilingConfigPanel {
       }
     }
     else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-      assert configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
+      assert configuration.getMode() == CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED;
       mySimpleperfButton.setSelected(true);
       setEnabledSamplingIntervalPanel(true);
     }
@@ -286,17 +286,17 @@ public class CpuProfilingConfigPanel {
     switch (technology) {
       case ART_SAMPLED:
         myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+        myConfiguration.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
         break;
       case ART_INSTRUMENTED:
         myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+        myConfiguration.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
         setEnabledSamplingIntervalPanel(false);
         break;
       case SIMPLEPERF:
         myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
-        myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+        myConfiguration.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
     }
   }

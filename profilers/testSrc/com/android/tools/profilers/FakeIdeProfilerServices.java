@@ -277,7 +277,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void addCustomProfilingConfiguration(String name, CpuProfiler.CpuProfilerType type) {
     ProfilingConfiguration config =
-      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilingAppStartRequest.Mode.UNSTATED);
+      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilerConfiguration.Mode.UNSTATED);
     myCustomProfilingConfigurations.add(config);
   }
 

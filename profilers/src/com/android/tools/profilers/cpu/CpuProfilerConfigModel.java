@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +81,7 @@ public class CpuProfilerConfigModel {
       .onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, this::updateProfilingConfigurations);
   }
 
-  public void setActiveConfig(CpuProfilerType profilerType, CpuProfilingAppStartRequest.Mode mode,
+  public void setActiveConfig(CpuProfilerType profilerType, CpuProfiler.CpuProfilerConfiguration.Mode mode,
                               int bufferSizeLimitMb, int samplingIntervalUs) {
     // The configuration name field is not actually used when retrieving the active configuration. The reason behind that is configurations,
     // including their name, can be edited when a capture is still in progress. We only need to store the parameters used when starting
@@ -145,7 +145,7 @@ public class CpuProfilerConfigModel {
       else {
         myProfilingConfiguration =
           Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.ART
-                                                 && pref.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                 && pref.getMode() == CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
       }
     }
   }

@@ -144,11 +144,15 @@ threads {
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest">
-        <Message>profiler_type: SIMPLEPERF
+        <Message>configuration {
+  profiler_type: SIMPLEPERF
+}
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StartProfilingApp</functionCalled>
-        <message>profiler_type: SIMPLEPERF
+        <message>configuration {
+  profiler_type: SIMPLEPERF
+}
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartResponse">

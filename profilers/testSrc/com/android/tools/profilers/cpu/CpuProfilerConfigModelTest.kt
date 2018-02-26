@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Common.Device
+import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -60,12 +60,12 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs).hasSize(2)
     // First actual configuration should be ART Sampled
     assertThat(realConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
-    assertThat(realConfigs[0].mode).isEqualTo(CpuProfilingAppStartRequest.Mode.SAMPLED)
+    assertThat(realConfigs[0].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
     assertThat(realConfigs[0].name).isEqualTo(ProfilingConfiguration.ART_SAMPLED)
     assertThat(realConfigs[0].isDefault).isTrue()
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[1].profilerType).isEqualTo(CpuProfilerType.ART)
-    assertThat(realConfigs[1].mode).isEqualTo(CpuProfilingAppStartRequest.Mode.INSTRUMENTED)
+    assertThat(realConfigs[1].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
     assertThat(realConfigs[1].name).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
     assertThat(realConfigs[1].isDefault).isTrue()
 
@@ -77,12 +77,12 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs).hasSize(4)
     // First actual configuration should be ART Sampled
     assertThat(realConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
-    assertThat(realConfigs[0].mode).isEqualTo(CpuProfilingAppStartRequest.Mode.SAMPLED)
+    assertThat(realConfigs[0].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
     assertThat(realConfigs[0].name).isEqualTo(ProfilingConfiguration.ART_SAMPLED)
     assertThat(realConfigs[0].isDefault).isTrue()
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[1].profilerType).isEqualTo(CpuProfilerType.ART)
-    assertThat(realConfigs[1].mode).isEqualTo(CpuProfilingAppStartRequest.Mode.INSTRUMENTED)
+    assertThat(realConfigs[1].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
     assertThat(realConfigs[1].name).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
     assertThat(realConfigs[1].isDefault).isTrue()
     // Second actual configuration should be ART Instrumented
@@ -107,13 +107,13 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs).hasSize(2)
     // First actual configuration should be ART Sampled
     assertThat(realConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
-    assertThat(realConfigs[0].mode).isEqualTo(CpuProfilingAppStartRequest.Mode.SAMPLED)
+    assertThat(realConfigs[0].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
     assertThat(realConfigs[0].name).isEqualTo(ProfilingConfiguration.ART_SAMPLED)
     assertThat(realConfigs[0].isDefault).isTrue()
     assertThat(realConfigs[0].requiredDeviceLevel).isEqualTo(0)
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[1].profilerType).isEqualTo(CpuProfilerType.ART)
-    assertThat(realConfigs[1].mode).isEqualTo(CpuProfilingAppStartRequest.Mode.INSTRUMENTED)
+    assertThat(realConfigs[1].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
     assertThat(realConfigs[1].name).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
     assertThat(realConfigs[1].isDefault).isTrue()
     assertThat(realConfigs[1].requiredDeviceLevel).isEqualTo(0)
