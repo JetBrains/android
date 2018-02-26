@@ -99,10 +99,13 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
     @Override
     @Nullable
     public PasswordAuthentication getPasswordAuthentication() {
-      String host = getRequestingURL().toString();
-      PasswordAuthentication result = getAuthentication(host);
-      if (result != null) {
-        return result;
+      URL url = getRequestingURL();
+      if (url != null) {
+        String host = url.toString();
+        PasswordAuthentication result = getAuthentication(host);
+        if (result != null) {
+          return result;
+        }
       }
       return getAuthentication(CommonProxy.getHostNameReliably(getRequestingHost(), getRequestingSite(), getRequestingURL()));
     }
