@@ -23,15 +23,21 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import static com.intellij.rt.execution.testFrameworks.ProcessBuilder.isWindows;
 
 public class MockAvdManagerConnection extends AvdManagerConnection {
+  private static final Logger LOG = Logger.getInstance(MockAvdManagerConnection.class);
   @NotNull private final AndroidSdkHandler mySdkHandler;
 
   public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
@@ -60,14 +66,49 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   }
 
   public void killEmulator() {
+    AndroidDebugBridge adb = AndroidDebugBridge.createBridge(getAdbBinary().getAbsolutePath(), false);
+
+    Collection<IDevice> emulatorDevices = new ArrayList<>();
+    for (IDevice device : adb.getDevices()) {
+      EmulatorConsole emulatorConsole = EmulatorConsole.getConsole(device);
+      if (emulatorConsole != null) {
+        emulatorConsole.kill();
+        emulatorDevices.add(device);
+      }
+    }
+
+    giveEmulatorsChanceToExit(emulatorDevices);
+    // Force kill remaining emulators that didn't exit
     killEmulatorProcesses();
-    // TODO kill the emulator gracefully. Need to kill through adb, using SIGTERM, and then using SIGKILL
+    // Kill emulator crash report dialogs left behind
+    killEmulatorCrashReportProcess();
   }
 
   public void killEmulatorProcesses() {
     // Note that pgrep matches up to 15 characters.
     exec(isWindows ? "taskkill /F /IM qemu*" : "pkill -9 qemu");
     killEmulatorCrashReportProcess();
+  }
+
+  private void giveEmulatorsChanceToExit(@NotNull Collection<IDevice> emulators) {
+    try {
+      Wait.seconds(30)
+        .expecting("All emulators to have terminated gracefully")
+        .until(() -> {
+          for (IDevice device : emulators) {
+            if (device == null || !device.isEmulator()) {
+              continue;
+            }
+
+            if (device.getState() != IDevice.DeviceState.DISCONNECTED) {
+              return false;
+            }
+          }
+          return true;
+        });
+    } catch (WaitTimedOutError timeout) {
+      LOG.error("Emulators did not shut down gracefully");
+    }
   }
 
   public void tapRunningAvd(int x, int y) {
