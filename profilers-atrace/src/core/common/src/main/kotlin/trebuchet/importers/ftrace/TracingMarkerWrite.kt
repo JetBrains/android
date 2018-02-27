@@ -77,7 +77,10 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
     fun handleEnd(data: ImportData) {
         // End format: E
         val slices = data.thread.slicesBuilder
-        slices.endSlice { it.endTime = data.line.timestamp }
+        slices.endSlice {
+            it.endTime = data.line.timestamp
+            it.populateScheduledSlices(data.thread.schedulingStateBuilder.slices)
+        }
     }
 
     fun BufferReader.handleCounter(data: ImportData) {

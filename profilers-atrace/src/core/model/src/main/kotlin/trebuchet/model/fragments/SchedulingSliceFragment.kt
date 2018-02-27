@@ -23,6 +23,7 @@ import trebuchet.model.base.Slice
 class SchedulingSliceFragment(override val state: SchedulingState, override val startTime: Double)
         : SchedSlice {
     override var endTime: Double = Double.MAX_VALUE
+    override var cpuTime: Double = 0.0
     var blockedReason: String? = null
 
     class Builder {
@@ -36,6 +37,9 @@ class SchedulingSliceFragment(override val state: SchedulingState, override val 
                     return
                 }
                 _slices.last().endTime = timestamp
+                if (_slices.last().state == SchedulingState.RUNNING) {
+                    _slices.last().cpuTime += (timestamp - slices.last().startTime)
+                }
             }
             _slices.add(SchedulingSliceFragment(newState, timestamp))
         }

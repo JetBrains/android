@@ -20,6 +20,7 @@ import trebuchet.model.CpuProcessSlice
 
 class SchedulingProcessFragment(val process: ProcessModelFragment, val thread: ThreadModelFragment, override val startTime: Double) : CpuProcessSlice {
   override var endTime: Double = Double.MAX_VALUE
+  override var cpuTime: Double = 0.0
 
   class Builder {
     private val _slices = mutableListOf<SchedulingProcessFragment>()
