@@ -22,6 +22,7 @@ import org.mockito.Mock;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -89,7 +90,20 @@ public class AndroidStudioGradleIdeSettingsTest {
     calendar.add(Calendar.DATE, 15);
     when(myCurrentTimeProvider.getCurrentTimeMillis()).thenReturn(calendar.getTimeInMillis());
 
-    assertFalse(mySettings.isEmbeddedMavenRepoEnabled());
+    try {
+      assertFalse("Expected embedded repo to be disabled.", mySettings.isEmbeddedMavenRepoEnabled());
+    }
+    catch (AssertionError e) {
+      // See b/73920264.
+      throw new AssertionError(
+        String.format(
+          "ENABLE_EMBEDDED_MAVEN_REPO: %s, EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS: %s, time from provider: %d, daysPassed: %d",
+          mySettings.ENABLE_EMBEDDED_MAVEN_REPO,
+          mySettings.EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS,
+          myCurrentTimeProvider.getCurrentTimeMillis(),
+          TimeUnit.MILLISECONDS.toDays(myCurrentTimeProvider.getCurrentTimeMillis() - mySettings.EMBEDDED_MAVEN_REPO_ENABLED_TIMESTAMP_MILLIS)),
+        e);
+    }
   }
 
   @Test
