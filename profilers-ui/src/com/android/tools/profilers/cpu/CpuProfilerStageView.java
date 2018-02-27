@@ -489,7 +489,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   private void installExportTraceMenuItem(ContextMenuInstaller contextMenuInstaller) {
     ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(StudioIcons.Common.EXPORT).build();
-    // TODO (b/73296572)  provide a default file name for exporting CPU trace file
     contextMenuInstaller.installGenericContextMenu(
       mySelection, exportTrace,
       x -> getTraceIntersectingWithMouseX(x) != null,
