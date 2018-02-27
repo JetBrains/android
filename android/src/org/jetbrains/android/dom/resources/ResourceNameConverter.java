@@ -1,8 +1,12 @@
 package org.jetbrains.android.dom.resources;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
 import com.intellij.openapi.module.Module;
@@ -16,8 +20,6 @@ import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -146,17 +148,14 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   }
 
   public static boolean hasExplicitParent(@NotNull AndroidFacet facet, @NotNull String localStyleName) {
-    LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-    List<ValueResourceInfoImpl> styles = resourceManager.findValueResourceInfos(ResourceType.STYLE.getName(), localStyleName, true, false);
-
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+    List<ResourceItem> styles = repository.getResourceItems(ResourceNamespace.TODO, ResourceType.STYLE, localStyleName);
     if (styles.isEmpty()) {
       return false;
     }
-    // all resolved styles have explicit parents
-    for (ValueResourceInfoImpl info : styles) {
-      final ResourceElement domElement = info.computeDomElement();
-
-      if (!(domElement instanceof Style) || ((Style)domElement).getParentStyle().getStringValue() == null) {
+    for (ResourceItem style : styles) {
+      com.android.ide.common.rendering.api.ResourceValue resourceValue = style.getResourceValue();
+      if (!(resourceValue instanceof StyleResourceValue) || ((StyleResourceValue) resourceValue).getParentStyleName() == null) {
         return false;
       }
     }
