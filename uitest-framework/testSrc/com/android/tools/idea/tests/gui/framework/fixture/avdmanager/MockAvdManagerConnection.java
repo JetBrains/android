@@ -47,9 +47,6 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   protected void addParameters(@NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
     super.addParameters(info, commandLine);
     commandLine.addParameters("-no-window");
-    // TODO Remove the following -gpu option once http://b/72262742 is fixed
-    commandLine.addParameters("-gpu");
-    commandLine.addParameters("off");
   }
 
   @NotNull
