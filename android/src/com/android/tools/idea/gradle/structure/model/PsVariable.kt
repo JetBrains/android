@@ -34,7 +34,12 @@ class PsVariable(private val property: GradlePropertyModel, val module: PsModule
   }
 
   fun setValue(aValue: Any) {
-    property.setValue(aValue)
+    if (property.valueType == GradlePropertyModel.ValueType.BOOLEAN) {
+      property.setValue((aValue as String).toBoolean())
+    }
+    else {
+      property.setValue(aValue)
+    }
     module.isModified = true
   }
 
