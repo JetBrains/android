@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -150,6 +151,21 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     File expectedBuildFile = new File(getProjectFolderPath(), FN_BUILD_GRADLE);
     String expectedPath = expectedBuildFile.getCanonicalPath();
     verifyOpenHyperlink(quickFixes.get(0), expectedPath);
+  }
+
+  public void testProjectNotInitialized() throws Exception {
+    // Check that quickfixes are generated when the project is not initialized
+    loadProject(SIMPLE_APPLICATION);
+    Project spyProject = spy(getProject());
+    when(spyProject.isInitialized()).thenReturn(false);
+
+    // Verify generated hyperlinks
+    List<NotificationHyperlink> quickFixes = new MissingAndroidPluginErrorHandler().getQuickFixHyperlinks(spyProject, "Test Error");
+    assertThat(quickFixes).hasSize(2);
+    assertThat(quickFixes.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
+    AddGoogleMavenRepositoryHyperlink addHyperlink = (AddGoogleMavenRepositoryHyperlink)quickFixes.get(0);
+    assertThat(addHyperlink.getBuildFile()).isNull();
+    assertThat(quickFixes.get(1)).isInstanceOf(OpenPluginBuildFileHyperlink.class);
   }
 
   @NotNull
