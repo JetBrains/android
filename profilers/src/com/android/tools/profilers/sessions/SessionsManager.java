@@ -21,6 +21,8 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.HprofSessionArtifact;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,17 @@ import static com.android.tools.profilers.StudioProfilers.buildSessionName;
  * memory heap dump, CPU capture)
  */
 public class SessionsManager extends AspectModel<SessionAspect> {
+
+  /**
+   * An interface for querying artifacts that belong to a session (e.g. heap dump, cpu capture, bookmarks).
+   */
+  private interface ArtifactFetcher {
+    List<SessionArtifact> fetch(@NotNull StudioProfilers profilers,
+                                @NotNull Common.Session session,
+                                @NotNull Common.SessionMetaData sessionMetaData);
+  }
+
+  private static final SessionArtifactComparator ARTIFACT_COMPARATOR = new SessionArtifactComparator();
 
   @NotNull private final StudioProfilers myProfilers;
 
@@ -66,11 +79,21 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
   private int importedSessionCount = 0;
 
+  /**
+   * A list of functions that should be called for each {@link Common.Session} for retrieving its data artifacts.
+   */
+  @NotNull
+  private final List<ArtifactFetcher> myArtifactsFetchers;
+
   public SessionsManager(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
     mySessionItems = new HashMap<>();
     mySessionArtifacts = new ArrayList<>();
+
+    myArtifactsFetchers = new ArrayList<>();
+    myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
+    myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
   }
 
   @NotNull
@@ -263,9 +286,28 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       }
     });
 
-    // TODO b/67509285 query for the artifacts (e.g. capture objects) associated with each SessionItem as well.
-    mySessionArtifacts = new ArrayList<>(mySessionItems.values());
-    Collections.sort(mySessionArtifacts, Comparator.comparingLong(SessionArtifact::getTimestampNs).reversed());
+    mySessionArtifacts = new ArrayList<>();
+    for (SessionItem item : mySessionItems.values()) {
+      mySessionArtifacts.add(item);
+      List<SessionArtifact> artifacts = new ArrayList<>();
+      myArtifactsFetchers.forEach(fetcher -> artifacts.addAll(fetcher.fetch(myProfilers, item.getSession(), item.getSessionMetaData())));
+      item.setCanExpand(!artifacts.isEmpty());
+      if (item.isExpanded()) {
+        mySessionArtifacts.addAll(artifacts);
+      }
+    }
+    Collections.sort(mySessionArtifacts, ARTIFACT_COMPARATOR);
     changed(SessionAspect.SESSIONS);
+  }
+
+  private static class SessionArtifactComparator implements Comparator<SessionArtifact> {
+    @Override
+    public int compare(SessionArtifact artifact1, SessionArtifact artifact2) {
+      // More recent session should appear at the top.
+      int result =
+        Long.compare(artifact2.getSessionMetaData().getStartTimestampEpochMs(), artifact1.getSessionMetaData().getStartTimestampEpochMs());
+      // Within a session, more recent artifacts should appear at the bottom.
+      return result == 0 ? Long.compare(artifact1.getTimestampNs(), artifact2.getTimestampNs()) : result;
+    }
   }
 }

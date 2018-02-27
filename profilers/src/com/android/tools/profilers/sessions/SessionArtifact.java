@@ -16,6 +16,7 @@
 package com.android.tools.profilers.sessions;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -24,19 +25,31 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface SessionArtifact {
   /**
+   * @return the {@link StudioProfilers} instance.
+   */
+  @NotNull
+  StudioProfilers getProfilers();
+
+  /**
    * @return the {@link Common.Session} instance that this artifact belongs to.
    */
   @NotNull
   Common.Session getSession();
 
   /**
-   * @return The name used for display.
+   * @return the {@link Common.Session} instance that this artifact belongs to.
+   */
+  @NotNull
+  Common.SessionMetaData getSessionMetaData();
+
+  /**
+   * @return the name used for display.
    */
   @NotNull
   String getName();
 
   /**
-   * @return The timestamp when this artifact was created/took place.
+   * @return the timestamp relative to the session's start time when this artifact was created/took place.
    */
   long getTimestampNs();
 
