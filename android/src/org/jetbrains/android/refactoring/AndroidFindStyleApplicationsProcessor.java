@@ -1,7 +1,11 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.google.common.collect.Multimap;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,10 +47,6 @@ import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -194,11 +194,11 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     final List<VirtualFile> resDirs = new ArrayList<VirtualFile>();
 
     if (mySearchOnlyInCurrentModule) {
-      collectResDir(myModule, myStyleNameAttrValue, myStyleName, resDirs);
+      collectResDir(myModule, myStyleName, resDirs);
     }
     else {
       for (Module m : getAllModulesToScan(myModule)) {
-        collectResDir(m, myStyleNameAttrValue, myStyleName, resDirs);
+        collectResDir(m, myStyleName, resDirs);
       }
     }
     final List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(
@@ -270,22 +270,16 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     return usages;
   }
 
-  private static void collectResDir(Module module, XmlAttributeValue styleNameAttrValue, String styleName, List<VirtualFile> resDirs) {
-    final AndroidFacet f = AndroidFacet.getInstance(module);
-    if (f == null) {
+  private static void collectResDir(Module module, String styleName, List<VirtualFile> resDirs) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
       return;
     }
-    LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(f).getLocalResourceManager();
-    final List<ValueResourceInfoImpl> resolvedStyles =
-      resourceManager.findValueResourceInfos(ResourceType.STYLE.getName(), styleName, true, false);
-
-    if (resolvedStyles.size() == 1) {
-      final XmlAttributeValue resolvedStyleNameElement = resolvedStyles.get(0).computeXmlElement();
-
-      if (resolvedStyleNameElement != null &&
-          resolvedStyleNameElement.equals(styleNameAttrValue)) {
-        resDirs.addAll(ResourceFolderManager.getInstance(f).getFolders());
-      }
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+    List<ResourceItem> styles = repository.getResourceItems(ResourceNamespace.TODO, ResourceType.STYLE, styleName);
+    if (styles.size() == 1) {
+      Multimap<String, VirtualFile> resourceDirs = repository.getAllResourceDirs();
+      resDirs.addAll(new HashSet<>(resourceDirs.values()));
     }
   }
 
