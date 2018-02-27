@@ -60,9 +60,7 @@ final class NavigationViewHandler extends FrameLayoutHandler {
     if (resource == null) {
       return;
     }
-
-    NlModel model = component.getModel();
-    DesignSurfaceHelper.openResource(model.getProject(), model.getConfiguration(), resource, model.getVirtualFile());
+    editor.openResourceFile(resource);
   }
 
   private static boolean contains(@NotNull View view, @AndroidCoordinate int x, @AndroidCoordinate int y) {
