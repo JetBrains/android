@@ -126,6 +126,13 @@ public class FakeGrpcServer extends FakeGrpcChannel {
       response.onNext(MemoryData.getDefaultInstance());
       response.onCompleted();
     }
+
+    @Override
+    public void listHeapDumpInfos(ListDumpInfosRequest request,
+                                  StreamObserver<ListHeapDumpInfosResponse> response) {
+      response.onNext(ListHeapDumpInfosResponse.getDefaultInstance());
+      response.onCompleted();
+    }
   }
 
   private static class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {

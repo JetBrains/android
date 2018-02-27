@@ -18,10 +18,18 @@ package com.android.tools.profilers.sessions
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.FakeGrpcServer
+import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.profiler.proto.MemoryProfiler
+import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
+import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.event.FakeEventService
+import com.android.tools.profilers.memory.FakeMemoryService
+import com.android.tools.profilers.memory.HprofSessionArtifact
+import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -30,26 +38,35 @@ import org.junit.rules.ExpectedException
 
 class SessionsManagerTest {
 
+  private val myProfilerService = FakeProfilerService(false)
+  private val myMemoryService = FakeMemoryService()
+  private val myCpuService = FakeCpuService()
+
   @get:Rule
   val myThrown = ExpectedException.none()
   @get:Rule
-  var myGrpcServer = FakeGrpcServer(
-      "StudioProfilerTestChannel",
-      FakeProfilerService(false)
+  var myGrpcChannel = FakeGrpcChannel(
+      "SessionsManagerTestChannel",
+      myProfilerService,
+      myMemoryService,
+      myCpuService,
+      FakeEventService(),
+      FakeNetworkService.newBuilder().build()
   )
 
+  private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
   private lateinit var myObserver: SessionsAspectObserver
 
   @Before
   fun setup() {
     myObserver = SessionsAspectObserver()
-    val profilers = StudioProfilers(
-        myGrpcServer.client,
+    myProfilers = StudioProfilers(
+        myGrpcChannel.client,
         FakeIdeProfilerServices(),
         FakeTimer()
     )
-    myManager = profilers.sessionsManager
+    myManager = myProfilers.sessionsManager
     myManager.addDependency(myObserver)
       .onChange(SessionAspect.SELECTED_SESSION) { myObserver.selectedSessionChanged() }
       .onChange(SessionAspect.PROFILING_SESSION) { myObserver.profilingSessionChanged() }
@@ -249,17 +266,89 @@ class SessionsManagerTest {
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
 
+    val session1Timestamp = 1L
+    val session2Timestamp = 2L
+    myProfilerService.setTimestampNs(session1Timestamp)
     myManager.beginSession(device, process1)
     myManager.endCurrentSession()
     val session1 = myManager.selectedSession
+    myProfilerService.setTimestampNs(session2Timestamp)
     myManager.beginSession(device, process2)
     myManager.endCurrentSession()
     val session2 = myManager.selectedSession
 
-    val sessionItems = myManager.sessionArtifacts
+    var sessionItems = myManager.sessionArtifacts
     assertThat(sessionItems).hasSize(2)
-    assertThat(sessionItems[0].session).isEqualTo(session2)
-    assertThat(sessionItems[1].session).isEqualTo(session1)
+    // Sessions are sorted in descending order.
+    var sessionItem0 = sessionItems[0] as SessionItem
+    var sessionItem1 = sessionItems[1] as SessionItem
+    assertThat(sessionItem0.session).isEqualTo(session2)
+    assertThat(sessionItem0.timestampNs).isEqualTo(0)
+    assertThat(sessionItem0.canExpand()).isFalse()
+    assertThat(sessionItem0.isExpanded).isFalse()
+    assertThat(sessionItem1.session).isEqualTo(session1)
+    assertThat(sessionItem1.timestampNs).isEqualTo(0)
+    assertThat(sessionItem1.canExpand()).isFalse()
+    assertThat(sessionItem1.isExpanded).isFalse()
+
+    val heapDumpTimestamp = 10L
+    val cpuTraceTimestamp = 20L
+    val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
+    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+    myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
+    myCpuService.addTraceInfo(cpuTraceInfo)
+    myManager.update()
+
+    // Sessions should now be expandable
+    sessionItems = myManager.sessionArtifacts
+    assertThat(sessionItems).hasSize(2)
+    sessionItem0 = sessionItems[0] as SessionItem
+    sessionItem1 = sessionItems[1] as SessionItem
+    assertThat(sessionItem0.session).isEqualTo(session2)
+    assertThat(sessionItem0.timestampNs).isEqualTo(0)
+    assertThat(sessionItem0.canExpand()).isTrue()
+    assertThat(sessionItem0.isExpanded).isFalse()
+    assertThat(sessionItem1.session).isEqualTo(session1)
+    assertThat(sessionItem1.timestampNs).isEqualTo(0)
+    assertThat(sessionItem1.canExpand()).isTrue()
+    assertThat(sessionItem1.isExpanded).isFalse()
+
+    // Expand the first session, the hprof and cpu capture artifacts should now be included and sorted in ascending order.
+    sessionItem0.isExpanded = true
+    sessionItems = myManager.sessionArtifacts
+    assertThat(sessionItems).hasSize(4)
+    sessionItem0 = sessionItems[0] as SessionItem
+    val hprofItem = sessionItems[1] as HprofSessionArtifact
+    val cpuCaptureItem = sessionItems[2] as CpuCaptureSessionArtifact
+    sessionItem1 = sessionItems[3] as SessionItem
+
+    assertThat(sessionItem0.session).isEqualTo(session2)
+    assertThat(sessionItem0.timestampNs).isEqualTo(0)
+    assertThat(sessionItem0.canExpand()).isTrue()
+    assertThat(sessionItem0.isExpanded).isTrue()
+    assertThat(hprofItem.session).isEqualTo(session2)
+    assertThat(hprofItem.timestampNs).isEqualTo(heapDumpTimestamp - session2Timestamp)
+    assertThat(cpuCaptureItem.session).isEqualTo(session2)
+    assertThat(cpuCaptureItem.timestampNs).isEqualTo(cpuTraceTimestamp - session2Timestamp)
+    assertThat(sessionItem1.session).isEqualTo(session1)
+    assertThat(sessionItem1.timestampNs).isEqualTo(0)
+    assertThat(sessionItem1.canExpand()).isTrue()
+    assertThat(sessionItem1.isExpanded).isFalse()
+
+    // Collpase the session again
+    sessionItem0.isExpanded = false
+    sessionItems = myManager.sessionArtifacts
+    assertThat(sessionItems).hasSize(2)
+    sessionItem0 = sessionItems[0] as SessionItem
+    sessionItem1 = sessionItems[1] as SessionItem
+    assertThat(sessionItem0.session).isEqualTo(session2)
+    assertThat(sessionItem0.timestampNs).isEqualTo(0)
+    assertThat(sessionItem0.canExpand()).isTrue()
+    assertThat(sessionItem0.isExpanded).isFalse()
+    assertThat(sessionItem1.session).isEqualTo(session1)
+    assertThat(sessionItem1.timestampNs).isEqualTo(0)
+    assertThat(sessionItem1.canExpand()).isTrue()
+    assertThat(sessionItem1.isExpanded).isFalse()
   }
 
   private class SessionsAspectObserver : AspectObserver() {
