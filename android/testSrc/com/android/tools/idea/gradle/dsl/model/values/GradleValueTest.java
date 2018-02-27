@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.values;
 
+import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.BuildConfigField;
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.ResValue;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
-import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel.BuildConfigField;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;

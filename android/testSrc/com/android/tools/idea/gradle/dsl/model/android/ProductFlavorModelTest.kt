@@ -70,6 +70,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                       maxSdkVersion 23
                       minSdkVersion 15
                       multiDexEnabled true
+                      multiDexKeepFile file('multidex.keep')
+                      multiDexKeepProguard file('multidex.proguard')
                       proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
                       resConfigs "abcd", "efgh"
                       resValue "abcd", "efgh", "ijkl"
@@ -100,6 +102,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion())
     assertEquals("minSdkVersion", 15, defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", true, defaultConfig.multiDexEnabled())
+    assertEquals("multiDexKeepFile", "multidex.keep", defaultConfig.multiDexKeepFile())
+    assertEquals("multiDexKeepProguard", "multidex.proguard", defaultConfig.multiDexKeepProguard())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
     assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
