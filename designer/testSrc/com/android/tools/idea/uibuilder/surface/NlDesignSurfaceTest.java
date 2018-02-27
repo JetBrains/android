@@ -32,14 +32,11 @@ import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assume;
 import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
@@ -65,7 +62,8 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     }
   }
 
-  public void testLayers() {
+  // TODO(b/73921525)
+  public void ignore_testLayers() {
     ImmutableList<Layer> droppedLayers;
 
     assertEmpty(mySurface.myLayers);
