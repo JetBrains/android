@@ -16,6 +16,10 @@
 package com.android.tools.idea.testing;
 
 import com.android.sdklib.IAndroidTarget;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,4 +52,8 @@ public final class Sdks {
     return target;
   }
 
+  public static void allowAccessToSdk(Disposable disposable) {
+    String[] paths = JavaSdk.getInstance().suggestHomePaths().toArray(ArrayUtil.EMPTY_STRING_ARRAY);
+    VfsRootAccess.allowRootAccess(disposable, paths);
+  }
 }
