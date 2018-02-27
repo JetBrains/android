@@ -41,11 +41,11 @@ public class AndroidJUnitClasspathTest extends AndroidGradleTestCase {
 
     String compilerOutputUrlForTests = originalCompilerModuleExtension.getCompilerOutputUrlForTests();
     assertNotNull(compilerOutputUrlForTests);
-    assertTrue(compilerOutputUrlForTests.contains("app/build/intermediates/artifact_transform/javac/test/debug/classes"));
+    assertTrue(compilerOutputUrlForTests.contains("app/build/intermediates/artifact_transform/compileDebugUnitTestJavaWithJavac/classes"));
 
     String compilerOutputUrl = originalCompilerModuleExtension.getCompilerOutputUrl();
     assertNotNull(compilerOutputUrl);
-    assertTrue(compilerOutputUrl.contains("app/build/intermediates/artifact_transform/javac/debug/classes"));
+    assertTrue(compilerOutputUrl.contains("app/build/intermediates/artifact_transform/compileDebugJavaWithJavac/classes"));
 
     assertSize(2, originalCompilerModuleExtension.getOutputRootUrls(true));
   }
