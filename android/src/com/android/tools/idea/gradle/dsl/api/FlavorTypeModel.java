@@ -29,6 +29,25 @@ public interface FlavorTypeModel extends GradleDslModel {
   String name();
 
   @NotNull
+  ResolvedPropertyModel applicationIdSuffix();
+
+  @Nullable
+  List<BuildConfigField> buildConfigFields();
+
+  BuildConfigField addBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value);
+
+  void removeBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value);
+
+  BuildConfigField replaceBuildConfigField(@NotNull String oldType,
+                                                          @NotNull String oldName,
+                                                          @NotNull String oldValue,
+                                                          @NotNull String type,
+                                                          @NotNull String name,
+                                                          @NotNull String value);
+
+  void removeAllBuildConfigFields();
+
+  @NotNull
   ResolvedPropertyModel consumerProguardFiles();
 
   @NotNull
@@ -36,6 +55,12 @@ public interface FlavorTypeModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel multiDexEnabled();
+
+  @NotNull
+  ResolvedPropertyModel multiDexKeepFile();
+
+  @NotNull
+  ResolvedPropertyModel multiDexKeepProguard();
 
   @NotNull
   ResolvedPropertyModel proguardFiles();
@@ -58,6 +83,10 @@ public interface FlavorTypeModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel useJack();
+
+
+  @NotNull
+  ResolvedPropertyModel versionNameSuffix();
 
   /**
    * Represents a statement like {@code resValue} or {@code buildConfigField} which contains type, name and value parameters.
@@ -86,5 +115,12 @@ public interface FlavorTypeModel extends GradleDslModel {
    * Represents a {@code resValue} statement defined in the product flavor block of the Gradle file.
    */
   interface ResValue extends TypeNameValueElement {
+  }
+
+
+  /**
+   * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.
+   */
+  interface BuildConfigField extends TypeNameValueElement {
   }
 }

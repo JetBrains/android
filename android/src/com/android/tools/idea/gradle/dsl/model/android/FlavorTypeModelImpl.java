@@ -19,8 +19,8 @@ import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
@@ -37,18 +37,23 @@ import java.util.List;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
 
 /**
  * Common base class for {@link BuildTypeModelImpl} and {@link ProductFlavorModelImpl}.
  */
 public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements FlavorTypeModel {
+  @NonNls private static final String APPLICATION_ID_SUFFIX = "applicationIdSuffix";
+  @NonNls private static final String BUILD_CONFIG_FIELD = "buildConfigField";
   @NonNls private static final String CONSUMER_PROGUARD_FILES = "consumerProguardFiles";
   @NonNls private static final String MANIFEST_PLACEHOLDERS = "manifestPlaceholders";
   @NonNls private static final String MULTI_DEX_ENABLED = "multiDexEnabled";
+  @NonNls private static final String MULTI_DEX_KEEP_FILE = "multiDexKeepFile";
+  @NonNls private static final String MULTI_DEX_KEEP_PROGUARD = "multiDexKeepProguard";
   @NonNls private static final String PROGUARD_FILES = "proguardFiles";
   @NonNls private static final String RES_VALUE = "resValue";
   @NonNls private static final String USE_JACK = "useJack";
+  @NonNls private static final String VERSION_NAME_SUFFIX = "versionNameSuffix";
 
   public FlavorTypeModelImpl(@NotNull AbstractFlavorTypeDslElement dslElement) {
     super(dslElement);
@@ -58,6 +63,56 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   public String name() {
     return myDslElement.getName();
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel applicationIdSuffix() {
+    return getModelForProperty(APPLICATION_ID_SUFFIX);
+  }
+
+
+  @Override
+  @Nullable
+  public List<BuildConfigField> buildConfigFields() {
+    return getTypeNameValuesElements(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD);
+  }
+
+  @Override
+  public BuildConfigField addBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value) {
+    return addNewTypeNameValueElement(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD, type, name, value);
+  }
+
+  @Override
+  public void removeBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value) {
+    BuildConfigField model = getTypeNameValueElement(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD, type, name, value);
+    if (model != null) {
+      model.remove();
+    }
+  }
+
+  @Override
+  @Nullable
+  public BuildConfigField replaceBuildConfigField(@NotNull String oldType,
+                                                  @NotNull String oldName,
+                                                  @NotNull String oldValue,
+                                                  @NotNull String type,
+                                                  @NotNull String name,
+                                                  @NotNull String value) {
+    BuildConfigField field = getTypeNameValueElement(BuildConfigFieldImpl::new, BUILD_CONFIG_FIELD, oldType, oldName, oldValue);
+    if (field == null) {
+      return null;
+    }
+
+    field.type().setValue(type);
+    field.name().setValue(name);
+    field.value().setValue(value);
+    return field;
+  }
+
+  @Override
+  public void removeAllBuildConfigFields() {
+    myDslElement.removeProperty(BUILD_CONFIG_FIELD);
   }
 
   @Override
@@ -76,6 +131,19 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   public ResolvedPropertyModel multiDexEnabled() {
     return getModelForProperty(MULTI_DEX_ENABLED);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel multiDexKeepFile() {
+    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_FILE).asMethod(true).addTransform(FILE_TRANSFORM).buildResolved();
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel multiDexKeepProguard() {
+    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_PROGUARD).asMethod(true).addTransform(FILE_TRANSFORM)
+      .buildResolved();
   }
 
   @Override
@@ -131,6 +199,12 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   public ResolvedPropertyModel useJack() {
     return getModelForProperty(USE_JACK);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel versionNameSuffix() {
+    return getModelForProperty(VERSION_NAME_SUFFIX);
   }
 
   /**
@@ -278,6 +352,15 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   public static final class ResValueImpl extends TypeNameValueElementImpl implements ResValue {
     public ResValueImpl(@NotNull GradleDslExpressionList list) {
       super(RES_VALUE, list);
+    }
+  }
+
+  /**
+   * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.
+   */
+  public final static class BuildConfigFieldImpl extends TypeNameValueElementImpl implements BuildConfigField {
+    public BuildConfigFieldImpl(@NotNull GradleDslExpressionList list) {
+      super(BUILD_CONFIG_FIELD, list);
     }
   }
 }

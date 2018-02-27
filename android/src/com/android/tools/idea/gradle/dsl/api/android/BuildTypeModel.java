@@ -24,25 +24,6 @@ import java.util.List;
 
 public interface BuildTypeModel extends FlavorTypeModel {
   @NotNull
-  ResolvedPropertyModel applicationIdSuffix();
-
-  @Nullable
-  List<BuildConfigField> buildConfigFields();
-
-  BuildConfigField addBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value);
-
-  void removeBuildConfigField(@NotNull String type, @NotNull String name, @NotNull String value);
-
-  BuildConfigField replaceBuildConfigField(@NotNull String oldType,
-                                           @NotNull String oldName,
-                                           @NotNull String oldValue,
-                                           @NotNull String type,
-                                           @NotNull String name,
-                                           @NotNull String value);
-
-  void removeAllBuildConfigFields();
-
-  @NotNull
   ResolvedPropertyModel debuggable();
 
   @NotNull
@@ -70,15 +51,5 @@ public interface BuildTypeModel extends FlavorTypeModel {
   ResolvedPropertyModel testCoverageEnabled();
 
   @NotNull
-  ResolvedPropertyModel versionNameSuffix();
-
-  @NotNull
   ResolvedPropertyModel zipAlignEnabled();
-
-  /**
-   * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.
-   */
-  interface BuildConfigField extends TypeNameValueElement {
-
-  }
 }
