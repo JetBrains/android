@@ -50,7 +50,7 @@ import java.nio.charset.StandardCharsets
  * @return true if the resource was opened
  * @see RenderResources#findResValue(String, boolean)
  */
-fun openResource(project: Project, configuration: Configuration, reference: String, currentFile: VirtualFile?): Boolean {
+fun openResource(configuration: Configuration, reference: String, currentFile: VirtualFile?): Boolean {
   val resourceResolver = configuration.resourceResolver ?: return false
   val resValue = resourceResolver.findResValue(reference, false)
   val path = ResourceHelper.resolveLayout(resourceResolver, resValue)
@@ -58,10 +58,10 @@ fun openResource(project: Project, configuration: Configuration, reference: Stri
     val file = LocalFileSystem.getInstance().findFileByIoFile(path)
     if (file != null) {
       if (currentFile != null) {
-        return LayoutNavigationManager.getInstance(project).pushFile(currentFile, file)
+        return LayoutNavigationManager.getInstance(configuration.module.project).pushFile(currentFile, file)
       }
       else {
-        val editors = FileEditorManager.getInstance(project).openFile(file, true, true)
+        val editors = FileEditorManager.getInstance(configuration.module.project).openFile(file, true, true)
         if (editors.isNotEmpty()) {
           return true
         }
