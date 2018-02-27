@@ -354,7 +354,7 @@ public class ConstraintLayoutTest {
    *   and that they need to create a new theme with the selected background color.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/73952775
   @Test
   public void themeEditor() throws Exception {
     guiTest.importSimpleLocalApplication();

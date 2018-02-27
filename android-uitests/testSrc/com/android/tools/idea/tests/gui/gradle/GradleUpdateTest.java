@@ -46,7 +46,7 @@ public class GradleUpdateTest {
    *   Open build.gradle files and make sure that the version of the plugin was updated to <current gradle="" version="">
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/73645716
   @Test
   public void updateGradleTestProject() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
