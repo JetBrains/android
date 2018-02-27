@@ -38,6 +38,5 @@
     <orderEntry type="module" module-name="uitest-framework" scope="TEST" />
     <orderEntry type="module" module-name="uitest-framework-gradle" scope="TEST" />
     <orderEntry type="module" module-name="uitest-framework-bazel" scope="TEST" />
-    <orderEntry type="module" module-name="testFramework" scope="TEST" />
   </component>
 </module>
