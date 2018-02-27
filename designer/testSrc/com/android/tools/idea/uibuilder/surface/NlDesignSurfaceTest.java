@@ -62,8 +62,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     }
   }
 
-  // TODO(b/73921525)
-  public void ignore_testLayers() {
+  public void testLayers() {
     ImmutableList<Layer> droppedLayers;
 
     assertEmpty(mySurface.myLayers);
@@ -75,7 +74,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlModel model = modelBuilder.build();
     mySurface.setModel(model);
     mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
-    assertEquals(6, mySurface.myLayers.size());
+    assertEquals(5, mySurface.myLayers.size());
 
     droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
     mySurface.setScreenMode(SceneMode.BLUEPRINT_ONLY, false);
@@ -85,7 +84,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
     mySurface.setScreenMode(SceneMode.BOTH, false);
-    assertEquals(10, mySurface.myLayers.size());
+    assertEquals(9, mySurface.myLayers.size());
     // Make sure all dropped layers are disposed.
     assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
 
