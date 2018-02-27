@@ -358,6 +358,25 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("ic_launcher.xml"));
   }
 
+  @Test
+  public void closeAllFileShouldClosePreview() throws Exception {
+    // Regression test for b/73592522
+    EditorFixture editor = guiTest.importSimpleLocalApplication()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR);
+
+    editor.getVisibleTextEditor("activity_my.xml").select();
+    editor.getLayoutPreview(true).waitForRenderToFinish();
+    Wait.seconds(3).expecting("preview to open").until(() -> editor.isPreviewVisible());
+
+    editor.invokeAction(EditorFixture.EditorAction.CLOSE_ALL);
+    Wait.seconds(3).expecting("preview to close").until(() -> !editor.isPreviewVisible());
+
+    assertNull(editor.getCurrentFile());
+  }
+
   private static void navigateEditor(@NotNull EditorFixture editor,
                                      @NotNull TextEditorFixture selectedEditor, int firstOffset, int lastOffset,
                                      @NotNull TextEditorFixture otherEditor, int expectedOffset) {

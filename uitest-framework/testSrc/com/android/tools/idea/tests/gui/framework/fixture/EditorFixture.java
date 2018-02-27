@@ -606,6 +606,10 @@ public class EditorFixture {
     return new PreviewWindowFixture(myFrame.getProject(), myFrame.robot());
   }
 
+  public boolean isPreviewVisible() {
+    return NlPreviewManager.getInstance(myFrame.getProject()).isPreviewVisible();
+  }
+
   public boolean isPreviewShowing(@NotNull String fileName) {
     return GuiQuery.getNonNull(() -> {
       NlPreviewForm preview = NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm();
@@ -745,6 +749,7 @@ public class EditorFixture {
     SPLIT_VERTICALLY("SplitVertically"),
     TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
     UNDO("$Undo"),
+    CLOSE_ALL("CloseAllEditors"),
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */

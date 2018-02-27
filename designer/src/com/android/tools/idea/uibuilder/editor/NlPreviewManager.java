@@ -184,6 +184,11 @@ public class NlPreviewManager implements ProjectComponent {
     return myUpdateCount;
   }
 
+  @VisibleForTesting
+  public boolean isPreviewVisible() {
+    return myToolWindow != null && myToolWindow.isVisible();
+  }
+
   /**
    * Whether we've seen an open file editor yet
    */
@@ -404,10 +409,17 @@ public class NlPreviewManager implements ProjectComponent {
       processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
     }
 
-    // Do not respond to fileClosed events since this has led to problems with the preview
-    // window in the past. See b/64199946 and b/64288544
-    // @Override
-    // public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file);
+    @Override
+    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+      // When using "Close All" action, the selectionChanged event is not triggered.
+      // Thus we have to handle this case here.
+      // In other cases, do not respond to fileClosed events since this has led to problems
+      // with the preview window in the past. See b/64199946 and b/64288544
+      if (source.getOpenFiles().length == 0) {
+        ApplicationManager.getApplication()
+          .invokeLater(() -> processFileEditorChange(null), myProject.getDisposed());
+      }
+    }
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
