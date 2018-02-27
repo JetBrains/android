@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFi
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JTextComponentFixture;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -50,5 +51,13 @@ public class NlPropertyFixture {
   public String getValue() {
     JTextComponent editor = GuiTests.waitUntilFound(myRobot, myValuePanel, Matchers.byType(JTextComponent.class));
     return editor.getText();
+  }
+
+  public NlPropertyFixture setValue(String value) {
+    JTextComponentFixture editor = new JTextComponentFixture(myRobot, GuiTests.waitUntilFound(myRobot, myValuePanel, Matchers.byType(JTextComponent.class)));
+    editor.selectAll()
+      .enterText(value);
+
+    return this;
   }
 }

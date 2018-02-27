@@ -21,10 +21,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertFalse;
@@ -48,8 +45,9 @@ public class ComponentAssistantTest {
   }
 
   @Test
+  @Ignore // Disabled until the action targets are fixed (b/73994044)
   public void testRecyclerViewAssistantAvailable() throws Exception {
-    NlEditorFixture layout = guiTest.importSimpleApplication()
+    NlEditorFixture layout = guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true);
@@ -59,15 +57,14 @@ public class ComponentAssistantTest {
                   .openAsInspector()
                   .hasComponentAssistantPanel());
 
-    layout.dragComponentToSurface("Containers", "RecyclerView");
+    layout.dragComponentToSurface("Containers", "RecyclerView", 50, 50);
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
       .getEditor();
 
-    layout.findView("android.support.v7.widget.RecyclerView", 0).click();
-    layout.getPropertiesPanel()
-      .openAsInspector()
-      .getComponentAssistantPanel();
+    layout.findView("android.support.v7.widget.RecyclerView", 0)
+      .click()
+      .openComponentAssistant();
   }
 }

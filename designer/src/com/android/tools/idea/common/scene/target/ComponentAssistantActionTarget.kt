@@ -39,11 +39,15 @@ class ComponentAssistantActionTarget(
     val context = SceneContext.get(designSurface.currentSceneView)
     val position = Point(context.getSwingXDip(centerX), context.getSwingYDip(myTop))
     val assistantContext = ComponentAssistant.Context(component.nlComponent, popup::close)
+    val component = panelFactory.createComponent(assistantContext).apply {
+      name = "Component Assistant" // For UI tests
+    }
+
     onClose = { cancelled ->
       onClose = {} // One-off trigger. Disable the callback
       assistantContext.onClose(cancelled)
     }
-    popup.show(panelFactory.createComponent(assistantContext), designSurface, position)
+    popup.show(component, designSurface, position)
   }
 
   private fun fireCloseEvent() {
