@@ -18,12 +18,10 @@ package com.android.tools.idea.res;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
-import com.android.ide.common.resources.AbstractResourceRepository;
-import com.android.ide.common.resources.DataFile;
-import com.android.ide.common.resources.ResourceFile;
-import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.*;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.io.FileWrapper;
@@ -544,6 +542,7 @@ public class ResourceHelper {
     return finalValue.getValue();
   }
 
+
   /**
    * When annotating Java files, we need to find an associated layout file to pick the resource
    * resolver from (e.g. to for example have a theme association which will drive how colors are
@@ -590,6 +589,24 @@ public class ResourceHelper {
     }
 
     return null;
+  }
+
+  @Nullable
+  public static ResourceValue resolve(@NotNull ResourceUrl resourceUrl,
+                                      @NotNull XmlTag tag,
+                                      @NotNull ResourceResolver resourceResolver) {
+    AndroidFacet facet = AndroidFacet.getInstance(tag);
+    if (facet == null) {
+      return null;
+    }
+    ResourceRepositoryManager resourceRepositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    ResourceNamespace.Resolver namespaceResolver = getNamespaceResolver(tag);
+    ResourceReference resourceReference = resourceUrl.resolve(resourceRepositoryManager.getNamespace(), namespaceResolver);
+    if (resourceReference == null) {
+      return null;
+    }
+    ResourceValue resource = resourceResolver.getUnresolvedResource(resourceReference);
+    return resource;
   }
 
   private static final class UnitEntry {

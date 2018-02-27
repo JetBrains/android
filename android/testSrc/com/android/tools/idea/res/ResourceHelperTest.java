@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -244,6 +246,29 @@ public class ResourceHelperTest extends AndroidTestCase {
     ResourceValue rv = rr.getProjectResource(ResourceType.COLOR, "empty_state_list");
     assertNotNull(rv);
     assertNull(resolveColor(rr, rv, myModule.getProject()));
+  }
+
+  public void testResolve() {
+    PsiFile innerFileLand = myFixture.addFileToProject("res/layout-land/inner.xml", "<LinearLayout/>");
+    PsiFile innerFilePort = myFixture.addFileToProject("res/layout-port/inner.xml", "<LinearLayout/>");
+    String outerFileContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+    "<FrameLayout xmlns:newauto=\""+ ResourceNamespace.TODO.getXmlNamespaceUri() +"\">\n" +
+    "\n" +
+    "    <include\n" +
+    "        layout=\"@newauto:layout/inner\"\n" +
+    "        android:layout_width=\"wrap_content\"\n" +
+    "        android:layout_height=\"wrap_content\" />\n" +
+    "\n" +
+    "</FrameLayout>";
+    XmlFile outerFile = (XmlFile)myFixture.addFileToProject("layout/outer.xml", outerFileContent);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(innerFileLand.getVirtualFile());
+    XmlTag include = outerFile.getRootTag().findFirstSubTag("include");
+    ResourceValue resolved =
+      ResourceHelper.resolve(ResourceUrl.parse("@newauto:layout/inner"), include, configuration.getResourceResolver());
+    assertEquals(innerFileLand.getVirtualFile().getPath(), resolved.getValue());
+    configuration.setDeviceState(configuration.getDevice().getState("Portrait"));
+    resolved = ResourceHelper.resolve(ResourceUrl.parse("@newauto:layout/inner"), include, configuration.getResourceResolver());
+    assertEquals(innerFilePort.getVirtualFile().getPath(), resolved.getValue());
   }
 
   @Language("XML")
