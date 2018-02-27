@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.scene.decorator
 
 import com.android.SdkConstants
+import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -26,6 +28,7 @@ import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.scene.*
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.rendering.ImagePool.Image
+import com.android.tools.idea.res.ResourceHelper
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
 import java.awt.Font
@@ -74,12 +77,18 @@ abstract class NavScreenDecorator : SceneDecorator() {
 
   private fun buildImage(sceneContext: SceneContext, component: SceneComponent): Image? {
     val surface = sceneContext.surface ?: return null
-    val configuration = surface.configuration
-    val facet = surface.model!!.facet
+    val configuration = surface.configuration ?: return null
+    val facet = surface.model?.facet ?: return null
 
     val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT) ?: return null
-    val fileName = configuration?.resourceResolver?.findResValue(layout, false)?.value ?: return null
-    val file = File(fileName)
+    val resourceUrl = ResourceUrl.parse(layout) ?: return null
+    if (resourceUrl.type != ResourceType.LAYOUT) {
+      return null
+    }
+    val resourceResolver = configuration.resourceResolver ?: return null
+    val resourceValue = ResourceHelper.resolve(resourceUrl, component.nlComponent.tag, resourceResolver)?.value ?: return null
+
+    val file = File(resourceValue)
     if (!file.exists()) {
       return null
     }
