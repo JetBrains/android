@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import org.jetbrains.annotations.NonNls;
@@ -34,6 +36,7 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NonNls private static final String RENDERSCRIPT_DEBUGGABLE = "renderscriptDebuggable";
   @NonNls private static final String RENDERSCRIPT_OPTIM_LEVEL = "renderscriptOptimLevel";
   @NonNls private static final String SHRINK_RESOURCES = "shrinkResources";
+  @NonNls private static final String SIGNING_CONFIG = "signingConfig";
   @NonNls private static final String TEST_COVERAGE_ENABLED = "testCoverageEnabled";
   @NonNls private static final String ZIP_ALIGN_ENABLED = "zipAlignEnabled";
 
@@ -87,6 +90,12 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NotNull
   public ResolvedPropertyModel shrinkResources() {
     return getModelForProperty(SHRINK_RESOURCES);
+  }
+
+  @NotNull
+  @Override
+  public SigningConfigPropertyModel signingConfig() {
+    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).asMethod(true).buildSigningConfig();
   }
 
   @Override

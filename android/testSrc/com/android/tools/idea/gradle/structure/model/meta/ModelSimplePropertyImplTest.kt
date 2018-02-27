@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
@@ -38,7 +37,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     parse: (String) -> ParsedValue<T>,
     caster: ResolvedPropertyModel.() -> T?
   ): ModelSimpleProperty<Model, T> {
-    val resolved = ResolvedPropertyModelImpl(this)
+    val resolved = resolve()
     return Model.property(
       "description",
       getResolvedValue = { null },

@@ -411,6 +411,7 @@ public class GroovyDslParser implements GradleDslParser {
       propertyElement.setParsedClosureElement(getClosureElement(propertyElement, (GrClosableBlock)lastArgument, propertyName));
     }
 
+    propertyElement.setElementType(REGULAR);
     blockElement.addParsedElement(propertyName.name(), propertyElement);
     return true;
   }

@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -36,7 +35,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
     parse: (String) -> ParsedValue<T>,
     caster: ResolvedPropertyModel.() -> T?
   ): ModelListProperty<Model, T> {
-    val resolved = ResolvedPropertyModelImpl(this)
+    val resolved = resolve()
     return Model.listProperty(
       "description",
       getResolvedValue = { null },

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
@@ -39,7 +38,7 @@ class ModelMapPropertyImplTest : GradleFileModelTestCase() {
     parse: (String) -> ParsedValue<T>,
     caster: ResolvedPropertyModel.() -> T?
   ): ModelMapProperty<ModelMapPropertyImplTest, T> {
-    val resolved = ResolvedPropertyModelImpl(this)
+    val resolved = resolve()
     return TestModelDescriptor.mapProperty(
       "description",
       getResolvedValue = { null },

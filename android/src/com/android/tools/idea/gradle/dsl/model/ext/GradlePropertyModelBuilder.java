@@ -109,11 +109,15 @@ public class GradlePropertyModelBuilder {
    *
    * @return the built model
    */
-  public GradlePropertyModel build() {
+  public GradlePropertyModelImpl build() {
     GradleDslElement currentElement = myHolder.getPropertyElement(myName);
     GradlePropertyModelImpl model = currentElement == null
                                     ? new GradlePropertyModelImpl(myHolder, myType, myName) : new GradlePropertyModelImpl(currentElement);
     return setUpModel(model);
+  }
+
+  public SigningConfigPropertyModelImpl buildSigningConfig() {
+    return new SigningConfigPropertyModelImpl(build());
   }
 
   /**
@@ -121,7 +125,7 @@ public class GradlePropertyModelBuilder {
    *
    * @return the built model
    */
-  public PasswordPropertyModel buildPassword() {
+  public PasswordPropertyModelImpl buildPassword() {
     GradleDslElement currentElement = myHolder.getPropertyElement(myName);
     PasswordPropertyModelImpl model = currentElement == null
                                     ? new PasswordPropertyModelImpl(myHolder, myType, myName) : new PasswordPropertyModelImpl(currentElement);
@@ -133,7 +137,7 @@ public class GradlePropertyModelBuilder {
    *
    * @return the built model
    */
-  public ResolvedPropertyModel buildResolved() {
+  public ResolvedPropertyModelImpl buildResolved() {
     return build().resolve();
   }
 
@@ -142,7 +146,7 @@ public class GradlePropertyModelBuilder {
    *
    * @return the built model
    */
-  public LanguageLevelPropertyModel buildLanguage() {
+  public LanguageLevelPropertyModelImpl buildLanguage() {
     return new LanguageLevelPropertyModelImpl(build());
   }
 

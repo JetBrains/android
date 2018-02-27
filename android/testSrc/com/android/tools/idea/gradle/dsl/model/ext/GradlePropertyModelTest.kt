@@ -3012,23 +3012,23 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val defaultConfig = buildModel.android()!!.defaultConfig()
-      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 12, INTEGER, DERIVED, 1)
-      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 15, INTEGER, DERIVED, 1)
+      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 12, INTEGER, REGULAR, 1)
+      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 15, INTEGER, REGULAR, 1)
 
       // Check that we can edit them.
       defaultConfig.minSdkVersion().resultModel.setValue(18)
       defaultConfig.targetSdkVersion().resultModel.setValue(21)
 
-      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 18, INTEGER, DERIVED, 1)
-      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 21, INTEGER, DERIVED, 1)
+      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 18, INTEGER, REGULAR, 1)
+      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1)
     }
 
     applyChangesAndReparse(buildModel)
 
     run {
       val defaultConfig = buildModel.android()!!.defaultConfig()
-      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 18, INTEGER, DERIVED, 1)
-      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 21, INTEGER, DERIVED, 1)
+      verifyPropertyModel(defaultConfig.minSdkVersion(), INTEGER_TYPE, 18, INTEGER, REGULAR, 1)
+      verifyPropertyModel(defaultConfig.targetSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1)
     }
   }
 

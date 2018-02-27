@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -26,7 +25,7 @@ import java.io.File
 
 class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
 
-  private fun GradlePropertyModel.wrap(): ResolvedPropertyModel = ResolvedPropertyModelImpl(this)
+  private fun GradlePropertyModel.wrap(): ResolvedPropertyModel = resolve()
 
   fun testAsString() {
     val text = """
