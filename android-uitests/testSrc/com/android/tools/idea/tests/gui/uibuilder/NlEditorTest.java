@@ -297,7 +297,6 @@ public class NlEditorTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/73906284
   @Test
   public void morphViewGroup() throws IOException {
     boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
@@ -331,10 +330,10 @@ public class NlEditorTest {
       String expected = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                         "    android:layout_width=\"match_parent\"\n" +
                         "    android:layout_height=\"match_parent\"\n" +
-                        "    android:paddingBottom=\"16dp\"\n" +
                         "    android:paddingLeft=\"16dp\"\n" +
+                        "    android:paddingTop=\"16dp\"\n" +
                         "    android:paddingRight=\"16dp\"\n" +
-                        "    android:paddingTop=\"16dp\">\n" +
+                        "    android:paddingBottom=\"16dp\">\n" +
                         "\n" +
                         "    <Button\n" +
                         "        android:id=\"@+id/button\"\n" +
