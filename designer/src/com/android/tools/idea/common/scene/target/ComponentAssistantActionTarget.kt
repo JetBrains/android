@@ -18,31 +18,39 @@ package com.android.tools.idea.common.scene.target
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.uibuilder.graphics.NlIcon
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant
 import icons.StudioIcons
 import java.awt.Point
 import javax.swing.JComponent
 
 /**
  * An [ActionTarget] that displays a popup displaying a [JComponent]
- * provided by [componentProvider].
- *
- * @param closedCallback callback that will be called if the popup is properly closed
- * @param cancelCallBack callback that will be called if the popup is canceled
- * @param beforeShownCallback callback that will be called before the popup is shown
+ * provided by [ComponentAssistant.PanelFactory].
  */
-class PopupActionTarget(
-  private val componentProvider: () -> JComponent,
-  closedCallback: (() -> Unit)? = null,
-  cancelCallBack: (() -> Unit)? = null,
-  beforeShownCallback: (() -> Unit)? = null
+class ComponentAssistantActionTarget(
+  private val panelFactory: ComponentAssistant.PanelFactory
 ) : ActionTarget(null, NlIcon(StudioIcons.Menu.MENU, StudioIcons.Menu.MENU), null) {
 
-  private var popup: LightCalloutPopup = LightCalloutPopup(closedCallback, cancelCallBack, beforeShownCallback)
+  private var onClose: (cancelled: Boolean) -> Unit = {}
+  private var popup: LightCalloutPopup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)
 
   override fun mouseRelease(x: Int, y: Int, closestTargets: MutableList<Target>) {
     val designSurface = component.scene.designSurface
     val context = SceneContext.get(designSurface.currentSceneView)
     val position = Point(context.getSwingXDip(centerX), context.getSwingYDip(myTop))
-    popup.show(componentProvider(), designSurface, position)
+    val assistantContext = ComponentAssistant.Context(component.nlComponent, popup::close)
+    onClose = { cancelled ->
+      onClose = {} // One-off trigger. Disable the callback
+      assistantContext.onClose(cancelled)
+    }
+    popup.show(panelFactory.createComponent(assistantContext), designSurface, position)
+  }
+
+  private fun fireCloseEvent() {
+    onClose(false)
+  }
+
+  private fun fireCancelEvent() {
+    onClose(true)
   }
 }
