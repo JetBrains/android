@@ -70,6 +70,6 @@ public class RecyclerViewHandler extends ViewGroupHandler {
       return null;
     }
 
-    return RecyclerViewAssistant::new;
+    return RecyclerViewAssistant::createComponent;
   }
 }

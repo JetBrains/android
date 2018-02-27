@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -34,6 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import kotlin.Unit;
 import org.intellij.lang.annotations.Language;
@@ -52,7 +54,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.PanelFactory {
+public class RecyclerViewAssistant extends JPanel {
   private static Logger LOG = Logger.getInstance(RecyclerViewAssistant.class);
 
   @Language("XML")
@@ -168,42 +170,71 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
     "</LinearLayout>";
 
   private static final ImmutableList<Template> TEMPLATES = ImmutableList.of(
-    new Template("e-mail client template", EMAIL_TEMPLATE),
-    new Template("One line template", ONE_LINE_TEMPLATE),
-    new Template("Two lines template", TWO_LINES_TEMPLATE),
-    new Template("Three lines template", THREE_LINES_TEMPLATE));
+    new Template("e-mail client", EMAIL_TEMPLATE),
+    new Template("One line", ONE_LINE_TEMPLATE),
+    new Template("Two lines", TWO_LINES_TEMPLATE),
+    new Template("Three lines", THREE_LINES_TEMPLATE));
 
-  private final NlComponent component;
-  private final String originalListItemValue;
-  @Nullable private PsiFile createdFile;
+  private final NlComponent myComponent;
+  private final String myOriginalListItemValue;
+  private final Project myProject;
+  private final String myResourceName;
+  private final HorizontalSpinner<Template> mySpinner;
+  @Nullable private PsiFile myCreatedFile;
 
   public RecyclerViewAssistant(@NotNull ComponentAssistant.Context context) {
     super(new BorderLayout());
 
-    component = context.getComponent();
-    AndroidFacet facet = component.getModel().getFacet();
+    myComponent = context.getComponent();
+    AndroidFacet facet = myComponent.getModel().getFacet();
     VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
-    Project project = facet.getModule().getProject();
-    String resourceName = getTemplateName(facet, "recycler_view");
+    myProject = facet.getModule().getProject();
+    myResourceName = getTemplateName(facet, "recycler_view");
 
-    HorizontalSpinner<Template> spinner = HorizontalSpinner.forModel(
+    mySpinner = HorizontalSpinner.forModel(
       JBList.createDefaultListModel(TEMPLATES.toArray(new Template[0])));
 
-    spinner.addListSelectionListener(event -> {
+    mySpinner.addListSelectionListener(event -> {
       if (event.getValueIsAdjusting()) {
         return;
       }
-      Template template = spinner.getModel().getElementAt(spinner.getSelectedIndex());
-      createdFile = setTemplate(project, component, resourceName, template.myTemplate);
+
+      fireSelectionUpdated();
     });
-    add(spinner, BorderLayout.NORTH);
+
+    JLabel label = new JLabel("Item template");
+    label.setBorder(JBUI.Borders.emptyBottom(5));
+    JButton apply = new JButton("Apply");
+    apply.setOpaque(false);
+    JPanel applyPanel = new JPanel(new BorderLayout());
+    applyPanel.setOpaque(false);
+    applyPanel.setBorder(JBUI.Borders.emptyTop(10));
+    applyPanel.add(apply, BorderLayout.CENTER);
+    apply.addActionListener(e -> {
+      myCreatedFile = null;
+      context.getDoClose().invoke();
+    });
+
+    add(label, BorderLayout.NORTH);
+    add(mySpinner, BorderLayout.CENTER);
+    add(applyPanel, BorderLayout.SOUTH);
+
+    setBorder(JBUI.Borders.empty(10));
 
     setBackground(UIUtil.getListBackground());
-    originalListItemValue = component.getAttribute(TOOLS_URI, ATTR_LISTITEM);
+    myOriginalListItemValue = myComponent.getAttribute(TOOLS_URI, ATTR_LISTITEM);
 
     context.setOnClose(this::onClosed);
+
+    ApplicationManager.getApplication().invokeLater(this::fireSelectionUpdated);
   }
+
+  private void fireSelectionUpdated() {
+    Template template = mySpinner.getModel().getElementAt(mySpinner.getSelectedIndex());
+    myCreatedFile = setTemplate(myProject, myComponent, myResourceName, template.myTemplate);
+  }
+
 
   @NotNull
   private static String getTemplateName(@NotNull AndroidFacet facet, @NotNull String templateRootName) {
@@ -211,13 +242,11 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
     String resourceNameRoot = AndroidResourceUtil.getValidResourceFileName(templateRootName);
 
     String resourceName;
-    List<ResourceItem> items;
     int index = 0;
     do {
       resourceName = resourceNameRoot + (index < 1 ? "" : "_" + index);
-      items = appResourceRepository.getResourceItem(ResourceType.LAYOUT, resourceName);
       index++;
-    } while (items != null && !items.isEmpty());
+    } while (!appResourceRepository.getResourceItems(ResourceNamespace.TODO, ResourceType.LAYOUT, resourceName).isEmpty());
     return resourceName;
   }
 
@@ -259,25 +288,24 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
    */
   @Nullable
   private Unit onClosed(Boolean cancelled) {
-    if (createdFile == null || !cancelled) {
+    if (myCreatedFile == null || !cancelled) {
       // The user didn't create a file, nothing to undo
       return null;
     }
 
-    AndroidFacet facet = component.getModel().getFacet();
+    AndroidFacet facet = myComponent.getModel().getFacet();
     Project project = facet.getModule().getProject();
     // onClosed is invoked when the dialog is closed so we run the clean-up it later when the dialog has effectively closed
     ApplicationManager.getApplication().invokeLater(() -> WriteCommandAction.runWriteCommandAction(project, () -> {
-      createdFile.delete();
-      component.setAttribute(TOOLS_URI, ATTR_LISTITEM, originalListItemValue);
-      CommandProcessor.getInstance().addAffectedFiles(project, component.getTag().getContainingFile().getVirtualFile());
+      myCreatedFile.delete();
+      myComponent.setAttribute(TOOLS_URI, ATTR_LISTITEM, myOriginalListItemValue);
+      CommandProcessor.getInstance().addAffectedFiles(project, myComponent.getTag().getContainingFile().getVirtualFile());
     }));
     return null;
   }
 
   @NotNull
-  @Override
-  public JComponent createComponent(@NotNull ComponentAssistant.Context context) {
+  public static JComponent createComponent(@NotNull ComponentAssistant.Context context) {
     return new RecyclerViewAssistant(context);
   }
 

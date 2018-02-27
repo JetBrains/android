@@ -75,12 +75,6 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   }
 
   @NotNull
-  @SuppressWarnings("UnusedReturnValue")
-  public ComponentAssistantFixture getComponentAssistantPanel() {
-    return new ComponentAssistantFixture(robot(), waitUntilFound(robot(), null, Matchers.byType(ComponentAssistant.class)));
-  }
-
-  @NotNull
   public NlPropertyInspectorFixture openAsInspector() {
     if (myPanel.isAllPropertiesPanelVisible()) {
       myPanel.setAllPropertiesPanelVisible(false);
