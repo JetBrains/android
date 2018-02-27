@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.SdkConstants;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -39,6 +41,7 @@ public class OpenIncludedLayoutTest {
   public static final String OUTER_XML = "app/src/main/res/layout/outer.xml";
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/73905271
   @Test
   public void testOpenIncludedLayoutFromComponentTree() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
