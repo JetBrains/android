@@ -110,7 +110,7 @@ android_sdk_repository(
 The bazel plugin is required to run tests with BAZEL as the build system. It doesn't seem to be present on the plugin path.
 This issue can be fixed by:
  1. Generate the bazel plugin by running:
-    ${'$'} bazel //tools/adt/idea/android-uitests:unzip_aswb
+    ${'$'} bazel build //tools/adt/idea/android-uitests:unzip_aswb
  2. Add the bazel plugin to your plugin path. To do this, edit your current run configuration, and include the following in the VM options:
     -Dplugin.path=/path/to/studio-master-dev/bazel-genfiles/tools/adt/idea/android-uitests/aswb/
 
