@@ -35,13 +35,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -99,8 +97,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     updateDependency(dependency, artifact, matchingParsedDependency);
   }
 
-  @Nullable
-  private PsAndroidDependency addLibrary(@NotNull Library library, @NotNull PsAndroidArtifact artifact) {
+  private void addLibrary(@NotNull Library library, @NotNull PsAndroidArtifact artifact) {
     PsParsedDependencies parsedDependencies = myParent.getParsedDependencies();
 
     GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(library.getArtifactAddress());
@@ -117,9 +114,9 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
           GradleVersion parsedVersion = GradleVersion.tryParse(parsedVersionValue);
 
           GradleVersion versionFromGradle = GradleVersion.parse(coordinates.getRevision());
-          if (parsedVersion != null && compare(parsedVersion, versionFromGradle) == 0) {
+          if (parsedVersion != null && match(parsedVersion, versionFromGradle)) {
             // Match.
-            return addLibrary(library, spec, artifact, matchingParsedDependency);
+            addLibrary(library, spec, artifact, matchingParsedDependency);
           }
           else {
             // Version mismatch. This can happen when the project specifies an artifact version but Gradle uses a different version
@@ -152,61 +149,48 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
             addLibrary(library, spec, artifact, matchingParsedDependency);
 
             // Create a dependency model for the transitive dependency, so it can be displayed in the "Variants" tool window.
-            return addLibrary(library, spec, artifact, null);
+            addLibrary(library, spec, artifact, null);
           }
         }
       }
       else {
         // This dependency was not declared, it could be a transitive one.
-        return addLibrary(library, spec, artifact, null);
+        addLibrary(library, spec, artifact, null);
       }
     }
-    return null;
   }
 
-  @Nullable
-  private PsAndroidDependency addLibrary(@NotNull Library library,
-                                         @NotNull PsArtifactDependencySpec resolvedSpec,
-                                         @NotNull PsAndroidArtifact artifact,
-                                         @Nullable ArtifactDependencyModel parsedModel) {
+  private void addLibrary(@NotNull Library library,
+                          @NotNull PsArtifactDependencySpec resolvedSpec,
+                          @NotNull PsAndroidArtifact artifact,
+                          @Nullable ArtifactDependencyModel parsedModel) {
     PsAndroidDependency dependency = getOrCreateDependency(resolvedSpec, library, artifact, parsedModel);
     updateDependency(dependency, artifact, parsedModel);
-    return null;
-  }
-
-  private void addTransitive(@NotNull Library transitiveDependency,
-                             @NotNull PsAndroidArtifact artifact,
-                             @NotNull PsAndroidDependency dependency) {
-    PsAndroidDependency transitive = addLibrary(transitiveDependency, artifact);
-    if (transitive != null && dependency instanceof PsLibraryAndroidDependency) {
-      PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
-      libraryDependency.addTransitiveDependency(transitive.toText(PLAIN_TEXT));
-    }
   }
 
   @VisibleForTesting
-  static int compare(@NotNull GradleVersion parsedVersion, @NotNull GradleVersion versionFromGradle) {
+  static Boolean match(@NotNull GradleVersion parsedVersion, @NotNull GradleVersion versionFromGradle) {
     int result = versionFromGradle.compareTo(parsedVersion);
     if (result == 0) {
-      return result;
+      return true;
     }
     else if (result < 0) {
       // The "parsed" version might have a '+' sign.
       if (parsedVersion.getMajorSegment().acceptsGreaterValue()) {
-        return 0;
+        return true;
       }
       else if (parsedVersion.getMinorSegment() != null && parsedVersion.getMinorSegment().acceptsGreaterValue()) {
-        return parsedVersion.getMajor() - versionFromGradle.getMajor();
+        return parsedVersion.getMajor() == versionFromGradle.getMajor();
       }
       else if (parsedVersion.getMicroSegment() != null && parsedVersion.getMicroSegment().acceptsGreaterValue()) {
         result = parsedVersion.getMajor() - versionFromGradle.getMajor();
         if (result != 0) {
-          return result;
+          return false;
         }
-        return parsedVersion.getMinor() - versionFromGradle.getMinor();
+        return parsedVersion.getMinor() == versionFromGradle.getMinor();
       }
     }
-    return result;
+    return result == 0;
   }
 
   @NotNull
@@ -221,10 +205,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       myLibraryDependenciesBySpec.put(compactNotation, dependency);
 
       File libraryPath = library.getArtifact();
-      List<PsArtifactDependencySpec> pomDependencies = Collections.emptyList();
-      if (libraryPath != null) {
-        pomDependencies = findDependenciesInPomFile(libraryPath);
-      }
+      List<PsArtifactDependencySpec> pomDependencies = findDependenciesInPomFile(libraryPath);
       dependency.setDependenciesFromPomFile(pomDependencies);
     }
     else {

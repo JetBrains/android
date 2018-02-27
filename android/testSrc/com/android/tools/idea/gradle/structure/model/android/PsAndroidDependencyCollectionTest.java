@@ -25,18 +25,20 @@ import static org.junit.Assert.*;
  */
 public class PsAndroidDependencyCollectionTest {
   @Test
-  public void testCompareWithPerfectMatch() {
-    assertEquals(0, PsAndroidDependencyCollection.compare(GradleVersion.parse("1.0.0"), GradleVersion.parse("1.0.0")));
+  public void testMatchWithPerfectMatch() {
+    assertTrue(PsAndroidDependencyCollection.match(GradleVersion.parse("1.0.0"), GradleVersion.parse("1.0.0")));
   }
 
   @Test
-  public void testCompareWithPlusSignInVersion() {
+  public void testMatchWithPlusSignInVersion() {
     GradleVersion versionFromGradle = GradleVersion.parse("1.0.0");
     GradleVersion parsedVersion = GradleVersion.parse("+");
-    assertEquals(0, PsAndroidDependencyCollection.compare(parsedVersion, versionFromGradle));
+    assertTrue(PsAndroidDependencyCollection.match(parsedVersion, versionFromGradle));
     parsedVersion = GradleVersion.parse("1.+");
-    assertEquals(0, PsAndroidDependencyCollection.compare(parsedVersion, versionFromGradle));
+    assertTrue(PsAndroidDependencyCollection.match(parsedVersion, versionFromGradle));
+    parsedVersion = GradleVersion.parse("2.+");
+    assertFalse(PsAndroidDependencyCollection.match(parsedVersion, versionFromGradle));
     parsedVersion = GradleVersion.parse("1.0.+");
-    assertEquals(0, PsAndroidDependencyCollection.compare(parsedVersion, versionFromGradle));
+    assertTrue(PsAndroidDependencyCollection.match(parsedVersion, versionFromGradle));
   }
 }
