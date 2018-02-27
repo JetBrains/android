@@ -16,6 +16,9 @@
 
 package trebuchet.model.base
 
+import trebuchet.model.SchedSlice
+
 interface SliceGroup : Slice {
     val children: List<SliceGroup>
+    val runningSlices: List<SchedSlice>
 }

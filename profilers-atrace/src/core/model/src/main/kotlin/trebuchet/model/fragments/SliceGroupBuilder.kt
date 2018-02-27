@@ -16,6 +16,8 @@
 
 package trebuchet.model.fragments
 
+import trebuchet.model.SchedSlice
+import trebuchet.model.SchedulingState
 import trebuchet.model.base.SliceGroup
 
 class SliceGroupBuilder {
@@ -24,7 +26,7 @@ class SliceGroupBuilder {
 
     fun hasOpenSlices() = openSlices.isNotEmpty()
 
-    inline fun beginSlice(action: (MutableSliceGroup) -> Unit): Unit {
+    inline fun beginSlice(action: (MutableSliceGroup) -> Unit) {
         val builder = MutableSliceGroup()
         action(builder)
         openSlices.add(builder)
@@ -55,16 +57,22 @@ class SliceGroupBuilder {
 
     companion object {
         val EmptyChildren = mutableListOf<MutableSliceGroup>()
+        val EmptySchedules = mutableListOf<SchedulingSliceFragment>()
     }
 
     class MutableSliceGroup(override var startTime: Double = Double.NaN,
                             override var endTime: Double = Double.NaN,
                             override var didNotFinish: Boolean = false,
-                            var _name: String? = null,
-                            var _children: MutableList<MutableSliceGroup>? = null) : SliceGroup {
+                            override var cpuTime: Double = 0.0,
+                            private var _name: String? = null,
+                            private var _children: MutableList<MutableSliceGroup>? = null,
+                            private var _scheduledSlices: MutableList<SchedulingSliceFragment>? = null) : SliceGroup {
         override var name: String
             get() = _name!!
             set(value) { _name = value }
+
+        override val runningSlices: List<SchedSlice>
+            get() = _scheduledSlices!!
 
         override val children: List<SliceGroup>
             get() = _children!!
@@ -84,6 +92,30 @@ class SliceGroupBuilder {
             }
             if (_children == null) {
                 _children = EmptyChildren
+            }
+            if (_scheduledSlices == null) {
+                _scheduledSlices = EmptySchedules
+            }
+        }
+
+        /**
+         * Loops the set of scheduling slices summing the cpu time, and adding a reference
+         * to each slice that has an end time > this slices start time.
+         * The scheduling slice fragments list is assumed to contain a sorted set of fragments.
+         */
+        fun populateScheduledSlices(slices: List<SchedulingSliceFragment>) {
+            for(i in slices.size-1 downTo 0) {
+                if (slices[i].endTime < startTime) {
+                    break
+                }
+                if (slices[i].state == SchedulingState.RUNNING && slices[i].startTime < endTime) {
+                    cpuTime += minOf(slices[i].endTime, endTime) - maxOf(slices[i].startTime, startTime)
+                    if (_scheduledSlices == null) {
+                        _scheduledSlices = mutableListOf()
+                    }
+                    _scheduledSlices!!.add(slices[i])
+                }
+
             }
         }
 
