@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.project;
+package com.android.tools.idea.npw.project.deprecated;
 
 import com.android.SdkConstants;
 import com.android.repository.api.RemotePackage;
@@ -26,6 +26,7 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.observable.BindingsManager;
