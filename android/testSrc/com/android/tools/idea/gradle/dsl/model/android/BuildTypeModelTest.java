@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -26,9 +29,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE;
-import static com.google.common.truth.Truth.assertThat;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Tests for {@link BuildTypeModelImpl}.
@@ -912,11 +918,11 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    assertThat(android).isInstanceOf(AndroidModelImpl.class);
+    assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
 
     BuildTypeModel buildType = getXyzBuildType(buildModel);
-    assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
+    assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
@@ -958,9 +964,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.useJack().delete();
     buildType.versionNameSuffix().delete();
     buildType.zipAlignEnabled().delete();
-    assertThat(android).isInstanceOf(AndroidModelImpl.class);
+    assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
-    assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
+    assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
@@ -983,9 +989,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
     applyChanges(buildModel);
-    assertThat(android).isInstanceOf(AndroidModelImpl.class);
+    assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
-    assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
+    assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
@@ -1010,10 +1016,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
-    assertThat(android).isInstanceOf(AndroidModelImpl.class);
+    assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
     buildType = getXyzBuildType(buildModel);
-    assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
+    assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     assertNull("buildConfigFields", buildType.buildConfigFields());
@@ -1038,24 +1044,24 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     // Now remove the applicationIdSuffix also and see the whole android block is removed as it would be an empty block.
 
     buildType.applicationIdSuffix().delete();
-    assertThat(android).isInstanceOf(AndroidModelImpl.class);
+    assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
-    assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
+    assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
 
     applyChanges(buildModel);
-    assertThat(android).isInstanceOf(AndroidModelImpl.class);
+    assertThat(android, instanceOf(AndroidModelImpl.class));
     assertFalse(((AndroidModelImpl)android).hasValidPsiElement());
-    assertThat(buildType).isInstanceOf(BuildTypeModelImpl.class);
+    assertThat(buildType, instanceOf(BuildTypeModelImpl.class));
     assertFalse(((BuildTypeModelImpl)buildType).hasValidPsiElement());
 
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
-    assertThat(android).isInstanceOf(AndroidModelImpl.class);
+    assertThat(android, instanceOf(AndroidModelImpl.class));
     assertFalse(((AndroidModelImpl)android).hasValidPsiElement());
-    assertThat(android.buildTypes()).isEmpty();
+    assertTrue(android.buildTypes().isEmpty());
   }
 
   public void testEditAndApplyLiteralElements() throws Exception {
@@ -1468,17 +1474,17 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     removeListValue(buildType.consumerProguardFiles(), "proguard-android.txt");
     removeListValue(buildType.proguardFiles(), "proguard-rules.pro");
-    assertThat(buildType.consumerProguardFiles().getValue(LIST_TYPE)).named("consumerProguardFiles").isEmpty();
-    assertThat(buildType.proguardFiles().getValue(LIST_TYPE)).named("proguardFiles").isEmpty();
+    assertTrue(buildType.consumerProguardFiles().getValue(LIST_TYPE).isEmpty());
+    assertTrue(buildType.proguardFiles().getValue(LIST_TYPE).isEmpty());
 
     applyChanges(buildModel);
-    assertThat(buildType.consumerProguardFiles().getValue(LIST_TYPE)).named("consumerProguardFiles").isEmpty();
-    assertThat(buildType.proguardFiles().getValue(LIST_TYPE)).named("proguardFiles").isEmpty();
+    assertTrue(buildType.consumerProguardFiles().getValue(LIST_TYPE).isEmpty());
+    assertTrue(buildType.proguardFiles().getValue(LIST_TYPE).isEmpty());
 
     buildModel.reparse();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    assertThat(android).isInstanceOf(AndroidModelImpl.class);
+    assertThat(android, instanceOf(AndroidModelImpl.class));
   }
 
   public void testSetAndApplyMapElements() throws Exception {
@@ -1570,12 +1576,130 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.manifestPlaceholders());
   }
 
+  public void testReadSigningConfig() throws Exception {
+    String text = "android {\n" +
+                  "  signingConfigs {\n" +
+                  "    myConfig {\n" +
+                  "      storeFile file('config.keystore')\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "  buildTypes {\n" +
+                  "    xyz {\n" +
+                  "      signingConfig signingConfigs.myConfig\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    BuildTypeModel buildType = getXyzBuildType(buildModel);
+    verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    SigningConfigModel signingConfigModel = buildType.signingConfig().toSigningConfig();
+    assertThat(signingConfigModel.name(), equalTo("myConfig"));
+  }
+
+  public void testSetSigningConfig() throws Exception {
+    String text = "android {\n" +
+                  "  signingConfigs {\n" +
+                  "    myConfig {\n" +
+                  "      storeFile file('config.keystore')\n" +
+                  "    }\n" +
+                  "    myBetterConfig {\n" +
+                  "      storeFile file('betterConfig.keystore')\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "  buildTypes {\n" +
+                  "    xyz {\n" +
+                  "      signingConfig signingConfigs.myConfig\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    BuildTypeModel buildType = getXyzBuildType(buildModel);
+    verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    SigningConfigPropertyModel signingConfigModel = buildType.signingConfig();
+    assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
+    // Set the value to be equal to a different config.
+    List<SigningConfigModel> signingConfigs = buildModel.android().signingConfigs();
+    assertThat(signingConfigs.size(), equalTo(2));
+    assertThat(signingConfigs.get(0).name(), equalTo("myConfig"));
+    assertThat(signingConfigs.get(1).name(), equalTo("myBetterConfig"));
+    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1)));
+
+    verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myBetterConfig"));
+    signingConfigModel = buildType.signingConfig();
+    assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
+
+    applyChangesAndReparse(buildModel);
+
+    buildType = getXyzBuildType(buildModel);
+    verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myBetterConfig"));
+    signingConfigModel = buildType.signingConfig();
+    assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
+
+    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
+    verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    signingConfigModel = buildType.signingConfig();
+    assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
+
+    applyChangesAndReparse(buildModel);
+
+    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
+
+    buildType = getXyzBuildType(buildModel);
+    verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
+    assertThat(buildType.signingConfig().getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    signingConfigModel = buildType.signingConfig();
+    assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
+  }
+
+  public void testSetSigningConfigFromEmpty() throws Exception {
+    String text = "android {\n" +
+                  "  signingConfigs {\n" +
+                  "    myConfig {\n" +
+                  "      storeFile file('config.keystore')\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    BuildTypeModel buildTypeModel = android.addBuildType("xyz");
+
+    SigningConfigModel signingConfig = android.signingConfigs().get(0);
+    assertMissingProperty(buildTypeModel.signingConfig());
+    buildTypeModel.signingConfig().setValue(new ReferenceTo(signingConfig));
+
+    SigningConfigPropertyModel signingConfigPropertyModel = buildTypeModel.signingConfig();
+    verifyPropertyModel(signingConfigPropertyModel, STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
+    assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
+
+    applyChangesAndReparse(buildModel);
+
+    android = buildModel.android();
+    buildTypeModel = android.addBuildType("xyz");
+
+    signingConfigPropertyModel = buildTypeModel.signingConfig();
+    verifyPropertyModel(signingConfigPropertyModel, STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
+    assertThat(signingConfigPropertyModel.getRawValue(STRING_TYPE), equalTo("signingConfigs.myConfig"));
+    assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
+  }
+
   @NotNull
   private static BuildTypeModel getXyzBuildType(GradleBuildModel buildModel) {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     List<BuildTypeModel> buildTypeModels = android.buildTypes();
-    assertThat(buildTypeModels).hasSize(1);
+    assertThat(buildTypeModels.size(), equalTo(1));
 
     BuildTypeModel buildType = buildTypeModels.get(0);
     assertEquals("name", "xyz", buildType.name());

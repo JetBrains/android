@@ -41,9 +41,9 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
  * reference changes in order to get a value.
  */
 public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
-  @NotNull private final GradlePropertyModel myRealModel;
+  @NotNull protected final GradlePropertyModelImpl myRealModel;
 
-  public ResolvedPropertyModelImpl(@NotNull GradlePropertyModel realModel) {
+  public ResolvedPropertyModelImpl(@NotNull GradlePropertyModelImpl realModel) {
     myRealModel = realModel;
   }
 
@@ -220,8 +220,8 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
     return resolveModel();
   }
 
-  private GradlePropertyModel resolveModel() {
-    GradlePropertyModel model = myRealModel;
+  protected GradlePropertyModelImpl resolveModel() {
+    GradlePropertyModelImpl model = myRealModel;
     Set<GradlePropertyModel> seenModels = new HashSet<>();
 
     while (model.getValueType() == REFERENCE && !seenModels.contains(model)) {
@@ -229,7 +229,7 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
         return model;
       }
       seenModels.add(model);
-      model = model.getDependencies().get(0);
+      model = model.dependencies().get(0);
     }
     return model;
   }

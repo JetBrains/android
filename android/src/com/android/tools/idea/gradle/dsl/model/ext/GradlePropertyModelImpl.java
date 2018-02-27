@@ -185,13 +185,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Override
   @NotNull
   public List<GradlePropertyModel> getDependencies() {
-    if (myElement == null) {
-      return Collections.emptyList();
-    }
-
-    return myElement.getResolvedVariables().stream()
-      .map(injection -> new GradlePropertyModelImpl(injection.getToBeInjected())).collect(
-        Collectors.toList());
+    return new ArrayList<>(dependencies());
   }
 
   @Override
@@ -313,7 +307,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     return list.stream().filter(e -> {
       Object v = e.getValue(OBJECT_TYPE);
       return v != null && v.equals(value);
-    }).findFirst().orElseGet(null);
+    }).findFirst().orElse(null);
   }
 
   @Override
@@ -324,7 +318,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   @NotNull
-  public ResolvedPropertyModel resolve() {
+  public ResolvedPropertyModelImpl resolve() {
     return new ResolvedPropertyModelImpl(this);
   }
 
@@ -435,7 +429,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
     else {
       // We should not be trying to create properties based of other elements.
-      throw new IllegalArgumentException("Can't create property model from given GradleDslElement: " + element);
+      return UNKNOWN;
     }
   }
 
@@ -463,10 +457,17 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       value = refText == null ? null : typeReference.castTo(refText);
     }
     else if (valueType == UNKNOWN) {
-      if (element.getPsiElement() == null) {
-        return null;
+      // If its a GradleDslBlockElement use the name, otherwise use the psi text. This prevents is dumping the whole
+      // elements block as a string value.
+      if (!(element instanceof GradleDslBlockElement)) {
+        if (element.getPsiElement() == null) {
+          return null;
+        }
+        value = element.getPsiElement().getText();
       }
-      value = element.getPsiElement().getText();
+      else {
+        value = element.getFullName();
+      }
     }
     else {
       GradleDslExpression expression = (GradleDslExpression)element;
@@ -510,8 +511,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myElement = newElement;
   }
 
+  /**
+   * This method has package visibility so that subclasses of {@link ResolvedPropertyModelImpl} can access the element to
+   * extract custom types.
+   */
   @Nullable
-  private GradleDslElement getElement() {
+  GradleDslElement getElement() {
     if (myElement == null) {
       return null;
     }
@@ -526,5 +531,16 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       }
     }
     throw new IllegalStateException("No transforms found for this property model!");
+  }
+
+  @NotNull
+  List<GradlePropertyModelImpl> dependencies() {
+    if (myElement == null) {
+      return Collections.emptyList();
+    }
+
+    return myElement.getResolvedVariables().stream()
+      .map(injection -> new GradlePropertyModelImpl(injection.getToBeInjected())).collect(
+        Collectors.toList());
   }
 }

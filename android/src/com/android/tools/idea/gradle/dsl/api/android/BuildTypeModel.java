@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +48,15 @@ public interface BuildTypeModel extends FlavorTypeModel {
 
   @NotNull
   ResolvedPropertyModel shrinkResources();
+
+  /**
+   * You most likely want to set this property as a reference to a signing config,
+   * to do this please use {@link ReferenceTo#ReferenceTo(SigningConfigModel)}.
+   *
+   * You can obtain a list of signing configs from {@link AndroidModel#signingConfigs()}
+   */
+  @NotNull
+  SigningConfigPropertyModel signingConfig();
 
   @NotNull
   ResolvedPropertyModel testCoverageEnabled();

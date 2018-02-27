@@ -23,7 +23,7 @@ class PsVariables(private val module: PsModule) : VariablesProvider {
   override fun <T> getAvailableVariablesForType(type: Class<T>): List<Pair<String, T?>> =
       // TODO(solodkyy): Merge with variables available at the project level.
     module.parsedModel?.ext()?.properties.orEmpty()
-      .map { it.name to ResolvedPropertyModelImpl(it) }
+      .map { it.name to it.resolve() }
       .flatMap {
         when (it.second.valueType) {
           GradlePropertyModel.ValueType.LIST -> listOf()
