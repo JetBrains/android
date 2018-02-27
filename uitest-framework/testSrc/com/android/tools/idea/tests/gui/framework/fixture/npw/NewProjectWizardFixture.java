@@ -84,14 +84,14 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     super.clickFinish(Wait.seconds(10));
 
     List<Project> newOpenProjects = newArrayList();
-    Wait.seconds(5).expecting("Project to be created")
+    Wait.seconds(5).expecting("Project to be open")
       .until(() -> {
         newOpenProjects.addAll(newArrayList(ProjectManager.getInstance().getOpenProjects()));
         newOpenProjects.removeAll(previouslyOpenProjects);
         return !newOpenProjects.isEmpty();
       });
 
-    GuiTests.waitForProjectImport(newOpenProjects.get(0));
+    GuiTests.waitForProjectIndexingToFinish(newOpenProjects.get(0));
 
     return myself();
   }

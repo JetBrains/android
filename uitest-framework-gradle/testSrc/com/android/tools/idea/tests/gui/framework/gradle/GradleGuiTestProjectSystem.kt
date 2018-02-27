@@ -16,14 +16,17 @@
 package com.android.tools.idea.tests.gui.framework.gradle
 
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VfsUtil
 import org.fest.swing.core.Robot
+import org.fest.swing.timing.Wait
 import java.io.File
 
 class GradleGuiTestProjectSystem : GuiTestProjectSystem {
@@ -47,9 +50,22 @@ class GradleGuiTestProjectSystem : GuiTestProjectSystem {
     }
   }
 
-  override fun importProject(targetTestDirectory: File, robot: Robot, buildFilePath: String?) {
+  override fun importProject(targetTestDirectory: File, robot: Robot, buildPath: String?) {
+    val previouslyOpenProjects = ProjectManager.getInstance().openProjects
     val toSelect = VfsUtil.findFileByIoFile(targetTestDirectory, true)
     ApplicationManager.getApplication().invokeAndWait { GradleProjectImporter.getInstance().importProject(toSelect!!) }
+
+    // Wait until the project window is actually displayed
+    val newOpenProjects = mutableListOf<Project>()
+    Wait.seconds(5).expecting("Project to be open").until {
+        newOpenProjects.addAll(ProjectManager.getInstance().openProjects)
+        newOpenProjects.removeAll(previouslyOpenProjects)
+        !newOpenProjects.isEmpty()
+      }
+
+    // After the project is opened there will be an Index and a Gradle Sync phase, and these can happen in any order.
+    // Waiting for indexing to finish, makes sure Sync will start next or all Sync was done already.
+    GuiTests.waitForProjectIndexingToFinish(newOpenProjects[0])
   }
 
   override fun requestProjectSync(ideFrameFixture: IdeFrameFixture): GuiTestProjectSystem {

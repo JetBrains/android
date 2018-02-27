@@ -302,7 +302,6 @@ public class GuiTestRule implements TestRule {
   public IdeFrameFixture importProject(@NotNull String projectDirName, @Nullable String buildFilePath) throws IOException {
     File testProjectDir = setUpProject(projectDirName);
     testSystem().importProject(testProjectDir, robot(), buildFilePath);
-    GuiTests.waitForProjectImport(ideFrame().getProject());
     return ideFrame();
   }
 
