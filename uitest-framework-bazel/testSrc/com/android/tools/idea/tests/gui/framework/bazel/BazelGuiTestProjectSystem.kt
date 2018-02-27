@@ -46,14 +46,14 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
     val ignoreFile = File(targetTestDirectory, "bazel.uitestignore")
     if (ignoreFile.exists()) {
       Files.readLines(ignoreFile, Charsets.UTF_8)
-          .map { name -> File(targetTestDirectory, name) }
-          .forEach { file -> file.delete() }
+        .map { name -> File(targetTestDirectory, name) }
+        .forEach { file -> file.delete() }
     }
 
     targetTestDirectory
-        .walk()
-        .filter { f -> f.exists() && f.name.endsWith(".bazeltestfile") }
-        .forEach { f -> f.renameTo(File(f.parent, f.nameWithoutExtension)) }
+      .walk()
+      .filter { f -> f.exists() && f.name.endsWith(".bazeltestfile") }
+      .forEach { f -> f.renameTo(File(f.parent, f.nameWithoutExtension)) }
 
 
     val androidSdkRepositoryInfo =
@@ -68,18 +68,18 @@ android_sdk_repository(
     Files.append("startup --host_javabase=" + getJdkPath(), File(targetTestDirectory, ".bazelrc"), Charsets.UTF_8)
   }
 
-  override fun importProject(targetTestDirectory: File, robot: Robot, buildFilePath: String?) {
+  override fun importProject(targetTestDirectory: File, robot: Robot, buildPath: String?) {
     logger.info("Importing project.")
 
     openBazelImportWizard(robot)
-        .setWorkspacePath(targetTestDirectory.path)
-        .clickNext()
-        .setBazelBinaryPath(getBazelBinaryPath())
-        .clickNext()
-        .selectGenerateFromBuildFileOptionAndSetPath(buildFilePath ?: "app/BUILD")
-        .clickNext()
-        .uncommentApi27()
-        .clickFinish()
+      .setWorkspacePath(targetTestDirectory.path)
+      .clickNext()
+      .setBazelBinaryPath(getBazelBinaryPath())
+      .clickNext()
+      .selectGenerateFromBuildFileOptionAndSetPath(buildPath ?: "app/BUILD")
+      .clickNext()
+      .uncommentApi27()
+      .clickFinish()
   }
 
   override fun requestProjectSync(ideFrameFixture: IdeFrameFixture): GuiTestProjectSystem {
