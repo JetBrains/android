@@ -513,9 +513,9 @@ public class StudioIcons {
     }
 
     public static class Sessions {
-      public static final Icon BOOKMARK = load("/studio/icons/profiler/sessions/bookmark.png"); // 24x24
-      public static final Icon CPU = load("/studio/icons/profiler/sessions/cpu.png"); // 24x24
-      public static final Icon HEAP = load("/studio/icons/profiler/sessions/heap.png"); // 24x24
+      public static final Icon BOOKMARK = load("/studio/icons/profiler/sessions/bookmark.png"); // 16x16
+      public static final Icon CPU = load("/studio/icons/profiler/sessions/cpu.png"); // 16x16
+      public static final Icon HEAP = load("/studio/icons/profiler/sessions/heap.png"); // 16x16
     }
 
     public static class Sidebar {
@@ -525,12 +525,15 @@ public class StudioIcons {
 
     public static class Toolbar {
       public static final Icon CLOCK = load("/studio/icons/profiler/toolbar/clock.png"); // 16x16
+      public static final Icon COLLAPSE_SESSION = load("/studio/icons/profiler/toolbar/collapse-session.png"); // 16x16
+      public static final Icon EXPAND_SESSION = load("/studio/icons/profiler/toolbar/expand-session.png"); // 16x16
       public static final Icon FORCE_GARBAGE_COLLECTION = load("/studio/icons/profiler/toolbar/force-garbage-collection.png"); // 16x16
       public static final Icon GOTO_LIVE = load("/studio/icons/profiler/toolbar/goto-live.png"); // 16x16
       public static final Icon HEAP_DUMP = load("/studio/icons/profiler/toolbar/heap-dump.png"); // 16x16
       public static final Icon PAUSE_LIVE = load("/studio/icons/profiler/toolbar/pause-live.png"); // 16x16
       public static final Icon RECORD = load("/studio/icons/profiler/toolbar/record.png"); // 16x16
       public static final Icon STOP_RECORDING = load("/studio/icons/profiler/toolbar/stop-recording.png"); // 16x16
+      public static final Icon STOP_SESSION = load("/studio/icons/profiler/toolbar/stop-session.png"); // 16x16
     }
   }
 
