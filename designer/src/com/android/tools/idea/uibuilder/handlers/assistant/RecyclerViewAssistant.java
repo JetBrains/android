@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant;
 
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.HorizontalSpinner;
@@ -23,20 +24,24 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
 import kotlin.Unit;
-import kotlin.jvm.functions.Function0;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -168,9 +173,14 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
     new Template("Two lines template", TWO_LINES_TEMPLATE),
     new Template("Three lines template", THREE_LINES_TEMPLATE));
 
-  public RecyclerViewAssistant(@NotNull NlComponent component, @NotNull Function0<Unit> close) {
+  private final NlComponent component;
+  private final String originalListItemValue;
+  @Nullable private PsiFile createdFile;
+
+  public RecyclerViewAssistant(@NotNull ComponentAssistant.Context context) {
     super(new BorderLayout());
 
+    component = context.getComponent();
     AndroidFacet facet = component.getModel().getFacet();
     VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
@@ -185,39 +195,46 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
         return;
       }
       Template template = spinner.getModel().getElementAt(spinner.getSelectedIndex());
-      setTemplate(project, component, resourceName, template.myTemplate);
+      createdFile = setTemplate(project, component, resourceName, template.myTemplate);
     });
     add(spinner, BorderLayout.NORTH);
 
     setBackground(UIUtil.getListBackground());
+    originalListItemValue = component.getAttribute(TOOLS_URI, ATTR_LISTITEM);
+
+    context.setOnClose(this::onClosed);
   }
 
+  @NotNull
   private static String getTemplateName(@NotNull AndroidFacet facet, @NotNull String templateRootName) {
     AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
     String resourceNameRoot = AndroidResourceUtil.getValidResourceFileName(templateRootName);
 
-    String resourceName = resourceNameRoot;
-    int index = 1;
-    while (appResourceRepository.getResourceItem(ResourceType.LAYOUT, resourceName) != null &&
-           !appResourceRepository.getResourceItem(ResourceType.LAYOUT, resourceName).isEmpty()) {
-      resourceName = resourceNameRoot + "_" + index++;
-    }
+    String resourceName;
+    List<ResourceItem> items;
+    int index = 0;
+    do {
+      resourceName = resourceNameRoot + (index < 1 ? "" : "_" + index);
+      items = appResourceRepository.getResourceItem(ResourceType.LAYOUT, resourceName);
+      index++;
+    } while (items != null && !items.isEmpty());
     return resourceName;
   }
 
-  private static void setTemplate(@NotNull Project project,
-                                  @NotNull NlComponent component,
-                                  @NotNull String resourceName,
-                                  @NotNull String content) {
+  @Nullable
+  private static PsiFile setTemplate(@NotNull Project project,
+                                     @NotNull NlComponent component,
+                                     @NotNull String resourceName,
+                                     @NotNull String content) {
     AndroidFacet facet = component.getModel().getFacet();
     VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     assert resourceDir != null;
 
-    WriteCommandAction.runWriteCommandAction(project, "Adding RecyclerView template", null, () -> {
+    return WriteCommandAction.runWriteCommandAction(project, (Computable<PsiFile>)() -> {
       List<VirtualFile> files = AndroidResourceUtil.findOrCreateStateListFiles(
         project, resourceDir, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, resourceName, Collections.singletonList(FD_RES_LAYOUT));
       if (files == null || files.isEmpty()) {
-        return;
+        return null;
       }
 
       VirtualFile file = files.get(0);
@@ -232,13 +249,36 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
       }
       component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + resourceName);
       CommandProcessor.getInstance().addAffectedFiles(project, component.getTag().getContainingFile().getVirtualFile());
+
+      return PsiManager.getInstance(project).findFile(file);
     });
+  }
+
+  /**
+   * Method called if the user has closed the popup
+   */
+  @Nullable
+  private Unit onClosed(Boolean cancelled) {
+    if (createdFile == null || !cancelled) {
+      // The user didn't create a file, nothing to undo
+      return null;
+    }
+
+    AndroidFacet facet = component.getModel().getFacet();
+    Project project = facet.getModule().getProject();
+    // onClosed is invoked when the dialog is closed so we run the clean-up it later when the dialog has effectively closed
+    ApplicationManager.getApplication().invokeLater(() -> WriteCommandAction.runWriteCommandAction(project, () -> {
+      createdFile.delete();
+      component.setAttribute(TOOLS_URI, ATTR_LISTITEM, originalListItemValue);
+      CommandProcessor.getInstance().addAffectedFiles(project, component.getTag().getContainingFile().getVirtualFile());
+    }));
+    return null;
   }
 
   @NotNull
   @Override
-  public JComponent createComponent(@NotNull NlComponent component, @NotNull Function0<Unit> close) {
-    return new RecyclerViewAssistant(component, close);
+  public JComponent createComponent(@NotNull ComponentAssistant.Context context) {
+    return new RecyclerViewAssistant(context);
   }
 
   /**

@@ -21,10 +21,9 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.PopupActionTarget;
+import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
@@ -869,7 +868,7 @@ public class SceneComponent {
       .getComponentAssistant(getScene().getDesignSurface(), getNlComponent());
 
     if (panelFactory != null) {
-      addTarget(new PopupActionTarget(() -> panelFactory.createComponent(getNlComponent(), () -> null), null, null, null));
+      addTarget(new ComponentAssistantActionTarget(panelFactory));
     }
 
     // update the Targets created by myTargetProvider

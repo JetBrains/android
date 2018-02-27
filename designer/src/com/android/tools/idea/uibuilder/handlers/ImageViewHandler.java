@@ -159,6 +159,6 @@ public class ImageViewHandler extends ViewHandler {
     JButton button = new JButton("Set image");
     button.addActionListener(e -> showImageChooser(new ViewEditorImpl(surface.getCurrentSceneView()), component));
 
-    return (comp, close) -> button;
+    return (context) -> button;
   }
 }
