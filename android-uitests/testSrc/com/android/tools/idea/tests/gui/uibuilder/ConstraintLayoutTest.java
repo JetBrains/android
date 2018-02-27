@@ -65,7 +65,6 @@ public class ConstraintLayoutTest {
     FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
   /**
    * Verifies the UI for adding side constraints for a ConstraintLayout in the layout editor.
