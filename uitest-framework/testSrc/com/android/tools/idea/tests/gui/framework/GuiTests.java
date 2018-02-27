@@ -663,12 +663,12 @@ public final class GuiTests {
       });
   }
 
-  public static void waitForProjectImport(@NotNull Project project) {
-    AtomicBoolean isProjectOpen = new AtomicBoolean();
-    DumbService.getInstance(project).smartInvokeLater(() -> isProjectOpen.set(true));
+  public static void waitForProjectIndexingToFinish(@NotNull Project project) {
+    AtomicBoolean isProjectIndexed = new AtomicBoolean();
+    DumbService.getInstance(project).smartInvokeLater(() -> isProjectIndexed.set(true));
 
-    Wait.seconds(90).expecting("Project import to finish")
-      .until(isProjectOpen::get);
+    Wait.seconds(90).expecting("Project indexing to finish")
+      .until(isProjectIndexed::get);
   }
 
   /**
