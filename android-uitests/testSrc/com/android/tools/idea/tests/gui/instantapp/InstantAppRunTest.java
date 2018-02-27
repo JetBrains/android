@@ -27,7 +27,6 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -123,7 +122,6 @@ public class InstantAppRunTest {
   public void createAndRunInstantApp() throws Exception {
     String runConfigName = "instantapp";
     long deviceProvisioningSeconds = TimeUnit.MINUTES.toSeconds(3);
-    long projectSetupTime = TimeUnit.MINUTES.toSeconds(2);
     NewProjectWizardFixture newProj = guiTest.welcomeFrame().createNewProject();
 
     newProj.clickNext();
@@ -155,13 +153,14 @@ public class InstantAppRunTest {
     ideFrame.runApp(runConfigName)
       .selectDevice(O_AVD_NAME)
       .clickOk();
+
     // Starting the device and provisioning the device can take a very long time
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(deviceProvisioningSeconds));
+    ExecutionToolWindowFixture runWindow = ideFrame.getRunToolWindow();
+    runWindow.activate(deviceProvisioningSeconds);
+    ExecutionToolWindowFixture.ContentFixture runWindowContent = runWindow.findContent(runConfigName);
+    emulator.waitForProcessToStart(runWindowContent);
 
-    ExecutionToolWindowFixture.ContentFixture runWindow = ideFrame.getRunToolWindow().findContent(runConfigName);
-    emulator.waitForProcessToStart(runWindow);
-
-    runWindow.waitForStopClick();
+    runWindowContent.waitForStopClick();
   }
 
   /**

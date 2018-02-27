@@ -103,7 +103,7 @@ public abstract class ToolWindowFixture {
 
   protected final void activateAndWaitUntilIsVisible(long secondsToWait) {
     long startTime = System.currentTimeMillis();
-    activate();
+    activate(secondsToWait);
     long secondsRemaining = secondsToWait - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
     waitUntilIsVisible(secondsRemaining);
   }
@@ -139,13 +139,19 @@ public abstract class ToolWindowFixture {
   }
 
   public void activate() {
-    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(() -> {
-      boolean isActive = isActive();
-      if (!isActive) {
-        GuiTask.execute(() -> myToolWindow.activate(null));
-      }
-      return isActive;
-    });
+    activate(SECONDS_TO_WAIT);
+  }
+
+  public void activate(long secondsToWait) {
+    Wait.seconds(secondsToWait)
+      .expecting("ToolWindow '" + myToolWindowId + "' to be activated")
+      .until(() -> {
+        boolean isActive = isActive();
+        if (!isActive) {
+          GuiTask.execute(() -> myToolWindow.activate(null));
+        }
+        return isActive;
+      });
   }
 
   protected void waitUntilIsVisible() {
