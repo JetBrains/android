@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.ArrayList;
 
+import static com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder.UxStyle.INSTANT_APP;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class AndroidNewModuleAction extends AnAction implements DumbAware {
@@ -68,7 +69,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
       ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(project, moduleDescriptions);
       ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
 
-      new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUseNewUx(true).build().show();
+      new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUxStyle(INSTANT_APP).build().show();
     }
   }
 }
