@@ -38,18 +38,6 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
     super(tree, treeModel, new ResolvedDependenciesTreeStructure(module, uiSettings));
     myDependencySelectionSource = dependencySelectionSource;
     myDependencySelectionDestination = dependencySelectionDestination;
-
-    PsUISettings.ChangeListener changeListener = settings -> {
-      AbstractTreeStructure treeStructure = getTreeStructure();
-
-      if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
-        boolean needsUpdate = ((ResolvedDependenciesTreeStructure)treeStructure).settingsChanged();
-        if (needsUpdate) {
-          queueUpdateAndRestoreSelection();
-        }
-      }
-    };
-    uiSettings.addListener(changeListener, this);
   }
 
   @Override
