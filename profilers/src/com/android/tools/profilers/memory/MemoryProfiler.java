@@ -99,6 +99,11 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
+    if (!myProfilers.isAgentAttached()) {
+      // Early return if JVMTI agent is not attached.
+      return;
+    }
+
     TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
       .getCurrentTime(TimeRequest.newBuilder().setDeviceId(session.getDeviceId()).build());
     long timeNs = timeResponse.getTimestampNs();
