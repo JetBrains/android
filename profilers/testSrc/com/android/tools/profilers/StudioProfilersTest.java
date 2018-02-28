@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -42,7 +41,8 @@ import static org.junit.Assert.assertTrue;
 
 public final class StudioProfilersTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
-  @Rule public FakeGrpcServer myGrpcServer = new FakeGrpcServer("StudioProfilerTestChannel", myProfilerService);
+  private final FakeGrpcServer.CpuService myCpuService = new FakeGrpcServer.CpuService();
+  @Rule public FakeGrpcServer myGrpcServer = new FakeGrpcServer("StudioProfilerTestChannel", myProfilerService, myCpuService);
 
   @Before
   public void setup() {
@@ -391,6 +391,32 @@ public final class StudioProfilersTest {
     profilers.setProcess(null);
     assertThat(profilers.getProcess().getPid()).isEqualTo(21);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
+  }
+
+  @Test
+  public void shouldOpenCpuProfileStageIfStartupProfilingStarted() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    FakeIdeProfilerServices ideServices = new FakeIdeProfilerServices();
+    ideServices.enableStartupCpuProfiling(true);
+
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), ideServices, timer);
+    myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(42));
+
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
+    profilers.setPreferredProcessName(process.getName());
+
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, process);
+    myCpuService.setStartupProfiling(true);
+
+    // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
+    // and starts a new session with the preferred process name.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    assertThat(profilers.getProcess().getPid()).isEqualTo(20);
+    assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
+    assertThat(profilers.getStage()).isInstanceOf(CpuProfilerStage.class);
   }
 
   @Test

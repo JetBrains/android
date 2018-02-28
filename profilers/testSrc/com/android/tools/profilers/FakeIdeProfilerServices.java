@@ -108,6 +108,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean mySimpleperfEnabled = false;
 
+  /**
+   * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myStartupCpuProfilingEnabled = false;
 
   /**
    * List of custom CPU profiling configurations.
@@ -246,6 +250,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isSimpleperfEnabled() {
         return mySimpleperfEnabled;
       }
+
+      @Override
+      public boolean isStartupCpuProfilingEnabled() {
+        return myStartupCpuProfilingEnabled;
+      }
     };
   }
 
@@ -370,6 +379,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableSimpleperf(boolean enabled) {
     mySimpleperfEnabled = enabled;
+  }
+
+  public void enableStartupCpuProfiling(boolean enabled) {
+    myStartupCpuProfilingEnabled = enabled;
   }
 
   public void enableExportTrace(boolean enabled) {
