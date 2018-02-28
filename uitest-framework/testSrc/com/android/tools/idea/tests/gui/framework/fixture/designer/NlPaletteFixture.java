@@ -65,6 +65,7 @@ public class NlPaletteFixture extends ComponentFixture<NlPaletteFixture, Compone
   public JListFixture getItemList(@NotNull String group) {
     if (!group.isEmpty()) {
       getCategoryList().selectItem(group);
+      getCategoryList().requireSelectedItems(group);
     }
 
     JList itemList = myNewPalette.getItemList();

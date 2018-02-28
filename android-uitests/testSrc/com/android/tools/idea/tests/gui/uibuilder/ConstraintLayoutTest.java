@@ -199,7 +199,7 @@ public class ConstraintLayoutTest {
    *   1. Verify the item displays in the xml view.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/70683493
+  @RunIn(TestGroup.QA)
   @Test
   public void addAllLayoutItemsFromToolbar() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
@@ -223,7 +223,15 @@ public class ConstraintLayoutTest {
 
     for (Map.Entry<String, String> entry : widgets.entries()) {
       design.dragComponentToSurface(entry.getKey(), entry.getValue());
+      assertThat(design.getIssuePanel().hasRenderError()).isFalse();
     }
+
+    // Testing these separately because the generated tag does not correspond to the
+    // displayed name to the code below would fail
+    design.dragComponentToSurface("Widgets", "Vertical Divider");
+    assertThat(design.getIssuePanel().hasRenderError()).isFalse();
+    design.dragComponentToSurface("Widgets", "Horizontal Divider");
+    assertThat(design.getIssuePanel().hasRenderError()).isFalse();
 
     String layoutXml = ideFrameFixture
       .getEditor()
