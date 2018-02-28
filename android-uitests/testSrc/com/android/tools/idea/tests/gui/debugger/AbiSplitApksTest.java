@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSyste
 import com.intellij.openapi.util.Ref;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
+import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -108,8 +109,6 @@ public class AbiSplitApksTest extends DebuggerTestBase {
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT));
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
     openAndToggleBreakPoints(ideFrame,
                              "app/src/main/jni/native-lib.c",
                              "return (*env)->NewStringUTF(env, message);");
@@ -136,8 +135,11 @@ public class AbiSplitApksTest extends DebuggerTestBase {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    // Wait for session to start: For x64, it takes longer time to wait for emulator come online.
+    ExecutionToolWindowFixture.ContentFixture contentFixture = new DebugToolWindowFixture(ideFrame)
+      .findContent(DEBUG_CONFIG_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+
     ideFrame.stopApp();
     ProjectViewFixture.PaneFixture projectPane = ideFrame.getProjectView().selectProjectPane();
 
