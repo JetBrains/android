@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.google.common.collect.ArrayListMultimap
 import com.intellij.openapi.application.ApplicationManager
@@ -111,6 +112,19 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
 
   fun findModuleDependency(gradlePath: String, predicate: (ModuleDependencyModel) -> Boolean): ModuleDependencyModel? =
     parsedModuleDependencies.get(gradlePath).find(predicate)
+
+  fun forEach(block: (DependencyModel) -> Unit) {
+    parsedModuleDependencies.values().forEach(block)
+    parsedArtifactDependencies.values().forEach(block)
+  }
+
+  fun forEachModuleDependency(block: (ModuleDependencyModel) -> Unit) {
+    parsedModuleDependencies.values().forEach(block)
+  }
+
+  fun forEachLibraryDependency(block: (ArtifactDependencyModel) -> Unit) {
+    parsedArtifactDependencies.values().forEach(block)
+  }
 
   private fun createIdFrom(dependency: ArtifactDependencyModel) =
     joinAsGradlePath(listOf(dependency.group().value(), dependency.name().value()))

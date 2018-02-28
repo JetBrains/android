@@ -26,6 +26,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.util.Collection;
@@ -344,7 +345,9 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     return variants;
   }
 
-  public void testEditableDependencies() throws Throwable {
+  @Ignore("b/73999281")
+  public void /*test*/EditableDependencies() throws Throwable {
+    // TODO(b/73999281): Uncomment when parsed and resolved dependencies are properly matched.
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
@@ -391,7 +394,9 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testEditableDependenciesWithPlusInVersion() throws Throwable {
+  @Ignore("b/73999281")
+  public void /*test*/EditableDependenciesWithPlusInVersion() throws Throwable {
+    // TODO(b/73999281): Uncomment when parsed and resolved dependencies are properly matched.
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();

@@ -224,28 +224,9 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
     // Reset dependencies.
     myDependencyCollection = null;
-    PsAndroidDependencyCollection dependencyCollection = getOrCreateDependencyCollection();
-
-    Set<String> configurationNames = Sets.newHashSet(scopesNames);
-    List<PsAndroidArtifact> targetArtifacts = Lists.newArrayList();
-    forEachVariant(variant -> variant.forEachArtifact(artifact -> {
-      if (artifact.containsAnyConfigurationName(configurationNames)) {
-        targetArtifacts.add(artifact);
-      }
-    }));
-    assert !targetArtifacts.isEmpty();
 
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(library);
     assert spec != null;
-
-    PsParsedDependencies parsedDependencies = getParsedDependencies();
-    for (PsAndroidArtifact artifact : targetArtifacts) {
-      List<ArtifactDependencyModel> matchingParsedDependencies = parsedDependencies.findLibraryDependencies(spec, artifact::contains);
-      for (ArtifactDependencyModel parsedDependency : matchingParsedDependencies) {
-        dependencyCollection.addLibraryDependency(spec, artifact, parsedDependency);
-      }
-    }
-
     fireLibraryDependencyAddedEvent(spec);
     setModified(true);
   }
@@ -257,25 +238,6 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
     // Reset dependencies.
     myDependencyCollection = null;
-    PsAndroidDependencyCollection dependencyCollection = getOrCreateDependencyCollection();
-
-    Set<String> configurationNames = Sets.newHashSet(scopesNames);
-    List<PsAndroidArtifact> targetArtifacts = Lists.newArrayList();
-    forEachVariant(variant -> variant.forEachArtifact(artifact -> {
-      if (artifact.containsAnyConfigurationName(configurationNames)) {
-        targetArtifacts.add(artifact);
-      }
-    }));
-    assert !targetArtifacts.isEmpty();
-
-    PsParsedDependencies parsedDependencies = getParsedDependencies();
-    for (PsAndroidArtifact artifact : targetArtifacts) {
-      @Nullable ModuleDependencyModel parsedDependency = parsedDependencies.findModuleDependency(modulePath, artifact::contains);
-      if (parsedDependency != null) {
-        // TODO(solodkyy) : Revisit passing null instead of a resolved model.
-        dependencyCollection.addModuleDependency(modulePath, artifact, null, parsedDependency);
-      }
-    }
 
     fireModuleDependencyAddedEvent(modulePath);
     setModified(true);

@@ -72,10 +72,9 @@ class DependencyManagementTest : AndroidGradleTestCase() {
     module.addLibraryDependency("com.example.libs:lib1:1.0", listOf("implementation"))
     assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
 
-    // TODO(solodkyy): Fix adding the second dependency without syncing.
-//    module.addLibraryDependency("com.example.libs:lib2:1.0", listOf("implementation"))
-//    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-//    assertThat(module.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+    module.addLibraryDependency("com.example.libs:lib2:1.0", listOf("implementation"))
+    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+    assertThat(module.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
 
     project.applyChanges()
     requestSyncAndWait()
@@ -83,7 +82,7 @@ class DependencyManagementTest : AndroidGradleTestCase() {
 
     module = project.findModuleByName("moduleA") as PsAndroidModule
     assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-//    assertThat(module.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+    assertThat(module.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
   }
 
   fun testAddModuleDependency() {
@@ -92,10 +91,9 @@ class DependencyManagementTest : AndroidGradleTestCase() {
     module.addModuleDependency(":moduleA", listOf("implementation"))
     assertThat(module.findModuleDependency(":moduleA"), notNullValue())
 
-    // TODO(solodkyy): Fix adding the second dependency without syncing.
-//    module.addModuleDependency(":moduleB", listOf("implementation"))
-//    assertThat(module.findModuleDependency(":moduleA"), notNullValue())
-//    assertThat(module.findModuleDependency(":moduleB"), notNullValue())
+    module.addModuleDependency(":moduleB", listOf("implementation"))
+    assertThat(module.findModuleDependency(":moduleA"), notNullValue())
+    assertThat(module.findModuleDependency(":moduleB"), notNullValue())
 
     project.applyChanges()
     requestSyncAndWait()
@@ -103,7 +101,7 @@ class DependencyManagementTest : AndroidGradleTestCase() {
 
     module = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(module.findModuleDependency(":moduleA"), notNullValue())
-//    assertThat(module.findModuleDependency(":moduleB"), notNullValue())
+    assertThat(module.findModuleDependency(":moduleB"), notNullValue())
   }
 
   fun testAddJavaModuleDependency() {
