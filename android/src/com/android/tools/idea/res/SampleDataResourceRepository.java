@@ -47,6 +47,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.FD_SAMPLE_DATA;
+import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.IMAGE;
+import static com.android.tools.idea.res.SampleDataResourceItem.ContentType.TEXT;
 
 /**
  * A {@link LocalResourceRepository} that provides sample data to be used within "tools" attributes. This provider
@@ -73,42 +75,57 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
    */
   private static final ImmutableList<SampleDataResourceItem> PREDEFINED_SOURCES = ImmutableList.of(
     SampleDataResourceItem.getFromStaticDataSource("full_names", new CombinerDataSource(
-      SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"),
-      SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/surnames.txt"))),
+                                                     SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"),
+                                                     SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/surnames.txt")),
+                                                   TEXT),
     SampleDataResourceItem.getFromStaticDataSource("first_names", ResourceContent.fromInputStream(
-      SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"))),
+      SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt")),
+                                                   TEXT),
     SampleDataResourceItem.getFromStaticDataSource("last_names", ResourceContent.fromInputStream(
       SampleDataResourceRepository.class.getClassLoader()
-        .getResourceAsStream("sampleData/surnames.txt"))),
+        .getResourceAsStream("sampleData/surnames.txt")),
+                                                   TEXT),
     SampleDataResourceItem.getFromStaticDataSource("cities", ResourceContent.fromInputStream(
       SampleDataResourceRepository.class.getClassLoader()
-        .getResourceAsStream("sampleData/cities.txt"))),
+        .getResourceAsStream("sampleData/cities.txt")),
+                                                   TEXT),
     SampleDataResourceItem.getFromStaticDataSource("us_zipcodes",
-                                                   new NumberGenerator("%05d", 20000, 99999)),
+                                                   new NumberGenerator("%05d", 20000, 99999),
+                                                   TEXT),
     SampleDataResourceItem.getFromStaticDataSource("us_phones",
-                                                   new NumberGenerator("(800) 555-%04d", 0, 9999)),
-    SampleDataResourceItem.getFromStaticDataSource("lorem", new LoremIpsumGenerator(false)),
-    SampleDataResourceItem.getFromStaticDataSource("lorem/random", new LoremIpsumGenerator(true)),
+                                                   new NumberGenerator("(800) 555-%04d", 0, 9999),
+                                                   TEXT),
+    SampleDataResourceItem.getFromStaticDataSource("lorem", new LoremIpsumGenerator(false),
+                                                   TEXT),
+    SampleDataResourceItem.getFromStaticDataSource("lorem/random", new LoremIpsumGenerator(true),
+                                                   TEXT),
     SampleDataResourceItem.getFromStaticDataSource("avatars",
-                                                   ResourceContent.fromDirectory("avatars")),
+                                                   ResourceContent.fromDirectory("avatars"),
+                                                   IMAGE),
     SampleDataResourceItem.getFromStaticDataSource("backgrounds/scenic",
-                                                   ResourceContent.fromDirectory("backgrounds/scenic")),
+                                                   ResourceContent.fromDirectory("backgrounds/scenic"),
+                                                   IMAGE),
 
     // TODO: Delegate path parsing to the data source to avoid all these declarations
     SampleDataResourceItem.getFromStaticDataSource("date/day_of_week",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS)
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS),
+                                                   TEXT
     ),
     SampleDataResourceItem.getFromStaticDataSource("date/ddmmyy",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS)
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS),
+                                                   TEXT
     ),
     SampleDataResourceItem.getFromStaticDataSource("date/mmddyy",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS)
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS),
+                                                   TEXT
     ),
     SampleDataResourceItem.getFromStaticDataSource("date/hhmm",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES)
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES),
+                                                   TEXT
     ),
     SampleDataResourceItem.getFromStaticDataSource("date/hhmmss",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS)
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS),
+                                                   TEXT
     ));
 
 

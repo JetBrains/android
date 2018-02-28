@@ -19,6 +19,9 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.api.InsertType;
@@ -145,8 +148,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   @Nullable
-  @Override
-  public ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  private ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
     if (!NELE_WIDGET_ASSISTANT.get()) {
       return null;
     }
@@ -160,5 +162,15 @@ public class ImageViewHandler extends ViewHandler {
     button.addActionListener(e -> showImageChooser(new ViewEditorImpl(surface.getCurrentSceneView()), component));
 
     return (context) -> button;
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
+
+    return panelFactory != null ?
+           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
+           ImmutableList.of();
   }
 }

@@ -15,18 +15,31 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TargetProvider;
+import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
+import com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.flags.StudioFlags.NELE_WIDGET_ASSISTANT;
 
 /**
  * Handler for several widgets that have a {@code text} attribute.
@@ -72,5 +85,33 @@ public class TextViewHandler extends ViewHandler {
   @NotNull
   public String getPreferredProperty() {
     return ATTR_TEXT;
+  }
+
+  @Nullable
+  private static ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
+    if (!NELE_WIDGET_ASSISTANT.get()) {
+      return null;
+    }
+
+    if (component.getAttribute(TOOLS_URI, ATTR_TEXT) != null) {
+      return null;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(component.getModel().getModule());
+    if (facet == null) {
+      return null;
+    }
+
+    return TextViewAssistant::createComponent;
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getNlComponent());
+
+    return panelFactory != null ?
+           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
+           ImmutableList.of();
   }
 }

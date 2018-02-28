@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class TransitionLayoutAssistantPanel(val designSurface: DesignSurface, val component: NlComponent, val close: Function0<Unit>) :
+class TransitionLayoutAssistantPanel(val designSurface: DesignSurface, val component: NlComponent, val close: (Boolean) -> Unit) :
     JPanel() {
   val toolbar: AnimationToolbar
 

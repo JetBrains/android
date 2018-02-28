@@ -19,6 +19,9 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderService;
@@ -228,12 +231,21 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler {
   }
 
   @Nullable
-  @Override
-  public ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  private static ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
     if (!StudioFlags.NELE_MOTION_LAYOUT_ANIMATIONS.get() || !SdkConstants.MOTION_LAYOUT.isEquals(component.getTagName())) {
       return null;
     }
 
     return (context) -> new TransitionLayoutAssistantPanel(surface, context.getComponent(), context.getDoClose());
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
+
+    return panelFactory != null ?
+           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
+           ImmutableList.of();
   }
 }

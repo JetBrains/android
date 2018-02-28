@@ -58,7 +58,6 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   }
 
   @Nullable
-  @Override
   public ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
     if (!NELE_WIDGET_ASSISTANT.get()) {
       return null;

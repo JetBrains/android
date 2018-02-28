@@ -44,7 +44,7 @@ import java.util.List;
  * Handler for views that are layout managers.
  */
 @SuppressWarnings("UnusedParameters")
-public class ViewGroupHandler extends ViewHandler implements TargetProvider {
+public class ViewGroupHandler extends ViewHandler {
   @Override
   @NotNull
   @Language("XML")
@@ -206,18 +206,6 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
                            @NotNull NlComponent component) {
     // do nothing here, subclasses need to override this and handlesPainting() to be called
     return false;
-  }
-
-  /**
-   * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
-   *
-   * @param sceneComponent The component we'll add the targets on
-   * @return The list of created target to add the the component. This list can be empty.
-   */
-  @Override
-  @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    return new ArrayList<>();
   }
 
   public void cleanUpAttributes(@NotNull NlComponent child) {
