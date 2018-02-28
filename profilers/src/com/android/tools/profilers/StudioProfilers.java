@@ -421,9 +421,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (!getIdeServices().getFeatureConfig().isStartupCpuProfilingEnabled()) {
       return false;
     }
-    long timestamp = TimeUnit.MICROSECONDS.toNanos((long)getTimeline().getDataRange().getMax());
     ProfilingStateResponse response = getClient().getCpuClient()
-      .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).setTimestamp(timestamp).build());
+      .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
     return response.getBeingProfiled() && response.getIsStartupProfiling();
   }
 
