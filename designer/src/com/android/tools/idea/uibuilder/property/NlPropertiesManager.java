@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
@@ -27,7 +26,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
@@ -159,8 +157,6 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
       getPropertiesPanel().getPropertiesViewMode(),
       getPropertiesPanel().getFilterMatchCount());
   }
-
-  // ---- Implements DesignSurfaceListener ----
 
   /**
    * Find the preferred attribute of the component specified,

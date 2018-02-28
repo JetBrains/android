@@ -28,7 +28,6 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;

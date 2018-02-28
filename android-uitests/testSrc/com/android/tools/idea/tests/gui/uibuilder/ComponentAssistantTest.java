@@ -52,11 +52,6 @@ public class ComponentAssistantTest {
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true);
 
-    layout.findView("TextView", 0).click();
-    assertFalse(layout.getPropertiesPanel()
-                  .openAsInspector()
-                  .hasComponentAssistantPanel());
-
     layout.dragComponentToSurface("Containers", "RecyclerView", 50, 50);
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
     guiTest.ideFrame()
