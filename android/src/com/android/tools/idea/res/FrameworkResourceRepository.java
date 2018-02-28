@@ -839,7 +839,6 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
       addSource(resourceFolder);
       setTrackSourcePositions(false);
       setCheckDuplicates(false);
-      setAllowUnspecifiedAttrFormat(true);
     }
 
     @Override
@@ -863,7 +862,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
       }
 
       // Skip files that don't contain resources.
-      if (fileName.equals("attrs_manifest.xml") || fileName.equals("public.xml") || fileName.equals("symbols.xml")) {
+      if (fileName.equals("public.xml") || fileName.equals("symbols.xml")) {
         return true;
       }
 
