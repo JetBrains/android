@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
+import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -48,7 +49,7 @@ class AtraceParserTest {
     val range = myParser.range
     val result = myParser.captureTrees
     assertThat(result).hasSize(20)
-    val cpuThreadInfo = Iterables.find(result.keys, {key -> key?.id == TEST_PID } )
+    val cpuThreadInfo = Iterables.find(result.keys, { key -> key?.id == TEST_PID })
     assertThat(cpuThreadInfo.id).isEqualTo(TEST_PID)
     // Atrace only contains the last X characters, in the log file.
     assertThat(cpuThreadInfo.name).isEqualTo("splayingbitmaps")
@@ -67,7 +68,27 @@ class AtraceParserTest {
     assertThat(captureNode.getChildAt(0).end).isLessThan(range.max.toLong())
     assertThat(captureNode.getChildAt(0).depth).isEqualTo(0)
     assertThat(captureNode.getChildAt(2).getChildAt(0).depth).isEqualTo(1)
+  }
 
+  @Test
+  fun testGetCaptureTreesIdleState() {
+    val result = myParser.captureTrees
+    val cpuThreadInfo = Iterables.find(result.keys, { key -> key?.id == TEST_PID })
+
+    val captureNode = result[cpuThreadInfo]!!
+    assertThat((captureNode.getChildAt(1).data as AtraceNodeModel).isIdleCpu).isFalse()
+    // Grab the element at index 1 and use its child because, the child is the element that represents this nodes idle cpu time.
+    val idleLock = captureNode.getChildAt(1)
+    assertThat(idleLock.childCount).isEqualTo(1)
+    // Validate our child is our idle child.
+    assertThat((idleLock.getChildAt(0).data as AtraceNodeModel).isIdleCpu).isTrue()
+    val idleChild = idleLock.getChildAt(0)
+    // Validate our end time is equal to that of our parent.
+    assertThat(idleChild.endGlobal).isEqualTo(idleLock.endGlobal)
+    // Validate our depth is equal to our parents depth.
+    assertThat(idleChild.depth).isEqualTo(idleLock.depth)
+    // Validate that idle cpu nodes have no name.
+    assertThat((idleChild.data as AtraceNodeModel).name).isEmpty()
   }
 
   @Test
