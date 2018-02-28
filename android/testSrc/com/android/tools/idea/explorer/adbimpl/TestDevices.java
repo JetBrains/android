@@ -638,7 +638,7 @@ public class TestDevices {
     addCommand(shellCommands, "rm /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
   }
 
-  static void addLogcatSupportsEpochFormatModifierCommands(@NotNull TestShellCommands commands) {
+  public static void addLogcatSupportsEpochFormatModifierCommands(@NotNull TestShellCommands commands) {
     addCommand(
       commands,
       "logcat --help",

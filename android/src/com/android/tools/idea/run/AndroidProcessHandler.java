@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.*;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
+import com.android.tools.idea.logcat.AndroidLogcatPreferences;
 import com.android.tools.idea.logcat.AndroidLogcatService;
+import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.google.common.collect.Lists;
@@ -38,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.io.OutputStream;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -57,6 +57,8 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
   // If the client is not present on the monitored devices after this time, then it is assumed to have died.
   // We are keeping it so long because sometimes (for cold-swap) it seems to take a while..
   private static final long TIMEOUT_MS = 10000;
+
+  private static final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
 
   // identifier for the running application, same as packageId unless android:process attribute is set
   @NotNull private final String myApplicationId;
@@ -338,7 +340,7 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
      * {@link #stopMonitoring(IDevice)} come from different threads (EDT and Monitor Thread respectively).
      */
     @GuardedBy("myLock")
-    @NotNull private final Map<IDevice, AndroidLogcatService.LogcatListener> myLogListeners = new HashMap<>();
+    @NotNull private final Map<IDevice, LogcatListener> myLogListeners = new HashMap<>();
     @NotNull private final Object myLock = new Object();
 
     public LogcatOutputCapture(@NotNull String applicationId) {
@@ -354,36 +356,12 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
       }
 
       LOG.info(String.format("startCapture(\"%s\")", device.getName()));
-      AndroidLogcatService.LogcatListener logListener = new ApplicationLogListener(myApplicationId, client.getClientData().getPid()) {
-        private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
-        private final AtomicBoolean myIsFirstMessage = new AtomicBoolean(true);
-
-        @Override
-        protected String formatLogLine(@NotNull LogCatMessage line) {
-          String message = AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
-          synchronized (myLock) {
-            if (myLogListeners.size() > 1) {
-              return String.format("[%1$s]: %2$s", device.getName(), message);
-            }
-            else {
-              return message;
-            }
-          }
-        }
-
-        @Override
-        protected void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
-          if (myIsFirstMessage.compareAndSet(true, false)) {
-            consumer.accept(LogcatOutputConfigurableProvider.BANNER_MESSAGE + "\n", ProcessOutputTypes.STDOUT);
-          }
-          consumer.accept(message, key);
-        }
-      };
+      LogcatListener logListener = new MyLogcatListener(myApplicationId, client.getClientData().getPid(), device, consumer);
 
       AndroidLogcatService.getInstance().addListener(device, logListener, true);
 
       // Remember the listener for later cleanup
-      AndroidLogcatService.LogcatListener previousListener;
+      LogcatListener previousListener;
       synchronized (myLock) {
         previousListener = myLogListeners.put(device, logListener);
       }
@@ -398,10 +376,50 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
       }
     }
 
+    private final class MyLogcatListener extends ApplicationLogListener {
+      private final AndroidLogcatFormatter myFormatter;
+      private final IShellEnabledDevice myDevice;
+      private final AtomicBoolean myIsFirstMessage;
+      private final BiConsumer<String, Key> myConsumer;
+
+      private MyLogcatListener(@NotNull String packageName, int pid, @NotNull IDevice device, @NotNull BiConsumer<String, Key> consumer) {
+        super(packageName, pid);
+
+        myFormatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), new AndroidLogcatPreferences());
+        myDevice = device;
+        myIsFirstMessage = new AtomicBoolean(true);
+        myConsumer = consumer;
+      }
+
+      @Override
+      protected String formatLogLine(@NotNull LogCatMessage line) {
+        String message = myFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
+
+        synchronized (myLock) {
+          switch (myLogListeners.size()) {
+            case 0:
+            case 1:
+              return message;
+            default:
+              return '[' + myDevice.getName() + "]: " + message;
+          }
+        }
+      }
+
+      @Override
+      protected void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
+        if (myIsFirstMessage.compareAndSet(true, false)) {
+          myConsumer.accept(LogcatOutputConfigurableProvider.BANNER_MESSAGE + '\n', ProcessOutputTypes.STDOUT);
+        }
+
+        myConsumer.accept(message, key);
+      }
+    }
+
     public void stopCapture(@NotNull IDevice device) {
       LOG.info(String.format("stopCapture(\"%s\")", device.getName()));
 
-      AndroidLogcatService.LogcatListener previousListener;
+      LogcatListener previousListener;
       synchronized (myLock) {
         previousListener = myLogListeners.remove(device);
       }
@@ -415,14 +433,14 @@ public class AndroidProcessHandler extends ProcessHandler implements AndroidDebu
     public void stopAll() {
       LOG.info("stopAll()");
 
-      List<Map.Entry<IDevice, AndroidLogcatService.LogcatListener>> listeners;
+      List<Map.Entry<IDevice, LogcatListener>> listeners;
       synchronized (myLock) {
         listeners = new ArrayList<>(myLogListeners.entrySet());
         myLogListeners.clear();
       }
 
       // Outside of lock to avoid deadlock with AndroidLogcatService internal lock
-      for (Map.Entry<IDevice, AndroidLogcatService.LogcatListener> entry : listeners) {
+      for (Map.Entry<IDevice, LogcatListener> entry : listeners) {
         AndroidLogcatService.getInstance().removeListener(entry.getKey(), entry.getValue());
       }
     }

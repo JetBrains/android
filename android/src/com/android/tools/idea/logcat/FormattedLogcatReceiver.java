@@ -20,14 +20,18 @@ import com.android.ddmlib.logcat.LogCatMessage;
 import org.jetbrains.annotations.NotNull;
 
 abstract class FormattedLogcatReceiver implements AndroidLogcatService.LogcatListener {
+  private final AndroidLogcatFormatter myFormatter;
   private LogCatHeader myActiveHeader;
+
+  FormattedLogcatReceiver(@NotNull AndroidLogcatFormatter formatter) {
+    myFormatter = formatter;
+  }
 
   @Override
   public final void onLogLineReceived(@NotNull LogCatMessage line) {
     if (!line.getHeader().equals(myActiveHeader)) {
       myActiveHeader = line.getHeader();
-      String message = AndroidLogcatFormatter.formatMessageFull(myActiveHeader, line.getMessage());
-      receiveFormattedLogLine(message);
+      receiveFormattedLogLine(myFormatter.formatMessageFull(myActiveHeader, line.getMessage()));
     }
     else {
       String message = AndroidLogcatFormatter.formatContinuation(line.getMessage());

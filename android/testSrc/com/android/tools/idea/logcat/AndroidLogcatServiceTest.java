@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.MultiLineReceiver;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -23,8 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -33,10 +36,10 @@ import static org.mockito.Mockito.*;
 public class AndroidLogcatServiceTest {
   private static class TestLogcatListener implements AndroidLogcatService.LogcatListener {
     private final String[] EXPECTED_LOGS = {
-      "08-18 16:39:11.439: W/DummyFirst(1493): First Line1",
-      "08-18 16:39:11.439: W/DummyFirst(1493): First Line2",
-      "08-18 16:39:11.439: W/DummyFirst(1493): First Line3",
-      "09-20 16:39:11.439: W/DummySecond(1493): Second Line1"};
+      "1534635551.439: W/DummyFirst(1493): First Line1",
+      "1534635551.439: W/DummyFirst(1493): First Line2",
+      "1534635551.439: W/DummyFirst(1493): First Line3",
+      "1537486751.439: W/DummySecond(1493): Second Line1"};
 
     private int myCurrentIndex = 0;
     private boolean myCleared;
@@ -79,25 +82,45 @@ public class AndroidLogcatServiceTest {
 
   @Before
   public void setUp() throws Exception {
-    doAnswer(invocation -> {
-      AndroidLogcatReceiver receiver = (AndroidLogcatReceiver)invocation.getArguments()[1];
-      receiver.processNewLine("[ 08-18 16:39:11.439 1493:1595 W/DummyFirst     ]");
-      receiver.processNewLine("First Line1");
-      receiver.processNewLine("First Line2");
-      receiver.processNewLine("First Line3");
-      receiver.processNewLine("[ 09-20 16:39:11.439 1493:1595 W/DummySecond     ]");
-      receiver.processNewLine("Second Line1");
-      receiver.cancel();
-      myExecuteShellCommandLatch.countDown();
-      return null;
-    }).when(mockDevice).executeShellCommand(any(), any(), anyLong(), any());
+    stubExecuteLogcatHelp();
+    stubExecuteLogcatVLongVEpoch();
 
     myLogcatService = new AndroidLogcatService();
     myLogcatListener = new TestLogcatListener();
-    myExecuteShellCommandLatch = new CountDownLatch(1);
+    myExecuteShellCommandLatch = new CountDownLatch(2);
 
     myBufferSize = System.setProperty("idea.cycle.buffer.size", "disabled");
     myProject = mock(Project.class);
+  }
+
+  private void stubExecuteLogcatHelp() throws Exception {
+    Answer answer = invocation -> {
+      ((MultiLineReceiver)invocation.getArgument(1)).processNewLines(new String[]{"epoch"});
+      myExecuteShellCommandLatch.countDown();
+
+      return null;
+    };
+
+    doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat --help"), any(), eq(10L), eq(TimeUnit.SECONDS));
+  }
+
+  private void stubExecuteLogcatVLongVEpoch() throws Exception {
+    Answer answer = invocation -> {
+      AndroidLogcatReceiver receiver = invocation.getArgument(1);
+
+      receiver.processNewLine("[ 1534635551.439 1493:1595 W/DummyFirst     ]");
+      receiver.processNewLine("First Line1");
+      receiver.processNewLine("First Line2");
+      receiver.processNewLine("First Line3");
+      receiver.processNewLine("[ 1537486751.439 1493:1595 W/DummySecond     ]");
+      receiver.processNewLine("Second Line1");
+      receiver.cancel();
+
+      myExecuteShellCommandLatch.countDown();
+      return null;
+    };
+
+    doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat -v long -v epoch"), any(), eq(0L), eq(TimeUnit.MILLISECONDS));
   }
 
   @After
@@ -121,12 +144,6 @@ public class AndroidLogcatServiceTest {
 
     myExecuteShellCommandLatch.await();
     myLogcatListener.assertAllReceived();
-
-    verify(mockDevice, times(2)).isOnline();
-    verify(mockDevice, times(2)).getClientName(1493);
-    verify(mockDevice, times(1)).getName();
-    verify(mockDevice, times(1)).executeShellCommand(any(), any(), anyLong(), any());
-    verifyNoMoreInteractions(mockDevice);
   }
 
   /**
@@ -140,12 +157,6 @@ public class AndroidLogcatServiceTest {
 
     myExecuteShellCommandLatch.await();
     myLogcatListener.assertAllReceived();
-
-    verify(mockDevice, times(1)).isOnline();
-    verify(mockDevice, times(2)).getClientName(1493);
-    verify(mockDevice, times(1)).getName();
-    verify(mockDevice, times(1)).executeShellCommand(any(), any(), anyLong(), any());
-    verifyNoMoreInteractions(mockDevice);
   }
 
   /**
@@ -161,11 +172,6 @@ public class AndroidLogcatServiceTest {
     myExecuteShellCommandLatch.await();
 
     myLogcatListener.assertAllReceived();
-    verify(mockDevice, times(2)).isOnline();
-    verify(mockDevice, times(2)).getClientName(1493);
-    verify(mockDevice, times(1)).getName();
-    verify(mockDevice, times(1)).executeShellCommand(any(), any(), anyLong(), any());
-    verifyNoMoreInteractions(mockDevice);
   }
 
   @Test
@@ -182,7 +188,7 @@ public class AndroidLogcatServiceTest {
     when(mockDevice.isOnline()).thenReturn(false);
     myLogcatService.deviceDisconnected(mockDevice);
 
-    myExecuteShellCommandLatch = new CountDownLatch(1);
+    myExecuteShellCommandLatch = new CountDownLatch(2);
     myLogcatListener.reset();
 
     when(mockDevice.isOnline()).thenReturn(true);
@@ -190,12 +196,6 @@ public class AndroidLogcatServiceTest {
 
     myExecuteShellCommandLatch.await();
     myLogcatListener.assertAllReceived();
-
-    verify(mockDevice, times(3)).isOnline();
-    verify(mockDevice, times(4)).getClientName(1493);
-    verify(mockDevice, times(2)).getName();
-    verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
-    verifyNoMoreInteractions(mockDevice);
   }
 
   @Test
@@ -207,7 +207,7 @@ public class AndroidLogcatServiceTest {
     myExecuteShellCommandLatch.await();
     myLogcatListener.assertAllReceived();
 
-    myExecuteShellCommandLatch = new CountDownLatch(1);
+    myExecuteShellCommandLatch = new CountDownLatch(2);
     myLogcatListener.reset();
     when(mockDevice.isOnline()).thenReturn(false);
     myLogcatService.deviceChanged(mockDevice, 0);
@@ -216,13 +216,6 @@ public class AndroidLogcatServiceTest {
 
     myExecuteShellCommandLatch.await();
     myLogcatListener.assertAllReceived();
-
-    verify(mockDevice, times(4)).isOnline();
-    verify(mockDevice, times(4)).getClientName(1493);
-    verify(mockDevice, times(2)).getName();
-    verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
-
-    verifyNoMoreInteractions(mockDevice);
   }
 
   @Test
@@ -238,7 +231,7 @@ public class AndroidLogcatServiceTest {
     myLogcatService.deviceDisconnected(mockDevice);
 
     // Try to reconnect and make sure that it received nothing
-    myExecuteShellCommandLatch = new CountDownLatch(1);
+    myExecuteShellCommandLatch = new CountDownLatch(2);
     myLogcatListener.reset();
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
@@ -248,12 +241,6 @@ public class AndroidLogcatServiceTest {
     myExecuteShellCommandLatch.await();
     otherListener.assertAllReceived();
     myLogcatListener.assertNothingReceived();
-
-    verify(mockDevice, times(4)).isOnline();
-    verify(mockDevice, times(4)).getClientName(1493);
-    verify(mockDevice, times(2)).getName();
-    verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
-    verifyNoMoreInteractions(mockDevice);
   }
 
   /**
@@ -270,18 +257,12 @@ public class AndroidLogcatServiceTest {
     myLogcatListener.assertAllReceived();
 
     myLogcatService.removeListener(mockDevice, myLogcatListener);
-    myExecuteShellCommandLatch = new CountDownLatch(1);
+    myExecuteShellCommandLatch = new CountDownLatch(2);
     myLogcatListener.reset();
     myLogcatService.addListener(mockDevice, myLogcatListener, false);
 
     myExecuteShellCommandLatch.await();
     myLogcatListener.assertAllReceived();
-
-    verify(mockDevice, times(3)).isOnline();
-    verify(mockDevice, times(4)).getClientName(1493);
-    verify(mockDevice, times(1)).getName();
-    verify(mockDevice, times(2)).executeShellCommand(any(), any(), anyLong(), any());
-    verifyNoMoreInteractions(mockDevice);
   }
 
   @Test

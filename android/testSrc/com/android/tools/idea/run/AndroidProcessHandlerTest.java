@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatReceiver;
@@ -33,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -54,8 +58,6 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     super.setUp();
     StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.override(true);
 
-    myExecuteShellCommandLatch = new CountDownLatch(1);
-
     myDevice = EasyMock.createMock(IDevice.class);
     EasyMock.expect(myDevice.getName()).andReturn(DEVICE_NAME).anyTimes();
     EasyMock.expect(myDevice.getVersion()).andReturn(new AndroidVersion(DEVICE_API_LEVEL)).anyTimes();
@@ -63,14 +65,26 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     EasyMock.expect(myDevice.getClient(APPLICATION_ID)).andAnswer(() -> myClient).anyTimes();
     EasyMock.expect(myDevice.getSerialNumber()).andReturn(DEVICE_SERIAL_NUMBER).anyTimes();
     EasyMock.expect(myDevice.isOnline()).andReturn(true).anyTimes();
-    myDevice.executeShellCommand(EasyMock.anyObject(), EasyMock.anyObject(), EasyMock.anyLong(), EasyMock.anyObject());
+
+    myDevice.executeShellCommand(EasyMock.eq("logcat --help"), EasyMock.anyObject(), EasyMock.eq(10L), EasyMock.eq(TimeUnit.SECONDS));
+
+    EasyMock.expectLastCall().andAnswer(() -> {
+      sendTextLine((IShellOutputReceiver)EasyMock.getCurrentArguments()[1], "epoch");
+      myExecuteShellCommandLatch.countDown();
+
+      return null;
+    }).anyTimes();
+
+    myDevice.executeShellCommand(EasyMock.eq("logcat -v long -v epoch"), EasyMock.anyObject(), EasyMock.eq(0L),
+                                 EasyMock.eq(TimeUnit.MILLISECONDS));
+
     EasyMock.expectLastCall().andAnswer(() -> {
       AndroidLogcatReceiver receiver = (AndroidLogcatReceiver)EasyMock.getCurrentArguments()[1];
-      sendTextLine(receiver, "[ 08-18 16:39:11.439 1493:1595 W/DummyFirst     ]");
+      sendTextLine(receiver, "[ 1503099551.439 1493:1595 W/DummyFirst     ]");
       sendTextLine(receiver, "First Line1");
       sendTextLine(receiver, "First Line2");
       sendTextLine(receiver, "First Line3");
-      sendTextLine(receiver, "[ 09-20 16:39:11.439 1493:1595 W/DummySecond     ]");
+      sendTextLine(receiver, "[ 1505950751.439 1493:1595 W/DummySecond     ]");
       sendTextLine(receiver, "Second Line1");
       receiver.cancel();
       myExecuteShellCommandLatch.countDown();
@@ -107,6 +121,8 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
 
   public void testLogcatMessagesAreForwardedAsProcessEvents() throws Exception {
     // Prepare
+    myExecuteShellCommandLatch = new CountDownLatch(2);
+
     AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);
     List<ProcessEvent> events = new ArrayList<>();
     processHandler.addProcessListener(new ProcessAdapter() {
@@ -134,6 +150,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
 
   public void testLogcatMessagesAreNotForwardedIfFeatureDisabled() throws Exception {
     // Prepare
+    myExecuteShellCommandLatch = new CountDownLatch(2);
     StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.override(false);
     AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);
     List<ProcessEvent> events = new ArrayList<>();
@@ -157,6 +174,8 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
 
   public void testLogcatMessagesAreNotForwardedIfSettingDisabled() throws Exception {
     // Prepare
+    myExecuteShellCommandLatch = new CountDownLatch(2);
+
     LogcatOutputSettings.getInstance().setRunOutputEnabled(false);
     LogcatOutputSettings.getInstance().setDebugOutputEnabled(false);
     AndroidProcessHandler processHandler = new AndroidProcessHandler(APPLICATION_ID, false);

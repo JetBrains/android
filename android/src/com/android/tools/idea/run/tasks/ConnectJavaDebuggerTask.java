@@ -22,7 +22,9 @@ import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
+import com.android.tools.idea.logcat.AndroidLogcatPreferences;
 import com.android.tools.idea.logcat.AndroidLogcatService;
+import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.android.tools.idea.run.*;
@@ -45,6 +47,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.ZoneId;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -224,28 +227,9 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     }
 
     final IDevice device = client.getDevice();
-    final String pkgName = client.getClientData().getClientDescription();
+    LogcatListener logListener = new MyLogcatListener(client, debugProcessHandler);
 
     Logger.getInstance(ConnectJavaDebuggerTask.class).info(String.format("captureLogcatOutput(\"%s\")", device.getName()));
-
-    final ApplicationLogListener logListener = new ApplicationLogListener(pkgName, client.getClientData().getPid()) {
-      private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
-      private final AtomicBoolean myIsFirstMessage = new AtomicBoolean(true);
-
-      @NotNull
-      @Override
-      public String formatLogLine(@NotNull LogCatMessage line) {
-        return AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
-      }
-
-      @Override
-      public void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
-        if (myIsFirstMessage.compareAndSet(true, false)) {
-          debugProcessHandler.notifyTextAvailable(LogcatOutputConfigurableProvider.BANNER_MESSAGE + "\n", ProcessOutputTypes.STDOUT);
-        }
-        debugProcessHandler.notifyTextAvailable(message, key);
-      }
-    };
     AndroidLogcatService.getInstance().addListener(device, logListener, true);
 
     // Remove listener when process is terminated
@@ -257,5 +241,37 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
         AndroidLogcatService.getInstance().removeListener(device, logListener);
       }
     });
+  }
+
+  private static final class MyLogcatListener extends ApplicationLogListener {
+    private static final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+
+    private final AndroidLogcatFormatter myFormatter;
+    private final AtomicBoolean myIsFirstMessage;
+    private final ProcessHandler myDebugProcessHandler;
+
+    private MyLogcatListener(@NotNull Client client, @NotNull ProcessHandler debugProcessHandler) {
+      // noinspection ConstantConditions
+      super(client.getClientData().getClientDescription(), client.getClientData().getPid());
+
+      myFormatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), new AndroidLogcatPreferences());
+      myIsFirstMessage = new AtomicBoolean(true);
+      myDebugProcessHandler = debugProcessHandler;
+    }
+
+    @NotNull
+    @Override
+    protected String formatLogLine(@NotNull LogCatMessage line) {
+      return myFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
+    }
+
+    @Override
+    protected void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
+      if (myIsFirstMessage.compareAndSet(true, false)) {
+        myDebugProcessHandler.notifyTextAvailable(LogcatOutputConfigurableProvider.BANNER_MESSAGE + '\n', ProcessOutputTypes.STDOUT);
+      }
+
+      myDebugProcessHandler.notifyTextAvailable(message, key);
+    }
   }
 }

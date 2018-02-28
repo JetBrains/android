@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellEnabledDevice;
-import com.android.ddmlib.Log.LogLevel;
-import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.*;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.run.LoggingReceiver;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -38,8 +34,8 @@ import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
+import java.io.IOException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -85,16 +81,15 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     }
   }
 
-  private final Object myLock = new Object();
+  private final Object myLock;
+
+  // TODO Change these maps into a set of LogcatDevices that each maintain their receivers, buffers, executors, etc
 
   @GuardedBy("myLock")
-  private final Map<IDevice, List<LogcatListener>> myListeners = new HashMap<>();
+  private final Map<IDevice, AndroidLogcatReceiver> myLogReceivers;
 
   @GuardedBy("myLock")
-  private final Map<IDevice, LogcatBuffer> myLogBuffers = new HashMap<>();
-
-  @GuardedBy("myLock")
-  private final Map<IDevice, AndroidLogcatReceiver> myLogReceivers = new HashMap<>();
+  private final Map<IDevice, LogcatBuffer> myLogBuffers;
 
   /**
    * This is a list of commands to execute per device. We use a newSingleThreadExecutor
@@ -102,7 +97,10 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
    * type of the variable.
    */
   @GuardedBy("myLock")
-  private final Map<IDevice, ExecutorService> myExecutors = new HashMap<>();
+  private final Map<IDevice, ExecutorService> myExecutors;
+
+  @GuardedBy("myLock")
+  private final Map<IDevice, List<LogcatListener>> myListeners;
 
   @NotNull
   public static AndroidLogcatService getInstance() {
@@ -111,6 +109,12 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   @TestOnly
   AndroidLogcatService() {
+    myLock = new Object();
+    myLogReceivers = new HashMap<>();
+    myLogBuffers = new HashMap<>();
+    myExecutors = new HashMap<>();
+    myListeners = new HashMap<>();
+
     AndroidDebugBridge.addDeviceChangeListener(this);
   }
 
@@ -119,45 +123,73 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       if (myLogReceivers.containsKey(device)) {
         return;
       }
+
       connect(device);
-      final AndroidLogcatReceiver receiver = createReceiver(device);
+
+      AndroidLogcatReceiver receiver = newAndroidLogcatReceiver(device);
       myLogReceivers.put(device, receiver);
       myLogBuffers.put(device, new LogcatBuffer());
-      myExecutors.get(device).submit(() -> executeLogcatWithLongOutputFormat(device, receiver));
-    }
-  }
-
-  private static void executeLogcatWithLongOutputFormat(@NotNull IShellEnabledDevice device, @NotNull AndroidLogcatReceiver receiver) {
-    try {
-      execute(device, "logcat -v long", receiver, Duration.ZERO);
-    }
-    catch (Exception exception) {
-      String message = "Caught an exception when capturing logcat output from the device " + device.getName() + ". Receiving output from " +
-                       "the device will be stopped and the listeners will be notified with the exception message as the last message.";
-
-      getLog().info(message, exception);
-      receiver.notifyLine(new LogCatHeader(LogLevel.ERROR, 0, 0, "?", "Internal", Instant.MIN), exception.getMessage());
+      myExecutors.get(device).submit(() -> executeLogcat(device, receiver));
     }
   }
 
   @NotNull
-  private AndroidLogcatReceiver createReceiver(@NotNull final IDevice device) {
-    final LogcatListener logcatListener = new LogcatListener() {
+  private AndroidLogcatReceiver newAndroidLogcatReceiver(@NotNull IDevice device) {
+    return new AndroidLogcatReceiver(device, new LogcatListener() {
       @Override
       public void onLogLineReceived(@NotNull LogCatMessage line) {
         synchronized (myLock) {
-          if (myListeners.containsKey(device)) {
-            for (LogcatListener listener : myListeners.get(device)) {
-              listener.onLogLineReceived(line);
-            }
+          Iterable<LogcatListener> listeners = myListeners.get(device);
+
+          if (listeners != null) {
+            listeners.forEach(listener -> listener.onLogLineReceived(line));
           }
-          if (myLogBuffers.containsKey(device)) {
-            myLogBuffers.get(device).addMessage(line);
+
+          LogcatBuffer buffer = myLogBuffers.get(device);
+
+          if (buffer != null) {
+            buffer.addMessage(line);
           }
         }
       }
-    };
-    return new AndroidLogcatReceiver(device, logcatListener);
+    });
+  }
+
+  private static void executeLogcat(@NotNull IShellEnabledDevice device, @NotNull AndroidOutputReceiver receiver) {
+    try {
+      execute(device, supportsEpochFormatModifier(device) ? "logcat -v long -v epoch" : "logcat -v long", receiver, Duration.ZERO);
+    }
+    catch (Throwable throwable) {
+      getLog().warn(throwable);
+    }
+  }
+
+  private static boolean supportsEpochFormatModifier(@NotNull IShellEnabledDevice device)
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    LogcatHelpReceiver receiver = new LogcatHelpReceiver();
+    device.executeShellCommand("logcat --help", receiver, 10, TimeUnit.SECONDS);
+
+    return receiver.mySupportsEpochFormatModifier;
+  }
+
+  private static final class LogcatHelpReceiver extends MultiLineReceiver {
+    private boolean mySupportsEpochFormatModifier;
+    private boolean myCancelled;
+
+    @Override
+    public void processNewLines(@NotNull String[] lines) {
+      if (mySupportsEpochFormatModifier) {
+        myCancelled = true;
+        return;
+      }
+
+      mySupportsEpochFormatModifier = Arrays.stream(lines).anyMatch(line -> line.contains("epoch"));
+    }
+
+    @Override
+    public boolean isCancelled() {
+      return myCancelled;
+    }
   }
 
   private void connect(@NotNull IDevice device) {
@@ -343,7 +375,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private static void execute(@NotNull IShellEnabledDevice device,
                               @NotNull String command,
                               @NotNull AndroidOutputReceiver receiver,
-                              @NotNull Duration duration) throws Exception {
+                              @NotNull Duration duration)
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     device.executeShellCommand(command, receiver, duration.toMillis(), TimeUnit.MILLISECONDS);
 
     if (receiver.isCancelled()) {

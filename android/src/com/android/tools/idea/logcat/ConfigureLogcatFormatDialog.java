@@ -17,33 +17,25 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
-import com.android.ddmlib.logcat.LogCatTimestamp;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-
+import java.time.Instant;
 
 /**
  * A dialog allowing users to customize a final-pass format to be used by
  * {@link AndroidLogcatFormatter}.
  */
 public class ConfigureLogcatFormatDialog extends DialogWrapper {
-
-  private static final String SAMPLE_OUTPUT;
-
-  static {
-    LogCatHeader sampleHeader =
-      new LogCatHeader(LogLevel.INFO, 123, 456, "com.android.sample", "SampleTag", LogCatTimestamp.fromString("01-23 12:34:56.789"));
-    SAMPLE_OUTPUT = AndroidLogcatFormatter.formatMessageFull(sampleHeader, "This is a sample message");
-  }
-
-
   private final AndroidLogcatPreferences myPreferences;
+  private final AndroidLogcatFormatter myFormatter;
+  private final String mySampleOutput;
 
   private JPanel topPanel;
   private JCheckBox myShowTimeCheckBox;
@@ -53,11 +45,18 @@ public class ConfigureLogcatFormatDialog extends DialogWrapper {
   private JLabel myDemoLabel;
   private String myFormatString;
 
-  public ConfigureLogcatFormatDialog(Project project) {
+  ConfigureLogcatFormatDialog(@NotNull Project project, @NotNull AndroidLogcatFormatter formatter) {
     super(project, false, IdeModalityType.PROJECT);
     init();
     setTitle(AndroidBundle.message("android.configure.logcat.header.title"));
+
     myPreferences = AndroidLogcatPreferences.getInstance(project);
+    myFormatter = formatter;
+
+    Instant timestamp = Instant.ofEpochMilli(1_517_955_388_555L);
+    LogCatHeader header = new LogCatHeader(LogLevel.INFO, 123, 456, "com.android.sample", "SampleTag", timestamp);
+
+    mySampleOutput = myFormatter.formatMessageFull(header, "This is a sample message");
 
     myFormatString = myPreferences.LOGCAT_FORMAT_STRING;
     myShowTimeCheckBox.setSelected(myFormatString.isEmpty() || myFormatString.contains("%1$s"));
@@ -99,7 +98,7 @@ public class ConfigureLogcatFormatDialog extends DialogWrapper {
   }
 
   private void updateDemoLabel() {
-    myDemoLabel.setText(AndroidLogcatFormatter.formatMessage(myFormatString, SAMPLE_OUTPUT));
+    myDemoLabel.setText(myFormatter.formatMessage(myFormatString, mySampleOutput));
   }
 
   @Nullable
