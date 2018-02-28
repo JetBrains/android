@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.intellij.ide.actions.WhatsNewAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -30,7 +29,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
 
   @Override
   public void actionPerformed(AnActionEvent event) {
-    if (!WhatsNewAssistantBundleCreator.isAssistantEnabled() && IdeInfo.getInstance().isAndroidStudio()) {
+    if (!WhatsNewAssistantBundleCreator.shouldShowReleaseNotes()) {
       action.actionPerformed(event);
       return;
     }
