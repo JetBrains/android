@@ -16,13 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers.assistant;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.HorizontalSpinner;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -182,7 +181,7 @@ public class RecyclerViewAssistant extends JPanel {
   private final HorizontalSpinner<Template> mySpinner;
   @Nullable private PsiFile myCreatedFile;
 
-  public RecyclerViewAssistant(@NotNull ComponentAssistant.Context context) {
+  public RecyclerViewAssistant(@NotNull Context context) {
     super(new BorderLayout());
 
     myComponent = context.getComponent();
@@ -305,7 +304,7 @@ public class RecyclerViewAssistant extends JPanel {
   }
 
   @NotNull
-  public static JComponent createComponent(@NotNull ComponentAssistant.Context context) {
+  public static JComponent createComponent(@NotNull Context context) {
     return new RecyclerViewAssistant(context);
   }
 

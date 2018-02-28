@@ -16,22 +16,12 @@
 package com.android.tools.idea.uibuilder.property.assistant
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.DesignSurfaceListener
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.intellij.openapi.project.Project
-import java.awt.BorderLayout
-import java.awt.Dimension
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /**
- * Provides the assistant panel for the properties. This assistant allows [com.android.tools.idea.uibuilder.api.ViewHandler]s
- * to provide custom shortcuts for configuring some component aspects.
+ * Interface that allows [com.android.tools.idea.uibuilder.api.ViewHandler]s providing the assistant component.
  */
-class ComponentAssistant(private val myProject: Project) : JPanel(BorderLayout()), DesignSurfaceListener {
-  private var currentComponent: JComponent? = null
-
+interface ComponentAssistantFactory {
   /**
    * Context for an assistant panel instance.
    */
@@ -45,38 +35,5 @@ class ComponentAssistant(private val myProject: Project) : JPanel(BorderLayout()
     var onClose: (cancelled: Boolean) -> Unit = {}
   }
 
-  /**
-   * Interface that allows [com.android.tools.idea.uibuilder.api.ViewHandler]s providing the assistant component.
-   */
-  interface PanelFactory {
-    fun createComponent(context: Context): JComponent
-  }
-
-  private fun closeAssistant() {
-    currentComponent?.isVisible = false
-    removeAll()
-    currentComponent = null
-    isVisible = false
-  }
-
-  override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
-    closeAssistant()
-
-    // The assistant is not available if the flag is disabled or if more than one component is selected
-    if (newSelection.size != 1) {
-      return
-    }
-
-    val panel = ViewHandlerManager.get(myProject)
-      .getHandler(newSelection[0].tagName)?.getComponentAssistant(surface, newSelection[0])
-    val component = panel?.createComponent(Context(newSelection[0], this::closeAssistant))
-    currentComponent = component
-    if (component == null) {
-      return
-    }
-    add(component, BorderLayout.CENTER)
-    isVisible = component.isVisible
-  }
-
-  override fun getMinimumSize(): Dimension = currentComponent?.minimumSize ?: super.getMinimumSize()
+  fun createComponent(context: Context): JComponent
 }

@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -33,7 +32,6 @@ import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -63,15 +61,6 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
 
   public static NlPropertiesPanel create(@NotNull Robot robot) {
     return waitUntilFound(robot, null, Matchers.byType(NlPropertiesPanel.class));
-  }
-
-  public boolean hasComponentAssistantPanel() {
-    try {
-      return robot().finder().find(Matchers.byType(ComponentAssistant.class)).isVisible();
-    }
-    catch (ComponentLookupException ignored) {
-    }
-    return false;
   }
 
   @NotNull

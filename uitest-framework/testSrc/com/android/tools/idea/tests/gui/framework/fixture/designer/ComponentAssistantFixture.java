@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import org.fest.swing.core.Robot;
 
 import javax.swing.*;

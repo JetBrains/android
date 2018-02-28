@@ -18,17 +18,17 @@ package com.android.tools.idea.common.scene.target
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.uibuilder.graphics.NlIcon
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory
 import icons.StudioIcons
 import java.awt.Point
 import javax.swing.JComponent
 
 /**
  * An [ActionTarget] that displays a popup displaying a [JComponent]
- * provided by [ComponentAssistant.PanelFactory].
+ * provided by [ComponentAssistantFactory].
  */
 class ComponentAssistantActionTarget(
-  private val panelFactory: ComponentAssistant.PanelFactory
+  private val panelFactory: ComponentAssistantFactory
 ) : ActionTarget(null, NlIcon(StudioIcons.Menu.MENU, StudioIcons.Menu.MENU), null) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
@@ -38,7 +38,7 @@ class ComponentAssistantActionTarget(
     val designSurface = component.scene.designSurface
     val context = SceneContext.get(designSurface.currentSceneView)
     val position = Point(context.getSwingXDip(centerX), context.getSwingYDip(myTop))
-    val assistantContext = ComponentAssistant.Context(component.nlComponent, popup::close)
+    val assistantContext = ComponentAssistantFactory.Context(component.nlComponent, popup::close)
     val component = panelFactory.createComponent(assistantContext).apply {
       name = "Component Assistant" // For UI tests
     }

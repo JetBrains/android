@@ -20,8 +20,8 @@ import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.google.common.collect.Lists;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -158,7 +158,7 @@ public class ViewHandler extends StructurePaneComponentHandler {
   }
 
   @Nullable
-  public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  public ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
     return null;
   }
 }
