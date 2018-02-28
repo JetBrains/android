@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -103,7 +104,12 @@ public class GradleTaskFinder {
       }
     }
 
+    Set<Module> allModules = new HashSet<>();
     for (Module module : modules) {
+      allModules.addAll(DynamicAppUtils.getModulesToBuild(module));
+    }
+
+    for (Module module : allModules) {
       if (BUILD_SRC_FOLDER_NAME.equals(module.getName())) {
         // "buildSrc" is a special case handled automatically by Gradle.
         continue;

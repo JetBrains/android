@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -39,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
@@ -54,10 +58,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class GradleTaskFinderTest extends IdeaTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
+  @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private IdeVariant myIdeVariant;
   @Mock private IdeBaseArtifact myArtifact;
   @Mock private TestCompileType myTestCompileType;
   @Mock private GradleRootPathFinder myRootPathFinder;
+  @Mock private AndroidModuleModel myAndroidModel2;
+  @Mock private IdeAndroidProject myIdeAndroidProject2;
 
   private Module[] myModules;
   private GradleTaskFinder myTaskFinder;
@@ -192,21 +199,46 @@ public class GradleTaskFinderTest extends IdeaTestCase {
                                       ":testFindTasksToExecuteForCompilingAndroidProject:afterSyncTask2");
   }
 
-  private void setUpModuleAsAndroidModule() {
-    setUpModuleAsGradleModule();
+  public void testFindTasksToExecuteForCompilingDynamicApp() {
+    setUpModuleAsAndroidModule();
 
-    when(myAndroidModel.getSelectedVariant()).thenReturn(myIdeVariant);
+    // Create and setup dynamic feature module
+    Module featureModule = createModule("feature1");
+    setUpModuleAsAndroidModule(featureModule, myAndroidModel2, myIdeAndroidProject2);
+    when(myIdeAndroidProject.getDynamicFeatures()).thenReturn(ImmutableList.of(":feature1"));
+    when(myIdeAndroidProject2.getProjectType()).thenReturn(PROJECT_TYPE_DYNAMIC_FEATURE);
+    String projectRootPath = getBaseDirPath(getProject()).getPath();
+    when(myRootPathFinder.getProjectRootPath(featureModule)).thenReturn(projectRootPath);
+
+    File projectPath = getBaseDirPath(getProject());
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, ASSEMBLE, myTestCompileType);
+    List<String> tasks = tasksPerProject.get(projectPath.toPath());
+
+    assertThat(tasks).containsExactly(":testFindTasksToExecuteForCompilingDynamicApp:assembleTask1",
+                                      ":testFindTasksToExecuteForCompilingDynamicApp:assembleTask2",
+                                      ":feature1:assembleTask1",
+                                      ":feature1:assembleTask2");
+  }
+
+  private void setUpModuleAsAndroidModule() {
+    setUpModuleAsAndroidModule(getModule(), myAndroidModel, myIdeAndroidProject);
+  }
+
+  private void setUpModuleAsAndroidModule(Module module, AndroidModuleModel androidModel, IdeAndroidProject ideAndroidProject) {
+    setUpModuleAsGradleModule(module);
+
+    when(androidModel.getSelectedVariant()).thenReturn(myIdeVariant);
     when(myTestCompileType.getArtifacts(myIdeVariant)).thenReturn(Collections.singleton(myArtifact));
+    when(androidModel.getAndroidProject()).thenReturn(ideAndroidProject);
 
     AndroidModelFeatures androidModelFeatures = mock(AndroidModelFeatures.class);
     when(androidModelFeatures.isTestedTargetVariantsSupported()).thenReturn(false);
-    when(myAndroidModel.getFeatures()).thenReturn(androidModelFeatures);
+    when(androidModel.getFeatures()).thenReturn(androidModelFeatures);
 
     when(myArtifact.getAssembleTaskName()).thenReturn("assembleTask1");
     when(myArtifact.getCompileTaskName()).thenReturn("compileTask1");
     when(myArtifact.getIdeSetupTaskNames()).thenReturn(Sets.newHashSet("ideSetupTask1", "ideSetupTask2"));
 
-    Module module = getModule();
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
     JpsAndroidModuleProperties state = androidFacet.getConfiguration().getState();
     assertNotNull(state);
@@ -214,7 +246,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2");
     state.COMPILE_JAVA_TASK_NAME = "compileTask2";
 
-    androidFacet.getConfiguration().setModel(myAndroidModel);
+    androidFacet.getConfiguration().setModel(androidModel);
   }
 
   public void testFindTasksToExecuteForAssemblingJavaModule() {
@@ -257,7 +289,14 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
   private void setUpModuleAsGradleModule() {
     Module module = getModule();
+    setUpModuleAsGradleModule(module);
+  }
+
+  private static void setUpModuleAsGradleModule(Module module) {
     GradleFacet gradleFacet = createAndAddGradleFacet(module);
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
+
+    GradleModuleModel model = new GradleModuleModel(module.getName(), Collections.emptyList(), GRADLE_PATH_SEPARATOR + module.getName(), null, null);
+    gradleFacet.setGradleModuleModel(model);
   }
 }
