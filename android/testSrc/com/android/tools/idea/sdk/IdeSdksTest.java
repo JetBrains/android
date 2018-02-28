@@ -20,7 +20,7 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -73,7 +73,7 @@ public class IdeSdksTest extends IdeaTestCase {
     myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo,
                             ApplicationManager.getApplication().getMessageBus());
     IdeSdks.removeJdksOn(getTestRootDisposable());
-    AndroidGradleTestCase.allowAccessToSdk(getTestRootDisposable());
+    Sdks.allowAccessToSdk(getTestRootDisposable());
   }
 
   @Override
