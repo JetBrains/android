@@ -419,6 +419,10 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return myTrackAllocationCount;
   }
 
+  public void resetTrackAllocationCount() {
+    myTrackAllocationCount = 0;
+  }
+
   @NotNull
   public Range getLastRequestedDataRange() {
     return myLastRequestedDataRange;

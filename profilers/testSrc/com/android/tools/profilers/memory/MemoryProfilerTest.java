@@ -22,10 +22,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.network.FakeNetworkService;
@@ -95,6 +92,25 @@ public class MemoryProfilerTest {
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
     Truth.assertThat(dataRequestRange.getMin()).isWithin(0).of(0);
     Truth.assertThat(dataRequestRange.getMax()).isWithin(0).of(0);
+  }
+
+  @Test
+  public void liveAllocationTrackingDidNotStartIfAgentIsNotAttached() {
+    myIdeProfilerServices.enableJvmtiAgent(true);
+    myIdeProfilerServices.enableLiveAllocationTracking(true);
+    setupODeviceAndProcess();
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
+
+    myMemoryService.resetTrackAllocationCount();
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myStudioProfiler.changed(ProfilerAspect.AGENT);
+    Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
+    Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
   }
 
   @Test
