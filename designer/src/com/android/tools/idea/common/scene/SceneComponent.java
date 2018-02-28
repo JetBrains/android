@@ -831,9 +831,6 @@ public class SceneComponent {
     myTargetProvider = targetProvider;
 
     updateTargets();
-    for (SceneComponent child : getChildren()) {
-      child.updateTargets();
-    }
   }
 
   /**
