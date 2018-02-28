@@ -30,7 +30,7 @@ public class WhatsNewAssistantSidePanelAction extends OpenAssistSidePanelAction 
 
   @Override
   public void actionPerformed(AnActionEvent event) {
-    if (!WhatsNewAssistantBundleCreator.isAssistantEnabled()) {
+    if (!WhatsNewAssistantBundleCreator.isAssistantEnabled() && IdeInfo.getInstance().isAndroidStudio()) {
       action.actionPerformed(event);
       return;
     }
