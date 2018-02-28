@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMak
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement;
@@ -92,6 +93,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslEle
 import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE_BLOCK_NAME;
@@ -835,6 +837,9 @@ public class GroovyDslParser implements GradleDslParser {
           }
           else if (NDK_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new NdkOptionsDslElement(resultElement);
+          }
+          else if (VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new VectorDrawablesOptionsDslElement(resultElement);
           }
           else {
             return null;

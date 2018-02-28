@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.api.android;
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.ExternalNativeBuildOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.NdkOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.productFlavors.VectorDrawablesOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface ProductFlavorModel extends FlavorTypeModel {
   @NotNull
@@ -49,6 +49,18 @@ public interface ProductFlavorModel extends FlavorTypeModel {
   ResolvedPropertyModel resConfigs();
 
   @NotNull
+  ResolvedPropertyModel renderscriptTargetApi();
+
+  @NotNull
+  ResolvedPropertyModel renderscriptSupportModeEnabled();
+
+  @NotNull
+  ResolvedPropertyModel renderscriptSupportModelBlasEnabled();
+
+  @NotNull
+  ResolvedPropertyModel renderscriptNdkModeEnabled();
+
+  @NotNull
   ResolvedPropertyModel targetSdkVersion();
 
   @NotNull
@@ -71,4 +83,10 @@ public interface ProductFlavorModel extends FlavorTypeModel {
 
   @NotNull
   ResolvedPropertyModel versionName();
+
+  @NotNull
+  VectorDrawablesOptionsModel vectorDrawables();
+
+  @NotNull
+  ResolvedPropertyModel wearAppUnbundled();
 }
