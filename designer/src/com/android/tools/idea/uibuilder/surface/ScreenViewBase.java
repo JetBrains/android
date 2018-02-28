@@ -87,6 +87,7 @@ abstract class ScreenViewBase extends SceneView {
     return super.getCursor(x, y);
   }
 
+  @NotNull
   @Override
   public LayoutlibSceneManager getSceneManager() {
     return (LayoutlibSceneManager)super.getSceneManager();

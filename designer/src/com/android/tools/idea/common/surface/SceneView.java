@@ -40,9 +40,9 @@ import java.awt.geom.Rectangle2D;
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
 public abstract class SceneView {
-  private final DesignSurface mySurface;
-  private final SceneManager myManager;
-  private ImmutableList<Layer> myLayers;
+  @NotNull private final DesignSurface mySurface;
+  @NotNull private final SceneManager myManager;
+  private ImmutableList<Layer> myLayersCache;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
@@ -59,10 +59,10 @@ public abstract class SceneView {
    */
   @NotNull
   public final ImmutableList<Layer> getLayers() {
-    if (myLayers == null) {
-      myLayers = createLayers();
+    if (myLayersCache == null) {
+      myLayersCache = createLayers();
     }
-    return myLayers;
+    return myLayersCache;
   }
 
   @NotNull
@@ -206,6 +206,7 @@ public abstract class SceneView {
     return getScene().getMouseCursor();
   }
 
+  @NotNull
   public SceneManager getSceneManager() {
     return myManager;
   }
@@ -213,7 +214,7 @@ public abstract class SceneView {
   /**
    * Sets the tool tip to be shown
    */
-  public void setToolTip(String toolTip) {
+  public void setToolTip(@Nullable String toolTip) {
     getSurface().setDesignToolTip(toolTip);
   }
 
