@@ -301,6 +301,9 @@ public class NavDesignSurface extends DesignSurface {
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
+    if (myCurrentNavigation == component) {
+      return;
+    }
     String tagName = component.getTagName();
     String id;
     if (getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
