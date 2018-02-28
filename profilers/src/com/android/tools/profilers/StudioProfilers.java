@@ -47,6 +47,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.android.tools.profiler.proto.CpuProfiler.*;
+
 /**
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
  * global across all the profilers, device management, process management, current state of the tool etc.
@@ -374,6 +376,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       TimeResponse timeResponse = myClient.getProfilerClient()
         .getCurrentTime(TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
       myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
+      if (startupCpuProfilingStarted()) {
+        setStage(new CpuProfilerStage(this));
+      }
     }
     else {
       // The session is finished, reset the timeline to include the entire data range.
@@ -391,7 +396,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private void profilingSessionChanged() {
     Common.Session newSession = mySessionsManager.getProfilingSession();
-
     // Stops the previous profiling session if it is active
     if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
       assert isSessionAlive(myProfilingSession);
@@ -408,6 +412,19 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
       }
     }
+  }
+
+  /**
+   * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
+   */
+  private boolean startupCpuProfilingStarted() {
+    if (!getIdeServices().getFeatureConfig().isStartupCpuProfilingEnabled()) {
+      return false;
+    }
+    long timestamp = TimeUnit.MICROSECONDS.toNanos((long)getTimeline().getDataRange().getMax());
+    ProfilingStateResponse response = getClient().getCpuClient()
+      .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).setTimestamp(timestamp).build());
+    return response.getBeingProfiled() && response.getIsStartupProfiling();
   }
 
   @NotNull

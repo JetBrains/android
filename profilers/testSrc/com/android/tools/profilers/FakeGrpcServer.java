@@ -36,16 +36,20 @@ public class FakeGrpcServer extends FakeGrpcChannel {
    */
   private static Map<Long, Integer> ourProfiledProcesses = new HashMap<>(7);
 
-  public FakeGrpcServer(String name, BindableService service) {
+  public FakeGrpcServer(String name, BindableService service, BindableService cpuService) {
     super(name, service,
           new EventService(),
           new MemoryService(),
           new NetworkService(),
-          new CpuService(),
+          cpuService,
           new EnergyService());
     // TODO the current static map keeps around values from previous tests. We should refactor this properly so this doesn't have to be
     // a static.
     ourProfiledProcesses.clear();
+  }
+
+  public FakeGrpcServer(String name, BindableService service) {
+    this(name, service, new CpuService());
   }
 
   /**
@@ -146,7 +150,18 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     }
   }
 
-  private static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
+  public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
+    private boolean myIsBeingProfiled = false;
+    private boolean myIsStartupProfiling = false;
+
+    public void setStartupProfiling(boolean isStartupProfiling) {
+      myIsStartupProfiling = isStartupProfiling;
+      if (isStartupProfiling) {
+        // if startup profiling is true, it means that an app is being profiled
+        myIsBeingProfiled = true;
+      }
+    }
+
     @Override
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {
       response.onNext(CpuStartResponse.getDefaultInstance());
@@ -182,7 +197,8 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     @Override
     public void checkAppProfilingState(ProfilingStateRequest request,
                                        StreamObserver<ProfilingStateResponse> response) {
-      response.onNext(ProfilingStateResponse.getDefaultInstance());
+      response.onNext(
+        ProfilingStateResponse.newBuilder().setBeingProfiled(myIsBeingProfiled).setIsStartupProfiling(myIsStartupProfiling).build());
       response.onCompleted();
     }
   }
