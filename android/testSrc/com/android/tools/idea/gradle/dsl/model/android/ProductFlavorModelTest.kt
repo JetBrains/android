@@ -73,6 +73,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                       multiDexKeepFile file('multidex.keep')
                       multiDexKeepProguard file('multidex.proguard')
                       proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
+                      renderscriptTargetApi 18
+                      renderscriptSupportModeEnabled true
+                      renderscriptSupportModeBlasEnabled false
+                      renderscriptNdkModeEnabled true
                       resConfigs "abcd", "efgh"
                       resValue "abcd", "efgh", "ijkl"
                       targetSdkVersion 22
@@ -82,14 +86,19 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                       testInstrumentationRunner "abcd"
                       testInstrumentationRunnerArguments size:"medium", foo:"bar"
                       useJack true
+                      vectorDrawables {
+                        useSupportLibrary true
+                      }
                       versionCode 1
                       versionName "1.0"
+                      wearAppUnbundled true
                     }
                   }""".trimIndent()
 
     writeToBuildFile(text)
 
-    val android = gradleBuildModel.android()
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
     assertNotNull(android)
 
     val defaultConfig = android!!.defaultConfig()
@@ -105,6 +114,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("multiDexKeepFile", "multidex.keep", defaultConfig.multiDexKeepFile())
     assertEquals("multiDexKeepProguard", "multidex.proguard", defaultConfig.multiDexKeepProguard())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
+    assertEquals("renderscriptTargetApi", 18, defaultConfig.renderscriptTargetApi())
+    assertEquals("renderscriptSupportModeEnabled", true, defaultConfig.renderscriptSupportModeEnabled())
+    assertEquals("renderscriptSupportModeBlasEnabled", false, defaultConfig.renderscriptSupportModelBlasEnabled())
+    assertEquals("renderscriptNdkModeEnabled", true, defaultConfig.renderscriptNdkModeEnabled())
     assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
     assertEquals("targetSdkVersion", 22, defaultConfig.targetSdkVersion())
@@ -115,8 +128,11 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
         defaultConfig.testInstrumentationRunnerArguments())
     assertEquals("useJack", true, defaultConfig.useJack())
+    val vectorDrawables = defaultConfig.vectorDrawables()
+    assertEquals("useSupportLibrary", true, vectorDrawables.useSupportLibrary())
     assertEquals("versionCode", 1, defaultConfig.versionCode())
     assertEquals("versionName", "1.0", defaultConfig.versionName())
+    assertEquals("wearAppUnbundled", true, defaultConfig.wearAppUnbundled())
   }
 
   fun testDefaultConfigBlockWithAssignmentStatements() {
@@ -128,14 +144,23 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                     maxSdkVersion = 23
                     multiDexEnabled = true
                     proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+                    renderscriptTargetApi = 18
+                    renderscriptSupportModeEnabled = true
+                    renderscriptSupportModeBlasEnabled = false
+                    renderscriptNdkModeEnabled = true
                     testApplicationId = "com.example.myapplication.test"
                     testFunctionalTest = true
                     testHandleProfiling = true
                     testInstrumentationRunner = "abcd"
                     testInstrumentationRunnerArguments = [size:"medium", foo:"bar"]
                     useJack = true
+                    vectorDrawables {
+                        generatedDensities = ['yes', 'no', 'maybe']
+                        useSupportLibrary = true
+                    }
                     versionCode = 1
                     versionName = "1.0"
+                    wearAppUnbundled = true
                   }""".trimIndent()
 
     writeToBuildFile(text)
@@ -153,6 +178,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion())
     assertEquals("multiDexEnabled", true, defaultConfig.multiDexEnabled())
     assertEquals("proguardFiles", listOf("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles())
+    assertEquals("renderscriptTargetApi", 18, defaultConfig.renderscriptTargetApi())
+    assertEquals("renderscriptSupportModeEnabled", true, defaultConfig.renderscriptSupportModeEnabled())
+    assertEquals("renderscriptSupportModeBlasEnabled", false, defaultConfig.renderscriptSupportModelBlasEnabled())
+    assertEquals("renderscriptNdkModeEnabled", true, defaultConfig.renderscriptNdkModeEnabled())
     assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", true, defaultConfig.testHandleProfiling())
@@ -160,8 +189,12 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
         defaultConfig.testInstrumentationRunnerArguments())
     assertEquals("useJack", true, defaultConfig.useJack())
+    val vectorDrawables = defaultConfig.vectorDrawables()
+    verifyListProperty(vectorDrawables.generatedDensities(), listOf("yes", "no", "maybe"), true)
+    assertEquals("useSupportLibrary", true, vectorDrawables.useSupportLibrary())
     assertEquals("versionCode", 1, defaultConfig.versionCode())
     assertEquals("versionName", "1.0", defaultConfig.versionName())
+    assertEquals("wearAppUnbundled", true, defaultConfig.wearAppUnbundled())
   }
 
   fun testDefaultConfigApplicationStatements() {

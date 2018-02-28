@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
@@ -52,6 +53,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls private static final String MULTI_DEX_KEEP_PROGUARD = "multiDexKeepProguard";
   @NonNls private static final String PROGUARD_FILES = "proguardFiles";
   @NonNls private static final String RES_VALUE = "resValue";
+  @NonNls private static final String SIGNING_CONFIG = "signingConfig";
   @NonNls private static final String USE_JACK = "useJack";
   @NonNls private static final String VERSION_NAME_SUFFIX = "versionNameSuffix";
 
@@ -193,6 +195,12 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   public void removeAllResValues() {
     myDslElement.removeProperty(RES_VALUE);
+  }
+
+  @NotNull
+  @Override
+  public SigningConfigPropertyModel signingConfig() {
+    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).asMethod(true).buildSigningConfig();
   }
 
   @Override

@@ -16,8 +16,12 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,6 +84,15 @@ public interface FlavorTypeModel extends GradleDslModel {
                            @NotNull String value);
 
   void removeAllResValues();
+
+  /**
+   * You most likely want to set this property as a reference to a signing config,
+   * to do this please use {@link ReferenceTo#ReferenceTo(SigningConfigModel)}.
+   *
+   * You can obtain a list of signing configs from {@link AndroidModel#signingConfigs()}
+   */
+  @NotNull
+  SigningConfigPropertyModel signingConfig();
 
   @NotNull
   ResolvedPropertyModel useJack();

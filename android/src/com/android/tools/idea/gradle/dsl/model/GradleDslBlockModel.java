@@ -52,17 +52,6 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
     return psiElement != null && psiElement.isValid();
   }
 
-  @NotNull
-  protected GradleNullableValue<String> getIntOrStringValue(@NotNull String propertyName) {
-    Integer intValue = myDslElement.getLiteralProperty(propertyName, Integer.class).value();
-    if (intValue != null) {
-      GradleDslElement propertyElement = myDslElement.getPropertyElement(propertyName);
-      assert propertyElement != null;
-      return new GradleNotNullValueImpl<>(propertyElement, intValue.toString());
-    }
-    return myDslElement.getLiteralProperty(propertyName, String.class);
-  }
-
   @Override
   @NotNull
   public Map<String, GradlePropertyModel> getInScopeProperties() {
