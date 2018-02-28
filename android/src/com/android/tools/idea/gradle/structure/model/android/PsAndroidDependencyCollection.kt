@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsModelCollection
+import com.android.tools.idea.gradle.structure.model.PsParsedDependencies
 import com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
@@ -38,14 +39,64 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
   }
 
   private fun collectDependencies() {
-    parent.forEachVariant { addDependencies(it) }
+    collectResolvedDependencies()
+    collectParsedDependencies()
   }
 
-  private fun addDependencies(variant: PsVariant) {
-    variant.forEachArtifact { collectDependencies(it) }
+  private fun collectParsedDependencies() {
+    collectParsedDependencies(parent.parsedDependencies)
   }
 
-  private fun collectDependencies(artifact: PsAndroidArtifact) {
+  private fun collectResolvedDependencies() {
+    parent.forEachVariant {
+      it.forEachArtifact { collectResolvedDependencies(it) }
+    }
+  }
+
+  private fun collectParsedDependencies(parsedDependencies: PsParsedDependencies) {
+    val artifactsByConfigurationNames = buildArtifactsByConfigurations()
+    parsedDependencies.forEachLibraryDependency { libraryDependency ->
+      artifactsByConfigurationNames[libraryDependency.configurationName()]?.forEach { artifact ->
+        addLibrary(
+          null,
+          PsArtifactDependencySpec(
+            libraryDependency.name().value(),
+            libraryDependency.group().value(),
+            // TODO(solodkyy): Properly handle wildcard versions.
+            libraryDependency.version().value()
+          ),
+          artifact,
+          libraryDependency
+        )
+
+      }
+    }
+    parsedDependencies.forEachModuleDependency { moduleDependency ->
+      artifactsByConfigurationNames[moduleDependency.configurationName()]?.forEach { artifact ->
+        // TODO(solodkyy): Handle pre AGP 3.0 configurations.
+        addModule(
+          moduleDependency.path().value(),
+          artifact,
+          moduleDependency.configuration().value(),
+          moduleDependency
+        )
+      }
+    }
+  }
+
+  private fun buildArtifactsByConfigurations(): Map<String, List<PsAndroidArtifact>> {
+    val artifactsByConfigurationNames = mutableMapOf<String, MutableList<PsAndroidArtifact>>()
+    parent.forEachVariant { variant ->
+      variant.forEachArtifact { artifact ->
+        artifact.possibleConfigurationNames.forEach { possibleConfigurationName ->
+          artifactsByConfigurationNames.getOrPut(possibleConfigurationName, { mutableListOf() }).add(artifact)
+        }
+      }
+    }
+    return artifactsByConfigurationNames
+  }
+
+  private fun collectResolvedDependencies(artifact: PsAndroidArtifact) {
     val resolvedArtifact = artifact.resolvedModel ?: return
     val dependencies = resolvedArtifact.level2Dependencies
 
@@ -69,6 +120,25 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
     val matchingParsedDependency =
       parsedDependencies.findModuleDependency(gradlePath) { parsedDependency: DependencyModel -> artifact.contains(parsedDependency) }
 
+    addModule(gradlePath, artifact, projectVariant, matchingParsedDependency)
+  }
+
+  private fun addModule(
+    gradlePath: String,
+    artifact: PsAndroidArtifact,
+    projectVariant: String?,
+    matchingParsedDependency: ModuleDependencyModel?
+  ) {
+    val dependency = getOrCreateModuleDependency(gradlePath, artifact, projectVariant, matchingParsedDependency)
+    updateDependency(dependency, artifact, matchingParsedDependency)
+  }
+
+  private fun getOrCreateModuleDependency(
+    gradlePath: String,
+    artifact: PsAndroidArtifact,
+    projectVariant: String?,
+    matchingParsedDependency: ModuleDependencyModel?
+  ): PsModuleAndroidDependency {
     val module = parent.parent.findModuleByGradlePath(gradlePath)
     val resolvedModule = module?.resolvedModel
     var dependency = findElement(gradlePath, PsModuleAndroidDependency::class.java)
@@ -76,10 +146,11 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
       dependency = PsModuleAndroidDependency(parent, gradlePath, artifact, projectVariant, resolvedModule, matchingParsedDependency)
       moduleDependenciesByGradlePath[gradlePath] = dependency
     }
-    updateDependency(dependency, artifact, matchingParsedDependency)
+    return dependency
   }
 
   private fun addLibrary(library: Library, artifact: PsAndroidArtifact) {
+    // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
     val parsedDependencies = parent.parsedDependencies
 
     val coordinates = GradleCoordinate.parseCoordinateString(library.artifactAddress)
@@ -142,36 +213,39 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
   }
 
   private fun addLibrary(
-    library: Library,
+    library: Library?,
     resolvedSpec: PsArtifactDependencySpec,
     artifact: PsAndroidArtifact,
     parsedModel: ArtifactDependencyModel?
   ) {
-    val dependency = getOrCreateDependency(resolvedSpec, library, artifact, parsedModel)
+    val dependency = getOrCreateLibraryDependency(resolvedSpec, library, artifact, parsedModel)
     updateDependency(dependency, artifact, parsedModel)
   }
 
-  private fun getOrCreateDependency(
+  private fun getOrCreateLibraryDependency(
     resolvedSpec: PsArtifactDependencySpec,
-    library: Library,
+    library: Library?,
     artifact: PsAndroidArtifact,
     parsedModel: ArtifactDependencyModel?
   ): PsAndroidDependency {
     val compactNotation = resolvedSpec.toString()
-    var dependency: PsLibraryAndroidDependency? = libraryDependenciesBySpec[compactNotation]
-    if (dependency == null) {
-      dependency = PsLibraryAndroidDependency(parent, resolvedSpec, artifact, library, parsedModel)
-      libraryDependenciesBySpec[compactNotation] = dependency
-
-      val libraryPath = library.artifact
-      val pomDependencies = findDependenciesInPomFile(libraryPath)
-      dependency.setDependenciesFromPomFile(pomDependencies)
-    } else {
+    val dependency: PsLibraryAndroidDependency? = libraryDependenciesBySpec[compactNotation]
+    return if (dependency != null) {
+      if (library !== null && dependency.resolvedModel !== library) {
+        throw IllegalStateException("Dependency $compactNotation cannot have two different resolved models.")
+      }
       if (parsedModel != null) {
         dependency.addParsedModel(parsedModel)
       }
+      dependency
+    } else {
+      val androidDependency = PsLibraryAndroidDependency(parent, resolvedSpec, artifact, library, parsedModel)
+      libraryDependenciesBySpec[compactNotation] = androidDependency
+      library?.artifact?.let {
+        androidDependency.setDependenciesFromPomFile(findDependenciesInPomFile(it))
+      }
+      androidDependency
     }
-    return dependency
   }
 
   fun findElement(spec: PsArtifactDependencySpec): PsLibraryAndroidDependency? {
