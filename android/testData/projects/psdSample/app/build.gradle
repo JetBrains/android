@@ -85,6 +85,7 @@ android {
 
 ext {
     moreVariable = "1234"
+    mapVariable = ["a" : '"double" quotes', "b" : "'single' quotes"]
 }
 
 dependencies {
