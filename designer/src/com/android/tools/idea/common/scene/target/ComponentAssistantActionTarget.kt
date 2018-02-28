@@ -38,7 +38,10 @@ class ComponentAssistantActionTarget(
     val designSurface = component.scene.designSurface
     val context = SceneContext.get(designSurface.currentSceneView)
     val position = Point(context.getSwingXDip(centerX), context.getSwingYDip(myTop))
-    val assistantContext = ComponentAssistantFactory.Context(component.nlComponent, popup::close)
+    val assistantContext = ComponentAssistantFactory.Context(component.nlComponent,
+      { cancel ->
+        if (cancel) popup.cancel() else popup.close()
+      })
     val component = panelFactory.createComponent(assistantContext).apply {
       name = "Component Assistant" // For UI tests
     }

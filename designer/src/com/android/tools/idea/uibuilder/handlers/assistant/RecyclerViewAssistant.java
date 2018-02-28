@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.HorizontalSpinner;
+import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context;
@@ -202,17 +203,15 @@ public class RecyclerViewAssistant extends JPanel {
       fireSelectionUpdated();
     });
 
-    JLabel label = new JLabel("Item template");
+    JLabel label = AssistantUiKt.assistantLabel("Item template", SwingConstants.LEADING);
     label.setBorder(JBUI.Borders.emptyBottom(5));
-    JButton apply = new JButton("Apply");
-    apply.setOpaque(false);
+    CommonButton apply = new CommonButton("Apply");
     JPanel applyPanel = new JPanel(new BorderLayout());
     applyPanel.setOpaque(false);
     applyPanel.setBorder(JBUI.Borders.emptyTop(10));
     applyPanel.add(apply, BorderLayout.CENTER);
     apply.addActionListener(e -> {
-      myCreatedFile = null;
-      context.getDoClose().invoke();
+      context.getDoClose().invoke(false);
     });
 
     add(label, BorderLayout.NORTH);

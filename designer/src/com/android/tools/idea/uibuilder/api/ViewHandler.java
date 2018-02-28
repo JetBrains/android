@@ -16,17 +16,22 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TargetProvider;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -36,7 +41,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 /**
  * A view handler is a tool handler for a given Android view class
  */
-public class ViewHandler extends StructurePaneComponentHandler {
+public class ViewHandler extends StructurePaneComponentHandler implements TargetProvider {
   /**
    * Returns whether the given component accepts the given parent layout as a potential container
    *
@@ -157,8 +162,16 @@ public class ViewHandler extends StructurePaneComponentHandler {
                                         @AndroidCoordinate int y) {
   }
 
-  @Nullable
-  public ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    return null;
+  /**
+   * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
+   *
+   * @param sceneComponent The component we'll add the targets on
+   * @return The list of created target to add the the component. This list can be empty.
+   */
+  @Override
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    return ImmutableList.of();
   }
+
 }

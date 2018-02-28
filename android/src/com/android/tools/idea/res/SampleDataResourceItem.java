@@ -64,23 +64,26 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   private final Function<OutputStream, Exception> myDataSource;
   private final SmartPsiElementPointer<PsiElement> mySourceElement;
   private final Supplier<Long> myDataSourceModificationStamp;
+  private final ContentType myContentType;
 
   /**
    * Creates a new {@link SampleDataResourceItem}
-   * @param name name of the resource
-   * @param namespace optional resource namespace. Pre-defined data sources use the {@link ResourceNamespace#TOOLS} namespace.
-   * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
-   *                                   must return any exceptions that happened during the processing of the file.
+   *
+   * @param name                        name of the resource
+   * @param namespace                   optional resource namespace. Pre-defined data sources use the {@link ResourceNamespace#TOOLS} namespace.
+   * @param dataSource                  {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
+   *                                    must return any exceptions that happened during the processing of the file.
    * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
-   *                                                    content changes. If 0, the content won't be cached.
-   * @param sourceElement optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
-   *                      references to the content.
+   *                                    content changes. If 0, the content won't be cached.
+   * @param sourceElement               optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
+   *                                    references to the content.
    */
   private SampleDataResourceItem(@NonNull String name,
                                  @NonNull ResourceNamespace namespace,
                                  @NonNull Function<OutputStream, Exception> dataSource,
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
-                                 @Nullable SmartPsiElementPointer<PsiElement> sourceElement) {
+                                 @Nullable SmartPsiElementPointer<PsiElement> sourceElement,
+                                 @NonNull ContentType contentType) {
     super(name, namespace, ResourceType.SAMPLE_DATA, null, null);
 
     myDataSource = dataSource;
@@ -88,6 +91,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
     // We use SourcelessResourceItem as parent because we don't really obtain a FolderConfiguration or Qualifiers from
     // the source element (since it's not within the resources directory).
     mySourceElement = sourceElement;
+    myContentType = contentType;
   }
 
   /**
@@ -95,8 +99,10 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
    * since the never change.
    */
   @NonNull
-  static SampleDataResourceItem getFromStaticDataSource(@NonNull String name, @NonNull Function<OutputStream, Exception> source) {
-    return new SampleDataResourceItem(name, SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, source, () -> 1L, null);
+  static SampleDataResourceItem getFromStaticDataSource(@NonNull String name,
+                                                        @NonNull Function<OutputStream, Exception> source,
+                                                        @NonNull ContentType contentType) {
+    return new SampleDataResourceItem(name, SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, source, () -> 1L, null, contentType);
   }
 
   /**
@@ -123,7 +129,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         return e;
       }
       return null;
-    }, () -> vFile.getModificationStamp() + 1, filePointer);
+    }, () -> vFile.getModificationStamp() + 1, filePointer, ContentType.UNKNOWN);
   }
 
   /**
@@ -140,7 +146,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         .sorted(Comparator.comparing(VirtualFile::getName))
         .forEach(file -> printStream.println(file.getPath()));
       return null;
-    }, () -> directory.getModificationStamp() + 1, directoryPointer);
+    }, () -> directory.getModificationStamp() + 1, directoryPointer, ContentType.UNKNOWN);
   }
 
   /**
@@ -176,7 +182,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         return e;
       }
       return null;
-    }, () -> vFile.getModificationStamp() + 1, jsonPointer);
+    }, () -> vFile.getModificationStamp() + 1, jsonPointer, ContentType.UNKNOWN);
   }
 
   /**
@@ -223,7 +229,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         for (String path : possiblePaths) {
           items.add(new SampleDataResourceItem(sampleDataSource.getName() + path, ResourceNamespace.TODO,
                                                new HardcodedContent(Joiner.on('\n').join(parser.getPossiblePaths())),
-                                               () -> vFile.getModificationStamp() + 1, psiPointer));
+                                               () -> vFile.getModificationStamp() + 1, psiPointer, ContentType.UNKNOWN));
         }
         return items.build();
       }
@@ -258,7 +264,8 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
           value = new SampleDataHolder(getName(), lastModificationStamp, content.length / 1_000_000, content);
           sSampleDataCache.put(getName(), value);
         }
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         LOG.warn(e);
       }
 
@@ -296,5 +303,26 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   @Nullable
   public PsiElement getPsiElement() {
     return mySourceElement != null ? mySourceElement.getElement() : null;
+  }
+
+  @NonNull
+  public ContentType getContentType() {
+    return myContentType;
+  }
+
+  /**
+   * Defines the content of the sample data included in this item when know.
+   */
+  // TODO: Infer content type for non-predefined data sources
+  public enum ContentType {
+    UNKNOWN,
+    /**
+     * This item contains data suitable to be displayed as text (i.e. in a TextView)
+     */
+    TEXT,
+    /**
+     * This item contains data suitable to be displayed as an image (i.e. in a ImageView)
+     */
+    IMAGE
   }
 }
