@@ -1,0 +1,431 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2018 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<tutorialBundle
+    name="Whats New in 3.2"
+    logo="core/whats_new_logo.png"
+    resourceRoot="/">
+  <welcome>
+    <![CDATA[
+      You’re now running Android Studio 3.2. Learn more about what’s
+      included in this update below. You can also
+      <a href="https://d.android.com/studio/releases/index.html#3-2">read the full release notes</a>
+      in a browser or <a href="https://youtu.be/0n9sBgds-Hs">watch a video overview</a> on YouTube.
+
+      <br>
+      <h2>Support for Dynamic Apps</h2>
+
+      Dynamic Apps is an easier way to update and deploy your app to an ever-growing
+      ecosystem of diverse Android devices. With Dynamic Apps, you need to build and upload only a
+      single build artifact, the Android App Bundle, and the Google Play Store builds, signs, and manages
+      APKs for all device configurations you want to support.
+      <br><br>
+      To learn more, complete the tutorials at
+      the bottom of this panel or <a href="https://d.android.com">read the documentation</a> in a browser.
+
+      <br>
+      <h2>Navigation Editor</h2>
+
+      The Navigation Editor lets you visualize and edit navigation behavior between different components
+      and activities in your app, so you can better assess whether navigation flows are correct and easy
+      for users to understand. <a href="https://d.android.com">Learn more</a>.
+
+      <br>
+      <h2>New Battery Profiler</h2>
+
+      <a href="https://d.android.com/studio/profile/android-profiler.html"><b>Android Profilers</b></a>
+      <img src="https://developer.android.com/studio/images/buttons/toolbar-android-profiler.png" width="16">
+      now includes a <a href="https://d.android.com/studio/profile/android-profiler.html">Battery Profiler</a>
+      to help you assess the energy consumption of your app. The profiler visualizes your apps battery usage
+      and allows you to inspect which device components—such as network radios or the CPU—are consuming the
+      most energy.
+
+      <br>
+      <h2>New Code and Resource Shrinker</h2>
+
+      R8 is a new tool for code/resource shrinking and obfuscation that works with multi-APK apps, such as
+      <a href="d.android.com">Dynamic Apps</a> and
+      <a href="https://d.android.com/topic/instant-apps/index.html">Android Instant Apps</a>. It replaces
+      ProGuard, and you can start using the preview version of R8 by including the following in your
+      project’s <code>gradle.properties</code> file:<pre>android.enableR8 = true</pre>
+    ]]>
+  </welcome>
+  <feature
+      name="Android Plugin for Gradle 3.2.0">
+    <description>
+      <![CDATA[
+        Learn more about what's new in Android Plugin for Gradle 3.2.0 below, or
+        <a href="https://d.android.com/studio/releases/gradle-plugin.html#3-2-0">read the full release notes</a>
+        in a browser.
+      ]]>
+    </description>
+    <tutorial
+        key="agp"
+        label="What's New in AGP 3.2.0"
+        remoteLink="https://developer.android.com/studio/releases/gradle-plugin.html"
+        remoteLinkLabel="View these release notes in a browser.">
+      <description>
+        <![CDATA[
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua.
+        ]]>
+      </description>
+      <step label="What's New in AGP 3.2.0">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <code fileType="JAVA">&lt;manifest
+package="com.android.example"
+split="feature2.config.hdpi"
+configForSplit="feature1"
+targetConfig=hdpi,mdpi,ldpi>
+...</code>
+        </stepElement>
+      </step>
+      <step label="Ut enim ad minim veniam">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+    </tutorial>
+  </feature>
+  <feature
+      name="Tutorials for Dynamic Apps">
+    <description>
+      <![CDATA[
+        To learn more about how to configure your project to support Dynamic Apps,
+        complete the tutorials below or <a href="https://d.android.com">read the documentation</a>
+        in a browser.
+      ]]>
+    </description>
+    <tutorial
+        key="about-dynamic-apps"
+        label="About Dynamic Apps"
+        remoteLink="https://developer.android.com/guide/index.html"
+        remoteLinkLabel="View this documentation in a browser.">
+      <description>
+        <![CDATA[
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua.
+        ]]>
+      </description>
+      <step label="Lorem Ipsum">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <code fileType="JAVA">&lt;manifest
+package="com.android.example"
+split="feature2.config.hdpi"
+configForSplit="feature1"
+targetConfig=hdpi,mdpi,ldpi>
+...</code>
+        </stepElement>
+      </step>
+      <step label="Ut enim ad minim veniam">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+    </tutorial>
+    <tutorial
+        key="modularize"
+        label="Modularize Your Project for Split APKs"
+        remoteLink="https://developer.android.com/guide/index.html"
+        remoteLinkLabel="View this documentation in a browser.">
+      <description>
+        <![CDATA[
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua.
+        ]]>
+      </description>
+      <step label="Lorem Ipsum">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <code fileType="JAVA">
+&lt;manifest
+package="com.android.example"
+split="feature2.config.hdpi"
+configForSplit="feature1"
+targetConfig=hdpi,mdpi,ldpi>
+...
+          </code>
+        </stepElement>
+      </step>
+      <step label="Ut enim ad minim veniam">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+    </tutorial>
+    <tutorial
+        key="control"
+        label="Control APK downloads with PlayCore API"
+        remoteLink="https://developer.android.com/guide/index.html"
+        remoteLinkLabel="View this documentation in a browser.">
+      <description>
+        <![CDATA[
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua.
+        ]]>
+      </description>
+      <step label="Lorem Ipsum">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <code fileType="JAVA">
+&lt;manifest
+package="com.android.example"
+split="feature2.config.hdpi"
+configForSplit="feature1"
+targetConfig=hdpi,mdpi,ldpi>
+...
+          </code>
+        </stepElement>
+      </step>
+      <step label="Ut enim ad minim veniam">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+    </tutorial>
+    <tutorial
+        key="control"
+        label="Test Dynamic Apps with BundleTool"
+        remoteLink="https://developer.android.com/guide/index.html"
+        remoteLinkLabel="View this documentation in a browser.">
+      <description>
+        <![CDATA[
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua.
+        ]]>
+      </description>
+      <step label="Lorem Ipsum">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <code fileType="JAVA">
+&lt;manifest
+package="com.android.example"
+split="feature2.config.hdpi"
+configForSplit="feature1"
+targetConfig=hdpi,mdpi,ldpi>
+...
+          </code>
+        </stepElement>
+      </step>
+      <step label="Ut enim ad minim veniam">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+    </tutorial>
+    <tutorial
+        key="upload"
+        label="Build and Upload Android App Bundles"
+        remoteLink="https://developer.android.com/guide/index.html"
+        remoteLinkLabel="View this documentation in a browser.">
+      <description>
+        <![CDATA[
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua.
+        ]]>
+      </description>
+      <step label="Lorem Ipsum">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <code fileType="JAVA">
+&lt;manifest
+package="com.android.example"
+split="feature2.config.hdpi"
+configForSplit="feature1"
+targetConfig=hdpi,mdpi,ldpi>
+...
+          </code>
+        </stepElement>
+      </step>
+      <step label="Ut enim ad minim veniam">
+        <stepElement>
+          <section>
+            <![CDATA[
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+              ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+              laboris nisi ut aliquip ex ea commodo consequat.
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+    </tutorial>
+  </feature>
+  <feature
+      name="ALTERNATE SAMPLE">
+    <description>
+      <![CDATA[
+        This is an alternate sample which would skip the "Features" pane (this one)
+        and show only the content in the tutorial below. This version allows a scrollable header, but no feature
+        nodes. That may be a trade-off we have to make for now.
+      ]]>
+    </description>
+    <tutorial
+        key="whats-new-alt"
+        label="What's New in Android Studio 3.2"
+        icon="core/whats_new_icon.png"
+        remoteLink="https://developer.android.com/studio/releases/index.html"
+        remoteLinkLabel="">
+      <description>
+        <![CDATA[
+          Learn more about what’s
+          included in this update below. You can also
+          <a href="https://d.android.com/studio/releases/index.html#3-2">read the full release notes</a>
+          in a browser or <a href="https://youtu.be/0n9sBgds-Hs">watch a video overview</a> on YouTube.
+
+          <br>
+          <h2>Support for Dynamic Apps</h2>
+
+          Dynamic Apps is an easier way to update and deploy your app to an ever-growing ecosystem of
+          diverse Android devices. With Dynamic Apps, you need to build and upload only a single build artifact,
+          the Android App Bundle, to support all target device configurations.
+          <br><br>
+          App stores that support Dynamic Apps—such as the Google Play Store—build, sign, and manage APKs for all
+          versions of your app for you, and pushes only the code and resource a device requires to run your app.
+          <br><br>
+          Updates to the Android Studio and the Android plugin for Gradle allow you configure your app project
+          to take advantage of Dynamic Apps and build Android App Bundles. To learn more, complete the tutorials
+          below or read the documentation in a browser.
+          <br><br>
+          <img src="https://d.android.com/images/tools/studio/studio-feature-gradle_2x.png" height="256">
+          <br><br>
+          To learn more about how to configure your project to support Dynamic Apps, read the following
+          documentation in a browser.
+          <br><br>
+          <ul>
+            <li><a href="https://d.android.com">About Dynamic Apps</a></li>
+            <li><a href="https://d.android.com">Modularize Your Project for Split APKs</a></li>
+            <li><a href="https://d.android.com">Control APK downloads with PlayCore API</a></li>
+            <li><a href="https://d.android.com">Test Dynamic Apps with BundleTool</a></li>
+            <li><a href="https://d.android.com">Build and Upload Android App Bundles</a></li>
+          <ul>
+
+          <h2>Navigation Editor</h2>
+
+          The Navigation Editor lets you visualize and edit navigation behavior between different components
+          and activities in your app, so you can better assess whether navigation flows are correct and easy
+          for users to understand. To learn more, <a href="https://d.android.com">read the documentation</a>
+          in a browser.
+          <br><br>
+          <img src="https://d.android.com/design/media/navigation_between_siblings_market2.png"
+               width="428">
+
+          <br><br>
+          <h2>New Battery Profiler</h2>
+
+          <a href="https://d.android.com/studio/profile/android-profiler.html"><b>Android Profilers</b></a>
+          <img src="https://developer.android.com/studio/images/buttons/toolbar-android-profiler.png" width="16">
+          now includes a <a href="https://d.android.com/studio/profile/android-profiler.html">Battery Profiler</a>
+          to help you assess the energy consumption of your app. The profiler visualizes your apps battery usage
+          and allows you to inspect which device components—such as network radios or the CPU—are consuming the
+          most energy.
+          <br><br>
+          <img src="https://d.android.com/images/tools/studio/studio-feature-profiler_2x.png" height="256">
+
+          <br>
+          <h2>New Code and Resource Shrinker</h2>
+
+          R8 is a new tool for code/resource shrinking and obfuscation that works with multi-APK apps, such as
+          <a href="d.android.com">Dynamic Apps</a> and
+          <a href="https://d.android.com/topic/instant-apps/index.html">Android Instant Apps</a>. It replaces
+          ProGuard, and you can start using the preview version of R8 by including the following in your
+          project’s <code>gradle.properties</code> file:
+          <br><br>
+          <pre>  android.enableR8 = true</pre>
+        ]]>
+      </description>
+    </tutorial>
+  </feature>
+</tutorialBundle>
