@@ -18,9 +18,10 @@ package com.android.tools.profilers.cpu.atrace;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.*;
-import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import org.jetbrains.annotations.NotNull;
 import trebuchet.model.*;
+import trebuchet.model.base.Slice;
 import trebuchet.model.base.SliceGroup;
 import trebuchet.task.ImportTask;
 import trebuchet.util.PrintlnImportFeedback;
@@ -135,7 +136,7 @@ public class AtraceParser implements TraceParser {
     Range range = getRange();
     for (ThreadModel thread : myProcessModel.getThreads()) {
       CpuThreadInfo threadInfo = new CpuThreadInfo(thread.getId(), thread.getName());
-      CaptureNode root = new CaptureNode(new SingleNameModel(thread.getName()));
+      CaptureNode root = new CaptureNode(new AtraceNodeModel(thread.getName()));
       root.setStartGlobal((long)range.getMin());
       root.setEndGlobal((long)range.getMax());
       myCaptureTreeNodes.put(threadInfo, root);
@@ -154,12 +155,20 @@ public class AtraceParser implements TraceParser {
    * @return The {@link CaptureNode} that mirrors the {@link SliceGroup} passed in.
    */
   private CaptureNode populateCaptureNode(SliceGroup slice, int depth) {
-    CaptureNode node = new CaptureNode(new SingleNameModel(slice.getName()));
+    CaptureNode node = new CaptureNode(new AtraceNodeModel(slice.getName()));
     node.setStartGlobal(convertToUserTimeUs(slice.getStartTime()));
     node.setEndGlobal(convertToUserTimeUs(slice.getEndTime()));
     node.setDepth(depth);
     for (SliceGroup child : slice.getChildren()) {
       node.addChild(populateCaptureNode(child, depth + 1));
+    }
+    double notScheduledTime = (slice.getEndTime() - slice.getStartTime()) - slice.getCpuTime();
+    if (notScheduledTime > 0.0) {
+      CaptureNode schedNode = new CaptureNode(new AtraceNodeModel("", true));
+      schedNode.setStartGlobal(convertToUserTimeUs(slice.getStartTime() + slice.getCpuTime()));
+      schedNode.setEndGlobal(convertToUserTimeUs(slice.getEndTime()));
+      schedNode.setDepth(depth);
+      node.addChild(schedNode);
     }
     return node;
   }
@@ -232,8 +241,8 @@ public class AtraceParser implements TraceParser {
    * The start and end times represent a slice when the core is used continuously, and the core's utilization data before the start
    * timestamp has been captured by cpuSeriesIt.
    *
-   * @param cpuSeriesIt        An iterator to the list of utilization series data. This function will use the iterator in the current state and
-   *                           not reset it.
+   * @param cpuSeriesIt      An iterator to the list of utilization series data. This function will use the iterator in the current state and
+   *                         not reset it.
    * @param sliceStartTimeUs The converted time of the slice start.
    * @param sliceEndTimeUs   The converted time of the slice end.
    * @return

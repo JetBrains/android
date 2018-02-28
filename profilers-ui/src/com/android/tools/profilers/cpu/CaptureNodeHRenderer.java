@@ -59,12 +59,17 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   }
 
   private Color getFillColor(CaptureNode node) {
+    // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
       return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
     }
     else if (nodeModel instanceof NativeNodeModel) {
       return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
+    }
+    // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
+    else if (nodeModel instanceof AtraceNodeModel) {
+      return AtraceNodeModelHChartColors.getFillColor(nodeModel, node.isUnmatched());
     }
     else if (nodeModel instanceof SingleNameModel) {
       return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
@@ -73,12 +78,17 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   }
 
   private Color getBorderColor(CaptureNode node) {
+    // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
       return JavaMethodHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
     else if (nodeModel instanceof NativeNodeModel) {
       return NativeModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
+    }
+    // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
+    else if (nodeModel instanceof AtraceNodeModel) {
+      return AtraceNodeModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
     else if (nodeModel instanceof SingleNameModel) {
       return SingleNameModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
