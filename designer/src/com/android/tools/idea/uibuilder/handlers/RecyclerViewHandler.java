@@ -17,6 +17,9 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
@@ -71,5 +74,15 @@ public class RecyclerViewHandler extends ViewGroupHandler {
     }
 
     return RecyclerViewAssistant::createComponent;
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    ComponentAssistant.PanelFactory panelFactory = getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
+
+    return panelFactory != null ?
+           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
+           ImmutableList.of();
   }
 }
