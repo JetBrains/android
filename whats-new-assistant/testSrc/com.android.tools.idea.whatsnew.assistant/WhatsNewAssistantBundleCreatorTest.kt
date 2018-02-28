@@ -25,9 +25,15 @@ import java.net.URL
 
 class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
 
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.clearOverride()
+  }
+
   fun testDisabled() {
     StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(false)
-    TestCase.assertFalse(WhatsNewAssistantBundleCreator.isAssistantEnabled())
+
+    TestCase.assertFalse(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
   }
 
   fun testEnabledWithoutFile() {
@@ -37,7 +43,7 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     `when`(mockBundler.config).thenReturn(null)
     WhatsNewAssistantBundleCreator.setTestCreator(mockBundler)
 
-    TestCase.assertFalse(WhatsNewAssistantBundleCreator.isAssistantEnabled())
+    TestCase.assertFalse(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
 
     WhatsNewAssistantBundleCreator.setTestCreator(null)
   }
@@ -49,7 +55,7 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     `when`(mockBundler.config).thenReturn(URL("file:test.file"))
     WhatsNewAssistantBundleCreator.setTestCreator(mockBundler)
 
-    TestCase.assertTrue(WhatsNewAssistantBundleCreator.isAssistantEnabled())
+    TestCase.assertTrue(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
 
     WhatsNewAssistantBundleCreator.setTestCreator(null)
   }
