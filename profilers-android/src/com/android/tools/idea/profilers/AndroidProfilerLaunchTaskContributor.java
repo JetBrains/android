@@ -88,6 +88,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                            @NotNull ProfilerService profilerService,
                                            @NotNull IDevice device,
                                            long deviceId) {
+    if (!StudioFlags.PROFILER_USE_JVMTI.get() || !isAtLeastO(device)) {
+      return "";
+    }
     Profiler.ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getProfilerClient()
       .configureStartupAgent(Profiler.ConfigureStartupAgentRequest.newBuilder().setDeviceId(deviceId)
                             // TODO: Find a way of finding the correct ABI
@@ -135,10 +138,14 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       argsBuilder.append(" --sampling ").append(startupConfig.getSamplingInterval());
     }
 
-    if (device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
+    if (isAtLeastO(device)) {
       argsBuilder.append(" --streaming");
     }
     return argsBuilder.toString();
+  }
+
+  private static boolean isAtLeastO(@NotNull IDevice device) {
+    return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
   }
 
   @NotNull
