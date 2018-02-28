@@ -860,13 +860,6 @@ public class SceneComponent {
         provider.createChildTargets(parent, this).forEach(this::addTarget);
       }
     }
-    AndroidFacet facet = getNlComponent().getModel().getFacet();
-    ComponentAssistant.PanelFactory panelFactory = ViewHandlerManager.get(facet).getHandlerOrDefault(getNlComponent())
-      .getComponentAssistant(getScene().getDesignSurface(), getNlComponent());
-
-    if (panelFactory != null) {
-      addTarget(new ComponentAssistantActionTarget(panelFactory));
-    }
 
     // update the Targets created by myTargetProvider
     TargetProvider provider = myTargetProvider;

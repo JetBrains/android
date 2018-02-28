@@ -19,10 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.common.scene.*;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
@@ -354,6 +351,11 @@ public class LayoutlibSceneManager extends SceneManager {
    * {@linkplain ViewGroupHandler} to do it)
    */
   public void addTargets(@NotNull SceneComponent component) {
+    ViewHandler componentHandler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
+    if (componentHandler instanceof TargetProvider) {
+      component.setTargetProvider((TargetProvider) componentHandler);
+    }
+
     SceneComponent parent = component.getParent();
     if (parent == null) {
       parent = getScene().getRoot();
@@ -361,9 +363,9 @@ public class LayoutlibSceneManager extends SceneManager {
     if (parent == null) {
       return;
     }
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(parent.getNlComponent());
-    if (handler instanceof ViewGroupHandler) {
-      parent.setTargetProvider((ViewGroupHandler) handler);
+    ViewHandler parentHandler = NlComponentHelperKt.getViewHandler(parent.getNlComponent());
+    if (parentHandler instanceof ViewGroupHandler) {
+      parent.setTargetProvider((ViewGroupHandler) parentHandler);
     }
   }
 
