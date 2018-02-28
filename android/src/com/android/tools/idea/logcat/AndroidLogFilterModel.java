@@ -19,7 +19,6 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.logcat.LogCatTimestamp;
 import com.google.common.collect.ImmutableList;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFilter;
@@ -53,7 +52,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   private final StringBuilder myMessageSoFar = new StringBuilder();
 
   @Nullable private LogCatHeader myPrevHeader;
-  @Nullable private LogCatTimestamp myRejectBeforeTime;
+  @Nullable private LogCatHeader myRejectBeforeHeader;
 
   /**
    * A regex which is tested against unprocessed log input. Contrast with
@@ -68,13 +67,15 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   @Nullable private AndroidLogcatFilter myConfiguredFilter;
 
   private final ImmutableList<AndroidLogLevelFilter> myLogLevelFilters;
+  private final AndroidLogcatFormatter myFormatter;
 
-  public AndroidLogFilterModel() {
+  AndroidLogFilterModel(@NotNull AndroidLogcatFormatter formatter) {
     ImmutableList.Builder<AndroidLogLevelFilter> builder = ImmutableList.builder();
     for (Log.LogLevel logLevel : Log.LogLevel.values()) {
       builder.add(new AndroidLogLevelFilter(logLevel));
     }
     myLogLevelFilters = builder.build();
+    myFormatter = formatter;
   }
 
   // Implemented because it is abstract in the parent, but the functionality is no longer used.
@@ -130,7 +131,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       return; // Haven't received any messages yet, so nothing to filter
     }
 
-    myRejectBeforeTime = myPrevHeader.getTimestamp();
+    myRejectBeforeHeader = myPrevHeader;
   }
 
 
@@ -222,7 +223,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   @Override
   public void processingStarted() {
     myPrevHeader = null;
-    myRejectBeforeTime = null;
+    myRejectBeforeHeader = null;
     myCustomApplicable = false;
     myConfiguredApplicable = false;
     myMessageSoFar.setLength(0);
@@ -231,7 +232,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   @Override
   @NotNull
   public final MyProcessingResult processLine(String line) {
-    LogCatMessage message = AndroidLogcatFormatter.tryParseMessage(line);
+    LogCatMessage message = myFormatter.tryParseMessage(line);
     String continuation = (message == null) ? AndroidLogcatFormatter.tryParseContinuation(line) : null;
 
     boolean validContinuation = continuation != null && myPrevHeader != null;
@@ -251,8 +252,8 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     }
 
     boolean isApplicable = myCustomApplicable && myConfiguredApplicable;
-    if (isApplicable && myRejectBeforeTime != null) {
-      isApplicable = !myPrevHeader.getTimestamp().isBefore(myRejectBeforeTime);
+    if (isApplicable && myRejectBeforeHeader != null) {
+      isApplicable = !myPrevHeader.isBefore(myRejectBeforeHeader);
     }
 
     if (!isApplicable) {

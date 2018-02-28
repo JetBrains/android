@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log.LogLevel;
-import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.logcat.PersistentAndroidLogFilters.FilterData;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -48,6 +47,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -65,10 +65,12 @@ final class EditLogFilterDialog extends DialogWrapper {
   @NonNls private static final String LOG_FILTER_TAG_HISTORY = "LOG_FILTER_TAG_HISTORY";
   @NonNls private static final String LOG_FILTER_PACKAGE_NAME_HISTORY = "LOG_FILTER_PACKAGE_NAME_HISTORY";
 
-  private final Splitter mySplitter;
+  private final Project myProject;
   private final List<FilterData> myFilters;
   private final AndroidLogcatView myView;
-  private final Project myProject;
+  private final AndroidLogcatFormatter myFormatter;
+  private final Splitter mySplitter;
+
   private JPanel myContentPanel;
   private JPanel myLeftPanel;
   private EditorTextField myFilterNameField;
@@ -94,17 +96,17 @@ final class EditLogFilterDialog extends DialogWrapper {
 
   private List<String> myUsedPids;
 
-  EditLogFilterDialog(@NotNull final AndroidLogcatView view, @Nullable String selectedFilter) {
+  EditLogFilterDialog(@NotNull AndroidLogcatView view, @Nullable String selectedFilter) {
     super(view.getProject(), false);
 
-    myView = view;
     myProject = view.getProject();
+    myFilters = PersistentAndroidLogFilters.getInstance(myProject).getFilters();
+    myView = view;
+    myFormatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(myProject));
 
     mySplitter = new Splitter(false, 0.25f);
     mySplitter.setFirstComponent(myLeftPanel);
     mySplitter.setSecondComponent(myContentPanel);
-
-    myFilters = PersistentAndroidLogFilters.getInstance(myProject).getFilters();
 
     if (selectedFilter != null) {
       for (FilterData filter : myFilters) {
@@ -293,8 +295,7 @@ final class EditLogFilterDialog extends DialogWrapper {
 
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
-      LogCatMessage message = AndroidLogcatFormatter.parseMessage(line);
-      pidSet.add(Integer.toString(message.getPid()));
+      pidSet.add(Integer.toString(myFormatter.parseMessage(line).getPid()));
     }
 
     myUsedPids = Lists.newArrayList(pidSet);

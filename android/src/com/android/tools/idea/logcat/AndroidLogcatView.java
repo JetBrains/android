@@ -33,7 +33,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -51,6 +50,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -82,22 +82,23 @@ public class AndroidLogcatView implements Disposable {
   static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
 
   private final Project myProject;
-  private final DeviceContext myDeviceContext;
-  private final String myToolWindowId;
-
-  private JPanel myPanel;
-  private DefaultComboBoxModel<AndroidLogcatFilter> myFilterComboBoxModel;
-
-  private volatile IDevice myDevice;
-  private final AndroidLogConsole myLogConsole;
   private final FormattedLogcatReceiver myLogcatReceiver;
-  private final AndroidLogFilterModel myLogFilterModel;
+  private final AndroidLogConsole myLogConsole;
 
   /**
    * A default filter which will always let everything through.
    */
   @NotNull
   private final AndroidLogcatFilter myNoFilter;
+
+  private final DeviceContext myDeviceContext;
+  private final String myToolWindowId;
+  private final AndroidLogcatFormatter myFormatter;
+  private final AndroidLogFilterModel myLogFilterModel;
+
+  private volatile IDevice myDevice;
+  private DefaultComboBoxModel<AndroidLogcatFilter> myFilterComboBoxModel;
+  private JPanel myPanel;
 
   /**
    * Called internally when the device may have changed, or been significantly altered.
@@ -144,46 +145,32 @@ public class AndroidLogcatView implements Disposable {
 
     Disposer.register(myProject, this);
 
-    myLogFilterModel =
-      new AndroidLogFilterModel() {
+    myFormatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(project));
 
-        @NotNull
-        private AndroidLogcatPreferences getPreferences() {
-          return AndroidLogcatPreferences.getInstance(project);
-        }
-
-        @Override
-        protected void saveLogLevel(String logLevelName) {
-          getPreferences().TOOL_WINDOW_LOG_LEVEL = logLevelName;
-        }
-
-        @Override
-        public String getSelectedLogLevelName() {
-          return getPreferences().TOOL_WINDOW_LOG_LEVEL;
-        }
-
-        @Override
-        protected void saveConfiguredFilterName(String filterName) {
-          getPreferences().TOOL_WINDOW_CONFIGURED_FILTER = filterName;
-        }
-      };
-
-    myLogConsole = new AndroidLogConsole(this, project, myLogFilterModel);
-    myLogcatReceiver = new FormattedLogcatReceiver() {
-      @Override
-      protected void receiveFormattedLogLine(@NotNull String line) {
-        myLogConsole.addLogLine(line);
+    myLogFilterModel = new AndroidLogFilterModel(myFormatter) {
+      @NotNull
+      private AndroidLogcatPreferences getPreferences() {
+        return AndroidLogcatPreferences.getInstance(project);
       }
 
       @Override
-      public void onCleared() {
-        myLogFilterModel.beginRejectingOldMessages();
-        // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
-        if (myLogConsole.getConsole() != null) {
-          myLogConsole.clear();
-        }
+      protected void saveLogLevel(String logLevelName) {
+        getPreferences().TOOL_WINDOW_LOG_LEVEL = logLevelName;
+      }
+
+      @Override
+      public String getSelectedLogLevelName() {
+        return getPreferences().TOOL_WINDOW_LOG_LEVEL;
+      }
+
+      @Override
+      protected void saveConfiguredFilterName(String filterName) {
+        getPreferences().TOOL_WINDOW_CONFIGURED_FILTER = filterName;
       }
     };
+
+    myLogConsole = new AndroidLogConsole(project, myLogFilterModel, myFormatter, this);
+    myLogcatReceiver = new MyLogcatListener(myFormatter, myLogConsole, myLogFilterModel);
 
     DeviceContext.DeviceSelectionListener deviceSelectionListener =
       new DeviceContext.DeviceSelectionListener() {
@@ -235,6 +222,36 @@ public class AndroidLogcatView implements Disposable {
     Disposer.register(this, myLogConsole);
 
     updateLogConsole();
+  }
+
+  private static final class MyLogcatListener extends FormattedLogcatReceiver {
+    private final AndroidLogConsole myConsole;
+    private final AndroidLogFilterModel myModel;
+
+    private MyLogcatListener(@NotNull AndroidLogcatFormatter formatter,
+                             @NotNull AndroidLogConsole console,
+                             @NotNull AndroidLogFilterModel model) {
+      super(formatter);
+
+      myConsole = console;
+      myModel = model;
+    }
+
+    @Override
+    protected void receiveFormattedLogLine(@NotNull String line) {
+      myConsole.addLogLine(line);
+    }
+
+    @Override
+    public void onCleared() {
+      myModel.beginRejectingOldMessages();
+
+      if (myConsole.getConsole() == null) {
+        return;
+      }
+
+      myConsole.clear();
+    }
   }
 
   @NotNull
@@ -345,8 +362,10 @@ public class AndroidLogcatView implements Disposable {
       if (myLogConsole.getConsole() != null) {
         myLogConsole.clear();
       }
-      myLogFilterModel.processingStarted();
+
       myDevice = device;
+
+      myLogFilterModel.processingStarted();
       androidLogcatService.addListener(myDevice, myLogcatReceiver, true);
     }
   }
@@ -473,9 +492,7 @@ public class AndroidLogcatView implements Disposable {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      DialogWrapper dialog = new ConfigureLogcatFormatDialog(myView.myProject);
-
-      if (dialog.showAndGet()) {
+      if (new ConfigureLogcatFormatDialog(myView.myProject, myView.myFormatter).showAndGet()) {
         myView.myLogConsole.refresh();
       }
     }
