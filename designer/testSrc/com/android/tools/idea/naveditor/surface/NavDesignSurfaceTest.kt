@@ -17,8 +17,10 @@ package com.android.tools.idea.naveditor.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
@@ -114,6 +116,29 @@ class NavDesignSurfaceTest : NavTestCase() {
     val subnav = model.find("subnav")!!
     surface.notifyComponentActivate(subnav)
     assertEquals(subnav, surface.currentNavigation)
+  }
+
+  fun testRootActivated() {
+    val surface = NavDesignSurface(project, myRootDisposable)
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        navigation("subnav") {
+          fragment("fragment2")
+        }
+      }
+    }
+    surface.model = model
+    val modelListener = mock(ModelListener::class.java)
+    val surfaceListener = mock(DesignSurfaceListener::class.java)
+    model.addListener(modelListener)
+    surface.addListener(surfaceListener)
+    assertEquals(model.components[0], surface.currentNavigation)
+    val root = model.find("root")!!
+    surface.notifyComponentActivate(root)
+    assertEquals(root, surface.currentNavigation)
+    verifyZeroInteractions(modelListener)
+    verifyZeroInteractions(surfaceListener)
   }
 
   fun testDoubleClickFragment() {
