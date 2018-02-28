@@ -175,6 +175,7 @@ public class NewProjectTest {
       "compileOptions {\n        sourceCompatibility JavaVersion.VERSION_1_7\n        targetCompatibility JavaVersion.VERSION_1_7\n    }");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66249968
   @Test
   public void testNoWarningsInNewProjects() throws IOException {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
