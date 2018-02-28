@@ -260,13 +260,13 @@
     <item tag="SearchView"/>
     <item tag="TextureView"/>
     <item tag="SurfaceView"/>
-    <item tag="view"
+    <item tag="View"
           id="divider1"
           icon="StudioIcons.LayoutEditor.Palette.HORIZONTAL_DIVIDER"
           title="Horizontal Divider">
       <xml reuse="drag-preview">
         <![CDATA[
-            <view
+            <View
               android:id="@+id/divider1"
               android:layout_width="match_parent"
               android:layout_height="1dp"
@@ -275,13 +275,13 @@
           ]]>
       </xml>
     </item>
-    <item tag="view"
+    <item tag="View"
           id="divider2"
           icon="StudioIcons.LayoutEditor.Palette.VERTICAL_DIVIDER"
           title="Vertical Divider">
       <xml reuse="drag-preview">
         <![CDATA[
-            <view
+            <View
               android:id="@+id/divider2"
               android:layout_width="1dp"
               android:layout_height="match_parent"
