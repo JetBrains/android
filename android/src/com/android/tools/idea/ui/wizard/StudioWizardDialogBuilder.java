@@ -45,7 +45,22 @@ public final class StudioWizardDialogBuilder {
    *
    * TODO: remove this once migration to the new design is complete
    */
-  private boolean myUseNewUx = false;
+  public enum UxStyle {
+    /**
+     * Has a title bar with Android Studio icon on the Left, a main text header in large font for the Step title,
+     * a "Android Studio" sub header bellow main header, and an optional Step Icon on the right.
+     */
+    ORIGINAL,
+    /**
+     * Similar to ORIGINAL, without the "Android Studio" sub header and a slightly larger Dialog.
+     */
+    INSTANT_APP,
+    /**
+     * Has a simpler title bar with only the main text header, in large font, for the Step title.
+     */
+    DYNAMIC_APP
+  }
+  @NotNull private UxStyle myUxStyle = UxStyle.ORIGINAL;
 
   @NotNull ModelWizard myWizard;
   @NotNull String myTitle;
@@ -170,14 +185,27 @@ public final class StudioWizardDialogBuilder {
    * TODO: remove this once migration to the new design is complete
    */
   @NotNull
-  public StudioWizardDialogBuilder setUseNewUx(boolean useNewUx) {
-    myUseNewUx = useNewUx;
+  public StudioWizardDialogBuilder setUxStyle(UxStyle style) {
+    myUxStyle = style;
     return this;
   }
 
   @NotNull
   public ModelWizardDialog build() {
-    ModelWizardDialog.CustomLayout customLayout = myUseNewUx ? new StudioWizardLayout() : new com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout();
+    ModelWizardDialog.CustomLayout customLayout;
+    switch (myUxStyle) {
+      case ORIGINAL:
+        customLayout = new com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout();
+        break;
+      case INSTANT_APP:
+        customLayout = new StudioWizardLayout();
+        break;
+      case DYNAMIC_APP:
+        customLayout = new SimpleStudioWizardLayout();
+        break;
+        default:
+          throw new IllegalStateException("Unknown style when attempting to build wizard dialog: " + myUxStyle);
+    }
 
     if (myMinimumSize == null) {
       myMinimumSize = customLayout.getDefaultMinSize();
