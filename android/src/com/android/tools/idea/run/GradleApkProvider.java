@@ -19,6 +19,7 @@ import com.android.build.OutputFile;
 import com.android.builder.model.*;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.AaptInvoker;
@@ -32,6 +33,7 @@ import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -48,10 +50,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
@@ -106,12 +106,19 @@ public class GradleApkProvider implements ApkProvider {
 
     int projectType = androidModel.getAndroidProject().getProjectType();
     if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP || projectType == PROJECT_TYPE_TEST) {
-      // The APK file for instant apps is actually a zip file
-      File apk = getApk(selectedVariant, device, myFacet, false);
       String pkgName = projectType == PROJECT_TYPE_TEST
                        ? myApplicationIdProvider.getTestPackageName()
                        : myApplicationIdProvider.getPackageName();
-      apkList.add(new ApkInfo(apk, pkgName));
+
+      // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
+      // apps (assuming the androidModel is the base split).
+      //
+      // Note: For instant apps, "getApk" currently returns a ZIP to be provisioned on the device instead of
+      //       a .apk file, the "collectDependentFeaturesApks" is a no-op for instant apps.
+      List<File> apkFileList = new ArrayList<>();
+      apkFileList.add(getApk(selectedVariant, device, myFacet, false));
+      apkFileList.addAll(collectDependentFeaturesApks(androidModel, device));
+      apkList.add(new ApkInfo(apkFileList, pkgName));
     }
 
     apkList.addAll(getAdditionalApks(selectedVariant.getMainArtifact()));
@@ -136,6 +143,36 @@ public class GradleApkProvider implements ApkProvider {
     return apkList;
   }
 
+  @NotNull
+  private List<File> collectDependentFeaturesApks(@NotNull AndroidModuleModel androidModel,
+                                                  @NotNull IDevice device) {
+    IdeAndroidProject project = androidModel.getAndroidProject();
+    return DynamicAppUtils.getDependentFeatureModules(myFacet.getModule().getProject(), project)
+      .stream()
+      .map(module -> {
+        // Find the output APK of the module
+        AndroidFacet featureFacet = AndroidFacet.getInstance(module);
+        if (featureFacet == null) {
+          return null;
+        }
+        AndroidModuleModel androidFeatureModel = AndroidModuleModel.get(featureFacet);
+        if (androidFeatureModel == null) {
+          return null;
+        }
+        IdeVariant selectedVariant = androidFeatureModel.getSelectedVariant();
+        try {
+          File apk = getApk(selectedVariant, device, featureFacet, false);
+          return apk;
+        }
+        catch (ApkProvisionException e) {
+          //TODO: Is this the right thing to do?
+          return null;
+        }
+      })
+      .filter(apk -> apk != null)
+      .collect(Collectors.toList());
+  }
+
   /**
    * Returns ApkInfo objects for all runtime apks.
    * <p>
@@ -154,7 +191,11 @@ public class GradleApkProvider implements ApkProvider {
         result.add(new ApkInfo(fileApk, packageId));
       }
       catch (ApkProvisionException e) {
-        getLogger().error("Failed to get the package name from the given file. Therefore, we are not be able to install it. Please install it manually: " + fileApk.getName() + " error: " + e.getMessage(), e);
+        getLogger().error(
+          "Failed to get the package name from the given file. Therefore, we are not be able to install it. Please install it manually: " +
+          fileApk.getName() +
+          " error: " +
+          e.getMessage(), e);
       }
     }
     return result;
@@ -168,9 +209,10 @@ public class GradleApkProvider implements ApkProvider {
   private static String getPackageId(@NotNull File fileApk) throws ApkProvisionException {
     try (Archive archive = Archives.open(fileApk.toPath())) {
       AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(getPathToAapt(), archive);
-      if(applicationInfo == AndroidApplicationInfo.UNKNOWN) {
+      if (applicationInfo == AndroidApplicationInfo.UNKNOWN) {
         throw new ApkProvisionException("Could not determine manifest package for apk: " + fileApk.getName());
-      } else {
+      }
+      else {
         return applicationInfo.packageId;
       }
     }
@@ -220,7 +262,8 @@ public class GradleApkProvider implements ApkProvider {
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(facet);
       if (outputModel == null) {
-        throw new ApkProvisionException("Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");
+        throw new ApkProvisionException(
+          "Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");
       }
 
       for (InstantAppVariantBuildOutput instantAppVariantBuildOutput : outputModel.getInstantAppVariantsBuildOutput()) {
@@ -311,7 +354,7 @@ public class GradleApkProvider implements ApkProvider {
         continue;
       }
 
-      IdeVariant targetVariant = (IdeVariant) targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
+      IdeVariant targetVariant = (IdeVariant)targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
       if (targetVariant == null) {
         getLogger().warn("Tested variant not found. Sync might have failed.");
         continue;
@@ -336,7 +379,8 @@ public class GradleApkProvider implements ApkProvider {
   public List<ValidationError> validate() {
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
     assert androidModuleModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
-    if (androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP || androidModuleModel.getMainArtifact().isSigned()) {
+    if (androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
+        androidModuleModel.getMainArtifact().isSigned()) {
       return ImmutableList.of();
     }
 

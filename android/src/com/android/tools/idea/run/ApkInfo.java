@@ -15,48 +15,61 @@
  */
 package com.android.tools.idea.run;
 
-import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 /**
- * An APK to install on a device or emulator, along with information required to install it.
+ * The list of files to install for a given application ID.
+ * <ul>
+ *   <li>For single APK applications, {@link #getFiles} contains a single {@link File}</li>
+ *   <li>For split APK applications (e.g. app + dynamic features), {@link #getFiles} contains the corresponding list of APK files</li>
+ *   <li>For Instant App applications, {@link #getFiles} contains a single {@link File} which points to a zip file containing
+ *   the app and its optional features.</li>
+ * </ul>
  */
 public final class ApkInfo {
-  /** The APK file. */
+  /** The APK file(s). Contains at least one element. */
   @NotNull
-  private final File myFile;
+  private final List<File> myFiles;
   /** The manifest package name for the APK (the app ID). */
   @NotNull
   private final String myApplicationId;
 
   public ApkInfo(@NotNull File file, @NotNull String applicationId) {
-    myFile = file;
+    myFiles = ImmutableList.of(file);
     myApplicationId = applicationId;
   }
 
+  public ApkInfo(@NotNull List<File> files, @NotNull String applicationId) {
+    Preconditions.checkArgument(!files.isEmpty());
+    myFiles = files;
+    myApplicationId = applicationId;
+  }
+
+  /**
+   * Shortcut for {@link #getFiles() getFiles().get(0)}, used by callers that don't have to handle
+   * dynamic apps.
+   */
   @NotNull
   public File getFile() {
-    return myFile;
+    Preconditions.checkArgument(myFiles.size() == 1);
+    return myFiles.get(0);
+  }
+
+  /**
+   * The list of files to deploy for the given {@link #getApplicationId()}.
+   */
+  @NotNull
+  public List<File> getFiles() {
+    return myFiles;
   }
 
   @NotNull
   public String getApplicationId() {
     return myApplicationId;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof ApkInfo)) {
-      return false;
-    }
-    ApkInfo that = (ApkInfo) o;
-    return myFile.equals(that.getFile()) && myApplicationId.equals(that.getApplicationId());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(myFile, myApplicationId);
   }
 }

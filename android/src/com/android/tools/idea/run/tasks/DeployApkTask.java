@@ -22,6 +22,7 @@ import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.google.common.base.Preconditions;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -45,6 +46,8 @@ public class DeployApkTask implements LaunchTask {
 
   public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks,
                        @Nullable InstantRunContext instantRunContext) {
+    // This class only support single apks deployment
+    Preconditions.checkArgument(apks.stream().allMatch(x -> x.getFiles().size() == 1));
     myProject = project;
     myLaunchOptions = launchOptions;
     myApks = apks;

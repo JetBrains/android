@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -40,6 +41,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -194,7 +196,11 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   public boolean supportsInstantRun() {
-    return true;
+    Module module = getConfigurationModule().getModule();
+    if (module == null) {
+      return true;
+    }
+    return DynamicAppUtils.isInstantRunSupported(module);
   }
 
   @Override
