@@ -16,8 +16,13 @@
 package com.android.tools.idea.tests.gui.framework.guitestprojectsystem
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.intellij.ide.plugins.IdeaPluginDescriptor
+import com.intellij.ide.plugins.IdeaPluginDescriptorImpl
+import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.fest.swing.core.Robot
 import java.io.File
@@ -71,7 +76,47 @@ interface GuiTestProjectSystem {
   companion object {
     val EP_NAME: ExtensionPointName<GuiTestProjectSystem> = ExtensionPointName.create("com.android.project.guitestprojectsystem")
 
-    fun forBuildSystem(buildSystem: TargetBuildSystem.BuildSystem): GuiTestProjectSystem?
-        = EP_NAME.extensions.firstOrNull { it.buildSystem == buildSystem }
+    fun forBuildSystem(buildSystem: TargetBuildSystem.BuildSystem): GuiTestProjectSystem? = try {
+      EP_NAME.extensions.firstOrNull { it.buildSystem == buildSystem }
+    } catch (e: IllegalArgumentException) {
+      // b/73902993: Additional logging to identify the root cause of some sporadic errors
+      val message = getPluginLoadingDebugLogs()
+      println(message)
+      Logger.getInstance(GuiTestProjectSystem::class.java).info(message)
+      throw e
+    }
+
+    private fun getPluginLoadingDebugLogs() : String {
+      val sb = StringBuilder()
+      val pluginPath = StringUtil.notNullize(System.getProperty("plugin.path"))
+
+      // List the contents of each folder in plugin.path
+      pluginPath
+        .split(",")
+        .forEach { folder ->
+          sb.append("Plugin folder: $folder:\n")
+          File(folder).walk().maxDepth(2).forEach { file ->
+            sb.append("  $file\n")
+          }
+        }
+
+      // List all loaded plugins
+      val loadedPlugins = PluginManagerCore.getPlugins().map { it.name }.joinToString(", ")
+      sb.append("Loaded Plugins: $loadedPlugins\n")
+
+      // Was the UI Test Framework plugin present?
+      val uiTestPlugin : IdeaPluginDescriptor? = PluginManagerCore.getPlugins().find { it.name.contains("Android UI Test Framework") }
+      sb.append("UI Test Framework plugin: $uiTestPlugin\n")
+
+      // Extensions present in the UI Test Framework plugin
+      if (uiTestPlugin is IdeaPluginDescriptorImpl) {
+        val extensionPoints = uiTestPlugin.extensionsPoints?.let {
+          it.values().map { it.getAttribute("qualifiedName").value }.joinToString(",")
+        } ?: "<null>"
+        sb.append("Extension Points registered by UI Test Framework plugin: $extensionPoints")
+      }
+
+      return sb.toString()
+    }
   }
 }
