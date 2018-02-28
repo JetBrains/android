@@ -20,7 +20,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.Sdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -181,7 +181,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
   @NotNull
   private Sdk createSdk() {
     File sdkPath = getSdk();
-    AndroidGradleTestCase.allowAccessToSdk(getTestRootDisposable());
+    Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
     Jdks jdks = Jdks.getInstance();
