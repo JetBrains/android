@@ -36,6 +36,7 @@ import javax.swing.table.TableCellEditor
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
+import javax.swing.tree.TreePath
 
 private const val NAME = 0
 private const val UNRESOLVED_VALUE = 1
@@ -49,6 +50,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
   init {
     fillTable()
+    tableModel.setTree(tree)
   }
 
   private fun fillTable() {
@@ -109,6 +111,8 @@ class VariablesTable(private val project: Project, private val context: PsContex
   }
 
   class VariablesTableModel(root: TreeNode) : DefaultTreeModel(root), TreeTableModel {
+    private var tableTree: JTree? = null
+
     override fun getColumnCount(): Int = 3
 
     override fun getColumnName(column: Int): String {
@@ -128,41 +132,16 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     override fun getValueAt(node: Any?, column: Int): Any? {
-      if (node !is VariableNode) {
-        if (column == NAME) {
-          return node.toString()
-        }
-        return null
+      if (node !is BaseNode) {
+        return ""
       }
 
-      when (column) {
-        NAME -> return node.toString()
-        UNRESOLVED_VALUE -> {
-          val type = node.variable.valueType
-          return when (type) {
-            GradlePropertyModel.ValueType.MAP -> {
-              val unresolvedMapValue = node.variable.getUnresolvedValue(MAP_TYPE) ?: return null
-              "[" + Joiner.on(", ").join(unresolvedMapValue.keys) + "]"
-            }
-            GradlePropertyModel.ValueType.LIST -> {
-              val unresolvedListValue = node.variable.getUnresolvedValue(LIST_TYPE) ?: return null
-              "[" + Joiner.on(", ").join(unresolvedListValue) + "]"
-            }
-            GradlePropertyModel.ValueType.STRING -> {
-              val unresolvedValue = node.variable.getUnresolvedValue(STRING_TYPE) ?: return null
-              StringUtil.wrapWithDoubleQuote(unresolvedValue)
-            }
-            else -> node.variable.getUnresolvedValue(STRING_TYPE)
-          }
-        }
-        RESOLVED_VALUE -> {
-          val resolvedValue = node.variable.getResolvedValue(STRING_TYPE) ?: return null
-          if (node.variable.valueType != ValueType.STRING) {
-            return resolvedValue
-          }
-          return StringUtil.wrapWithDoubleQuote(resolvedValue)
-        }
-        else -> return null
+      val isExpanded = tableTree?.isExpanded(TreePath(node.path)) == true
+      return when (column) {
+        NAME -> node.name
+        UNRESOLVED_VALUE -> node.getUnresolvedValue(isExpanded)
+        RESOLVED_VALUE -> node.getResolvedValue(isExpanded)
+        else -> ""
       }
     }
 
@@ -187,10 +166,104 @@ class VariablesTable(private val project: Project, private val context: PsContex
       }
     }
 
-    override fun setTree(tree: JTree?) {}
+    override fun setTree(tree: JTree?) {
+      tableTree = tree
+    }
   }
 
-  class VariableNode(val variable: PsVariable) : DefaultMutableTreeNode(variable.name)
+  abstract class BaseNode(val name: String) : DefaultMutableTreeNode(name) {
+    abstract fun getUnresolvedValue(expanded: Boolean): String
+    abstract fun getResolvedValue(expanded: Boolean): String
+  }
 
-  class ModuleNode(val module: PsModule) : DefaultMutableTreeNode(module.name)
+  inner class VariableNode(val variable: PsVariable) : BaseNode(variable.name) {
+    init {
+      when (variable.valueType) {
+        GradlePropertyModel.ValueType.MAP -> {
+          variable.getUnresolvedValue(MAP_TYPE)?.forEach { add(MapItemNode(it)) }
+        }
+        GradlePropertyModel.ValueType.LIST -> {
+          variable.getUnresolvedValue(LIST_TYPE)?.forEachIndexed { index, propertyModel -> add(ListItemNode(index, propertyModel)) }
+        }
+        else -> {}
+      }
+    }
+
+    override fun getUnresolvedValue(expanded: Boolean): String {
+      if (expanded) {
+        return ""
+      }
+      val type = variable.valueType
+      return when (type) {
+        GradlePropertyModel.ValueType.MAP -> {
+          val unresolvedMapValue = variable.getUnresolvedValue(MAP_TYPE) ?: return ""
+          unresolvedMapValue.entries.joinToString(prefix = "[", postfix = "]")
+        }
+        GradlePropertyModel.ValueType.LIST -> {
+          val unresolvedListValue = variable.getUnresolvedValue(LIST_TYPE) ?: return ""
+          unresolvedListValue.joinToString(prefix = "[", postfix = "]")
+        }
+        GradlePropertyModel.ValueType.STRING -> {
+          val unresolvedValue = variable.getUnresolvedValue(STRING_TYPE) ?: return ""
+          StringUtil.wrapWithDoubleQuote(unresolvedValue)
+        }
+        else -> variable.getUnresolvedValue(STRING_TYPE) ?: ""
+      }
+    }
+
+    override fun getResolvedValue(expanded: Boolean): String {
+      if (expanded) {
+        return ""
+      }
+      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: return ""
+      if (variable.valueType == ValueType.STRING) {
+        return StringUtil.wrapWithDoubleQuote(resolvedValue)
+      }
+      return resolvedValue
+    }
+  }
+
+  class ModuleNode(val module: PsModule) : BaseNode(module.name) {
+    override fun getUnresolvedValue(expanded: Boolean) = ""
+
+    override fun getResolvedValue(expanded: Boolean) = ""
+  }
+
+  class ListItemNode(val index: Int, private val propertyModel: GradlePropertyModel) : BaseNode(index.toString()) {
+    override fun getUnresolvedValue(expanded: Boolean): String {
+      val value = propertyModel.getRawValue(STRING_TYPE) ?: ""
+      if (propertyModel.valueType == ValueType.STRING) {
+        return StringUtil.wrapWithDoubleQuote(value)
+      }
+      return value
+    }
+
+    override fun getResolvedValue(expanded: Boolean): String {
+      val resolvedValue = propertyModel.getValue(STRING_TYPE) ?: ""
+      if (propertyModel.valueType == ValueType.STRING) {
+        return StringUtil.wrapWithDoubleQuote(resolvedValue)
+      }
+      return resolvedValue
+    }
+  }
+
+  class MapItemNode(private val mapValue: Map.Entry<String, GradlePropertyModel>) : BaseNode(mapValue.key) {
+    override fun getUnresolvedValue(expanded: Boolean): String {
+      val propertyModel = mapValue.value
+      val value = propertyModel.getRawValue(STRING_TYPE) ?: ""
+      if (propertyModel.valueType == ValueType.STRING) {
+        return StringUtil.wrapWithDoubleQuote(value)
+      }
+      return value
+    }
+
+    override fun getResolvedValue(expanded: Boolean): String {
+      val propertyModel = mapValue.value
+      val resolvedValue = propertyModel.getValue(STRING_TYPE) ?: ""
+      if (propertyModel.valueType == ValueType.STRING) {
+        return StringUtil.wrapWithDoubleQuote(resolvedValue)
+      }
+      return resolvedValue
+    }
+  }
 }

@@ -29,10 +29,20 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psProject = PsProject(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables.getModuleVariables()
-    assertThat(variables.size, equalTo(8))
+    assertThat(variables.size, equalTo(9))
     assertThat(
       variables.map { it.name },
-      hasItems("myVariable", "variable1", "anotherVariable", "moreVariable", "varInt", "varBool", "varRefString", "varProGuardFiles")
+      hasItems(
+        "myVariable",
+        "variable1",
+        "anotherVariable",
+        "mapVariable",
+        "moreVariable",
+        "varInt",
+        "varBool",
+        "varRefString",
+        "varProGuardFiles"
+      )
     )
   }
 
@@ -42,7 +52,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     run {
       val variables = psAppModule.variables.getAvailableVariablesForType(String::class.java)
-      assertThat(variables.size, equalTo(6))
+      assertThat(variables.size, equalTo(8))
       assertThat(
         variables,
         hasItems<Pair<String, String?>>(
@@ -51,7 +61,9 @@ class PsVariablesTest : AndroidGradleTestCase() {
           "anotherVariable" to "3.0.1",
           "moreVariable" to "1234",
           "varInt" to "1",  // Integers are compatible with Strings. This is often used in Gradle configs.
-          "varRefString" to "1.3"
+          "varRefString" to "1.3",
+          "mapVariable.a" to "\"double\" quotes",
+          "mapVariable.b" to "'single' quotes"
         )
       )
     }
