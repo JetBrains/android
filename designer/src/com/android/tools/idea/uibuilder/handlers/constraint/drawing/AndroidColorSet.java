@@ -99,5 +99,10 @@ public class AndroidColorSet extends ColorSet {
         mInspectorFillColor = ColorTheme
                 .fadeToColor(ColorTheme.updateBrightness(mBackground, 1.3f),
                         Color.WHITE, 0.1f);
+
+        // Lasso colors
+
+        mLassoSelectionBorder = new Color(24, 134, 247, 192);
+        mLassoSelectionFill = new Color(24, 134, 247, 26);
     }
 }

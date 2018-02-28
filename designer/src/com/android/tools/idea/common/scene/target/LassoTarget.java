@@ -38,16 +38,18 @@ public class LassoTarget extends BaseTarget {
   @AndroidDpCoordinate private float myLastY;
   private boolean myShowRect;
   private final boolean mySelectWhileDragging;
+  private final boolean myShowMargins;
   private final HashSet<SceneComponent> myIntersectingComponents = new HashSet<>();
   private boolean myHasChanged;
   private boolean myHasDragged;
 
   public LassoTarget() {
-    this(false);
+    this(false, true);
   }
 
-  public LassoTarget(boolean selectWhileDragging) {
+  public LassoTarget(boolean selectWhileDragging, boolean showMargins) {
     mySelectWhileDragging = selectWhileDragging;
+    myShowMargins = showMargins;
   }
 
   public boolean getSelectWhileDragging() {
@@ -104,7 +106,7 @@ public class LassoTarget extends BaseTarget {
       float x2 = Math.max(myOriginX, myLastX);
       float y1 = Math.min(myOriginY, myLastY);
       float y2 = Math.max(myOriginY, myLastY);
-      DrawLasso.add(list, sceneContext, x1, y1, x2, y2);
+      DrawLasso.add(list, sceneContext, x1, y1, x2, y2, myShowMargins);
     }
   }
 

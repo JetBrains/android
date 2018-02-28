@@ -30,28 +30,43 @@ public class DrawLasso extends DrawRegion {
   public static final int NORMAL = 0;
   public static final int OVER = 1;
   private static final int GAP = 16;
+  private boolean myShowMargins;
 
   public DrawLasso(String s) {
     super(s);
   }
 
-  public DrawLasso(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
+  public DrawLasso(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height, boolean showMargins) {
     super(x, y, width, height);
+    myShowMargins = showMargins;
+  }
+
+  @Override
+  protected int parse(String[] sp, int c) {
+    myShowMargins = Boolean.parseBoolean(sp[c++]);
+    return c;
+  }
+
+  @Override
+  public String serialize() {
+    return super.serialize() + "," + myShowMargins;
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getFrames();
-    g.setColor(background);
-    String valueWidth = String.valueOf((int)(sceneContext.pxToDp(width) / sceneContext.getScale()));
-    DrawConnectionUtils.drawHorizontalMarginIndicator(g, valueWidth, false, x, x + width, y - GAP);
-    String valueHeight = String.valueOf((int)(sceneContext.pxToDp(height) / sceneContext.getScale()));
-    DrawConnectionUtils.drawVerticalMarginIndicator(g, valueHeight, false, x - GAP, y, y + height);
-    Stroke stroke = g.getStroke();
-    g.setStroke(DrawConnectionUtils.sDashedStroke);
+    Color borderColor = colorSet.getLassoSelectionBorder();
+    g.setColor(borderColor);
+    if(myShowMargins) {
+      String valueWidth = String.valueOf((int)(sceneContext.pxToDp(width) / sceneContext.getScale()));
+      DrawConnectionUtils.drawHorizontalMarginIndicator(g, valueWidth, false, x, x + width, y - GAP);
+      String valueHeight = String.valueOf((int)(sceneContext.pxToDp(height) / sceneContext.getScale()));
+      DrawConnectionUtils.drawVerticalMarginIndicator(g, valueHeight, false, x - GAP, y, y + height);
+    }
     g.drawRect(x, y, width, height);
-    g.setStroke(stroke);
+    Color fillColor = colorSet.getLassoSelectionFill();
+    g.setColor(fillColor);
+    g.fillRect(x, y, width, height);
   }
 
   public static void add(DisplayList list,
@@ -59,11 +74,12 @@ public class DrawLasso extends DrawRegion {
                          @AndroidDpCoordinate float left,
                          @AndroidDpCoordinate float top,
                          @AndroidDpCoordinate float right,
-                         @AndroidDpCoordinate float bottom) {
+                         @AndroidDpCoordinate float bottom,
+                         boolean showMargins) {
     int l = transform.getSwingXDip(left);
     int t = transform.getSwingYDip(top);
     int w = transform.getSwingDimensionDip(right - left);
     int h = transform.getSwingDimensionDip(bottom - top);
-    list.add(new DrawLasso(l, t, w, h));
+    list.add(new DrawLasso(l, t, w, h, showMargins));
   }
 }

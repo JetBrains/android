@@ -38,6 +38,8 @@ public class NavColorSet extends ColorSet {
   public static final JBColor ACTION_COLOR = new JBColor(new Color(0xb2a7a7a7, true), new Color(0xb2888888, true));
   public static final JBColor HIGHLIGHTED_ACTION_COLOR = new JBColor(0xa7a7a7, 0x888888);
   public static final JBColor SELECTED_ACTION_COLOR = new JBColor(0x1886f7, 0x9ccdff);
+  public static final JBColor LASSO_BORDER_COLOR = new JBColor(new Color(0xc01886f7, true), new Color(0xc09ccdff, true));
+  public static final JBColor LASSO_FILL_COLOR = new JBColor(new Color(0x1a1886f7, true), new Color(0x1a9ccdff, true));
   private Color mActions;
   private Color mHighlightedActions;
   private Color mSelectedActions;
@@ -63,6 +65,9 @@ public class NavColorSet extends ColorSet {
     mActions = ACTION_COLOR;
     mHighlightedActions = HIGHLIGHTED_ACTION_COLOR;
     mSelectedActions = SELECTED_ACTION_COLOR;
+
+    mLassoSelectionBorder = LASSO_BORDER_COLOR;
+    mLassoSelectionFill = LASSO_FILL_COLOR;
   }
 
   public Color getActions()  {

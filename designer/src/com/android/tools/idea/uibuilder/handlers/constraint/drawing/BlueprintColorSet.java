@@ -107,5 +107,10 @@ public class BlueprintColorSet extends ColorSet {
         mInspectorFillColor = ColorTheme
                 .fadeToColor(ColorTheme.updateBrightness(mBackground, 1.3f),
                         Color.WHITE, 0.1f);
+
+        // Lasso colors
+
+        mLassoSelectionBorder = new Color(mSelectedFrames.getRed(), mSelectedFrames.getGreen(), mSelectedFrames.getBlue(), 192);
+        mLassoSelectionFill = new Color(mSelectedFrames.getRed(), mSelectedFrames.getGreen(), mSelectedFrames.getBlue(), 26);
     }
 }

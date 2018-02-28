@@ -106,6 +106,9 @@ public class ColorSet {
     protected Color mDragReceiverFrames = new Color(135, 195, 77);
     protected Color mDragReceiverBackground = new Color(154, 221, 140, 60);
 
+    protected Color mLassoSelectionBorder;
+    protected Color mLassoSelectionFill;
+
     public Stroke getOutlineStroke() { return sOutlineStroke; }
 
     public Paint getBackgroundPaint() {
@@ -260,4 +263,11 @@ public class ColorSet {
         return myUnconstrainedColor;
     }
 
+    public Color getLassoSelectionBorder() {
+        return mLassoSelectionBorder;
+    }
+
+    public Color getLassoSelectionFill() {
+        return mLassoSelectionFill;
+    }
 }

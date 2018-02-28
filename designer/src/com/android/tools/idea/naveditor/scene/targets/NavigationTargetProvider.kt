@@ -25,6 +25,6 @@ import com.android.tools.idea.common.scene.target.Target
  */
 class NavigationTargetProvider : TargetProvider {
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
-    return listOf(LassoTarget(true))
+    return listOf(LassoTarget(true, false))
   }
 }
