@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.Density;
@@ -27,10 +29,13 @@ import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.LayoutMetadata;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -111,6 +116,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   @NotNull
   protected final ImmutableMap<String, String> myNamespacePrefixes;
 
+  private final ResourceNamespace myLayoutNamespace;
+
   protected boolean myProvideViewCookies = true;
 
   /** If true, the parser will use app:srcCompat instead of android:src for the tags specified in {@link #TAGS_SUPPORTING_SRC_COMPAT} */
@@ -182,8 +189,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull TagSnapshot root, @NotNull ILayoutLog log) {
-    return new LayoutPsiPullParser(root, log);
+  public static LayoutPsiPullParser create(@NotNull TagSnapshot root, @NotNull ResourceNamespace layoutNamespace, @NotNull ILayoutLog log) {
+    return new LayoutPsiPullParser(root, layoutNamespace, log);
   }
 
   /**
@@ -238,24 +245,27 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     myResourceResolver = resourceResolver;
     myLogger = logger;
 
-    if (root != null) {
-      myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-        if (root.isValid()) {
-          return createSnapshot(root, honorMergeParentTag);
-        } else {
-          return EMPTY_LAYOUT;
-        }
-      });
-    } else {
-      myRoot = EMPTY_LAYOUT;
-    }
+    Ref<TagSnapshot> myRootRef = new Ref<>(EMPTY_LAYOUT);
+    Ref<ResourceNamespace> myLayoutNamespaceRef = new Ref<>(ResourceNamespace.RES_AUTO);
+    ReadAction.run(() -> {
+      if (root != null && root.isValid()) {
+        myRootRef.set(createSnapshot(root, honorMergeParentTag));
 
+        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(root);
+        if (repositoryManager != null) {
+          myLayoutNamespaceRef.set(repositoryManager.getNamespace());
+        }
+      }
+    });
+
+    myRoot = myRootRef.get();
+    myLayoutNamespace = myLayoutNamespaceRef.get();
     myNamespacePrefixes = buildNamespacesMap(myRoot);
     // Obtain a list of all the aapt declared attributes
     myDeclaredAaptAttrs = findDeclaredAaptAttrs(myRoot);
   }
 
-  protected LayoutPsiPullParser(@NotNull TagSnapshot root, @NotNull ILayoutLog log) {
+  protected LayoutPsiPullParser(@NotNull TagSnapshot root, @NotNull ResourceNamespace layoutNamespace, @NotNull ILayoutLog log) {
     myResourceResolver = null;
     myLogger = log;
     myDeclaredAaptAttrs = ImmutableMap.of();
@@ -268,6 +278,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     });
 
     myNamespacePrefixes = buildNamespacesMap(myRoot);
+    myLayoutNamespace = layoutNamespace;
   }
 
   /**
@@ -278,6 +289,12 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   @NotNull
   public ImmutableMap<String, TagSnapshot> getAaptDeclaredAttrs() {
     return myDeclaredAaptAttrs;
+  }
+
+  @NonNull
+  @Override
+  public ResourceNamespace getLayoutNamespace() {
+    return myLayoutNamespace;
   }
 
   /**

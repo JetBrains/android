@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.LayoutlibCallback;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.tools.idea.rendering.LayoutMetadata;
 import com.google.common.base.Charsets;
@@ -41,6 +42,7 @@ import static com.android.SdkConstants.*;
  * include tags.
  */
 public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParser {
+  @NotNull private final ResourceNamespace myLayoutNamespace;
   /**
    * The layout to be shown for the current {@code <fragment>} tag. Usually null.
    */
@@ -49,19 +51,19 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
   /**
    * Crates a new {@link LayoutFilePullParser} for the given XML file.
    */
-  public static LayoutFilePullParser create(@NotNull File xml)
+  public static LayoutFilePullParser create(@NotNull File xml, @NotNull ResourceNamespace namespace)
       throws XmlPullParserException, IOException {
     String xmlText = Files.toString(xml, Charsets.UTF_8);
-    return create(xmlText);
+    return create(xmlText, namespace);
   }
 
   /**
    * Crates a new {@link LayoutFilePullParser} for the given XML text.
    */
   @NotNull
-  public static LayoutFilePullParser create(@NotNull String xmlText)
+  public static LayoutFilePullParser create(@NotNull String xmlText, @NotNull ResourceNamespace namespace)
       throws XmlPullParserException {
-    LayoutFilePullParser parser = new LayoutFilePullParser();
+    LayoutFilePullParser parser = new LayoutFilePullParser(namespace);
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     parser.setInput(new StringReader(xmlText));
     return parser;
@@ -72,8 +74,8 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
    *
    * @param layoutlibCallback the associated callback
    */
-  private LayoutFilePullParser() {
-    super();
+  private LayoutFilePullParser(@NotNull ResourceNamespace layoutNamespace) {
+    myLayoutNamespace = layoutNamespace;
   }
   // --- Layout lib API methods
 
@@ -108,6 +110,13 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
     }
 
     return null;
+  }
+
+  @NonNull
+  @Override
+  @NotNull
+  public ResourceNamespace getLayoutNamespace() {
+    return myLayoutNamespace;
   }
 
   // --- KXMLParser override

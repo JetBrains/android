@@ -22,10 +22,13 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -62,6 +65,21 @@ public class ResourceRepositoryManager implements Disposable {
       instance = facet.putUserDataIfAbsent(KEY, new ResourceRepositoryManager(facet));
     }
     return instance;
+  }
+
+  @Nullable
+  public static ResourceRepositoryManager getInstance(@NotNull PsiElement element) {
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    if (module == null) {
+      return null;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+
+    return getOrCreateInstance(facet);
   }
 
   private ResourceRepositoryManager(@NotNull AndroidFacet facet) {

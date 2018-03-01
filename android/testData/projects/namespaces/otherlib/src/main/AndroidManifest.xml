@@ -14,10 +14,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
-    <string name="lib_string">Hello, this is lib.</string>
-    <string name="lib_string_indirect">@string/lib_string</string>
-    <string name="lib_string_indirect_full">@com.example.lib:string/lib_string</string>
-
-    <color name="lib_color">#00ff00</color>
-</resources>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.otherlib" >
+</manifest>

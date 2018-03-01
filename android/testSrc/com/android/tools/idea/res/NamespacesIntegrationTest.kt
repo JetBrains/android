@@ -54,7 +54,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
   fun testResolver() {
     loadProject(TestProjectPaths.NAMESPACES)
-    val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "activity_my.xml")!!
+    val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "simple_strings.xml")!!
     val resourceResolver = ConfigurationManager.getOrCreateInstance(myModules.appModule).getConfiguration(layout).resourceResolver!!
     val appNs = ResourceRepositoryManager.getOrCreateInstance(myAndroidFacet).namespace
 
