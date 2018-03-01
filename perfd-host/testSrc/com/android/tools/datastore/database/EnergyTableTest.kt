@@ -82,6 +82,7 @@ class EnergyTableTest {
           session, EnergyProfiler.EnergyEvent.newBuilder()
             .setEventId(i)
             .setTimestamp(timeReleased)
+            .setIsTerminal(true)
             .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
             .build()
         )
