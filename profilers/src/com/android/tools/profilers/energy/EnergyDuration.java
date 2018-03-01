@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -79,11 +78,28 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
         // TODO(b/73852076): Handle if the first event item is a released wakelock
         return myEventList.get(0).getWakeLockAcquired().getTag();
       case ALARM_SET:
-        return "alarm" + TimeUnit.NANOSECONDS.toMillis(getInitialTimestamp());
+        if (myEventList.get(0).getAlarmSet().hasListener()) {
+          return myEventList.get(0).getAlarmSet().getListener().getTag();
+        }
+        break;
+      case ALARM_CANCELLED:
+        if (myEventList.get(0).getAlarmCancelled().hasListener()) {
+          return myEventList.get(0).getAlarmCancelled().getListener().getTag();
+        }
+        break;
+      case JOB_SCHEDULED:
+        return String.valueOf(myEventList.get(0).getJobScheduled().getJob().getJobId());
+      case JOB_STARTED:
+        return String.valueOf(myEventList.get(0).getJobStarted().getParams().getJobId());
+      case JOB_STOPPED:
+        return String.valueOf(myEventList.get(0).getJobStopped().getParams().getJobId());
+      case JOB_FINISHED:
+        return String.valueOf(myEventList.get(0).getJobFinished().getParams().getJobId());
       default:
         getLogger().warn("First event in duration is " + myEventList.get(0).getMetadataCase().name());
-        return "unspecified";
+        break;
     }
+    return "unspecified";
   }
 
   @NotNull
