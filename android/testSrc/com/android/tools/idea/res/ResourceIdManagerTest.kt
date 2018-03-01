@@ -83,7 +83,8 @@ class ResourceIdManagerTest : LightCodeInsightFixtureTestCase() {
     assertEquals(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout"), idManager.findById(layoutId))
   }
 
-  fun testResetDynamicIds() {
+  // TODO: b/74060933
+  fun ignore_testResetDynamicIds() {
     val id1 = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string1"))
     val id2 = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string2"))
     val id3 = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string3"))
