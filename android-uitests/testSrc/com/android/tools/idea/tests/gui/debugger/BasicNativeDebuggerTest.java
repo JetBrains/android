@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
@@ -44,7 +43,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Rule public final GuiTestRule guiTest =
     new NativeDebuggerGuiTestRule().withTimeout(7, TimeUnit.MINUTES);
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
-  @Rule public final ScreenshotsDuringTest movieMaker = new ScreenshotsDuringTest();
 
   private static final String C_FILE_NAME = "app/src/main/jni/native-lib.c";
   private static final String C_BP_LINE = "return (*env)->NewStringUTF(env, message);";
