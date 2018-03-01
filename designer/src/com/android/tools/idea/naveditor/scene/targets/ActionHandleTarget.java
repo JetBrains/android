@@ -105,6 +105,7 @@ public class ActionHandleTarget extends NavBaseTarget {
   @Override
   public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @NotNull List<Target> closestTargets) {
     myIsDragging = false;
+    myComponent.getScene().needsRebuildList();
     getComponent().setDragging(false);
   }
 
@@ -137,12 +138,6 @@ public class ActionHandleTarget extends NavBaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (myIsDragging) {
-      list.add(new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext),
-                                        sceneContext.getSwingDimension(myHandleState.myOuterRadius)));
-      return;
-    }
-
     HandleState newState = calculateState();
 
     if (newState == HandleState.INVISIBLE && myHandleState == HandleState.INVISIBLE) {
@@ -161,7 +156,14 @@ public class ActionHandleTarget extends NavBaseTarget {
     initialRadius = sceneContext.getSwingDimension(myHandleState.myInnerRadius);
     finalRadius = sceneContext.getSwingDimension(newState.myInnerRadius);
     Color color = getComponent().isSelected() ? colorSet.getSelectedFrames() : colorSet.getSubduedFrames();
-    list.add(new DrawCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, STROKE, new LerpValue(initialRadius, finalRadius, duration)));
+
+    if (myIsDragging) {
+      list.add(new DrawFilledCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, finalRadius));
+      list.add(new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext)));
+    }
+    else {
+      list.add(new DrawCircle(DRAW_ACTION_HANDLE_LEVEL, center, color, STROKE, new LerpValue(initialRadius, finalRadius, duration)));
+    }
 
     myHandleState = newState;
   }
@@ -178,6 +180,10 @@ public class ActionHandleTarget extends NavBaseTarget {
   }
 
   private HandleState calculateState() {
+    if (myIsDragging) {
+      return HandleState.SMALL;
+    }
+
     if (myComponent.getScene().getDesignSurface().getInteractionManager().isInteractionInProgress()) {
       return HandleState.INVISIBLE;
     }

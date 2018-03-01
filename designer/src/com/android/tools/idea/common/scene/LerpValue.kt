@@ -19,6 +19,8 @@ package com.android.tools.idea.common.scene
 class LerpValue(val start: Int, val end: Int, val duration: Int) {
   private var startTime = -1L
 
+  constructor(value: Int) : this(value, value, 0)
+
   /**
    * Gets the interpolated value at the specified time. The start
    * time is measured from the first time getValue is called.
