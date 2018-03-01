@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions.annotations;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -285,7 +286,10 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
           @Override
           protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
-            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, true);
+            GoogleMavenArtifactId annotation = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
+                                               GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
+                                               GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
+            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
