@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -35,7 +36,7 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
     assertNotNull(virtualFile);
     File file = VfsUtilCore.virtualToIoFile(virtualFile);
 
-    LayoutFilePullParser parser = LayoutFilePullParser.create(file);
+    LayoutFilePullParser parser = LayoutFilePullParser.create(file, ResourceNamespace.RES_AUTO);
 
     assertNull(parser.getName());
 

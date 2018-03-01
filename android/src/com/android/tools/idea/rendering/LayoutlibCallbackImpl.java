@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.*;
@@ -355,7 +354,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     ILayoutPullParser parser;
     if (value != null && !myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
       TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(layoutResource.getValue(), AAPT_ATTR_PREFIX));
-      parser = LayoutPsiPullParser.create(aaptResource, myLogger);
+      // TODO(namespaces, b/74003372): figure out where to get the namespace from.
+      parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO, myLogger);
     }
     else {
       parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), new File(layoutResource.getValue()));
@@ -445,7 +445,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       // layout editor behavior in included layouts as well - which for example
       // replaces <fragment> tags with <include>.
       try {
-        return LayoutFilePullParser.create(xml);
+        return LayoutFilePullParser.create(xml, namespace);
       }
       catch (XmlPullParserException e) {
         LOG.error(e);

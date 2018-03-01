@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ Copyright (C) 2018 The Android Open Source Project
   ~
@@ -14,10 +13,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<resources>
-    <string name="lib_string">Hello, this is lib.</string>
-    <string name="lib_string_indirect">@string/lib_string</string>
-    <string name="lib_string_indirect_full">@com.example.lib:string/lib_string</string>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:other="http://schemas.android.com/apk/res/com.example.otherlib"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <color name="lib_color">#00ff00</color>
-</resources>
+    <TextView
+        android:text="?other:text"
+        android:textColor="?other:other_color"
+        android:textSize="60sp"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

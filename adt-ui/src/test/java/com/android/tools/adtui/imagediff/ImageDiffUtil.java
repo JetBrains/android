@@ -19,6 +19,7 @@ package com.android.tools.adtui.imagediff;
 import com.android.testutils.TestResources;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -186,6 +187,17 @@ public final class ImageDiffUtil {
       System.err.println("Couldn't load default TrueType Font. Using a logical font instead.");
       return AdtUiUtils.DEFAULT_FONT;
     }
+  }
+  public static void assertImageSimilar(File goldenFile,
+                                        BufferedImage actual,
+                                        double maxPercentDifferent) throws IOException {
+    if (!goldenFile.exists()) {
+      Files.createParentDirs(goldenFile);
+      ImageIO.write(actual, "PNG", goldenFile);
+      fail("File did not exist, created here:" + goldenFile);
+    }
+
+    assertImageSimilar(goldenFile.getName(), ImageIO.read(goldenFile), actual, maxPercentDifferent);
   }
 
   public static void assertImageSimilar(String imageName, BufferedImage goldenImage,

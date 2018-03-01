@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -119,6 +121,13 @@ public class DomPullParser extends LayoutPullParser {
       return myViewCookies.get(element);
     }
     return element;
+  }
+
+  @NonNull
+  @Override
+  public ResourceNamespace getLayoutNamespace() {
+    // TODO(namespaces, b/74003372): figure out where to get the namespace from.
+    return ResourceNamespace.TODO;
   }
 
   // ------------- XmlPullParser --------
