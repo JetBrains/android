@@ -16,6 +16,7 @@
 package com.android.tools.profilers.energy;
 
 import com.android.tools.profiler.proto.EnergyProfiler;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +27,8 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-public class EnergyDetailsOverview extends JPanel {
+final class EnergyDetailsOverview extends JPanel {
 
   @NotNull private final EnergyProfilerStageView myStageView;
   @NotNull private final JTextPane myTextPane;
@@ -44,7 +44,7 @@ public class EnergyDetailsOverview extends JPanel {
     myTextPane.setBorder(null);
     myTextPane.setEditable(false);
     Font labelFont = UIManager.getFont("Label.font");
-    StyleSheet styleSheet = ((HTMLDocument) myTextPane.getDocument()).getStyleSheet();
+    StyleSheet styleSheet = ((HTMLDocument)myTextPane.getDocument()).getStyleSheet();
     styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: 11pt; }");
     styleSheet.addRule("p { margin: 4 0 4 0; }");
     add(myTextPane);
@@ -59,91 +59,50 @@ public class EnergyDetailsOverview extends JPanel {
       return;
     }
 
-    StringBuilder stringBuilder = new StringBuilder();
-    stringBuilder.append("<html>");
+    UiHtmlText html = new UiHtmlText();
     for (EnergyProfiler.EnergyEvent event : duration.getEventList()) {
-      appendMetadataTitle(stringBuilder, event);
+      renderMetadataTitle(html, event);
+
       switch (event.getMetadataCase()) {
         case WAKE_LOCK_ACQUIRED:
-          appendWakeLockAcquired(stringBuilder, event.getWakeLockAcquired());
+          html.renderWakeLockAcquired(event.getWakeLockAcquired());
           break;
         case ALARM_SET:
-          appendAlarmSet(stringBuilder, event.getAlarmSet());
+          html.renderAlarmSet(event.getAlarmSet());
           break;
         case ALARM_CANCELLED:
-          appendAlarmCancelled(stringBuilder, event.getAlarmCancelled());
+          html.renderAlarmCancelled(event.getAlarmCancelled());
+          break;
+        case JOB_SCHEDULED:
+          html.renderJobScheduled(event.getJobScheduled());
+          break;
+        case JOB_STARTED:
+          html.renderJobStarted(event.getJobStarted());
+          break;
+        case JOB_STOPPED:
+          html.renderJobStopped(event.getJobStopped());
+          break;
+        case JOB_FINISHED:
+          html.renderJobFinished(event.getJobFinished());
           break;
         default:
+          getLogger().warn("Unsupported overview " + event.getMetadataCase());
           break;
       }
-      stringBuilder.append("<br>");
+      html.appendNewLine();
     }
-    stringBuilder.append("</html>");
-    myTextPane.setText(stringBuilder.toString());
+    myTextPane.setText(html.toString());
   }
 
-  private long getSessionStartTimeNs() {
-    return myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
+  private void renderMetadataTitle(@NotNull UiHtmlText html, @NotNull EnergyProfiler.EnergyEvent event) {
+    long timeNs = event.getTimestamp() - myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
+    String time = StringUtil.formatDuration(TimeUnit.NANOSECONDS.toMillis(timeNs));
+    String title = String.format("<b>%s</b>&nbsp;%s", event.getMetadataCase().name(), time);
+    html.appendTitle(title);
   }
 
-  private void appendMetadataTitle(@NotNull StringBuilder stringBuilder, @NotNull EnergyProfiler.EnergyEvent event) {
-    long timeMs = TimeUnit.NANOSECONDS.toMillis(event.getTimestamp() - getSessionStartTimeNs());
-    stringBuilder.append("<p><b>").append(event.getMetadataCase().name()).append("</b>&nbsp;");
-    stringBuilder.append(StringUtil.formatDuration(timeMs)).append("</p>");
-  }
-
-  private static void appendWakeLockAcquired(@NotNull StringBuilder stringBuilder,
-                                             @NotNull EnergyProfiler.WakeLockAcquired wakeLockAcquired) {
-    appendTitleAndValue(stringBuilder,"Name", wakeLockAcquired.getTag());
-    appendTitleAndValue(stringBuilder,"Level", wakeLockAcquired.getLevel().name());
-    if (!wakeLockAcquired.getFlagsList().isEmpty()) {
-      String creationFlags = wakeLockAcquired.getFlagsList().stream()
-        .map(EnergyProfiler.WakeLockAcquired.CreationFlag::name)
-        .collect(Collectors.joining(", "));
-      appendTitleAndValue(stringBuilder,"Flags", creationFlags);
-    }
-  }
-
-  private static void appendAlarmSet(@NotNull StringBuilder stringBuilder, @NotNull EnergyProfiler.AlarmSet alarmSet) {
-    appendTitleAndValue(stringBuilder,"Type", alarmSet.getType().name());
-    appendTitleAndValue(stringBuilder,"TriggerTime", StringUtil.formatDuration(alarmSet.getTriggerMs()));
-    appendTitleAndValue(stringBuilder,"IntervalTime", StringUtil.formatDuration(alarmSet.getIntervalMs()));
-    appendTitleAndValue(stringBuilder,"WindowTime", StringUtil.formatDuration(alarmSet.getWindowMs()));
-    switch(alarmSet.getSetActionCase()) {
-      case OPERATION:
-        appendAlarmOperation(stringBuilder, alarmSet.getOperation());
-        break;
-      case LISTENER:
-        appendTitleAndValue(stringBuilder, "ListenerTag", alarmSet.getListener().getTag());
-        break;
-      default:
-        break;
-    }
-  }
-
-  private static void appendAlarmCancelled(@NotNull StringBuilder stringBuilder, @NotNull EnergyProfiler.AlarmCancelled alarmCancelled) {
-    switch (alarmCancelled.getCancelActionCase()) {
-      case OPERATION:
-        appendAlarmOperation(stringBuilder, alarmCancelled.getOperation());
-        break;
-      case LISTENER:
-        appendTitleAndValue(stringBuilder, "ListenerTag", alarmCancelled.getListener().getTag());
-        break;
-      default:
-        break;
-    }
-  }
-
-  private static void appendAlarmOperation(@NotNull StringBuilder stringBuilder, @NotNull EnergyProfiler.PendingIntent operation) {
-    if (operation.getCreatorPackage().isEmpty()) {
-      return;
-    }
-    String value = String.format("%s&nbsp;(UID:&nbsp;%d)", operation.getCreatorPackage(), operation.getCreatorUid());
-    appendTitleAndValue(stringBuilder, "Creator", value);
-  }
-
-  private static void appendTitleAndValue(@NotNull StringBuilder stringBuilder, @NotNull String title, @NotNull String value) {
-    stringBuilder.append("<p><b>").append(title).append("</b>:&nbsp<span>");
-    stringBuilder.append(value).append("</span></p>");
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(EnergyDetailsOverview.class);
   }
 }

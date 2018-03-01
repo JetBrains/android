@@ -19,6 +19,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent
+import com.android.tools.profiler.proto.EnergyProfiler.JobScheduled
 import com.android.tools.profiler.proto.Profiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.*
@@ -67,6 +68,35 @@ class EnergyDetailsViewTest {
   private val alarmCancelledEvent = EnergyEvent.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(900))
     .setAlarmCancelled(alarmCancelled)
+    .build()
+
+  private val periodicJob = EnergyProfiler.JobInfo.newBuilder()
+    .setJobId(1111)
+    .setServiceName("ServiceNameValue")
+    .setBackoffPolicy(EnergyProfiler.JobInfo.BackoffPolicy.BACKOFF_POLICY_LINEAR)
+    .setInitialBackoffMs(1L)
+    .setIsPeriodic(true)
+    .setFlexMs(2L)
+    .setIntervalMs(3L)
+    .setNetworkType(EnergyProfiler.JobInfo.NetworkType.NETWORK_TYPE_METERED)
+    .addAllTriggerContentUris(Arrays.asList("url1", "url2"))
+    .setTriggerContentMaxDelay(4L)
+    .setTriggerContentUpdateDelay(5L)
+    .setIsRequireBatteryNotLow(true)
+    .setIsRequireDeviceIdle(true)
+    .setExtras("ExtrasValue")
+    .setTransientExtras("TransientExtrasValue").build()
+  private val nonPeriodicJob = EnergyProfiler.JobInfo.newBuilder(periodicJob)
+    .setIsPeriodic(false)
+    .setMinLatencyMs(10L)
+    .setMaxExecutionDelayMs(20L)
+    .build()
+  private val jobParams = EnergyProfiler.JobParameters.newBuilder()
+    .setJobId(3333)
+    .addAllTriggeredContentAuthorities(Arrays.asList("auth1", "auth2"))
+    .setIsOverrideDeadlineExpired(true)
+    .setExtras("ExtrasValue")
+    .setTransientExtras("TransientExtrasValue")
     .build()
 
   private val profilerService = FakeProfilerService(true)
@@ -154,6 +184,109 @@ class EnergyDetailsViewTest {
     view.setDuration(null)
     val emptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
     assertThat(emptyView.components).isEmpty()
+  }
+
+  @Test
+  fun periodicJobScheduledIsProperlyRendered() {
+    val jobScheduled = JobScheduled.newBuilder().setJob(periodicJob).setResult(JobScheduled.Result.RESULT_SUCCESS).build()
+    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(100)).setJobScheduled(jobScheduled).build()
+    view.setDuration(EnergyDuration(Arrays.asList(event)))
+    val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
+    with(textPane.text) {
+      assertJobInfoLabelsAndValues(this)
+
+      assertUiContainsLabelAndValue(this, "IsPeriodic", "true")
+      assertUiContainsLabelAndValue(this, "FlexTime", "2ms")
+      assertUiContainsLabelAndValue(this, "IntervalTime", "3ms")
+      assertThat(this).doesNotContain("MinLatencyTime")
+      assertThat(this).doesNotContain("MaxExecutionDelayTime")
+
+      assertUiContainsLabelAndValue(this, "Result", "RESULT_SUCCESS")
+    }
+  }
+
+  @Test
+  fun nonPeriodicJobScheduleIsProperlyRendered() {
+    val jobScheduled = JobScheduled.newBuilder().setJob(nonPeriodicJob).setResult(JobScheduled.Result.RESULT_FAILURE).build()
+    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(200)).setJobScheduled(jobScheduled).build()
+    view.setDuration(EnergyDuration(Arrays.asList(event)))
+    val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
+    with(textPane.text) {
+      assertJobInfoLabelsAndValues(this)
+
+      assertUiContainsLabelAndValue(this, "IsPeriodic", "false")
+      assertUiContainsLabelAndValue(this, "MinLatencyTime", "10ms")
+      assertUiContainsLabelAndValue(this, "MaxExecutionDelayTime", "20ms")
+      assertThat(this).doesNotContain("FlexTime")
+      assertThat(this).doesNotContain("IntervalTime")
+
+      assertUiContainsLabelAndValue(this, "Result", "RESULT_FAILURE")
+    }
+  }
+
+  @Test
+  fun jobStartedIsProperlyRendered() {
+    val jobStarted = EnergyProfiler.JobStarted.newBuilder().setParams(jobParams).setWorkOngoing(true).build()
+    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(300)).setJobStarted(jobStarted).build()
+    view.setDuration(EnergyDuration(Arrays.asList(event)))
+    val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
+    with(textPane.text) {
+      assertJobParamsLabelsAndValues(this)
+      assertUiContainsLabelAndValue(this,"WorkOngoing", "true")
+    }
+  }
+
+  @Test
+  fun jobStoppedIsProperlyRendered() {
+    val jobStopped = EnergyProfiler.JobStopped.newBuilder().setParams(jobParams).setReschedule(true).build()
+    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(400)).setJobStopped(jobStopped).build()
+    view.setDuration(EnergyDuration(Arrays.asList(event)))
+    val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
+    with(textPane.text) {
+      assertJobParamsLabelsAndValues(this)
+      assertUiContainsLabelAndValue(this, "Reschedule", "true")
+    }
+  }
+
+  @Test
+  fun jobFinishedIsProperlyRendered() {
+    val jobFinished = EnergyProfiler.JobFinished.newBuilder().setParams(jobParams).build()
+    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(500)).setJobFinished(jobFinished).build()
+    view.setDuration(EnergyDuration(Arrays.asList(event)))
+    val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
+    with(textPane.text) {
+      assertJobParamsLabelsAndValues(this)
+      assertUiContainsLabelAndValue(this, "NeedsReschedule", "false")
+    }
+  }
+
+  private fun assertJobInfoLabelsAndValues(uiText: String) {
+    assertUiContainsLabelAndValue(uiText, "JobId", "1111")
+    assertUiContainsLabelAndValue(uiText, "ServiceName", "ServiceNameValue")
+    assertUiContainsLabelAndValue(uiText, "BackoffPolicy", "BACKOFF_POLICY_LINEAR")
+    assertUiContainsLabelAndValue(uiText, "InitialBackoffTime", "1ms")
+
+    assertUiContainsLabelAndValue(uiText, "NetworkType", "NETWORK_TYPE_METERED")
+    assertUiContainsLabelAndValue(uiText, "TriggerContentURIs", "url1, url2")
+    assertUiContainsLabelAndValue(uiText, "TriggerContentMaxDelayTime", "4ms")
+    assertUiContainsLabelAndValue(uiText, "TriggerContentUpdateDelayTime", "5ms")
+    assertUiContainsLabelAndValue(uiText, "PersistOnReboot", "false")
+    assertUiContainsLabelAndValue(uiText, "RequiresBatteryNotLow", "true")
+    assertUiContainsLabelAndValue(uiText, "RequiresCharging", "false")
+    assertUiContainsLabelAndValue(uiText, "RequiresDeviceIdle", "true")
+    assertUiContainsLabelAndValue(uiText, "RequiresStorageNotLow", "false")
+    assertUiContainsLabelAndValue(uiText, "Extras", "ExtrasValue")
+    assertUiContainsLabelAndValue(uiText, "TransientExtras", "TransientExtrasValue")
+  }
+
+  private fun assertJobParamsLabelsAndValues(uiText: String) {
+    assertUiContainsLabelAndValue(uiText, "JobId", "3333")
+    assertUiContainsLabelAndValue(uiText, "TriggerContentAuthorities", "auth1, auth2")
+    assertThat(uiText).doesNotContain("TriggerContentURIs")
+    assertUiContainsLabelAndValue(uiText, "IsOverrideDeadlineExpired", "true")
+    assertUiContainsLabelAndValue(uiText,"Extras", "ExtrasValue")
+    assertUiContainsLabelAndValue(uiText,"TransientExtras", "TransientExtrasValue")
+
   }
 
   private fun assertUiContainsLabelAndValue(uiText: String, label: String, value: String) {
