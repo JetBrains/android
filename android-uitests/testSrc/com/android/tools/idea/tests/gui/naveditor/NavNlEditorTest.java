@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -32,6 +29,8 @@ import org.fest.swing.driver.BasicJListCellReader;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LABEL;
@@ -64,6 +63,11 @@ public class NavNlEditorTest {
     screen.click();
 
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
+
+    DestinationListFixture destinationListFixture = DestinationListFixture.Companion.create(guiTest.robot());
+    List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
+    assertEquals(selectedComponents.size(), 1);
+    assertEquals(selectedComponents.get(0).getId(), "first_screen");
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/72238573
@@ -90,6 +94,9 @@ public class NavNlEditorTest {
     guiTest.robot().type('\b');
 
     layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
+
+    List<NlComponent> selectedComponents = fixture.getSelectedComponents();
+    assertEquals(selectedComponents.size(), 0);
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/72238573
@@ -111,6 +118,11 @@ public class NavNlEditorTest {
 
     assertEquals(1, layout.getSelection().size());
     assertEquals("my label", layout.getSelection().get(0).getAttribute(ANDROID_URI, ATTR_LABEL));
+
+    DestinationListFixture destinationListFixture = DestinationListFixture.Companion.create(guiTest.robot());
+    List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
+    assertEquals(selectedComponents.size(), 1);
+    assertEquals(selectedComponents.get(0).getId(), "fragment");
   }
 
   @Test
