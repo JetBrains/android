@@ -44,7 +44,7 @@ public class StringResourceRepository {
   private final LocalResourceRepository myDynamicResourceRepository;
 
   private StringResourceRepository(@NotNull MultiResourceRepository parent) {
-    Collection<? extends LocalResourceRepository> children = parent.getChildren();
+    Collection<LocalResourceRepository> children = parent.getChildren();
     Map<VirtualFile, LocalResourceRepository> resourceDirectoryRespositoryMap = Maps.newLinkedHashMapWithExpectedSize(children.size());
     LocalResourceRepository dynamicResourceRespository = null;
 

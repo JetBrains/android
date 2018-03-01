@@ -104,7 +104,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     invalidateParentCaches();
   }
 
-  public List<? extends LocalResourceRepository> getChildren() {
+  public List<LocalResourceRepository> getChildren() {
     synchronized (ITEM_MAP_LOCK) {
       return ImmutableList.copyOf(myChildren);
     }
