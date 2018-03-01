@@ -80,7 +80,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
     // Unfortunately this isn't a case where we can fix the root cause because adb and logcat are
     // both external to Android Studio. In fact, the latest adb/logcat versions have already fixed
     // this issue! But we still need to run properly with older versions. Also, putting this fix in
-    // MultilineReceiver isn't right either because it is used for more than just receiving logcat.
+    // MultiLineReceiver isn't right either because it is used for more than just receiving logcat.
     line = line.replaceAll("\\r", "");
 
     if (line.isEmpty()) {
