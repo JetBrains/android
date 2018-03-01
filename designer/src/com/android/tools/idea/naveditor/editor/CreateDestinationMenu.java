@@ -230,7 +230,11 @@ public class CreateDestinationMenu extends NavToolbarMenu {
       return RENDERER_COMPONENT;
     });
     Multimap<String, PsiClass> tagToClass = HashMultimap.create();
-    mySchema.getNavigatorClassTagMap().forEach((psiClass, tag) -> tagToClass.put(tag, psiClass));
+    mySchema.getNavigatorClassTagMap().forEach((psiClass, tag) -> {
+      if (mySchema.getDestinationType(tag) != NavigationSchema.DestinationType.ACTIVITY) {
+        tagToClass.put(tag, psiClass);
+      }
+    });
     Pair<String, PsiClass> defaultSelection = null;
     String defaultTag = mySchema.getDefaultTag(FRAGMENT);
     // Iterate over tagTypeMap since it includes <include>

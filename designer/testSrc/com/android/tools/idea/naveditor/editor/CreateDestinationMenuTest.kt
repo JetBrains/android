@@ -227,22 +227,6 @@ class CreateDestinationMenuTest : NavTestCase() {
     assertEquals(surface.currentNavigation.startDestination, "myId")
   }
 
-  fun testCreateActivity() {
-    val menu = Mockito.spy(menu)
-
-    menu.myKindPopup.selectedItem = myItemsByType[NavigationSchema.DestinationType.ACTIVITY]
-    menu.myIdField.text = "myId"
-    menu.myLabelField.text = "myLabel"
-
-    menu.createDestination()
-
-    val added = model.find("myId")!!
-    assertEquals("activity", added.tagName)
-    assertEquals("myLabel", added.getAndroidAttribute(ATTR_LABEL))
-    assertEquals(ImmutableList.of(added), surface.selectionModel.selection)
-    assertEquals(surface.currentNavigation.startDestination, "myId")
-  }
-
   fun testCreateInclude() {
     // TODO: implement create new included graph
     /*
@@ -283,7 +267,7 @@ class CreateDestinationMenuTest : NavTestCase() {
     for (i in 0 until popup.itemCount) {
       result.add((renderer.getListCellRendererComponent(null, popup.getItemAt(i), i, false, false) as JLabel).text)
     }
-    assertEquals(ImmutableSet.of(/*"Include Graph",*/"Nested Graph", "Fragment", "Activity"), result)
+    assertEquals(ImmutableSet.of(/*"Include Graph",*/"Nested Graph", "Fragment"), result)
     assertEquals(myItemsByType[NavigationSchema.DestinationType.FRAGMENT], popup.selectedItem)
   }
 
