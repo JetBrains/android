@@ -22,10 +22,15 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Point
 
-class DrawFilledCircle(private val myLevel: Int,
-                       @SwingCoordinate private val myCenter: Point,
-                       private val myColor: Color,
-                       @SwingCoordinate private val myRadius: LerpValue) : DrawCommand {
+class DrawFilledCircle(private val level: Int,
+                       @SwingCoordinate private val center: Point,
+                       private val color: Color,
+                       @SwingCoordinate private val radius: LerpValue) : DrawCommand {
+
+  constructor(myLevel: Int,
+              @SwingCoordinate myCenter: Point,
+              myColor: Color,
+              @SwingCoordinate radius: Int) : this(myLevel, myCenter, myColor, LerpValue(radius))
 
   private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint(sp[1]),
       stringToColor(sp[2]), stringToLerp(sp[3]))
@@ -33,28 +38,28 @@ class DrawFilledCircle(private val myLevel: Int,
   constructor(s: String) : this(parse(s, 4))
 
   override fun getLevel(): Int {
-    return myLevel
+    return level
   }
 
   override fun serialize(): String {
     return buildString(javaClass.simpleName,
-        myLevel,
-        pointToString(myCenter),
-        colorToString(myColor),
-        lerpToString(myRadius))
+        level,
+        pointToString(center),
+        colorToString(color),
+        lerpToString(radius))
   }
 
   override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    val r = myRadius.getValue(sceneContext.time)
+    val r = radius.getValue(sceneContext.time)
 
     val g2 = g.create()
 
-    g2.color = myColor
-    g2.fillOval(myCenter.x - r, myCenter.y - r, 2 * r, 2 * r)
+    g2.color = color
+    g2.fillOval(center.x - r, center.y - r, 2 * r, 2 * r)
 
     g2.dispose()
 
-    if (r != myRadius.end) {
+    if (r != radius.end) {
       sceneContext.repaint()
     }
   }

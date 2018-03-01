@@ -51,8 +51,8 @@ class SerializationTest : TestCase() {
   fun testDrawActionHandleDrag() {
     val factory = { s: String -> DrawActionHandleDrag(s) }
 
-    testSerialization("DrawActionHandleDrag,10,20,5", DrawActionHandleDrag(10, 20, 5), factory)
-    testSerialization("DrawActionHandleDrag,30,50,10", DrawActionHandleDrag(30, 50, 10), factory)
+    testSerialization("DrawActionHandleDrag,10,20", DrawActionHandleDrag(10, 20), factory)
+    testSerialization("DrawActionHandleDrag,30,50", DrawActionHandleDrag(30, 50), factory)
   }
 
   fun testDrawTruncatedText() {

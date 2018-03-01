@@ -28,7 +28,6 @@ public class DrawActionHandleDragTest extends TestCase {
   private static final Color COLOR = Color.WHITE;
   private static final int X = 10;
   private static final int Y = 10;
-  private static final int R = 5;
   private static final int MAX_DISTANCE = 5;
 
   public void testDrawActionHandleDrag() {
@@ -43,7 +42,7 @@ public class DrawActionHandleDragTest extends TestCase {
     SceneContext sceneContext = mock(SceneContext.class);
     Graphics2D g = mock(Graphics2D.class);
     when(g.create()).thenReturn(g);
-    DrawActionHandleDrag drawActionHandleDrag = new DrawActionHandleDrag(X, Y, R);
+    DrawActionHandleDrag drawActionHandleDrag = new DrawActionHandleDrag(X, Y);
     ColorSet colorSet = mock(ColorSet.class);
 
     when(colorSet.getSelectedFrames()).thenReturn(COLOR);
@@ -53,9 +52,6 @@ public class DrawActionHandleDragTest extends TestCase {
 
     InOrder inOrder = inOrder(g);
     drawActionHandleDrag.paint(g, sceneContext);
-
-    inOrder.verify(g).setColor(COLOR);
-    inOrder.verify(g).fillOval(X - R, Y - R, 2 * R, 2 * R);
 
     inOrder.verify(g).setStroke(DrawActionHandleDrag.STROKE);
     inOrder.verify(g).drawLine(X, Y, mouseX, mouseY);
