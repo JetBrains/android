@@ -29,6 +29,8 @@ import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResource
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.StateList;
+import com.android.tools.idea.res.StateListState;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -63,7 +65,7 @@ public class StateListPicker extends JPanel {
 
   private final Module myModule;
   private final Configuration myConfiguration;
-  private @Nullable ResourceHelper.StateList myStateList;
+  private @Nullable StateList myStateList;
   private List<StateComponent> myStateComponents;
   private final @NotNull RenderTask myRenderTask;
 
@@ -72,7 +74,7 @@ public class StateListPicker extends JPanel {
    *  and descriptions to use in case there is a problem. */
   private @NotNull ImmutableMap<String, Color> myContrastColorsWithDescription = ImmutableMap.of();
 
-  public StateListPicker(@Nullable ResourceHelper.StateList stateList,
+  public StateListPicker(@Nullable StateList stateList,
                          @NotNull Module module,
                          @NotNull Configuration configuration) {
 
@@ -85,14 +87,14 @@ public class StateListPicker extends JPanel {
     }
   }
 
-  public void setStateList(@NotNull ResourceHelper.StateList stateList) {
+  public void setStateList(@NotNull StateList stateList) {
     myStateList = stateList;
     myStateComponents = Lists.newArrayListWithCapacity(myStateList.getStates().size());
     removeAll();
     if (myStateList.getStates().isEmpty()) {
       add(new JLabel("Empty " + myStateList.getType() + " StateList"));
     }
-    for (final ResourceHelper.StateListState state : myStateList.getStates()) {
+    for (final StateListState state : myStateList.getStates()) {
       final StateComponent stateComponent = createStateComponent(state);
       add(stateComponent);
     }
@@ -101,7 +103,7 @@ public class StateListPicker extends JPanel {
   }
 
   @NotNull
-  private StateComponent createStateComponent(@NotNull ResourceHelper.StateListState state) {
+  private StateComponent createStateComponent(@NotNull StateListState state) {
     final StateComponent stateComponent = new StateComponent(myModule.getProject());
     myStateComponents.add(stateComponent);
 
@@ -132,7 +134,7 @@ public class StateListPicker extends JPanel {
   }
 
   @NotNull
-  private JBPopupMenu createAlphaPopupMenu(@NotNull final ResourceHelper.StateListState state,
+  private JBPopupMenu createAlphaPopupMenu(@NotNull final StateListState state,
                                            @NotNull final StateComponent stateComponent) {
     JBPopupMenu popupMenu = new JBPopupMenu();
     final JMenuItem deleteAlpha = new JMenuItem("Delete alpha");
@@ -196,15 +198,15 @@ public class StateListPicker extends JPanel {
   }
 
   @Nullable
-  public ResourceHelper.StateList getStateList() {
+  public StateList getStateList() {
     return myStateList;
   }
 
   class ValueActionListener implements ActionListener, DocumentListener {
-    private final ResourceHelper.StateListState myState;
+    private final StateListState myState;
     private final StateComponent myComponent;
 
-    public ValueActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
+    public ValueActionListener(StateListState state, StateComponent stateComponent) {
       myState = state;
       myComponent = stateComponent;
     }
@@ -277,10 +279,10 @@ public class StateListPicker extends JPanel {
   }
 
   private class AlphaActionListener implements ActionListener, DocumentListener {
-    private final ResourceHelper.StateListState myState;
+    private final StateListState myState;
     private final StateComponent myComponent;
 
-    public AlphaActionListener(ResourceHelper.StateListState state, StateComponent stateComponent) {
+    public AlphaActionListener(StateListState state, StateComponent stateComponent) {
       myState = state;
       myComponent = stateComponent;
     }

@@ -37,10 +37,7 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.idea.res.ProjectResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.*;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Function;
@@ -840,7 +837,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                          ResourceResolver resolver,
                                          ResourceValue resValue,
                                          final ResourceType stateListType, final ResourceFolderType stateListFolderType) {
-    ResourceHelper.StateList stateList = null;
+    StateList stateList = null;
     if (resValue != null) {
       stateList = ResourceHelper.resolveStateList(resolver, resValue, myModule.getProject());
       if (stateList != null && stateList.getType() != stateListType) {
@@ -888,7 +885,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         }
         if (files != null) {
           assert myStateListPicker != null;
-          ResourceHelper.StateList stateList1 = myStateListPicker.getStateList();
+          StateList stateList1 = myStateListPicker.getStateList();
           assert stateList1 != null;
           AndroidResourceUtil.updateStateList(project, stateList1, files);
         }
@@ -1789,7 +1786,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           return true;
         }
         Project project = myModule.getProject();
-        ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), item.getResourceValue(), project);
+        StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), item.getResourceValue(), project);
         if (stateList != null) { // if this is not a state list, it may be just a normal color
           return true;
         } else {
@@ -1891,7 +1888,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         resourceEditorTab = myReferencePanel;
       }
       else {
-        ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), resourceValue, myModule.getProject());
+        StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), resourceValue, myModule.getProject());
         if (stateList != null) { // if this is not a state list, it may be just a normal color
           ensurePickersInitialized();
           assert myStateListPickerPanel != null;

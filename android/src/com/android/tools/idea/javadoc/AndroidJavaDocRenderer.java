@@ -972,16 +972,16 @@ public class AndroidJavaDocRenderer {
         return;
       }
 
-      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resolver, resolvedValue, myModule.getProject());
+      StateList stateList = ResourceHelper.resolveStateList(resolver, resolvedValue, myModule.getProject());
       if (stateList != null) {
-        List<ResourceHelper.StateListState> states = stateList.getStates();
+        List<StateListState> states = stateList.getStates();
         if (states.isEmpty()) {
           // user error
           renderError(builder, "Empty StateList");
         }
         else {
           builder.addHtml("<table>");
-          for (ResourceHelper.StateListState state : states) {
+          for (StateListState state : states) {
             builder.addHtml("<tr>");
             builder.addHtml("<td>");
 
@@ -1200,16 +1200,16 @@ public class AndroidJavaDocRenderer {
         return;
       }
 
-      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resolver, resourceValue, myModule.getProject());
+      StateList stateList = ResourceHelper.resolveStateList(resolver, resourceValue, myModule.getProject());
       if (stateList != null) {
-        List<ResourceHelper.StateListState> states = stateList.getStates();
+        List<StateListState> states = stateList.getStates();
         if (states.isEmpty()) {
           // user error
           renderError(builder, "Empty StateList");
         }
         else {
           builder.addHtml("<table>");
-          for (ResourceHelper.StateListState state : states) {
+          for (StateListState state : states) {
             builder.addHtml("<tr>");
             builder.addHtml("<td>");
 

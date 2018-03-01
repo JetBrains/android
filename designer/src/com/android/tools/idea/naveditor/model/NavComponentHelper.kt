@@ -22,7 +22,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
-import com.android.tools.idea.res.ResourceHelper
+import com.android.tools.idea.res.resolveStringValue
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
@@ -58,7 +58,7 @@ fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
       id ?:
       resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".") ?:
       tagName
-  return resourceResolver?.let { ResourceHelper.resolveStringValue(it, name) } ?: name
+  return resourceResolver?.resolveStringValue(name) ?: name
 }
 
 val NlComponent.visibleDestinations: List<NlComponent>

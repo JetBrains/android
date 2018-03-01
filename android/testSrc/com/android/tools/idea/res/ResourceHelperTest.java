@@ -159,25 +159,25 @@ public class ResourceHelperTest extends AndroidTestCase {
   }
 
   public void testDisabledStateListStates() {
-    ResourceHelper.StateListState disabled = new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", false), null);
-    ResourceHelper.StateListState disabledPressed =
-      new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", false, "state_pressed", true), null);
-    ResourceHelper.StateListState pressed = new ResourceHelper.StateListState("value", ImmutableMap.of("state_pressed", true), null);
-    ResourceHelper.StateListState enabledPressed =
-      new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", true, "state_pressed", true), null);
-    ResourceHelper.StateListState enabled = new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", true), null);
-    ResourceHelper.StateListState selected = new ResourceHelper.StateListState("value", ImmutableMap.of("state_selected", true), null);
-    ResourceHelper.StateListState selectedPressed =
-      new ResourceHelper.StateListState("value", ImmutableMap.of("state_selected", true, "state_pressed", true), null);
-    ResourceHelper.StateListState enabledSelectedPressed =
-      new ResourceHelper.StateListState("value", ImmutableMap.of("state_enabled", true, "state_selected", true, "state_pressed", true),
+    StateListState disabled = new StateListState("value", ImmutableMap.of("state_enabled", false), null);
+    StateListState disabledPressed =
+      new StateListState("value", ImmutableMap.of("state_enabled", false, "state_pressed", true), null);
+    StateListState pressed = new StateListState("value", ImmutableMap.of("state_pressed", true), null);
+    StateListState enabledPressed =
+      new StateListState("value", ImmutableMap.of("state_enabled", true, "state_pressed", true), null);
+    StateListState enabled = new StateListState("value", ImmutableMap.of("state_enabled", true), null);
+    StateListState selected = new StateListState("value", ImmutableMap.of("state_selected", true), null);
+    StateListState selectedPressed =
+      new StateListState("value", ImmutableMap.of("state_selected", true, "state_pressed", true), null);
+    StateListState enabledSelectedPressed =
+      new StateListState("value", ImmutableMap.of("state_enabled", true, "state_selected", true, "state_pressed", true),
                                         null);
-    ResourceHelper.StateListState notFocused = new ResourceHelper.StateListState("value", ImmutableMap.of("state_focused", false), null);
-    ResourceHelper.StateListState notChecked = new ResourceHelper.StateListState("value", ImmutableMap.of("state_checked", false), null);
-    ResourceHelper.StateListState checkedNotPressed =
-      new ResourceHelper.StateListState("value", ImmutableMap.of("state_checked", true, "state_pressed", false), null);
+    StateListState notFocused = new StateListState("value", ImmutableMap.of("state_focused", false), null);
+    StateListState notChecked = new StateListState("value", ImmutableMap.of("state_checked", false), null);
+    StateListState checkedNotPressed =
+      new StateListState("value", ImmutableMap.of("state_checked", true, "state_pressed", false), null);
 
-    ResourceHelper.StateList stateList = new ResourceHelper.StateList("stateList", "colors");
+    StateList stateList = new StateList("stateList", "colors");
     stateList.addState(pressed);
     stateList.addState(disabled);
     stateList.addState(selected);
@@ -186,7 +186,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     stateList.addState(disabledPressed);
     assertThat(stateList.getDisabledStates()).containsExactly(disabled, disabledPressed);
 
-    stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList = new StateList("stateList", "colors");
     stateList.addState(enabled);
     stateList.addState(pressed);
     stateList.addState(selected);
@@ -194,7 +194,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     stateList.addState(disabled);
     assertThat(stateList.getDisabledStates()).containsExactly(pressed, selected, enabledPressed, disabled);
 
-    stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList = new StateList("stateList", "colors");
     stateList.addState(enabledPressed);
     stateList.addState(pressed);
     stateList.addState(selected);
@@ -204,7 +204,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     stateList.addState(selectedPressed);
     assertThat(stateList.getDisabledStates()).containsExactly(pressed, disabled, selectedPressed);
 
-    stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList = new StateList("stateList", "colors");
     stateList.addState(enabledSelectedPressed);
     stateList.addState(pressed);
     stateList.addState(selected);
@@ -212,7 +212,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     stateList.addState(selectedPressed);
     assertThat(stateList.getDisabledStates()).containsExactly(disabled, selectedPressed);
 
-    stateList = new ResourceHelper.StateList("stateList", "colors");
+    stateList = new StateList("stateList", "colors");
     stateList.addState(enabledPressed);
     stateList.addState(notChecked);
     stateList.addState(checkedNotPressed);
@@ -264,10 +264,10 @@ public class ResourceHelperTest extends AndroidTestCase {
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(innerFileLand.getVirtualFile());
     XmlTag include = outerFile.getRootTag().findFirstSubTag("include");
     ResourceValue resolved =
-      ResourceHelper.resolve(ResourceUrl.parse("@newauto:layout/inner"), include, configuration.getResourceResolver());
+      ResourceHelper.resolve(configuration.getResourceResolver(), ResourceUrl.parse("@newauto:layout/inner"), include);
     assertEquals(innerFileLand.getVirtualFile().getPath(), resolved.getValue());
     configuration.setDeviceState(configuration.getDevice().getState("Portrait"));
-    resolved = ResourceHelper.resolve(ResourceUrl.parse("@newauto:layout/inner"), include, configuration.getResourceResolver());
+    resolved = ResourceHelper.resolve(configuration.getResourceResolver(), ResourceUrl.parse("@newauto:layout/inner"), include);
     assertEquals(innerFilePort.getVirtualFile().getPath(), resolved.getValue());
   }
 

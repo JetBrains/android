@@ -22,8 +22,12 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.StateList;
+import com.android.tools.idea.res.StateListState;
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
@@ -75,9 +79,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.resources.ResourceType.ATTR;
-import static com.android.resources.ResourceType.PUBLIC;
-import static com.android.resources.ResourceType.STYLEABLE;
+import static com.android.resources.ResourceType.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -1383,7 +1385,7 @@ public class AndroidResourceUtil {
     return foundFiles ? files : null;
   }
 
-  public static void updateStateList(@NotNull Project project, final @NotNull ResourceHelper.StateList stateList,
+  public static void updateStateList(@NotNull Project project, final @NotNull StateList stateList,
                                      @NotNull List<VirtualFile> files) {
     if (!ensureFilesWritable(project, files)) {
       return;
@@ -1425,7 +1427,7 @@ public class AndroidResourceUtil {
           for (XmlTag subtag : tag.getSubTags()) {
             subtag.delete();
           }
-          for (ResourceHelper.StateListState state : stateList.getStates()) {
+          for (StateListState state : stateList.getStates()) {
             XmlTag child = tag.createChildTag(TAG_ITEM, tag.getNamespace(), null, false);
             child = tag.addSubTag(child, false);
 

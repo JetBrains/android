@@ -28,7 +28,7 @@ import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.scene.*
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.rendering.ImagePool.Image
-import com.android.tools.idea.res.ResourceHelper
+import com.android.tools.idea.res.resolve
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
 import java.awt.Font
@@ -86,7 +86,7 @@ abstract class NavScreenDecorator : SceneDecorator() {
       return null
     }
     val resourceResolver = configuration.resourceResolver ?: return null
-    val resourceValue = ResourceHelper.resolve(resourceUrl, component.nlComponent.tag, resourceResolver)?.value ?: return null
+    val resourceValue = resourceResolver.resolve(resourceUrl, component.nlComponent.tag)?.value ?: return null
 
     val file = File(resourceValue)
     if (!file.exists()) {

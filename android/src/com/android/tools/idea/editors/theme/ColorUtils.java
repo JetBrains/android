@@ -19,6 +19,8 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.StateList;
+import com.android.tools.idea.res.StateListState;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -106,10 +108,10 @@ public class ColorUtils {
 
     Set<ItemResourceValue> contrastItems = getContrastItems(context, styleAttributeName);
     for (ItemResourceValue contrastItem : contrastItems) {
-      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(styleResourceResolver, contrastItem, project);
+      StateList stateList = ResourceHelper.resolveStateList(styleResourceResolver, contrastItem, project);
       if (stateList != null) {
-        List<ResourceHelper.StateListState> disabledStates = stateList.getDisabledStates();
-        for (ResourceHelper.StateListState stateListState : stateList.getStates()) {
+        List<StateListState> disabledStates = stateList.getDisabledStates();
+        for (StateListState stateListState : stateList.getStates()) {
           Color stateListColor = ResourceHelper
             .resolveColor(styleResourceResolver, styleResourceResolver.findResValue(stateListState.getValue(), false), project);
           if (stateListColor != null) {
