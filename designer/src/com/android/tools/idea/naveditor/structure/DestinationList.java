@@ -176,25 +176,7 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       myModel = toolContext.getModel();
       mySelectionModel = toolContext.getSelectionModel();
       mySelectionModelListener = (model, selection) -> {
-        if (mySelectionUpdating) {
-          return;
-        }
-        try {
-          mySelectionUpdating = true;
-          Set<NlComponent> components = new HashSet<>(mySelectionModel.getSelection());
-          List<Integer> selectedIndices = new ArrayList<>();
-          for (int i = 0; i < myListModel.size(); i++) {
-            if (components.contains(myListModel.get(i))) {
-              selectedIndices.add(i);
-            }
-          }
-          myList.setSelectedIndices(ArrayUtil.toIntArray(selectedIndices));
-
-          updateBackLabel();
-        }
-        finally {
-          mySelectionUpdating = false;
-        }
+        updateListSelection();
       };
       mySelectionModel.addListener(mySelectionModelListener);
       myListSelectionListener = e -> {
@@ -305,8 +287,38 @@ public class DestinationList extends JPanel implements ToolContent<DesignSurface
       }
     }
     if (!newElements.equals(Collections.list(myListModel.elements()))) {
-      myListModel.clear();
-      newElements.forEach(myListModel::addElement);
+      mySelectionUpdating = true;
+
+      try {
+        myListModel.clear();
+        newElements.forEach(myListModel::addElement);
+      }
+      finally {
+        mySelectionUpdating = false;
+      }
+    }
+    updateListSelection();
+  }
+
+  private void updateListSelection() {
+    if (mySelectionUpdating) {
+      return;
+    }
+    try {
+      mySelectionUpdating = true;
+      Set<NlComponent> components = new HashSet<>(mySelectionModel.getSelection());
+      List<Integer> selectedIndices = new ArrayList<>();
+      for (int i = 0; i < myListModel.size(); i++) {
+        if (components.contains(myListModel.get(i))) {
+          selectedIndices.add(i);
+        }
+      }
+      myList.setSelectedIndices(ArrayUtil.toIntArray(selectedIndices));
+
+      updateBackLabel();
+    }
+    finally {
+      mySelectionUpdating = false;
     }
   }
 

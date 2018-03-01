@@ -30,6 +30,9 @@ class DestinationListFixture(private val robot: Robot, private val list: Destina
     return this
   }
 
+  val selectedComponents
+    get() = list.myList.selectedValuesList
+
   companion object {
     fun create(robot: Robot): DestinationListFixture {
       val result = GuiTests.waitUntilFound(robot, Matchers.byType(DestinationList::class.java))
