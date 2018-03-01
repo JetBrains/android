@@ -53,7 +53,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
   private JPanel myPanel;
@@ -322,11 +321,13 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
     // Lock and hide subset of UI when attached to an instantApp
     AndroidModuleModel model = AndroidModuleModel.get(currentModule);
-    boolean isInstantApp = false;
-    if (model != null && model.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      myLaunchOptionCombo.setSelectedItem(LAUNCH_DEEP_LINK);
+    boolean isInstantApp = model != null && model.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP;
+    if (isInstantApp) {
+      myLaunchOptionCombo.setSelectedItem(DeepLinkLaunch.INSTANCE);
       myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
-      isInstantApp = true;
+    }
+    else {
+      myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
     }
     myDeployOptionCombo.setEnabled(!isInstantApp);
     myCustomArtifactLabeledComponent.setEnabled(!isInstantApp);
