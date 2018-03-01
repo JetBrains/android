@@ -23,7 +23,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons
 import com.android.tools.idea.res.ModuleResourceRepository
-import com.android.tools.idea.res.ResourceHelper
+import com.android.tools.idea.res.resolveLayout
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.google.common.io.CharStreams
@@ -53,7 +53,7 @@ import java.nio.charset.StandardCharsets
 fun openResource(configuration: Configuration, reference: String, currentFile: VirtualFile?): Boolean {
   val resourceResolver = configuration.resourceResolver ?: return false
   val resValue = resourceResolver.findResValue(reference, false)
-  val path = ResourceHelper.resolveLayout(resourceResolver, resValue)
+  val path = resourceResolver.resolveLayout(resValue)
   if (path != null) {
     val file = LocalFileSystem.getInstance().findFileByIoFile(path)
     if (file != null) {
@@ -106,11 +106,7 @@ private fun createResourceFile(project: Project,
                                resourceFileContent: CharSequence) {
   WriteCommandAction.runWriteCommandAction(project) {
     try {
-      val directory = getResourceDirectoryChild(project, facet, resourceDirectory)
-
-      if (directory == null) {
-        return@runWriteCommandAction
-      }
+      val directory = getResourceDirectoryChild(project, facet, resourceDirectory) ?: return@runWriteCommandAction
 
       val document = FileDocumentManager.getInstance().getDocument(directory.createChildData(project, resourceFileName))!!
 

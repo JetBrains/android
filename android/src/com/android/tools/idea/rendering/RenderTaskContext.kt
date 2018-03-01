@@ -18,11 +18,8 @@ package com.android.tools.idea.rendering
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.res.ResourceHelper
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.sdk.AndroidPlatform
 
 class RenderTaskContext(

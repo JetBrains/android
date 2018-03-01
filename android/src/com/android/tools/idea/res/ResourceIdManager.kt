@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.AttrResourceValue
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.ResourceHelper.buildResourceId
+import com.android.tools.idea.res.buildResourceId
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager

@@ -24,7 +24,7 @@ import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.FloatResources;
 import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
-import static com.android.tools.idea.res.ResourceHelper.parseFloatAttribute;
+import static com.android.tools.idea.res.FloatResources.parseFloatAttribute;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
 /**
@@ -59,9 +59,9 @@ public abstract class ViewEditor {
   public static Integer resolveDimensionPixelSize(@NotNull RenderResources resources, @NotNull String value,
                                                   @NotNull Configuration configuration) {
     String resValue = resolveStringValue(resources, value);
-    ResourceHelper.TypedValue out = new ResourceHelper.TypedValue();
+    FloatResources.TypedValue out = new FloatResources.TypedValue();
     if (parseFloatAttribute(resValue, out, true)) {
-      return ResourceHelper.TypedValue.complexToDimensionPixelSize(out.data, configuration);
+      return FloatResources.TypedValue.complexToDimensionPixelSize(out.data, configuration);
     }
     return null;
   }
