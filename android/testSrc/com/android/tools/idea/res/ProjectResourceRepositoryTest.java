@@ -155,7 +155,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     addArchiveLibraries();
     List<VirtualFile> flavorDirs = Lists.newArrayList(ResourceFolderManager.getInstance(myFacet).getFolders());
     final ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
-    List<? extends LocalResourceRepository> originalChildren = repository.getChildren();
+    List<LocalResourceRepository> originalChildren = repository.getChildren();
     // Should have a bunch repository directories from the various flavors.
     Set<VirtualFile> resourceDirs = repository.getResourceDirs();
     assertNotEmpty(resourceDirs);
@@ -178,7 +178,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       }
     });
     // The child repositories should be the same since the module structure didn't change.
-    List<? extends LocalResourceRepository> newChildren = repository.getChildren();
+    List<LocalResourceRepository> newChildren = repository.getChildren();
     Set<VirtualFile> newResourceDirs = repository.getResourceDirs();
     assertTrue(newChildren.equals(originalChildren));
     // However, the resourceDirs should now be different, missing the first flavor directory.
@@ -187,7 +187,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
   public void testRootChangeListener() {
     ProjectResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(myFacet);
-    List<? extends LocalResourceRepository> originalChildren = resources.getChildren();
+    List<LocalResourceRepository> originalChildren = resources.getChildren();
     assertNotEmpty(originalChildren);
     Collection<VirtualFile> originalDirs = resources.getResourceDirs();
     assertNotEmpty(originalDirs);
