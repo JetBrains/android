@@ -20,6 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
@@ -295,7 +296,8 @@ public class AppBarConfigurationDialog extends JDialog {
   public boolean open() {
     NlModel model = myEditor.getModel();
     Project project = model.getProject();
-    boolean hasDesignLib = DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.DESIGN);
+    boolean hasDesignLib = DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.DESIGN) ||
+                           DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.ANDROIDX_DESIGN);
     if (!hasDesignLib && !addDesignLibrary()) {
       return false;
     }
@@ -333,8 +335,11 @@ public class AppBarConfigurationDialog extends JDialog {
 
     Module module = myEditor.getModel().getModule();
 
+    GoogleMavenArtifactId artifact = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
+                                     GoogleMavenArtifactId.ANDROIDX_DESIGN :
+                                     GoogleMavenArtifactId.DESIGN;
     boolean designAdded = DependencyManagementUtil
-      .addDependencies(module, Collections.singletonList(GoogleMavenArtifactId.DESIGN), true, false)
+      .addDependencies(module, Collections.singletonList(artifact), true, false)
       .isEmpty();
 
     if (!designAdded) {

@@ -527,7 +527,8 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
       // dependsOn transitively checks for dependencies so we mark the modules that will
       // transitively receive appcompat from another module.
       if (!modulesWithTransitiveAppCompat.contains(module) &&
-          !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7)) {
+          !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7) &&
+          !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)) {
         modulesNeedingAppCompat.add(module);
         modulesWithTransitiveAppCompat.add(module);
       }

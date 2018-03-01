@@ -698,7 +698,8 @@ public class AttributeProcessingUtil {
       // android:showAsAction was introduced in API Level 11. Use the app: one if the project depends on appcompat. See com.android.tools
       // .lint.checks.AppCompatResourceDetector.
       if (name.equals(ATTR_SHOW_AS_ACTION)) {
-        boolean hasAppCompat = DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
+        boolean hasAppCompat = DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.APP_COMPAT_V7) ||
+                               DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
         if (hasAppCompat) {
           if (skippedAttributes.add(new XmlName(name, AUTO_URI))) {
             registerAttribute(attribute, "MenuItem", AUTO_URI, element, callback);
