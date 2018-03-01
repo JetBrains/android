@@ -78,7 +78,7 @@ android_sdk_repository(
       .clickNext()
       .selectGenerateFromBuildFileOptionAndSetPath(buildPath ?: "app/BUILD")
       .clickNext()
-      .uncommentApi27()
+      .uncommentApi27(File(targetTestDirectory, "app/BUILD"))
       .clickFinish()
   }
 
