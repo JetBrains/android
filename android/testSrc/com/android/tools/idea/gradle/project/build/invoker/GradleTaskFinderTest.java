@@ -179,8 +179,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
     ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, myModules, REBUILD, myTestCompileType);
     List<String> tasks = tasksPerProject.get(projectPath.toPath());
 
-    assertThat(tasks).containsExactly("clean",
-                                      ":testFindTasksToExecuteForRebuildingAndroidProject:assembleTask1",
+    assertThat(tasks).containsExactly(":testFindTasksToExecuteForRebuildingAndroidProject:assembleTask1",
                                       ":testFindTasksToExecuteForRebuildingAndroidProject:assembleTask2");
   }
 

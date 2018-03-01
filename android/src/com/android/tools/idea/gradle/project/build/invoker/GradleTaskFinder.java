@@ -129,8 +129,7 @@ public class GradleTaskFinder {
 
       // Remove duplicates.
       Path keyPath = Paths.get(rootProjectPath);
-      List<String> existingTasks = tasks.get(keyPath);
-      moduleTasks.addAll(existingTasks);
+      moduleTasks.addAll(tasks.get(keyPath));
 
       tasks.removeAll(keyPath);
       tasks.putAll(keyPath, moduleTasks);
