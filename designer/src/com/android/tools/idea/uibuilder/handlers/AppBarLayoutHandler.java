@@ -53,7 +53,7 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) {
       // The AppBarConfigurationDialog replaces the root XML node in the current file.
-      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor);
+      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor, APP_BAR_LAYOUT.newName().equals(newChild.getTagName()));
       ApplicationManager.getApplication().invokeLater(() -> dialog.open());
       return false;
     }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -144,9 +145,12 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(configurationName)) {
           String notation = dependency.compactNotation().value();
-          if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
-              notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
-              notation.startsWith(SdkConstants.ANNOTATIONS_LIB_ARTIFACT)) {
+          if (notation.startsWith(GoogleMavenArtifactId.APP_COMPAT_V7.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.SUPPORT_V4.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_V4.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS.toString())) {
             dependencyFound = true;
             break;
           }
@@ -183,7 +187,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           @Override
           protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
-            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, true);
+            GoogleMavenArtifactId annotation = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
+                                               GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
+                                               GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
+            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
