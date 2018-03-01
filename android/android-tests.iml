@@ -79,6 +79,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
   </component>
 </module>
