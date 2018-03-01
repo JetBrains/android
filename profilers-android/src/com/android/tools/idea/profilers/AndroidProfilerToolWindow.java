@@ -91,7 +91,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
       window.setTitle("");
     }
     else {
-      // setTitle appends to the ToolWindow's existing ID (e.g. "Android Profiler"), hence we only
+      // setTitle appends to the ToolWindow's existing name (i.e. "Profiler"), hence we only
       // need to create and set the string for "- SESSION_NAME".
       window.setTitle(String.format("- %s", sessionName));
     }

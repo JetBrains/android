@@ -65,6 +65,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.hide(null);
     toolWindow.setShowStripeButton(false);
+    toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
   }
 
   private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -74,7 +75,6 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     Disposer.register(content, view);
     toolWindow.getContentManager().addContent(content);
     toolWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
-    toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
 
     PROJECT_PROFILER_MAP.put(content, view);
     Disposer.register(content, () -> PROJECT_PROFILER_MAP.remove(content));
