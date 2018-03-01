@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.api.AttrResourceValue
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.buildResourceId
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
@@ -29,6 +28,7 @@ import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import java.util.*
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
 private val LOG = Logger.getInstance(ResourceIdManager::class.java)
@@ -52,10 +52,16 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * assigned sequentially, starting with the highest possible value and going down. This should mean they won't conflict with "compiled ids"
    * assigned by real aapt in a normal-size project (although there is no mechanism to check that). See [compiledToIdMap].
    */
-  private class IdProvider(val packageByte: Byte) {
-    private val counters: Array<Short> = Array(ResourceType.values().size, { 0xffff.toShort() })
+  class IdProvider(private val packageByte: Byte) {
+    private val counters: ShortArray = ShortArray(ResourceType.values().size, { 0xffff.toShort() })
 
-    fun getNext(type: ResourceType): Int = buildResourceId(packageByte, (type.ordinal + 1).toByte(), counters[type.ordinal]--)
+    fun getNext(type: ResourceType): Int {
+      return buildResourceId(packageByte, (type.ordinal + 1).toByte(), --counters[type.ordinal])
+    }
+
+    override fun toString(): String {
+      return Arrays.toString(counters)
+    }
   }
 
   @GuardedBy("this")
@@ -81,8 +87,11 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    *
    * "Compiled ids" take precedence over these, if known. See [compiledToIdMap].
    */
+  @GuardedBy("this")
   private val dynamicToIdMap = TObjectIntHashMap<ResourceReference>()
+
   /** Inverse of [dynamicToIdMap]. */
+  @GuardedBy("this")
   private val dynamicFromIdMap = TIntObjectHashMap<ResourceReference>()
 
   /**
@@ -91,8 +100,11 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    *
    * These are only read when we know the custom views are compiled against an R class with fields marked as final. See [finalIdsUsed].
    */
+  @GuardedBy("this")
   private var compiledToIdMap = TObjectIntHashMap<ResourceReference>()
+
   /** Inverse of [compiledToIdMap]. */
+  @GuardedBy("this")
   private var compiledFromIdMap = TIntObjectHashMap<ResourceReference>()
 
   /**
