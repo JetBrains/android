@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +55,7 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPanel {
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
+  private static final Color mSliderColor = new JBColor(0xC9C9C9, 0x242627);
   private final SingleWidgetView mMain;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
@@ -127,6 +129,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, colorSet));
     mHorizontalSlider.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     mVerticalSlider.setBackground(StudioColorsKt.getSecondaryPanelBackground());
+    mHorizontalSlider.setForeground(mSliderColor);
+    mVerticalSlider.setForeground(mSliderColor);
     mHorizontalSlider.addChangeListener(e -> setHorizontalBias());
     mVerticalSlider.addChangeListener(e -> setVerticalBias());
     mHorizontalSlider.addMouseListener(mDoubleClickListener);
@@ -598,7 +602,6 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   public void setRightMargin(int margin) {
     setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_END, margin);
     setDimension(mComponent, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
-
   }
 
   public void setBottomMargin(int margin) {
@@ -696,7 +699,16 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     @Override
     public void paintTrack(Graphics g) {
       if (slider.isEnabled()) {
-        super.paintTrack(g);
+        g.setColor(slider.getForeground());
+        int trackThickness = 5;
+        if (slider.getOrientation() == JSlider.VERTICAL) {
+          int offset = trackRect.width / 2 - trackThickness / 2;
+          g.fillRoundRect(trackRect.x + offset, trackRect.y, trackThickness, trackRect.height, 5, 5);
+        }
+        else {
+          int offset = trackRect.height / 2 - trackThickness / 2;
+          g.fillRoundRect(trackRect.x, trackRect.y + offset, trackRect.width, trackThickness, 5, 5);
+        }
       }
     }
 
@@ -727,13 +739,14 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       if (!slider.isEnabled()) {
         return;
       }
-      g.setColor(mColorSet.getInspectorFillColor());
+      g.setColor(mColorSet.getInspectorFillColor().brighter());
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.fillRoundRect(thumbRect.x + 1, thumbRect.y + 1, thumbRect.width - 2, thumbRect.height - 2, thumbRect.width - 2,
                       thumbRect.height - 2);
-      g.setColor(mColorSet.getInspectorStrokeColor());
+      g.setColor(StudioColorsKt.getBorder());
       g.drawRoundRect(thumbRect.x + 1, thumbRect.y + 1, thumbRect.width - 2, thumbRect.height - 2, thumbRect.width - 2,
                       thumbRect.height - 2);
+      g.setColor(mColorSet.getInspectorStrokeColor());
       int x = thumbRect.x + thumbRect.width / 2;
       int y = thumbRect.y + thumbRect.height / 2 - 1;
       g.setFont(sSmallFont);
