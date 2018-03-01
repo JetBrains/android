@@ -177,7 +177,8 @@ public class ViewLoader {
               LOG.debug(String.format("  '%s' defined as int", field.getName()));
             }
           }
-          else {
+          else if (type != int[].class) {
+            // styleables are represented as arrays in the R class.
             LOG.error("Unknown field type in R class: " + type);
           }
         }
