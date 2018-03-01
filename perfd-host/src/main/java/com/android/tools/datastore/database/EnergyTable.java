@@ -93,12 +93,7 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
   }
 
   public void insertOrReplace(@NotNull Common.Session session, @NotNull EnergyProfiler.EnergyEvent event) {
-    boolean isTerminalEvent =
-      (event.hasWakeLockReleased() && !event.getWakeLockReleased().getIsHeld())
-      || event.hasAlarmCancelled()
-      || event.hasJobFinished();
-
-    execute(EventStatements.INSERT_EVENT, session.getSessionId(), event.getEventId(), event.getTimestamp(), isTerminalEvent,
+    execute(EventStatements.INSERT_EVENT, session.getSessionId(), event.getEventId(), event.getTimestamp(), event.getIsTerminal(),
             event.toByteArray());
   }
 
