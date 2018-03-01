@@ -247,7 +247,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils[module, test]",
         "//tools/adt/idea/android-lang[module, test]",
         "//tools/adt/idea/android/lib:instantapps-api-1.0",
-        "//tools/idea/.idea/libraries:jimfs[test]",
     ],
 )
 
