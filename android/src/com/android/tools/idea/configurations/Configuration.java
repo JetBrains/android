@@ -564,7 +564,7 @@ public class Configuration implements Disposable, ModificationTracker {
    *
    * @return the theme style name
    */
-  @Nullable
+  @NotNull
   public String getTheme() {
     if (myTheme == null) {
       myTheme = myManager.computePreferredTheme(this);
