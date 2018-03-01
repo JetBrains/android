@@ -69,6 +69,7 @@ public final class AvdOptionsModel extends WizardModel {
   private static final Storage minPlayStoreInternalMemSize = new Storage(2, Storage.Unit.GiB);
   private static final Storage minGeneralSdSize = new Storage(10, Storage.Unit.MiB);
   private static final Storage minPlayStoreSdSize = new Storage(100, Storage.Unit.MiB);
+  private static final Storage defaultSdSize = new Storage(512, Storage.Unit.MiB);
 
   private final AvdInfo myAvdInfo;
 
@@ -102,7 +103,7 @@ public final class AvdOptionsModel extends WizardModel {
   private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<>(new Storage(16, Storage.Unit.MiB));
 
   private StringProperty myExternalSdCardLocation = new StringValueProperty();
-  private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<>(new Storage(100, Storage.Unit.MiB));
+  private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<>(defaultSdSize);
 
   private BoolProperty myUseHostGpu = new BoolValueProperty(true);
   private BoolProperty myColdBoot = new BoolValueProperty(false);
