@@ -25,6 +25,8 @@ iml_module(
         "//tools/adt/idea/artwork[module]",
         "//tools/idea/platform/platform-impl[module]",
         "//tools/idea/plugins/groovy/groovy-psi[module]",
+        "//tools/idea/xml/dom-openapi[module]",
+        "//tools/idea/platform/lang-api[module]",
     ],
 )
 
