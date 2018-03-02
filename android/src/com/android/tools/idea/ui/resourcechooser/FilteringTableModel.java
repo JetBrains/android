@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Similar to {@link com.intellij.ui.speedSearch.FilteringListModel} but for tables */
-public class FilteringTableModel<T> extends AbstractTableModel {
+class FilteringTableModel<T> extends AbstractTableModel {
   private final TableModel myOriginalModel;
   private final List<List<T>> myData = new ArrayList<>();
   private final Class<T> myClz;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser;
+package com.android.tools.idea.ui.resourcechooser.icons;
 
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.util.ui.EmptyIcon;
 import org.junit.Test;
 
 import javax.swing.*;
-
 import java.awt.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class AsyncIconTest {
   @Test
-  public void testAsyncIcon() throws ExecutionException, InterruptedException, TimeoutException {
+  public void testAsyncIcon() {
     SettableFuture<Icon> futureIcon = SettableFuture.create();
     Icon placeholder = EmptyIcon.create(50, 40);
     AtomicInteger loaded = new AtomicInteger(0);

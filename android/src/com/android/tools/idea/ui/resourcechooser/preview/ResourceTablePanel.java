@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser;
+package com.android.tools.idea.ui.resourcechooser.preview;
 
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -21,6 +21,9 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.HyperlinkLabel;
@@ -28,6 +31,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.Consumer;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -46,18 +50,22 @@ import java.util.List;
 import static com.android.tools.idea.ui.resourcechooser.ResourceChooserItem.DEFAULT_FOLDER_NAME;
 
 /**
- * Panel which shows table resources such as strings, dimensions, etc.
+ * Resource picker preview panel to show table resources such as strings, dimensions, etc.
  */
 public class ResourceTablePanel implements HyperlinkListener {
-  private final ChooseResourceDialog myDialog;
+  private final Consumer<Integer> myDialogClose;
+  private final int myRowHeight;
+  private final Module myModule;
   private HyperlinkLabel myEditTranslationsLink;
   private JBLabel myNameLabel;
   private JBTable myTable;
   private JPanel myPanel;
   private JBScrollPane myScrollPane;
 
-  public ResourceTablePanel(@NotNull ChooseResourceDialog dialog) {
-    myDialog = dialog;
+  public ResourceTablePanel(@NotNull Module module, @NotNull Consumer<Integer> dialogClose, int rowHeight) {
+    myModule = module;
+    myDialogClose = dialogClose;
+    myRowHeight = rowHeight;
     myTable.setTableHeader(null);
     myTable.setBackground(UIUtil.getLabelBackground());
     myTable.setBorder(BorderFactory.createEmptyBorder());
@@ -106,7 +114,7 @@ public class ResourceTablePanel implements HyperlinkListener {
         }
       });
       myNameLabel.setText(item.getName());
-      myTable.setRowHeight(ChooseResourceDialog.TABLE_CELL_HEIGHT);
+      myTable.setRowHeight(myRowHeight);
       myEditTranslationsLink.setVisible(item.getType() == ResourceType.STRING && !item.isFramework());
     } else {
       myNameLabel.setText("");
@@ -119,9 +127,8 @@ public class ResourceTablePanel implements HyperlinkListener {
 
   @Override
   public void hyperlinkUpdate(HyperlinkEvent e) {
-    //myDialog.doCancelAction();
-    myDialog.close(DialogWrapper.CANCEL_EXIT_CODE);
-    StringResourceEditorProvider.openEditor(myDialog.getModule());
+    myDialogClose.consume(DialogWrapper.CANCEL_EXIT_CODE);
+    StringResourceEditorProvider.openEditor(myModule);
   }
 
   private static class ResourceTableModel extends AbstractTableModel {
