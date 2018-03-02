@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
@@ -27,14 +29,20 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
+import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
@@ -119,7 +127,30 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(result);
       GradleBuildContext newContext = new GradleBuildContext(result);
       AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
+
+      // Force VFS refresh required by any of the modules.
+      if (isVfsRefreshAfterBuildRequired(myProject)) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          FileDocumentManager.getInstance().saveAllDocuments();
+          SaveAndSyncHandler.getInstance().refreshOpenFiles();
+          VirtualFileManager.getInstance().refreshWithoutFileWatcher(true /* asynchronously */);
+        });
+      }
     });
+  }
+
+  /**
+   * @return {@code true} if any of the modules require VFS refresh after build.
+   */
+  private static boolean isVfsRefreshAfterBuildRequired(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null && androidModuleModel.getFeatures().isVfsRefreshAfterBuildRequired()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
