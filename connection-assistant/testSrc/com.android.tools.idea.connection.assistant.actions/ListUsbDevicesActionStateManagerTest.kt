@@ -25,6 +25,7 @@ import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.io.IOException
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import kotlin.collections.ArrayList
@@ -47,7 +48,7 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
   fun testDefaultState() {
     `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(ArrayList()))
     myStateManager.refresh()
-    TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.INCOMPLETE)
+    TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.ERROR_RETRY)
   }
 
   @Test
@@ -72,5 +73,14 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()))
     myStateManager.refresh()
     TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.COMPLETE)
+  }
+
+  @Test
+  fun testException() {
+    val exceptionFuture = CompletableFuture<List<UsbDevice>>()
+    exceptionFuture.completeExceptionally(IOException())
+    `when`(testUsbDeviceCollector.listUsbDevices()).thenReturn(exceptionFuture)
+    myStateManager.refresh()
+    TestCase.assertEquals(myStateManager.getState(project, emptyActionData), DefaultActionState.ERROR_RETRY)
   }
 }

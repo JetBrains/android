@@ -34,7 +34,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.util.AndroidBundle
+import java.io.IOException
+import java.util.*
 import java.util.concurrent.CompletableFuture
+
+val Logger = com.intellij.openapi.diagnostic.Logger.getInstance(ListUsbDevicesActionStateManager::class.java)
 
 /**
  * StateManager for {@link ListUsbDevicesAction}, displays if there are any connected USB devices to the user
@@ -64,17 +68,33 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     Disposer.register(project, this)
   }
 
+  private fun getDevices(): CompletableFuture<List<UsbDevice>> {
+    return myDevicesFuture.exceptionally(
+        {
+          Logger.warn(it)
+          Collections.emptyList()
+        }
+    )
+  }
+
   fun refresh() {
     myDevicesFuture = usbDeviceCollector.listUsbDevices()
-    myDevicesFuture.thenAccept({
-      UsageTracker.getInstance()
-          .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
-              .setConnectionAssistantEvent(ConnectionAssistantEvent.newBuilder()
-                  .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
-                  .setUsbDevicesDetected(myDevicesFuture.get().size)))
-
-      refreshDependencyState(myProject)
-    })
+    getDevices().thenAccept(
+        {
+          if (!myProject.isDisposed) {
+            UsageTracker.getInstance()
+              .log(
+                AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+                  .setConnectionAssistantEvent(
+                    ConnectionAssistantEvent.newBuilder()
+                      .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
+                      .setUsbDevicesDetected(it.size)
+                  )
+              )
+            refreshDependencyState(myProject)
+          }
+        }
+    )
     refreshDependencyState(myProject)
   }
 
@@ -86,7 +106,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
     if (usbDeviceCollector.getPlatform() == Platform.Windows) return DefaultActionState.COMPLETE
     if (!myDevicesFuture.isDone) return DefaultActionState.IN_PROGRESS
 
-    return if (myDevicesFuture.get().isEmpty()) DefaultActionState.INCOMPLETE else CustomSuccessState
+    return if (getDevices().get().isEmpty()) DefaultActionState.ERROR_RETRY else CustomSuccessState
   }
 
   override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage? {
@@ -99,24 +119,27 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
   private fun generateMessage(): String {
     if (!myDevicesFuture.isDone) return "Loading..."
-    if (myDevicesFuture.get().isEmpty()) return AndroidBundle.message("connection.assistant.usb.no_devices")
+    if (getDevices().get().isEmpty()) return AndroidBundle.message("connection.assistant.usb.no_devices")
+
+    val htmlBuilder = HtmlBuilder()
+    if (usbDeviceCollector.getPlatform() == Platform.Windows) {
+      htmlBuilder.addHtml(
+          "<b>Install device drivers.</b> If you want to connect a device for testing, " +
+              "then you need to install the appropriate USB drivers. For more information, read the " +
+              "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>."
+      ).newline().newline()
+    }
 
     val devices = myDevicesFuture.get().sortedBy { it.name }
-    val htmlBuilder = HtmlBuilder()
-        .addHtml("<span style=\"color: ${UIUtils.getCssColor(UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
-        .newline()
-
-    if (usbDeviceCollector.getPlatform() == Platform.Windows) {
-      htmlBuilder.add("<b>Install device drivers.</b> If you want to connect a device for testing, " +
-          "then you need to install the appropriate USB drivers. For more information, read the " +
-          "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>.").newline()
-    }
-
+    htmlBuilder
+      .addHtml("<span style=\"color: ${UIUtils.getCssColor(UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
+      .newline()
     devices.forEach { (name, _, productId) ->
       htmlBuilder.addHtml("<p>")
-          .addHtml("<b>$name</b> ($productId)")
-          .newlineIfNecessary().addHtml("</p>")
+        .addHtml("<b>$name</b> ($productId)")
+        .newlineIfNecessary().addHtml("</p>")
     }
+
     return htmlBuilder.closeHtmlBody().html
   }
 }
