@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.android.tools.idea.common.lint.NlBackgroundEditorHighlighter;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.android.tools.idea.common.lint.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -106,9 +105,9 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
     // The designer should display components that have problems detected by inspections. Ideally, we'd just get the result
     // of all the inspections on the XML file. However, it doesn't look like there is an API to obtain this for a file
-    // (there are  test APIs). So we add a single highlighter which uses lint..
+    // (there are test APIs). So we add a single highlighter which uses lint.
     if (myBackgroundHighlighter == null) {
-      myBackgroundHighlighter = new NlBackgroundEditorHighlighter(myEditorPanel);
+      myBackgroundHighlighter = new BackgroundEditorHighlighter(myEditorPanel);
     }
     return myBackgroundHighlighter;
   }

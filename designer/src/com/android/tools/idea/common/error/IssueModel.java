@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.error;
+package com.android.tools.idea.common.error;
 
-import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
@@ -26,49 +25,39 @@ import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Model to centralize every issue that should be used in the Layout Editor
  */
 public class IssueModel {
 
-  @Nullable private RenderErrorModel myRenderErrorModel;
-  @Nullable private LintAnnotationsModel myLintAnnotationsModel;
-  private ImmutableList<NlIssue> myIssues = ImmutableList.of();
+  private ImmutableList<Issue> myIssues = ImmutableList.of();
   private final ListenerCollection<IssueModelListener> myListeners = ListenerCollection.createWithExecutor(
     command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
-  private int myWarningCount;
-  private int myErrorCount;
+  protected int myWarningCount;
+  protected int myErrorCount;
 
-  public void setRenderErrorModel(@NotNull RenderErrorModel renderErrorModel) {
-    myRenderErrorModel = renderErrorModel;
-    updateErrorsList();
-  }
+  private List<IssueProvider> myIssueProviders = new ArrayList<>();
 
-  private void updateErrorsList() {
+  @VisibleForTesting
+  public void updateErrorsList() {
     myWarningCount = 0;
     myErrorCount = 0;
-    ImmutableList.Builder<NlIssue> issueListBuilder = ImmutableList.builder();
-    if (myRenderErrorModel != null) {
-      for (RenderErrorModel.Issue error : myRenderErrorModel.getIssues()) {
-        NlIssue issue = NlIssue.wrapIssue(error);
-        issueListBuilder.add(issue);
-        updateIssuesCounts(issue);
-      }
-    }
-    if (myLintAnnotationsModel != null) {
-      for (LintAnnotationsModel.IssueData error : myLintAnnotationsModel.getIssues()) {
-        NlIssue issue = NlIssue.wrapIssue(error);
-        issueListBuilder.add(issue);
-        updateIssuesCounts(issue);
-      }
-    }
-    myIssues = issueListBuilder.build();
+    ImmutableList.Builder<Issue> issueListBuilder = ImmutableList.builder();
 
+    for (IssueProvider provider : myIssueProviders) {
+      provider.collectIssues(issueListBuilder);
+    }
+
+    myIssues = issueListBuilder.build();
+    myIssues.forEach(issue -> updateIssuesCounts(issue));
     // Run listeners on the UI thread
     myListeners.forEach(IssueModelListener::errorModelChanged);
   }
 
-  private void updateIssuesCounts(@NotNull NlIssue issue) {
+  private void updateIssuesCounts(@NotNull Issue issue) {
     if (issue.getSeverity().equals(HighlightSeverity.WARNING)) {
       myWarningCount++;
     }
@@ -77,18 +66,19 @@ public class IssueModel {
     }
   }
 
-  public void setLintAnnotationsModel(@NotNull LintAnnotationsModel lintAnnotationsModel) {
-    myLintAnnotationsModel = lintAnnotationsModel;
+  public void addIssueProvider(@NotNull IssueProvider issueProvider) {
+    myIssueProviders.add(issueProvider);
+    updateErrorsList();
+  }
+
+  public void removeIssueProvider(@NotNull IssueProvider issueProvider) {
+    myIssueProviders.remove(issueProvider);
     updateErrorsList();
   }
 
   @NotNull
-  public ImmutableList<NlIssue> getNlErrors() {
+  public ImmutableList<Issue> getIssues() {
     return myIssues;
-  }
-
-  public boolean hasRenderError() {
-    return myRenderErrorModel != null && !myRenderErrorModel.getIssues().isEmpty();
   }
 
   public int getIssueCount() {
@@ -116,8 +106,8 @@ public class IssueModel {
   }
 
   @Nullable
-  public NlIssue findIssue(@NotNull NlComponent component) {
-    for (NlIssue issue : myIssues) {
+  public Issue findIssue(@NotNull NlComponent component) {
+    for (Issue issue : myIssues) {
       if (component.equals(issue.getSource())) {
         return issue;
       }

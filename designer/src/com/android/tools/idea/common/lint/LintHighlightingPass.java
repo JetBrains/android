@@ -32,11 +32,11 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.inspections.lint.*;
 import org.jetbrains.annotations.NotNull;
 
-public class NlLintHighlightingPass implements HighlightingPass {
+public class LintHighlightingPass implements HighlightingPass {
   private final DesignSurface mySurface;
   private LintAnnotationsModel myLintAnnotationsModel;
 
-  public NlLintHighlightingPass(@NotNull DesignSurface surface) {
+  public LintHighlightingPass(@NotNull DesignSurface surface) {
     mySurface = surface;
   }
 
@@ -57,8 +57,8 @@ public class NlLintHighlightingPass implements HighlightingPass {
       return;
     }
 
-    sceneView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
-    mySurface.getIssueModel().setLintAnnotationsModel(myLintAnnotationsModel);
+    mySurface.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
+    mySurface.setLintAnnotationsModel(myLintAnnotationsModel);
     // Ensure that the layers are repainted to reflect the latest model
     // (updating the lint annotations associated with a model doesn't actually rev the model
     // version.)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.error;
+package com.android.tools.idea.common.error;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Panel that displays a list of {@link NlIssue}.
+ * Panel that displays a list of {@link Issue}.
  */
 public class IssuePanel extends JPanel implements Disposable, PropertyChangeListener {
   private static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
@@ -62,7 +62,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private static final String ACTION_COLLAPSE = "collapse";
   private static final Pattern MULTIPLE_SPACES = Pattern.compile("\\s+");
 
-  private final HashBiMap<NlIssue, IssueView> myDisplayedError = HashBiMap.create();
+  private final HashBiMap<Issue, IssueView> myDisplayedError = HashBiMap.create();
   private final IssueModel myIssueModel;
   private final JPanel myErrorListPanel;
   private final JBLabel myTitleLabel;
@@ -245,13 +245,13 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       }
       updateTitlebarStyle();
       boolean needsRevalidate = false;
-      List<NlIssue> nlIssues = myIssueModel.getNlErrors();
+      List<Issue> issues = myIssueModel.getIssues();
       if (myDisplayedError.isEmpty()) {
-        nlIssues.forEach(this::addErrorEntry);
+        issues.forEach(this::addErrorEntry);
       }
       else {
-        removeOldIssues(nlIssues);
-        needsRevalidate = displayNewIssues(nlIssues);
+        removeOldIssues(issues);
+        needsRevalidate = displayNewIssues(issues);
       }
       if (needsRevalidate) {
         revalidate();
@@ -286,9 +286,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     }
   }
 
-  private boolean displayNewIssues(@NotNull List<NlIssue> nlIssues) {
+  private boolean displayNewIssues(@NotNull List<Issue> issues) {
     boolean needsRevalidate = false;
-    for (NlIssue error : nlIssues) {
+    for (Issue error : issues) {
       if (!myDisplayedError.containsKey(error)) {
         addErrorEntry(error);
         needsRevalidate = true;
@@ -297,12 +297,12 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     return needsRevalidate;
   }
 
-  private void removeOldIssues(@NotNull List<NlIssue> newIssues) {
-    Iterator<Map.Entry<NlIssue, IssueView>> iterator = myDisplayedError.entrySet().iterator();
+  private void removeOldIssues(@NotNull List<Issue> newIssues) {
+    Iterator<Map.Entry<Issue, IssueView>> iterator = myDisplayedError.entrySet().iterator();
     while (iterator.hasNext()) {
-      Map.Entry<NlIssue, IssueView> entry = iterator.next();
-      NlIssue nlIssue = entry.getKey();
-      if (!newIssues.contains(nlIssue)) {
+      Map.Entry<Issue, IssueView> entry = iterator.next();
+      Issue issue = entry.getKey();
+      if (!newIssues.contains(issue)) {
         IssueView issueView = entry.getValue();
         myErrorListPanel.remove(issueView);
         iterator.remove();
@@ -310,7 +310,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     }
   }
 
-  private void addErrorEntry(@NotNull NlIssue error) {
+  private void addErrorEntry(@NotNull Issue error) {
     if (myErrorListPanel.getComponentCount() == 0) {
       myErrorListPanel.add(Box.createVerticalGlue(), -1);
     }
@@ -404,7 +404,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       mySelectedIssueView = selectedIssue;
       if (mySelectedIssueView != null) {
         mySelectedIssueView.setSelected(true);
-        NlIssue issue = myDisplayedError.inverse().get(mySelectedIssueView);
+        Issue issue = myDisplayedError.inverse().get(mySelectedIssueView);
         if (issue == null) {
           return;
         }
@@ -444,7 +444,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    * @param collapseOthers if true, all other issues will be collapsed
    */
   public void showIssueForComponent(NlComponent component, boolean collapseOthers) {
-    NlIssue issue = myIssueModel.findIssue(component);
+    Issue issue = myIssueModel.findIssue(component);
     if (issue != null) {
       IssueView issueView = myDisplayedError.get(issue);
       if (issueView != null) {

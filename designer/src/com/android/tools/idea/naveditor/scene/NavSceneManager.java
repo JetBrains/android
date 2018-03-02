@@ -115,7 +115,6 @@ public class NavSceneManager extends SceneManager {
     NavDesignSurface surface = getDesignSurface();
     NavView navView = new NavView(surface, this);
     surface.getLayeredPane().setPreferredSize(navView.getPreferredSize());
-    surface.setShowIssuePanel(false);
     return navView;
   }
 

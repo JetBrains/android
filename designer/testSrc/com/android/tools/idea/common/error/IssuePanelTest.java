@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.error;
+package com.android.tools.idea.common.error;
 
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.error.MockIssueFactory;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mockito;
@@ -31,16 +32,16 @@ public class IssuePanelTest extends AndroidTestCase {
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
-    model.setLintAnnotationsModel(lintAnnotationsModel);
+    model.addIssueProvider(new LintIssueProvider(lintAnnotationsModel));
     assertEquals("1 Error", panel.getTitleText());
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
-    model.setLintAnnotationsModel(lintAnnotationsModel);
+    model.updateErrorsList();
     assertEquals("2 Errors", panel.getTitleText());
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.WARNING);
-    model.setLintAnnotationsModel(lintAnnotationsModel);
+    model.updateErrorsList();
     assertEquals("1 Warning 2 Errors", panel.getTitleText());
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.WARNING);
-    model.setLintAnnotationsModel(lintAnnotationsModel);
+    model.updateErrorsList();
     assertEquals("2 Warnings 2 Errors", panel.getTitleText());
   }
 
@@ -50,11 +51,13 @@ public class IssuePanelTest extends AndroidTestCase {
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
-    model.setLintAnnotationsModel(lintAnnotationsModel);
+    LintIssueProvider provider = new LintIssueProvider(lintAnnotationsModel);
+    model.addIssueProvider(provider);
     assertEquals("1 Error", panel.getTitleText());
+    model.removeIssueProvider(provider);
     LintAnnotationsModel newModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(newModel, HighlightDisplayLevel.WARNING);
-    model.setLintAnnotationsModel(newModel);
+    model.addIssueProvider(new LintIssueProvider(newModel));
     assertEquals("1 Warning", panel.getTitleText().trim());
   }
 
@@ -75,13 +78,15 @@ public class IssuePanelTest extends AndroidTestCase {
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     NlComponent source = Mockito.mock(NlComponent.class);
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR, source);
-    model.setLintAnnotationsModel(lintAnnotationsModel);
+    LintIssueProvider provider = new LintIssueProvider(lintAnnotationsModel);
+    model.addIssueProvider(provider);
     IssueView issueView = panel.getIssueViews().get(0);
     LintAnnotationsModel newModel = new LintAnnotationsModel();
+    model.removeIssueProvider(provider);
 
     // When we create a new lint issue, the PSI elements are not the same, so the IssueView should also have changed
     MockIssueFactory.addLintIssue(newModel, HighlightDisplayLevel.ERROR, source);
-    model.setLintAnnotationsModel(newModel);
+    model.addIssueProvider(new LintIssueProvider(newModel));
     IssueView issueView2 = panel.getIssueViews().get(0);
     assertNotSame(issueView, issueView2);
   }

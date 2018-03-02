@@ -16,8 +16,8 @@
 package com.android.tools.idea.common.actions;
 
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
