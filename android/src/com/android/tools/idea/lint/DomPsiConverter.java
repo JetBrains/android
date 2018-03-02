@@ -136,12 +136,6 @@ class DomPsiConverter {
              new TextRange(position.getStartOffset(), position.getEndOffset()) : new TextRange(0, 0);
     }
 
-    // For elements, don't highlight the entire element range; instead, just
-    // highlight the element name
-    if (node.getNodeType() == Node.ELEMENT_NODE) {
-      return getTextNameRange(node);
-    }
-
     DomNode domNode = (DomNode)node;
     return domNode.getTextRange();
   }
