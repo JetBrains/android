@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser;
+package com.android.tools.idea.ui.resourcechooser.icons;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -41,7 +41,7 @@ public class AsyncIcon implements Icon {
    * @param onIconLoad Callback that will be notified when the icon is loaded and the placeholder is not being displayed
    *                   anymore.
    */
-  public AsyncIcon(@NotNull ListenableFuture<? extends Icon> futureIcon,
+  AsyncIcon(@NotNull ListenableFuture<? extends Icon> futureIcon,
                    @NotNull Icon placeholderIcon,
                    @Nullable Runnable onIconLoad) {
     myIcon = placeholderIcon;

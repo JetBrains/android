@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser;
+package com.android.tools.idea.ui.resourcechooser.icons;
 
+import com.android.tools.idea.ui.resourcechooser.util.CheckerboardPaint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +26,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 
-public class ResourceChooserColorIcon implements Icon {
+class ResourceChooserColorIcon implements Icon {
 
   @NotNull private final Color myColor;
   private final int myWidth;
@@ -40,7 +41,7 @@ public class ResourceChooserColorIcon implements Icon {
     myColor = color;
     myWidth = width;
     myHeight = height;
-    myCheckerPaint = checkerboardSize > 0 ? new ResourceChooserImageIcon.CheckerboardPaint(checkerboardSize) : null;
+    myCheckerPaint = checkerboardSize > 0 ? new CheckerboardPaint(checkerboardSize) : null;
   }
 
   @Override

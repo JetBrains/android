@@ -31,8 +31,8 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 
-abstract class ResourceChooserItem {
-  static final String DEFAULT_FOLDER_NAME = "Default";
+public abstract class ResourceChooserItem {
+  public static final String DEFAULT_FOLDER_NAME = "Default";
 
   @NotNull protected final ResourceType myType;
   @NotNull protected final String myName;
