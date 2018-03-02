@@ -156,20 +156,20 @@ public class SmartStepIntoTest extends DebuggerTestBase {
 
     // Select the 1st one, which is the native method.
     new JListFixture(ideFrame.robot(), out.get()).clickItem(chosenFunctionIndex);
-    
+
     Wait.seconds(60).expecting("Native file should be opened.")
       .until(() -> (NATIVE_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
 
     ideFrame.stepOver();
     String cCurrentLine = ideFrame.getEditor().getCurrentLine().trim();
     String cExpectedLine = "return (*env)->NewStringUTF(env, \"Smart Step Into\");";
-    Wait.seconds(10).expecting("Current line in native code is expected").until(() -> (cCurrentLine.equals(cExpectedLine)));
+    Wait.seconds(30).expecting("Current line in native code is expected").until(() -> (cCurrentLine.equals(cExpectedLine)));
 
     ideFrame.resumeProgram();
     Wait.seconds(60).expecting("Java file should be opened.")
       .until(() -> (JAVA_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
     String javaCurrentLine = ideFrame.getEditor().getCurrentLine().trim();
     String javaExpectedLine = "String myString = s;";
-    Wait.seconds(10).expecting("Current line in Java code is expected").until(() -> (javaCurrentLine.equals(javaExpectedLine)));
+    Wait.seconds(30).expecting("Current line in Java code is expected").until(() -> (javaCurrentLine.equals(javaExpectedLine)));
   }
 }
