@@ -4,7 +4,6 @@ iml_module(
     name = "whats-new-assistant",
     srcs = ["src"],
     iml_files = ["whats-new-assistant.iml"],
-    resources = ["resources"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
