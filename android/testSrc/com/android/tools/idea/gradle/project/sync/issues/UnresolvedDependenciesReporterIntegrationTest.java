@@ -66,7 +66,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   @Override
   protected void tearDown() throws Exception {
     try {
-      myIdeComponents.restore();
       myIdeComponents = null;
       mySyncMessagesStub = null;
     }
@@ -108,7 +107,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   }
 
   public void testReportWithConstraintLayout() throws Exception {
-    IdeInfo ideInfo = myIdeComponents.mockService(IdeInfo.class);
+    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     loadSimpleApplication();

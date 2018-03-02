@@ -50,7 +50,6 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
   @Mock private GradleTasksExecutor myTasksExecutor;
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
 
-  private IdeComponents myIdeComponents;
   private GradleTasksExecutorFactoryStub myTasksExecutorFactory;
   private Module[] myModules;
   private BuildSettings myBuildSettings;
@@ -65,18 +64,17 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
-    myIdeComponents = new IdeComponents(myProject);
-    myTaskFinder = myIdeComponents.mockService(GradleTaskFinder.class);
-    myBuildSettings = myIdeComponents.mockProjectService(BuildSettings.class);
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
+    myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
 
     myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }
 
   @Override
   protected void tearDown() throws Exception {
-    Messages.setTestDialog(TestDialog.DEFAULT);
     try {
-      myIdeComponents.restore();
+      Messages.setTestDialog(TestDialog.DEFAULT);
     }
     finally {
       super.tearDown();

@@ -57,7 +57,7 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     Map<Module, File> modulesToPaths = Collections.singletonMap(getModule(), myApkPath);
 
     myTask = new GoToApkLocationTask(getProject(), modulesToPaths, null, NOTIFICATION_TITLE);
-    IdeComponents.replaceService(myProject, AndroidNotification.class, myMockNotification);
+    new IdeComponents(myProject).replaceProjectService(AndroidNotification.class, myMockNotification);
   }
 
   public void testExecuteWithCancelledBuild() {

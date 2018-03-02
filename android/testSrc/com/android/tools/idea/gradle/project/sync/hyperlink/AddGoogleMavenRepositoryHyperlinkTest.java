@@ -50,16 +50,6 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     myIdeComponents = new IdeComponents(getProject());
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testExecuteWithGradle3dot5() throws Exception {
     // Check that quickfix adds google maven repository using url when gradle version is lower than 4.0
     verifyExecute("3.5", MAVEN);
@@ -142,7 +132,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     prepareProjectForImport(SIMPLE_APPLICATION);
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
-    myIdeComponents.replaceService(GradleVersions.class, spyVersions);
+    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
     when(spyVersions.getGradleVersion(project)).thenReturn(GradleVersion.parse(version));
 
     // Make sure no repositories are listed

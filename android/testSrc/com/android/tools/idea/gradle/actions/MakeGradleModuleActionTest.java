@@ -47,8 +47,8 @@ public class MakeGradleModuleActionTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, GradleProjectInfo.class, myProjectInfo);
-    IdeComponents.replaceService(project, GradleBuildInvoker.class, myBuildInvoker);
+    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+    new IdeComponents(project).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
 
     when(myActionEvent.getDataContext()).thenReturn(myDataContext);
 

@@ -65,7 +65,7 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
+    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
 
     String moduleName = "app";
     myModule = createModule(moduleName);

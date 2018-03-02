@@ -63,7 +63,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     Project project = getProject();
 
     // We don't want the IDE to offer a plugin version upgrade.
-    IdeComponents.replaceService(project, PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
+    new IdeComponents(project).replaceProjectService(PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);

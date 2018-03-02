@@ -39,24 +39,11 @@ import static org.mockito.Mockito.when;
  * Tests for {@link PsArtifactDependencySpec}.
  */
 public class PsArtifactDependencySpecTest extends IdeaTestCase {
-  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeComponents = new IdeComponents(myProject);
-    myIdeComponents.mockProjectService(PsUISettings.class);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      //noinspection ThrowFromFinallyBlock
-      super.tearDown();
-    }
+    new IdeComponents(myProject).mockProjectService(PsUISettings.class);
   }
 
   public void testCreate_empty() {

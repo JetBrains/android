@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationP
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import static com.intellij.util.ThreeState.YES;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -41,7 +40,6 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   @Mock private GradleSyncSummary mySyncSummary;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
-  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -54,17 +52,6 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
 
     myNotificationProvider = new ProjectSyncStatusNotificationProvider(getProject(), myProjectInfo, mySyncState);
-    myIdeComponents = new IdeComponents(myProject);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {

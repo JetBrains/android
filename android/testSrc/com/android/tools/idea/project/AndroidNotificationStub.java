@@ -39,7 +39,7 @@ public class AndroidNotificationStub extends AndroidNotification {
   @NotNull
   public static AndroidNotificationStub replaceSyncMessagesService(@NotNull Project project) {
     AndroidNotificationStub notification = new AndroidNotificationStub(project);
-    IdeComponents.replaceService(project, AndroidNotification.class, notification);
+    new IdeComponents(project).replaceProjectService(AndroidNotification.class, notification);
     assertSame(notification, AndroidNotification.getInstance(project));
     return notification;
   }

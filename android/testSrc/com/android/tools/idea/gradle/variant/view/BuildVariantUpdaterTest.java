@@ -72,7 +72,7 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
 
     when(myAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(myIdeDependencies);
 
-    IdeComponents.replaceService(project, PostSyncProjectSetup.class, myPostSyncProjectSetup);
+    new IdeComponents(project).replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
 
     myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
                                                Arrays.asList(mySetupStepToInvoke, mySetupStepToIgnore));

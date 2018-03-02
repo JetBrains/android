@@ -30,7 +30,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.startup.impl.StartupManagerImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.startup.StartupManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.IdeaTestCase
 import com.intellij.util.messages.MessageBusConnection
 import org.mockito.Mockito.*
@@ -50,7 +49,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
     super.setUp()
     ideComponents = IdeComponents(myProject)
 
-    syncInvoker = ideComponents.mockService(GradleSyncInvoker::class.java)
+    syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
 
     ideComponents.mockProjectService(GradleDependencyManager::class.java)
     ideComponents.mockProjectService(GradleProjectBuilder::class.java)
@@ -64,16 +63,6 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
     syncTopicConnection = project.messageBus.connect(project)
     syncTopicListener = mock(SyncResultListener::class.java)
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
-  }
-
-  override fun tearDown() {
-    try {
-      ideComponents.restore()
-      Disposer.dispose(syncTopicConnection)
-    }
-    finally {
-      super.tearDown()
-    }
   }
 
   private fun emulateSync(requireSourceGeneration: Boolean, syncSuccessful: Boolean):
@@ -113,7 +102,7 @@ class GradleProjectSystemSyncManagerTest : IdeaTestCase() {
         action.run()
       }
     }
-    IdeComponents.replaceService(project, StartupManager::class.java, startupManager)
+    ideComponents.replaceProjectService(StartupManager::class.java, startupManager)
     // http://b/62543184
     `when`(gradleProjectInfo.isImportedProject).thenReturn(true)
 

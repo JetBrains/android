@@ -23,9 +23,9 @@ import com.intellij.testFramework.IdeaTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
-
 import org.junit.Assert.assertArrayEquals
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 
 class KeystoreStepTest : IdeaTestCase() {
   private lateinit var ideComponents: IdeComponents
@@ -33,15 +33,6 @@ class KeystoreStepTest : IdeaTestCase() {
   override fun setUp() {
     super.setUp()
     ideComponents = IdeComponents(myProject)
-  }
-
-  override fun tearDown() {
-    try {
-      ideComponents.restore()
-    }
-    finally {
-      super.tearDown()
-    }
   }
 
   fun testRememberPasswords() {
@@ -58,7 +49,7 @@ class KeystoreStepTest : IdeaTestCase() {
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val passwordSafe = PasswordSafeMock()
-    ideComponents.replaceService(PasswordSafe::class.java, passwordSafe)
+    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(myProject)
@@ -101,7 +92,7 @@ class KeystoreStepTest : IdeaTestCase() {
     val passwordSafe = PasswordSafeMock()
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
     passwordSafe.setPassword(legacyRequestor, keyPasswordKey, testLegacyKeyPassword)
-    ideComponents.replaceService(PasswordSafe::class.java, passwordSafe)
+    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(myProject)

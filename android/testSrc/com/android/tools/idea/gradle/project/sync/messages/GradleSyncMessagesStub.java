@@ -38,7 +38,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   @NotNull
   public static GradleSyncMessagesStub replaceSyncMessagesService(@NotNull Project project) {
     GradleSyncMessagesStub syncMessages = new GradleSyncMessagesStub(project);
-    IdeComponents.replaceService(project, GradleSyncMessages.class, syncMessages);
+    new IdeComponents(project).replaceProjectService(GradleSyncMessages.class, syncMessages);
     assertSame(syncMessages, GradleSyncMessages.getInstance(project));
     return syncMessages;
   }

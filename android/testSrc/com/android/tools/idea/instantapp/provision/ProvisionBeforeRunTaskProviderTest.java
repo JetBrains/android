@@ -16,23 +16,21 @@
 package com.android.tools.idea.instantapp.provision;
 
 import com.android.annotations.NonNull;
-import com.android.ddmlib.*;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
-import com.google.common.collect.ImmutableList;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
 import java.io.StringReader;
 import java.nio.charset.Charset;
@@ -40,9 +38,7 @@ import java.nio.charset.Charset;
 import static com.android.tools.idea.testing.TestProjectPaths.MULTI_FEATURE;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.notNull;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -51,7 +47,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ProvisionBeforeRunTaskProviderTest extends AndroidGradleTestCase {
   private AndroidRunConfigurationBase myActualRunConfiguration;
   private AndroidRunConfigurationBase myRunConfiguration;
-  private IdeComponents myIdeComponents;
   private InstantAppSdks myInstantAppSdks;
 
   @Override
@@ -59,20 +54,9 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidGradleTestCase {
     super.setUp();
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     myActualRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
-    myRunConfiguration = Mockito.spy(myActualRunConfiguration);
-    myIdeComponents = new IdeComponents(getProject());
-    myInstantAppSdks = myIdeComponents.mockService(InstantAppSdks.class);
+    myRunConfiguration = spy(myActualRunConfiguration);
+    myInstantAppSdks = new IdeComponents(getProject()).mockApplicationService(InstantAppSdks.class);
     initMocks(this);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testTaskNotCreatedIfSdkNotDefined() {

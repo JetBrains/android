@@ -207,7 +207,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static boolean ourValidatedTemplateManager;
 
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
-  private IdeComponents myIdeComponents;
 
   public TemplateTest() {
   }
@@ -257,19 +256,18 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    myIdeComponents = new IdeComponents(null);
-    myIdeComponents.replaceService(RepositoryUrlManager.class,
-                                   new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true));
+    new IdeComponents(null, getTestRootDisposable()).replaceApplicationService(
+      RepositoryUrlManager.class,
+      new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true));
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      myIdeComponents.restore();
-    }
-    finally {
       myUsageTracker.close();
       UsageTracker.cleanAfterTesting();
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -1363,7 +1361,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       myFixture.setUp();
 
       Project project = myFixture.getProject();
-      IdeComponents.replaceService(project, PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
+      new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
       setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
       moduleState.put(ATTR_PROJECT_LOCATION, projectDir.getPath());

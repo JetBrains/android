@@ -46,7 +46,7 @@ public class AndroidGeneratedSourcesFilterTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    IdeComponents.replaceService(getProject(), GradleProjectInfo.class, myProjectInfo);
+    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
     myGeneratedSourcesFilter = new AndroidGeneratedSourcesFilter();
   }
 

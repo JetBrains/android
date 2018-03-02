@@ -83,7 +83,7 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, ExternalSystemNotificationManager.class, myNotificationManager);
+    new IdeComponents(project).replaceProjectService(ExternalSystemNotificationManager.class, myNotificationManager);
 
     myProjectComponent.projectOpened();
 

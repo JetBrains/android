@@ -42,8 +42,6 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 class IndexingSuspenderTest : IdeaTestCase() {
-  private lateinit var ideComponents: IdeComponents
-
   private lateinit var batchUpdateConnection: MessageBusConnection
   private var expectedBatchUpdateCount = 0
   private var actualBatchUpdateCount = 0
@@ -67,7 +65,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
 
     val dumbService = ThreadingAwareDumbService(project)
     val indexingSuspenderService = IndexingSuspender(project, true)
-    ideComponents = IdeComponents(project)
+    val ideComponents = IdeComponents(project)
     ideComponents.replaceProjectDumbService(dumbService)
     ideComponents.replaceProjectService(IndexingSuspender::class.java, indexingSuspenderService)
 
@@ -91,12 +89,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
       verifyIndexingSpecificExpectations()
     }
     finally {
-      try {
-        ideComponents.restore()
-      }
-      finally {
-        super.tearDown()
-      }
+      super.tearDown()
     }
   }
 

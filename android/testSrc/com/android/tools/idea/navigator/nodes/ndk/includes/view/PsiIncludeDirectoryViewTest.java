@@ -26,9 +26,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.checkPresentationDataHasOsSpecificSlashes;
-import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.assertContainsAllFilesAsChildren;
-import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.assertDoesNotContainAnyFilesAsChildren;
-import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.getChildNodesForIncludes;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -44,31 +42,26 @@ public class PsiIncludeDirectoryViewTest extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/ndk_helper")
       .addArtifact("my-artifact", "bar.cpp");
     IdeComponents ideComponents = new IdeComponents(getProject());
-    try {
-      IdeSdks mockIdeSdks = ideComponents.mockService(IdeSdks.class);
-      assertSame(mockIdeSdks, IdeSdks.getInstance());
-      File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
-      when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
+    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    assertSame(mockIdeSdks, IdeSdks.getInstance());
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
-      List<PsiIncludeDirectoryView> nodes =
-        getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), PsiIncludeDirectoryView.class);
+    List<PsiIncludeDirectoryView> nodes =
+      getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), PsiIncludeDirectoryView.class);
 
-      assertThat(nodes).hasSize(2);
-      assertThat(nodes.get(0).getVirtualFile().getName()).isEqualTo("sub2");
+    assertThat(nodes).hasSize(2);
+    assertThat(nodes.get(0).getVirtualFile().getName()).isEqualTo("sub2");
 
-      // Check that nodes contains all files in the layout.
-      assertContainsAllFilesAsChildren(nodes, layout.headerFilesCreated);
+    // Check that nodes contains all files in the layout.
+    assertContainsAllFilesAsChildren(nodes, layout.headerFilesCreated);
 
-      // Check that nodes don't contain non-header files
-      assertDoesNotContainAnyFilesAsChildren(nodes, layout.extraFilesCreated);
+    // Check that nodes don't contain non-header files
+    assertDoesNotContainAnyFilesAsChildren(nodes, layout.extraFilesCreated);
 
-      // Check the rendering of presentation data in the node
-      checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "");
-      checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "");
-    }
-    finally {
-      ideComponents.restore();
-    }
+    // Check the rendering of presentation data in the node
+    checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "");
+    checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "");
   }
 
   public void testNullProject() throws IOException {
@@ -80,8 +73,7 @@ public class PsiIncludeDirectoryViewTest extends IdeaTestCase {
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
     IdeComponents ideComponents = new IdeComponents(getProject());
-    try {
-    IdeSdks mockIdeSdks = ideComponents.mockService(IdeSdks.class);
+    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
     assertSame(mockIdeSdks, IdeSdks.getInstance());
     File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
@@ -89,9 +81,5 @@ public class PsiIncludeDirectoryViewTest extends IdeaTestCase {
     List<PsiIncludeDirectoryView> nodes = getChildNodesForIncludes(null, layout.getNativeIncludes(), PsiIncludeDirectoryView.class);
 
     assertThat(nodes).hasSize(0);
-    }
-    finally {
-      ideComponents.restore();
-    }
   }
 }
