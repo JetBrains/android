@@ -1,5 +1,6 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -31,7 +32,6 @@ import java.util.Map;
  * @author Eugene.Kudelevsky
  */
 public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactoringAction {
-
   private final MyTestConfig myTestConfig;
 
   public AndroidFindStyleApplicationsAction() {
@@ -123,19 +123,19 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
   }
 
   private static PsiElement resolveStyleRef(StyleRefData styleRef, AndroidFacet facet) {
-    final ResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getResourceManager(styleRef.getStylePackage());
-    
+    ResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getResourceManager(styleRef.getStylePackage());
     if (resourceManager == null) {
       return null;
     }
-    final List<ValueResourceInfoImpl> infos = resourceManager.findValueResourceInfos(
-      ResourceType.STYLE.getName(), styleRef.getStyleName(), true, false);
+
+    List<ValueResourceInfoImpl> infos =
+        resourceManager.findValueResourceInfos(ResourceNamespace.TODO, ResourceType.STYLE, styleRef.getStyleName(), true, false);
     return infos.size() == 1 ? infos.get(0).computeXmlElement() : null;
   }
 
   @Nullable
   static MyStyleData getStyleData(@NotNull XmlTag tag) {
-    final DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);    
+    final DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
 
     if (!(element instanceof Style)) {
       return null;

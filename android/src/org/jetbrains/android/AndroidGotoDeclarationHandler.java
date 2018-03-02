@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -91,13 +92,15 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
     }
     else {
       ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
-      final ResourceManager manager = info.isSystem()
-                                      ? resourceManagers.getSystemResourceManager(false)
-                                      : resourceManagers.getLocalResourceManager();
+      ResourceManager manager = info.isSystem()
+                                    ? resourceManagers.getSystemResourceManager(false)
+                                    : resourceManagers.getLocalResourceManager();
       if (manager == null) {
         return null;
       }
-      manager.collectLazyResourceElements(nestedClassName, fieldName, false, refExp, resourceList);
+      // TODO: Namespaces
+      ResourceNamespace namespace = ResourceNamespace.fromBoolean(info.isSystem());
+      manager.collectLazyResourceElements(namespace, nestedClassName, fieldName, false, refExp, resourceList);
 
       if (manager instanceof LocalResourceManager) {
         final LocalResourceManager lrm = (LocalResourceManager)manager;

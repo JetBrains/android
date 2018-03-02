@@ -1,11 +1,12 @@
 package org.jetbrains.android.resourceManagers;
 
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -14,68 +15,94 @@ import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class ValueResourceInfoImpl extends ValueResourceInfoBase {
+public final class ValueResourceInfoImpl implements ValueResourceInfo {
+  private final ResourceItem myResource;
+  private final VirtualFile myFile;
   private final Project myProject;
-  private final int myOffset;
 
-  ValueResourceInfoImpl(@NotNull String name, @NotNull ResourceType type, @NotNull VirtualFile file, @NotNull Project project, int offset) {
-    super(name, type, file);
+  ValueResourceInfoImpl(@NotNull ResourceItem resourceItem, @NotNull VirtualFile file, @NotNull Project project) {
+    this.myResource = resourceItem;
+    this.myFile = file;
     myProject = project;
-    myOffset = offset;
+  }
+
+  @Override
+  @NotNull
+  public VirtualFile getContainingFile() {
+    return myFile;
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    return myResource.getName();
+  }
+
+  @Override
+  @NotNull
+  public ResourceType getType() {
+    return myResource.getType();
   }
 
   @Override
   public XmlAttributeValue computeXmlElement() {
-    final ResourceElement resDomElement = computeDomElement();
+    ResourceElement resDomElement = computeDomElement();
     return resDomElement != null ? resDomElement.getName().getXmlAttributeValue() : null;
   }
 
   @Nullable
   public ResourceElement computeDomElement() {
-    final PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
-
+    PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
     if (!(file instanceof XmlFile)) {
       return null;
     }
-    final XmlTag tag = PsiTreeUtil.findElementOfClassAtOffset(file, myOffset, XmlTag.class, true);
 
+    XmlTag tag = LocalResourceRepository.getItemTag(myProject, myResource);
     if (tag == null) {
       return null;
     }
-    final DomElement domElement = DomManager.getDomManager(myProject).getDomElement(tag);
+
+    DomElement domElement = DomManager.getDomManager(myProject).getDomElement(tag);
     if (!(domElement instanceof ResourceElement)) {
       return null;
     }
-    final String resType = domElement instanceof Item
+
+    String resType = domElement instanceof Item
                            ? ((Item)domElement).getType().getStringValue()
                            : AndroidCommonUtils.getResourceTypeByTagName(tag.getName());
-
-    if (!myType.getName().equals(resType)) {
+    if (!getType().getName().equals(resType)) {
       return null;
     }
-    final ResourceElement resDomElement = (ResourceElement)domElement;
-    final String resName = ((ResourceElement)domElement).getName().getStringValue();
-    return myName.equals(resName) ? resDomElement : null;
-  }
 
-  @Override
-  protected int getSortingRank() {
-    return 1;
+    ResourceElement resDomElement = (ResourceElement)domElement;
+    String resName = ((ResourceElement)domElement).getName().getStringValue();
+    return getName().equals(resName) ? resDomElement : null;
   }
 
   @Override
   public int compareTo(@NotNull ValueResourceInfo other) {
-    int delta = super.compareTo(other);
+    int delta = AndroidResourceUtil.compareResourceFiles(myFile, other.getContainingFile());
     if (delta != 0) {
       return delta;
     }
-    assert other instanceof ValueResourceInfoImpl; // otherwise sorting rank should have ensured non-zero delta
-    return myOffset - ((ValueResourceInfoImpl)other).myOffset;
+
+    delta = getType().compareTo(other.getType());
+    if (delta != 0) {
+      return delta;
+    }
+
+    return getName().compareTo(other.getName());
+  }
+
+  @Override
+  public String toString() {
+    return "ANDROID_RESOURCE: " + getType() + ", " + getName() + ", " + myFile.getPath();
   }
 }

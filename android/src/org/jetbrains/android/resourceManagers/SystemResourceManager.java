@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.resourceManagers;
 
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -26,11 +27,13 @@ import com.intellij.util.xml.ConvertContext;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class SystemResourceManager extends ResourceManager {
   private final AndroidPlatform myPlatform;
@@ -44,8 +47,7 @@ public class SystemResourceManager extends ResourceManager {
 
   @Override
   protected boolean isResourcePublic(@NotNull String type, @NotNull String name) {
-    return !myPublicOnly || myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).
-      isResourcePublic(type, name);
+    return !myPublicOnly || myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).isResourcePublic(type, name);
   }
 
   @Override
@@ -88,5 +90,12 @@ public class SystemResourceManager extends ResourceManager {
   @Nullable
   public synchronized AttributeDefinitions getAttributeDefinitions() {
     return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).getPublicAttrDefs(myProject);
+  }
+
+  @Override
+  protected void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action) {
+    AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
+    AbstractResourceRepository frameworkResources = targetData.getFrameworkResources(true);
+    action.accept(frameworkResources);
   }
 }
