@@ -503,7 +503,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                           "    android:layout_height=\"match_parent\">\n" +
                           "  <fragment\n" +
                           "      android:id=\"@+id/fragment\"\n" +
-                          "      android:name=\"android.arch.navigation.NavHostFragment\"\n" +
+                          "      android:name=\"androidx.navigation.fragment.NavHostFragment\"\n" +
                           "      android:layout_width=\"match_parent\"\n" +
                           "      android:layout_height=\"match_parent\"\n" +
                           "      app:navGraph=\"@navigation/mobile_navigation\" />\n" +
@@ -524,7 +524,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     Configuration configuration = manager.getConfiguration(xmlFile.getVirtualFile());
     ResourceResolver resourceResolver = configuration.getResourceResolver();
 
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, resourceResolver);
+    LayoutPsiPullParser parser =
+      LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, resourceResolver);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("include", parser.getName());

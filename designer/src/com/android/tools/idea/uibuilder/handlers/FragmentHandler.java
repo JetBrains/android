@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
@@ -111,7 +112,7 @@ public final class FragmentHandler extends ViewHandler {
         if (className.equals(FQCN_NAV_HOST_FRAGMENT)) {
           String src = browseNavs(editor, null);
           if (src != null) {
-            newChild.setAttribute(AUTO_URI, ATTR_NAV_GRAPH, src);
+            ApplicationManager.getApplication().runWriteAction(() -> newChild.setAttribute(AUTO_URI, ATTR_NAV_GRAPH, src));
             return true;
           }
           else {
