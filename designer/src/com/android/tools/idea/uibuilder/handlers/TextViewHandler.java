@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.TargetProvider;
 import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
 import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
-import com.android.tools.idea.uibuilder.api.XmlType;
-import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
@@ -93,7 +91,19 @@ public class TextViewHandler extends ViewHandler {
       return null;
     }
 
-    if (component.getAttribute(TOOLS_URI, ATTR_TEXT) != null) {
+    String toolsText = component.getAttribute(TOOLS_URI, ATTR_TEXT);
+    String text = component.getAttribute(ANDROID_URI, ATTR_TEXT);
+
+    // Only display the assistant if:
+    //  - tools:text is a sample data value, empty or null
+    //  - AND android:text is null, empty or a default value
+    boolean shouldDisplay = Strings.isNullOrEmpty(toolsText) || toolsText.startsWith(TOOLS_SAMPLE_PREFIX);
+    shouldDisplay = shouldDisplay &&
+                    (Strings.isNullOrEmpty(text) ||
+                     "Hello World!".equals(text) ||
+                     "TextView".equals(text));
+
+    if (!shouldDisplay) {
       return null;
     }
 

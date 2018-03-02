@@ -69,6 +69,10 @@ class TextViewAssistant(private val context: Context) : JPanel(BorderLayout()) {
         .toTypedArray()
 
       val combo = JComboBox<String>(elements)
+      val existingToolsText = context.component.getAttribute(TOOLS_URI, ATTR_TEXT) ?: ""
+      if (existingToolsText.startsWith(TOOLS_SAMPLE_PREFIX)) {
+        combo.selectedItem = existingToolsText
+      }
       combo.addActionListener {
         onElementSelected(combo.selectedItem as String)
       }
