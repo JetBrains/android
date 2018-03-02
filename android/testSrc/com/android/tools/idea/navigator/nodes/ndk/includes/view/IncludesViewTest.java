@@ -31,7 +31,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.*;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.checkPresentationDataContainsOsSpecificSlashes;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.checkPresentationDataHasOsSpecificSlashes;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -140,11 +141,10 @@ public class IncludesViewTest extends IdeaTestCase {
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
     IdeComponents ideComponents = new IdeComponents(getProject());
-    try {
-      IdeSdks mockIdeSdks = ideComponents.mockService(IdeSdks.class);
-      assertSame(mockIdeSdks, IdeSdks.getInstance());
-      File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
-      when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
+    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    assertSame(mockIdeSdks, IdeSdks.getInstance());
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
       List<? extends AbstractTreeNode> nodes =
         Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
@@ -164,8 +164,6 @@ public class IncludesViewTest extends IdeaTestCase {
       assertThat(child2child1child1.getVirtualFile().getName()).isEqualTo("bar.h");
       assertThat(child2child2child1.getVirtualFile().getName()).isEqualTo("foo.h");
       checkPresentationDataHasOsSpecificSlashes(child1Child1, "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
-    } finally {
-      ideComponents.restore();
-    }
+
   }
 }

@@ -43,24 +43,12 @@ import static org.mockito.Mockito.when;
  * Tests for {@link LibraryNode}.
  */
 public class LibraryNodeTest extends IdeaTestCase {
-  private IdeComponents myIdeComponents;
   private IdeSdks myIdeSdks;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeComponents = new IdeComponents(getProject());
-    myIdeSdks = myIdeComponents.mockService(IdeSdks.class);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
+    myIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
   }
 
   public void testGetChildren() throws IOException {

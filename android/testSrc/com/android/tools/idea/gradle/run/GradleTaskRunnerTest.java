@@ -72,8 +72,6 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     completed = buildInvoker.complete(new GradleInvocationResult(Collections.emptyList(), Collections.emptyList(), null));
     assertEquals(1, completed);
     countDownLatch.await(5, TimeUnit.SECONDS);
-
-    ideComponents.restore();
   }
 
   // b/72262273

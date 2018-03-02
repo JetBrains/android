@@ -44,14 +44,14 @@ public class SupportedModuleCheckerTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, GradleProjectInfo.class, myGradleProjectInfo);
+    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
     myModuleChecker = new SupportedModuleChecker();
   }
 
   public void testCheckForSupportedModulesWithNonGradleProject() {
     Project project = getProject();
     AndroidNotification androidNotification = mock(AndroidNotification.class);
-    IdeComponents.replaceService(project, AndroidNotification.class, androidNotification);
+    new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(false);
 
     myModuleChecker.checkForSupportedModules(project);
@@ -64,7 +64,7 @@ public class SupportedModuleCheckerTest extends IdeaTestCase {
 
     Project project = getProject();
     AndroidNotificationStub androidNotification = new AndroidNotificationStub(project);
-    IdeComponents.replaceService(project, AndroidNotification.class, androidNotification);
+    new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
 
     // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
     createModule("lib1");

@@ -50,16 +50,6 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     myIdeComponents = new IdeComponents(getProject());
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testReadGradleVersionFromGradleSyncState() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
@@ -118,7 +108,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
     // Check exactly 4
     GradleVersions spyVersions = spy(myGradleVersions);
-    myIdeComponents.replaceService(GradleVersions.class, spyVersions);
+    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0,0));
     assertTrue(GradleVersions.getInstance().isGradle4OrNewer(project));
 
@@ -142,7 +132,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
   @NotNull
   private GradleSyncState createMockGradleSyncState() {
     GradleSyncState syncState = mock(GradleSyncState.class);
-    IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
+    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
     return syncState;
   }
 

@@ -45,7 +45,7 @@ public class ProjectCleanupTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
+    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
 
     myIndicator = new EmptyProgressIndicator();
     myProjectCleanup = new ProjectCleanup(myStep1, myStep2);

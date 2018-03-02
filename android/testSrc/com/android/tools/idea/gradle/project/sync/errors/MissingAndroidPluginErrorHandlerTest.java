@@ -57,22 +57,12 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     myIdeComponents = new IdeComponents(getProject());
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testWithGradle4dot0() throws Exception {
     // Check when Gradle Version is 4.0 or higher
     loadProject(SIMPLE_APPLICATION);
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
-    myIdeComponents.replaceService(GradleVersions.class, spyVersions);
+    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0));
 
     // Make sure no repository is listed
@@ -95,7 +85,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     loadProject(SIMPLE_APPLICATION);
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
-    myIdeComponents.replaceService(GradleVersions.class, spyVersions);
+    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(2,2, 1));
 
     // Make sure no repository is listed

@@ -52,7 +52,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     initMocks(this);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater);
+    new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
 
     when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);

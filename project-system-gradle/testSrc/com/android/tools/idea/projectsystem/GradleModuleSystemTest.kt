@@ -32,7 +32,6 @@ import kotlin.test.assertFailsWith
 
 
 class GradleModuleSystemTest : IdeaTestCase() {
-  private lateinit var ideComponents: IdeComponents
   private lateinit var gradleDependencyManager: GradleDependencyManager
   private lateinit var gradleModuleSystem: GradleModuleSystem
 
@@ -45,18 +44,8 @@ class GradleModuleSystemTest : IdeaTestCase() {
 
   override fun setUp() {
     super.setUp()
-    ideComponents = IdeComponents(myProject)
-    gradleDependencyManager = ideComponents.mockProjectService(GradleDependencyManager::class.java)
+    gradleDependencyManager = IdeComponents(myProject).mockProjectService(GradleDependencyManager::class.java)
     gradleModuleSystem = GradleModuleSystem(myModule, mavenRepository)
-  }
-
-  override fun tearDown() {
-    try {
-      ideComponents.restore()
-    }
-    finally {
-      super.tearDown()
-    }
   }
 
   fun testAddDependency() {

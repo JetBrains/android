@@ -37,16 +37,6 @@ public class IdeVersionReaderTest extends AndroidGradleTestCase {
     myIdeComponents = new IdeComponents(getProject());
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testAppliesToWithAndroidStudio() {
     ApplicationInfo applicationInfo = replaceApplicationInfo();
 
@@ -93,6 +83,6 @@ public class IdeVersionReaderTest extends AndroidGradleTestCase {
 
   @NotNull
   private ApplicationInfo replaceApplicationInfo() {
-    return myIdeComponents.mockService(ApplicationInfo.class);
+    return myIdeComponents.mockApplicationService(ApplicationInfo.class);
   }
 }

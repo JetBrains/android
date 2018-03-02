@@ -61,9 +61,9 @@ public class BuildApkActionTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    IdeComponents.replaceService(myProject, GradleBuildInvoker.class, myBuildInvoker);
-    IdeComponents.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo);
-    IdeComponents.replaceService(myProject, ProjectStructure.class, myProjectStructure);
+    new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
+    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
     myAction = new BuildApkAction();
   }
 

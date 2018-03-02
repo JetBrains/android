@@ -43,31 +43,26 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/ndk_helper")
       .addArtifact("my-artifact", "bar.cpp");
     IdeComponents ideComponents = new IdeComponents(getProject());
-    try {
-      IdeSdks mockIdeSdks = ideComponents.mockService(IdeSdks.class);
-      assertSame(mockIdeSdks, IdeSdks.getInstance());
-      File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
-      when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
+    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    assertSame(mockIdeSdks, IdeSdks.getInstance());
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
-      List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
+    List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
 
-      assertThat(nodes).hasSize(2);
-      assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
-      assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
+    assertThat(nodes).hasSize(2);
+    assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
+    assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
 
-      // Check the children of the simple include view nodes
-      List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);
-      assertThat(children).hasSize(2);
+    // Check the children of the simple include view nodes
+    List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);
+    assertThat(children).hasSize(2);
 
-      // Check that nodes contains all files in the layout.
-      assertContainsAllFilesAsChildren(nodes, layout.headerFilesCreated);
+    // Check that nodes contains all files in the layout.
+    assertContainsAllFilesAsChildren(nodes, layout.headerFilesCreated);
 
-      checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
-      checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
-    }
-    finally {
-      ideComponents.restore();
-    }
+    checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
+    checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
   }
 
   public void testNdkLayoutNonHeader() throws IOException {
@@ -79,34 +74,29 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/ndk_helper")
       .addArtifact("my-artifact", "bar.cpp");
     IdeComponents ideComponents = new IdeComponents(getProject());
-    try {
-      IdeSdks mockIdeSdks = ideComponents.mockService(IdeSdks.class);
-      assertSame(mockIdeSdks, IdeSdks.getInstance());
-      File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
-      when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
+    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    assertSame(mockIdeSdks, IdeSdks.getInstance());
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
-      List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
+    List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
 
-      assertThat(nodes).hasSize(2);
-      assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
-      assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
+    assertThat(nodes).hasSize(2);
+    assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
+    assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
 
-      // Check the children of the simple include view nodes
-      List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);
-      assertThat(children).hasSize(2);
+    // Check the children of the simple include view nodes
+    List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);
+    assertThat(children).hasSize(2);
 
-      // Check that nodes contains all files in the layout.
-      assertContainsAllFilesAsChildren(nodes, layout.headerFilesCreated);
+    // Check that nodes contains all files in the layout.
+    assertContainsAllFilesAsChildren(nodes, layout.headerFilesCreated);
 
-      // Check that nodes don't contain non-header files
-      assertDoesNotContainAnyFilesAsChildren(nodes, layout.extraFilesCreated);
+    // Check that nodes don't contain non-header files
+    assertDoesNotContainAnyFilesAsChildren(nodes, layout.extraFilesCreated);
 
-      checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
-      checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
-    }
-    finally {
-      ideComponents.restore();
-    }
+    checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
+    checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
   }
 
   public void testNdkPointingToMissingFolder() throws IOException {
@@ -116,27 +106,22 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
     IdeComponents ideComponents = new IdeComponents(getProject());
-    try {
-      IdeSdks mockIdeSdks = ideComponents.mockService(IdeSdks.class);
-      assertSame(mockIdeSdks, IdeSdks.getInstance());
-      File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
-      when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
+    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    assertSame(mockIdeSdks, IdeSdks.getInstance());
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
-      List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
+    List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(getProject(), layout.getNativeIncludes(), SimpleIncludeViewNode.class);
 
-      assertThat(nodes).hasSize(2);
-      assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
-      assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
-      checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
-      checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
+    assertThat(nodes).hasSize(2);
+    assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
+    assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
+    checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
+    checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
 
-      // Check the children of the simple include view nodes
-      List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);
-      assertThat(children).hasSize(0);
-    }
-    finally {
-      ideComponents.restore();
-    }
+    // Check the children of the simple include view nodes
+    List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);
+    assertThat(children).hasSize(0);
   }
 
   public void testNullProject() throws IOException {
@@ -148,18 +133,13 @@ public class SimpleIncludeViewNodeTest extends IdeaTestCase {
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
     IdeComponents ideComponents = new IdeComponents(getProject());
-    try {
-      IdeSdks mockIdeSdks = ideComponents.mockService(IdeSdks.class);
-      assertSame(mockIdeSdks, IdeSdks.getInstance());
-      File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
-      when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
+    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    assertSame(mockIdeSdks, IdeSdks.getInstance());
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
-      List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(null, layout.getNativeIncludes(), SimpleIncludeViewNode.class);
+    List<SimpleIncludeViewNode> nodes = getChildNodesForIncludes(null, layout.getNativeIncludes(), SimpleIncludeViewNode.class);
 
-      assertThat(nodes).hasSize(0);
-    }
-    finally {
-      ideComponents.restore();
-    }
+    assertThat(nodes).hasSize(0);
   }
 }

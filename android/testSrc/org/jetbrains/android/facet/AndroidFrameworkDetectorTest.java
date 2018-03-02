@@ -48,7 +48,7 @@ public class AndroidFrameworkDetectorTest extends IdeaTestCase {
   }
 
   public void testDetectWithGradleProject() {
-    IdeComponents.replaceService(myProject, GradleProjectInfo.class, myProjectInfo);
+    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     List<? extends DetectedFrameworkDescription> descriptions = myDetector.detect(Collections.emptyList(), myContext);
@@ -56,7 +56,7 @@ public class AndroidFrameworkDetectorTest extends IdeaTestCase {
   }
 
   public void testDetectWithProjectWithBuildFile() {
-    IdeComponents.replaceService(myProject, GradleProjectInfo.class, myProjectInfo);
+    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
     when(myProjectInfo.hasTopLevelGradleBuildFile()).thenReturn(true);
 

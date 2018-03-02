@@ -70,10 +70,10 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     when(projectFolderFactory.create(myProjectFolderPath)).thenReturn(myProjectFolder);
 
     // Replace GradleSettings service with a mock.
-    IdeComponents.replaceService(project, GradleSettings.class, myGradleSettings);
+    new IdeComponents(project).replaceProjectService(GradleSettings.class, myGradleSettings);
     assertSame(GradleSettings.getInstance(project), myGradleSettings);
 
-    IdeComponents.replaceService(project, GradleProjectInfo.class, myGradleProjectInfo);
+    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
 
     myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
   }

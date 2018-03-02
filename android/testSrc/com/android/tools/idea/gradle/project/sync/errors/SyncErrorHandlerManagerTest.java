@@ -61,16 +61,6 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
     myIdeComponents = new IdeComponents(project);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testHandleError() {
     Throwable error = new Throwable("Test");
     ExternalSystemException errorToReport = new ExternalSystemException("Test error");

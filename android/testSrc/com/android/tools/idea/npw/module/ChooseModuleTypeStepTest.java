@@ -35,25 +35,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.mockito.Mockito.when;
 
 public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
-  private IdeComponents myIdeComponents;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
-    myIdeComponents = new IdeComponents(getProject());
     // Enable instant Apps (We can remove this later, when the SDK is made public)
-    when(myIdeComponents.mockService(InstantAppSdks.class).isInstantAppSdkEnabled()).thenReturn(true);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
+    when(new IdeComponents(getProject()).mockApplicationService(InstantAppSdks.class).isInstantAppSdkEnabled()).thenReturn(true);
   }
 
   public void testSortSingleModuleEntries() {

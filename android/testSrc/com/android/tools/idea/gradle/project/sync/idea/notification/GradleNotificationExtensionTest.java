@@ -45,7 +45,7 @@ public class GradleNotificationExtensionTest extends IdeaTestCase {
     initMocks(this);
 
     myNotification = new NotificationData("Title", "Message", ERROR, PROJECT_SYNC);
-    IdeComponents.replaceService(getProject(), GradleSyncMessages.class, mySyncMessages);
+    new IdeComponents(getProject()).replaceProjectService(GradleSyncMessages.class, mySyncMessages);
     myNotificationExtension = new GradleNotificationExtension(myHandler1, myHandler2);
   }
 

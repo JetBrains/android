@@ -25,23 +25,27 @@ import static org.mockito.Mockito.mock;
  * Tests for {@link IdeComponents}.
  */
 public class IdeComponentsTest extends IdeaTestCase {
+
   public void testReplaceApplicationService() {
     SdkSync originalSdkSync = SdkSync.getInstance();
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    try {
+    try (TempDisposable scope = new TempDisposable()){
       SdkSync mockSdkSync = mock(SdkSync.class);
-      ideComponents.replaceService(SdkSync.class, mockSdkSync);
+      new IdeComponents(myProject, scope).replaceApplicationService(SdkSync.class, mockSdkSync);
       assertSame(mockSdkSync, SdkSync.getInstance());
     }
     finally {
-      ideComponents.restore();
       assertSame(originalSdkSync, SdkSync.getInstance());
     }
   }
 
   public void testReplaceProjectService() {
-    GradleSettings mockSettings = mock(GradleSettings.class);
-    IdeComponents.replaceService(getProject(), GradleSettings.class, mockSettings);
-    assertSame(mockSettings, GradleSettings.getInstance(getProject()));
+    GradleSettings originalSettings = GradleSettings.getInstance(getProject());
+    try (TempDisposable scope = new TempDisposable()){
+      GradleSettings mockSettings = mock(GradleSettings.class);
+      new IdeComponents(getProject(), scope).replaceProjectService(GradleSettings.class, mockSettings);
+      assertSame(mockSettings, GradleSettings.getInstance(getProject()));
+    } finally {
+      assertSame(originalSettings, GradleSettings.getInstance(getProject()));
+    }
   }
 }

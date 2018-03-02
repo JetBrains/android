@@ -89,7 +89,7 @@ public class GradleTaskFinderTest extends IdeaTestCase {
 
   public void testFindTasksToExecuteWhenLastSyncFailed() {
     GradleSyncState syncState = mock(GradleSyncState.class);
-    IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
+    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
     when(syncState.lastSyncFailed()).thenReturn(true);
 
     File projectPath = getBaseDirPath(getProject());

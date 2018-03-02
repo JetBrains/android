@@ -26,18 +26,16 @@ import com.google.android.instantapps.sdk.api.Sdk;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import java.io.File;
 import java.net.URL;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +45,6 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   private final ApkInfo apkInfo = new ApkInfo(zipFile, "com.foo");
   private final ImmutableList<ApkInfo> apkInfos = ImmutableList.of(apkInfo);
 
-  private IdeComponents ideComponents = new IdeComponents(null);
   private InstantAppSdks instantAppSdks;
   @Mock private Sdk sdkLib;
   @Mock private RunHandler runHandler;
@@ -60,23 +57,13 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    instantAppSdks = ideComponents.mockService(InstantAppSdks.class);
+    instantAppSdks = new IdeComponents(null, getTestRootDisposable()).mockApplicationService(InstantAppSdks.class);
     when(instantAppSdks.loadLibrary()).thenReturn(sdkLib);
     when(sdkLib.getRunHandler()).thenReturn(runHandler);
 
     when(device.getSerialNumber()).thenReturn(DEVICE_ID);
     when(launchStatus.isLaunchTerminated()).thenReturn(false);
     when(instantAppSdks.shouldUseSdkLibraryToRun()).thenReturn(true);
-  }
-
-  @Override
-  @After
-  public void tearDown() throws Exception {
-    try {
-      ideComponents.restore();
-    } finally {
-      super.tearDown();
-    }
   }
 
   @Test

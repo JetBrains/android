@@ -39,25 +39,13 @@ import static org.mockito.Mockito.when;
  * Tests for {@link GoogleMavenRepository}.
  */
 public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
-  private IdeComponents myIdeComponents;
   private GradleVersions myGradleVersions;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myIdeComponents = new IdeComponents(getProject());
     myGradleVersions = spy(GradleVersions.getInstance());
-    myIdeComponents.replaceService(GradleVersions.class, myGradleVersions);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
+    new IdeComponents(getProject()).replaceApplicationService(GradleVersions.class, myGradleVersions);
   }
 
   public void testhasGoogleMavenRepositoryEmpty() throws IOException {

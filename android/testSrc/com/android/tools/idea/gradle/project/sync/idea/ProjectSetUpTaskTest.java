@@ -32,7 +32,7 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     // Simulate a sync is already running
     Project project = getProject();
     GradleSyncState mockSyncState = mock(GradleSyncState.class);
-    IdeComponents.replaceService(project, GradleSyncState.class, mockSyncState);
+    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mockSyncState);
 
     ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, new PostSyncProjectSetup.Request(), null, true);
     setUpTask.onFailure(ExternalSystemBundle.message("error.resolve.already.running", project.getProjectFilePath()), null);

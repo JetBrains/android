@@ -104,9 +104,9 @@ class AndroidProjectRule private constructor(
       mocks.replaceProjectService(serviceType, newServiceInstance)
 
   fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
-      mocks.replaceService(serviceType, newServiceInstance)
+      mocks.replaceApplicationService(serviceType, newServiceInstance)
 
-  fun <T> mockService(serviceType: Class<T>): T = mocks.mockService(serviceType)
+  fun <T> mockService(serviceType: Class<T>): T = mocks.mockApplicationService(serviceType)
 
   fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
 
@@ -123,7 +123,7 @@ class AndroidProjectRule private constructor(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
-    mocks = IdeComponents(fixture.project)
+    mocks = IdeComponents(fixture)
   }
 
   private fun createLightFixture(): CodeInsightTestFixture {
@@ -169,7 +169,6 @@ class AndroidProjectRule private constructor(
   }
 
   override fun after(description: Description) {
-    mocks.restore()
     runInEdtAndWait {
       val facetManager = FacetManager.getInstance(module)
       val facetModel = facetManager.createModifiableModel()

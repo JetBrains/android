@@ -38,24 +38,12 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AndroidJUnitConfigurationConverter}.
  */
 public class AndroidJUnitConfigurationConverterTest extends PlatformTestCase {
-  private IdeComponents myIdeComponents;
   private IdeInfo mockIdeInfo;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeComponents = new IdeComponents(myProject);
-    mockIdeInfo = myIdeComponents.mockService(IdeInfo.class);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
+    mockIdeInfo = new IdeComponents(myProject).mockApplicationService(IdeInfo.class);
   }
 
   public void testConfigurationsAreConvertedInStudio() throws Exception {
