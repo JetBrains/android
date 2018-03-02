@@ -45,7 +45,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class LaunchAndroidApplicationTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   private static final String APP_NAME = "app";
   private static final String FATAL_SIGNAL_11_OR_6 = ".*SIGSEGV.*|.*SIGABRT.*";
@@ -84,13 +84,14 @@ public class LaunchAndroidApplicationTest {
   public void testRunOnEmulator() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
+
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
@@ -122,13 +123,14 @@ public class LaunchAndroidApplicationTest {
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
+
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
@@ -169,17 +171,22 @@ public class LaunchAndroidApplicationTest {
   public void testVulkanCrashes() throws IOException, ClassNotFoundException {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
 
-    emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
-                       "Nexus 6P",
-                       "x86 Images",
-                       new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"),
-                       emulator.getDefaultAvdName());
+    String avdName = EmulatorGenerator.ensureAvdIsCreated(
+      ideFrameFixture.invokeAvdManager(),
+      new AvdSpec.Builder()
+        .setHardwareProfile("Nexus 6P")
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(
+          new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0")
+        )
+        .build()
+    );
 
     // The app must run under the debugger, otherwise there is a race condition where
     // the app may crash before Android Studio can connect to the console.
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     // wait for both debugger tabs to be available and visible
@@ -343,12 +350,12 @@ public class LaunchAndroidApplicationTest {
 
     ideFrameFixture.waitForGradleProjectSyncToFinish(Wait.seconds(120));
 
-    emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     String appName = "Application";
     ideFrameFixture
       .runApp(appName)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(appName)
@@ -382,9 +389,9 @@ public class LaunchAndroidApplicationTest {
   @Test
   public void testRunInstrumentationTest() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
-
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
     EditConfigurationsDialogFixture.find(guiTest.robot())
@@ -394,7 +401,9 @@ public class LaunchAndroidApplicationTest {
         .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
         .clickOk();
 
-    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(emulator.getDefaultAvdName()).clickOk();
+    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME)
+      .selectDevice(avdName)
+      .clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
         .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);
