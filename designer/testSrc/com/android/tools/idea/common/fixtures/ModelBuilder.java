@@ -29,6 +29,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -187,8 +188,10 @@ public class ModelBuilder {
       when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
       when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
       SceneView sceneView;
+      // TODO: NlDesignSurface should not be referenced from here.
+      // TODO: Do we need a special version of ModelBuilder for Nele?
       if (mySurfaceClass.equals(NlDesignSurface.class)) {
-        sceneView = createSceneView(surface);
+        sceneView = createSceneView((NlDesignSurface)surface);
         when(surface.getCurrentSceneView()).thenReturn(sceneView);
       }
 
@@ -196,9 +199,11 @@ public class ModelBuilder {
     });
   }
 
+  // TODO: NlDesignSurface and ScreenView should be referenced from here (should be SceneView & DesignSurface).
+  // TODO: Do we need a special version of ModelBuilder for Nele?
   @NotNull
-  private static SceneView createSceneView(DesignSurface surface) {
-    return new SceneView(surface, surface.getSceneManager()) {
+  private static ScreenView createSceneView(NlDesignSurface surface) {
+    return new ScreenView(surface, surface.getSceneManager()) {
       @NotNull
       @Override
       protected ImmutableList<Layer> createLayers() {

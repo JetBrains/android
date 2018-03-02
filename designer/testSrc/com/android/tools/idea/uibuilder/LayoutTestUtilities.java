@@ -26,6 +26,7 @@ import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
@@ -56,6 +57,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
@@ -232,10 +235,15 @@ public class LayoutTestUtilities {
   public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
+    NlSelectionModel selectionModel = new NlSelectionModel();
+    List<DesignSurfaceListener> listeners = new ArrayList<>();
     when(surface.getLayeredPane()).thenReturn(layeredPane);
-    when(surface.getSelectionModel()).thenReturn(new NlSelectionModel());
+    when(surface.getSelectionModel()).thenReturn(selectionModel);
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
+    doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
+    doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
+    selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
     if (NlDesignSurface.class.equals(surfaceClass)) {
       when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
       when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT_ONLY);

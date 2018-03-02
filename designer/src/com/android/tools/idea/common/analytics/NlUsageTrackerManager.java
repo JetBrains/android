@@ -18,14 +18,15 @@ package com.android.tools.idea.common.analytics;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.State;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -320,6 +321,18 @@ public class NlUsageTrackerManager implements NlUsageTracker {
       .setAttribute(convertAttribute(property))
       .setSearchOption(convertFilterMatches(filterMatches))
       .setViewType(convertPropertiesMode(propertiesMode));
+    for (NlComponent component : property.getComponents()) {
+      builder.addView(convertTagName(component.getTagName()));
+    }
+    logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.ATTRIBUTE_CHANGE, (event) -> event.setAttributeChangeEvent(builder));
+  }
+
+  @Override
+  public void logPropertyChange(@NotNull NelePropertyItem property,
+                                int filterMatches) {
+    LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
+      .setAttribute(convertAttribute(property))
+      .setSearchOption(convertFilterMatches(filterMatches));
     for (NlComponent component : property.getComponents()) {
       builder.addView(convertTagName(component.getTagName()));
     }

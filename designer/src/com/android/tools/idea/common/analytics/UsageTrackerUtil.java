@@ -18,6 +18,7 @@ package com.android.tools.idea.common.analytics;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
@@ -73,6 +74,17 @@ public class UsageTrackerUtil {
 
     return AndroidAttribute.newBuilder()
       .setAttributeName(convertAttributeName(property.getName(), namespace, libraryName, facet))
+      .setAttributeNamespace(namespace)
+      .build();
+  }
+
+  @NotNull
+  static AndroidAttribute convertAttribute(@NotNull NelePropertyItem property) {
+    AndroidFacet facet = property.getModel().getFacet();
+    AndroidAttribute.AttributeNamespace namespace = convertNamespace(property.getNamespace());
+
+    return AndroidAttribute.newBuilder()
+      .setAttributeName(convertAttributeName(property.getName(), namespace, property.getLibraryName(), facet))
       .setAttributeNamespace(namespace)
       .build();
   }

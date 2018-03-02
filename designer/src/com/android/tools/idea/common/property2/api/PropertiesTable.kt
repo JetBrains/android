@@ -16,12 +16,13 @@
 package com.android.tools.idea.common.property2.api
 
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
+import com.google.common.collect.ImmutableTable
 import com.google.common.collect.Table
 
 /**
  * Table of properties indexed by namespace and name.
  */
-interface PropertiesTable<out P: PropertyItem> {
+interface PropertiesTable<out P : PropertyItem> {
 
   /**
    * Returns a property [P] for the given [namespace] and property [name].
@@ -65,6 +66,13 @@ interface PropertiesTable<out P: PropertyItem> {
   companion object {
     fun <T: PropertyItem> create(table: Table<String, String, T>): PropertiesTable<T> {
       return PropertiesTableImpl(table)
+    }
+
+    private val EMPTY_TABLE = create(ImmutableTable.of())
+
+    fun <T : PropertyItem> emptyTable(): PropertiesTable<T> {
+      @Suppress("UNCHECKED_CAST")
+      return EMPTY_TABLE as PropertiesTable<T>
     }
   }
 }

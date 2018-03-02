@@ -122,6 +122,19 @@ public class ComponentDescriptor {
     return withAttribute(ANDROID_URI, ATTR_ID, id);
   }
 
+  @NotNull
+  public String getTagName() {
+    return myTagName;
+  }
+
+  @Nullable
+  public String getId() {
+    return myAttributes.stream()
+      .filter(attr -> attr.first.equals(PREFIX_ANDROID + ATTR_ID))
+      .map(attr -> attr.second)
+      .findFirst().orElse(null);
+  }
+
   public ComponentDescriptor text(@NotNull String text) {
     return withAttribute(ANDROID_URI, ATTR_TEXT, text);
   }
