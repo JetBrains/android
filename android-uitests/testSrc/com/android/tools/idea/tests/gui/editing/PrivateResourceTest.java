@@ -63,7 +63,7 @@ public class PrivateResourceTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70635388
+  @RunIn(TestGroup.QA)
   public void verifyNoPrivateResourcesSuggested() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("PrivateResource");
 
@@ -76,7 +76,7 @@ public class PrivateResourceTest {
       .clickOk();
 
     EditorFixture editor = ideFrame.getEditor();
-    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR);
+    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR, Wait.seconds(30));
 
     guiTest.waitForBackgroundTasks();
 

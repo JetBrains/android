@@ -333,6 +333,10 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
+    return open(file, tab, Wait.seconds(10));
+  }
+
+  public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab, @NotNull Wait waitForFileOpen) {
     robot.waitForIdle(); // Make sure there are no pending open requests
 
     EdtTestUtil.runInEdtAndWait(
@@ -350,7 +354,7 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    Wait.seconds(10).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
+    waitForFileOpen.expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
       if (!file.equals(getCurrentFile())) {
         return false;
       }
@@ -387,9 +391,13 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab) {
+    return open(relativePath, tab, Wait.seconds(10));
+  }
+
+  public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab, @NotNull Wait waitForFileOpen) {
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
     VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
-    return open(file, tab);
+    return open(file, tab, waitForFileOpen);
   }
 
   @NotNull
