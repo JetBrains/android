@@ -3,20 +3,26 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "native-symbolizer",
     # do not sort: must match IML order
-    srcs = [
-        "src",
-    ],
+    srcs = ["src"],
     iml_files = ["native-symbolizer.iml"],
     tags = ["managed"],
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
     test_data = glob(["testData/**"]) + [
         "//prebuilts/tools:lldb",
     ],
+    test_resources = ["testData"],
     test_srcs = ["testSrc"],
     test_timeout = "short",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    runtime_deps = [],
+    runtime_deps = [
+        "//tools/idea/platform/credential-store",
+        "//tools/idea/platform/tasks-platform-impl",
+        "//tools/idea/json",
+        "//tools/idea/xml/relaxng",
+        "//tools/idea/java/compiler/instrumentation-util-8",
+        "//tools/adt/idea/adt-branding",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
