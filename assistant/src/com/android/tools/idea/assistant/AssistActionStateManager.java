@@ -17,17 +17,19 @@ package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.structure.services.DeveloperService;
-import com.intellij.icons.AllIcons;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Extension point to add state to action buttons. State should generally be based off of data available from a {@link DeveloperService}
@@ -65,20 +67,24 @@ public abstract class AssistActionStateManager {
    */
   @Nullable
   public abstract StatefulButtonMessage getStateDisplay(@NotNull Project project,
-                                        @NotNull ActionData actionData,
-                                        @Nullable/*ignored if null*/ String message);
+                                                        @NotNull ActionData actionData,
+                                                        @Nullable/*ignored if null*/ String message);
 
   /**
    * Causes state buttons to recheck their state. Affects all buttons within the assistant.
    */
   public void refreshDependencyState(@NotNull Project project) {
-    List<Module> modules = GradleProjectInfo.getInstance(project).getAndroidModules();
-    if (!modules.isEmpty()) {
-      for (Module module : modules) {
-        MessageBus bus = module.getMessageBus();
-        StatefulButtonNotifier publisher = bus.syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC);
-        publisher.stateUpdated();
-      }
+    for (Module module : getAndroidModules(project)) {
+      MessageBus bus = module.getMessageBus();
+      StatefulButtonNotifier publisher = bus.syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC);
+      publisher.stateUpdated();
     }
+  }
+
+  public static List<Module> getAndroidModules(@NotNull Project project) {
+    return Lists.newArrayList(ModuleManager.getInstance(project).getModules())
+      .stream()
+      .filter(module -> AndroidFacet.getInstance(module) != null)
+      .collect(Collectors.toList());
   }
 }

@@ -20,7 +20,6 @@ import com.android.tools.idea.assistant.AssistActionState;
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.StatefulButtonNotifier;
 import com.android.tools.idea.assistant.datamodel.ActionData;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter;
 import com.intellij.ide.ui.laf.intellij.MacIntelliJButtonBorder;
 import com.intellij.openapi.module.Module;
@@ -141,7 +140,7 @@ public class StatefulButton extends JPanel {
     updateButtonState();
     if (myStateManager != null) {
       // Listen for notifications that the state has been updated.
-      for (Module module : GradleProjectInfo.getInstance(myProject).getAndroidModules()) {
+      for (Module module : AssistActionStateManager.getAndroidModules(myProject)) {
         MessageBusConnection connection = module.getMessageBus().connect(module);
         myMessageBusConnections.add(connection);
         connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, this::updateButtonState);

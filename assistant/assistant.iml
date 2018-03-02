@@ -15,5 +15,7 @@
     <orderEntry type="module" module-name="artwork" />
     <orderEntry type="module" module-name="platform-impl" />
     <orderEntry type="module" module-name="groovy-psi" />
+    <orderEntry type="module" module-name="dom-openapi" />
+    <orderEntry type="module" module-name="lang-api" />
   </component>
 </module>

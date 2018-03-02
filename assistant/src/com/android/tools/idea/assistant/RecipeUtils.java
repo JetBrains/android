@@ -16,7 +16,6 @@
 package com.android.tools.idea.assistant;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
@@ -125,7 +124,7 @@ public class RecipeUtils {
     Pair key = new Pair(recipe, project);
     if (!myRecipeMetadataCache.containsKey(key)) {
       ImmutableList.Builder<RecipeMetadata> cache = ImmutableList.builder();
-      for (Module module : GradleProjectInfo.getInstance(project).getAndroidModules()) {
+      for (Module module : AssistActionStateManager.getAndroidModules(project)) {
         cache.add(getRecipeMetadata(recipe, module));
       }
       myRecipeMetadataCache.put(key, cache.build());
