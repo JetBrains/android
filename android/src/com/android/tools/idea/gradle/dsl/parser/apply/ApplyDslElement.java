@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,10 @@ import org.jetbrains.annotations.Nullable;
 public class ApplyDslElement extends GradlePropertiesDslElement {
   @NonNls public static final String APPLY_BLOCK_NAME = "apply";
   // The file that is applied by the element. For apply statements that apply plugins, this is null.
-  @Nullable private GradleBuildFile myAppliedBuildFile;
+  @Nullable private VirtualFile myAppliedFile;
+  // The GradleDslFile that represents the virtual file that has been applied.
+  // This will be set when parsing the build file we belong to.
+  @Nullable private GradleDslFile myAppliedDslFile;
 
   public ApplyDslElement(@NotNull GradleDslElement parent) {
     super(parent, null, GradleNameElement.create(APPLY_BLOCK_NAME));
@@ -47,9 +51,9 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
       // Try and find the given file.
       String fileName = attemptToExtractFileName(element);
       if (fileName != null) {
-        VirtualFile file = getDslFile().getFile().getParent().findChild(fileName);
+        VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(getDslFile().getFile().getParent() + "/" + fileName);
         if (file != null) {
-          myAppliedBuildFile = new GradleBuildFile(file, getDslFile().getProject(), fileName);
+          myAppliedFile = file;
           // Register the applied file.
           getDslFile().registerAppliedFile(this);
         }
@@ -76,8 +80,17 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   }
 
   @Nullable
-  public GradleDslFile getAppliedFile() {
-    return myAppliedBuildFile;
+  public VirtualFile getAppliedFile() {
+    return myAppliedFile;
+  }
+
+  @Nullable
+  public GradleDslFile getAppliedDslFile() {
+    return myAppliedDslFile;
+  }
+
+  public void setAppliedDslFile(@NotNull GradleDslFile dslFile) {
+    myAppliedDslFile = dslFile;
   }
 
   @Nullable

@@ -30,13 +30,6 @@ public interface GradleSettingsModel extends GradleFileModel {
   }
 
   @NotNull
-  static GradleSettingsModel get(@NotNull VirtualFile file,
-                                 @NotNull Project project,
-                                 @NotNull String moduleName) {
-    return GradleModelProvider.get().getSettingsModel(file, project, moduleName);
-  }
-
-  @NotNull
   List<String> modulePaths();
 
   @NotNull

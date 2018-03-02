@@ -23,8 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl.INCLUDE;
 
 public class GradleSettingsFile extends GradleDslFile {
-  public GradleSettingsFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    super(file, project, moduleName);
+  public GradleSettingsFile(@NotNull VirtualFile file,
+                            @NotNull Project project,
+                            @NotNull String moduleName,
+                            @NotNull GradleDslFileCache fileCache) {
+    super(file, project, moduleName, fileCache);
   }
 
   @Override
