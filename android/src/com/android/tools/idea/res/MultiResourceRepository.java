@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.resources.ResourceType;
@@ -31,10 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * The  is a super class for several of the other repositories; it’s not really used on its own. Its only purpose is to be able to combine
@@ -77,7 +76,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> children) {
     synchronized (ITEM_MAP_LOCK) {
       if (myChildren != null) {
-        for (int i = myChildren.size() - 1; i >= 0; i--) {
+        for (int i = myChildren.size(); --i >= 0;) {
           LocalResourceRepository resources = myChildren.get(i);
           resources.removeParent(this);
         }
@@ -91,7 +90,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         LocalResourceRepository child = children.get(0);
         child.setModificationCount(getModificationCount());
       }
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
         resources.addParent(this);
         myModificationCounts[i] = resources.getModificationCount();
@@ -119,7 +118,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
       // See if any of the delegates have changed
       boolean changed = false;
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
         long rev = resources.getModificationCount();
         if (rev != myModificationCounts[i]) {
@@ -158,7 +157,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       if (myDataBindingResourceFilesModificationCount == modificationCount) {
         return myDataBindingResourceFiles;
       }
-      Map<String, DataBindingInfo> selected = Maps.newHashMap();
+      Map<String, DataBindingInfo> selected = new HashMap<>();
       for (LocalResourceRepository child : myChildren) {
         Map<String, DataBindingInfo> childFiles = child.getDataBindingResourceFiles();
         if (childFiles != null) {
@@ -254,7 +253,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
                          @NotNull SetMultimap<String, String> seenQualifiers,
                          @NotNull ListMultimap<String, ResourceItem> result) {
     synchronized (ITEM_MAP_LOCK) {
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         myChildren.get(i).merge(visited, namespace, type, seenQualifiers, result);
       }
     }
@@ -297,7 +296,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @Override
   public void dispose() {
     synchronized (ITEM_MAP_LOCK) {
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
         resources.removeParent(this);
         Disposer.dispose(resources);
@@ -351,7 +350,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   public boolean isScanPending(@NonNull PsiFile psiFile) {
     synchronized (ITEM_MAP_LOCK) {
       assert ApplicationManager.getApplication().isUnitTestMode();
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
         if (resources.isScanPending(psiFile)) {
           return true;
@@ -375,11 +374,18 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @Override
   protected Set<VirtualFile> computeResourceDirs() {
     synchronized (ITEM_MAP_LOCK) {
-      Set<VirtualFile> result = Sets.newHashSet();
+      Set<VirtualFile> result = new HashSet<>();
       for (LocalResourceRepository resourceRepository : myChildren) {
         result.addAll(resourceRepository.computeResourceDirs());
       }
       return result;
+    }
+  }
+
+  @Override
+  public void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action) {
+    for (LocalResourceRepository child : getChildren()) {
+      child.forEachLeafResourceRepository(action);
     }
   }
 }

@@ -29,7 +29,6 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,6 +41,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,11 +51,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
-
 
 /**
  * Repository for Android application resources, e.g. those that show up in {@code R}, not {@code android.R}
@@ -185,7 +185,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   public void addParent(@NonNull MultiResourceRepository parent) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents == null) {
-        myParents = Lists.newArrayListWithExpectedSize(2); // Don't expect many parents
+        myParents = new ArrayList<>(2); // Don't expect many parents
       }
       myParents.add(parent);
     }
@@ -353,13 +353,8 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
 
     ResourceFile source = item.getSource();
-    if (source == null) { // most likely a dynamically defined value
+    if (source == null) { // Most likely a merged resource or a dynamically defined value.
       return null;
-    }
-
-    if (source instanceof PsiResourceFile) {
-      PsiResourceFile prf = (PsiResourceFile)source;
-      return prf.getPsiFile();
     }
 
     File file = source.getFile();
@@ -370,6 +365,23 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
 
     return null;
+  }
+
+  /** Returns the {@link VirtualFile} corresponding to the source of the given resource item, if possible. */
+  @Nullable
+  public static VirtualFile getItemVirtualFile(@NonNull ResourceItem item) {
+    if (item instanceof PsiResourceItem) {
+      PsiFile psiFile = ((PsiResourceItem)item).getPsiFile();
+      return psiFile == null ? null : psiFile.getVirtualFile();
+    }
+
+    ResourceFile source = item.getSource();
+    if (source == null) { // Most likely a merged resource or a dynamically defined value.
+      return null;
+    }
+
+    File file = source.getFile();
+    return LocalFileSystem.getInstance().findFileByIoFile(file);
   }
 
   /**
@@ -392,13 +404,16 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       if (rootTag != null && rootTag.isValid()) {
         XmlTag[] subTags = rootTag.getSubTags();
         for (XmlTag tag : subTags) {
-          if (tag.isValid() && resourceName.equals(tag.getAttributeValue(SdkConstants.ATTR_NAME))) {
+          if (tag.isValid()
+              && resourceName.equals(tag.getAttributeValue(SdkConstants.ATTR_NAME))
+              && item.getType() == AndroidResourceUtil.getType(tag)) {
             return tag;
           }
         }
+        // TODO: Support nested tags inside declare-styleable. See http://b/74194028.
       }
 
-      // This method should only be called on value resource types
+      // This method should only be called on value resource types.
       assert FolderTypeRelationship.getRelatedFolders(item.getType()).contains(ResourceFolderType.VALUES) : item.getType();
     }
 
@@ -489,5 +504,14 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
         }
       }
     }
+  }
+
+  /**
+   * Calls the given {@code action} for each of the leaf resource repositories.
+   *
+   * @param action the action to call
+   */
+  public void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action) {
+    action.accept(this);
   }
 }
