@@ -32,6 +32,7 @@ import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
+import com.android.tools.idea.uibuilder.property2.NelePropertiesPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.util.SyncUtil;
@@ -169,7 +170,12 @@ public class NlEditorPanel extends JPanel implements Disposable {
     }
     else {
       tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-      tools.add(new NlPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+      if (StudioFlags.NELE_NEW_PROPERTY_PANEL.get()) {
+        tools.add(new NelePropertiesPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+      }
+      else {
+        tools.add(new NlPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+      }
       tools.add(new NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
       if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
         tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
