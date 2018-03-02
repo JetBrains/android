@@ -673,9 +673,13 @@ public class AndroidResourceUtil {
   public static boolean isResourceSubdirectory(@NotNull PsiDirectory directory, @Nullable String resourceType) {
     PsiDirectory dir = directory;
 
-    final String dirName = dir.getName();
-    if (resourceType != null && !dirName.equals(resourceType) && !dirName.startsWith(resourceType + '-')) {
-      return false;
+    String dirName = dir.getName();
+    if (resourceType != null) {
+      int typeLength = resourceType.length();
+      int dirLength = dirName.length();
+      if (dirLength < typeLength || !dirName.startsWith(resourceType) || dirLength > typeLength && dirName.charAt(typeLength) != '-') {
+        return false;
+      }
     }
     dir = dir.getParent();
 
