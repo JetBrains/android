@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -28,19 +30,23 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.AndroidGradleTests.*;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateTargetSdkVersion;
+import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES_PRE30;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
+import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.mock;
@@ -192,6 +198,28 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     Module androidLibModule = myModules.getModule("library1");
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*commons-io.*", COMPILE);
+  }
+
+  public void testSyncWithGradleBuildCacheUninitialized() throws Exception {
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES_PRE30);
+    Project project = getProject();
+    BuildCacheSyncTest.setBuildCachePath(createTempDirectory("build-cache", ""), project);
+
+    importProject(project.getName(), getBaseDirPath(project), null);
+
+    File mainActivityFile = new File("app/src/main/java/com/example/alruiz/transitive_dependencies/MainActivity.java");
+    Predicate<HighlightInfo> matchByDescription = info -> "Cannot resolve symbol 'AppCompatActivity'".equals(info.getDescription());
+    List<HighlightInfo> highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
+
+    // It is expected that symbols in AppCompatActivity cannot be resolved yet, since AARs have not been exploded yet.
+    assertThat(highlights).isNotEmpty();
+    // Generate sources to explode AARs in build cache.
+    GradleInvocationResult result = generateSources();
+    assertTrue(result.isBuildSuccessful());
+
+    highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
+    // All symbols in AppCompatActivity should be resolved now.
+    assertThat(highlights).isEmpty();
   }
 
   private static class TestSettings {

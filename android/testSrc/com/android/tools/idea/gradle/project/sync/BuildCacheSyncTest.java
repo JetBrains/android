@@ -27,10 +27,10 @@ import java.util.Properties;
 import java.util.function.Predicate;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
-import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 
@@ -41,9 +41,9 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
   // See https://code.google.com/p/android/issues/detail?id=229633
   public void testSyncWithGradleBuildCacheUninitialized() throws Exception {
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
-    setBuildCachePath(createTempDirectory("build-cache", ""));
-
     Project project = getProject();
+    setBuildCachePath(createTempDirectory("build-cache", ""), project);
+
     importProject(project.getName(), getBaseDirPath(project), null);
 
     File mainActivityFile = new File("app/src/main/java/com/example/alruiz/transitive_dependencies/MainActivity.java");
@@ -53,10 +53,9 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
     assertThat(highlights).isEmpty();
   }
 
-  private void setBuildCachePath(@NotNull File path) throws IOException {
+  public static void setBuildCachePath(@NotNull File path, @NotNull Project project) throws IOException {
     // Set up path of build-cache
     // See: https://developer.android.com/r/tools/build-cache.html
-    Project project = getProject();
     File gradlePropertiesFilePath = new File(getBaseDirPath(project), "gradle.properties");
     Properties gradleProperties = getProperties(gradlePropertiesFilePath);
     gradleProperties.setProperty("android.enableBuildCache", "true");
