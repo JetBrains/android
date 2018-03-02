@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.error;
+package com.android.tools.idea.common.error;
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.error.MockIssueFactory;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiElement;
@@ -32,7 +33,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
-public class NlIssueTest {
+public class IssueTest {
 
   @Mock
   private NlComponent component1;
@@ -40,7 +41,7 @@ public class NlIssueTest {
   @Mock
   private NlComponent component2;
 
-  private static class TestIssue extends NlIssue {
+  private static class TestIssue extends Issue {
 
     private final String summary;
     private final String description;
@@ -84,6 +85,7 @@ public class NlIssueTest {
       return source;
     }
 
+    @NotNull
     @Override
     public String getCategory() {
       return category;
@@ -136,9 +138,11 @@ public class NlIssueTest {
     MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent, startElement, endElement);
     MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent);
     List<LintAnnotationsModel.IssueData> issues = model.getIssues();
-    Assert.assertEquals(NlIssue.wrapIssue(issues.get(0)), NlIssue.wrapIssue(issues.get(1)));
-    Assert.assertEquals(NlIssue.wrapIssue(issues.get(0)).hashCode(), NlIssue.wrapIssue(issues.get(1)).hashCode());
-    Assert.assertNotEquals(NlIssue.wrapIssue(issues.get(0)), NlIssue.wrapIssue(issues.get(2)));
-    Assert.assertNotEquals(NlIssue.wrapIssue(issues.get(0)).hashCode(), NlIssue.wrapIssue(issues.get(2)).hashCode());
+    Assert.assertEquals(new LintIssueProvider.LintIssueWrapper(issues.get(0)), new LintIssueProvider.LintIssueWrapper(issues.get(1)));
+    Assert.assertEquals(new LintIssueProvider.LintIssueWrapper(issues.get(0)).hashCode(),
+                        new LintIssueProvider.LintIssueWrapper(issues.get(1)).hashCode());
+    Assert.assertNotEquals(new LintIssueProvider.LintIssueWrapper(issues.get(0)), new LintIssueProvider.LintIssueWrapper(issues.get(2)));
+    Assert.assertNotEquals(new LintIssueProvider.LintIssueWrapper(issues.get(0)).hashCode(),
+                           new LintIssueProvider.LintIssueWrapper(issues.get(2)).hashCode());
   }
 }

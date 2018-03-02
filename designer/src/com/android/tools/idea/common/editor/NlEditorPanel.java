@@ -27,7 +27,7 @@ import com.android.tools.idea.naveditor.structure.DestinationList;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
+import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;

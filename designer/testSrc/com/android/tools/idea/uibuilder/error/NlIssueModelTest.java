@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
+import com.android.tools.idea.common.error.Issue;
+import com.android.tools.idea.common.error.IssueModel;
+import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.google.common.collect.ImmutableList;
@@ -31,7 +34,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class IssueModelTest {
+public class NlIssueModelTest {
   private IssueModel myIssueModel;
   private Disposable myDisposable;
 
@@ -48,13 +51,13 @@ public class IssueModelTest {
     RenderErrorModel renderErrorModel = createRenderErrorModel(issue);
 
     assertFalse(myIssueModel.hasIssues());
-    assertFalse(myIssueModel.hasRenderError());
+    assertFalse(hasRenderError());
     assertEquals(0, myIssueModel.getIssueCount());
-    myIssueModel.setRenderErrorModel(renderErrorModel);
+    myIssueModel.addIssueProvider(new RenderIssueProvider(renderErrorModel));
     assertTrue(myIssueModel.hasIssues());
-    assertTrue(myIssueModel.hasRenderError());
+    assertTrue(hasRenderError());
     assertEquals(1, myIssueModel.getIssueCount());
-    assertArrayEquals(new NlIssue[]{NlIssue.wrapIssue(issue)}, myIssueModel.getNlErrors().toArray());
+    assertArrayEquals(new Issue[]{RenderIssueProvider.NlRenderIssueWrapper.wrapIssue(issue)}, myIssueModel.getIssues().toArray());
   }
 
   @NotNull
@@ -69,13 +72,14 @@ public class IssueModelTest {
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
 
     assertFalse(myIssueModel.hasIssues());
-    assertFalse(myIssueModel.hasRenderError());
+    assertFalse(hasRenderError());
     assertEquals(0, myIssueModel.getIssueCount());
-    myIssueModel.setLintAnnotationsModel(lintAnnotationsModel);
+    myIssueModel.addIssueProvider(new LintIssueProvider(lintAnnotationsModel));
     assertTrue(myIssueModel.hasIssues());
-    assertFalse(myIssueModel.hasRenderError());
+    assertFalse(hasRenderError());
     assertTrue(myIssueModel.getIssueCount() == 1);
-    assertArrayEquals(new NlIssue[]{NlIssue.wrapIssue(lintAnnotationsModel.getIssues().get(0))}, myIssueModel.getNlErrors().toArray());
+    assertArrayEquals(new Issue[]{new LintIssueProvider.LintIssueWrapper(lintAnnotationsModel.getIssues().get(0))},
+                      myIssueModel.getIssues().toArray());
   }
 
   @Test
@@ -85,15 +89,15 @@ public class IssueModelTest {
     IssueModel.IssueModelListener listener2 = () -> listenerCalled[1] = true;
     myIssueModel.addErrorModelListener(listener1);
     myIssueModel.addErrorModelListener(listener2);
-    myIssueModel.setRenderErrorModel(createRenderErrorModel(
-      MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR)));
+    myIssueModel.addIssueProvider(new RenderIssueProvider(createRenderErrorModel(
+      MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR))));
     assertTrue(listenerCalled[0]);
     assertTrue(listenerCalled[1]);
     listenerCalled[0] = false;
     listenerCalled[1] = false;
     myIssueModel.removeErrorModelListener(listener1);
-    myIssueModel.setRenderErrorModel(createRenderErrorModel(
-      MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR)));
+    myIssueModel.addIssueProvider(new RenderIssueProvider(createRenderErrorModel(
+      MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR))));
     assertFalse(listenerCalled[0]);
     assertTrue(listenerCalled[1]);
   }
@@ -101,11 +105,11 @@ public class IssueModelTest {
   @Test
   public void warningErrorCount() {
     assertFalse(myIssueModel.hasIssues());
-    myIssueModel.setRenderErrorModel(
+    myIssueModel.addIssueProvider(new RenderIssueProvider(
       createRenderErrorModel(
         MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
         MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
-        MockIssueFactory.createRenderIssue(HighlightSeverity.WARNING)));
+        MockIssueFactory.createRenderIssue(HighlightSeverity.WARNING))));
     assertEquals(3, myIssueModel.getIssueCount());
     assertEquals(2, myIssueModel.getErrorCount());
     assertEquals(1, myIssueModel.getWarningCount());
@@ -113,7 +117,7 @@ public class IssueModelTest {
     MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR);
     MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.WARNING);
     MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR);
-    myIssueModel.setLintAnnotationsModel(model);
+    myIssueModel.addIssueProvider(new LintIssueProvider(model));
     assertEquals(6, myIssueModel.getIssueCount());
     assertEquals(4, myIssueModel.getErrorCount());
     assertEquals(2, myIssueModel.getWarningCount());
@@ -122,5 +126,11 @@ public class IssueModelTest {
   @After
   public void tearDown() throws Exception {
     Disposer.dispose(myDisposable);
+  }
+
+  public boolean hasRenderError() {
+    return myIssueModel.getIssues()
+      .stream()
+      .anyMatch(issue -> issue instanceof RenderIssueProvider.NlRenderIssueWrapper && issue.getSeverity() == HighlightSeverity.ERROR);
   }
 }

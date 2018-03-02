@@ -30,7 +30,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
+import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;

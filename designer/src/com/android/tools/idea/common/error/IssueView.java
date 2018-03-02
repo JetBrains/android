@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.error;
+package com.android.tools.idea.common.error;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
@@ -39,7 +39,7 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 
 /**
- * Representation of a {@link NlIssue} in the {@link IssuePanel}
+ * Representation of a {@link Issue} in the {@link IssuePanel}
  */
 @SuppressWarnings("unused") // Fields are used in the design form
 public class IssueView extends JPanel {
@@ -69,12 +69,12 @@ public class IssueView extends JPanel {
   private final int myDisplayPriority;
 
   /**
-   * Construct a new {@link IssueView} representing the provided {@link NlIssue}
+   * Construct a new {@link IssueView} representing the provided {@link Issue}
    *
-   * @param issue     The {@link NlIssue} to display
+   * @param issue     The {@link Issue} to display
    * @param container The {@link IssuePanel} where this view will be shown
    */
-  IssueView(@NotNull NlIssue issue, @NotNull IssuePanel container) {
+  IssueView(@NotNull Issue issue, @NotNull IssuePanel container) {
     addMouseListener(createMouseListener());
     myContainerIssuePanel = container;
     myDisplayPriority = getDisplayPriority(issue);
@@ -87,7 +87,7 @@ public class IssueView extends JPanel {
     setBackground(UIUtil.getEditorPaneBackground());
   }
 
-  private void setupHeader(@NotNull NlIssue issue) {
+  private void setupHeader(@NotNull Issue issue) {
     myErrorIcon.setIcon(getSeverityIcon(issue.getSeverity()));
     myExpandIcon.setIcon(UIUtil.getTreeCollapsedIcon());
     myErrorTitle.setText(issue.getSummary());
@@ -99,7 +99,7 @@ public class IssueView extends JPanel {
     }
   }
 
-  private void setupFixPanel(@NotNull NlIssue issue) {
+  private void setupFixPanel(@NotNull Issue issue) {
     myFixPanel.setLayout(new BoxLayout(myFixPanel, BoxLayout.Y_AXIS));
     issue.getFixes().forEach(this::createFixEntry);
     if (myFixPanel.getComponentCount() > 0) {
@@ -114,7 +114,7 @@ public class IssueView extends JPanel {
     }
   }
 
-  private void setupDescriptionPanel(@NotNull NlIssue issue) {
+  private void setupDescriptionPanel(@NotNull Issue issue) {
     String description = issue.getDescription();
     String formattedText = new HtmlBuilder().openHtmlBody().addHtml(description).closeHtmlBody().getHtml();
     myErrorDescription.setEditorKit(UIUtil.getHTMLEditorKit());
@@ -135,7 +135,7 @@ public class IssueView extends JPanel {
    * @return A int between 0 and 3 representing how high the issue should be displayed.
    * 0 is the highest priority and 3 the lower
    */
-  private static int getDisplayPriority(@NotNull NlIssue error) {
+  private static int getDisplayPriority(@NotNull Issue error) {
     if (error.getSeverity().equals(HighlightSeverity.ERROR)) return 0;
     if (error.getSeverity().equals(HighlightSeverity.WARNING)) return 1;
     if (error.getSeverity().equals(HighlightSeverity.WEAK_WARNING)) return 2;
@@ -146,7 +146,7 @@ public class IssueView extends JPanel {
     return myDisplayPriority;
   }
 
-  private void createFixEntry(@NotNull NlIssue.Fix fix) {
+  private void createFixEntry(@NotNull Issue.Fix fix) {
     myFixPanel.add(new FixEntry(fix.getDescription(), fix.getRunnable()));
   }
 

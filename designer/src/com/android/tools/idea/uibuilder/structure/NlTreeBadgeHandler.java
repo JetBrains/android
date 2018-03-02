@@ -21,7 +21,7 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.uibuilder.error.IssuePanel;
+import com.android.tools.idea.common.error.IssuePanel;
 import com.android.utils.SdkUtils;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.openapi.ui.popup.Balloon;

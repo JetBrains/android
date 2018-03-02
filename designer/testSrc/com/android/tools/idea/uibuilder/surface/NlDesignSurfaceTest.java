@@ -27,9 +27,11 @@ import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -134,8 +136,12 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
-    assertFalse(mySurface.getIssueModel().hasRenderError());
+    assertFalse(mySurface.getIssueModel().getIssues()
+                  .stream()
+                  .anyMatch(
+                    issue -> issue instanceof RenderIssueProvider.NlRenderIssueWrapper && issue.getSeverity() == HighlightSeverity.ERROR));
   }
+
 
   public void testRenderWhileBuilding() {
     ModelBuilder modelBuilder = model("absolute.xml",
@@ -170,9 +176,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Because there is a missing view, some other extra errors will be generated about missing styles. This is caused by
     // MockView (which is based on TextView) that depends on some Material styles.
     // We only care about the missing class error.
-    assertTrue(mySurface.getIssueModel().getNlErrors().stream()
+    assertTrue(mySurface.getIssueModel().getIssues().stream()
                  .anyMatch(issue -> issue.getSummary().startsWith("Missing classes")));
-    assertFalse(mySurface.getIssueModel().getNlErrors().stream()
+    assertFalse(mySurface.getIssueModel().getIssues().stream()
                   .anyMatch(issue -> issue.getSummary().startsWith("The project is still building")));
   }
 

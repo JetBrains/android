@@ -18,6 +18,10 @@ package com.android.tools.idea.common.surface;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.editor.ActionManager;
+import com.android.tools.idea.common.error.IssueModel;
+import com.android.tools.idea.common.error.IssuePanel;
+import com.android.tools.idea.common.error.LintIssueProvider;
+import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -26,8 +30,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.error.IssueModel;
-import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -98,12 +100,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   };
 
-  private final IssueModel myIssueModel = new IssueModel();
+  protected final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
   private String myDescriptionString;
+  private LintIssueProvider myLintIssueProvider;
 
   /**
    * Flag to indicate if the surface should resize its content when
@@ -1211,6 +1214,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public IssueModel getIssueModel() {
     return myIssueModel;
+  }
+
+  public void setLintAnnotationsModel(@NotNull LintAnnotationsModel model) {
+    if (myLintIssueProvider != null) {
+      myLintIssueProvider.setLintAnnotationsModel(model);
+    }
+    else {
+      myLintIssueProvider = new LintIssueProvider(model);
+      getIssueModel().addIssueProvider(myLintIssueProvider);
+    }
   }
 
   @NotNull

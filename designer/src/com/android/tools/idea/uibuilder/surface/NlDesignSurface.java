@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
+import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlSelectionModel;
@@ -78,6 +79,7 @@ public class NlDesignSurface extends DesignSurface {
   private final boolean myInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
+  private RenderIssueProvider myRenderIssueProvider;
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
     super(project, new NlSelectionModel(), parentDisposable);
@@ -492,7 +494,11 @@ public class NlDesignSurface extends DesignSurface {
                                    ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
                                    : RenderErrorModelFactory
                                      .createErrorModel(NlDesignSurface.this, result, DataManager.getInstance().getDataContext(getIssuePanel()));
-          getIssueModel().setRenderErrorModel(model);
+          if (myRenderIssueProvider != null) {
+            getIssueModel().removeIssueProvider(myRenderIssueProvider);
+          }
+          myRenderIssueProvider = new RenderIssueProvider(model);
+          getIssueModel().addIssueProvider(myRenderIssueProvider);
         });
       }
 

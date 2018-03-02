@@ -18,11 +18,11 @@ package com.android.tools.idea.naveditor.editor;
 import com.android.tools.idea.common.actions.*;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
 
 /**
  * Toolbar actions for the navigation editor
@@ -40,6 +40,8 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
     group.add(new ZoomLabelAction(mySurface));
     group.add(new ZoomOutAction(mySurface));
     group.add(new ZoomToFitAction(mySurface));
+    group.addSeparator();
+    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface));
     return group;
   }
 }
