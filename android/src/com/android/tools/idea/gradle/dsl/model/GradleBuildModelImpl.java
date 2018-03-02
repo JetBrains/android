@@ -42,10 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.files.*;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
@@ -105,22 +102,35 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   }
 
   @NotNull
-  public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    GradleBuildFile buildDslFile = new GradleBuildFile(file, project, moduleName);
-    ApplicationManager.getApplication().runReadAction(() -> {
-      populateWithParentModuleSubProjectsProperties(buildDslFile);
-      populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
-      buildDslFile.parse();
-    });
-    return new GradleBuildModelImpl(buildDslFile);
+  public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file,
+                                                @NotNull Project project,
+                                                @NotNull String moduleName) {
+
+    return new GradleBuildModelImpl(parseBuildFile(file, project, moduleName, null));
   }
 
-  private static void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile) {
-    GradleSettingsModel gradleSettingsModel = GradleSettingsModelImpl.get(buildDslFile.getProject());
-    if (gradleSettingsModel == null) {
+  @NotNull
+  public static GradleBuildFile parseBuildFile(@NotNull VirtualFile file,
+                                        @NotNull Project project,
+                                        @NotNull String moduleName,
+                                        @Nullable GradleDslFileCache cache) {
+    final GradleDslFileCache fileCache = cache == null ? new GradleDslFileCache(project) : cache;
+    GradleBuildFile buildDslFile = new GradleBuildFile(file, project, moduleName, fileCache);
+    ApplicationManager.getApplication().runReadAction(() -> {
+      populateWithParentModuleSubProjectsProperties(buildDslFile, fileCache);
+      populateSiblingDslFileWithGradlePropertiesFile(buildDslFile, fileCache);
+      buildDslFile.parse();
+    });
+    return buildDslFile;
+  }
+
+  private static void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile, @NotNull GradleDslFileCache cache) {
+    GradleSettingsFile settingsFile = cache.getOrCreateSettingsFile(buildDslFile.getProject());
+    if (settingsFile == null) {
       return;
     }
 
+    GradleSettingsModel gradleSettingsModel = new GradleSettingsModelImpl(settingsFile);
     String modulePath = gradleSettingsModel.moduleWithDirectory(buildDslFile.getDirectoryPath());
     if (modulePath == null) {
       return;
@@ -148,7 +158,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     }
   }
 
-  private static void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile) {
+  private static void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile, @Nullable GradleDslFileCache cache) {
     File propertiesFilePath = new File(buildDslFile.getDirectoryPath(), FN_GRADLE_PROPERTIES);
     VirtualFile propertiesFile = findFileByIoFile(propertiesFilePath, true);
     if (propertiesFile == null) {
@@ -165,7 +175,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     propertiesDslFile.setSiblingDslFile(buildDslFile);
   }
 
-  private GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
+  GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
     super(buildDslFile);
   }
 
@@ -344,9 +354,11 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   private static GradleFileModel getFileModel(@NotNull GradleDslFile file) {
     if (file instanceof GradleBuildFile) {
       return new GradleBuildModelImpl((GradleBuildFile)file);
-    } else if (file instanceof GradleSettingsFile) {
+    }
+    else if (file instanceof GradleSettingsFile) {
       return new GradleSettingsModelImpl((GradleSettingsFile)file);
-    } else if (file instanceof GradlePropertiesFile) {
+    }
+    else if (file instanceof GradlePropertiesFile) {
       return new GradlePropertiesModel(file);
     }
     throw new IllegalStateException("Unknown GradleDslFile type found!");

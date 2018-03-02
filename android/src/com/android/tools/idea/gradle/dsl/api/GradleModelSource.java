@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.intellij.openapi.module.Module;
@@ -28,6 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleModelSource extends GradleModelProvider {
+
+  @Nullable
+  @Override
+  public ProjectBuildModel getProjectModel(@NotNull Project project) {
+    return ProjectBuildModelImpl.get(project);
+  }
 
   @Nullable
   @Override
@@ -57,12 +64,6 @@ public class GradleModelSource extends GradleModelProvider {
   @Override
   public GradleSettingsModel getSettingsModel(@NotNull Project project) {
     return GradleSettingsModelImpl.get(project);
-  }
-
-  @NotNull
-  @Override
-  public GradleSettingsModel getSettingsModel(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    return GradleSettingsModelImpl.parseBuildFile(file, project, moduleName);
   }
 
   @NotNull

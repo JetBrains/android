@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel.TypeNameValueElement;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
@@ -50,7 +51,7 @@ import java.util.Objects;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.*;
+import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
 import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.*;
@@ -97,7 +98,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     mySubModuleBuildFile = new File(subModuleDirPath, FN_BUILD_GRADLE);
     assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
     mySubModulePropertiesFile = new File(subModuleDirPath, FN_GRADLE_PROPERTIES);
-    assertTrue(ensureCanCreateFile(mySubModuleBuildFile));
+    assertTrue(ensureCanCreateFile(mySubModulePropertiesFile));
   }
 
   @Override
@@ -132,6 +133,41 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void writeToBuildFile(@NotNull String text) throws IOException {
     writeToFile(myBuildFile, text);
+  }
+
+  protected Module writeToNewSubModule(@NotNull String name, @NotNull String buildFileText, @NotNull String propertiesFileText)
+    throws IOException {
+    final VirtualFile baseDir = myProject.getBaseDir();
+    assertNotNull(baseDir);
+    final File moduleFile = new File(toSystemDependentName(baseDir.getPath()),
+                                     name + File.separator + name + ModuleFileType.DOT_DEFAULT_EXTENSION);
+    createIfDoesntExist(moduleFile);
+    myFilesToDelete.add(moduleFile);
+
+    Module newModule = new WriteAction<Module>() {
+
+      @Override
+      protected void run(@NotNull Result<Module> result) throws Throwable {
+        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+        assertNotNull(virtualFile);
+        Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
+        module.getModuleFile();
+        result.setResult(module);
+      }
+    }.execute().getResultObject();
+
+    File newModuleFilePath = new File(newModule.getModuleFilePath());
+    File newModuleDirPath = newModuleFilePath.getParentFile();
+    assertAbout(file()).that(newModuleDirPath).isDirectory();
+    File moduleBuildFile = new File(newModuleDirPath, FN_BUILD_GRADLE);
+    assertTrue(ensureCanCreateFile(moduleBuildFile));
+    File moduleProperties = new File(newModuleDirPath, FN_GRADLE_PROPERTIES);
+    assertTrue(ensureCanCreateFile(moduleProperties));
+
+    writeToFile(moduleBuildFile, buildFileText);
+    writeToFile(moduleProperties, propertiesFileText);
+
+    return newModule;
   }
 
   protected void writeToNewSubModuleFile(@NotNull String fileName, @NotNull String text) throws IOException {
@@ -191,7 +227,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertFalse(buildModel.isModified());
   }
 
+  protected void applyChanges(@NotNull final ProjectBuildModel buildModel) {
+    runWriteCommandAction(myProject, buildModel::applyChanges);
+  }
+
   protected void applyChangesAndReparse(@NotNull final GradleBuildModel buildModel) {
+    applyChanges(buildModel);
+    buildModel.reparse();
+  }
+
+  protected void applyChangesAndReparse(@NotNull final ProjectBuildModel buildModel) {
     applyChanges(buildModel);
     buildModel.reparse();
   }
@@ -277,8 +322,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   public static <T> void assertEquals(@NotNull String message,
-                                  @NotNull Map<String, T> expected,
-                                  @Nullable GradlePropertyModel propertyModel) {
+                                      @NotNull Map<String, T> expected,
+                                      @Nullable GradlePropertyModel propertyModel) {
     verifyMapProperty(message, propertyModel, new HashMap<>(expected));
   }
 
@@ -299,7 +344,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertThat(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
   }
 
-  public static void verifyFlavorType(@NotNull String message, @NotNull List<List<Object>> expected, @Nullable List<? extends TypeNameValueElement> elements) {
+  public static void verifyFlavorType(@NotNull String message,
+                                      @NotNull List<List<Object>> expected,
+                                      @Nullable List<? extends TypeNameValueElement> elements) {
     assertEquals(message, expected.size(), elements.size());
     for (int i = 0; i < expected.size(); i++) {
       List<Object> list = expected.get(i);
@@ -377,7 +424,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     verifyPropertyModel(message, model, expected, true);
   }
 
-  public static void verifyPropertyModel(@NotNull String message, @NotNull GradlePropertyModel model, @NotNull Object expected, boolean resolve) {
+  public static void verifyPropertyModel(@NotNull String message,
+                                         @NotNull GradlePropertyModel model,
+                                         @NotNull Object expected,
+                                         boolean resolve) {
     switch (model.getValueType()) {
       case INTEGER:
         assertEquals(message, expected, model.getValue(INTEGER_TYPE));
@@ -391,7 +441,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       case REFERENCE:
         if (resolve) {
           verifyPropertyModel(message, model.resolve().getResultModel(), expected);
-        } else {
+        }
+        else {
           assertEquals(message, expected, model.getValue(STRING_TYPE));
         }
         break;

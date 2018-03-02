@@ -2880,7 +2880,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(propertyModel, STRING_TYPE, "hello, meerkat!", STRING, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "meerkat", STRING, PROPERTIES_FILE, 0)
 
-      // Properties file can't be edited directed.
+      // Properties file can't be edited directly.
       writeToPropertiesFile("")
       // Applying changes and reparsing does not affect properties files, need to completely remake the build model.
       buildModel = subModuleGradleBuildModel

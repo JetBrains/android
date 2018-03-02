@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -34,8 +35,11 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
 
 public class GradleBuildFile extends GradleDslFile {
-  public GradleBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    super(file, project, moduleName);
+  public GradleBuildFile(@NotNull VirtualFile file,
+                         @NotNull Project project,
+                         @NotNull String moduleName,
+                         @Nullable GradleDslFileCache fileCache) {
+    super(file, project, moduleName, fileCache);
   }
 
   @Override

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -221,10 +222,11 @@ public abstract class GradleDslExpression extends GradleDslElement {
     String standardProjectKey = getStandardProjectKey(projectReference);
     if (standardProjectKey != null) { // project(':project:path')
       String modulePath = standardProjectKey.substring(standardProjectKey.indexOf('\'') + 1, standardProjectKey.lastIndexOf('\''));
-      GradleSettingsModel model = GradleSettingsModelImpl.get(dslFile.getProject());
-      if (model == null) {
+      GradleSettingsFile file = dslFile.getDslFileCache().getOrCreateSettingsFile(dslFile.getProject());
+      if (file == null) {
         return null;
       }
+      GradleSettingsModel model = new GradleSettingsModelImpl(file);
       File moduleDirectory = model.moduleDirectory(modulePath);
       if (moduleDirectory == null) {
         return null;
