@@ -19,7 +19,10 @@ import com.android.tools.profiler.proto.EnergyProfiler;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -31,6 +34,13 @@ import java.util.stream.Collectors;
  * {@link #groupById(List)} to accomplish this.
  */
 public final class EnergyDuration implements Comparable<EnergyDuration> {
+
+  public enum Kind {
+    UNKNOWN,
+    WAKE_LOCK,
+    ALARM,
+    JOB
+  }
 
   // Non-empty event list that the events share the same id in time order.
   @NotNull private final ImmutableList<EnergyProfiler.EnergyEvent> myEventList;
@@ -66,18 +76,24 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   }
 
   @NotNull
-  public String getKind() {
+  public Kind getKind() {
     switch (myEventList.get(0).getMetadataCase()) {
       case WAKE_LOCK_ACQUIRED:
-        // fall through
       case WAKE_LOCK_RELEASED:
-        return "wakelock";
+        return Kind.WAKE_LOCK;
+
       case ALARM_SET:
-        // fall through
       case ALARM_CANCELLED:
-        return "alarm";
+        return Kind.ALARM;
+
+      case JOB_SCHEDULED:
+      case JOB_STARTED:
+      case JOB_STOPPED:
+      case JOB_FINISHED:
+        return Kind.JOB;
+
       default:
-        return "unspecified";
+        return Kind.UNKNOWN;
     }
   }
 

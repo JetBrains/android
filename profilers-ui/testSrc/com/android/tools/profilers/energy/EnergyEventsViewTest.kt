@@ -39,7 +39,7 @@ class EnergyEventsViewTest {
   fun expectColumnsValueProperlySet() {
     val duration = EnergyDuration(ImmutableList.of<EnergyEvent>(wakeLockAcquire, wakeLockRelease))
     assertThat(EnergyEventsView.Column.NAME.getValueFrom(duration)).isEqualTo("tag")
-    assertThat(EnergyEventsView.Column.KIND.getValueFrom(duration)).isEqualTo("wakelock")
+    assertThat(EnergyEventsView.Column.KIND.getValueFrom(duration)).isEqualTo("Wake lock")
     assertThat(EnergyEventsView.Column.TIMELINE.getValueFrom(duration)).isEqualTo(TimeUnit.MILLISECONDS.toNanos(1000))
   }
 }
