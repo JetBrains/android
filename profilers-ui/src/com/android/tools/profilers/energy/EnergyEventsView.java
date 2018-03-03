@@ -59,10 +59,13 @@ public final class EnergyEventsView {
         return data.getName();
       }
     },
-    KIND(0.25, Integer.class) {
+    KIND(0.25, String.class) {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
-        return data.getKind();
+        String kindStr = data.getKind().name().replace('_', ' ');
+        // Capitalize first letter because it looks nicer in the table
+        kindStr = kindStr.substring(0, 1).toUpperCase(Locale.US) + kindStr.substring(1).toLowerCase(Locale.US);
+        return kindStr;
       }
     },
     TIMELINE(0.5, Long.class) {
