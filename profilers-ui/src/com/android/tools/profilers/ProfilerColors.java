@@ -215,11 +215,13 @@ public class ProfilerColors {
    */
   public static final Color ENERGY_CPU = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
 
+  public static final Color ENERGY_ALARM = new JBColor(new Color(0xF2E35C), new Color(0xF2E35C));
+
   public static final Color ENERGY_NETWORK = new JBColor(new Color(0x80EDDC), new Color(0x4EA783));
 
-  public static final Color ENERGY_WAKE_LOCK = new JBColor(new Color(0xf44271), new Color(0xf44271));
+  public static final Color ENERGY_JOB = new JBColor(new Color(0xFFFFFF), new Color(0xFFFFFF));
 
-  public static final Color ENERGY_ALARM = new JBColor(new Color(0xf2e35c), new Color(0xf2e35c));
+  public static final Color ENERGY_WAKE_LOCK = new JBColor(new Color(0xF44271), new Color(0xF44271));
 
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 
