@@ -59,6 +59,15 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
     return myEventList.get(0).getTimestamp();
   }
 
+  public long getFinalTimestamp() {
+    if (myEventList.size() <= 1) {
+      return Long.MAX_VALUE;
+    }
+
+    EnergyProfiler.EnergyEvent lastEvent = myEventList.get(myEventList.size() - 1);
+    return lastEvent.getIsTerminal() ? lastEvent.getTimestamp() : Long.MAX_VALUE;
+  }
+
   /**
    * Returns the duration name, which is tag for wake lock, etc.
    */
