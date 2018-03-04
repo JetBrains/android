@@ -41,7 +41,7 @@ public final class EnergyCallstackView extends JPanel {
   /**
    * Set the details view for all callstacks of a duration, if given {@code duration} is {@code null}, this clears the view.
    */
-  public void setDuration(@Nullable EventDuration duration) {
+  public void setDuration(@Nullable EnergyDuration duration) {
     removeAll();
     if (duration == null) {
       return;

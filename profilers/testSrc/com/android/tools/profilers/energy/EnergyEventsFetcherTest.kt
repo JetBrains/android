@@ -41,7 +41,7 @@ class EnergyEventsFetcherTest {
   fun expectCreateFetcherInitialFetchData() {
     val session = Common.Session.newBuilder().setSessionId(1234L).build()
     val fetcher = EnergyEventsFetcher(grpcChannel.client.energyClient, session, Range(1000.0, 2000.0))
-    var result: List<EventDuration> = ArrayList()
+    var result: List<EnergyDuration> = ArrayList()
     val listener = EnergyEventsFetcher.Listener { list -> result = list }
     fetcher.addListener(listener)
     assertThat(result.size).isEqualTo(3)
@@ -51,7 +51,7 @@ class EnergyEventsFetcherTest {
   fun expectListenerDataAreCategorizedById() {
     val session = Common.Session.newBuilder().setSessionId(1234L).build()
     val fetcher = EnergyEventsFetcher(grpcChannel.client.energyClient, session, Range(1000.0, 2000.0))
-    var result: List<EventDuration> = ArrayList()
+    var result: List<EnergyDuration> = ArrayList()
     val listener = EnergyEventsFetcher.Listener { list -> result = list }
     fetcher.addListener(listener)
 

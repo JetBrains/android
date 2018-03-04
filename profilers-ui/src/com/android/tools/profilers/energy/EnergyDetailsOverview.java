@@ -53,7 +53,7 @@ public class EnergyDetailsOverview extends JPanel {
   /**
    * Set the details overview for a specific duration, if given {@code duration} is {@code null}, this make overview empty.
    */
-  public void setDuration(@Nullable EventDuration duration) {
+  public void setDuration(@Nullable EnergyDuration duration) {
     myTextPane.setText("");
     if (duration == null) {
       return;

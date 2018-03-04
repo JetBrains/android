@@ -45,7 +45,7 @@ public class EnergyEventsFetcher implements Updatable {
 
   @NotNull private final Range myRange;
 
-  @Nullable private List<EventDuration> myDurationList;
+  @Nullable private List<EnergyDuration> myDurationList;
 
   /**
    * Time accumulated since the last poll.
@@ -87,7 +87,7 @@ public class EnergyEventsFetcher implements Updatable {
           .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()))
           .build();
         List<EnergyEvent> eventList = myClient.getEvents(request).getEventsList();
-        myDurationList = EventDuration.groupById(eventList);
+        myDurationList = EnergyDuration.groupById(eventList);
       }
 
       fireListeners(myDurationList);
@@ -99,13 +99,13 @@ public class EnergyEventsFetcher implements Updatable {
     update(0);
   }
 
-  private void fireListeners(@NotNull List<EventDuration> list) {
+  private void fireListeners(@NotNull List<EnergyDuration> list) {
     for (Listener l : myListeners) {
       l.onUpdated(list);
     }
   }
 
   public interface Listener {
-    void onUpdated(@NotNull List<EventDuration> durationList);
+    void onUpdated(@NotNull List<EnergyDuration> durationList);
   }
 }

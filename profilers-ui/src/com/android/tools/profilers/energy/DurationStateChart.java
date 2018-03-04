@@ -41,12 +41,12 @@ public final class DurationStateChart extends StateChart<MetadataCase> {
     .add(MetadataCase.METADATA_NOT_SET, ProfilerColors.TRANSPARENT_COLOR)
     .build();
 
-  public DurationStateChart(@NotNull EventDuration data, @NotNull Range range) {
+  public DurationStateChart(@NotNull EnergyDuration data, @NotNull Range range) {
     super(createChartModel(data, range), DURATION_STATE_ENUM_COLORS::getColor);
   }
 
   @NotNull
-  private static StateChartModel<MetadataCase> createChartModel(@NotNull EventDuration data, @NotNull Range range) {
+  private static StateChartModel<MetadataCase> createChartModel(@NotNull EnergyDuration data, @NotNull Range range) {
     DefaultDataSeries<MetadataCase> series = new DefaultDataSeries<>();
     series.add(0, MetadataCase.METADATA_NOT_SET);
     for (EnergyProfiler.EnergyEvent event : data.getEventList()) {

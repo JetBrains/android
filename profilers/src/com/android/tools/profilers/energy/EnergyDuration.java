@@ -24,20 +24,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Duration to encapsulate related sequence events. For example, a wake lock instance's acquire and release.
+ * Encapsulate a sequence of related energy events into a single class.
+ *
+ * This can be useful for reading through a stream of intermingled energy events (multiple wakelock
+ * events, alarm events, etc.) and separating them into their own individual sequences. Use
+ * {@link #groupById(List)} to accomplish this.
  */
-public final class EventDuration implements Comparable<EventDuration> {
+public final class EnergyDuration implements Comparable<EnergyDuration> {
 
   // Non-empty event list that the events share the same id in time order.
   @NotNull private final ImmutableList<EnergyProfiler.EnergyEvent> myEventList;
 
-  public EventDuration(@NotNull List<EnergyProfiler.EnergyEvent> eventList) {
+  public EnergyDuration(@NotNull List<EnergyProfiler.EnergyEvent> eventList) {
     assert !eventList.isEmpty();
     myEventList = ImmutableList.copyOf(eventList);
   }
 
   @Override
-  public int compareTo(@NotNull EventDuration another) {
+  public int compareTo(@NotNull EnergyDuration another) {
     return (int) (getInitialTimestamp() - another.getInitialTimestamp());
   }
 
@@ -89,7 +93,7 @@ public final class EventDuration implements Comparable<EventDuration> {
    * two events at 1200ms and 1300ms, third duration includes two events at 1400ms and 1600ms.
    */
   @NotNull
-  public static List<EventDuration> groupById(List<EnergyProfiler.EnergyEvent> events) {
+  public static List<EnergyDuration> groupById(@NotNull List<EnergyProfiler.EnergyEvent> events) {
     Map<Integer, List<EnergyProfiler.EnergyEvent>> durationMap = new LinkedHashMap<>();
     for (EnergyProfiler.EnergyEvent event : events) {
       if (durationMap.containsKey(event.getEventId())) {
@@ -101,6 +105,6 @@ public final class EventDuration implements Comparable<EventDuration> {
         durationMap.put(event.getEventId(), list);
       }
     }
-    return durationMap.values().stream().map(list -> new EventDuration(list)).collect(Collectors.toList());
+    return durationMap.values().stream().map(list -> new EnergyDuration(list)).collect(Collectors.toList());
   }
 }
