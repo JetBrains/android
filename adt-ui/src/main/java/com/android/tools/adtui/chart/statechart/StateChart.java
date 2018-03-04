@@ -35,7 +35,7 @@ import java.util.function.Function;
 /**
  * A chart component that renders series of state change events as rectangles.
  */
-public class StateChart<T> extends MouseAdapterComponent<Long> {
+public final class StateChart<T> extends MouseAdapterComponent<Long> {
 
   public enum RenderMode {
     BAR,  // Each state is rendered as a filled rectangle until the next state changed.
