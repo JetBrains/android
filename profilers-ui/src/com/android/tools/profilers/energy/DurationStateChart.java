@@ -34,10 +34,14 @@ import java.util.concurrent.TimeUnit;
 public final class DurationStateChart extends StateChart<MetadataCase> {
 
   private static final EnumColors<MetadataCase> DURATION_STATE_ENUM_COLORS = new EnumColors.Builder<MetadataCase>(1)
-    .add(MetadataCase.WAKE_LOCK_ACQUIRED, ProfilerColors.ENERGY_WAKE_LOCK)
-    .add(MetadataCase.WAKE_LOCK_RELEASED, ProfilerColors.TRANSPARENT_COLOR)
     .add(MetadataCase.ALARM_SET, ProfilerColors.ENERGY_ALARM)
     .add(MetadataCase.ALARM_CANCELLED, ProfilerColors.TRANSPARENT_COLOR)
+    .add(MetadataCase.JOB_SCHEDULED, ProfilerColors.ENERGY_JOB)
+    .add(MetadataCase.JOB_STARTED, ProfilerColors.ENERGY_JOB)
+    .add(MetadataCase.JOB_STOPPED, ProfilerColors.ENERGY_JOB)
+    .add(MetadataCase.JOB_FINISHED, ProfilerColors.TRANSPARENT_COLOR)
+    .add(MetadataCase.WAKE_LOCK_ACQUIRED, ProfilerColors.ENERGY_WAKE_LOCK)
+    .add(MetadataCase.WAKE_LOCK_RELEASED, ProfilerColors.TRANSPARENT_COLOR)
     .add(MetadataCase.METADATA_NOT_SET, ProfilerColors.TRANSPARENT_COLOR)
     .build();
 
