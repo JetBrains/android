@@ -55,19 +55,19 @@ public final class EnergyEventsView {
   enum Column {
     NAME(0.25, String.class) {
       @Override
-      Object getValueFrom(@NotNull EventDuration data) {
+      Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getName();
       }
     },
     KIND(0.25, Integer.class) {
       @Override
-      Object getValueFrom(@NotNull EventDuration data) {
+      Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getKind();
       }
     },
     TIMELINE(0.5, Long.class) {
       @Override
-      Object getValueFrom(@NotNull EventDuration data) {
+      Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getInitialTimestamp();
       }
     };
@@ -92,7 +92,7 @@ public final class EnergyEventsView {
       return StringUtil.capitalize(name().toLowerCase(Locale.getDefault()));
     }
 
-    abstract Object getValueFrom(@NotNull EventDuration data);
+    abstract Object getValueFrom(@NotNull EnergyDuration data);
   }
 
   @NotNull private final EnergyProfilerStage myStage;
@@ -148,7 +148,7 @@ public final class EnergyEventsView {
   }
 
   private void updateTableSelection() {
-    EventDuration duration = myStage.getSelectedDuration();
+    EnergyDuration duration = myStage.getSelectedDuration();
     if (duration != null) {
       int id = duration.getEventList().get(0).getEventId();
       for (int i = 0; i < myTableModel.getRowCount(); ++i) {
@@ -169,7 +169,7 @@ public final class EnergyEventsView {
   }
 
   private static final class EventsTableModel extends AbstractTableModel {
-    @NotNull private List<EventDuration> myList = new ArrayList<>();
+    @NotNull private List<EnergyDuration> myList = new ArrayList<>();
 
     private EventsTableModel(EnergyEventsFetcher fetcher) {
       fetcher.addListener(list -> {
@@ -195,7 +195,7 @@ public final class EnergyEventsView {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-      EventDuration duration = myList.get(rowIndex);
+      EnergyDuration duration = myList.get(rowIndex);
       return Column.values()[columnIndex].getValueFrom(duration);
     }
 
@@ -205,7 +205,7 @@ public final class EnergyEventsView {
     }
 
     @NotNull
-    public EventDuration getValue(int rowIndex) {
+    public EnergyDuration getValue(int rowIndex) {
       return myList.get(rowIndex);
     }
   }

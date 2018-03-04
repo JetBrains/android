@@ -96,7 +96,7 @@ class EnergyDetailsViewTest {
   @Test
   fun viewIsVisibleWhenDataIsNotNull() {
     view.isVisible = false
-    view.setDuration(EventDuration(Arrays.asList(wakeLockAcquireEvent)))
+    view.setDuration(EnergyDuration(Arrays.asList(wakeLockAcquireEvent)))
     assertThat(view.isVisible).isTrue()
   }
 
@@ -109,7 +109,7 @@ class EnergyDetailsViewTest {
 
   @Test
   fun wakeLockIsProperlyRendered() {
-    view.setDuration(EventDuration(Arrays.asList(wakeLockAcquireEvent, wakeLockReleaseEvent)))
+    view.setDuration(EnergyDuration(Arrays.asList(wakeLockAcquireEvent, wakeLockReleaseEvent)))
     val wakeLockTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(wakeLockTextPane.text) {
       assertUiContainsLabelAndValue(this, "Name", "wakeLockTag")
@@ -123,7 +123,7 @@ class EnergyDetailsViewTest {
 
   @Test
   fun alarmSetIsProperlyRendered() {
-    view.setDuration(EventDuration(Arrays.asList(alarmSetEvent)))
+    view.setDuration(EnergyDuration(Arrays.asList(alarmSetEvent)))
     val alarmTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(alarmTextPane.text) {
       assertUiContainsLabelAndValue(this, "ALARM_SET", "600ms")
@@ -136,7 +136,7 @@ class EnergyDetailsViewTest {
 
   @Test
   fun alarmCancelledIsProperlyRendered() {
-    view.setDuration(EventDuration(Arrays.asList(alarmSetEvent, alarmCancelledEvent)))
+    view.setDuration(EnergyDuration(Arrays.asList(alarmSetEvent, alarmCancelledEvent)))
     val alarmTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(alarmTextPane.text) {
       assertUiContainsLabelAndValue(this, "ALARM_SET", "600ms")
@@ -148,7 +148,7 @@ class EnergyDetailsViewTest {
   @Test
   fun callstackIsProperlyRendered() {
     profilerService.addFile("traceId", ByteString.copyFromUtf8(callstackText))
-    view.setDuration(EventDuration(Arrays.asList(wakeLockAcquireEvent)))
+    view.setDuration(EnergyDuration(Arrays.asList(wakeLockAcquireEvent)))
     val nonEmptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
     assertThat(nonEmptyView.components).isNotEmpty()
     view.setDuration(null)

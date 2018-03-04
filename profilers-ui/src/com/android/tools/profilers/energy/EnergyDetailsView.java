@@ -59,7 +59,7 @@ public class EnergyDetailsView extends JPanel {
   /**
    * Set the details view for a specific duration, if given {@code duration} is {@code null}, this clears the view and close it.
    */
-  public void setDuration(@Nullable EventDuration duration) {
+  public void setDuration(@Nullable EnergyDuration duration) {
     setBackground(JBColor.background());
     setVisible(duration != null && !duration.getEventList().isEmpty());
     myDetailsOverview.setDuration(duration);

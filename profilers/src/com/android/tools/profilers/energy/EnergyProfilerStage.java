@@ -40,7 +40,7 @@ public class EnergyProfilerStage extends Stage {
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<EnergyProfilerAspect> myAspect = new AspectModel<>();
 
-  @Nullable private EventDuration mySelectedDuration;
+  @Nullable private EnergyDuration mySelectedDuration;
 
   public EnergyProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -128,7 +128,7 @@ public class EnergyProfilerStage extends Stage {
     return myAspect;
   }
 
-  public void setSelectedDuration(@Nullable EventDuration duration) {
+  public void setSelectedDuration(@Nullable EnergyDuration duration) {
     if (Objects.equals(mySelectedDuration, duration)) {
       return;
     }
@@ -137,7 +137,7 @@ public class EnergyProfilerStage extends Stage {
   }
 
   @Nullable
-  public EventDuration getSelectedDuration() {
+  public EnergyDuration getSelectedDuration() {
     return mySelectedDuration;
   }
 
