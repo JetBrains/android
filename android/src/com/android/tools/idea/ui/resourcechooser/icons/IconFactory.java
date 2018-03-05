@@ -23,7 +23,6 @@ import com.android.tools.idea.rendering.RenderTaskContext;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.IconDetector;
 import com.google.common.base.Function;
-import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
@@ -38,61 +37,80 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.DOT_XML;
 
-public class AsyncIconFactory {
+public class IconFactory {
   private final Supplier<RenderTask> myRenderTaskSupplier;
 
   /**
    * Creates a new AsyncIconFactory. It receives a {@link Supplier<RenderTask>} to lazily obtain instances
    * of {@link RenderTask}.
    */
-  public AsyncIconFactory(@NotNull Supplier<RenderTask> task) {
+  public IconFactory(@NotNull Supplier<RenderTask> task) {
     myRenderTaskSupplier = task;
+  }
+
+  /**
+   * This method will try to load the given icon. If the icon is not in the given path or can not
+   * be loaded, null will be returned.
+   * This method will only handle png and webp files.
+   *
+   * @param size             icon size
+   * @param checkerboardSize size of the background checkboard
+   * @param interpolate      if true, it will set the interpolation hint on the graphics context
+   * @param path             Path a drawable (PNG, JPEG, GIF or WEBP)
+   * @param resourceValue    resource value pointing to the resource to be rendered
+   */
+  //TODO: This method should also me made async
+  @Nullable
+  public Icon createIconFromPath(int size,
+                                 int checkerboardSize,
+                                 boolean interpolate,
+                                 @NotNull String path) {
+    if (!IconDetector.isDrawableFile(path) || path.endsWith(DOT_XML)) {
+      return null;
+    }
+
+    // WebP images for unknown reasons don't load via ImageIcon(path)
+    if (path.endsWith(DOT_WEBP)) {
+      try {
+        BufferedImage image = ImageIO.read(new File(path));
+        if (image != null) {
+          return new ResourceChooserImageIcon(size, image, checkerboardSize, interpolate);
+        }
+      }
+      catch (IOException ignore) {
+      }
+    }
+
+    return new ResourceChooserImageIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate);
   }
 
   /**
    * This method will try to load the given icon and will return a place holder if the icon couldn't be loaded immediately.
    * Once the icon is loaded, onIconLoaded will be called and the returned icon will contain the loaded icon.
-   * @param size icon size
+   *
+   * @param size             icon size
    * @param checkerboardSize size of the background checkboard
-   * @param interpolate if true, it will set the interpolation hint on the graphics context
-   * @param path optional path a drawable (XML or WEBP)
-   * @param resourceValue resource value pointing to the resource to be rendered
-   * @param type type of the resource to be rendered
-   * @param placeHolderIcon icon to be used as placeholder while the the asynchronous loading happens
-   * @param onIconLoaded callback that will be called after the icon is loaded
+   * @param interpolate      if true, it will set the interpolation hint on the graphics context
+   * @param resourceValue    resource value pointing to the resource to be rendered
+   * @param placeHolderIcon  icon to be used as placeholder while the the asynchronous loading happens
+   * @param onIconLoaded     callback that will be called after the icon is loaded
    */
   @NotNull
-  public Icon createAsyncIcon(int size,
-                              int checkerboardSize,
-                              boolean interpolate,
-                              @Nullable String path,
-                              @NotNull ResourceValue resourceValue,
-                              @NotNull ResourceType type,
-                              @NotNull Icon placeHolderIcon,
-                              @Nullable Runnable onIconLoaded) {
+  public Icon createAsyncIconFromResourceValue(int size,
+                                               int checkerboardSize,
+                                               boolean interpolate,
+                                               @NotNull ResourceValue resourceValue,
+                                               @NotNull Icon placeHolderIcon,
+                                               @Nullable Runnable onIconLoaded) {
+    ResourceType type = resourceValue.getResourceType();
     Icon icon = null;
-    if (path != null && IconDetector.isDrawableFile(path)
-        && !path.endsWith(DOT_XML)) {
-      // WebP images for unknown reasons don't load via ImageIcon(path)
-      if (path.endsWith(DOT_WEBP)) {
-        try {
-          BufferedImage image = ImageIO.read(new File(path));
-          if (image != null) {
-            return new ResourceChooserImageIcon(size, image, checkerboardSize, interpolate);
-          }
-        }
-        catch (IOException ignore) {
-        }
-      }
-      else {
-        icon = new ResourceChooserImageIcon(size, new ImageIcon(path).getImage(), checkerboardSize, interpolate);
-      }
-    }
-    else if (type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
+
+    if (type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
       // TODO: Attempt to guess size for XML drawables since at least for vectors, we have attributes
       // like android:width, android:height, android:viewportWidth and android:viewportHeight
       // which we can use to get a suitable aspect ratio
@@ -106,12 +124,12 @@ public class AsyncIconFactory {
         .setMaxRenderSize(width, height);
       ListenableFuture<Icon> futureIcon =
         Futures.transform(renderTask.renderDrawable(resourceValue), (Function<BufferedImage, ResourceChooserImageIcon>)drawable -> {
-        if (drawable != null) {
-          return new ResourceChooserImageIcon(size, drawable, checkerboardSize, interpolate);
-        }
+          if (drawable != null) {
+            return new ResourceChooserImageIcon(size, drawable, checkerboardSize, interpolate);
+          }
 
-        return null;
-      });
+          return null;
+        });
       // TODO maybe have a different icon for state list drawable
       // Return the async icon
       return new AsyncIcon(futureIcon, placeHolderIcon, onIconLoaded);
@@ -140,7 +158,7 @@ public class AsyncIconFactory {
 
     // Either we couldn't load the icon or the icon was loaded synchronously so return the icon immediately
     if (icon == null) {
-      Logger.getInstance(AsyncIconFactory.class).warn("Unable to load AsyncIcon for value" + resourceValue);
+      Logger.getInstance(IconFactory.class).warn("Unable to load AsyncIcon for value" + resourceValue);
       icon = placeHolderIcon;
     }
     if (onIconLoaded != null) {
