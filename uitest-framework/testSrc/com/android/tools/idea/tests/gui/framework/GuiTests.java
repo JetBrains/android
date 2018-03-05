@@ -88,6 +88,8 @@ public final class GuiTests {
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
+  public static final String GUI_TEST_PROJECTS_ROOT_PROPERTY = "gui.tests.projects.root";
+
   /**
    * Environment variable set by users to point to sources
    */
@@ -341,7 +343,8 @@ public final class GuiTests {
   public static File getTestProjectsRootDirPath() {
     String testDataPath = PathManager.getHomePath() + "/../adt/idea/android-uitests";
     if (!new File(testDataPath).exists()) {
-      testDataPath = PathManagerEx.findFileUnderCommunityHome("plugins/android").getPath();
+      String relativeTestProjectsRoot = System.getProperty(GUI_TEST_PROJECTS_ROOT_PROPERTY, "plugins/android");
+      testDataPath = PathManagerEx.findFileUnderCommunityHome(relativeTestProjectsRoot).getPath();
     }
     testDataPath = toCanonicalPath(toSystemDependentName(testDataPath));
     return new File(testDataPath, "testData");
