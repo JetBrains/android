@@ -605,21 +605,22 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   @Nullable
   public Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary) {
+    if (primary == null) {
+      primary = draggedSceneComponent;
+    }
     List<NlComponent> dragged;
-    NlComponent primaryNlComponent = primary != null ? primary.getNlComponent() : null;
+    NlComponent primaryNlComponent = primary.getNlComponent();
     // Dragging over a non-root component: move the set of components (if the component dragged over is
     // part of the selection, drag them all, otherwise drag just this component)
     if (getSelectionModel().isSelected(draggedSceneComponent.getNlComponent())) {
       dragged = Lists.newArrayList();
 
       // Make sure the primary is the first element
-      if (primary != null) {
-        if (primary.getParent() == null) {
-          primaryNlComponent = null;
-        }
-        else {
-          dragged.add(primaryNlComponent);
-        }
+      if (primary.getParent() == null) {
+        primaryNlComponent = null;
+      }
+      else {
+        dragged.add(primaryNlComponent);
       }
 
       for (NlComponent selected : getSelectionModel().getSelection()) {

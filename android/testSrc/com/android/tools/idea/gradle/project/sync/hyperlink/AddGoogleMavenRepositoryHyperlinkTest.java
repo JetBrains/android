@@ -110,6 +110,33 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
   }
 
+  // Check that quickfix adds google maven correctly when no build file is passed
+  public void testExecuteNullBuildFile() throws Exception {
+    // Prepare project and mock version
+    prepareProjectForImport(SIMPLE_APPLICATION);
+    Project project = getProject();
+
+    // Make sure no repositories are listed
+    removeRepositories(project);
+    GradleBuildModel buildModel = GradleBuildModel.get(project);
+    assertThat(buildModel).isNotNull();
+
+    // Generate hyperlink and execute quick fix
+    AddGoogleMavenRepositoryHyperlink hyperlink = new AddGoogleMavenRepositoryHyperlink(buildModel.getVirtualFile(), /* no sync */ false);
+    hyperlink.execute(project);
+
+    // Verify it added the repository
+    buildModel = GradleBuildModel.get(project);
+    assertThat(buildModel).isNotNull();
+    List<? extends RepositoryModel> repositories = buildModel.repositories().repositories();
+    assertThat(repositories).hasSize(1);
+
+    // Verify it was added in buildscript
+    repositories = buildModel.buildscript().repositories().repositories();
+    assertThat(repositories).hasSize(1);
+  }
+
+
   private void verifyExecute(@NotNull String version, @NotNull RepositoryType type) throws IOException {
     // Prepare project and mock version
     prepareProjectForImport(SIMPLE_APPLICATION);

@@ -78,6 +78,24 @@ public class BottomUpTreeModelTest {
   }
 
   @Test
+  public void shouldNotFireTreeModelAspectIfNothingChangedOnExpand() {
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myModel.getRoot();
+    AspectObserver observer = new AspectObserver();
+    boolean[] treeModelChanged = new boolean[1];
+    myModel.getAspect().addDependency(observer).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> {
+      treeModelChanged[0] = true;
+    });
+
+    treeModelChanged[0] = false;
+    myModel.expand(findNodeOnPath(root, "Root", "B"));
+    assertThat(treeModelChanged[0]).isTrue();
+
+    treeModelChanged[0] = false;
+    myModel.expand(findNodeOnPath(root, "Root", "B"));
+    assertThat(treeModelChanged[0]).isFalse();
+  }
+
+  @Test
   public void childrenBuiltOnExpandEvenWhenNodeIsInvisible() {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode)myModel.getRoot();
 
