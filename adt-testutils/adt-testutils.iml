@@ -3,16 +3,16 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="annotations" />
-    <orderEntry type="module" module-name="platform-impl" />
-    <orderEntry type="module" module-name="testutils" />
-    <orderEntry type="module" module-name="repository" />
-    <orderEntry type="library" name="JUnit4" level="project" />
-    <orderEntry type="library" name="Gradle" level="project" />
-    <orderEntry type="library" name="jna" level="project" />
+    <orderEntry type="module" module-name="annotations" scope="TEST" />
+    <orderEntry type="module" module-name="platform-impl" scope="TEST" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="module" module-name="repository" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
+    <orderEntry type="library" scope="TEST" name="jna" level="project" />
   </component>
 </module>
