@@ -1064,4 +1064,58 @@ class NavSceneTest : NavTestCase() {
             "UNClip\n", list.serialize()
     )
   }
+
+  fun testEmptyDesigner() {
+    var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
+
+    val modelBuilder = modelBuilder("nav.xml") {
+      navigation("root") {
+        action("action1", destination = "root")
+      }.also { root = it }
+    }
+
+    val model = modelBuilder.build()
+
+    val surface = model.surface as NavDesignSurface
+    val scene = surface.scene!!
+    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+
+    val list = DisplayList()
+    val sceneManager = scene.sceneManager as NavSceneManager
+    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
+
+    assertEquals(
+        "DrawEmptyDesigner,130x249\n", list.serialize()
+    )
+    assertTrue(sceneManager.isEmpty)
+
+    root?.fragment("fragment1")
+
+    modelBuilder.updateModel(model)
+    model.notifyModified(NlModel.ChangeType.EDIT)
+    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    list.clear()
+    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
+
+    assertEquals(
+        "Clip,0,0,876,928\n" +
+            "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
+            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "UNClip\n", list.serialize()
+    )
+    assertFalse(sceneManager.isEmpty)
+
+    model.delete(listOf(model.find("fragment1")!!))
+    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    list.clear()
+    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
+
+    assertEquals(
+        "DrawEmptyDesigner,130x249\n", list.serialize()
+    )
+    assertTrue(sceneManager.isEmpty)
+  }
 }

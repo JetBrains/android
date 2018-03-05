@@ -190,20 +190,28 @@ public class NavSceneManager extends SceneManager {
 
   private void updateRootBounds(@NotNull SceneComponent root) {
     NavDesignSurface surface = getDesignSurface();
-    @SwingCoordinate Dimension extentSize = surface.getExtentSize();
 
+    @SwingCoordinate Dimension extentSize = surface.getExtentSize();
     @NavCoordinate int extentWidth = Coordinates.getAndroidDimension(surface, extentSize.width);
     @NavCoordinate int extentHeight = Coordinates.getAndroidDimension(surface, extentSize.height);
-    @NavCoordinate int panLimit = Coordinates.getAndroidDimension(surface, PAN_LIMIT);
 
-    @NavCoordinate Rectangle rootBounds = getBoundingBox(root);
-    rootBounds.grow(extentWidth - panLimit, extentHeight - panLimit);
+    @NavCoordinate Rectangle rootBounds;
+
+    if(isEmpty()) {
+      rootBounds = new Rectangle(0, 0, extentWidth, extentHeight);
+    }
+    else {
+      @NavCoordinate int panLimit = Coordinates.getAndroidDimension(surface, PAN_LIMIT);
+      rootBounds = getBoundingBox(root);
+      rootBounds.grow(extentWidth - panLimit, extentHeight - panLimit);
+    }
 
     @NavCoordinate int drawX = root.getDrawX();
     @NavCoordinate int drawY = root.getDrawY();
 
     root.setPosition(rootBounds.x, rootBounds.y);
     root.setSize(rootBounds.width, rootBounds.height, false);
+    surface.updateScrolledAreaSize();
 
     SceneView view = surface.getCurrentSceneView();
     if (view != null) {
@@ -467,6 +475,10 @@ public class NavSceneManager extends SceneManager {
       // TODO error handling (if newRoot is null)
       model.syncWithPsi(newRoot, roots);
     }
+  }
+
+  public boolean isEmpty() {
+    return getDesignSurface().getCurrentNavigation().getChildren().stream().noneMatch(c -> NavComponentHelperKt.isDestination(c));
   }
 
   private class ModelChangeListener implements ModelListener {

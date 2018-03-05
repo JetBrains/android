@@ -558,6 +558,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return getScale() > getMinScale();
   }
 
+  public boolean canZoomToFit() {
+    return true;
+  }
+
   public void setScrollPosition(int x, int y) {
     setScrollPosition(new Point(x, y));
   }
