@@ -31,10 +31,10 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static java.util.Objects.requireNonNull;
 
 public class ImportApkAction extends DumbAwareAction {
   @VisibleForTesting
@@ -44,11 +44,11 @@ public class ImportApkAction extends DumbAwareAction {
   @NotNull private final CustomProjectTypeImporter.MainImporter myProjectTypeImporter;
   @NotNull private final RecentProjectsManager myRecentProjectsManager;
   @NotNull private final FileChooserDialogFactory myFileChooserDialogFactory;
-  @NotNull private final ExternalSystemManager<?, ?, ?, ?, ?> myExternalSystemManager;
+  @Nullable private final ExternalSystemManager<?, ?, ?, ?, ?> myExternalSystemManager;
 
   public ImportApkAction() {
     this(PropertiesComponent.getInstance(), CustomProjectTypeImporter.getMain(), new FileChooserDialogFactory(),
-         RecentProjectsManager.getInstance(), requireNonNull(getManager(ApkDebugging.SYSTEM_ID)));
+         RecentProjectsManager.getInstance(), getManager(ApkDebugging.SYSTEM_ID));
   }
 
   @VisibleForTesting
@@ -56,7 +56,7 @@ public class ImportApkAction extends DumbAwareAction {
                   @NotNull CustomProjectTypeImporter.MainImporter projectTypeImporter,
                   @NotNull FileChooserDialogFactory fileChooserDialogFactory,
                   @NotNull RecentProjectsManager recentProjectsManager,
-                  @NotNull ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
+                  @Nullable ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
     super("Profile or debug APK", null, AllIcons.Css.Import);
     myPropertiesComponent = propertiesComponent;
     myProjectTypeImporter = projectTypeImporter;
@@ -67,6 +67,9 @@ public class ImportApkAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    if (myExternalSystemManager == null) {
+      return;
+    }
     FileChooserDialog chooser = myFileChooserDialogFactory.create(myExternalSystemManager);
     VirtualFile toSelect = null;
     String lastLocation = myPropertiesComponent.getValue(LAST_IMPORTED_LOCATION);
@@ -90,14 +93,14 @@ public class ImportApkAction extends DumbAwareAction {
 
   @Override
   public void update(AnActionEvent e) {
-    boolean enabled = ApkDebugging.isEnabled();
+    boolean enabled = myExternalSystemManager != null && ApkDebugging.isEnabled();
     e.getPresentation().setEnabledAndVisible(enabled);
   }
 
   @VisibleForTesting
   static class FileChooserDialogFactory {
     @NotNull
-    FileChooserDialog create(ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
+    FileChooserDialog create(@NotNull ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
       return new FileChooserDialogImpl(externalSystemManager.getExternalProjectDescriptor(), (Project)null);
     }
   }

@@ -20,6 +20,7 @@ import com.android.tools.idea.project.CustomProjectTypeImporter;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.project.Project;
@@ -78,6 +79,19 @@ public class ImportApkActionTest extends IdeaTestCase {
     myProjectTypeImporter = new MainProjectTypeImporter(myRecentProjectsManager);
     myAction = new ImportApkAction(myPropertiesComponent, myProjectTypeImporter, myFileChooserDialogFactory, myRecentProjectsManager,
                                    myExternalSystemManager);
+  }
+
+  // See: https://issuetracker.google.com/73730693
+  public void testUpdateWhenExternalSystemManagerIsNull() {
+    myAction = new ImportApkAction(myPropertiesComponent, myProjectTypeImporter, myFileChooserDialogFactory, myRecentProjectsManager,
+                                   null);
+    Presentation presentation = new Presentation();
+    presentation.setEnabledAndVisible(true);
+    AnActionEvent actionEvent = mock(AnActionEvent.class);
+    when(actionEvent.getPresentation()).thenReturn(presentation);
+
+    myAction.update(actionEvent);
+    assertFalse(presentation.isEnabledAndVisible());
   }
 
   public void testActionPerformed() {
