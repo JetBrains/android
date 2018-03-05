@@ -100,8 +100,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
   }
 
-  // Failing on go/studio-builder bots (b.android.com/201537).
-  public void ignore_testRemoveAndApplyModulePaths() throws Exception {
+  public void testRemoveAndApplyModulePaths() throws Exception {
     String text = "include \":app\" \n" +
                   "include \":lib\"";
 
