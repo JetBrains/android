@@ -356,7 +356,7 @@ public class InstantRunTest {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/68046183 - this test is flaking out
+  @RunIn(TestGroup.QA)
   public void modifyVariableDuringDebugSession() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("Project204792");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -471,7 +471,7 @@ public class InstantRunTest {
    *   If you answer yes, application should deploy and run with Instant Run enabled.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void installingPlatformWhileDeployingApp() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -527,7 +527,7 @@ public class InstantRunTest {
    *   Application should run smoothly without any errors and showing "Hot swapped changes, activity restarted."
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void changeOrderOfResources() throws Exception {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();

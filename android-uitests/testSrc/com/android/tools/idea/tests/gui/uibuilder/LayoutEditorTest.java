@@ -121,7 +121,7 @@ public class LayoutEditorTest {
    *   For unsupported files, “Errors” dialog should display at the bottom of Configure vector asset window with appropriate message.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/68001739
+  @RunIn(TestGroup.QA)
   @Test
   public void imageAssetErrorCheck() throws Exception {
     guiTest.importSimpleLocalApplication()
