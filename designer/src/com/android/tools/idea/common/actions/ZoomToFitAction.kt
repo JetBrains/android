@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.scene.targets
+package com.android.tools.idea.common.actions
 
-import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.scene.TargetProvider
-import com.android.tools.idea.common.scene.target.LassoTarget
-import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.ZoomType
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
+import javax.swing.KeyStroke
 
-/**
- * Providers targets for the current display root of the navigation editor.
- */
-class NavigationTargetProvider : TargetProvider {
-  override fun createTargets(sceneComponent: SceneComponent): List<Target> {
-    return listOf(
-        if (sceneComponent.childCount == 0) EmptyDesignerTarget() else LassoTarget(true, false)
-    )
+class ZoomToFitAction(surface: DesignSurface) : SetZoomAction(surface, ZoomType.FIT) {
+  // TODO: register shortcuts
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = mySurface.canZoomToFit()
   }
 }

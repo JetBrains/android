@@ -129,6 +129,13 @@ class SerializationTest : TestCase() {
             Color.RED, BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL)), factory)
   }
 
+  fun testDrawEmptyDesigner() {
+    val factory = { s: String -> DrawEmptyDesigner(s) }
+
+    testSerialization("DrawEmptyDesigner,0x0", DrawEmptyDesigner(Point(0, 0)), factory)
+    testSerialization("DrawEmptyDesigner,10x20", DrawEmptyDesigner(Point(10, 20)), factory)
+  }
+
   companion object {
     private fun testSerialization(s: String, drawCommand: DrawCommand, factory: (String) -> DrawCommand) {
       val serialized = drawCommand.serialize()

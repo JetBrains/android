@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
-import com.android.tools.idea.common.actions.SetZoomAction;
-import com.android.tools.idea.common.actions.ZoomLabelAction;
+import com.android.tools.idea.common.actions.*;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.ZoomType;
@@ -37,23 +36,10 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new SetZoomAction(mySurface, ZoomType.OUT));
+    group.add(new ZoomInAction(mySurface));
     group.add(new ZoomLabelAction(mySurface));
-    group.add(new SetZoomAction(mySurface, ZoomType.IN));
+    group.add(new ZoomOutAction(mySurface));
     group.add(new ZoomToFitAction(mySurface));
     return group;
-  }
-
-  static class ZoomToFitAction extends SetZoomAction {
-    public ZoomToFitAction(@NotNull DesignSurface surface) {
-      super(surface, ZoomType.FIT);
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      super.actionPerformed(e);
-      //noinspection ConstantConditions  In practice we'll always have a view at this point
-      mySurface.getCurrentSceneView().setLocation(0, 0);
-    }
   }
 }

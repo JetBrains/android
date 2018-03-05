@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.idea.common.actions.*
 import com.android.tools.idea.common.editor.ActionManager
+import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.ZoomType
 import com.android.tools.idea.naveditor.actions.*
@@ -72,7 +73,7 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     group.add(ZoomInAction(mySurface))
     group.add(ZoomOutAction(mySurface))
-    group.add(SetZoomAction(mySurface, ZoomType.FIT))
+    group.add(ZoomToFitAction(mySurface))
 
     group.addSeparator()
     group.add(gotoComponentAction)

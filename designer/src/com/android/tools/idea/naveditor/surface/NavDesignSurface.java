@@ -296,7 +296,17 @@ public class NavDesignSurface extends DesignSurface {
 
   @Override
   protected double getMinScale() {
-    return 0.1;
+    return isEmpty() ? 1.0 : 0.1;
+  }
+
+  @Override
+  public boolean canZoomToFit() {
+    return !isEmpty();
+  }
+
+  private boolean isEmpty() {
+    NavSceneManager sceneManager = getSceneManager();
+    return sceneManager == null || sceneManager.isEmpty();
   }
 
   @Override
