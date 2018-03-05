@@ -22,7 +22,7 @@ public class AndroidStudioGradleSettingsControlProvider extends GradleSettingsCo
 
   @Override
   public GradleProjectSettingsControlBuilder getProjectSettingsControlBuilder(@NotNull GradleProjectSettings initialSettings) {
-    return new IdeaGradleProjectSettingsControlBuilder(initialSettings)
+    return new JavaGradleProjectSettingsControlBuilder(initialSettings)
       .dropCustomizableWrapperButton()
       .dropUseBundledDistributionButton()
       .dropGradleJdkComponents()
