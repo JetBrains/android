@@ -118,7 +118,7 @@ public class InstantAppRunTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70567643
+  @RunIn(TestGroup.SANITY)
   public void createAndRunInstantApp() throws Exception {
     String runConfigName = "instantapp";
     long deviceProvisioningSeconds = TimeUnit.MINUTES.toSeconds(3);
