@@ -38,6 +38,8 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.*;
+import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroup;
+import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroups;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
 import com.android.tools.idea.ui.resourcechooser.preview.EditResourcePanel;
 import com.android.tools.idea.ui.resourcechooser.preview.ResourceDrawablePanel;
@@ -1294,15 +1296,15 @@ public class ChooseResourceDialog extends DialogWrapper {
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
       CompletableFuture.runAsync(() -> {
         List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(3);
-        ResourceChooserGroup projectItems = new ResourceChooserGroup(APP_NAMESPACE_LABEL, type, myFacet, false, includeFileResources);
+        ResourceChooserGroup projectItems = ResourceChooserGroups.createResourceItemsGroup(APP_NAMESPACE_LABEL, type, myFacet, false, includeFileResources);
         if (!projectItems.isEmpty()) {
           groups.add(projectItems);
         }
-        ResourceChooserGroup frameworkItems = new ResourceChooserGroup(ANDROID_NS_NAME, type, myFacet, true, includeFileResources);
+        ResourceChooserGroup frameworkItems = ResourceChooserGroups.createResourceItemsGroup(ANDROID_NS_NAME, type, myFacet, true, includeFileResources);
         if (!frameworkItems.isEmpty()) {
           groups.add(frameworkItems);
         }
-        ResourceChooserGroup themeItems = new ResourceChooserGroup("Theme attributes", myType, myFacet, attrs);
+        ResourceChooserGroup themeItems = ResourceChooserGroups.createThemeAttributesGroup(myType, myFacet, attrs);
         if (!themeItems.isEmpty()) {
           groups.add(themeItems);
         }

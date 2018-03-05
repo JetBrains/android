@@ -15,43 +15,47 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
+import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroup;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+
 /**
  * Tree model for the resource list in the resource chooser
  */
 class ResourceTreeContentProvider extends AbstractTreeStructure {
-  private final Object myTreeRoot = new Object();
-  private final ResourceChooserGroup[] myGroups;
-  private final Object[][] myItems;
+  private final NodeWrapper[] myNodes;
+  private final ResourceChooserItem[][] myItems;
 
   public ResourceTreeContentProvider(ResourceChooserGroup[] groups) {
-    myGroups = groups;
-    myItems = new Object[groups.length][];
+    myNodes = Arrays.stream(groups)
+      .map(group -> new NodeWrapper(group))
+      .toArray(NodeWrapper[]::new);
+    myItems = new ResourceChooserItem[groups.length][];
   }
 
   @Override
   public Object getRootElement() {
-    return myTreeRoot;
+    return myNodes;
   }
 
   @Override
   public Object[] getChildElements(Object element) {
-    if (element == myTreeRoot) {
-      return myGroups;
+    if (element == myNodes) {
+      return myNodes;
     }
-    if (element instanceof ResourceChooserGroup) {
-      ResourceChooserGroup group = (ResourceChooserGroup)element;
-      int index = ArrayUtil.indexOf(myGroups, group);
+    if (element instanceof NodeWrapper) {
+      ResourceChooserGroup group = ((NodeWrapper)element).group;
+      int index = ArrayUtil.indexOf(myNodes, group);
       if (index == -1) {
         return group.getItems().toArray();
       }
-      Object[] items = myItems[index];
+      ResourceChooserItem[] items = myItems[index];
       if (items == null) {
-        items = group.getItems().toArray();
+        items = group.getItems().toArray(new ResourceChooserItem[0]);
         myItems[index] = items;
       }
 
@@ -81,5 +85,21 @@ class ResourceTreeContentProvider extends AbstractTreeStructure {
 
   @Override
   public void commit() {
+  }
+
+  /**
+   * Class to hide the ugliness of dealing with Object[]
+   */
+  private static class NodeWrapper {
+    private final ResourceChooserGroup group;
+
+    private NodeWrapper(@NotNull ResourceChooserGroup group) {
+      this.group = group;
+    }
+
+    @Override
+    public String toString() {
+      return group.getGroupLabel();
+    }
   }
 }
