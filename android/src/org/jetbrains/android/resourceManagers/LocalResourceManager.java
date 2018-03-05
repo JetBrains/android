@@ -20,12 +20,9 @@ import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -278,13 +275,7 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   protected void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action) {
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    Module[] modules = moduleManager.getModules();
-    for (Module module : modules) {
-      LocalResourceRepository moduleRepository = ModuleResourceRepository.getOrCreateInstance(module);
-      if (moduleRepository != null) {
-        moduleRepository.forEachLeafResourceRepository(action);
-      }
-    }
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
+    repository.forEachLeafResourceRepository(action);
   }
 }

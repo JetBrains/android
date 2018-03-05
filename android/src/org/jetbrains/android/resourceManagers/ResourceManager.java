@@ -524,8 +524,8 @@ public abstract class ResourceManager {
       return Collections.emptyList();
     }
 
-    Set<VirtualFile> valueResourceFiles = getAllValueResourceFiles();
     List<ValueResourceInfoImpl> result = new ArrayList<>();
+    // TODO: Exclude AAR resources repositories from the iteration.
     forEachLeafResourceRepository(repository -> {
       List<ResourceItem> items;
       if (distinguishDelimetersInName) {
@@ -535,13 +535,17 @@ public abstract class ResourceManager {
       }
       for (ResourceItem item : items) {
         VirtualFile file = LocalResourceRepository.getItemVirtualFile(item);
-        if (file != null && valueResourceFiles.contains(file)) {
+        if (file != null && isValueResourceFile(file)) {
           result.add(new ValueResourceInfoImpl(item, file, myProject));
         }
       }
     });
 
     return result;
+  }
+
+  private static boolean isValueResourceFile(@NotNull VirtualFile file) {
+    return ResourceFolderType.getFolderType(file.getParent().getName()) == ResourceFolderType.VALUES;
   }
 
   /**
