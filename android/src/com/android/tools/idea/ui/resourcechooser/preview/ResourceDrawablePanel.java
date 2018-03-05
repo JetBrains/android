@@ -24,7 +24,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
-import com.android.tools.idea.ui.resourcechooser.icons.AsyncIconFactory;
+import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
@@ -41,7 +41,9 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -55,7 +57,7 @@ import static com.android.tools.idea.ui.resourcechooser.ResourceChooserItem.DEFA
 public class ResourceDrawablePanel extends JBScrollPane implements ActionListener {
   @NotNull private final Configuration myConfiguration;
   @NotNull private final Module myModule;
-  @NotNull private final AsyncIconFactory myIconFactory;
+  @NotNull private final IconFactory myIconFactory;
   @NotNull private final AndroidFacet myFacet;
   private JBLabel myNameLabel;
   private JBLabel myImageLabel;
@@ -67,7 +69,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
   private boolean myIgnoreSelection;
   private ResourceChooserItem myItem;
 
-  public ResourceDrawablePanel(@NotNull Configuration configuration, @NotNull AndroidFacet facet, @NotNull AsyncIconFactory iconFactory) {
+  public ResourceDrawablePanel(@NotNull Configuration configuration, @NotNull AndroidFacet facet, @NotNull IconFactory iconFactory) {
     myConfiguration = configuration;
     myFacet = facet;
     myModule = facet.getModule();
@@ -154,9 +156,17 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
     if (height == 0) {
       height = 300;
     }
-    return myIconFactory.createAsyncIcon(height, JBUI.scale(8), false, path,
-                                         item.getResourceValue(), item.getType(),
-                                         EmptyIcon.create(height), iconCallback);
+
+    Icon icon = null;
+    if (path != null) {
+      icon = myIconFactory.createIconFromPath(height, JBUI.scale(8), false, path);
+    }
+    if (icon == null) {
+      icon = myIconFactory.createAsyncIconFromResourceValue(height, JBUI.scale(8), false,
+                                                            item.getResourceValue(),
+                                                            EmptyIcon.create(height), iconCallback);
+    }
+    return icon;
   }
 
 

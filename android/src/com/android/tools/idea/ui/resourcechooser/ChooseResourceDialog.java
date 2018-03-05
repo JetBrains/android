@@ -38,7 +38,7 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.*;
-import com.android.tools.idea.ui.resourcechooser.icons.AsyncIconFactory;
+import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
 import com.android.tools.idea.ui.resourcechooser.preview.EditResourcePanel;
 import com.android.tools.idea.ui.resourcechooser.preview.ResourceDrawablePanel;
 import com.android.tools.idea.ui.resourcechooser.preview.ResourceEditorTab;
@@ -178,7 +178,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private final boolean myHideLeftSideActions;
   private String myResultResourceName;
   private boolean myUseGlobalUndo;
-  private final AsyncIconFactory myIconFactory;
+  private final IconFactory myIconFactory;
   private RenderTask myRenderTask;
   private final MultiMap<ResourceType, String> myThemAttributes;
 
@@ -419,7 +419,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       }
       return StringUtil.containsIgnoreCase(item.getName(), text);
     };
-    myIconFactory = new AsyncIconFactory(this::getRenderTask);
+    myIconFactory = new IconFactory(this::getRenderTask);
 
     setTitle("Resources");
     setupViewOptions();
@@ -1166,13 +1166,23 @@ public class ChooseResourceDialog extends DialogWrapper {
       case COLOR:
       case DRAWABLE:
       case MIPMAP:
-        Icon icon =
-          myIconFactory.createAsyncIcon(size,
-                                        checkerboardSize,
-                                        true,
-                                        item.getPath(), item.getResourceValue(), item.getType(),
-                                        EmptyIcon.create(size),
-                                        onLoadComplete);
+        Icon icon = null;
+        String path = item.getPath();
+        if (path != null) {
+          icon = myIconFactory.createIconFromPath(size,
+                                           checkerboardSize,
+                                           true,
+                                           item.getPath());
+        }
+
+        if (icon == null) {
+          icon = myIconFactory.createAsyncIconFromResourceValue(size,
+                                                                checkerboardSize,
+                                                                true,
+                                                                item.getResourceValue(),
+                                                                EmptyIcon.create(size),
+                                                                onLoadComplete);
+        }
         item.setIcon(icon);
 
         return icon;
