@@ -103,7 +103,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   public void testNativeDebuggerBreakpoints() throws Exception {
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
