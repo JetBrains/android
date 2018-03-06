@@ -44,11 +44,17 @@ import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
 public class GroovyDslWriter implements GradleDslWriter {
   @Override
   public PsiElement createDslElement(@NotNull GradleDslElement element) {
+    GradleDslElement anchorAfter = element.getAnchor();
     GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
     if (psiElement != null) {
       return psiElement;
     }
 
+    // If the parent doesn't have a psi element, the anchor will be used to create the parent in getParentPsi.
+    // In this case we want to be placed in the newly made parent so we ignore our anchor.
+    if (needToCreateParent(element)) {
+      anchorAfter = null;
+    }
     PsiElement parentPsiElement = getParentPsi(element);
     if (parentPsiElement == null) {
       return null;
@@ -102,13 +108,27 @@ public class GroovyDslWriter implements GradleDslWriter {
     }
     PsiElement lineTerminator = factory.createLineTerminator(1);
     PsiElement addedElement;
+    PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
+
     if (parentPsiElement instanceof GroovyFile) {
-      addedElement = parentPsiElement.addAfter(statement, parentPsiElement.getLastChild());
+      addedElement = parentPsiElement.addAfter(statement, anchor);
       parentPsiElement.addBefore(lineTerminator, addedElement);
     }
+    else if (parentPsiElement instanceof GrClosableBlock) {
+      addedElement = parentPsiElement.addAfter(statement, anchor);
+      if (anchorAfter != null) {
+        parentPsiElement.addBefore(lineTerminator, addedElement);
+      } else {
+        parentPsiElement.addAfter(lineTerminator, addedElement);
+        GrClosableBlock parentBlock = (GrClosableBlock)parentPsiElement;
+        if (parentBlock.getRBrace() != null && !hasNewLineBetween(parentBlock.getLBrace(), parentBlock.getRBrace())) {
+          parentPsiElement.addBefore(lineTerminator, addedElement);
+        }
+      }
+    }
     else {
-      addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
-      parentPsiElement.addAfter(lineTerminator, addedElement);
+      addedElement = parentPsiElement.addAfter(statement, anchor);
+      parentPsiElement.addBefore(lineTerminator, addedElement);
     }
     if (element.isBlockElement()) {
       GrClosableBlock closableBlock = getClosableBlock(addedElement);

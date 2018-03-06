@@ -87,6 +87,22 @@ public class GradleDslElementList extends GradleDslElement {
   }
 
   @Override
+  @Nullable
+  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
+    // If we have no elements ask our parent to see where we should be placed.
+    if (myElements.isEmpty()) {
+      if (myParent == null) {
+        return null;
+      }
+
+      return myParent.requestAnchor(this);
+    }
+
+    // Otherwise use our last element.
+    return myElements.get(myElements.size() - 1);
+  }
+
+  @Override
   @NotNull
   public String getName() {
     return myName.name();
@@ -120,19 +136,19 @@ public class GradleDslElementList extends GradleDslElement {
 
   @Override
   protected void apply() {
-    for (GradleDslElement element : myToBeAddedElements) {
-      if (element.create() != null) {
-        myElements.add(element);
-      }
-    }
-    myToBeAddedElements.clear();
-
     for (GradleDslElement element : myToBeRemovedElements) {
       if (myElements.remove(element)) {
         element.delete();
       }
     }
     myToBeRemovedElements.clear();
+
+    for (GradleDslElement element : myToBeAddedElements) {
+      if (element.create() != null) {
+        myElements.add(element);
+      }
+    }
+    myToBeAddedElements.clear();
 
     for (GradleDslElement element : myElements) {
       if (element.isModified()) {

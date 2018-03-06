@@ -282,7 +282,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     // Unlike maps, we don't create a placeholder element. This is since we need to retain and update order in the list.
     // This would be hard to create an intuitive api to do this, so instead we always create an empty string as the new item.
-    GradleDslLiteral literal = new GradleDslLiteral(myElement, GradleNameElement.fake("listItem"));
+    GradleDslLiteral literal = new GradleDslLiteral(myElement, GradleNameElement.fake(myName));
     literal.setValue("");
 
     GradleDslExpressionList list = (GradleDslExpressionList)myElement;

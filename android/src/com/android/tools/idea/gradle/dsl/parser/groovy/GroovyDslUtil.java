@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.google.common.base.Strings;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -24,6 +25,7 @@ import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
@@ -604,5 +606,54 @@ public final class GroovyDslUtil {
       newElement = oldName.replace(psiElement);
     }
     element.getNameElement().commitNameChange(newElement);
+  }
+
+  @Nullable
+  static PsiElement getPsiElementForAnchor(@NotNull PsiElement parent, @Nullable GradleDslElement dslAnchor) {
+    PsiElement anchorAfter = dslAnchor == null ? null : dslAnchor.getPsiElement();
+    if (anchorAfter == null) {
+      PsiElement element = parent.getFirstChild();
+      // Skip the first non-empty element, this is normally the '{' of a closable block.
+      if (element != null) {
+        element = element.getNextSibling();
+      }
+
+      // Find the last empty (no newlines or content) child after the initial element.
+      while (element != null) {
+        element = element.getNextSibling();
+        if (Strings.isNullOrEmpty(element.getText()) || element.getText().matches("[\\t ]+") ) {
+          continue;
+        }
+        break;
+      }
+
+      return element == null ? null : element.getPrevSibling();
+    }
+    else {
+      while (anchorAfter != null && anchorAfter.getParent() != parent) {
+        anchorAfter = anchorAfter.getParent();
+      }
+      return anchorAfter;
+    }
+  }
+
+  static boolean needToCreateParent(@NotNull GradleDslElement element) {
+    element = element.getParent();
+    // We have to be careful not to count element lists or maps when checking is the parent has been created.
+    while (element != null && (element instanceof GradleDslElementList)) {
+      element = element.getParent();
+    }
+
+    return element != null && element.getPsiElement() == null;
+  }
+
+  static boolean hasNewLineBetween(@NotNull PsiElement start, @NotNull PsiElement end) {
+    assert start.getParent() == end.getParent() && start.getStartOffsetInParent() <= end.getStartOffsetInParent();
+    for (PsiElement element = start; element != end; element = element.getNextSibling()) {
+      if (element.getNode().getElementType().equals(GroovyTokenTypes.mNLS)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

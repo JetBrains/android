@@ -33,7 +33,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLO
 /**
  * Provide Gradle specific abstraction over a {@link PsiElement}.
  */
-public abstract class GradleDslElement {
+public abstract class GradleDslElement implements AnchorProvider {
   @NotNull protected GradleNameElement myName;
 
   @Nullable protected GradleDslElement myParent;
@@ -173,6 +173,17 @@ public abstract class GradleDslElement {
       resultBuilder.addAll(child.getResolvedVariables());
     }
     return resultBuilder.build();
+  }
+
+  @Override
+  @Nullable
+  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
+    return null;
+  }
+
+  @Nullable
+  public GradleDslElement getAnchor() {
+    return myParent == null ? null : myParent.requestAnchor(this);
   }
 
   /**
