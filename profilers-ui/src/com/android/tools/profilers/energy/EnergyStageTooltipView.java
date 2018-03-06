@@ -24,17 +24,17 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 class EnergyStageTooltipView extends ProfilerTooltipView {
-  @NotNull private final EnergyProfilerStage myStage;
+  @NotNull private final EnergyUsageTooltip myTooltip;
 
-  EnergyStageTooltipView(@NotNull EnergyProfilerStage stage) {
-    super(stage.getStudioProfilers().getTimeline(), "Energy");
-    myStage = stage;
+  public EnergyStageTooltipView(@NotNull EnergyProfilerStageView stageView, @NotNull EnergyUsageTooltip tooltip) {
+    super(stageView.getTimeline(), "Energy");
+    myTooltip = tooltip;
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    EnergyProfilerStage.EnergyLegends legends = myStage.getTooltipLegends();
+    EnergyProfilerStage.EnergyLegends legends = myTooltip.getLegends();
     LegendComponent legend = new LegendComponent.Builder(legends)
       .setVerticalPadding(0)
       .setOrientation(LegendComponent.Orientation.VERTICAL)

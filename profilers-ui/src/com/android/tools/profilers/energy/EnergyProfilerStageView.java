@@ -18,7 +18,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.*;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -34,12 +34,15 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
-  @NotNull private final EnergyStageTooltipView myTooltipView = new EnergyStageTooltipView(getStage());
   @NotNull private final JBScrollPane myEventsComponent;
   @NotNull private final EnergyDetailsView myDetailsView;
 
   public EnergyProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull EnergyProfilerStage energyProfilerStage) {
     super(profilersView, energyProfilerStage);
+
+    getTooltipBinder().bind(EnergyUsageTooltip.class, EnergyStageTooltipView::new);
+    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
+    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
 
     JBSplitter verticalSplitter = new JBSplitter(true);
     verticalSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
@@ -118,10 +121,11 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       new RangeTooltipComponent(timeline.getTooltipRange(),
                                 timeline.getViewRange(),
                                 timeline.getDataRange(),
-                                myTooltipView.createComponent(),
+                                getTooltipPanel(),
                                 ProfilerLayeredPane.class);
 
     tooltip.registerListenersOn(lineChart);
+    eventsView.registerTooltip(tooltip, getStage());
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
