@@ -21,6 +21,8 @@ import com.intellij.ide.plugins.IdeaPluginDescriptorImpl
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.extensions.ExtensionsArea
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -111,10 +113,14 @@ interface GuiTestProjectSystem {
       // Extensions present in the UI Test Framework plugin
       if (uiTestPlugin is IdeaPluginDescriptorImpl) {
         val extensionPoints = uiTestPlugin.extensionsPoints?.let {
-          it.values().map { it.getAttribute("qualifiedName").value }.joinToString(",")
+          it.values().map { it.getAttribute("qualifiedName").value }.joinToString(", ")
         } ?: "<null>"
         sb.append("Extension Points registered by UI Test Framework plugin: $extensionPoints")
       }
+
+      // List out all registered extensions
+      val registeredExtensions = Extensions.getRootArea().extensionPoints.map { ep -> ep.name }.joinToString(", ")
+      sb.append("Extension Points registered in the root area: $registeredExtensions")
 
       return sb.toString()
     }
