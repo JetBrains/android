@@ -771,7 +771,7 @@ public class AvdManagerConnection {
     String[] files = fileOp.list(location, null);
     if (files != null) {
       for (String filename : files) {
-        if (FileUtil.getNameWithoutExtension(filename).equals("kernel-ranchu")) {
+        if (filename.startsWith("kernel-ranchu")) {
           return true;
         }
       }
