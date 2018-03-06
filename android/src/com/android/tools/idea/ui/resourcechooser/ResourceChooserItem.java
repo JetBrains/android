@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.SampleDataResourceItem;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
@@ -156,14 +159,16 @@ public abstract class ResourceChooserItem {
     }
 
     @Override
+    @Nullable
     public File getFile() {
-      return myResourceItems.get(0).getFile();
+      return !myResourceItems.isEmpty() ? myResourceItems.get(0).getFile() : null;
     }
 
     @Override
     @Nullable
     public String getPath() {
-      return myResourceItems.get(0).getFile().getPath();
+      File file = getFile();
+      return file != null ? file.getPath() : null;
     }
 
     @Override
@@ -171,7 +176,10 @@ public abstract class ResourceChooserItem {
     public String getFileForQualifiers(String qualifiers) {
       for (ResourceItem item : myResourceItems) {
         if (qualifiers.equals(item.getQualifiers())) {
-          return item.getFile().getPath();
+          File file = item.getFile();
+          if (file != null) {
+            return file.getPath();
+          }
         }
       }
 
@@ -269,6 +277,50 @@ public abstract class ResourceChooserItem {
     public String getDefaultValue() {
       // TODO: Look this up?
       return null;
+    }
+  }
+
+  public static class SampleDataItem extends ResourceChooserItem {
+    @NotNull private final SampleDataResourceItem myItem;
+
+    public SampleDataItem(@NotNull SampleDataResourceItem item) {
+      super(ResourceType.SAMPLE_DATA, item.getName());
+
+      myItem = item;
+    }
+
+    @NotNull
+    @Override
+    public String getResourceUrl() {
+      return TOOLS_SAMPLE_PREFIX + myName;
+    }
+
+    @Override
+    public boolean isFramework() {
+      return false;
+    }
+
+    @Nullable
+    @Override
+    public String getDefaultValue() {
+      return getResourceUrl();
+    }
+
+    @NotNull
+    private SampleDataResourceValue getSampleDataResourceValue() {
+      SampleDataResourceValue value = (SampleDataResourceValue)myItem.getResourceValue();
+      return value;
+    }
+
+    @NotNull
+    @Override
+    public ResourceValue getResourceValue() {
+      ResourceType type = myItem.getContentType() == SampleDataResourceItem.ContentType.IMAGE ?
+                          ResourceType.DRAWABLE :
+                          myItem.getType();
+      SampleDataResourceValue value = getSampleDataResourceValue();
+      ResourceReference ref = myItem.getReferenceToSelf();
+      return new ResourceValue(new ResourceReference(ref.getNamespace(), type, ref.getName()), value.getValueAsLines().get(0), value.getLibraryName());
     }
   }
 }

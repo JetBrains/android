@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.flags.StudioFlags.NELE_WIDGET_ASSISTANT;
+import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 /**
  * Handler for the {@code <RecyclerView>} layout
@@ -59,7 +59,7 @@ public class RecyclerViewHandler extends ViewGroupHandler {
 
   @Nullable
   public ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    if (!NELE_WIDGET_ASSISTANT.get()) {
+    if (!NELE_SAMPLE_DATA_UI.get()) {
       return null;
     }
 

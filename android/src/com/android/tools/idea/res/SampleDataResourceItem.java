@@ -35,6 +35,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.*;
@@ -290,7 +291,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
     return "";
   }
 
-  @Nullable
+  @NotNull
   @Override
   public ResourceValue getResourceValue() {
     byte[] content = getContent(this::wasTouched);

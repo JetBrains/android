@@ -189,9 +189,9 @@ public final class StudioFlags {
     "Enable the continuous rendering of the surface when moving/resizing components.",
     true);
 
-  public static final Flag<Boolean> NELE_WIDGET_ASSISTANT = Flag.create(
-    NELE, "widget.assistant", "Enable the properties panel Widget Assistant",
-    "Enable the Widget Assistant that provides common shortcuts for certain widgets.",
+  public static final Flag<Boolean> NELE_SAMPLE_DATA_UI = Flag.create(
+    NELE, "widget.assistant", "Enable the new Sample Data UI components",
+    "Enable the Sample Data UI to setup tools attributes.",
     false);
 
   public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
