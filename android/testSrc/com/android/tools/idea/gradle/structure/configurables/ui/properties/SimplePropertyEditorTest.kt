@@ -280,7 +280,7 @@ class SimplePropertyEditorTest {
     editor.editor.item = "abc"
     // Our assumption is that changing the text editor content directly does not immediately raise the notification and thus it is possible
     // to test updateProperty() method.
-    assumeThat(parsedModel.value, equalTo("parsed"))
+    assumeThat(parsedModel.value, equalTo("value"))
 
     editor.updateProperty()
     assertThat(parsedModel.value, equalTo("abc"))
@@ -292,7 +292,7 @@ class SimplePropertyEditorTest {
     editor.editor.item = "abc"
     // Our assumption is that changing the text editor content directly does not immediately raise the notification and thus it is possible
     // to test updateProperty() method.
-    assumeThat(parsedModel.value, equalTo("parsed"))
+    assumeThat(parsedModel.value, equalTo("value"))
 
     assertThat(editor.getValueText(), equalTo("abc"))
     assertThat((editor.getValue() as ParsedValue.Set.Parsed).dslText, nullValue())
