@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Returns the current used for performing various operations. All methods return values in
- * mAh (milliamp / hour).
+ * mA (milliamp).
  *
  * See also <a href="https://source.android.com/devices/tech/power/#profile-values">this article
  * on power profiles</a>, which this class aims to emulate.

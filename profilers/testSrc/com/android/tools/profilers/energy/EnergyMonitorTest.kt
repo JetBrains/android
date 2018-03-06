@@ -76,7 +76,7 @@ class EnergyMonitorTest {
   @Test
   fun testLegends() {
     val legends = monitor.legends
-    assertThat(legends.usageLegend.value).isEqualTo("50 mAh")
+    assertThat(legends.usageLegend.value).isEqualTo("50 mA")
   }
 
   @Test
