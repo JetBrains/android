@@ -157,7 +157,7 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
     );
   }
 
-  public void testGotStyleableAttr() throws Exception {
+  public void testGotoStyleableAttr() throws Exception {
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
     myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView2.java", "src/p1/p2/MyView.java");
