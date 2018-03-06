@@ -126,7 +126,7 @@ class CpuProfilerConfigModelTest {
     setDevice(AndroidVersion.VersionCodes.LOLLIPOP)
 
     myServices.addCustomProfilingConfiguration("Art", CpuProfilerType.ART)
-    myServices.addCustomProfilingConfiguration("Atrace", CpuProfilerType.ATRACE)
+    myServices.addCustomProfilingConfiguration("System Trace", CpuProfilerType.ATRACE)
     myServices.addCustomProfilingConfiguration("Simpleperf", CpuProfilerType.SIMPLEPERF)
     model!!.updateProfilingConfigurations()
 
@@ -136,7 +136,7 @@ class CpuProfilerConfigModelTest {
     assertThat(customConfigs[0].name).isEqualTo("Art")
     assertThat(customConfigs[0].requiredDeviceLevel).isEqualTo(0)
     assertThat(customConfigs[1].profilerType).isEqualTo(CpuProfilerType.ATRACE)
-    assertThat(customConfigs[1].name).isEqualTo("Atrace")
+    assertThat(customConfigs[1].name).isEqualTo("System Trace")
     assertThat(customConfigs[1].requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.O)
     assertThat(customConfigs[2].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
     assertThat(customConfigs[2].name).isEqualTo("Simpleperf")
@@ -157,7 +157,7 @@ class CpuProfilerConfigModelTest {
     myServices.enableSimpleperf(true)
 
     myServices.addCustomProfilingConfiguration("Art", CpuProfilerType.ART)
-    myServices.addCustomProfilingConfiguration("Atrace", CpuProfilerType.ATRACE)
+    myServices.addCustomProfilingConfiguration("System Trace", CpuProfilerType.ATRACE)
     myServices.addCustomProfilingConfiguration("Simpleperf", CpuProfilerType.SIMPLEPERF)
     model!!.updateProfilingConfigurations()
 
@@ -166,7 +166,7 @@ class CpuProfilerConfigModelTest {
     assertThat(customConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(customConfigs[0].name).isEqualTo("Art")
     assertThat(customConfigs[1].profilerType).isEqualTo(CpuProfilerType.ATRACE)
-    assertThat(customConfigs[1].name).isEqualTo("Atrace")
+    assertThat(customConfigs[1].name).isEqualTo("System Trace")
     assertThat(customConfigs[2].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
     assertThat(customConfigs[2].name).isEqualTo("Simpleperf")
 
@@ -175,7 +175,7 @@ class CpuProfilerConfigModelTest {
     assertThat(customConfigsDeviceFilter[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(customConfigsDeviceFilter[0].name).isEqualTo("Art")
     assertThat(customConfigsDeviceFilter[1].profilerType).isEqualTo(CpuProfilerType.ATRACE)
-    assertThat(customConfigsDeviceFilter[1].name).isEqualTo("Atrace")
+    assertThat(customConfigsDeviceFilter[1].name).isEqualTo("System Trace")
     assertThat(customConfigsDeviceFilter[2].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
     assertThat(customConfigsDeviceFilter[2].name).isEqualTo("Simpleperf")
 
