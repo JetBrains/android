@@ -25,7 +25,7 @@ public class EnergyAxisFormatter extends BaseAxisFormatter {
   private static final int BASE = 10;
   private static final int MULTIPLIER = 1000;
   private static final int[] MIN_INTERVALS = new int[]{1, 1, 1};
-  private static String[] UNITS = new String[]{"uAh", "mAh", "Ah"};
+  private static String[] UNITS = new String[]{"uA", "mA", "A"};
   private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{1, 2, 5, 10});
 
   private EnergyAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {

@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class EnergyMonitor extends ProfilerMonitor {
 
-  static final BaseAxisFormatter ENERGY_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "mAh");
+  static final BaseAxisFormatter ENERGY_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "mA");
 
   @NotNull private final EnergyUsage myUsage;
   @NotNull private final AxisComponentModel myAxis;
