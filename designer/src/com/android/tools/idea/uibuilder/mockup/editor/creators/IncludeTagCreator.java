@@ -23,10 +23,10 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.psi.xml.XmlFile;
@@ -131,7 +131,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
     if (rootTag == null) {
       return null;
     }
-    SceneManager manager = getScreenView().getSurface().getSceneManager();
+    LayoutlibSceneManager manager = (LayoutlibSceneManager)getScreenView().getSurface().getSceneManager();
 
     if (manager != null) {
       NlModel model = NlModel.create(newFile.getProject(), facet, newFile.getVirtualFile());

@@ -17,17 +17,16 @@ package com.android.tools.idea.common.editor;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.PanZoomListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -49,7 +48,7 @@ import java.util.List;
  * parents (and if no selection, the root layout)
  */
 public final class ActionsToolbar implements DesignSurfaceListener, Disposable, PanZoomListener, ConfigurationListener,
-                                             RenderListener {
+                                             ModelListener {
 
   private static final int CONFIGURATION_UPDATE_FLAGS = ConfigurationListener.CFG_TARGET |
                                                         ConfigurationListener.CFG_DEVICE;
@@ -160,10 +159,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
         }
         else {
           // Model not yet rendered: when it's done, update. Listener is removed as soon as palette fires from listener callback.
-          SceneManager manager = mySurface.getSceneManager();
-          if (manager != null) {
-            manager.addRenderListener(this);
-          }
+          view.getModel().addListener(this);
           return;
         }
       }
@@ -238,14 +234,13 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     return false;
   }
 
-  // ---- Implements RenderListener ----
+  // ---- Implements ModelListener ----
+
   @Override
-  public void onRenderCompleted() {
-    // Ensure that the toolbar is populated initially
-    updateActions();
-    SceneManager manager = mySurface.getSceneManager();
-    if (manager != null) {
-      manager.removeRenderListener(this);
+  public void modelDerivedDataChanged(@NotNull NlModel model) {
+    if (model.getComponents().size() == 1) {
+      updateActions();
+      model.removeListener(this);
     }
   }
 

@@ -22,8 +22,6 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.scene.RenderListener;
-import com.android.tools.idea.util.ListenerCollection;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -49,7 +47,6 @@ abstract public class SceneManager implements Disposable {
   // This will be initialized when constructor calls updateSceneView().
   @SuppressWarnings("NullableProblems")
   @NotNull private SceneView mySceneView;
-  private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
 
   public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface) {
     myModel = model;
@@ -98,7 +95,6 @@ abstract public class SceneManager implements Disposable {
   @Override
   public void dispose() {
     getLayers().forEach(Disposer::dispose);
-    myRenderListeners.clear();
   }
 
   /**
@@ -235,18 +231,6 @@ abstract public class SceneManager implements Disposable {
   @NotNull
   public Scene getScene() {
     return myScene;
-  }
-
-  public void addRenderListener(@NotNull RenderListener listener) {
-    myRenderListeners.add(listener);
-  }
-
-  public void removeRenderListener(@NotNull RenderListener listener) {
-    myRenderListeners.remove(listener);
-  }
-
-  protected void fireRenderListeners() {
-    myRenderListeners.forEach(RenderListener::onRenderCompleted);
   }
 
   public abstract void requestRender();

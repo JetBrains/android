@@ -20,16 +20,17 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -132,10 +133,12 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    SceneView screenView = mySurface.getCurrentSceneView();
-    if (screenView == null) {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    if (sceneView == null) {
       return;
     }
+    assert sceneView instanceof ScreenView;
+    ScreenView screenView = (ScreenView)sceneView;
     NlComponent target = findTarget(screenView);
     if (target == null) {
       // Shouldn't happen, enforced by update(AnActionEvent)
@@ -205,7 +208,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   private static class ConstraintLayoutConverter extends WriteCommandAction {
     private static final boolean DIRECT_INFERENCE = true;
-    private final SceneView myScreenView;
+    private final ScreenView myScreenView;
     private final boolean myFlatten;
     private final boolean myIncludeIds;
     private final boolean myIncludeCustomViews;
@@ -214,7 +217,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     private NlComponent myRoot;
     private NlComponent myLayout;
 
-    public ConstraintLayoutConverter(@NotNull SceneView screenView,
+    public ConstraintLayoutConverter(@NotNull ScreenView screenView,
                                      @NotNull NlComponent target,
                                      boolean flatten,
                                      boolean includeIds,
@@ -260,7 +263,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       XmlTag layoutTag = myLayout.getTag();
       XmlTag rootTag = myRoot.getTag();
 
-      SceneManager manager = myScreenView.getSurface().getSceneManager();
+      LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
       assert manager != null;
 
       manager.layout(false);
