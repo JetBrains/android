@@ -16,17 +16,18 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.CustomPanel;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
@@ -137,12 +138,6 @@ public class DelegatingViewHandler extends ViewHandler {
   @NotNull
   public Icon getIcon(@NotNull String tagName) {
     return myHandler.getIcon(tagName);
-  }
-
-  @Override
-  @NotNull
-  public Icon getLargeIcon(@NotNull String tagName) {
-    return myHandler.getLargeIcon(tagName);
   }
 
   @Override

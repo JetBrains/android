@@ -235,10 +235,6 @@ public class Palette {
     @Nullable
     private String myIconName;
 
-    @XmlAttribute(name = "icon24")
-    @Nullable
-    private String myIcon24Name;
-
     @XmlAttribute(name = "coordinate")
     @Nullable
     private String myGradleCoordinateId;
@@ -314,23 +310,6 @@ public class Palette {
         }
       }
       return myHandler.getIcon(myTagName);
-    }
-
-    @NotNull
-    public Icon getLargeIcon() {
-      if (myIcon24Name != null) {
-        Icon icon = IconLoader.findIcon(myIcon24Name, getClass());
-        if (icon != null) {
-          return icon;
-        }
-      }
-      if (myIconName != null) {
-        Icon icon = IconLoader.findIcon(myIconName + "Large", getClass());
-        if (icon != null) {
-          return icon;
-        }
-      }
-      return myHandler.getLargeIcon(myTagName);
     }
 
     @NonNull
