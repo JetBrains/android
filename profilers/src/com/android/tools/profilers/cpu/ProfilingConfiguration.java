@@ -37,7 +37,7 @@ public class ProfilingConfiguration {
 
   public static final String SIMPLEPERF = "Sampled (Native)";
 
-  public static final String ATRACE = "Atrace";
+  public static final String ATRACE = "System Trace";
 
   private static List<ProfilingConfiguration> ourDefaultConfigurations;
 
