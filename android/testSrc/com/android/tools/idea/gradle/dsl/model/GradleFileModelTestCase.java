@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.PlatformTestCase;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -234,6 +235,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected void applyChangesAndReparse(@NotNull final GradleBuildModel buildModel) {
     applyChanges(buildModel);
     buildModel.reparse();
+  }
+
+  protected void verifyFileContents(@NotNull File file, @NotNull String contents) throws IOException {
+    assertThat(FileUtils.readFileToString(file).replaceAll("[ \\t]+", "")).isEqualTo(contents.replaceAll("[ \\t]+", ""));
   }
 
   protected void applyChangesAndReparse(@NotNull final ProjectBuildModel buildModel) {

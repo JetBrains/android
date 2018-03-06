@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -73,6 +75,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    */
   private void addPropertyInternal(@NotNull GradleDslElement element, @NotNull ElementState state) {
     myProperties.addElement(element, state);
+  }
+
+  private void addPropertyInternal(int index, @NotNull GradleDslElement element, @NotNull ElementState state) {
+    myProperties.addElementAtIndex(element, state, index);
   }
 
   private void addAppliedProperty(@NotNull GradleDslElement element) {
@@ -368,6 +374,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     return newElement;
   }
 
+  @VisibleForTesting
+  public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
+    newElement.myParent = this;
+    addPropertyInternal(index, newElement, ElementState.TO_BE_ADDED);
+    setModified(true);
+  }
+
   @NotNull
   public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
     List<GradlePropertiesDslElement> holders = new ArrayList<>();
@@ -487,6 +500,32 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   @Override
+  @Nullable
+  public GradleDslElement requestAnchor(@NotNull GradleDslElement element) {
+    // We need to find the element before `element` in my properties. The last one that has a psiElement, has the same name scheme as
+    // the given element (to ensure that they should be placed in the same block) and much either have a state of TO_BE_ADDED or EXISTING.
+    GradleDslElement lastElement = null;
+    for (ElementList.ElementItem item : myProperties.myElements) {
+      if (item.myElement == element) {
+        return lastElement;
+      }
+
+      if (item.myElementState == ElementState.TO_BE_ADDED || item.myElementState == ElementState.EXISTING &&
+          item.myElement.getNameElement().qualifyingParts().equals(element.getNameElement().qualifyingParts())) {
+        // GradleDslElementLists do not have a PsiElement, as such we need to ask them where they should be placed.
+        if (item.myElement instanceof GradleDslElementList) {
+          lastElement = item.myElement.requestAnchor(element);
+        } else {
+          lastElement = item.myElement;
+        }
+      }
+    }
+
+    // The element is not in this list, we can't provide an anchor.
+    return null;
+  }
+
+  @Override
   @NotNull
   public Collection<GradleDslElement> getChildren() {
     return getPropertyElements().values();
@@ -510,7 +549,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   @Override
   protected void apply() {
     myProperties.removeElements(GradleDslElement::delete);
-    myProperties.createElements(e -> e.create() != null);
+    myProperties.createElements((e) -> e.create() != null);
     myProperties.applyElements(e -> {
       if (e.isModified()) {
         e.apply();
@@ -546,10 +585,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       }
     }
 
-    @NotNull private final Deque<ElementItem> myElements;
+    @NotNull private final List<ElementItem> myElements;
 
     private ElementList() {
-      myElements = new ArrayDeque<>();
+      myElements = new ArrayList<>();
     }
 
     @NotNull
@@ -567,7 +606,38 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     }
 
     private void addElement(@NotNull GradleDslElement newElement, @NotNull ElementState state) {
-      myElements.addLast(new ElementItem(newElement, state));
+      myElements.add(new ElementItem(newElement, state));
+    }
+
+    private void addElementAtIndex(@NotNull GradleDslElement newElement, @NotNull ElementState state, int index) {
+      myElements.add(getRealIndex(index, newElement), new ElementItem(newElement, state));
+    }
+
+    /**
+     * Converts a given index to a real index that can correctly place elements in myElements. This ignores all elements that should be
+     * removed or have been applied.
+     */
+    private int getRealIndex(int index, @NotNull GradleDslElement element) {
+      // If the index is less than zero then clamp it to zero
+      if (index < 0) {
+        return 0;
+      }
+
+      // Work out the real index
+      for (int i = 0; i < myElements.size(); i++) {
+        if (index == 0) {
+          return i;
+        }
+        ElementItem item = myElements.get(i);
+        if (item.myElementState == ElementState.TO_BE_ADDED ||
+          item.myElementState == ElementState.EXISTING) {
+          // Make sure we are only counting elements with the same qualified name.
+          if (element.getNameElement().qualifyingParts().equals(item.myElement.getNameElement().qualifyingParts())) {
+            index--;
+          }
+        }
+      }
+      return myElements.size();
     }
 
     @Nullable
