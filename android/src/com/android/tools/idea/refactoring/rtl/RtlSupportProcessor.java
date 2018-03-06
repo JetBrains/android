@@ -18,6 +18,7 @@ package com.android.tools.idea.refactoring.rtl;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -70,28 +71,27 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   // This is the API level corresponding to the first public release for RTL support
   public static final int RTL_TARGET_SDK_START = 17;
 
-  private static Map<String, String> ourMapMirroredAttributeName = Maps.newHashMapWithExpectedSize(12);
+  private static Map<String, String> ourMapMirroredAttributeName = new ImmutableMap.Builder<String, String>()
+    .put(ATTR_PADDING_LEFT, ATTR_PADDING_START)
+    .put(ATTR_PADDING_RIGHT, ATTR_PADDING_END)
+    .put(ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_START)
+    .put(ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_END)
+    .put(ATTR_DRAWABLE_LEFT, ATTR_DRAWABLE_START)
+    .put(ATTR_DRAWABLE_RIGHT, ATTR_DRAWABLE_END)
+    .put(ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_TO_START_OF)
+    .put(ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_END_OF)
+    .put(ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_START)
+    .put(ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_END)
+    .put(ATTR_LAYOUT_ALIGN_PARENT_LEFT, ATTR_LAYOUT_ALIGN_PARENT_START)
+    .put(ATTR_LAYOUT_ALIGN_PARENT_RIGHT, ATTR_LAYOUT_ALIGN_PARENT_END)
+    // Constraint Layout
+    .put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_END_TO_END_OF)
+    .put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_END_TO_START_OF)
+    .put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_START_TO_START_OF)
+    .put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_START_TO_END_OF)
+    .build();
 
-  static {
-    initMapMirroredAttributes();
-  }
-
-  private static void initMapMirroredAttributes() {
-    ourMapMirroredAttributeName.put(ATTR_PADDING_LEFT, ATTR_PADDING_START);
-    ourMapMirroredAttributeName.put(ATTR_PADDING_RIGHT, ATTR_PADDING_END);
-    ourMapMirroredAttributeName.put(ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_START);
-    ourMapMirroredAttributeName.put(ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_END);
-    ourMapMirroredAttributeName.put(ATTR_DRAWABLE_LEFT, ATTR_DRAWABLE_START);
-    ourMapMirroredAttributeName.put(ATTR_DRAWABLE_RIGHT, ATTR_DRAWABLE_END);
-    ourMapMirroredAttributeName.put(ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_TO_START_OF);
-    ourMapMirroredAttributeName.put(ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_END_OF);
-    ourMapMirroredAttributeName.put(ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_START);
-    ourMapMirroredAttributeName.put(ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_END);
-    ourMapMirroredAttributeName.put(ATTR_LAYOUT_ALIGN_PARENT_LEFT, ATTR_LAYOUT_ALIGN_PARENT_START);
-    ourMapMirroredAttributeName.put(ATTR_LAYOUT_ALIGN_PARENT_RIGHT, ATTR_LAYOUT_ALIGN_PARENT_END);
-
-    // Gravity is a special case that we will handled separately as we will mirror its value instead of its name
-  }
+  // Gravity is a special case that we will handled separately as we will mirror its value instead of its name
 
   protected RtlSupportProcessor(Project project, @NotNull RtlSupportProperties properties) {
     super(project);
@@ -567,5 +567,4 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   protected String getCommandName() {
     return REFACTORING_NAME;
   }
-
 }
