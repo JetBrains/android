@@ -36,12 +36,12 @@ public class ComponentAssistantTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NELE_WIDGET_ASSISTANT.override(true);
+    StudioFlags.NELE_SAMPLE_DATA_UI.override(true);
   }
 
   @After
   public void tearDown() {
-    StudioFlags.NELE_WIDGET_ASSISTANT.clearOverride();
+    StudioFlags.NELE_SAMPLE_DATA_UI.clearOverride();
   }
 
   @Test

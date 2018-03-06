@@ -41,7 +41,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.flags.StudioFlags.NELE_WIDGET_ASSISTANT;
+import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 /**
  * Handler for the {@code <ImageView>} widget
@@ -149,7 +149,7 @@ public class ImageViewHandler extends ViewHandler {
 
   @Nullable
   private ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    if (!NELE_WIDGET_ASSISTANT.get()) {
+    if (!NELE_SAMPLE_DATA_UI.get()) {
       return null;
     }
 

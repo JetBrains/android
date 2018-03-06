@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.groups;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.DataFile;
@@ -24,6 +25,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -33,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class ResourceChooserGroups {
   // Longer term we may want to let users see private resources and copy them to their projects
@@ -51,6 +54,12 @@ public class ResourceChooserGroups {
     }
     return resource1.getName().compareTo(resource2.getName());
   };
+  /** For sample data, ResourceTypes that should only display image types */
+  private static final EnumSet<ResourceType> IMAGE_RESOURCE_TYPES =
+    EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.COLOR);
+  private static final Predicate<SampleDataResourceItem> ONLY_IMAGES_FILTER =
+    (item) -> item.getContentType() == SampleDataResourceItem.ContentType.IMAGE;
+  private static final Predicate<SampleDataResourceItem> NOT_IMAGES_FILTER = ONLY_IMAGES_FILTER.negate();
 
   private ResourceChooserGroups() {
   }
@@ -180,5 +189,20 @@ public class ResourceChooserGroups {
     }
 
     return new ResourceChooserGroup("Theme attributes", type, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
+  }
+
+  @NotNull
+  public static ResourceChooserGroup createSampleDataGroup(@NotNull ResourceType type, @NotNull AndroidFacet facet) {
+    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+
+    Predicate<SampleDataResourceItem> filter = IMAGE_RESOURCE_TYPES.contains(type) ? ONLY_IMAGES_FILTER : NOT_IMAGES_FILTER;
+    ImmutableList<ResourceChooserItem> items =
+      AppResourceRepository.getOrCreateInstance(facet).getItemsOfType(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).stream()
+        .map(itemName -> (SampleDataResourceItem)repository.getResourceItems(ResourceNamespace.TOOLS,
+                                                                             ResourceType.SAMPLE_DATA, itemName).get(0))
+        .filter(filter)
+        .map(item -> new ResourceChooserItem.SampleDataItem(item))
+        .collect(ImmutableList.toImmutableList());
+    return new ResourceChooserGroup("Sample data", type, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
   }
 }

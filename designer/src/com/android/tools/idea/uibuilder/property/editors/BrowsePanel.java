@@ -196,6 +196,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
       .setTag(property.getTag())
       .setDefaultType(defaultResourceType)
       .setFilterColorStateLists(isImageViewDrawable)
+      .setShowSampleDataPicker(TOOLS_URI.equals(property.getNamespace()))
       .build();
   }
 

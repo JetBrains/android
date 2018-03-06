@@ -26,6 +26,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.SearchField;
+import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.configurations.Configuration;
@@ -34,6 +35,7 @@ import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.GraphicalResourceRendererEditor;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
@@ -163,6 +165,10 @@ public class ChooseResourceDialog extends DialogWrapper {
    * is being used to select a drawable since colors are valid but color state lists are not.
    */
   private final boolean myFilterColorStateLists;
+  /**
+   * If true, the list of resources to pick from, will include sample data resources
+   */
+  private final boolean myShowSampleDataPicker;
   private boolean myGridMode = PropertiesComponent.getInstance().getBoolean(GRID_MODE_KEY, false);
 
   // if we are picking a resource that can't be a color, then all these are null
@@ -208,8 +214,9 @@ public class ChooseResourceDialog extends DialogWrapper {
     private boolean myHideLeftSideActions;
     @Nullable private ResourceType myDefaultType;
     private boolean myFilterColorStateLists;
+    private boolean myShowSampleDataPicker;
 
-    public Builder() {
+    private Builder() {
     }
 
     public Builder setModule(@NotNull Module module) {
@@ -284,6 +291,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       return this;
     }
 
+    @NotNull
     public ChooseResourceDialog build() {
       Configuration configuration = myConfiguration;
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
@@ -302,12 +310,21 @@ public class ChooseResourceDialog extends DialogWrapper {
 
       return new ChooseResourceDialog(facet, configuration, myTag, myTypes, myDefaultType, myCurrentValue, myIsFrameworkValue,
                                       myResourceNameVisibility, myResourceNameSuggestion, myHideLeftSideActions,
-                                      myFilterColorStateLists);
+                                      myFilterColorStateLists, myShowSampleDataPicker);
     }
 
     @NotNull
     public Builder setDefaultType(@Nullable ResourceType defaultType) {
       myDefaultType = defaultType;
+      return this;
+    }
+
+    /**
+     * If true, the list of resources to pick from, will include sample data resources
+     */
+    @NotNull
+    public Builder setShowSampleDataPicker(boolean picker) {
+      myShowSampleDataPicker = picker;
       return this;
     }
   }
@@ -326,7 +343,8 @@ public class ChooseResourceDialog extends DialogWrapper {
                                @NotNull ResourceNameVisibility resourceNameVisibility,
                                @Nullable String resourceNameSuggestion,
                                boolean hideLeftSideActions,
-                               boolean filterColorStateLists) {
+                               boolean filterColorStateLists,
+                               boolean showSampleDataPicker) {
     super(facet.getModule().getProject());
     myModule = facet.getModule();
     myFacet = facet;
@@ -335,6 +353,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     myInitialValue = value;
     myInitialValueIsFramework = isFrameworkValue;
     myResourceNameVisibility = resourceNameVisibility;
+    myShowSampleDataPicker = showSampleDataPicker;
 
     // Treat mipmaps as a type of drawable
     myTypes = types.clone();
@@ -612,7 +631,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     ResourcePanel panel = myTypeToPanels.get(type);
     if (panel == null) {
-      panel = new ResourcePanel(type, type != ResourceType.COLOR || !allowDrawables(), myThemAttributes.get(type));
+      panel = new ResourcePanel(type, type != ResourceType.COLOR || !allowDrawables(), myThemAttributes.get(type), myShowSampleDataPicker);
       panel.expandAll();
 
       JPanel container = myAltPane;
@@ -1283,7 +1302,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     private ResourceValue mySelectedValue;
 
     public ResourcePanel(@NotNull ResourceType type, boolean includeFileResources,
-                         @NotNull Collection<String> attrs) {
+                         @NotNull Collection<String> attrs, boolean showSampleDataPicker) {
       myType = type;
 
       myComponent = new JBSplitter(false, 0.5f);
@@ -1295,7 +1314,13 @@ public class ChooseResourceDialog extends DialogWrapper {
       loadingPanel.startLoading();
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
       CompletableFuture.runAsync(() -> {
-        List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(3);
+        List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(4);
+        if (showSampleDataPicker && StudioFlags.NELE_SAMPLE_DATA_UI.get()) {
+          ResourceChooserGroup sampleDataItems = ResourceChooserGroups.createSampleDataGroup(myType, myFacet);
+          if (!sampleDataItems.isEmpty()) {
+            groups.add(sampleDataItems);
+          }
+        }
         ResourceChooserGroup projectItems = ResourceChooserGroups.createResourceItemsGroup(APP_NAMESPACE_LABEL, type, myFacet, false, includeFileResources);
         if (!projectItems.isEmpty()) {
           groups.add(projectItems);
