@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.intellij.execution.Location;
@@ -86,10 +87,7 @@ public class TestConfigurationTesting {
   private static <T extends RunConfiguration> T createConfigurationFromDirectory(@NotNull Project project,
                                                                                  @NotNull String directory,
                                                                                  @NotNull Class<T> expectedType) {
-    VirtualFile virtualFile = findRelativeFile(directory, project.getBaseDir());
-    assertNotNull(virtualFile);
-    PsiElement element = PsiManager.getInstance(project).findDirectory(virtualFile);
-    assertNotNull(element);
+    PsiElement element = getPsiElement(project, directory, true);
     RunConfiguration runConfiguration = createConfigurationFromPsiElement(project, element);
     return expectedType.isInstance(runConfiguration) ? expectedType.cast(runConfiguration) : null;
   }
@@ -98,12 +96,20 @@ public class TestConfigurationTesting {
   private static <T extends RunConfiguration> T createConfigurationFromFile(@NotNull Project project,
                                                                             @NotNull String file,
                                                                             @NotNull Class<T> expectedType) {
-    VirtualFile virtualFile = findRelativeFile(file, project.getBaseDir());
-    assertNotNull(virtualFile);
-    PsiElement element = PsiManager.getInstance(project).findFile(virtualFile);
-    assertNotNull(element);
+    PsiElement element = getPsiElement(project, file, false);
     RunConfiguration runConfiguration = createConfigurationFromPsiElement(project, element);
     return expectedType.isInstance(runConfiguration) ? expectedType.cast(runConfiguration) : null;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public static PsiElement getPsiElement(@NotNull Project project, @NotNull String file, boolean isDirectory) {
+    VirtualFile virtualFile = findRelativeFile(file, project.getBaseDir());
+    assertNotNull(virtualFile);
+    PsiElement element = isDirectory ? PsiManager.getInstance(project).findDirectory(virtualFile)
+                                     : PsiManager.getInstance(project).findFile(virtualFile);
+    assertNotNull(element);
+    return element;
   }
 
   @Nullable
