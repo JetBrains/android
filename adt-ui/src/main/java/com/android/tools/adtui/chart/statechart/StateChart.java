@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
@@ -65,6 +64,9 @@ public final class StateChart<T> extends MouseAdapterComponent<Long> {
 
   private boolean myRender;
 
+  @NotNull
+  private final StateChartTextConverter<T> myTextConverter;
+
   /**
    * @param colors map of a state to corresponding color
    */
@@ -74,24 +76,30 @@ public final class StateChart<T> extends MouseAdapterComponent<Long> {
   }
 
   public StateChart(@NotNull StateChartModel<T> model, @NotNull Function<T, Color> colorMapping) {
-    this(model, new StateChartConfig<>(new DefaultStateChartReducer<>()), colorMapping);
+    this(model, new StateChartConfig<>(new DefaultStateChartReducer<>()), colorMapping, (val) -> val.toString());
+  }
+
+  public StateChart(@NotNull StateChartModel<T> model, @NotNull Function<T, Color> colorMapping, StateChartTextConverter<T> textConverter) {
+    this(model, new StateChartConfig<>(new DefaultStateChartReducer<>()), colorMapping, textConverter);
   }
 
   @VisibleForTesting
   public StateChart(@NotNull StateChartModel<T> model, @NotNull Map<T, Color> colors, @NotNull StateChartConfig<T> config) {
-    this(model, config, (val) -> colors.get(val));
+    this(model, config, (val) -> colors.get(val), (val) -> val.toString());
   }
 
   @VisibleForTesting
   public StateChart(@NotNull StateChartModel<T> model,
                     @NotNull StateChartConfig<T> config,
-                    @NotNull Function<T, Color> colorMapping) {
+                    @NotNull Function<T, Color> colorMapping,
+                    @NotNull StateChartTextConverter<T> textConverter) {
     super(config.getRectangleHeightRatio(), config.getRectangleMouseOverHeightRatio());
     myColorMapper = colorMapping;
     myValues = new HashMap<>();
     myRenderMode = RenderMode.BAR;
     myConfig = config;
     myRender = true;
+    myTextConverter = textConverter;
     setFont(AdtUiUtils.DEFAULT_FONT);
     setModel(model);
     setHeightGap(myConfig.getHeightGap());
@@ -241,8 +249,9 @@ public final class StateChart<T> extends MouseAdapterComponent<Long> {
       g2d.setColor(getColor(value));
       g2d.fill(shape);
       if (myRenderMode == RenderMode.TEXT) {
+        String valueText = myTextConverter.convertToString(value);
         Rectangle2D rect = shape.getBounds2D();
-        String text = AdtUiUtils.shrinkToFit(value.toString(), mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
+        String text = AdtUiUtils.shrinkToFit(valueText, mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
         if (!text.isEmpty()) {
           g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
           g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), (float)(rect.getY() + rect.getHeight() - TEXT_PADDING));
