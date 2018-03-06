@@ -59,7 +59,7 @@ public final class ConstraintLayoutViewInspectorFixture {
     MarginWidget widget = findMarginWidget(widgetName);
     myRobot.click(widget);
     myRobot.doubleClick(widget);
-    myRobot.enterText(Integer.toString(marginValue), widget);
+    myRobot.enterText(Integer.toString(marginValue));
   }
 
   public ConstraintLayoutViewInspectorFixture scrollAllMargins(int scroll) {

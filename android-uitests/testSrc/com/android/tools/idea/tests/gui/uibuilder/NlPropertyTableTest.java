@@ -151,7 +151,7 @@ public class NlPropertyTableTest {
     CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
-    type(textEditor, "b");
+    textEditor.enterText("b");
     textEditor.pressAndReleaseKeys(VK_ESCAPE);
     completions.waitForCompletionsToHide();
     textEditor.pressAndReleaseKeys(VK_DOWN);
@@ -186,7 +186,7 @@ public class NlPropertyTableTest {
     CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
-    type(textEditor, "tring/copy");
+    textEditor.enterText("tring/copy");
 
     textEditor.pressAndReleaseKeys(VK_ENTER);
 
@@ -327,15 +327,5 @@ public class NlPropertyTableTest {
 
   private static Component getFocusOwner() {
     return KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-  }
-
-  // JTextComponentFixture.enterText doesn't work on some Mac platforms.
-  // This is a workaround that does work on all platforms.
-  private static void type(@NotNull AbstractComponentFixture fixture, @NotNull String value) {
-    Component source = fixture.target();
-    for (int index = 0; index < value.length(); index++) {
-      char character = value.charAt(index);
-      fixture.robot().type(character, source);
-    }
   }
 }
