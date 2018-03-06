@@ -58,6 +58,7 @@ iml_module(
 
 java_binary(
     name = "baseline-images-generator",
+    testonly = True,
     main_class = "com.android.tools.adtui.imagediff.BaselineImagesGenerator",
     runtime_deps = [":adt-ui_testlib"],
 )
