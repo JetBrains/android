@@ -62,7 +62,7 @@ public class EditorTextFieldDriver extends JComponentDriver implements TextDispl
   @RunsInEDT
   public void enterText(@NotNull EditorTextField component, @NotNull String text) {
     focusAndWaitForFocusGain(component);
-    robot.enterText(text, component);
+    robot.enterText(text);
   }
 
   @RunsInEDT
