@@ -205,19 +205,11 @@ public abstract class AndroidPluginGeneration {
       .max(COMPARE_PLUS_HIGHER);
 
     if (!highestValueCoordinate.isPresent()) {
-      if (IdeInfo.getInstance().isAndroidStudio() && !GuiTestingService.getInstance().isGuiTestingMode() &&
-          !ApplicationManager.getApplication().isInternal() &&
-          !ApplicationManager.getApplication().isUnitTestMode()) {
-        // In a release build, Android Studio must find the latest version in its offline repo(s).
-        throw new IllegalStateException("Gradle plugin missing from the offline Maven repo");
-      }
-      else {
-        // In all other scenarios we will not throw an exception, but use the last known version from SdkConstants.
-        // TODO: revisit this when tests are running with the latest (source) build.
-        String version = generation.getRecommendedVersion();
-        getLog().info("'" + artifactId + "' plugin missing from the offline Maven repo, will use default " + version);
-        return version;
-      }
+      // If there is no embedded repo, then use the last known version from SdkConstants
+      // TODO: revisit this when tests are running with the latest (source) build.
+      String version = generation.getRecommendedVersion();
+      getLog().info("'" + artifactId + "' plugin missing from the offline Maven repo, will use default " + version);
+      return version;
     }
 
     return highestValueCoordinate.get().getRevision();
