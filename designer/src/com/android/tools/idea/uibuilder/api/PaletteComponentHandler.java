@@ -69,18 +69,6 @@ public abstract class PaletteComponentHandler {
   }
 
   /**
-   * Returns a 24x24 icon used to represent this component as a larger image on the palette.<br>
-   * This default implementation assumes the icon is one of the builtin icons.
-   *
-   * @param tagName the tag name of the component
-   * @return an icon to identify the component
-   */
-  @NotNull
-  public Icon getLargeIcon(@NotNull String tagName) {
-    return loadBuiltinLargeIcon(tagName);
-  }
-
-  /**
    * Returns the Gradle coordinate ID (ex. "com.android.support:support-v4") of the library
    * this component belongs to. The palette will use this information to provide a download
    * link if the library is not present in the project dependencies.<br>
@@ -159,12 +147,6 @@ public abstract class PaletteComponentHandler {
   protected Icon loadBuiltinIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(getSimpleTagName(tagName));
     return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW;
-  }
-
-  @NotNull
-  protected Icon loadBuiltinLargeIcon(@NotNull String tagName) {
-    Icon icon = AndroidDomElementDescriptorProvider.getLargeIconForViewTag(getSimpleTagName(tagName));
-    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW_LARGE;
   }
 
   @NotNull

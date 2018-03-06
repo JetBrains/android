@@ -67,7 +67,7 @@ public class NlPaletteModelTest extends AndroidTestCase {
 
   public void testAddIllegalThirdPartyComponent() {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
-    boolean added = model.addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, null, LINEAR_LAYOUT, LINEAR_LAYOUT, null, null,
+    boolean added = model.addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, LINEAR_LAYOUT, LINEAR_LAYOUT, null, null,
                                                  SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null, Collections.emptyList(), Collections.emptyList());
     assertThat(added).isFalse();
     assertThat(getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP)).isNull();
@@ -82,7 +82,7 @@ public class NlPaletteModelTest extends AndroidTestCase {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     String tag = "com.example.FakeCustomView";
     boolean added = model
-      .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24, tag, tag,
+      .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, tag, tag,
                               getXml(tag), getPreviewXml(tag), SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
                               "family", ImmutableList.of("family", "size"), Collections.emptyList());
     Palette.Group thirdParty = getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP);
@@ -93,7 +93,6 @@ public class NlPaletteModelTest extends AndroidTestCase {
     Palette.Item item = (Palette.Item)thirdParty.getItem(0);
     assertThat(item.getTagName()).isEqualTo(tag);
     assertThat(item.getIcon()).isEqualTo(AndroidIcons.Android);
-    assertThat(item.getLargeIcon()).isEqualTo(AndroidIcons.Android24);
     assertThat(item.getTitle()).isEqualTo("FakeCustomView");
     assertThat(item.getGradleCoordinateId()).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
     assertThat(item.getXml()).isEqualTo(getXml(tag));
@@ -102,7 +101,6 @@ public class NlPaletteModelTest extends AndroidTestCase {
     assertThat(handler).isNotNull();
     assertThat(handler.getTitle(tag)).isEqualTo("FakeCustomView");
     assertThat(handler.getIcon(tag)).isEqualTo(AndroidIcons.Android);
-    assertThat(handler.getLargeIcon(tag)).isEqualTo(AndroidIcons.Android24);
     assertThat(handler.getGradleCoordinateId(tag)).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
     assertThat(handler.getPreviewScale(tag)).isWithin(0.0).of(1.0);
     assertThat(handler.getInspectorProperties()).containsExactly("family", "size");
@@ -129,7 +127,6 @@ public class NlPaletteModelTest extends AndroidTestCase {
     Palette.Item item = (Palette.Item)projectComponents.getItem(0);
     assertThat(item.getTagName()).isEqualTo(tag);
     assertThat(item.getIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
-    assertThat(item.getLargeIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE);
     assertThat(item.getTitle()).isEqualTo("FakeCustomView");
     assertThat(item.getGradleCoordinateId()).isEmpty();
     assertThat(item.getXml()).isEqualTo("<com.example.FakeCustomView\n" +

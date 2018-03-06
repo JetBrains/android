@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.dnd.DropTargetDropEvent;
 import java.util.Collection;
 import java.util.List;
@@ -229,12 +228,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   @NotNull
   public Icon getIcon(@NotNull String tagName) {
     return myHandler.getIcon(tagName);
-  }
-
-  @Override
-  @NotNull
-  public Icon getLargeIcon(@NotNull String tagName) {
-    return myHandler.getLargeIcon(tagName);
   }
 
   @Override
