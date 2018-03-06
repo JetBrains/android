@@ -22,7 +22,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.gradle.java" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.compiler" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
@@ -34,5 +34,7 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.androidStudio.main" scope="TEST" />
   </component>
 </module>
