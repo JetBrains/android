@@ -70,7 +70,7 @@ public class InstantRunWithKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70634044
+  @RunIn(TestGroup.QA)
   public void instantRunWithKotlin() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("KotlinInstrumentation");
@@ -86,10 +86,8 @@ public class InstantRunWithKotlinTest {
 
     ideFrameFixture.getEditor()
       .open("app/src/main/java/android/com/kotlininstrumentation/MainActivity.kt")
-      .moveBetween("import android.os.Bundle", "")
-      .enterText("\nimport android.util.Log")
       .moveBetween("setContentView(R.layout.activity_main)", "")
-      .enterText("\nLog.d(\"TAG\", \"Testing Instant apps\")");
+      .enterText("\nfindViewById<TextView>(0).text=\"st\"");
 
     int notificationBalloonCountBefore = getNotificationBalloonCount(ideFrameFixture);
 
