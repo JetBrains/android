@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.layoutinspector.model.ViewNode;
+import com.android.layoutinspector.parser.ViewNodeParser;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
@@ -39,7 +40,7 @@ public class PropertiesTablePanelTest {
 
   @Before
   public void setUp() {
-    ViewNode node = ViewNode.parseFlatString(getViewNodeFlatString());
+    ViewNode node = ViewNodeParser.parse(getViewNodeFlatString());
     PTableModel model = new PTableModel();
     model.setItems(LayoutInspectorContext.convertToItems(node.getGroupedProperties()));
     CopyPasteManager mockManager = mock(CopyPasteManager.class);

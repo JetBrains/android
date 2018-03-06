@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.layoutinspector.LayoutInspectorCaptureOptions;
 import com.android.layoutinspector.model.ViewNode;
+import com.android.layoutinspector.parser.ViewNodeParser;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +47,7 @@ public class LayoutFileData {
       // Parse view node
       byte[] nodeBytes = new byte[input.readInt()];
       input.readFully(nodeBytes);
-      myNode = ViewNode.parseFlatString(nodeBytes);
+      myNode = ViewNodeParser.parse(nodeBytes);
       if (getNode() == null) {
         throw new IOException("Error parsing view node");
       }
