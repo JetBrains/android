@@ -42,6 +42,7 @@ import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.util.ListenerCollection;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -121,6 +122,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private final LinkedList<Runnable> myRenderCallbacks = new LinkedList<>();
   private final Semaphore myUpdateHierarchyLock = new Semaphore(1);
   @NotNull private final ViewEditor myViewEditor;
+  private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
   /**
    * {@code Executor} to run the {@code Runnable} that disposes {@code RenderTask}s. This allows
    * {@code SyncLayoutlibSceneManager} to use a different strategy to dispose the tasks that does not involve using
@@ -229,6 +231,7 @@ public class LayoutlibSceneManager extends SceneManager {
       model.getConfiguration().removeListener(myConfigurationChangeListener);
       model.removeListener(myModelChangeListener);
     }
+    myRenderListeners.clear();
 
     super.dispose();
     // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
@@ -1050,4 +1053,15 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  protected void fireRenderListeners() {
+    myRenderListeners.forEach(RenderListener::onRenderCompleted);
+  }
+
+  public void addRenderListener(@NotNull RenderListener listener) {
+    myRenderListeners.add(listener);
+  }
+
+  public void removeRenderListener(@NotNull RenderListener listener) {
+    myRenderListeners.remove(listener);
+  }
 }

@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -104,15 +105,16 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
     if (sceneView == mySceneView) {
       return;
     }
+    assert sceneView == null || sceneView instanceof ScreenView : "NlPropertiesManager can only handle ScreenViews";
 
     if (mySceneView != null) {
-      mySceneView.getSceneManager().removeRenderListener(this);
+      ((ScreenView)mySceneView).getSceneManager().removeRenderListener(this);
     }
 
     super.setSceneView(sceneView);
 
     if (mySceneView != null) {
-      mySceneView.getSceneManager().addRenderListener(this);
+      ((ScreenView)mySceneView).getSceneManager().addRenderListener(this);
     }
   }
 

@@ -23,8 +23,9 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -52,6 +53,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockNlUsageTracker;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
   private static final String UNKNOWN_TAG = "UnknownTagName";
@@ -79,7 +81,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myViewTag;
   protected NlComponent myFragment;
   protected SyncNlModel myModel;
-  protected DesignSurface myDesignSurface;
+  protected NlDesignSurface myDesignSurface;
   protected NlPropertiesManager myPropertiesManager;
   protected NlUsageTracker myUsageTracker;
   private AndroidDomElementDescriptorProvider myDescriptorProvider;
@@ -112,7 +114,9 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myRelativeLayout = myComponentMap.get("relativeLayout");
     myViewTag = myComponentMap.get("viewTag");
     myFragment = myComponentMap.get("fragmentTag");
-    myDesignSurface = myModel.getSurface();
+    myDesignSurface = (NlDesignSurface)myModel.getSurface();
+    ScreenView view = new ScreenView(myDesignSurface, myDesignSurface.getSceneManager());
+    when(myDesignSurface.getCurrentSceneView()).thenReturn(view);
     myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
@@ -170,7 +174,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   //    testXyzMinApi17   -   will cause a manifest with minSdkVersion set to 17.
   // If no MinApi is specified in the test name the default if LOLLIPOP_MR1.
   // Alternatively a test can override this method to customize the manifest.
-  protected void setUpManifest() throws Exception {
+  protected void setUpManifest() {
     String minApiAsString = StringUtil.substringAfter(getTestName(true), "MinApi");
     int minApi = minApiAsString != null ? Integer.parseInt(minApiAsString) : DEFAULT_MIN_API_LEVEL;
     myFixture.addFileToProject(FN_ANDROID_MANIFEST_XML, String.format(MANIFEST_SOURCE, minApi, MOST_RECENT_API_LEVEL));
