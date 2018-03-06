@@ -353,7 +353,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <grid id="d82ee" binding="myQemu2Panel" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="d82ee" binding="myQemu2Panel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
                           <grid row="3" column="0" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -361,16 +361,10 @@
                         <properties/>
                         <border type="none"/>
                         <children>
-                          <component id="6290d" class="javax.swing.JSeparator">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties/>
-                          </component>
                           <grid id="d4530" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
-                              <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
+                              <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
                             </constraints>
                             <properties/>
                             <border type="none"/>
@@ -391,45 +385,6 @@
                                 <properties>
                                   <model/>
                                   <toolTipText value="&lt;html&gt;Select the number of CPU cores for the emulator to use.&lt;/html&gt;"/>
-                                </properties>
-                              </component>
-                            </children>
-                          </grid>
-                          <grid id="85b1a" binding="myBootOptionPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                            <margin top="0" left="0" bottom="0" right="0"/>
-                            <constraints>
-                              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
-                            </properties>
-                            <border type="none"/>
-                            <children>
-                              <component id="96e56" class="com.intellij.ui.components.JBLabel">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties>
-                                  <text value="Boot option:"/>
-                                </properties>
-                              </component>
-                              <component id="66a1c" class="javax.swing.JRadioButton" binding="myColdBootRadioButton" default-binding="true">
-                                <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties>
-                                  <text value="Cold boot"/>
-                                  <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
-                                </properties>
-                              </component>
-                              <component id="bd111" class="javax.swing.JRadioButton" binding="myFastBootRadioButton" default-binding="true">
-                                <constraints>
-                                  <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties>
-                                  <selected value="true"/>
-                                  <text value="Quick boot"/>
-                                  <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
                                 </properties>
                               </component>
                             </children>
@@ -460,6 +415,45 @@
                             <properties>
                               <model/>
                               <toolTipText value="&lt;html&gt;Choose how the graphics should be rendered in the emulator.&lt;br&gt;&lt;br&gt;&lt;b&gt;Hardware&lt;/b&gt;&lt;br&gt;Use your computer's graphics card for faster rendering.&lt;br&gt;&lt;br&gt;&lt;b&gt;Software&lt;/b&gt;&lt;br&gt;Emulate the graphics in software, use this to work around issues with your computer's graphics card.&lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                        </children>
+                      </grid>
+                      <grid id="85b1a" binding="myBootOptionPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
+                        </properties>
+                        <border type="none"/>
+                        <children>
+                          <component id="96e56" class="com.intellij.ui.components.JBLabel">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="Boot option:"/>
+                            </properties>
+                          </component>
+                          <component id="66a1c" class="javax.swing.JRadioButton" binding="myColdBootRadioButton" default-binding="true">
+                            <constraints>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="Cold boot"/>
+                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
+                            </properties>
+                          </component>
+                          <component id="bd111" class="javax.swing.JRadioButton" binding="myFastBootRadioButton" default-binding="true">
+                            <constraints>
+                              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <selected value="true"/>
+                              <text value="Quick boot"/>
+                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
                             </properties>
                           </component>
                         </children>
