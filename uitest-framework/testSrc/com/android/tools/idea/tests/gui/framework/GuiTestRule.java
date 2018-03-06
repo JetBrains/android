@@ -80,7 +80,7 @@ public class GuiTestRule implements TestRule {
   private final LeakCheck myLeakCheck = new LeakCheck();
   private final CurrentGuiTestProjectSystem myCurrentProjectSystem = new CurrentGuiTestProjectSystem();
 
-  private Timeout myTimeout = new Timeout(5, TimeUnit.MINUTES);
+  private Timeout myTimeout = new Timeout(2, TimeUnit.MINUTES);
 
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
