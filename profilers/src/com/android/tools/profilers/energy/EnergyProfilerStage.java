@@ -69,6 +69,7 @@ public class EnergyProfilerStage extends Stage {
 
   @Override
   public void enter() {
+    myEventMonitor.enter();
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myDetailedUsage);
@@ -77,6 +78,7 @@ public class EnergyProfilerStage extends Stage {
 
   @Override
   public void exit() {
+    myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myDetailedUsage);
