@@ -79,7 +79,7 @@ public class RepositoryUrlManager {
   /**
    * Constant full revision for "anything available"
    */
-  public static final String REVISION_ANY = "0.0.+";
+  public static final String REVISION_ANY = "+";
 
   private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = Ordering.from(COMPARE_PLUS_LOWER);
 
