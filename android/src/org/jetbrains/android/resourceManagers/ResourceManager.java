@@ -41,7 +41,6 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.Predicate;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.android.AndroidIdIndex;
-import org.jetbrains.android.AndroidValueResourcesIndex;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -50,12 +49,10 @@ import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public abstract class ResourceManager {
   private interface FileResourceProcessor {
@@ -68,9 +65,24 @@ public abstract class ResourceManager {
     myProject = project;
   }
 
-  /** Returns all the resource directories for this module <b>and all of its module dependencies</b>
-   *  grouped by library name. A <code>null</code> string is used for the library name for system, application
-   *  and folder resources.
+  /**
+   * Returns the primary namespace associated with this resource manager.
+   * @deprecated This method is temporary and may be removed in future.
+   */
+  @Deprecated
+  @NotNull
+  public abstract ResourceNamespace getResourceNamespace();
+
+  /**
+   * Returns the resource repository associated with this resource manager.
+   */
+  @NotNull
+  public abstract AbstractResourceRepository getResourceRepository();
+
+  /**
+   * Returns all the resource directories for this module <b>and all of its module dependencies</b>
+   * grouped by library name. A {@code null} key is used for the library name for system, application
+   * and folder resources.
    */
   @NotNull
   public abstract Multimap<String, VirtualFile> getAllResourceDirs();
@@ -120,7 +132,7 @@ public abstract class ResourceManager {
     return VirtualFile.EMPTY_ARRAY;
   }
 
-  protected boolean isResourcePublic(@NotNull String type, @NotNull String name) {
+  public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
     return true;
   }
 
@@ -164,7 +176,7 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  List<Pair<Resources, VirtualFile>> getResourceElements() {
+  protected List<Pair<Resources, VirtualFile>> getResourceElements() {
     List<Pair<Resources, VirtualFile>> result = new ArrayList<>();
     for (VirtualFile file : getAllValueResourceFiles()) {
       Resources element = AndroidUtils.loadDomElement(myProject, file, Resources.class);
@@ -200,21 +212,17 @@ public abstract class ResourceManager {
 
   @Nullable
   public ResourceFolderType getFileResourceFolderType(@NotNull PsiFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<ResourceFolderType>() {
-      @Nullable
-      @Override
-      public ResourceFolderType compute() {
-        PsiDirectory dir = file.getContainingDirectory();
-        if (dir == null) {
-          return null;
-        }
-
-        PsiDirectory possibleResDir = dir.getParentDirectory();
-        if (possibleResDir == null || !isResourceDir(possibleResDir.getVirtualFile())) {
-          return null;
-        }
-        return ResourceFolderType.getFolderType(dir.getName());
+    return ApplicationManager.getApplication().runReadAction((Computable<ResourceFolderType>)() -> {
+      PsiDirectory dir = file.getContainingDirectory();
+      if (dir == null) {
+        return null;
       }
+
+      PsiDirectory possibleResDir = dir.getParentDirectory();
+      if (possibleResDir == null || !isResourceDir(possibleResDir.getVirtualFile())) {
+        return null;
+      }
+      return ResourceFolderType.getFolderType(dir.getName());
     });
   }
 
@@ -227,61 +235,36 @@ public abstract class ResourceManager {
   @NotNull
   private Set<String> getFileResourcesNames(@NotNull ResourceFolderType resourceType) {
     Set<String> result = new HashSet<>();
-    processFileResources(true, resourceType, (resFile, resName, libraryName) -> {
-      result.add(resName);
-    });
+    processFileResources(true, resourceType, (resFile, resName, libraryName) -> result.add(resName));
     return result;
   }
 
   @NotNull
-  private Collection<String> getValueResourceNames(@NotNull ResourceType resourceType) {
+  private Collection<String> getValueResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
     Set<String> result = new HashSet<>();
-    boolean attr = ResourceType.ATTR == resourceType;
+    boolean attr = resourceType == ResourceType.ATTR;
 
-    for (ResourceEntry entry : getValueResourceEntries(resourceType)) {
-      String name = entry.getName();
-
-      if (!attr || !name.startsWith("android:")) {
-        result.add(name);
+    AbstractResourceRepository repository = getResourceRepository();
+    List<ResourceItem> items = repository.getResourceItems(namespace, resourceType);
+    for (ResourceItem item : items) {
+      VirtualFile file = LocalResourceRepository.getItemVirtualFile(item);
+      if (file != null && isValueResourceFile(file)) {
+        String name = item.getName();
+        if ((!attr || !name.startsWith("android:")) && isResourcePublic(item.getType().getName(), name)) {
+          result.add(name);
+        }
       }
     }
     return result;
   }
 
+  /**
+   * Returns all leaf resource repositories associated with this resource manager.
+   */
   @NotNull
-  public Collection<ResourceEntry> getValueResourceEntries(@NotNull ResourceType resourceType) {
-    ResourceEntry typeMarkerEntry = AndroidValueResourcesIndex.createTypeMarkerKey(resourceType.getName());
-    GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
-
-    Map<VirtualFile, Set<ResourceEntry>> file2resourceSet = new HashMap<>();
-
-    FileBasedIndex index = FileBasedIndex.getInstance();
-    index.processValues(AndroidValueResourcesIndex.INDEX_ID, typeMarkerEntry, null, (file, infos) -> {
-      for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
-        Set<ResourceEntry> resourcesInFile = file2resourceSet.get(file);
-
-        if (resourcesInFile == null) {
-          resourcesInFile = new HashSet<>();
-          file2resourceSet.put(file, resourcesInFile);
-        }
-        resourcesInFile.add(info.getResourceEntry());
-      }
-      return true;
-    }, scope);
-
-    List<ResourceEntry> result = new ArrayList<>();
-
-    for (VirtualFile file : getAllValueResourceFiles()) {
-      Set<ResourceEntry> entries = file2resourceSet.get(file);
-
-      if (entries != null) {
-        for (ResourceEntry entry : entries) {
-          if (isResourcePublic(entry.getType(), entry.getName())) {
-            result.add(entry);
-          }
-        }
-      }
-    }
+  private Collection<AbstractResourceRepository> getLeafResourceRepositories() {
+    List<AbstractResourceRepository> result = new ArrayList<>();
+    getResourceRepository().getLeafResourceRepositories(result);
     return result;
   }
 
@@ -292,14 +275,14 @@ public abstract class ResourceManager {
    * @return resource names
    */
   @NotNull
-  public Collection<String> getResourceNames(@NotNull ResourceType type) {
-    return getResourceNames(type, false);
+  public Collection<String> getResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    return getResourceNames(namespace, type, false);
   }
 
   @NotNull
-  public Collection<String> getResourceNames(@NotNull ResourceType resourceType, boolean publicOnly) {
+  public Collection<String> getResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, boolean publicOnly) {
     Set<String> result = new HashSet<>();
-    result.addAll(getValueResourceNames(resourceType));
+    result.addAll(getValueResourceNames(namespace, resourceType));
 
     List<ResourceFolderType> folders = FolderTypeRelationship.getRelatedFolders(resourceType);
     if (!folders.isEmpty()) {
@@ -323,7 +306,7 @@ public abstract class ResourceManager {
     }
 
     Collection<VirtualFile> files =
-      FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, "+" + id, GlobalSearchScope.allScope(myProject));
+        FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, "+" + id, GlobalSearchScope.allScope(myProject));
 
     return findIdUsagesFromFiles(new HashSet<>(files), attributeValue -> {
       if (AndroidResourceUtil.isIdDeclaration(attributeValue)) {
@@ -428,17 +411,16 @@ public abstract class ResourceManager {
     return resSubdirs;
   }
 
-  public List<ResourceElement> findValueResources(@NotNull String resType, @NotNull String resName) {
-    return findValueResources(resType, resName, true);
+  public List<ResourceElement> findValueResources(@NotNull ResourceNamespace namespace, @NotNull String resType, @NotNull String resName) {
+    return findValueResources(namespace, resType, resName, true);
   }
 
   // Not recommended to use, because it is too slow.
   @NotNull
-  public List<ResourceElement> findValueResources(@NotNull String resourceType,
-                                                  @NotNull String resourceName,
-                                                  boolean distinguishDelimitersInName) {
+  public List<ResourceElement> findValueResources(@NotNull ResourceNamespace namespace, @NotNull String resourceType,
+                                                  @NotNull String resourceName, boolean distinguishDelimitersInName) {
     List<ValueResourceInfoImpl> resources =
-        findValueResourceInfos(ResourceNamespace.TODO, resourceType, resourceName, distinguishDelimitersInName, false);
+        findValueResourceInfos(namespace, resourceType, resourceName, distinguishDelimitersInName, false);
     List<ResourceElement> result = new ArrayList<>();
 
     for (ValueResourceInfoImpl resource : resources) {
@@ -458,7 +440,7 @@ public abstract class ResourceManager {
   @Deprecated
   public void collectLazyResourceElements(@NotNull String resType, @NotNull String resName,
                                           boolean withAttrs, @NotNull PsiElement context, @NotNull Collection<PsiElement> elements) {
-    collectLazyResourceElements(ResourceNamespace.TODO, resType, resName, withAttrs, context, elements);
+    collectLazyResourceElements(getResourceNamespace(), resType, resName, withAttrs, context, elements);
   }
 
   public void collectLazyResourceElements(@NotNull ResourceNamespace namespace, @NotNull String resType, @NotNull String resName,
@@ -487,21 +469,21 @@ public abstract class ResourceManager {
    * @param namespace the namespace of the resources to find
    * @param resourceType the type of the resources to find, '+' first character means "id".
    * @param resourceName the name of the resources to find
-   * @param distinguishDelimetersInName true for exact name match, false for considering all word
+   * @param distinguishDelimitersInName true for exact name match, false for considering all word
    *     delimiters equivalent, e.g. for matching an identifier from R.java
    * @param searchAttrs whether to consider "attr" resources or not
    * @return the matching resources
    */
   @NotNull
   public List<ValueResourceInfoImpl> findValueResourceInfos(@NotNull ResourceNamespace namespace, @NotNull String resourceType,
-                                                            @NotNull String resourceName, boolean distinguishDelimetersInName,
+                                                            @NotNull String resourceName, boolean distinguishDelimitersInName,
                                                             boolean searchAttrs) {
     ResourceType type = resourceType.startsWith("+") ? ResourceType.ID : ResourceType.getEnum(resourceType);
     if (type == null) {
       return Collections.emptyList();
     }
 
-    return findValueResourceInfos(namespace, type, resourceName, distinguishDelimetersInName, searchAttrs);
+    return findValueResourceInfos(namespace, type, resourceName, distinguishDelimitersInName, searchAttrs);
   }
 
   /**
@@ -510,25 +492,23 @@ public abstract class ResourceManager {
    * @param namespace the namespace of the resources to find
    * @param resourceType the type of the resources to find
    * @param resourceName the name of the resources to find
-   * @param distinguishDelimetersInName true for exact name match, false for considering all word
+   * @param distinguishDelimitersInName true for exact name match, false for considering all word
    *     delimiters equivalent, e.g. for matching an identifier from R.java
    * @param searchAttrs whether to consider "attr" resources or not
    * @return the matching resources
    */
   @NotNull
   public List<ValueResourceInfoImpl> findValueResourceInfos(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType,
-                                                            @NotNull String resourceName, boolean distinguishDelimetersInName,
+                                                            @NotNull String resourceName, boolean distinguishDelimitersInName,
                                                             boolean searchAttrs) {
-    if (!AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceType) &&
-        (resourceType != ResourceType.ATTR || !searchAttrs)) {
+    if (!AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceType) && (resourceType != ResourceType.ATTR || !searchAttrs)) {
       return Collections.emptyList();
     }
 
     List<ValueResourceInfoImpl> result = new ArrayList<>();
-    // TODO: Exclude AAR resources repositories from the iteration.
-    forEachLeafResourceRepository(repository -> {
+    for (AbstractResourceRepository repository : getLeafResourceRepositories()) {
       List<ResourceItem> items;
-      if (distinguishDelimetersInName) {
+      if (distinguishDelimitersInName) {
         items = repository.getResourceItems(namespace, resourceType, resourceName);
       } else {
         items = repository.getResourceItems(namespace, resourceType, name -> AndroidUtils.equal(resourceName, name, false));
@@ -539,7 +519,7 @@ public abstract class ResourceManager {
           result.add(new ValueResourceInfoImpl(item, file, myProject));
         }
       }
-    });
+    }
 
     return result;
   }
@@ -547,11 +527,4 @@ public abstract class ResourceManager {
   private static boolean isValueResourceFile(@NotNull VirtualFile file) {
     return ResourceFolderType.getFolderType(file.getParent().getName()) == ResourceFolderType.VALUES;
   }
-
-  /**
-   * Calls the given {@code action} for each of the leaf resource repositories associated with this resource manager.
-   *
-   * @param action the action to call
-   */
-  protected abstract void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action);
 }

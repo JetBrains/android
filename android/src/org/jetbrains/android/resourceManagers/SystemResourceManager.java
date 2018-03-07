@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.resourceManagers;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.res.ModuleResourceRepository.EmptyRepository;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.project.Project;
@@ -31,9 +33,9 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class SystemResourceManager extends ResourceManager {
   private final AndroidPlatform myPlatform;
@@ -46,7 +48,21 @@ public class SystemResourceManager extends ResourceManager {
   }
 
   @Override
-  protected boolean isResourcePublic(@NotNull String type, @NotNull String name) {
+  @NotNull
+  public ResourceNamespace getResourceNamespace() {
+    return ResourceNamespace.ANDROID;
+  }
+
+  @Override
+  @NotNull
+  public AbstractResourceRepository getResourceRepository() {
+    AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
+    AbstractResourceRepository frameworkResources = targetData.getFrameworkResources(true);
+    return frameworkResources == null ? new EmptyRepository() : frameworkResources;
+  }
+
+  @Override
+  public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
     return !myPublicOnly || myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).isResourcePublic(type, name);
   }
 
@@ -90,12 +106,5 @@ public class SystemResourceManager extends ResourceManager {
   @Nullable
   public synchronized AttributeDefinitions getAttributeDefinitions() {
     return myPlatform.getSdkData().getTargetData(myPlatform.getTarget()).getPublicAttrDefs(myProject);
-  }
-
-  @Override
-  protected void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action) {
-    AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
-    AbstractResourceRepository frameworkResources = targetData.getFrameworkResources(true);
-    action.accept(frameworkResources);
   }
 }
