@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -28,13 +28,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class PsAndroidDependency extends PsDependency implements PsAndroidModel {
-  @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newHashSet();
+  @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newLinkedHashSet();
 
   PsAndroidDependency(@NotNull PsAndroidModule parent,
-                      @NotNull PsAndroidArtifact container,
+                      @NotNull Collection<PsAndroidArtifact> containers,
                       @Nullable DependencyModel parsedModel) {
     super(parent, parsedModel);
-    addContainer(container);
+    for (PsAndroidArtifact container : containers) {
+      addContainer(container);
+    }
   }
 
   @Override

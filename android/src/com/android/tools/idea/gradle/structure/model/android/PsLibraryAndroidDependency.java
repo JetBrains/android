@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -47,10 +48,10 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
 
   PsLibraryAndroidDependency(@NotNull PsAndroidModule parent,
                              @NotNull PsArtifactDependencySpec spec,
-                             @NotNull PsAndroidArtifact container,
+                             @NotNull Collection<PsAndroidArtifact> containers,
                              @Nullable Library resolvedModel,
                              @Nullable ArtifactDependencyModel parsedModel) {
-    super(parent, container, parsedModel);
+    super(parent, containers, parsedModel);
     mySpec = spec;
     myResolvedModel = resolvedModel;
     if (parsedModel != null) {
