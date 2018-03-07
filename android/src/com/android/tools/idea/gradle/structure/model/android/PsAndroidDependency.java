@@ -32,8 +32,8 @@ public abstract class PsAndroidDependency extends PsDependency implements PsAndr
 
   PsAndroidDependency(@NotNull PsAndroidModule parent,
                       @NotNull Collection<PsAndroidArtifact> containers,
-                      @Nullable DependencyModel parsedModel) {
-    super(parent, parsedModel);
+                      @NotNull Collection<? extends DependencyModel> parsedModels) {
+    super(parent, parsedModels);
     for (PsAndroidArtifact container : containers) {
       addContainer(container);
     }

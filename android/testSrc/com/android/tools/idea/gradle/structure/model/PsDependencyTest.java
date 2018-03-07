@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
+import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,7 +122,7 @@ public class PsDependencyTest {
   private static class TestDependency extends PsDependency {
 
     protected TestDependency(@NotNull PsModule parent, @Nullable DependencyModel parsedModel) {
-      super(parent, parsedModel);
+      super(parent, parsedModel != null ? ImmutableList.of(parsedModel) : ImmutableList.of());
     }
 
     @Override

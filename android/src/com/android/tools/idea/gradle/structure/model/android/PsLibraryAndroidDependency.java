@@ -30,10 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
@@ -50,12 +47,13 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
                              @NotNull PsArtifactDependencySpec spec,
                              @NotNull Collection<PsAndroidArtifact> containers,
                              @Nullable Library resolvedModel,
-                             @Nullable ArtifactDependencyModel parsedModel) {
-    super(parent, containers, parsedModel);
+                             @NotNull Collection<ArtifactDependencyModel> parsedModels) {
+    super(parent, containers, parsedModels);
     mySpec = spec;
     myResolvedModel = resolvedModel;
-    if (parsedModel != null) {
-      setDeclaredSpec(createSpec(parsedModel));
+    Optional<ArtifactDependencyModel> firstParsedModel = parsedModels.stream().findFirst();
+    if (firstParsedModel.isPresent()) {
+      setDeclaredSpec(createSpec(firstParsedModel.get()));
     }
   }
 

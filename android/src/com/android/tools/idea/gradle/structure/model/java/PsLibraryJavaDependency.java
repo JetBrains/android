@@ -27,7 +27,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
@@ -41,12 +43,13 @@ public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibra
   protected PsLibraryJavaDependency(@NotNull PsJavaModule parent,
                                     @NotNull PsArtifactDependencySpec spec,
                                     @Nullable JarLibraryDependency resolvedModel,
-                                    @Nullable ArtifactDependencyModel parsedModel) {
-    super(parent, parsedModel);
+                                    @NotNull Collection<ArtifactDependencyModel> parsedModels) {
+    super(parent, parsedModels);
     mySpec = spec;
     myResolvedModel = resolvedModel;
-    if (parsedModel != null) {
-      setDeclaredSpec(createSpec(parsedModel));
+    Optional<ArtifactDependencyModel> firstParsedModel = parsedModels.stream().findFirst();
+    if (firstParsedModel.isPresent()) {
+      setDeclaredSpec(createSpec(firstParsedModel.get()));
     }
   }
 

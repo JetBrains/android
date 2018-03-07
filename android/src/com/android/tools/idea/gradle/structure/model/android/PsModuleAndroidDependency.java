@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
 import java.util.Collection;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
@@ -41,17 +40,17 @@ public class PsModuleAndroidDependency extends PsAndroidDependency implements Ps
                             @NotNull Collection<PsAndroidArtifact> artifacts,
                             @Nullable String configurationName,
                             @Nullable Module resolvedModel,
-                            @Nullable ModuleDependencyModel parsedModel) {
-    super(parent, artifacts, parsedModel);
+                            @NotNull Collection<ModuleDependencyModel> parsedModels) {
+    super(parent, artifacts, parsedModels);
     myGradlePath = gradlePath;
     myConfigurationName = configurationName;
     myResolvedModel = resolvedModel;
-    String name = null;
+    String name;
     if (resolvedModel != null) {
       name = resolvedModel.getName();
     }
-    else if (parsedModel != null) {
-      name = parsedModel.name();
+    else {
+      name = parsedModels.stream().findFirst().map(v -> v.name()).orElse(null);
     }
     assert name != null;
     myName = name;
