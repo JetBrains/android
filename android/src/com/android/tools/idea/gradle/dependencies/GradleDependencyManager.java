@@ -72,8 +72,7 @@ public class GradleDependencyManager {
       return Collections.emptyList();
     }
 
-    String configurationName = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
-    List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts(configurationName) : null;
+    List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts() : null;
 
     // Record current version of support library; if used, prefer that for other dependencies
     // (e.g. if you're using appcompat-v7 version 25.3.1, and you drag in a recyclerview-v7
