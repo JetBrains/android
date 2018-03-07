@@ -1,0 +1,9 @@
+apply plugin: 'com.android.dynamic-feature'
+
+android {
+    compileSdkVersion 27
+}
+
+dependencies {
+    implementation project(':app')
+}

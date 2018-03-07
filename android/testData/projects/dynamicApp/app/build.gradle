@@ -1,0 +1,9 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+}
+
+dependencies {
+    feature project(':feature1')
+}
