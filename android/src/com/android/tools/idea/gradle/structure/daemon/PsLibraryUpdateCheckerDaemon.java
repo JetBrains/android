@@ -178,7 +178,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
         if (module instanceof PsAndroidModule) {
           PsAndroidModule androidModule = (PsAndroidModule)module;
 
-          androidModule.forEachDeclaredDependency(dependency -> {
+          androidModule.getDependencies().forEachDeclaredDependency(dependency -> {
             if (dependency instanceof PsLibraryDependency) {
               PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
               PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();

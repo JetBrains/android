@@ -55,7 +55,7 @@ public class PsAndroidModuleAnalyzer extends PsModuleAnalyzer<PsAndroidModule> {
       issuesByData.put(data, syncIssue);
     }
 
-    module.forEachDependency(dependency -> {
+    module.getDependencies().forEach(dependency -> {
       if (dependency instanceof PsLibraryDependency && dependency.isDeclared()) {
         PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
         PsPath path = new PsLibraryDependencyNavigationPath(libraryDependency);

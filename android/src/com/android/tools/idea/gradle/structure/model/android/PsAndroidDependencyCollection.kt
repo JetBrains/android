@@ -293,6 +293,13 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
     moduleDependenciesByGradlePath.values.forEach(consumer)
   }
 
+  fun findLibraryDependency(compactNotation: String): PsLibraryAndroidDependency? =
+    findElement(compactNotation, PsLibraryAndroidDependency::class.java)
+
+  fun findLibraryDependency(spec: PsArtifactDependencySpec): PsLibraryAndroidDependency? = findElement(spec)
+
+  fun findModuleDependency(modulePath: String): PsModuleAndroidDependency? = findElement(modulePath, PsModuleAndroidDependency::class.java)
+
   fun addLibraryDependency(
     spec: PsArtifactDependencySpec,
     artifact: PsAndroidArtifact,

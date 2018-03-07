@@ -60,62 +60,62 @@ class DependencyManagementTest : AndroidGradleTestCase() {
 
   fun testDependencies() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
-    assertThat(appModule.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
-    assertThat(appModule.findModuleDependency(":mainModule"), notNullValue())
+    assertThat(appModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+    assertThat(appModule.dependencies.findModuleDependency(":mainModule"), notNullValue())
     val libModule = project.findModuleByName("mainModule") as PsAndroidModule
-    assertThat(libModule.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+    assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
   }
 
   fun testAddLibraryDependency() {
     var module = project.findModuleByName("moduleA") as PsAndroidModule
-    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
     module.addLibraryDependency("com.example.libs:lib1:1.0", listOf("implementation"))
-    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
 
     module.addLibraryDependency("com.example.libs:lib2:1.0", listOf("implementation"))
-    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-    assertThat(module.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
 
     project.applyChanges()
     requestSyncAndWait()
     reparse()
 
     module = project.findModuleByName("moduleA") as PsAndroidModule
-    assertThat(module.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
-    assertThat(module.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
   }
 
   fun testAddModuleDependency() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
-    assertThat(module.findModuleDependency(":moduleA"), nullValue())
+    assertThat(module.dependencies.findModuleDependency(":moduleA"), nullValue())
     module.addModuleDependency(":moduleA", listOf("implementation"))
-    assertThat(module.findModuleDependency(":moduleA"), notNullValue())
+    assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
 
     module.addModuleDependency(":moduleB", listOf("implementation"))
-    assertThat(module.findModuleDependency(":moduleA"), notNullValue())
-    assertThat(module.findModuleDependency(":moduleB"), notNullValue())
+    assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
+    assertThat(module.dependencies.findModuleDependency(":moduleB"), notNullValue())
 
     project.applyChanges()
     requestSyncAndWait()
     reparse()
 
     module = project.findModuleByName("mainModule") as PsAndroidModule
-    assertThat(module.findModuleDependency(":moduleA"), notNullValue())
-    assertThat(module.findModuleDependency(":moduleB"), notNullValue())
+    assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
+    assertThat(module.dependencies.findModuleDependency(":moduleB"), notNullValue())
   }
 
   fun testAddJavaModuleDependency() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
-    assertThat(module.findModuleDependency(":jModuleK"), nullValue())
+    assertThat(module.dependencies.findModuleDependency(":jModuleK"), nullValue())
     module.addModuleDependency(":jModuleK", listOf("implementation"))
-    assertThat(module.findModuleDependency(":jModuleK"), notNullValue())
+    assertThat(module.dependencies.findModuleDependency(":jModuleK"), notNullValue())
 
     project.applyChanges()
     requestSyncAndWait()
     reparse()
 
     module = project.findModuleByName("mainModule") as PsAndroidModule
-    assertThat(module.findModuleDependency(":jModuleK"), notNullValue())
+    assertThat(module.dependencies.findModuleDependency(":jModuleK"), notNullValue())
   }
 
   // TODO(solodkyy): Implement support for Java to Java module dependencies.

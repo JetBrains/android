@@ -79,13 +79,13 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
 
     ImmutableSet.Builder<PsDependency> transitive = ImmutableSet.builder();
     for (String dependency : myTransitiveDependencies) {
-      PsAndroidDependency found = module.findLibraryDependency(dependency);
+      PsAndroidDependency found = module.getDependencies().findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
     }
     for (PsArtifactDependencySpec dependency : myPomDependencies) {
-      PsLibraryAndroidDependency found = module.findLibraryDependency(dependency);
+      PsLibraryAndroidDependency found = module.getDependencies().findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
