@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -141,14 +142,15 @@ public class ResourceChooserGroups {
       }
     }
     else {
-      AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+      AppResourceRepository appResources = repoManager.getAppResources(true);
 
       //noinspection ConstantConditions
-      ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS ? repository.getResourceVisibility(facet) : null;
-      items.addAll(getProjectItems(type, includeFileResources, repository, lookup));
+      ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS ? repoManager.getResourceVisibility() : null;
+      items.addAll(getProjectItems(type, includeFileResources, appResources, lookup));
       if (type == ResourceType.DRAWABLE) {
         // Include mipmaps too
-        items.addAll(getProjectItems(ResourceType.MIPMAP, includeFileResources, repository, lookup));
+        items.addAll(getProjectItems(ResourceType.MIPMAP, includeFileResources, appResources, lookup));
       }
     }
 
@@ -157,10 +159,12 @@ public class ResourceChooserGroups {
 
   @NotNull
   public static ResourceChooserGroup createThemeAttributesGroup(@NotNull ResourceType type,
-                                                                @NotNull AndroidFacet facet, @NotNull Collection<String> attrs) {
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+                                                                @NotNull AndroidFacet facet,
+                                                                @NotNull Collection<String> attrs) {
     //noinspection ConstantConditions
-    ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS ? repository.getResourceVisibility(facet) : null;
+    ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS
+                                      ? ResourceRepositoryManager.getOrCreateInstance(facet).getResourceVisibility()
+                                      : null;
 
     List<ResourceChooserItem> items = new ArrayList<>();
     for (String name : attrs) {

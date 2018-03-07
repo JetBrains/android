@@ -1,5 +1,7 @@
 package org.jetbrains.android.augment;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
@@ -10,8 +12,8 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 
 /**
-* @author Eugene.Kudelevsky
-*/
+ * @author Eugene.Kudelevsky
+ */
 public class ResourceTypeClass extends ResourceTypeClassBase {
   protected final AndroidFacet myFacet;
 
@@ -27,7 +29,9 @@ public class ResourceTypeClass extends ResourceTypeClassBase {
     final Module circularDepLibWithSamePackage = AndroidCompileUtil.findCircularDependencyOnLibraryWithSamePackage(facet);
     final boolean generateNonFinalFields = facet.getConfiguration().isLibraryProject() || circularDepLibWithSamePackage != null;
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-    return buildResourceFields(resourceManager, generateNonFinalFields, resClassName, context);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    return buildResourceFields(resourceManager, repositoryManager.getAppResources(true), ResourceNamespace.TODO, generateNonFinalFields,
+                               resClassName, context);
   }
 
   @NotNull

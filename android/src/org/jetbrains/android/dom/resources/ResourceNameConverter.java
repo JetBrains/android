@@ -7,6 +7,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
 import com.intellij.openapi.module.Module;
@@ -78,13 +79,19 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     if (module == null) {
       return Collections.emptyList();
     }
-    LocalResourceManager manager = LocalResourceManager.getInstance(module);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return Collections.emptyList();
+    }
+
+    final LocalResourceManager manager = LocalResourceManager.getInstance(module);
 
     if (manager == null) {
       return Collections.emptyList();
     }
-    Collection<String> styleNames = manager.getResourceNames(ResourceNamespace.TODO, ResourceType.STYLE);
-    List<String> result = new ArrayList<>();
+    AppResourceRepository appResources = ResourceRepositoryManager.getOrCreateInstance(facet).getAppResources(true);
+    final Collection<String> styleNames = appResources.getItemsOfType(ResourceNamespace.TODO, ResourceType.STYLE);
+    final List<String> result = new ArrayList<>();
 
     String currentValue = element.getStringValue();
     for (String name : styleNames) {

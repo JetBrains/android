@@ -24,9 +24,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.*;
 import com.google.common.hash.Hashing;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
@@ -267,10 +265,10 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     return map == null ? ImmutableListMultimap.of() : map;
   }
 
+  @NonNull
   @Override
-  @NotNull
-  public Set<ResourceType> getAvailableResourceTypes() {
-    return EnumSet.copyOf(getMapByType().keySet());
+  public ImmutableSet<ResourceType> getAvailableResourceTypes(@NonNull ResourceNamespace namespace) {
+    return namespace == ResourceNamespace.ANDROID ? Sets.immutableEnumSet(getMapByType().keySet()) : ImmutableSet.of();
   }
 
   /**

@@ -84,11 +84,14 @@ public class ProjectResourceRepositoryRootListener {
         return;
       }
       ResourceFolderManager.getInstance(facet).invalidate();
-      ProjectResourceRepository projectResources = ProjectResourceRepository.findExistingInstance(facet);
+      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+      repoManager.resetVisibility();
+
+      ProjectResourceRepository projectResources = repoManager.getProjectResources(false);
       if (projectResources != null) {
         projectResources.updateRoots();
 
-        AppResourceRepository appResources = AppResourceRepository.findExistingInstance(facet);
+        AppResourceRepository appResources = repoManager.getAppResources(false);
         if (appResources != null) {
           appResources.invalidateCache(projectResources);
           appResources.updateRoots();

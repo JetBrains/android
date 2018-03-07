@@ -23,6 +23,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -37,10 +38,8 @@ import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.res.ResourceHelper.buildResourceId;
-import static com.android.tools.idea.res.ResourceHelper.getResourceName;
-import static com.android.tools.idea.res.ResourceHelper.resolveColor;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class ResourceHelperTest extends AndroidTestCase {
   public void testIsFileBasedResourceType() {
@@ -89,12 +88,12 @@ public class ResourceHelperTest extends AndroidTestCase {
     // and it has to be an XML file to get a PSI file out of the fixture
     PsiFile file3 = myFixture.addFileToProject("res/drawable-hdpi/foo3.9.xml", "invalidImage");
 
-    assertEquals("foo1", getResourceName(file1));
-    assertEquals("foo2", getResourceName(file2));
-    assertEquals("foo3", getResourceName(file3));
-    assertEquals("foo1", getResourceName(file1.getVirtualFile()));
-    assertEquals("foo2", getResourceName(file2.getVirtualFile()));
-    assertEquals("foo3", getResourceName(file3.getVirtualFile()));
+    assertEquals("foo1", ResourceHelper.getResourceName(file1));
+    assertEquals("foo2", ResourceHelper.getResourceName(file2));
+    assertEquals("foo3", ResourceHelper.getResourceName(file3));
+    assertEquals("foo1", ResourceHelper.getResourceName(file1.getVirtualFile()));
+    assertEquals("foo2", ResourceHelper.getResourceName(file2.getVirtualFile()));
+    assertEquals("foo3", ResourceHelper.getResourceName(file3.getVirtualFile()));
   }
 
   @SuppressWarnings("ConstantConditions")
@@ -245,17 +244,21 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertNotNull(rr);
     ResourceValue rv = rr.getProjectResource(ResourceType.COLOR, "empty_state_list");
     assertNotNull(rv);
-    assertNull(resolveColor(rr, rv, myModule.getProject()));
+    assertNull(ResourceHelper.resolveColor(rr, rv, myModule.getProject()));
   }
 
   public void testResolve() {
+    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
+    ResourceNamespace appNs = ResourceNamespace.fromPackageName("com.example.app");
+    runWriteCommandAction(getProject(), () -> myFacet.getManifest().getPackage().setValue(appNs.getPackageName()));
+
     PsiFile innerFileLand = myFixture.addFileToProject("res/layout-land/inner.xml", "<LinearLayout/>");
     PsiFile innerFilePort = myFixture.addFileToProject("res/layout-port/inner.xml", "<LinearLayout/>");
     String outerFileContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-    "<FrameLayout xmlns:newauto=\""+ ResourceNamespace.TODO.getXmlNamespaceUri() +"\">\n" +
+    "<FrameLayout xmlns:app=\""+ appNs.getXmlNamespaceUri() +"\">\n" +
     "\n" +
     "    <include\n" +
-    "        layout=\"@newauto:layout/inner\"\n" +
+    "        layout=\"@app:layout/inner\"\n" +
     "        android:layout_width=\"wrap_content\"\n" +
     "        android:layout_height=\"wrap_content\" />\n" +
     "\n" +
@@ -264,10 +267,11 @@ public class ResourceHelperTest extends AndroidTestCase {
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(innerFileLand.getVirtualFile());
     XmlTag include = outerFile.getRootTag().findFirstSubTag("include");
     ResourceValue resolved =
-      ResourceHelper.resolve(configuration.getResourceResolver(), ResourceUrl.parse("@newauto:layout/inner"), include);
+      ResourceHelper.resolve(configuration.getResourceResolver(), ResourceUrl.parse(include.getAttribute("layout").getValue()), include);
     assertEquals(innerFileLand.getVirtualFile().getPath(), resolved.getValue());
     configuration.setDeviceState(configuration.getDevice().getState("Portrait"));
-    resolved = ResourceHelper.resolve(configuration.getResourceResolver(), ResourceUrl.parse("@newauto:layout/inner"), include);
+    resolved = ResourceHelper
+      .resolve(configuration.getResourceResolver(), ResourceUrl.parse(include.getAttribute("layout").getValue()), include);
     assertEquals(innerFilePort.getVirtualFile().getPath(), resolved.getValue());
   }
 
@@ -285,7 +289,11 @@ public class ResourceHelperTest extends AndroidTestCase {
     "        newtools:text=\"Hello World, MyActivity\" />\n" +
     "</LinearLayout>\n";
 
-  public void testGetResourceResolverFromXmlTag() {
+  public void testGetResourceResolverFromXmlTag_namespacesEnabled() {
+    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
+    ResourceNamespace appNs = ResourceNamespace.fromPackageName("com.example.app");
+    runWriteCommandAction(getProject(), () -> myFacet.getManifest().getPackage().setValue(appNs.getPackageName()));
+
     XmlFile file = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);
     XmlTag layout = file.getRootTag();
     XmlTag textview = layout.findFirstSubTag("TextView");
@@ -303,8 +311,32 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(resolver.prefixToUri("framework")).isEqualTo(ANDROID_URI);
   }
 
+  public void testGetResourceResolverFromXmlTag_namespacesDisabled() {
+    XmlFile file = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);
+    XmlTag layout = file.getRootTag();
+    XmlTag textview = layout.findFirstSubTag("TextView");
+
+    ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(layout);
+
+    // "tools" is implicitly defined in non-namespaced projects.
+    assertThat(resolver.uriToPrefix(TOOLS_URI)).isEqualTo("tools");
+
+    // Proper namespacing doesn't work in non-namespaced projects, so within XML attributes, only "android" works.
+    // TODO(b/74426748)
+    assertThat(resolver.uriToPrefix(ANDROID_URI)).isNull();
+
+    assertThat(resolver.prefixToUri("newtools")).isNull();
+    assertThat(resolver.prefixToUri("framework")).isNull();
+
+    resolver = ResourceHelper.getNamespaceResolver(textview);
+    assertThat(resolver.uriToPrefix(TOOLS_URI)).isEqualTo("tools");
+    assertThat(resolver.uriToPrefix(ANDROID_URI)).isNull();
+    assertThat(resolver.prefixToUri("newtools")).isNull();
+    assertThat(resolver.prefixToUri("framework")).isNull();
+  }
+
   public void testBuildResourceId() {
-    assertEquals(0x7f_02_ffff, buildResourceId((byte) 0x7f, (byte) 0x02, (short) 0xffff));
-    assertEquals(0x02_02_0001, buildResourceId((byte) 0x02, (byte) 0x02, (short) 0x0001));
+    assertEquals(0x7f_02_ffff, ResourceHelper.buildResourceId((byte) 0x7f, (byte) 0x02, (short) 0xffff));
+    assertEquals(0x02_02_0001, ResourceHelper.buildResourceId((byte) 0x02, (byte) 0x02, (short) 0x0001));
   }
 }

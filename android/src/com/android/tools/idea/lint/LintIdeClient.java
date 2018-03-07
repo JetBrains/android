@@ -31,10 +31,7 @@ import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.lint.checks.ApiLookup;
@@ -994,9 +991,10 @@ public class LintIdeClient extends LintClient implements Disposable {
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     Module module = getModule();
     if (module != null) {
-      AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
-      if (appResources != null) {
-        ResourceVisibilityLookup.Provider provider = appResources.getResourceVisibilityProvider();
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+        ResourceVisibilityLookup.Provider provider = repoManager.getResourceVisibilityProvider();
         if (provider != null) {
           return provider;
         }

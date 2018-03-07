@@ -17,7 +17,6 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +32,8 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
 
   @NotNull
   static PsiField[] buildResourceFields(@NotNull ResourceManager manager,
+                                        @NotNull AbstractResourceRepository repository,
+                                        @NotNull ResourceNamespace namespace,
                                         boolean nonFinal,
                                         @NotNull String resClassName,
                                         @NotNull PsiClass context) {
@@ -40,18 +41,18 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
     if (resourceType == null) {
       return PsiField.EMPTY_ARRAY;
     }
-    Map<String, PsiType> fieldNames = new HashMap<>();
-    boolean styleable = ResourceType.STYLEABLE == resourceType;
-    PsiType basicType = styleable ? PsiType.INT.createArrayType() : PsiType.INT;
+    else if (resourceType == ResourceType.STYLEABLE) {
+      // TODO(b/74325205): remove the need for this.
+      resourceType = ResourceType.DECLARE_STYLEABLE;
+    }
+    final Map<String, PsiType> fieldNames = new HashMap<>();
+    final PsiType basicType = ResourceType.DECLARE_STYLEABLE == resourceType ? PsiType.INT.createArrayType() : PsiType.INT;
 
-    ResourceNamespace namespace = manager.getResourceNamespace();
-
-    for (String resName : manager.getResourceNames(namespace, resourceType)) {
+    for (String resName : repository.getItemsOfType(namespace, resourceType)) {
       fieldNames.put(resName, basicType);
     }
 
-    if (styleable) {
-      AbstractResourceRepository repository = manager.getResourceRepository();
+    if (ResourceType.DECLARE_STYLEABLE == resourceType) {
       List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.DECLARE_STYLEABLE);
       for (ResourceItem item : items) {
         DeclareStyleableResourceValue value = (DeclareStyleableResourceValue)item.getResourceValue();

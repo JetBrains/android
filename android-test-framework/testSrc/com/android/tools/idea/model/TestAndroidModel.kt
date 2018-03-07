@@ -42,6 +42,10 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val namespacing: AaptOptions.Namespacing = AaptOptions.Namespacing.DISABLED
 ) : AndroidModel {
 
+  companion object {
+    @JvmStatic fun namespaced() = TestAndroidModel(namespacing = AaptOptions.Namespacing.REQUIRED)
+  }
+
   override fun getDefaultSourceProvider(): SourceProvider = defaultSourceProvider ?: error("defaultSourceProvider not set")
   override fun getActiveSourceProviders(): List<SourceProvider> = activeSourceProviders
   override fun getTestSourceProviders(): List<SourceProvider> = testSourceProviders

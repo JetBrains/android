@@ -233,68 +233,9 @@ public abstract class ResourceManager {
   }
 
   @NotNull
-  private Set<String> getFileResourcesNames(@NotNull ResourceFolderType resourceType) {
-    Set<String> result = new HashSet<>();
-    processFileResources(true, resourceType, (resFile, resName, libraryName) -> result.add(resName));
-    return result;
-  }
-
-  @NotNull
-  private Collection<String> getValueResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
-    Set<String> result = new HashSet<>();
-    boolean attr = resourceType == ResourceType.ATTR;
-
-    AbstractResourceRepository repository = getResourceRepository();
-    List<ResourceItem> items = repository.getResourceItems(namespace, resourceType);
-    for (ResourceItem item : items) {
-      VirtualFile file = LocalResourceRepository.getItemVirtualFile(item);
-      if (file != null && isValueResourceFile(file)) {
-        String name = item.getName();
-        if ((!attr || !name.startsWith("android:")) && isResourcePublic(item.getType().getName(), name)) {
-          result.add(name);
-        }
-      }
-    }
-    return result;
-  }
-
-  /**
-   * Returns all leaf resource repositories associated with this resource manager.
-   */
-  @NotNull
   private Collection<AbstractResourceRepository> getLeafResourceRepositories() {
     List<AbstractResourceRepository> result = new ArrayList<>();
     getResourceRepository().getLeafResourceRepositories(result);
-    return result;
-  }
-
-  /**
-   * Returns the collection of resource names that match the given type.
-   *
-   * @param type the type of resource
-   * @return resource names
-   */
-  @NotNull
-  public Collection<String> getResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
-    return getResourceNames(namespace, type, false);
-  }
-
-  @NotNull
-  public Collection<String> getResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, boolean publicOnly) {
-    Set<String> result = new HashSet<>();
-    result.addAll(getValueResourceNames(namespace, resourceType));
-
-    List<ResourceFolderType> folders = FolderTypeRelationship.getRelatedFolders(resourceType);
-    if (!folders.isEmpty()) {
-      for (ResourceFolderType folderType : folders) {
-        if (folderType != ResourceFolderType.VALUES) {
-          result.addAll(getFileResourcesNames(folderType));
-        }
-      }
-    }
-    if (resourceType == ResourceType.ID) {
-      result.addAll(getIds(true));
-    }
     return result;
   }
 

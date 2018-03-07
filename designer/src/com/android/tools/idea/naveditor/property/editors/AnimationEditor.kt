@@ -14,17 +14,18 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.resources.ResourceAccessibility
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.getResourceItems
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.resourceManagers.LocalResourceManager
-import org.jetbrains.android.resourceManagers.ResourceManager
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
 class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true, false) {
@@ -35,27 +36,32 @@ class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : E
 
   private class AnimationEnumSupport(property: NlProperty) : EnumSupport(property) {
     override fun getAllValues(): List<ValueWithDisplayString> {
-      val resourceManager = LocalResourceManager.getInstance(myProperty.model.module) ?: return emptyList()
       val isFragment = myProperty.components
-          .mapNotNull { it.actionDestination }
-          .all { it.destinationType == NavigationSchema.DestinationType.FRAGMENT }
+        .mapNotNull { it.actionDestination }
+        .all { it.destinationType == NavigationSchema.DestinationType.FRAGMENT }
       // TODO: check the type of the start destination if the target is a graph
 
-      return getAnimatorsPopupContent(resourceManager, isFragment)
+
+      val repoManager = ResourceRepositoryManager.getOrCreateInstance(myProperty.model.module) ?: return emptyList()
+      return getAnimatorsPopupContent(repoManager, isFragment)
     }
 
     override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?) =
-        ValueWithDisplayString(value?.substringAfter('/'), value)
+      ValueWithDisplayString(value?.substringAfter('/'), value)
   }
 }
 
-fun getAnimatorsPopupContent(resourceManager: ResourceManager, isFragment: Boolean): List<ValueWithDisplayString> {
+fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, isFragment: Boolean): List<ValueWithDisplayString> {
   // TODO: filter out interpolators
-  val result = resourceManager.getResourceNames(ResourceNamespace.TODO, ResourceType.ANIM, true)
-      .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }.toMutableList()
+  val appResources = repoManager.getAppResources(true)!!
+  val visibilityLookup = repoManager.resourceVisibility
+  val result = appResources
+    .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIM, visibilityLookup, ResourceAccessibility.PUBLIC)
+    .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }.toMutableList()
   if (isFragment) {
-    resourceManager.getResourceNames(ResourceNamespace.TODO, ResourceType.ANIMATOR, true)
-        .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
+    appResources
+      .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIMATOR, visibilityLookup, ResourceAccessibility.PUBLIC)
+      .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
   }
   return result
 }
