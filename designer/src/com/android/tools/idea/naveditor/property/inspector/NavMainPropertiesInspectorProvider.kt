@@ -22,7 +22,7 @@ private val PROPERTY_NAME_UI_NAME_MAP = mapOf(
     SdkConstants.ATTR_LABEL to "Label",
     SdkConstants.ATTR_ID to "ID",
     SdkConstants.ATTR_NAME to "Class",
-    NavigationSchema.ATTR_START_DESTINATION to "Start Destination",
+    SdkConstants.ATTR_START_DESTINATION to "Start Destination",
     NavigationSchema.ATTR_DESTINATION to "Destination",
     NavigationSchema.ATTR_GRAPH to "Source")
 

@@ -20,9 +20,11 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.SdkConstants.TAG_NAVIGATION;
+
 public class NavigationDomFileDescription extends AndroidResourceDomFileDescription<NavDestinationElement> {
   // We don't have access to a project at this point, and thus don't have access to the nav library, so this has to be hardcoded.
-  public static final String DEFAULT_ROOT_TAG = "navigation";
+  public static final String DEFAULT_ROOT_TAG = TAG_NAVIGATION;
 
   public NavigationDomFileDescription() {
     super(NavDestinationElement.class, DEFAULT_ROOT_TAG, ResourceFolderType.NAVIGATION);

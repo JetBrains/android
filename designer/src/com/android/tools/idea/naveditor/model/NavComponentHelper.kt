@@ -157,7 +157,7 @@ var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSch
 var NlComponent.document: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_DOCUMENT)
 var NlComponent.clearTask: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_CLEAR_TASK)
 
-var NlComponent.startDestination: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_START_DESTINATION)
+var NlComponent.startDestination: String? by IdAutoAttributeDelegate(ATTR_START_DESTINATION)
 
 val NlComponent.actionDestination: NlComponent?
   get() {

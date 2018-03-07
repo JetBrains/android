@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property
 
+import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -48,15 +49,15 @@ class SetStartDestinationPropertyTest : NavTestCase() {
 
     property = SetStartDestinationProperty(listOf(model.find("f2")!!))
     property.setValue("true")
-    assertEquals("@id/f2", model.find("root")!!.getAttribute(AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
+    assertEquals("@id/f2", model.find("root")!!.getAttribute(AUTO_URI, ATTR_START_DESTINATION))
     assertNotNull(property.value)
     property = SetStartDestinationProperty(listOf(model.find("f1")!!))
     assertNull(property.value)
 
     property = SetStartDestinationProperty(listOf(model.find("f3")!!))
     property.setValue("true")
-    assertEquals("@id/f3", model.find("subnav")!!.getAttribute(AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
-    assertEquals("@id/f2", model.find("root")!!.getAttribute(AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
+    assertEquals("@id/f3", model.find("subnav")!!.getAttribute(AUTO_URI, ATTR_START_DESTINATION))
+    assertEquals("@id/f2", model.find("root")!!.getAttribute(AUTO_URI, ATTR_START_DESTINATION))
     assertNotNull(property.value)
     property = SetStartDestinationProperty(listOf(model.find("activity")!!))
     assertNull(property.value)
