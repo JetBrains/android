@@ -24,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import java.util.Collection;
+
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
@@ -36,11 +38,11 @@ public class PsModuleAndroidDependency extends PsAndroidDependency implements Ps
 
   PsModuleAndroidDependency(@NotNull PsAndroidModule parent,
                             @NotNull String gradlePath,
-                            @NotNull PsAndroidArtifact artifact,
+                            @NotNull Collection<PsAndroidArtifact> artifacts,
                             @Nullable String configurationName,
                             @Nullable Module resolvedModel,
                             @Nullable ModuleDependencyModel parsedModel) {
-    super(parent, artifact, parsedModel);
+    super(parent, artifacts, parsedModel);
     myGradlePath = gradlePath;
     myConfigurationName = configurationName;
     myResolvedModel = resolvedModel;
