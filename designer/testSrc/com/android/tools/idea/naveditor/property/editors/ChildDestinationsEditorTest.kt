@@ -67,4 +67,23 @@ class ChildDestinationsEditorTest : NavTestCase() {
         )
     }
   }
+
+  fun testInvalidStartDestination() {
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "@id/invalid")
+    }
+    val property = mock(NlProperty::class.java)
+    `when`(property.components).thenReturn(listOf(model.find("root")))
+    `when`(property.value).thenReturn("@id/invalid")
+    `when`(property.resolveValue("@id/invalid")).thenReturn("@id/invalid")
+
+    EnumEditorFixture.create(::ChildDestinationsEditor).use {
+      it.setProperty(property)
+        .showPopup()
+        .expectChoices(
+            "none", null,
+            "@id/invalid (invalid)", "@id/invalid")
+    }
+
+  }
 }
