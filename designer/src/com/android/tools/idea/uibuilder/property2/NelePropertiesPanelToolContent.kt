@@ -45,7 +45,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
     properties.builders.add(IdInspectorBuilder(editorProvider))
     properties.builders.add(LayoutInspectorBuilder(facet.module.project, editorProvider))
     properties.builders.add(ViewInspectorBuilder(facet.module.project, editorProvider))
-    properties.builders.add(TextViewInspectorBuilder(editorProvider))
+    properties.builders.add(TextViewInspectorBuilder(editorProvider, properties.formModel))
   }
 
   override fun setToolContext(toolContext: DesignSurface?) {

@@ -16,17 +16,25 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.property2.api.FormModel
+import com.android.tools.idea.common.property2.api.PropertyEditorModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.model.HorizontalEditorPanelModel
+import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
+import icons.StudioIcons.LayoutEditor.Properties.*
 import org.jetbrains.android.AndroidTestCase
+import org.mockito.Mockito.mock
+import javax.swing.Icon
 
 class TextViewInspectorBuilderTest: AndroidTestCase() {
 
   fun testAvailableWithRequiredPropertiesPresent() {
     val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
-    val builder = TextViewInspectorBuilder(util.editorProvider)
+    val formModel = mock(FormModel::class.java)
+    val builder = TextViewInspectorBuilder(util.editorProvider, formModel)
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties)
     assertThat(util.inspector.lines).hasSize(10)
@@ -47,17 +55,48 @@ class TextViewInspectorBuilderTest: AndroidTestCase() {
 
   fun testOptionalPropertiesPresent() {
     val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
-    val builder = TextViewInspectorBuilder(util.editorProvider)
+    val formModel = mock(FormModel::class.java)
+    val builder = TextViewInspectorBuilder(util.editorProvider, formModel)
     addRequiredProperties(util)
     util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
+    addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(11)
+    assertThat(util.inspector.lines).hasSize(12)
     assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
+    assertThat(util.inspector.lines[11].editorModel?.property?.name).isEqualTo(ATTR_TEXT_ALIGNMENT)
+  }
+
+  fun testTextAlignmentModel() {
+    val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
+    val formModel = mock(FormModel::class.java)
+    val builder = TextViewInspectorBuilder(util.editorProvider, formModel)
+    addRequiredProperties(util)
+    addOptionalProperties(util)
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.inspector.lines).hasSize(12)
+    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_FONT_FAMILY)
+    val line = util.inspector.lines[11].editorModel as HorizontalEditorPanelModel
+    assertThat(line.models).hasSize(5)
+    checkToggleButtonModel(line.models[0], "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START)
+    checkToggleButtonModel(line.models[1], "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START)
+    checkToggleButtonModel(line.models[2], "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER)
+    checkToggleButtonModel(line.models[3], "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END)
+    checkToggleButtonModel(line.models[4], "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END)
+  }
+
+  private fun checkToggleButtonModel(model: PropertyEditorModel, description: String, icon: Icon,
+                                     trueValue: String, falseValue: String = "") {
+    val toggleModel = model as ToggleButtonPropertyEditorModel
+    assertThat(toggleModel.description).isEqualTo(description)
+    assertThat(toggleModel.icon).isEqualTo(icon)
+    assertThat(toggleModel.trueValue).isEqualTo(trueValue)
+    assertThat(toggleModel.falseValue).isEqualTo(falseValue)
   }
 
   fun testNotAvailableWhenMissingRequiredProperty() {
     val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
-    val builder = TextViewInspectorBuilder(util.editorProvider)
+    val formModel = mock(FormModel::class.java)
+    val builder = TextViewInspectorBuilder(util.editorProvider, formModel)
     for (missing in TextViewInspectorBuilder.REQUIRED_PROPERTIES) {
       addRequiredProperties(util)
       util.removeProperty(ANDROID_URI, missing)
@@ -68,7 +107,8 @@ class TextViewInspectorBuilderTest: AndroidTestCase() {
 
   fun testExpandableSections() {
     val util = InspectorTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
-    val builder = TextViewInspectorBuilder(util.editorProvider)
+    val formModel = mock(FormModel::class.java)
+    val builder = TextViewInspectorBuilder(util.editorProvider, formModel)
     addRequiredProperties(util)
     util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
     builder.attachToInspector(util.inspector, util.properties)
@@ -95,5 +135,10 @@ class TextViewInspectorBuilderTest: AndroidTestCase() {
     util.addProperty(ANDROID_URI, ATTR_TEXT_STYLE, NelePropertyType.STRING)
     util.addProperty(ANDROID_URI, ATTR_TEXT_ALL_CAPS, NelePropertyType.BOOLEAN)
     util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR)
+  }
+
+  private fun addOptionalProperties(util: InspectorTestUtil) {
+    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_ALIGNMENT, NelePropertyType.STRING)
   }
 }
