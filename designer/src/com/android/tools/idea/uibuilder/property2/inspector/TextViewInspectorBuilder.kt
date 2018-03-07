@@ -18,19 +18,27 @@ package com.android.tools.idea.uibuilder.property2.inspector
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
+import com.android.tools.idea.uibuilder.property2.model.HorizontalEditorPanelModel
+import com.android.tools.idea.uibuilder.property2.ui.HorizontalEditorPanel
+import com.android.tools.idea.uibuilder.property2.ui.ToggleButtonPropertyEditor
+import icons.StudioIcons.LayoutEditor.Properties.*
+import javax.swing.Icon
+import javax.swing.JComponent
 
 /**
  * An [InspectorBuilder] for all widgets that are based on a TextView.
  *
  * The attributes for a TextView is shown only if all the [REQUIRED_PROPERTIES]
- * are available. The controls for an [ATTR_TEXT_APPEARANCE] are displayed in a
+ * are available. The controls for [ATTR_TEXT_APPEARANCE] are displayed in a
  * collapsible section.
  *
  * There are 2 attributes that may or may not be present:
  *     [ATTR_FONT_FAMILY] and [ATTR_TEXT_ALIGNMENT]
  * They are present if the minSdkVersion is high enough or if AppCompat is used.
  */
-class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>, private val formModel: FormModel) :
+    InspectorBuilder<NelePropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     if (!isApplicable(properties)) return
@@ -51,14 +59,36 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     addComponent(inspector, properties[ANDROID_URI, ATTR_TYPEFACE], textAppearanceLabel)
     addComponent(inspector, properties[ANDROID_URI, ATTR_TEXT_SIZE], textAppearanceLabel)
     addComponent(inspector, properties[ANDROID_URI, ATTR_LINE_SPACING_EXTRA], textAppearanceLabel)
-    // TODO: TextStyle & Alignment panels
     addComponent(inspector, properties[ANDROID_URI, ATTR_TEXT_COLOR], textAppearanceLabel)
+    // TODO: addTextStyle(inspector, properties)
+    addAlignment(inspector, properties, textAppearanceLabel)
   }
 
   private fun addComponent(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
     val line = inspector.addComponent(editorProvider.provide(property))
     group.addChild(line)
     return line
+  }
+
+  private fun addAlignment(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
+    val alignment = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALIGNMENT) ?: return
+    val model = HorizontalEditorPanelModel(alignment, formModel)
+    val panel = HorizontalEditorPanel(model)
+    val line = inspector.addComponent(model, panel)
+    panel.add(createIconEditor(alignment, "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START, line))
+    panel.add(createIconEditor(alignment, "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START, line))
+    panel.add(createIconEditor(alignment, "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER, line))
+    panel.add(createIconEditor(alignment, "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END, line))
+    panel.add(createIconEditor(alignment, "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END, line))
+    group.addChild(line)
+  }
+
+  private fun createIconEditor(property: NelePropertyItem, description: String, icon: Icon, trueValue: String, line: InspectorLineModel):
+      Pair<PropertyEditorModel, JComponent> {
+    val model = ToggleButtonPropertyEditorModel(description, icon, trueValue, "", property, formModel)
+    val editor = ToggleButtonPropertyEditor(model)
+    model.line = line
+    return model to editor
   }
 
   private fun isApplicable(properties: PropertiesTable<NelePropertyItem>): Boolean {
