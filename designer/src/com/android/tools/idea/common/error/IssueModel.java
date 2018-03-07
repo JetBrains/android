@@ -38,6 +38,7 @@ public class IssueModel {
     command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
   protected int myWarningCount;
   protected int myErrorCount;
+  private final Runnable myUpdateCallback = () -> updateErrorsList();
 
   private List<IssueProvider> myIssueProviders = new ArrayList<>();
 
@@ -68,6 +69,7 @@ public class IssueModel {
 
   public void addIssueProvider(@NotNull IssueProvider issueProvider) {
     myIssueProviders.add(issueProvider);
+    issueProvider.addListener(myUpdateCallback);
     updateErrorsList();
   }
 

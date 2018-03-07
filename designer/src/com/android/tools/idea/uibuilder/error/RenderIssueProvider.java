@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkListener;
 
-public class RenderIssueProvider implements IssueProvider {
+public class RenderIssueProvider extends IssueProvider {
   private final RenderErrorModel myRenderErrorModel;
 
   public RenderIssueProvider(@NotNull RenderErrorModel renderErrorModel) {

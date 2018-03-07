@@ -27,8 +27,11 @@ import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import java.util.*
 import java.util.stream.Stream
+import kotlin.properties.Delegates
 
-class LintIssueProvider(var lintAnnotationsModel: LintAnnotationsModel) : IssueProvider {
+class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProvider() {
+
+  var lintAnnotationsModel: LintAnnotationsModel by Delegates.observable(_lintAnnotationsModel) { _, _, _ -> notifyModified() }
 
   override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
     for (error in lintAnnotationsModel.issues) {

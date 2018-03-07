@@ -17,6 +17,13 @@ package com.android.tools.idea.common.error
 
 import com.google.common.collect.ImmutableCollection
 
-interface IssueProvider {
-  fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>)
+abstract class IssueProvider {
+  // Unfortunately we have to use Runnable here for java interop
+  private val listeners = mutableListOf<Runnable>()
+  abstract fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>)
+
+  fun addListener(listener: Runnable) = listeners.add(listener)
+  fun removeListener(listener: Runnable) = listeners.remove(listener)
+
+  fun notifyModified() = listeners.forEach { it.run() }
 }
