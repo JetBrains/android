@@ -128,36 +128,13 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return myVariantCollection == null ? myVariantCollection = new PsVariantCollection(this) : myVariantCollection;
   }
 
-  public void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
-    getOrCreateDependencyCollection().forEachDeclaredDependency(consumer);
-  }
-
-  public void forEachDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
-    getOrCreateDependencyCollection().forEach(consumer);
-  }
-
-  public void forEachModuleDependency(@NotNull Consumer<PsModuleAndroidDependency> consumer) {
-    getOrCreateDependencyCollection().forEachModuleDependency(consumer);
-  }
-
-  @Nullable
-  public PsLibraryAndroidDependency findLibraryDependency(@NotNull String compactNotation) {
-    return getOrCreateDependencyCollection().findElement(compactNotation, PsLibraryAndroidDependency.class);
-  }
-
-  @Nullable
-  public PsLibraryAndroidDependency findLibraryDependency(@NotNull PsArtifactDependencySpec spec) {
-    return getOrCreateDependencyCollection().findElement(spec);
-  }
-
-  @Nullable
-  public PsModuleAndroidDependency findModuleDependency(@NotNull String modulePath) {
-    return getOrCreateDependencyCollection().findElement(modulePath, PsModuleAndroidDependency.class);
-  }
-
   @NotNull
   private PsAndroidDependencyCollection getOrCreateDependencyCollection() {
     return myDependencyCollection == null ? myDependencyCollection = new PsAndroidDependencyCollection(this) : myDependencyCollection;
+  }
+
+  public @NotNull PsAndroidDependencyCollection getDependencies() {
+    return getOrCreateDependencyCollection();
   }
 
   @Nullable

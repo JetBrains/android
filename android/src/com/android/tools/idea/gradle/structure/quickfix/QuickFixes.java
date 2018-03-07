@@ -55,7 +55,7 @@ public final class QuickFixes {
     PsModule module = context.getProject().findModuleByName(moduleName);
     if (module instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)module;
-      androidModule.forEachDeclaredDependency(declaredDependency -> {
+      androidModule.getDependencies().forEachDeclaredDependency(declaredDependency -> {
         if (declaredDependency instanceof PsLibraryDependency) {
           setLibraryDependencyVersion((PsLibraryDependency)declaredDependency, dependency, version);
         }

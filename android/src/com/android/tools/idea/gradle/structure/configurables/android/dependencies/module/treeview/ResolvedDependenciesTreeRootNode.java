@@ -18,22 +18,15 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ArtifactComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
-import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsDependencyContainer;
-import com.android.tools.idea.gradle.structure.model.android.PsVariant;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.util.containers.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +61,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
     // [Inner map] key: artifact name, value: dependencies
     Map<String, Map<String, List<PsDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
 
-    module.forEachDependency(dependency -> {
+    module.getDependencies().forEach(dependency -> {
       if (!dependency.isDeclared()) {
         return; // Only show "declared" dependencies as top-level dependencies.
       }

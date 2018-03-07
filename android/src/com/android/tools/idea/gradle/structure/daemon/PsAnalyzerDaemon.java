@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
-import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -85,7 +84,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
       Ref<Boolean> updatesFound = new Ref<>(false);
       if (module instanceof PsAndroidModule) {
         PsAndroidModule androidModule = (PsAndroidModule)module;
-        androidModule.forEachDeclaredDependency(dependency -> {
+        androidModule.getDependencies().forEachDeclaredDependency(dependency -> {
           if (dependency instanceof PsLibraryDependency) {
             boolean found = checkForUpdates((PsLibraryDependency)dependency);
             if (found) {

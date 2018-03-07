@@ -47,7 +47,7 @@ class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableMo
   @Override
   public void reset() {
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    getModule().forEachDeclaredDependency(dependencies::add);
+    getModule().getDependencies().forEachDeclaredDependency(dependencies::add);
     Collections.sort(dependencies, new PsDependencyComparator(getContext().getUiSettings()));
     setItems(dependencies);
   }

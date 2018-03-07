@@ -25,13 +25,8 @@ import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
-import com.google.common.collect.Lists;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ui.ColumnInfo;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static org.mockito.Mockito.mock;
@@ -52,9 +47,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     myLibraryDependency = mock(PsLibraryAndroidDependency.class);
     myUISettings = new PsUISettings();
 
-    List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    dependencies.add(myLibraryDependency);
-    PsAndroidModuleStub module = new PsAndroidModuleStub(dependencies);
+    PsAndroidModuleStub module = new PsAndroidModuleStub();
     PsContext context = mock(PsContext.class);
     when(context.getUiSettings()).thenReturn(myUISettings);
     myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, context) {};
@@ -95,16 +88,8 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
   }
 
   private class PsAndroidModuleStub extends PsAndroidModule {
-    @NotNull private final List<PsAndroidDependency> myDeclaredDependencies;
-
-    public PsAndroidModuleStub(@NotNull List<PsAndroidDependency> declaredDependencies) {
+    public PsAndroidModuleStub() {
       super(new PsProject(myProject), myModule, "", mock(AndroidModuleModel.class), mock(GradleBuildModel.class));
-      myDeclaredDependencies = declaredDependencies;
-    }
-
-    @Override
-    public void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
-      myDeclaredDependencies.forEach(consumer);
     }
   }
 }

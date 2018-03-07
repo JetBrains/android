@@ -52,7 +52,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroid
     PsModule referred = project.findModuleByGradlePath(moduleDependency.getGradlePath());
     if (referred instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)referred;
-      androidModule.forEachDependency(dependency -> {
+      androidModule.getDependencies().forEach(dependency -> {
         if (!dependency.isDeclared()) {
           return; // Only show "declared" dependencies as top-level dependencies.
         }

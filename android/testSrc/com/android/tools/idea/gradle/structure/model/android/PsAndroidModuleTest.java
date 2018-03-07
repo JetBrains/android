@@ -433,7 +433,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
   @NotNull
   private static List<PsAndroidDependency> getDeclaredDependencies(@NotNull PsAndroidModule module) {
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    module.forEachDeclaredDependency(dependencies::add);
+    module.getDependencies().forEachDeclaredDependency(dependencies::add);
     return dependencies;
   }
 

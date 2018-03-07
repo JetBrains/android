@@ -127,7 +127,7 @@ class ModuleDependenciesForm {
     PsProject project = module.getParent();
     List<PsModule> dependencies = Lists.newArrayList();
     if (module instanceof PsAndroidModule) {
-      ((PsAndroidModule)module).forEachModuleDependency(dependency -> {
+      ((PsAndroidModule)module).getDependencies().forEachModuleDependency(dependency -> {
         String name = dependency.getName();
         PsModule found = project.findModuleByName(name);
         if (found != null) {
