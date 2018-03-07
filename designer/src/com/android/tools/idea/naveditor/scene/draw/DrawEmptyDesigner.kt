@@ -32,7 +32,7 @@ private val text2 = " to add a new destination"
 @SwingCoordinate
 private val FONT_SIZE = 13
 @SwingCoordinate
-private val VERTICAL_OFFSET = 2
+private val VERTICAL_OFFSET = 3
 
 class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand {
   private constructor(sp: Array<String>) : this(stringToPoint(sp[0]))
