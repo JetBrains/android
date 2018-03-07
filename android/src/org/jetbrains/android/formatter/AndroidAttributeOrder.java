@@ -23,10 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 
 final class AndroidAttributeOrder extends CustomArrangementOrderToken {
+  static final String ID = "ANDROID_ATTRIBUTE_ORDER";
   static final AndroidAttributeOrder INSTANCE = new AndroidAttributeOrder();
 
   private AndroidAttributeOrder() {
-    super("ANDROID_ATTRIBUTE_ORDER", "Android attribute order");
+    super(ID, "Android attribute order");
   }
 
   @NotNull
