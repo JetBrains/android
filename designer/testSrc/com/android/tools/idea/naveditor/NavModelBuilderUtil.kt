@@ -59,6 +59,7 @@ object NavModelBuilderUtil {
       catch (e: Exception) {
         throw RuntimeException(e)
       }
+
       `when`(surface.schema).thenReturn(NavigationSchema.get(facet))
       `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
       `when`(surface.extentSize).thenReturn(Dimension(500, 500))

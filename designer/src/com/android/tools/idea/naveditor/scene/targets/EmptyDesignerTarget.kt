@@ -21,16 +21,18 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.BaseTarget
+import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawEmptyDesigner
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
 import java.awt.Point
 
 @SwingCoordinate
 val WIDTH = 240
 
-class EmptyDesignerTarget : BaseTarget() {
-  // TODO: Invoke create destination menu on mouse click
+class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() {
   override fun getPreferenceLevel() = ACTION_LEVEL
 
   override fun layout(
@@ -40,8 +42,6 @@ class EmptyDesignerTarget : BaseTarget() {
     @NavCoordinate r: Int,
     @NavCoordinate b: Int
   ): Boolean {
-    val surface = context.surface ?: return false
-
     @NavCoordinate val width = Coordinates.getAndroidDimension(surface, WIDTH)
     @NavCoordinate val height = Coordinates.getAndroidDimension(surface, ADD_DESTINATION.iconHeight)
 
@@ -65,7 +65,12 @@ class EmptyDesignerTarget : BaseTarget() {
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
     @SwingCoordinate val x = sceneContext.getSwingX(myLeft.toInt())
-    @SwingCoordinate val y = sceneContext.getSwingY(myTop.toInt())
+    @SwingCoordinate val y = sceneContext.getSwingY(myBottom.toInt())
     list.add(DrawEmptyDesigner(Point(x, y)))
+  }
+
+  override fun mouseRelease(x: Int, y: Int, closestTargets: MutableList<Target>) {
+    val navActionManager = surface.actionManager as? NavActionManager
+    navActionManager?.createDestinationMenu?.show()
   }
 }

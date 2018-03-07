@@ -32,10 +32,12 @@ import javax.swing.JComponent
 /**
  * Provides and handles actions in the navigation editor
  */
-class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
+// Open for testing only
+open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: GotoComponentAction = GotoComponentAction(surface)
 
-  private val createDestinationMenu by lazy { CreateDestinationMenu(mySurface) }
+  // Open for testing only
+  open val createDestinationMenu by lazy { CreateDestinationMenu(mySurface) }
 
   private val addExistingDestinationMenu by lazy { AddExistingDestinationMenu(mySurface) }
 

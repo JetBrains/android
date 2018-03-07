@@ -16,8 +16,8 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.awt.RelativePoint
@@ -26,10 +26,14 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) :
-    AnAction(description, description, icon) {
+    IconWithTextAction("", description, icon) {
   var balloon: Balloon? = null
 
   override fun actionPerformed(e: AnActionEvent) {
+    show(e.inputEvent.source as JComponent)
+  }
+
+  protected fun show(component: JComponent) {
     val balloonBuilder = JBPopupFactory.getInstance()
       .createBalloonBuilder(mainPanel)
       .setShadow(true)
@@ -41,7 +45,7 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
       balloonBuilder.setFillColor(it)
     }
     balloon = balloonBuilder.createBalloon().also {
-      it.show(RelativePoint.getSouthOf(e.inputEvent.source as JComponent), Balloon.Position.below)
+      it.show(RelativePoint.getSouthOf(component), Balloon.Position.below)
     }
   }
 
