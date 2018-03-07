@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.model.java;
 
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +50,8 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
       if (moduleVersion != null) {
         PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(moduleVersion);
         ArtifactDependencyModel parsed = parsedDependencies.findLibraryDependency(moduleVersion);
-        PsLibraryJavaDependency dependency = new PsLibraryJavaDependency(myParent, spec, libraryDependency, parsed);
+        PsLibraryJavaDependency dependency =
+          new PsLibraryJavaDependency(myParent, spec, libraryDependency, parsed != null ? ImmutableList.of(parsed) : ImmutableList.of());
         myLibraryDependenciesBySpec.put(spec.toString(), dependency);
       }
     }
@@ -83,7 +85,8 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
   void addLibraryDependency(@NotNull PsArtifactDependencySpec spec, @Nullable ArtifactDependencyModel parsedModel) {
     PsLibraryJavaDependency dependency = myLibraryDependenciesBySpec.get(spec.toString());
     if (dependency == null) {
-      dependency = new PsLibraryJavaDependency(myParent, spec, null, parsedModel);
+      dependency =
+        new PsLibraryJavaDependency(myParent, spec, null, parsedModel != null ? ImmutableList.of(parsedModel) : ImmutableList.of());
       myLibraryDependenciesBySpec.put(spec.toString(), dependency);
     }
     else {

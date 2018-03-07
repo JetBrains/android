@@ -24,19 +24,18 @@ import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class PsDependency extends PsChildModel implements PsBaseDependency {
-  @NotNull private final Set<DependencyModel> myParsedModels = Sets.newHashSet();
+  @NotNull private final Set<DependencyModel> myParsedModels = Sets.newLinkedHashSet();
 
-  protected PsDependency(@NotNull PsModule parent, @Nullable DependencyModel parsedModel) {
+  protected PsDependency(@NotNull PsModule parent, @NotNull Collection<? extends DependencyModel> parsedModels) {
     super(parent);
-    if (parsedModel != null) {
-      myParsedModels.add(parsedModel);
-    }
+    myParsedModels.addAll(parsedModels);
   }
 
   @Override

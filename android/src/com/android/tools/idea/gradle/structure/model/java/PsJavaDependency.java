@@ -19,12 +19,13 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 public abstract class PsJavaDependency extends PsDependency {
   protected PsJavaDependency(@NotNull PsJavaModule parent,
-                             @Nullable DependencyModel parsedModel) {
-    super(parent, parsedModel);
+                             @NotNull Collection<? extends DependencyModel> parsedModels) {
+    super(parent, parsedModels);
   }
 
   @NotNull

@@ -143,7 +143,15 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
     val resolvedModule = module?.resolvedModel
     var dependency = findElement(gradlePath, PsModuleAndroidDependency::class.java)
     if (dependency == null) {
-      dependency = PsModuleAndroidDependency(parent, gradlePath, listOf(artifact), projectVariant, resolvedModule, matchingParsedDependency)
+      dependency =
+          PsModuleAndroidDependency(
+            parent,
+            gradlePath,
+            listOf(artifact),
+            projectVariant,
+            resolvedModule,
+            matchingParsedDependency.wrapInList()
+          )
       moduleDependenciesByGradlePath[gradlePath] = dependency
     }
     return dependency
@@ -239,7 +247,7 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
       }
       dependency
     } else {
-      val androidDependency = PsLibraryAndroidDependency(parent, resolvedSpec, listOf(artifact), library, parsedModel)
+      val androidDependency = PsLibraryAndroidDependency(parent, resolvedSpec, listOf(artifact), library, parsedModel.wrapInList())
       libraryDependenciesBySpec[compactNotation] = androidDependency
       library?.artifact?.let {
         androidDependency.setDependenciesFromPomFile(findDependenciesInPomFile(it))
@@ -292,7 +300,7 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
   ) {
     var dependency: PsLibraryAndroidDependency? = libraryDependenciesBySpec[spec.toString()]
     if (dependency == null) {
-      dependency = PsLibraryAndroidDependency(parent, spec, listOf(artifact), null, parsedModel)
+      dependency = PsLibraryAndroidDependency(parent, spec, listOf(artifact), null, parsedModel.wrapInList())
       libraryDependenciesBySpec[spec.toString()] = dependency
     } else {
       updateDependency(dependency, artifact, parsedModel)
@@ -307,7 +315,7 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
   ) {
     var dependency: PsModuleAndroidDependency? = moduleDependenciesByGradlePath[modulePath]
     if (dependency == null) {
-      dependency = PsModuleAndroidDependency(parent, modulePath, listOf(artifact), null, resolvedModel, parsedModel)
+      dependency = PsModuleAndroidDependency(parent, modulePath, listOf(artifact), null, resolvedModel, parsedModel.wrapInList())
       moduleDependenciesByGradlePath[modulePath] = dependency
     } else {
       updateDependency(dependency, artifact, parsedModel)
@@ -346,3 +354,5 @@ private fun updateDependency(
   }
   dependency.addContainer(artifact)
 }
+
+fun <T> T?.wrapInList(): List<T> = if (this != null) listOf(this) else listOf()
