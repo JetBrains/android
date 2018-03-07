@@ -151,7 +151,7 @@ public class PostSyncProjectSetup {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<Module> modules = Arrays.asList(moduleManager.getModules());
     CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, true, module -> {
+    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
       moduleValidator.validate(module);
       return true;
     });
