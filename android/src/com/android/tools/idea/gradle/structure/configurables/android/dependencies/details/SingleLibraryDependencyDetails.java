@@ -55,12 +55,12 @@ public class SingleLibraryDependencyDetails implements DependencyDetails {
 
     PsArtifactDependencySpec spec = myDependency.getDeclaredSpec();
     if (spec == null) {
-      spec = myDependency.getResolvedSpec();
+      spec = myDependency.getSpec();
     }
 
     myGroupIdLabel.setText(spec.getGroup());
     myArtifactNameLabel.setText(spec.getName());
-    myResolvedVersionLabel.setText(myDependency.getResolvedSpec().getVersion());
+    myResolvedVersionLabel.setText(myDependency.getSpec().getVersion());
 
     myRequestedVersionLabel.setText(spec.getVersion());
 

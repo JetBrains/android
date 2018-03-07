@@ -36,8 +36,8 @@ public class PsDependencyComparator implements Comparator<PsDependency> {
   public int compare(PsDependency d1, PsDependency d2) {
     if (d1 instanceof PsLibraryDependency) {
       if (d2 instanceof PsLibraryDependency) {
-        String s1 = ((PsLibraryDependency)d1).getResolvedSpec().getDisplayText(myUiSettings);
-        String s2 = ((PsLibraryDependency)d2).getResolvedSpec().getDisplayText(myUiSettings);
+        String s1 = ((PsLibraryDependency)d1).getSpec().getDisplayText(myUiSettings);
+        String s2 = ((PsLibraryDependency)d2).getSpec().getDisplayText(myUiSettings);
         return s1.compareTo(s2);
       }
     }

@@ -73,7 +73,7 @@ class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
           PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
           PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();
           if (spec == null) {
-            spec = libraryDependency.getResolvedSpec();
+            spec = libraryDependency.getSpec();
           }
           // For library dependencies we display the version of the library being used.
           PsAndroidModule module = dependency.getParent();

@@ -381,7 +381,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     PsLibraryAndroidDependency appCompatV7 = (PsLibraryAndroidDependency)declaredDependencies.get(0);
     assertTrue(appCompatV7.isDeclared());
 
-    PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
+    PsArtifactDependencySpec resolvedSpec = appCompatV7.getSpec();
     assertEquals("com.android.support", resolvedSpec.getGroup());
     assertEquals("appcompat-v7", resolvedSpec.getName());
 
@@ -416,7 +416,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     assertNotNull(declaredSpec);
     assertEquals("com.android.support:appcompat-v7:+", declaredSpec.toString());
 
-    PsArtifactDependencySpec resolvedSpec = appCompatV7.getResolvedSpec();
+    PsArtifactDependencySpec resolvedSpec = appCompatV7.getSpec();
     assertEquals("com.android.support", resolvedSpec.getGroup());
     assertEquals("appcompat-v7", resolvedSpec.getName());
     assertThat(resolvedSpec.getVersion()).isNotEqualTo("+");
