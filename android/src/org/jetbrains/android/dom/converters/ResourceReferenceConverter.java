@@ -356,7 +356,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       return Collections.emptySet();
     }
     else {
-      return manager.getResourceNames(type, true);
+      ResourceNamespace namespace = resPackage == null ? ResourceNamespace.TODO : ResourceNamespace.fromPackageName(resPackage);
+      return manager.getResourceNames(namespace, type, true);
     }
   }
 

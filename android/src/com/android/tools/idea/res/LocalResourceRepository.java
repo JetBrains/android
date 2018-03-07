@@ -505,13 +505,4 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       }
     }
   }
-
-  /**
-   * Calls the given {@code action} for each of the leaf resource repositories.
-   *
-   * @param action the action to call
-   */
-  public void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action) {
-    action.accept(this);
-  }
 }

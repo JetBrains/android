@@ -73,20 +73,20 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   }
 
   private static Collection<String> getStyleNameVariants(ConvertContext context, GenericAttributeValue element) {
-    final Module module = context.getModule();
+    Module module = context.getModule();
 
     if (module == null) {
       return Collections.emptyList();
     }
-    final LocalResourceManager manager = LocalResourceManager.getInstance(module);
+    LocalResourceManager manager = LocalResourceManager.getInstance(module);
 
     if (manager == null) {
       return Collections.emptyList();
     }
-    final Collection<String> styleNames = manager.getResourceNames(ResourceType.STYLE);
-    final List<String> result = new ArrayList<>();
+    Collection<String> styleNames = manager.getResourceNames(ResourceNamespace.TODO, ResourceType.STYLE);
+    List<String> result = new ArrayList<>();
 
-    final String currentValue = element.getStringValue();
+    String currentValue = element.getStringValue();
     for (String name : styleNames) {
       if (currentValue == null || !currentValue.startsWith(name)) {
         result.add(name + '.');

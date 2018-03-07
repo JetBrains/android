@@ -1007,7 +1007,6 @@
       <pattern type="xml">xmlTag()</pattern>
     </psi.referenceProvider>
     <fileBasedIndex implementation="org.jetbrains.android.AndroidIdIndex"/>
-    <fileBasedIndex implementation="org.jetbrains.android.AndroidValueResourcesIndex"/>
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
     <projectService serviceInterface="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"
                     serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>

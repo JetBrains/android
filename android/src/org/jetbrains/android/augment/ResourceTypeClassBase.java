@@ -1,6 +1,12 @@
 package org.jetbrains.android.augment;
 
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.DeclareStyleableResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
@@ -9,9 +15,10 @@ import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,41 +35,53 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
   static PsiField[] buildResourceFields(@NotNull ResourceManager manager,
                                         boolean nonFinal,
                                         @NotNull String resClassName,
-                                        @NotNull final PsiClass context) {
+                                        @NotNull PsiClass context) {
     ResourceType resourceType = ResourceType.getEnum(resClassName);
     if (resourceType == null) {
       return PsiField.EMPTY_ARRAY;
     }
-    final Map<String, PsiType> fieldNames = new HashMap<String, PsiType>();
-    final boolean styleable = ResourceType.STYLEABLE == resourceType;
-    final PsiType basicType = styleable ? PsiType.INT.createArrayType() : PsiType.INT;
+    Map<String, PsiType> fieldNames = new HashMap<>();
+    boolean styleable = ResourceType.STYLEABLE == resourceType;
+    PsiType basicType = styleable ? PsiType.INT.createArrayType() : PsiType.INT;
 
-    for (String resName : manager.getResourceNames(resourceType)) {
+    ResourceNamespace namespace = manager.getResourceNamespace();
+
+    for (String resName : manager.getResourceNames(namespace, resourceType)) {
       fieldNames.put(resName, basicType);
     }
 
     if (styleable) {
-      for (ResourceEntry entry : manager.getValueResourceEntries(ResourceType.ATTR)) {
-        final String resName = entry.getName();
-        final String resContext = entry.getContext();
-
-        if (!resContext.isEmpty()) {
-          fieldNames.put(resContext + '_' + resName, PsiType.INT);
+      AbstractResourceRepository repository = manager.getResourceRepository();
+      List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.DECLARE_STYLEABLE);
+      for (ResourceItem item : items) {
+        DeclareStyleableResourceValue value = (DeclareStyleableResourceValue)item.getResourceValue();
+        if (value != null) {
+          List<AttrResourceValue> attributes = value.getAllAttributes();
+          for (AttrResourceValue attr : attributes) {
+            if (manager.isResourcePublic(attr.getResourceType().getName(), attr.getName())) {
+              String packageName = attr.getNamespace().getPackageName();
+              if (StringUtil.isEmpty(packageName)) {
+                fieldNames.put(item.getName() + '_' + attr.getName(), PsiType.INT);
+              } else {
+                fieldNames.put(item.getName() + '_' + packageName.replace('.', '_') + '_' + attr.getName(), PsiType.INT);
+              }
+            }
+          }
         }
       }
     }
-    final PsiField[] result = new PsiField[fieldNames.size()];
-    final PsiElementFactory factory = JavaPsiFacade.getElementFactory(context.getProject());
+
+    PsiField[] result = new PsiField[fieldNames.size()];
+    PsiElementFactory factory = JavaPsiFacade.getElementFactory(context.getProject());
 
     int idIterator = resourceType.ordinal() * 100000;
     int i = 0;
 
     for (Map.Entry<String, PsiType> entry : fieldNames.entrySet()) {
-      final String fieldName = AndroidResourceUtil.getFieldNameByResourceName(entry.getKey());
-      final PsiType type = entry.getValue();
-      final int id = -(idIterator++);
-      final AndroidLightField field =
-        new AndroidLightField(fieldName, context, type, !nonFinal, nonFinal ? null : id);
+      String fieldName = AndroidResourceUtil.getFieldNameByResourceName(entry.getKey());
+      PsiType type = entry.getValue();
+      int id = -(idIterator++);
+      AndroidLightField field = new AndroidLightField(fieldName, context, type, !nonFinal, nonFinal ? null : id);
       field.setInitializer(factory.createExpressionFromText(Integer.toString(id), field));
       result[i++] = field;
     }

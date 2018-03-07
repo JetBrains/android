@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * The  is a super class for several of the other repositories; it’s not really used on its own. Its only purpose is to be able to combine
@@ -383,9 +382,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @Override
-  public void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action) {
-    for (LocalResourceRepository child : getChildren()) {
-      child.forEachLeafResourceRepository(action);
+  public void getLeafResourceRepositories(@NotNull Collection<AbstractResourceRepository> result) {
+    synchronized (ITEM_MAP_LOCK) {
+      for (LocalResourceRepository child : myChildren) {
+        child.getLeafResourceRepositories(result);
+      }
     }
   }
 }

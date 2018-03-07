@@ -16,10 +16,13 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -41,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 import static com.google.common.collect.Sets.newHashSetWithExpectedSize;
 
@@ -68,6 +70,19 @@ public class LocalResourceManager extends ResourceManager {
 
   public AndroidFacet getFacet() {
     return myFacet;
+  }
+
+  @Override
+  @NotNull
+  public ResourceNamespace getResourceNamespace() {
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myFacet);
+    return repositoryManager.getNamespace();
+  }
+
+  @Override
+  @NotNull
+  public AbstractResourceRepository getResourceRepository() {
+    return ProjectResourceRepository.getOrCreateInstance(myFacet);
   }
 
   @Override
@@ -222,7 +237,7 @@ public class LocalResourceManager extends ResourceManager {
     if (folderType != null) {
       targets.addAll(findResourceFiles(folderType, fieldName, false, true));
     }
-    for (ResourceElement element : findValueResources(resClassName, fieldName, false)) {
+    for (ResourceElement element : findValueResources(ResourceNamespace.TODO, resClassName, fieldName, false)) {
       targets.add(element.getName().getXmlAttributeValue());
     }
     if (resClassName.equals(ResourceType.ATTR.getName())) {
@@ -244,14 +259,14 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public Collection<String> getResourceNames(@NotNull ResourceType resourceType, boolean publicOnly) {
+  public Collection<String> getResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, boolean publicOnly) {
     AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myFacet);
     Collection<String> resourceNames;
     if (resourceType == ResourceType.STYLEABLE) {
       // Convert from the tag-oriented types that appResource hold to the inner-class oriented type.
-      resourceNames = appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE);
+      resourceNames = appResources.getItemsOfType(namespace, ResourceType.DECLARE_STYLEABLE);
     } else {
-      resourceNames = appResources.getItemsOfType(resourceType);
+      resourceNames = appResources.getItemsOfType(namespace, resourceType);
     }
     // We may need to filter out public only, or if the type is attr, filter out android: attributes.
     if (publicOnly || resourceType == ResourceType.ATTR) {
@@ -271,11 +286,5 @@ public class LocalResourceManager extends ResourceManager {
       resourceNames = filtered;
     }
     return resourceNames;
-  }
-
-  @Override
-  protected void forEachLeafResourceRepository(@NotNull Consumer<AbstractResourceRepository> action) {
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
-    repository.forEachLeafResourceRepository(action);
   }
 }

@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.FolderTypeRelationship;
@@ -30,7 +31,6 @@ import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.history.LocalHistory;
@@ -362,7 +362,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     String name = ((ResourceElement)domElement).getName().getValue();
     assert name != null;
 
-    List<ResourceElement> resources = manager.findValueResources(type, name);
+    List<ResourceElement> resources = manager.findValueResources(ResourceNamespace.TODO, type, name);
     for (ResourceElement resource : resources) {
       XmlElement xmlElement = resource.getName().getXmlAttributeValue();
       if (!element.getManager().areElementsEquivalent(element, xmlElement)) {
@@ -378,7 +378,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       // We iterate the styles in order to cascade any changes to children down the hierarchy.
 
       // List of styles that will be renamed.
-      HashSet<String> renamedStyles = Sets.newHashSet();
+      HashSet<String> renamedStyles = new HashSet<>();
       renamedStyles.add(name);
 
       final String stylePrefix = name + ".";
@@ -388,7 +388,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         renameCandidates = Collections.emptyList();
       }
       else {
-        renameCandidates = Collections2.filter(manager.getResourceNames(resourceType),
+        renameCandidates = Collections2.filter(manager.getResourceNames(ResourceNamespace.TODO, resourceType),
                                                input -> input.startsWith(stylePrefix));
       }
 
@@ -401,7 +401,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
           continue;
         }
 
-        for (ResourceElement resource : manager.findValueResources(type, resourceName)) {
+        for (ResourceElement resource : manager.findValueResources(ResourceNamespace.TODO, type, resourceName)) {
           if (!(resource instanceof Style) || ((Style)resource).getParentStyle().getXmlAttributeValue() != null) {
             // This element is not a style or does have an explicit parent so we do not rename it.
             continue;

@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
@@ -50,10 +51,10 @@ class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : E
 
 fun getAnimatorsPopupContent(resourceManager: ResourceManager, isFragment: Boolean): List<ValueWithDisplayString> {
   // TODO: filter out interpolators
-  val result = resourceManager.getResourceNames(ResourceType.ANIM, true)
+  val result = resourceManager.getResourceNames(ResourceNamespace.TODO, ResourceType.ANIM, true)
       .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }.toMutableList()
   if (isFragment) {
-    resourceManager.getResourceNames(ResourceType.ANIMATOR, true)
+    resourceManager.getResourceNames(ResourceNamespace.TODO, ResourceType.ANIMATOR, true)
         .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
   }
   return result
