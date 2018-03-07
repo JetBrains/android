@@ -26,6 +26,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.util.List;
@@ -38,6 +39,7 @@ public class SplitApkDeployTask implements LaunchTask {
 
   @NotNull
   private final Project myProject;
+
   @NotNull
   private final SplitApkDeployTaskContext myContext;
   private final boolean myDontKill;
@@ -50,6 +52,12 @@ public class SplitApkDeployTask implements LaunchTask {
     myProject = project;
     myContext = context;
     myDontKill = dontKill;
+  }
+
+  @TestOnly
+  @NotNull
+  public SplitApkDeployTaskContext getContext() {
+    return myContext;
   }
 
   @NotNull
