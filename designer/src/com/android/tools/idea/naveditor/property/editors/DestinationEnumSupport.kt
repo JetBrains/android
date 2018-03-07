@@ -38,9 +38,8 @@ class DestinationEnumSupport(property: NlProperty, private val destinationGetter
     return ValueWithDisplayString(displayString, component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID))
   }
 
-  override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?): ValueWithDisplayString =
-      getDisplayForDestination(
-          destinationGetter(myProperty.components[0])
-              .first { it.id == stripId(resolvedValue) })
-
+  override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?): ValueWithDisplayString {
+    val component = destinationGetter(myProperty.components[0]).firstOrNull { it.id == stripId(resolvedValue) }
+    return component?.let {getDisplayForDestination(it)} ?: ValueWithDisplayString("$resolvedValue (invalid)", resolvedValue)
+  }
 }
