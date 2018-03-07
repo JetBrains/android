@@ -16,32 +16,21 @@ public class StudioIcons {
   }
 
   public static class Avd {
-    public static final Icon DEVICE_CAR_SELECTED = load("/studio/icons/avd/device-car-selected.png"); // 16x16
     public static final Icon DEVICE_CAR = load("/studio/icons/avd/device-car.png"); // 16x16
     public static final Icon DEVICE_CAR_LARGE = load("/studio/icons/avd/device-car_large.png"); // 32x32
-    public static final Icon DEVICE_GLASS_SELECTED = load("/studio/icons/avd/device-glass-selected.png"); // 16x16
     public static final Icon DEVICE_GLASS = load("/studio/icons/avd/device-glass.png"); // 16x16
     public static final Icon DEVICE_GLASS_LARGE = load("/studio/icons/avd/device-glass_large.png"); // 32x32
-    public static final Icon DEVICE_MOBILE_SELECTED = load("/studio/icons/avd/device-mobile-selected.png"); // 16x16
     public static final Icon DEVICE_MOBILE = load("/studio/icons/avd/device-mobile.png"); // 16x16
     public static final Icon DEVICE_MOBILE_LARGE = load("/studio/icons/avd/device-mobile_large.png"); // 32x32
-    public static final Icon DEVICE_PHONE_SELECTED = load("/studio/icons/avd/device-phone-selected.png"); // 16x16
     public static final Icon DEVICE_PHONE = load("/studio/icons/avd/device-phone.png"); // 16x16
-    public static final Icon DEVICE_PLAY_STORE_SELECTED = load("/studio/icons/avd/device-play-store-selected.png"); // 16x16
     public static final Icon DEVICE_PLAY_STORE = load("/studio/icons/avd/device-play-store.png"); // 16x16
-    public static final Icon DEVICE_TABLET_SELECTED = load("/studio/icons/avd/device-tablet-selected.png"); // 16x16
     public static final Icon DEVICE_TABLET = load("/studio/icons/avd/device-tablet.png"); // 16x16
-    public static final Icon DEVICE_TV_SELECTED = load("/studio/icons/avd/device-tv-selected.png"); // 16x16
     public static final Icon DEVICE_TV = load("/studio/icons/avd/device-tv.png"); // 16x16
     public static final Icon DEVICE_TV_LARGE = load("/studio/icons/avd/device-tv_large.png"); // 32x32
-    public static final Icon DEVICE_WEAR_SELECTED = load("/studio/icons/avd/device-wear-selected.png"); // 16x16
     public static final Icon DEVICE_WEAR = load("/studio/icons/avd/device-wear.png"); // 16x16
     public static final Icon DEVICE_WEAR_LARGE = load("/studio/icons/avd/device-wear_large.png"); // 32x32
-    public static final Icon EDIT_SELECTED = load("/studio/icons/avd/edit-selected.png"); // 16x16
     public static final Icon EDIT = load("/studio/icons/avd/edit.png"); // 16x16
-    public static final Icon QUICK_BOOT_SELECTED = load("/studio/icons/avd/quick-boot-selected.png"); // 16x16
     public static final Icon QUICK_BOOT = load("/studio/icons/avd/quick-boot.png"); // 16x16
-    public static final Icon RUN_SELECTED = load("/studio/icons/avd/run-selected.png"); // 16x16
     public static final Icon RUN = load("/studio/icons/avd/run.png"); // 16x16
   }
 
