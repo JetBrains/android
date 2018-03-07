@@ -71,7 +71,6 @@ public class NavigationSchema implements Disposable {
   private static final String ANNOTATION_NAV_TAG_NAME = "androidx.navigation.Navigator.Name";
 
   public static final String ATTR_NAV_TYPE = "navType";
-  public static final String ATTR_START_DESTINATION = "startDestination";
   public static final String ATTR_GRAPH = "graph";
   public static final String ATTR_POP_UP_TO = "popUpTo";
   public static final String ATTR_POP_UP_TO_INCLUSIVE = "popUpToInclusive";

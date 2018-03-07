@@ -24,7 +24,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION
 
 fun getStartDestLayoutId(navResourceId: String, project: Project, resourceResolver: ResourceResolver): String? {
   if (!navResourceId.startsWith("@navigation/")) {

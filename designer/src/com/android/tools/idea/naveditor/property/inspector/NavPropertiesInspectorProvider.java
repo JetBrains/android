@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
@@ -102,7 +103,7 @@ public abstract class NavPropertiesInspectorProvider implements InspectorProvide
       for (String propertyName : myPropertyNameUiNameMap.keySet()) {
         NlProperty property = properties.get(propertyName);
         if (property != null) {
-          if (propertyName.equals(NavigationSchema.ATTR_START_DESTINATION)
+          if (propertyName.equals(SdkConstants.ATTR_START_DESTINATION)
               && property.getComponents().stream().anyMatch(
                 component -> NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.NAVIGATION
                   && ((NavDesignSurface)propertiesManager.getDesignSurface()).getCurrentNavigation() != component)) {

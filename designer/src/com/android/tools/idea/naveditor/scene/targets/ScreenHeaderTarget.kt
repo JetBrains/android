@@ -29,7 +29,6 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.scaledFont
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION
 import java.awt.Font
 import java.awt.Rectangle
 
@@ -56,7 +55,7 @@ class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
     get() {
       val parent = component.nlComponent.parent ?: return false
 
-      val startDestination = NlComponent.stripId(parent.getAttribute(SdkConstants.AUTO_URI, ATTR_START_DESTINATION))
+      val startDestination = NlComponent.stripId(parent.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_START_DESTINATION))
       return startDestination.equals(component.id)
     }
 

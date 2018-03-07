@@ -159,7 +159,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val idProperty = SimpleProperty(ATTR_ID, root)
     val nameProperty = SimpleProperty(ATTR_NAME, root)
     val labelProperty = SimpleProperty(ATTR_LABEL, root)
-    val startDestinationProperty = SimpleProperty(NavigationSchema.ATTR_START_DESTINATION, root)
+    val startDestinationProperty = SimpleProperty(ATTR_START_DESTINATION, root)
 
     val properties = listOf(typeProperty, idProperty, nameProperty, labelProperty, startDestinationProperty, dummyProperty)
         .associateBy { it.name }
@@ -183,7 +183,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val idProperty = SimpleProperty(ATTR_ID, root)
     val nameProperty = SimpleProperty(ATTR_NAME, root)
     val labelProperty = SimpleProperty(ATTR_LABEL, root)
-    val startDestinationProperty = SimpleProperty(NavigationSchema.ATTR_START_DESTINATION, root)
+    val startDestinationProperty = SimpleProperty(ATTR_START_DESTINATION, root)
 
     val properties = listOf(typeProperty, idProperty, nameProperty, labelProperty, startDestinationProperty, dummyProperty)
         .associateBy { it.name }
