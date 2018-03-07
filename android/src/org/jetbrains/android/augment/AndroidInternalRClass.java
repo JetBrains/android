@@ -1,12 +1,12 @@
 package org.jetbrains.android.augment;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidInternalRClass extends AndroidLightClassBase {
   private static final Key<Sdk> ANDROID_INTERNAL_R = Key.create("ANDROID_INTERNAL_R");
   private final PsiFile myFile;
-  private final ResourceManager mySystemResourceManager;
+  private final SystemResourceManager mySystemResourceManager;
   private final PsiClass[] myInnerClasses;
 
   public AndroidInternalRClass(@NotNull PsiManager psiManager, @NotNull AndroidPlatform platform, Sdk sdk) {
@@ -89,7 +89,8 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     @NotNull
     @Override
     protected PsiField[] doGetFields() {
-      return buildResourceFields(mySystemResourceManager, false, myName, AndroidInternalRClass.this);
+      return buildResourceFields(mySystemResourceManager, mySystemResourceManager.getResourceRepository(), ResourceNamespace.ANDROID, false,
+                                 myName, AndroidInternalRClass.this);
     }
   }
 

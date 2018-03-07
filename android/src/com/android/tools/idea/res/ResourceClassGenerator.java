@@ -163,7 +163,7 @@ public class ResourceClassGenerator {
     } else {
       // Default R class.
       boolean styleableAdded = false;
-      for (ResourceType t : myResources.getAvailableResourceTypes()) {
+      for (ResourceType t : myResources.getAvailableResourceTypes(myNamespace)) {
         // getAvailableResourceTypes() sometimes returns both styleable and declare styleable. Make sure that we only create one subclass.
         if (t == ResourceType.DECLARE_STYLEABLE) {
           t = ResourceType.STYLEABLE;

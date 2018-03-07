@@ -17,8 +17,13 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.repository.ResourceVisibilityLookup;
+import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -35,6 +40,7 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,8 +52,9 @@ public class ResourceRepositoryManager implements Disposable {
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
   private static final Object MODULE_RESOURCES_LOCK = new Object();
 
-  private final AndroidFacet myFacet;
-  private final CachedValue<ResourceNamespace> myNamespace;
+  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final CachedValue<ResourceNamespace> myNamespace;
+  @Nullable private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
 
   @GuardedBy("APP_RESOURCES_LOCK")
   private AppResourceRepository myAppResources;
@@ -65,6 +72,12 @@ public class ResourceRepositoryManager implements Disposable {
       instance = facet.putUserDataIfAbsent(KEY, new ResourceRepositoryManager(facet));
     }
     return instance;
+  }
+
+  @Nullable
+  public static ResourceRepositoryManager getOrCreateInstance(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet == null ? null : getOrCreateInstance(facet);
   }
 
   @Nullable
@@ -103,7 +116,7 @@ public class ResourceRepositoryManager implements Disposable {
 
   @Contract("true -> !null")
   @Nullable
-  AppResourceRepository getAppResources(boolean createIfNecessary) {
+  public AppResourceRepository getAppResources(boolean createIfNecessary) {
     return ApplicationManager.getApplication().runReadAction((Computable<AppResourceRepository>)() -> {
       synchronized (APP_RESOURCES_LOCK) {
         if (myAppResources == null && createIfNecessary) {
@@ -117,7 +130,7 @@ public class ResourceRepositoryManager implements Disposable {
 
   @Contract("true -> !null")
   @Nullable
-  ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
+  public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
     return ApplicationManager.getApplication().runReadAction((Computable<ProjectResourceRepository>)() -> {
       synchronized (PROJECT_RESOURCES_LOCK) {
         if (myProjectResources == null && createIfNecessary) {
@@ -143,7 +156,19 @@ public class ResourceRepositoryManager implements Disposable {
     });
   }
 
-  public void refreshResources() {
+  @Nullable
+  public AbstractResourceRepository getFrameworkResources(boolean needLocales) {
+    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
+    if (androidPlatform == null) {
+      return null;
+    }
+
+    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(needLocales);
+  }
+
+  public void resetResources() {
+    resetVisibility();
+
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
         Disposer.dispose(myModuleResources);
@@ -173,10 +198,14 @@ public class ResourceRepositoryManager implements Disposable {
   }
 
   public void resetAllCaches() {
-    refreshResources();
+    resetResources();
     ConfigurationManager.getOrCreateInstance(myFacet.getModule()).getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();
+  }
+
+  public void resetVisibility() {
+    myResourceVisibilityProvider = null;
   }
 
   @NotNull
@@ -201,5 +230,32 @@ public class ResourceRepositoryManager implements Disposable {
     }
 
     return ObjectUtils.notNull(myNamespace.getValue(), ResourceNamespace.RES_AUTO);
+  }
+
+  @Nullable
+  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
+    if (myResourceVisibilityProvider == null) {
+      if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
+        return null;
+      }
+      myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
+    }
+
+    return myResourceVisibilityProvider;
+  }
+
+  @NotNull
+  public ResourceVisibilityLookup getResourceVisibility() {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
+    if (androidModel != null) {
+      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
+      if (provider != null) {
+        AndroidProject androidProject = androidModel.getAndroidProject();
+        Variant variant = androidModel.getSelectedVariant();
+        return provider.get(androidProject, variant);
+      }
+    }
+
+    return ResourceVisibilityLookup.NONE;
   }
 }

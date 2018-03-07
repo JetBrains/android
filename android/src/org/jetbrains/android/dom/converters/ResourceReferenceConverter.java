@@ -16,12 +16,18 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.repository.ResourceVisibilityLookup;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.resources.ResourceAccessibility;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceNamespaceContext;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -45,23 +51,28 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES;
-import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
  * @author yole
  */
 public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue>
   implements CustomReferenceConverter<ResourceValue>, AttributeValueDocumentationProvider {
+
+  private static final Pattern NAMESPACE_COLON = Pattern.compile("^((?:\\w|\\.)+):.*");
+  private static final Pattern PREFIX_NAMESPACE_COLON = Pattern.compile("^@((?:\\w|\\.)+):.*");
+
   private static final ImmutableSet<String> TOP_PRIORITY_VALUES =
     ImmutableSet.of(VALUE_MATCH_PARENT, VALUE_WRAP_CONTENT);
   private final Set<ResourceType> myResourceTypes;
@@ -126,15 +137,6 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     myAllowAttributeReferences = allowAttributeReferences;
   }
 
-  @NotNull
-  private static String getPackagePrefix(@Nullable String resourcePackage, boolean withPrefix) {
-    String prefix = withPrefix ? "@" : "";
-    if (resourcePackage == null) {
-      return prefix;
-    }
-    return prefix + resourcePackage + ':';
-  }
-
   @Nullable
   static String getValue(XmlElement element) {
     if (element instanceof XmlAttribute) {
@@ -178,14 +180,30 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
     boolean startsWithRefChar = StringUtil.startsWithChar(value, '@');
     if (!myQuiet || startsWithRefChar) {
-      String resourcePackage = null;
+      ResourceNamespace namespace = null;
+      String namespacePrefix = null;
       // Retrieve the system prefix depending on the prefix settings ("@android:" or "android:")
-      String systemPrefix = getPackagePrefix(SYSTEM_RESOURCE_PACKAGE, myWithPrefix || startsWithRefChar);
-      if (value.startsWith(systemPrefix)) {
-        resourcePackage = SYSTEM_RESOURCE_PACKAGE;
+      Matcher matcher = (myWithPrefix ? PREFIX_NAMESPACE_COLON : NAMESPACE_COLON).matcher(value);
+      if (matcher.matches()) {
+        ResourceNamespaceContext namespacesContext = ResourceHelper.getNamespacesContext(element);
+        namespacePrefix = matcher.group(1);
+        if (namespacesContext != null) {
+          namespace = ResourceNamespace.fromNamespacePrefix(namespacePrefix,
+                                                            namespacesContext.getCurrentNs(),
+                                                            namespacesContext.getResolver());
+        } else {
+          namespace = ResourceNamespace.fromPackageName(namespacePrefix);
+        }
       }
       else {
-        result.add(ResourceValue.literal(systemPrefix));
+        // We don't offer framework resources in completion, unless the string already starts with the framework namespace. But we do offer
+        // the right prefix, which will cause the framework resources to show up as follow-up completion.
+        ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(element);
+        String frameworkPrefix = firstNonNull(resolver.uriToPrefix(ResourceNamespace.ANDROID.getXmlNamespaceUri()),
+                                              ResourceNamespace.ANDROID.getPackageName());
+        result.add(ResourceValue.literal(myWithPrefix || startsWithRefChar
+                                         ? '@' + frameworkPrefix + ':'
+                                         : frameworkPrefix + ':'));
       }
       final char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
 
@@ -197,22 +215,20 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
         final boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
         for (final ResourceType type : recommendedTypes) {
-          addResourceReferenceValues(facet, element, prefix, type, resourcePackage, result, explicitResourceType);
+          addResourceReferenceValues(facet, element, prefix, type, namespace, result, explicitResourceType);
         }
       }
       else {
-        final Set<ResourceType> filteringSet = SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)
-                                               ? null
-                                               : getResourceTypesInCurrentModule(facet);
+        EnumSet<ResourceType> filteringSet = namespace == ResourceNamespace.ANDROID
+                                                   ? EnumSet.allOf(ResourceType.class)
+                                                   : getResourceTypesInCurrentModule(facet);
 
         for (ResourceType resourceType : ResourceType.values()) {
-          final String type = resourceType.getName();
-          String typePrefix = getTypePrefix(resourcePackage, type);
+          String typePrefix = getTypePrefix(namespacePrefix, resourceType);
           if (value.startsWith(typePrefix)) {
-            addResourceReferenceValues(facet, element, prefix, resourceType, resourcePackage, result, true);
+            addResourceReferenceValues(facet, element, prefix, resourceType, namespace, result, true);
           }
-          else if (recommendedTypes.contains(resourceType) &&
-                   (filteringSet == null || filteringSet.contains(resourceType))) {
+          else if (recommendedTypes.contains(resourceType) && filteringSet.contains(resourceType)) {
             result.add(ResourceValue.literal(typePrefix));
           }
         }
@@ -242,23 +258,24 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private static void completeAttributeReferences(String value, AndroidFacet facet, Set<ResourceValue> result) {
+    // TODO: namespaces
     if (StringUtil.startsWith(value, "?attr/")) {
       addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, true);
     }
     else if (StringUtil.startsWith(value, "?android:attr/")) {
-      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, true);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, ResourceNamespace.ANDROID, result, true);
     }
     else if (StringUtil.startsWithChar(value, '?')) {
       addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, false);
-      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, false);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, ResourceNamespace.ANDROID, result, false);
       result.add(ResourceValue.literal("?attr/"));
       result.add(ResourceValue.literal("?android:attr/"));
     }
   }
 
   @NotNull
-  public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
-    Set<ResourceType> result = EnumSet.noneOf(ResourceType.class);
+  public static EnumSet<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
+    EnumSet<ResourceType> result = EnumSet.noneOf(ResourceType.class);
     AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
     for (ResourceType type : ResourceType.values()) {
       if (resourceRepository.hasResourcesOfType(type)) {
@@ -275,9 +292,16 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   @NotNull
-  private static String getTypePrefix(String resourcePackage, String type) {
-    String typePart = type + '/';
-    return getPackagePrefix(resourcePackage, true) + typePart;
+  private String getTypePrefix(@Nullable String namespacePrefix, @NotNull ResourceType type) {
+    StringBuilder sb = new StringBuilder();
+    if (myWithPrefix) {
+      sb.append('@');
+    }
+    if (namespacePrefix != null) {
+      sb.append(namespacePrefix).append(':');
+    }
+    sb.append(type.getName()).append('/');
+    return sb.toString();
   }
 
   @NotNull
@@ -315,50 +339,75 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                  @Nullable XmlElement element,
                                                  char prefix,
                                                  ResourceType type,
-                                                 @Nullable String resPackage,
+                                                 @Nullable ResourceNamespace onlyNamespace,
                                                  Collection<ResourceValue> result,
                                                  boolean explicitResourceType) {
     PsiFile file = element != null ? element.getContainingFile() : null;
 
-    if (type == ResourceType.ID && resPackage == null && file != null && isNonValuesResourceFile(file)) {
+    if (type == ResourceType.ID && onlyNamespace != ResourceNamespace.ANDROID && file != null && isNonValuesResourceFile(file)) {
       // TODO: namespaces
       for (String id : ResourceHelper.findIdsInFile(file)) {
         result.add(referenceTo(prefix, type.getName(), null, id, explicitResourceType));
       }
     }
     else {
-      for (String resourceName : findResources(facet, type, resPackage)) {
-        result.add(referenceTo(prefix, type.getName(), resPackage, resourceName, explicitResourceType));
+      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+      ResourceVisibilityLookup visibilityLookup = repoManager.getResourceVisibility();
+      if (onlyNamespace == ResourceNamespace.ANDROID) {
+        AbstractResourceRepository frameworkResources = repoManager.getFrameworkResources(false);
+        if (frameworkResources == null) {
+          return;
+        }
+        addResourceReferenceValuesFromRepo(frameworkResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,
+                                           explicitResourceType);
       }
+      else {
+        AppResourceRepository appResources = repoManager.getAppResources(true);
 
-      // TODO(namespaces): Once we figure out code completion, rethink if we need this special case.
-      if (type == ResourceType.SAMPLE_DATA && resPackage == null) {
-        Collection<String> predefinedSamples =
-          AppResourceRepository.getOrCreateInstance(facet).getItemsOfType(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA);
-
-        for (String name : predefinedSamples) {
-          result.add(referenceTo(prefix, type.getName(), TOOLS_NS_NAME, name, explicitResourceType));
+        if (onlyNamespace != null) {
+          addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,
+                                             explicitResourceType);
+        } else {
+          for (ResourceNamespace namespace : appResources.getNamespaces()) {
+            addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, namespace, result,
+                                               explicitResourceType);
+          }
         }
       }
+    }
+  }
+
+  private static void addResourceReferenceValuesFromRepo(AbstractResourceRepository repo,
+                                                         ResourceRepositoryManager repoManager,
+                                                         ResourceVisibilityLookup visibilityLookup,
+                                                         @Nullable XmlElement element,
+                                                         char prefix,
+                                                         ResourceType type,
+                                                         @NotNull ResourceNamespace onlyNamespace,
+                                                         Collection<ResourceValue> result,
+                                                         boolean explicitResourceType) {
+    Collection<String> names =
+      ResourceHelper.getResourceItems(repo, onlyNamespace, type, visibilityLookup, ResourceAccessibility.PUBLIC);
+
+    ResourceNamespace.Resolver resolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
+    if (element != null) {
+      resolver = firstNonNull(ResourceHelper.getNamespaceResolver(element), resolver);
+    }
+
+    // Find the short prefix once for all items.
+    String namespacePrefix =
+      new ResourceReference(onlyNamespace, ResourceType.STRING, "dummy")
+        .getRelativeResourceUrl(repoManager.getNamespace(), resolver)
+        .namespace;
+
+    for (String name : names) {
+      result.add(referenceTo(prefix, type.getName(), namespacePrefix, name, explicitResourceType));
     }
   }
 
   private static boolean isNonValuesResourceFile(@NotNull PsiFile file) {
     ResourceFolderType resourceType = ResourceHelper.getFolderType(file.getOriginalFile());
     return resourceType != null && resourceType != ResourceFolderType.VALUES;
-  }
-
-  private static Collection<String> findResources(@NotNull AndroidFacet facet,
-                                                  @NotNull ResourceType type,
-                                                  @Nullable String resPackage) {
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
-    if (manager == null) {
-      return Collections.emptySet();
-    }
-    else {
-      ResourceNamespace namespace = resPackage == null ? ResourceNamespace.TODO : ResourceNamespace.fromPackageName(resPackage);
-      return manager.getResourceNames(namespace, type, true);
-    }
   }
 
   private static ResourceValue referenceTo(char prefix, String type, String resPackage, String name, boolean explicitResourceType) {

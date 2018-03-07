@@ -2,7 +2,7 @@ package org.jetbrains.android;
 
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResult;
@@ -71,7 +71,7 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
   public void filterPrivateResources(@NotNull CompletionParameters parameters,
                                      @NotNull final CompletionResultSet resultSet,
                                      AndroidFacet facet) {
-    final ResourceVisibilityLookup lookup = AppResourceRepository.getOrCreateInstance(facet).getResourceVisibility(facet);
+    final ResourceVisibilityLookup lookup = ResourceRepositoryManager.getOrCreateInstance(facet).getResourceVisibility();
     if (lookup.isEmpty()) {
       return;
     }

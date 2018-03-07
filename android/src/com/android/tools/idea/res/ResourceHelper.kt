@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 @file:JvmName("ResourceHelper")
+
 package com.android.tools.idea.res
 
 import com.android.SdkConstants.*
+import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
@@ -25,14 +27,12 @@ import com.android.ide.common.resources.AbstractResourceRepository
 import com.android.ide.common.resources.AbstractResourceRepository.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.DataFile
 import com.android.ide.common.resources.ResourceFile
+import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.*
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.xml.AndroidManifestParser
 import com.android.io.FileWrapper
-import com.android.resources.FolderTypeRelationship
-import com.android.resources.ResourceFolderType
-import com.android.resources.ResourceType
-import com.android.resources.ResourceUrl
+import com.android.resources.*
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -51,6 +51,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.*
 import com.intellij.ui.ColorUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -60,6 +61,7 @@ import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
 import java.util.*
+import kotlin.collections.HashSet
 
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
 private val LOG = Logger.getInstance("#com.android.tools.idea.res.ResourceHelper")
@@ -190,7 +192,7 @@ fun getFolderConfiguration(file: PsiFile?): FolderConfiguration? {
   if (file == null) return null
   if (!ApplicationManager.getApplication().isReadAccessAllowed) return runReadAction { getFolderConfiguration(file) }
   if (!file.isValid) return getFolderConfiguration(file.virtualFile)
-  return file.parent?.let {FolderConfiguration.getConfigForFolder(it.name) }
+  return file.parent?.let { FolderConfiguration.getConfigForFolder(it.name) }
 }
 
 fun getFolderConfiguration(file: VirtualFile?): FolderConfiguration? = file?.parent?.let { FolderConfiguration.getConfigForFolder(it.name) }
@@ -350,10 +352,10 @@ private fun RenderResources.resolveColor(colorValue: ResourceValue?, project: Pr
   } catch (e: NumberFormatException) {
     // If the alpha value is not valid, Android uses 1.0
     LOG.warn(
-        String.format(
-            "The alpha attribute in %s/%s does not resolve to a floating point number", stateList.dirName,
-            stateList.fileName
-        )
+      String.format(
+        "The alpha attribute in %s/%s does not resolve to a floating point number", stateList.dirName,
+        stateList.fileName
+      )
     )
     return stateColor
   }
@@ -428,7 +430,7 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
   val openFiles = FileEditorManager.getInstance(module.project).openFiles
   for (file in openFiles) {
     if (file.name.endsWith(DOT_XML) && file.parent != null &&
-        file.parent.name.startsWith(FD_RES_LAYOUT)) {
+      file.parent.name.startsWith(FD_RES_LAYOUT)) {
       return file
     }
   }
@@ -439,7 +441,7 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
       if (folder.name.startsWith(FD_RES_LAYOUT) && folder.isDirectory) {
         for (file in folder.children) {
           if (file.name.endsWith(DOT_XML) && file.parent != null &&
-              file.parent.name.startsWith(FD_RES_LAYOUT)) {
+            file.parent.name.startsWith(FD_RES_LAYOUT)) {
             return file
           }
         }
@@ -450,11 +452,21 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
   return null
 }
 
-fun RenderResources.resolve(resourceUrl: ResourceUrl, tag: XmlTag): ResourceValue? {
-  val facet = AndroidFacet.getInstance(tag) ?: return null
-  val resourceRepositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet)
-  val namespaceResolver = getNamespaceResolver(tag)
-  val resourceReference = resourceUrl.resolve(resourceRepositoryManager.namespace, namespaceResolver) ?: return null
+/** A pair of the current ("context") [ResourceNamespace] and a [ResourceNamespace.Resolver] for dealing with prefixes. */
+data class ResourceNamespaceContext(val currentNs: ResourceNamespace, val resolver: ResourceNamespace.Resolver)
+
+/** Constructs the right [ResourceNamespaceContext] for a given [XmlElement]. */
+fun getNamespacesContext(element: XmlElement): ResourceNamespaceContext? {
+  return ResourceNamespaceContext(
+    ResourceRepositoryManager.getOrCreateInstance(AndroidFacet.getInstance(element) ?: return null).namespace,
+    getNamespaceResolver(element)
+  )
+}
+
+/** Resolves a given [ResourceUrl] in the context of the given [XmlElement]. */
+fun RenderResources.resolve(resourceUrl: ResourceUrl, element: XmlElement): ResourceValue? {
+  val (namespace, namespaceResolver) = getNamespacesContext(element) ?: return null
+  val resourceReference = resourceUrl.resolve(namespace, namespaceResolver) ?: return null
   return getUnresolvedResource(resourceReference)
 }
 
@@ -689,8 +701,8 @@ fun getCompletionFromTypes(
     types.add(ResourceType.COLOR)
   }
 
-  val repository = AppResourceRepository.getOrCreateInstance(facet)
-  val lookup = repository.getResourceVisibility(facet)
+  val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
+  val appResources = repoManager.getAppResources(true)!!
   val androidPlatform = AndroidPlatform.getInstance(facet.module)
   var frameworkResources: AbstractResourceRepository? = null
   if (androidPlatform != null) {
@@ -707,11 +719,11 @@ fun getCompletionFromTypes(
     if (frameworkResources != null) {
       addFrameworkItems(resources, type, includeFileResources, frameworkResources)
     }
-    addProjectItems(resources, type, includeFileResources, repository, lookup)
+    addProjectItems(resources, type, includeFileResources, appResources, repoManager.resourceVisibility)
   }
 
   if (sort) {
-    Collections.sort(resources) { resource1, resource2 -> compareResourceReferences(resource1, resource2) }
+    resources.sortWith(Comparator(::compareResourceReferences))
   }
 
   return resources
@@ -792,19 +804,30 @@ private fun addProjectItems(
 /**
  * Returns a [ResourceNamespace.Resolver] for the specified tag.
  */
-fun getNamespaceResolver(tag: XmlTag): ResourceNamespace.Resolver {
-  // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
-  return object : ResourceNamespace.Resolver {
-    override fun uriToPrefix(namespaceUri: String): String? {
-      return ReadAction.compute<String, RuntimeException> {
-        if (!tag.isValid) null else StringUtil.nullize(tag.getPrefixByNamespace(namespaceUri))
+fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
+  fun withTag(compute: (XmlTag) -> String?): String? {
+    return ReadAction.compute<String, RuntimeException> {
+      if (!element.isValid) {
+        null
+      } else {
+        val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)
+        tag?.let(compute).let(StringUtil::nullize)
       }
     }
+  }
 
-    override fun prefixToUri(namespacePrefix: String): String? {
-      return ReadAction.compute<String, RuntimeException> {
-        if (!tag.isValid) null else StringUtil.nullize(tag.getNamespaceByPrefix(namespacePrefix))
-      }
+  val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
+
+  return if (repositoryManager.namespacing == AaptOptions.Namespacing.DISABLED) {
+    // In non-namespaced projects, framework is the only namespace, but the resource merger messes with namespaces at build time, so you
+    // have to use "android" as the prefix, which is equivalent not to defining a prefix at all (since "android" is the package name of the
+    // framework). We also need to keep in mind we recognize "tools" even without the xmlns definition in non-namespaced projects.
+    ResourceNamespace.Resolver.TOOLS_ONLY
+  } else {
+    // TODO(b/72688160, namespaces): precompute this to avoid the read lock.
+    object : ResourceNamespace.Resolver {
+      override fun uriToPrefix(namespaceUri: String): String? = withTag { tag -> tag.getPrefixByNamespace(namespaceUri) }
+      override fun prefixToUri(namespacePrefix: String): String? = withTag { tag -> tag.getNamespaceByPrefix(namespacePrefix) }
     }
   }
 }
@@ -867,8 +890,7 @@ private fun appendText(sb: StringBuilder, tag: XmlTag) {
   for (child in children) {
     if (child is XmlText) {
       sb.append(getXmlTextValue(child))
-    }
-    else if (child is XmlTag) {
+    } else if (child is XmlTag) {
       // xliff support
       if (XLIFF_G_TAG == child.localName && child.namespace.startsWith(XLIFF_NAMESPACE_PREFIX)) {
         val example = child.getAttributeValue(ATTR_EXAMPLE)
@@ -914,3 +936,42 @@ fun getAarPackageName(aarDir: File): String? {
   }
 }
 
+/**
+ * Gets the names of [ResourceItem]s with the given namespace, type and accessibility in the repository.
+ *
+ * Intended for code completion.
+ */
+fun AbstractResourceRepository.getResourceItems(
+  namespace: ResourceNamespace,
+  type: ResourceType,
+  visibilityLookup: ResourceVisibilityLookup,
+  maxAccessibility: ResourceAccessibility
+): Collection<String> {
+  // TODO(b/74325205): remove the need for this.
+  val patchedType = if (type == ResourceType.STYLEABLE) ResourceType.DECLARE_STYLEABLE else type
+
+
+  // TODO(namespaces): for now FrameworkResourceRepository is the only one that understands accessibility. We need to make all support it.
+  return if (this is FrameworkResourceRepository) {
+    when {
+      namespace != ResourceNamespace.ANDROID -> emptySet()
+      maxAccessibility != ResourceAccessibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, patchedType)
+      else -> {
+        val public = getPublicResourcesOfType(patchedType)
+        public.mapTo(HashSet(public.size), ResourceItem::getName)
+      }
+    }
+  } else {
+    val all = getItemsOfType(namespace, type)
+    when (maxAccessibility) {
+    // TODO(b/74324283): distinguish between DEFAULT/PRIVATE.
+      ResourceAccessibility.DEFAULT, ResourceAccessibility.PRIVATE -> all
+    // TODO(namespaces)
+      ResourceAccessibility.PUBLIC -> all.filter { name ->
+        // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
+        // which is probably a better UX and the only way to make our tests pass (for now).
+        !visibilityLookup.isPrivate(patchedType, name)
+      }
+    }
+  }
+}

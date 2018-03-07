@@ -16,12 +16,9 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.Variant;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -369,8 +366,6 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @VisibleForTesting
   void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
-    myResourceVisibility = null;
-    myResourceVisibilityProvider = null;
     synchronized (RESOURCE_MAP_LOCK) {
       myResourceDirMap = null;
     }
@@ -381,7 +376,6 @@ public class AppResourceRepository extends MultiResourceRepository {
       return;
     }
 
-    myResourceVisibility = null;
     myLibraries = libraries;
     myAarLibraries.clear();
     for (FileResourceRepository library : myLibraries) {
@@ -445,62 +439,5 @@ public class AppResourceRepository extends MultiResourceRepository {
     }
 
     return null;
-  }
-
-  private ResourceVisibilityLookup myResourceVisibility;
-  private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
-
-  @Nullable
-  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    if (myResourceVisibilityProvider == null) {
-      if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
-        return null;
-      }
-      myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
-    }
-
-    return myResourceVisibilityProvider;
-  }
-
-  @NotNull
-  public ResourceVisibilityLookup getResourceVisibility(@NotNull AndroidFacet facet) {
-    // TODO: b/23032391
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-    if (androidModel != null) {
-      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
-      if (provider != null) {
-        AndroidProject androidProject = androidModel.getAndroidProject();
-        Variant variant = androidModel.getSelectedVariant();
-        return provider.get(androidProject, variant);
-      }
-    }
-
-    return ResourceVisibilityLookup.NONE;
-  }
-
-  /**
-   * Returns true if the given resource is private
-   *
-   * @param type the type of the resource
-   * @param name the name of the resource
-   * @return true if the given resource is private
-   */
-  public boolean isPrivate(@NotNull ResourceType type, @NotNull String name) {
-    if (myResourceVisibility == null) {
-      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
-      if (provider == null) {
-        return false;
-      }
-      // TODO: b/23032391
-      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
-      if (androidModel == null) {
-        // normally doesn't happen since we check in getResourceVisibility,
-        // but can be triggered during a sync (b/22523040)
-        return false;
-      }
-      myResourceVisibility = provider.get(androidModel.getAndroidProject(), androidModel.getSelectedVariant());
-    }
-
-    return myResourceVisibility.isPrivate(type, name);
   }
 }

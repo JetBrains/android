@@ -43,9 +43,9 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-
-import static com.google.common.collect.Sets.newHashSetWithExpectedSize;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class LocalResourceManager extends ResourceManager {
   private AttributeDefinitions myAttrDefs;
@@ -255,36 +255,5 @@ public class LocalResourceManager extends ResourceManager {
       }
     }
     return targets;
-  }
-
-  @Override
-  @NotNull
-  public Collection<String> getResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, boolean publicOnly) {
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myFacet);
-    Collection<String> resourceNames;
-    if (resourceType == ResourceType.STYLEABLE) {
-      // Convert from the tag-oriented types that appResource hold to the inner-class oriented type.
-      resourceNames = appResources.getItemsOfType(namespace, ResourceType.DECLARE_STYLEABLE);
-    } else {
-      resourceNames = appResources.getItemsOfType(namespace, resourceType);
-    }
-    // We may need to filter out public only, or if the type is attr, filter out android: attributes.
-    if (publicOnly || resourceType == ResourceType.ATTR) {
-      Set<String> filtered = newHashSetWithExpectedSize(resourceNames.size());
-      for (String name : resourceNames) {
-        if (resourceType == ResourceType.ATTR) {
-          if (!name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX)) {
-            filtered.add(name);
-          }
-        }
-        if (publicOnly) {
-          if (!appResources.isPrivate(resourceType, name)) {
-            filtered.add(name);
-          }
-        }
-      }
-      resourceNames = filtered;
-    }
-    return resourceNames;
   }
 }

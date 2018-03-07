@@ -160,8 +160,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     if (ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing() == AaptOptions.Namespacing.DISABLED) {
-      // In the past we assumed the "tools:" prefix is defined, we need to keep doing this for projects that don't care about namespaces.
-      myImplicitNamespaces = ResourceNamespace.Resolver.fromBiMap(ImmutableBiMap.of(TOOLS_NS_NAME, TOOLS_URI));
+      myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
       myImplicitNamespaces = ResourceNamespace.Resolver.EMPTY_RESOLVER;
     }
