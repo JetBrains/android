@@ -62,7 +62,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
 
   public void testShowArtifactDependencySpec() {
     PsArtifactDependencySpec spec = new PsArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
-    when(myLibraryDependency.getResolvedSpec()).thenReturn(spec);
+    when(myLibraryDependency.getSpec()).thenReturn(spec);
     when(myLibraryDependency.getDeclaredSpec()).thenReturn(spec);
     when(myLibraryDependency.toText(PLAIN_TEXT)).thenReturn("com.android.support:appcompat-v7:23.1.0");
 

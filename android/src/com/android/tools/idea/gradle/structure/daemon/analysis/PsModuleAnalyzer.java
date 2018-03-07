@@ -38,7 +38,7 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
 
   protected void analyzeDeclaredDependency(@NotNull PsLibraryDependency dependency,
                                            @NotNull PsIssueCollection issueCollection) {
-    PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
+    PsArtifactDependencySpec resolvedSpec = dependency.getSpec();
     PsPath path = new PsLibraryDependencyNavigationPath(dependency);
 
     PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();

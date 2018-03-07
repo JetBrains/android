@@ -124,7 +124,7 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
       PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
       assert declaredSpec != null;
       this.declaredSpec = declaredSpec;
-      resolvedSpec = dependency.getResolvedSpec();
+      resolvedSpec = dependency.getSpec();
     }
 
     @Override

@@ -67,7 +67,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
 
   @NotNull
   private String getText(@NotNull PsLibraryAndroidDependency dependency) {
-    PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
+    PsArtifactDependencySpec resolvedSpec = dependency.getSpec();
     if (dependency.hasPromotedVersion() && !(getParent() instanceof LibraryDependencyNode)) {
       // Show only "promoted" version for declared nodes.
       PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
@@ -101,7 +101,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
 
       List<PsLibraryAndroidDependency> models = getModels();
       for (PsLibraryAndroidDependency dependency : models) {
-        if (dependency.getResolvedSpec().equals(other.getResolvedSpec())) {
+        if (dependency.getSpec().equals(other.getSpec())) {
           return true;
         }
       }

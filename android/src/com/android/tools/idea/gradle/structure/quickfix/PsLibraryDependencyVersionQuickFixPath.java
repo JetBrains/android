@@ -39,7 +39,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
     super(null);
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
-    String version = dependency.getResolvedSpec().getVersion();
+    String version = dependency.getSpec().getVersion();
     assert version != null;
     myVersion = version;
     myQuickFixText = quickFixText;
@@ -59,7 +59,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   private static String getCompactNotation(@NotNull PsLibraryDependency dependency) {
     PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
     if (spec == null) {
-      spec = dependency.getResolvedSpec();
+      spec = dependency.getSpec();
     }
     return spec.compactNotation();
   }

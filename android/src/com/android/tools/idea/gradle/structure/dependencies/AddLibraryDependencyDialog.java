@@ -118,7 +118,7 @@ public class AddLibraryDependencyDialog extends AbstractAddDependenciesDialog {
       androidModule.forEachDeclaredDependency(dependency -> {
         if (dependency instanceof PsLibraryAndroidDependency) {
           PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
-          PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
+          PsArtifactDependencySpec resolvedSpec = libraryDependency.getSpec();
           if (Objects.equals(spec.getGroup(), resolvedSpec.getGroup()) && Objects.equals(spec.getName(), resolvedSpec.getName())) {
             found.set(true);
           }

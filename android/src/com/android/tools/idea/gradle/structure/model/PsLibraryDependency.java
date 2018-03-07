@@ -51,7 +51,7 @@ public interface PsLibraryDependency extends PsBaseDependency {
     }
     if (modified) {
       GradleVersion parsedVersion = GradleVersion.parse(version);
-      PsArtifactDependencySpec resolvedSpec = getResolvedSpec();
+      PsArtifactDependencySpec resolvedSpec = getSpec();
       String resolvedVersion = nullToEmpty(resolvedSpec.getVersion());
       if (parsedVersion.compareTo(resolvedVersion) != 0) {
         // Update the "resolved" spec with the new version
@@ -69,7 +69,7 @@ public interface PsLibraryDependency extends PsBaseDependency {
   ImmutableCollection<DependencyModel> getParsedModels();
 
   @NotNull
-  PsArtifactDependencySpec getResolvedSpec();
+  PsArtifactDependencySpec getSpec();
 
   @NotNull
   default PsArtifactDependencySpec createSpec(@NotNull ArtifactDependencyModel parsedModel) {
@@ -79,6 +79,7 @@ public interface PsLibraryDependency extends PsBaseDependency {
     return spec;
   }
 
+  // TODO(solodkyy): Remove when dependency objects become immutable and setVersion() reworked.
   void setResolvedSpec(@NotNull PsArtifactDependencySpec spec);
 
   void setDeclaredSpec(@NotNull PsArtifactDependencySpec spec);

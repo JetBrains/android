@@ -40,18 +40,18 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 public class PsLibraryAndroidDependency extends PsAndroidDependency implements PsLibraryDependency {
   @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
-  @NotNull private PsArtifactDependencySpec myResolvedSpec;
+  @NotNull private PsArtifactDependencySpec mySpec;
 
   @Nullable private final Library myResolvedModel;
   @Nullable private PsArtifactDependencySpec myDeclaredSpec;
 
   PsLibraryAndroidDependency(@NotNull PsAndroidModule parent,
-                             @NotNull PsArtifactDependencySpec resolvedSpec,
+                             @NotNull PsArtifactDependencySpec spec,
                              @NotNull PsAndroidArtifact container,
                              @Nullable Library resolvedModel,
                              @Nullable ArtifactDependencyModel parsedModel) {
     super(parent, container, parsedModel);
-    myResolvedSpec = resolvedSpec;
+    mySpec = spec;
     myResolvedModel = resolvedModel;
     if (parsedModel != null) {
       setDeclaredSpec(createSpec(parsedModel));
@@ -112,14 +112,14 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
 
   @Override
   @NotNull
-  public PsArtifactDependencySpec getResolvedSpec() {
-    return myResolvedSpec;
+  public PsArtifactDependencySpec getSpec() {
+    return mySpec;
   }
 
   @Override
   @NotNull
   public String getName() {
-    return myResolvedSpec.getName();
+    return mySpec.getName();
   }
 
   @Override
@@ -133,11 +133,11 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
   public String toText(@NotNull TextType type) {
     switch (type) {
       case PLAIN_TEXT:
-        return myResolvedSpec.toString();
+        return mySpec.toString();
       case FOR_NAVIGATION:
         PsArtifactDependencySpec spec = myDeclaredSpec;
         if (spec == null) {
-          spec = myResolvedSpec;
+          spec = mySpec;
         }
         return spec.toString();
       default:
@@ -147,16 +147,17 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
 
   @Override
   public boolean hasPromotedVersion() {
-    if (myResolvedSpec.getVersion() != null && myDeclaredSpec != null && myDeclaredSpec.getVersion() != null) {
+     // TODO(solodkyy): Review usages in the case of declared dependencies.
+    if (mySpec.getVersion() != null && myDeclaredSpec != null && myDeclaredSpec.getVersion() != null) {
       GradleVersion declaredVersion = GradleVersion.tryParse(myDeclaredSpec.getVersion());
-      return declaredVersion != null && declaredVersion.compareTo(myResolvedSpec.getVersion()) < 0;
+      return declaredVersion != null && declaredVersion.compareTo(mySpec.getVersion()) < 0;
     }
     return false;
   }
 
   @Override
   public void setResolvedSpec(@NotNull PsArtifactDependencySpec spec) {
-    myResolvedSpec = spec;
+    mySpec = spec;
   }
 
   @Override
@@ -173,7 +174,7 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
       return false;
     }
     PsLibraryAndroidDependency that = (PsLibraryAndroidDependency)o;
-    return Objects.equals(myResolvedSpec, that.myResolvedSpec);
+    return Objects.equals(mySpec, that.mySpec);
   }
 
   @Override

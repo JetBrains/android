@@ -323,7 +323,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
         key = ((ModuleDependencyNode)node).getFirstModel().getGradlePath();
       }
       if (node instanceof LibraryDependencyNode) {
-        key = ((LibraryDependencyNode)node).getFirstModel().getResolvedSpec().toString();
+        key = ((LibraryDependencyNode)node).getFirstModel().getSpec().toString();
       }
       if (key != null) {
         List<AbstractDependencyNode<? extends PsAndroidDependency>> nodes = mySelection.get(key);
