@@ -85,7 +85,7 @@ public class InstantRunTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void hotSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -138,7 +138,7 @@ public class InstantRunTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void coldSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -191,7 +191,7 @@ public class InstantRunTest {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/37506663
   public void activityRunningOnSeparateProcess() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -247,7 +247,7 @@ public class InstantRunTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void changeManifest() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -296,7 +296,7 @@ public class InstantRunTest {
    */
   @Test
   public void unnecessaryCleanCheck() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
@@ -474,7 +474,7 @@ public class InstantRunTest {
   @RunIn(TestGroup.QA)
   @Test
   public void installingPlatformWhileDeployingApp() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
                        "x86 Images",
                        new ChooseSystemImageStepFixture.SystemImage("Lollipop", "22", "x86", "Android 5.1"),
