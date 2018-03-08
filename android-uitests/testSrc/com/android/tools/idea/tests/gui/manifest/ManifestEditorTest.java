@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.manifest;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
@@ -38,6 +40,7 @@ public class ManifestEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/74368053
   @Test
   public void testManifestGoToSource() throws IOException {
     guiTest.importSimpleApplication();
