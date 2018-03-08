@@ -38,6 +38,51 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
     collectDependencies()
   }
 
+  fun findElement(spec: PsArtifactDependencySpec): PsLibraryAndroidDependency? {
+    val dependency = findElement(spec.toString(), PsLibraryAndroidDependency::class.java)
+    return when {
+      dependency != null -> dependency
+      spec.version.isNullOrEmpty() ->
+        libraryDependenciesBySpec.entries
+          .singleOrNull { PsArtifactDependencySpec.create(it.key)?.let { it.group == spec.group && it.name == spec.name } == true }
+          ?.value
+      else -> null
+    }
+  }
+
+  override fun <S : PsAndroidDependency> findElement(name: String, type: Class<S>): S? {
+    // Note: Cannot be inlined: https://youtrack.jetbrains.com/issue/KT-23053
+    @Suppress("UnnecessaryVariable")
+    val uncastType = type
+    return when (type) {
+      PsModuleAndroidDependency::class.java -> uncastType.cast(moduleDependenciesByGradlePath[name])
+      PsLibraryAndroidDependency::class.java -> uncastType.cast(libraryDependenciesBySpec[name])
+      else -> null
+    }
+  }
+
+  override fun forEach(consumer: Consumer<PsAndroidDependency>) {
+    libraryDependenciesBySpec.values.forEach(consumer)
+    moduleDependenciesByGradlePath.values.forEach(consumer)
+  }
+
+  fun forEachDeclaredDependency(consumer: Consumer<PsAndroidDependency>) {
+    libraryDependenciesBySpec.values.filter { it.isDeclared }.forEach(consumer)
+    moduleDependenciesByGradlePath.values.filter { it.isDeclared }.forEach(consumer)
+  }
+
+  fun forEachModuleDependency(consumer: Consumer<PsModuleAndroidDependency>) {
+    moduleDependenciesByGradlePath.values.forEach(consumer)
+  }
+
+  fun findLibraryDependency(compactNotation: String): PsLibraryAndroidDependency? =
+    findElement(compactNotation, PsLibraryAndroidDependency::class.java)
+
+  fun findLibraryDependency(spec: PsArtifactDependencySpec): PsLibraryAndroidDependency? = findElement(spec)
+
+  fun findModuleDependency(modulePath: String): PsModuleAndroidDependency? =
+    findElement(modulePath, PsModuleAndroidDependency::class.java)
+
   private fun collectDependencies() {
     collectResolvedDependencies()
     collectParsedDependencies()
@@ -45,12 +90,6 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
 
   private fun collectParsedDependencies() {
     collectParsedDependencies(parent.parsedDependencies)
-  }
-
-  private fun collectResolvedDependencies() {
-    parent.forEachVariant {
-      it.forEachArtifact { collectResolvedDependencies(it) }
-    }
   }
 
   private fun collectParsedDependencies(parsedDependencies: PsParsedDependencies) {
@@ -96,6 +135,12 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
     return artifactsByConfigurationNames
   }
 
+  private fun collectResolvedDependencies() {
+    parent.forEachVariant {
+      it.forEachArtifact { collectResolvedDependencies(it) }
+    }
+  }
+
   private fun collectResolvedDependencies(artifact: PsAndroidArtifact) {
     val resolvedArtifact = artifact.resolvedModel ?: return
     val dependencies = resolvedArtifact.level2Dependencies
@@ -112,49 +157,6 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
     for (javaLibrary in dependencies.javaLibraries) {
       addLibrary(javaLibrary, artifact)
     }
-  }
-
-  private fun addModule(gradlePath: String, artifact: PsAndroidArtifact, projectVariant: String?) {
-    val parsedDependencies = parent.parsedDependencies
-
-    val matchingParsedDependency =
-      parsedDependencies.findModuleDependency(gradlePath) { parsedDependency: DependencyModel -> artifact.contains(parsedDependency) }
-
-    addModule(gradlePath, artifact, projectVariant, matchingParsedDependency)
-  }
-
-  private fun addModule(
-    gradlePath: String,
-    artifact: PsAndroidArtifact,
-    projectVariant: String?,
-    matchingParsedDependency: ModuleDependencyModel?
-  ) {
-    val dependency = getOrCreateModuleDependency(gradlePath, artifact, projectVariant, matchingParsedDependency)
-    updateDependency(dependency, artifact, matchingParsedDependency)
-  }
-
-  private fun getOrCreateModuleDependency(
-    gradlePath: String,
-    artifact: PsAndroidArtifact,
-    projectVariant: String?,
-    matchingParsedDependency: ModuleDependencyModel?
-  ): PsModuleAndroidDependency {
-    val module = parent.parent.findModuleByGradlePath(gradlePath)
-    val resolvedModule = module?.resolvedModel
-    var dependency = findElement(gradlePath, PsModuleAndroidDependency::class.java)
-    if (dependency == null) {
-      dependency =
-          PsModuleAndroidDependency(
-            parent,
-            gradlePath,
-            listOf(artifact),
-            projectVariant,
-            resolvedModule,
-            matchingParsedDependency.wrapInList()
-          )
-      moduleDependenciesByGradlePath[gradlePath] = dependency
-    }
-    return dependency
   }
 
   private fun addLibrary(library: Library, artifact: PsAndroidArtifact) {
@@ -256,50 +258,6 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
     }
   }
 
-  fun findElement(spec: PsArtifactDependencySpec): PsLibraryAndroidDependency? {
-    val dependency = findElement(spec.toString(), PsLibraryAndroidDependency::class.java)
-    return when {
-      dependency != null -> dependency
-      spec.version.isNullOrEmpty() ->
-        libraryDependenciesBySpec.entries
-          .singleOrNull { PsArtifactDependencySpec.create(it.key)?.let { it.group == spec.group && it.name == spec.name } == true }
-          ?.value
-      else -> null
-    }
-  }
-
-  override fun <S : PsAndroidDependency> findElement(name: String, type: Class<S>): S? {
-    // Note: Cannot be inlined: https://youtrack.jetbrains.com/issue/KT-23053
-    @Suppress("UnnecessaryVariable")
-    val uncastType = type
-    return when (type) {
-      PsModuleAndroidDependency::class.java -> uncastType.cast(moduleDependenciesByGradlePath[name])
-      PsLibraryAndroidDependency::class.java -> uncastType.cast(libraryDependenciesBySpec[name])
-      else -> null
-    }
-  }
-
-  override fun forEach(consumer: Consumer<PsAndroidDependency>) {
-    libraryDependenciesBySpec.values.forEach(consumer)
-    moduleDependenciesByGradlePath.values.forEach(consumer)
-  }
-
-  fun forEachDeclaredDependency(consumer: Consumer<PsAndroidDependency>) {
-    libraryDependenciesBySpec.values.filter { it.isDeclared }.forEach(consumer)
-    moduleDependenciesByGradlePath.values.filter { it.isDeclared }.forEach(consumer)
-  }
-
-  fun forEachModuleDependency(consumer: Consumer<PsModuleAndroidDependency>) {
-    moduleDependenciesByGradlePath.values.forEach(consumer)
-  }
-
-  fun findLibraryDependency(compactNotation: String): PsLibraryAndroidDependency? =
-    findElement(compactNotation, PsLibraryAndroidDependency::class.java)
-
-  fun findLibraryDependency(spec: PsArtifactDependencySpec): PsLibraryAndroidDependency? = findElement(spec)
-
-  fun findModuleDependency(modulePath: String): PsModuleAndroidDependency? = findElement(modulePath, PsModuleAndroidDependency::class.java)
-
   fun addLibraryDependency(
     spec: PsArtifactDependencySpec,
     artifact: PsAndroidArtifact,
@@ -312,6 +270,49 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
     } else {
       updateDependency(dependency, artifact, parsedModel)
     }
+  }
+
+  private fun addModule(gradlePath: String, artifact: PsAndroidArtifact, projectVariant: String?) {
+    val parsedDependencies = parent.parsedDependencies
+
+    val matchingParsedDependency =
+      parsedDependencies.findModuleDependency(gradlePath) { parsedDependency: DependencyModel -> artifact.contains(parsedDependency) }
+
+    addModule(gradlePath, artifact, projectVariant, matchingParsedDependency)
+  }
+
+  private fun addModule(
+    gradlePath: String,
+    artifact: PsAndroidArtifact,
+    projectVariant: String?,
+    matchingParsedDependency: ModuleDependencyModel?
+  ) {
+    val dependency = getOrCreateModuleDependency(gradlePath, artifact, projectVariant, matchingParsedDependency)
+    updateDependency(dependency, artifact, matchingParsedDependency)
+  }
+
+  private fun getOrCreateModuleDependency(
+    gradlePath: String,
+    artifact: PsAndroidArtifact,
+    projectVariant: String?,
+    matchingParsedDependency: ModuleDependencyModel?
+  ): PsModuleAndroidDependency {
+    val module = parent.parent.findModuleByGradlePath(gradlePath)
+    val resolvedModule = module?.resolvedModel
+    var dependency = findElement(gradlePath, PsModuleAndroidDependency::class.java)
+    if (dependency == null) {
+      dependency =
+          PsModuleAndroidDependency(
+            parent,
+            gradlePath,
+            listOf(artifact),
+            projectVariant,
+            resolvedModule,
+            matchingParsedDependency.wrapInList()
+          )
+      moduleDependenciesByGradlePath[gradlePath] = dependency
+    }
+    return dependency
   }
 
   fun addModuleDependency(
