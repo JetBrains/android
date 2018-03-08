@@ -724,29 +724,41 @@ class NavSceneTest : NavTestCase() {
     val view = surface.currentSceneView!!
     `when`(view.scale).thenReturn(1.0)
     val transform = SceneContext.get(view)
-    scene.layout(0, SceneContext.get(surface.currentSceneView))
+    val sceneContext = SceneContext.get(surface.currentSceneView)
+
+    scene.layout(0, sceneContext)
+
     val interactionManager = mock(InteractionManager::class.java)
     `when`(interactionManager.isInteractionInProgress).thenReturn(true)
     `when`(surface.interactionManager).thenReturn(interactionManager)
-    scene.mouseHover(transform, 150, 30)
+
+    val drawRect1 = scene.getSceneComponent("fragment1")!!
+    scene.mouseDown(sceneContext, drawRect1.drawX + drawRect1.drawWidth, drawRect1.centerY)
+
+    val drawRect2 = scene.getSceneComponent("subnav")!!
+    scene.mouseDrag(sceneContext, drawRect2.centerX, drawRect2.centerY)
+
     scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
 
     assertEquals(
         "Clip,0,0,990,928\n" +
+            "DrawFilledRectangle,1,520x400x70x19,fffafafa,6\n" +
+            "DrawRectangle,1,520x400x70x19,ff1886f7,2,6\n" +
+            "DrawTruncatedText,3,Nested Graph,520x400x70x19,ffa7a7a7,Default:1:9,true\n" +
+            "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
+            "\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
             "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
-            "DrawRectangle,1,398x398x80x132,ffa7a7a7,2,2\n" +
+            "DrawRectangle,1,398x398x80x132,ff1886f7,2,2\n" +
             "DrawAction,NORMAL,400x400x76x128,520x400x70x19,NORMAL\n" +
             "DrawArrow,2,RIGHT,510x406x5x6,b2a7a7a7\n" +
             "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
             "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
             "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-            "\n" +
-            "DrawFilledRectangle,1,520x400x70x19,fffafafa,6\n" +
-            "DrawRectangle,1,520x400x70x19,ffa7a7a7,1,6\n" +
-            "DrawTruncatedText,3,Nested Graph,520x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-            "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
+            "DrawFilledCircle,6,478x464,fff5f5f5,0:3:54\n" +
+            "DrawFilledCircle,7,478x464,ff1886f7,2:2:0\n" +
+            "DrawActionHandleDrag,478,464\n" +
             "\n" +
             "UNClip\n", list.generateSortedDisplayList(transform)
     )
