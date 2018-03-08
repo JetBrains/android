@@ -31,7 +31,7 @@ public class FindInPathTest {
 
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
-    ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
+    ImmutableList<String> usageGroupNames = guiTest.importSimpleLocalApplication()
       .openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
       .setTextToFind("ActionBarDivider")
       .clickFind()
@@ -41,7 +41,7 @@ public class FindInPathTest {
 
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
-    ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
+    ImmutableList<String> usageGroupNames = guiTest.importSimpleLocalApplication()
       .openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
       .setTextToFind("DarkActionBar")
       .clickFind()
