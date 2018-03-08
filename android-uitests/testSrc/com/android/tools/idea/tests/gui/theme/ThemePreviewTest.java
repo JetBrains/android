@@ -45,7 +45,7 @@ public class ThemePreviewTest {
 
   @Test
   public void testPreviewAvailability() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Project project = guiTest.ideFrame().getProject();
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -67,7 +67,7 @@ public class ThemePreviewTest {
   @Test
   public void testPreviewAvailabilityDumbModeDelays() throws Exception {
     // Test that things still work if we force the IDE into dumb mode at certain times.
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Project project = guiTest.ideFrame().getProject();
     Application application =
@@ -90,7 +90,7 @@ public class ThemePreviewTest {
 
   @Test
   public void testToolbarState() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Project project = guiTest.ideFrame().getProject();
     EditorFixture editor = guiTest.ideFrame().getEditor();
