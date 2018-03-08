@@ -35,6 +35,7 @@ import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor
 import com.intellij.xml.XmlAttributeDescriptor
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.dom.attrs.AttributeFormat
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
 import java.util.*
@@ -158,6 +159,9 @@ class NelePropertiesProvider(private val model: NelePropertiesModel) {
   private fun createProperty(namespace: String, name: String, attr: AttributeDefinition?, components: List<NlComponent>): NelePropertyItem {
     val type = TypeResolver.resolveType(name, attr)
     val libraryName = attr?.libraryName ?: ""
+    if (attr != null && attr.formats.contains(AttributeFormat.Flag) && attr.values.isNotEmpty()) {
+      return NeleFlagsPropertyItem(namespace, name, type, attr, libraryName, model, components)
+    }
     return NelePropertyItem(namespace, name, type, attr, libraryName, model, components)
   }
 

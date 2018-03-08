@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
-import com.android.SdkConstants
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
 
@@ -38,17 +38,17 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
       descriptor.withBounds(0, y, 100, 100)
       y += 100
       if (descriptor.id == null) {
-        descriptor.id(SdkConstants.NEW_ID_PREFIX + descriptor.tagName)
+        descriptor.id(NEW_ID_PREFIX + descriptor.tagName)
       }
     }
     val builder = model(
         "linear.xml",
-        component(SdkConstants.LINEAR_LAYOUT)
+        component(LINEAR_LAYOUT)
           .withBounds(0, 0, 1000, 1500)
           .id("@id/linear")
           .matchParentWidth()
           .matchParentHeight()
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CONTEXT, "com.example.MyActivity")
+          .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
           .children(*descriptors)
     )
     val nlModel = builder.build()
