@@ -38,7 +38,7 @@ import java.awt.event.MouseEvent
 open class NavActionsInspectorProvider : NavListInspectorProvider<NavActionsProperty>(
     NavActionsProperty::class.java,
     StudioIcons.NavEditor.Properties.ACTION,
-    "Add Action"
+    "Action"
 ) {
 
   override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {

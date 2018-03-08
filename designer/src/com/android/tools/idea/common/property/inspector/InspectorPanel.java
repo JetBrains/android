@@ -329,10 +329,20 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
   }
 
   public JLabel addTitle(@NotNull String title) {
+    return addTitle(title, null);
+  }
+
+  public JLabel addTitle(@NotNull String title, @Nullable Component rightComponent) {
     JLabel label = createLabel(title, null, null);
     label.setFont(myBoldLabelFont);
-    addLineComponent(label, myRow++);
-    myLabel2ComponentMap.put(myDefaultLabel, label);
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
+    panel.add(label, BorderLayout.WEST);
+    if (rightComponent != null) {
+      panel.add(rightComponent, BorderLayout.EAST);
+    }
+    addLineComponent(panel, myRow++);
+    myLabel2ComponentMap.put(myDefaultLabel, panel);
     startGroup(label, true, null);
     return label;
   }

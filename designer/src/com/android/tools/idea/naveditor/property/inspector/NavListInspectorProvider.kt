@@ -32,6 +32,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.JBColor
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SortedListModel
 import com.intellij.ui.components.JBList
 import java.awt.BorderLayout
@@ -45,9 +46,10 @@ import javax.swing.*
 const val NAV_LIST_COMPONENT_NAME = "NavListPropertyInspector"
 
 abstract class NavListInspectorProvider<PropertyType : ListProperty>(
-    private val propertyType: Class<PropertyType>, val icon: Icon, val tooltip: String)
+    private val propertyType: Class<PropertyType>, val icon: Icon, val objectName: String)
   : InspectorProvider<NavPropertiesManager> {
 
+  val tooltip = "Add $objectName"
   protected val inspector = NavListInspectorComponent()
 
   private val whiteIcon = ColoredIconGenerator.generateWhiteIcon(icon)
@@ -160,6 +162,12 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
           }
         }
       })
+      list.emptyText.also {
+        it.text = "Click "
+        it.appendText("+", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
+        it.appendText(" to add ${objectName}s")
+      }
+
       attachListeners.forEach { it.invoke(list) }
 
       panel.add(list, BorderLayout.CENTER)
@@ -173,9 +181,10 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
       val plusPanel = JPanel(BorderLayout())
       plusPanel.add(plus, BorderLayout.EAST)
+      plusPanel.isOpaque = false
 
       val title = getTitle(components, surface)
-      inspector.addExpandableComponent(title, null, plusPanel, plusPanel)
+      inspector.addTitle(title, plusPanel)
       inspector.addPanel(panel)
     }
 
