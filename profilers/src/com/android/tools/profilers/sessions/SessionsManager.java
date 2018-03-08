@@ -18,12 +18,15 @@ package com.android.tools.profilers.sessions;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static com.android.tools.profilers.StudioProfilers.buildSessionName;
 
@@ -55,6 +58,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * one that is currently selected (e.g. Users can profile in the background while exploring other sessions history).
    */
   @NotNull private Common.Session myProfilingSession;
+
+  /**
+   * A list of handlers that import sessions based on their file types.
+   */
+  private final Map<String, Consumer<File>> myImportHandlers = new HashMap<>();
+
+  private int importedSessionCount = 0;
 
   public SessionsManager(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
@@ -178,6 +188,61 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     if (selectedSessionIsProfilingSession) {
       setSession(session);
     }
+  }
+
+  /**
+   * Create and select a new session
+   *
+   * @param sessionName name of the new session
+   * @param sessionType type of the new session
+   * @return the new session
+   */
+  @NotNull
+  public Common.Session createImportedSession(@NotNull String sessionName, @NotNull Common.SessionMetaData.SessionType sessionType) {
+    Common.Session session = Common.Session.newBuilder()
+      .setSessionId(generateUniqueSessionId())
+      .build();
+
+    Profiler.ImportSessionRequest sessionRequest = Profiler.ImportSessionRequest.newBuilder()
+      .setSession(session)
+      .setSessionName(sessionName)
+      .setSessionType(sessionType)
+      .build();
+    myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
+    return session;
+  }
+
+  /**
+   * Register the import handler for a specific extension
+   *
+   * @param extension extension of the file
+   * @param listener  import listener
+   */
+  public void registerImportHandler(@NotNull String extension, @NotNull Consumer<File> handler) {
+    myImportHandlers.put(extension, handler);
+  }
+
+  /**
+   * Import session from file base on its extension
+   *
+   * @param file where the session is imported from
+   */
+  public void importSessionFromFile(@NotNull File file) {
+    int indexOfDot = file.getName().indexOf('.');
+    if (indexOfDot == -1) {
+      return;
+    }
+    String extension = file.getName().substring(indexOfDot + 1).toLowerCase();
+    assert myImportHandlers.get(extension) != null;
+    myImportHandlers.get(extension).accept(file);
+  }
+
+  /**
+   * Return a unique Session ID
+   */
+  private int generateUniqueSessionId() {
+    // TODO: b/74401257 generate session ID in a proper way
+    return ++importedSessionCount;
   }
 
   /**

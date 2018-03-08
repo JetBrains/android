@@ -22,7 +22,10 @@ import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.ViewBinder;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -34,6 +37,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.Arrays;
 
 import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
@@ -281,8 +285,8 @@ public class SessionsView extends AspectObserver {
       loadAction.setAction(() -> {
         myIdeProfilerComponents
           .createImportDialog().
-          open(() -> "Open", Arrays.asList("hprof"), file -> {
-          });
+          open(() -> "Open", Arrays.asList("hprof"),
+               file -> myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath())));
       });
       myProcessSelectionAction.addChildrenActions(loadAction);
     }
