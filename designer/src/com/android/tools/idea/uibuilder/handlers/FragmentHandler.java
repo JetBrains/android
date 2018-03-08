@@ -112,7 +112,10 @@ public final class FragmentHandler extends ViewHandler {
         if (className.equals(FQCN_NAV_HOST_FRAGMENT)) {
           String src = browseNavs(editor, null);
           if (src != null) {
-            ApplicationManager.getApplication().runWriteAction(() -> newChild.setAttribute(AUTO_URI, ATTR_NAV_GRAPH, src));
+            ApplicationManager.getApplication().runWriteAction(() -> {
+              newChild.setAttribute(AUTO_URI, ATTR_NAV_GRAPH, src);
+              newChild.setAttribute(AUTO_URI, ATTR_DEFAULT_NAV_HOST, VALUE_TRUE);
+            });
             return true;
           }
           else {
