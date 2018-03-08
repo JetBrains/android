@@ -72,13 +72,26 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
 
   @Override
   public long getTimestampNs() {
-    // TODO(b/74362836) return the correct (aligned with device) timestamp.
     return myInfo.getFromTimestamp() - mySession.getStartTimestamp();
   }
 
   @Override
   public void onSelect() {
-    // TODO b\74362836 handle selection of the CPU capture.
+    // If the capture selected is not part of the currently selected session, we need to select the session containing the capture.
+    boolean needsToChangeSession = mySession != myProfilers.getSession();
+    if (needsToChangeSession) {
+      myProfilers.getSessionsManager().setSession(mySession);
+    }
+
+    // If CPU profiler is not yet open, we need to do it.
+    boolean needsToOpenCpuProfiler = !(myProfilers.getStage() instanceof CpuProfilerStage);
+    if (needsToOpenCpuProfiler) {
+      myProfilers.setStage(new CpuProfilerStage(myProfilers));
+    }
+
+    // Finally, we set and select the capture in the CpuProfilerStage, which should be the current stage of StudioProfilers.
+    assert myProfilers.getStage() instanceof CpuProfilerStage;
+    ((CpuProfilerStage)myProfilers.getStage()).setAndSelectCapture(myInfo.getTraceId());
   }
 
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,
