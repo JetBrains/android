@@ -17,6 +17,7 @@ package com.android.tools.profilers.energy;
 
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -80,6 +81,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
       case ALARM_SET:
         return "alarm" + TimeUnit.NANOSECONDS.toMillis(getInitialTimestamp());
       default:
+        getLogger().warn("First event in duration is " + myEventList.get(0).getMetadataCase().name());
         return "unspecified";
     }
   }
@@ -102,6 +104,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
         return Kind.JOB;
 
       default:
+        getLogger().warn("Unsupported Kind for " + myEventList.get(0).getMetadataCase().name());
         return Kind.UNKNOWN;
     }
   }
@@ -131,5 +134,10 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
       }
     }
     return durationMap.values().stream().map(list -> new EnergyDuration(list)).collect(Collectors.toList());
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(EnergyDuration.class);
   }
 }
