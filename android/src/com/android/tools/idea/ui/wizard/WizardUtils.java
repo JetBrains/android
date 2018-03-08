@@ -107,7 +107,7 @@ public final class WizardUtils {
   public static String getUniqueName(String initialValue, Validator<String> validator) {
     int i = 2;
     String uniqueName = initialValue;
-    while (i <= 100 && validator.validate(uniqueName) != Validator.Result.OK) {
+    while (i <= 100 && validator.validate(uniqueName).getSeverity() == Validator.Severity.ERROR) {
       uniqueName = initialValue + Integer.toString(i);
       i++;
     }
