@@ -17,10 +17,19 @@ package com.android.tools.idea.uibuilder.handlers
 
 import com.android.SdkConstants.ATTR_NAV_GRAPH
 import com.android.SdkConstants.AUTO_URI
+import com.android.resources.ResourceType
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.model.createComponent
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.psi.XmlElementFactory
 import org.jetbrains.android.AndroidTestCase
+import com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import java.util.*
 
 class FragmentHandlerTest : LayoutTestCase() {
   fun testActivateNavFragment() {
@@ -52,4 +61,27 @@ class FragmentHandlerTest : LayoutTestCase() {
     AndroidTestCase.assertEquals("nav.xml", editorManager.openFiles[0].name)
   }
 
+  fun testCreateNavHost() {
+    val model = model(
+        "model.xml",
+        component("LinearLayout")
+          .id("@+id/outer")
+          .withBounds(0, 0, 100, 100))
+      .build()
+
+    val tag = XmlElementFactory.getInstance(getProject()).createTagFromText(
+        "    <fragment\n" +
+        "        android:id=\"@+id/fragment\"\n" +
+        "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>");
+    val editor = mock(ViewEditorImpl::class.java)
+    `when`(editor.displayResourceInput("Navigation Graphs", EnumSet.of(ResourceType.NAVIGATION))).thenReturn("@navigation/testNav")
+    WriteCommandAction.runWriteCommandAction(
+        model.project, null, null,
+        Runnable { model.createComponent(editor, tag, model.find("outer"), null, InsertType.CREATE) },
+        model.file
+    )
+    val newFragment = model.find("fragment")!!
+    assertEquals("@navigation/testNav", newFragment.getAttribute(AUTO_URI, ATTR_NAV_GRAPH))
+    assertEquals("true", newFragment.getAttribute(AUTO_URI, ATTR_DEFAULT_NAV_HOST))
+  }
 }
