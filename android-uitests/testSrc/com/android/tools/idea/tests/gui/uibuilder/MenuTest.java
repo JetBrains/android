@@ -29,6 +29,7 @@ import org.fest.swing.fixture.JListFixture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,6 +80,7 @@ public final class MenuTest {
     myEditor = myGuiTest.ideFrame().getEditor();
   }
 
+  @Ignore("b/74388076")
   @Test
   public void dragCastButtonIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
@@ -140,6 +142,7 @@ public final class MenuTest {
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
+  @Ignore("b/74388076")
   @Test
   public void dragSearchItemIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
