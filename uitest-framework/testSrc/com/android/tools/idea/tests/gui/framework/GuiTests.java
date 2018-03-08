@@ -298,10 +298,7 @@ public final class GuiTests {
           .until(() -> {
             boolean notified = listener.myNotified;
             if (notified) {
-              ProgressManager progressManager = ProgressManager.getInstance();
-              boolean isIdle = !progressManager.hasModalProgressIndicator() &&
-                               !progressManager.hasProgressIndicator() &&
-                               !progressManager.hasUnsafeProgressIndicator();
+              boolean isIdle = !anyProgressIndicator();
               if (isIdle) {
                 ProjectManager.getInstance().removeProjectManagerListener(listener);
               }
@@ -655,12 +652,15 @@ public final class GuiTests {
       .expecting("background tasks to finish")
       .until(() -> {
         robot.waitForIdle();
-
-        ProgressManager progressManager = ProgressManager.getInstance();
-        return !progressManager.hasModalProgressIndicator() &&
-               !progressManager.hasProgressIndicator() &&
-               !progressManager.hasUnsafeProgressIndicator();
+        return !anyProgressIndicator();
       });
+  }
+
+  private static boolean anyProgressIndicator() {
+    ProgressManager progressManager = ProgressManager.getInstance();
+    return progressManager.hasModalProgressIndicator() ||
+           progressManager.hasProgressIndicator() ||
+           progressManager.hasUnsafeProgressIndicator();
   }
 
   public static void waitForProjectIndexingToFinish(@NotNull Project project) {
