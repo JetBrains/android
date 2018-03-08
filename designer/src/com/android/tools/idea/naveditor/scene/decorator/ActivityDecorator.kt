@@ -37,7 +37,6 @@ import java.awt.Rectangle
 @NavCoordinate private val ACTIVITY_ARC_SIZE = 12
 @NavCoordinate private val ACTIVITY_PADDING = 8
 @NavCoordinate private val ACTIVITY_TEXT_HEIGHT = 26
-@NavCoordinate private val ACTIVITY_BORDER_THICKNESS = 2
 
 class ActivityDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
@@ -46,9 +45,7 @@ class ActivityDecorator : NavScreenDecorator() {
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
     val arcSize = Coordinates.getSwingDimension(sceneContext, ACTIVITY_ARC_SIZE)
     list.add(DrawFilledRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.componentBackground, arcSize))
-
-    @SwingCoordinate val strokeThickness = strokeThickness(sceneContext, component, ACTIVITY_BORDER_THICKNESS)
-    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, frameColor(sceneContext, component), strokeThickness, arcSize))
+    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, frameColor(sceneContext, component), frameThickness(component), arcSize))
 
     val imageRectangle = Rectangle(drawRectangle)
 

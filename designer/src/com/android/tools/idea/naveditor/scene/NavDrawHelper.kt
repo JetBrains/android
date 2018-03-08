@@ -16,8 +16,6 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidCoordinate
-import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -48,6 +46,9 @@ private val HQ_RENDERING_HITS = ImmutableMap.of(
 
 @SwingCoordinate private const val ACTION_STROKE_WIDTH = 3f
 @SwingCoordinate private const val DASHED_STROKE_CYCLE = 5f
+
+@SwingCoordinate const val REGULAR_FRAME_THICKNESS = 1
+@SwingCoordinate const val HIGHLIGHTED_FRAME_THICKNESS = 2
 
 @JvmField
 val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, CAP_BUTT, JOIN_ROUND)
@@ -86,15 +87,6 @@ fun actionColor(context: SceneContext, component: SceneComponent): Color {
   }
 }
 
-@SwingCoordinate
-fun strokeThickness(context: SceneContext, component: SceneComponent, @AndroidCoordinate borderThickness: Int): Int {
-  return when (component.drawState) {
-    SceneComponent.DrawState.SELECTED, SceneComponent.DrawState.HOVER, SceneComponent.DrawState.DRAG
-    -> Coordinates.getSwingDimension(context, borderThickness)
-    else -> 1
-  }
-}
-
 fun scaledFont(context: SceneContext, style: Int): Font {
   val scale = context.scale
   val size = (scale * (2.0 - scale)) * DEFAULT_FONT_SIZE // keep font size slightly larger at smaller scales
@@ -117,4 +109,15 @@ fun createDrawCommand(list: DisplayList, component: SceneComponent): DrawCommand
 
 fun setRenderingHints(g: Graphics2D) {
   g.setRenderingHints(HQ_RENDERING_HITS)
+}
+
+fun frameThickness(component: SceneComponent): Int {
+  return if (isHighlighted(component)) HIGHLIGHTED_FRAME_THICKNESS else REGULAR_FRAME_THICKNESS
+}
+
+fun isHighlighted(component: SceneComponent): Boolean {
+  return when (component.drawState) {
+    SceneComponent.DrawState.SELECTED, SceneComponent.DrawState.HOVER, SceneComponent.DrawState.DRAG -> true
+    else -> false
+  }
 }

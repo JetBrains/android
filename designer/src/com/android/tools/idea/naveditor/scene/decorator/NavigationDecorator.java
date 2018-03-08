@@ -40,7 +40,6 @@ import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.*;
 public class NavigationDecorator extends SceneDecorator {
   // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
   @NavCoordinate private static final int NAVIGATION_ARC_SIZE = 12;
-  @NavCoordinate private static final int NAVIGATION_BORDER_THICKNESS = 2;
 
   @Override
   protected void addBackground(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
@@ -56,17 +55,10 @@ public class NavigationDecorator extends SceneDecorator {
       return;
     }
 
-    Rectangle bounds = Coordinates.getSwingRect(sceneContext, component.fillDrawRect(0, null));
-
+    @SwingCoordinate Rectangle drawRectangle = Coordinates.getSwingRect(sceneContext, component.fillDrawRect(0, null));
     @SwingCoordinate int arcSize = Coordinates.getSwingDimension(sceneContext, NAVIGATION_ARC_SIZE);
-    list.add(new DrawFilledRectangle(DRAW_FRAME_LEVEL, bounds, sceneContext.getColorSet().getComponentBackground(), arcSize));
-
-    @SwingCoordinate int strokeThickness = strokeThickness(sceneContext, component, NAVIGATION_BORDER_THICKNESS);
-    Rectangle frameRectangle = new Rectangle(bounds);
-    frameRectangle.grow(strokeThickness, strokeThickness);
-
-    Color frameColor = frameColor(sceneContext, component);
-    list.add(new DrawRectangle(DRAW_FRAME_LEVEL, frameRectangle, frameColor, strokeThickness, arcSize));
+    list.add(new DrawFilledRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.getColorSet().getComponentBackground(), arcSize));
+    list.add(new DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, frameColor(sceneContext, component), frameThickness(component), arcSize));
 
     String text = NavComponentHelperKt.getIncludeFileName(component.getNlComponent());
     if (text == null) {
@@ -74,7 +66,7 @@ public class NavigationDecorator extends SceneDecorator {
     }
 
     Font font = scaledFont(sceneContext, Font.BOLD);
-    list.add(new DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, bounds,
+    list.add(new DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, drawRectangle,
                                    textColor(sceneContext, component), font, true));
   }
 

@@ -18,14 +18,12 @@ package com.android.tools.idea.naveditor.scene.decorator
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.scene.SceneComponent.DrawState
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import com.android.tools.idea.naveditor.scene.frameColor
+import com.android.tools.idea.naveditor.scene.*
 import java.awt.Rectangle
 
 /**
@@ -33,30 +31,33 @@ import java.awt.Rectangle
  */
 
 @NavCoordinate private val FRAGMENT_BORDER_SPACING = 2
-@NavCoordinate private val FRAGMENT_OUTER_BORDER_THICKNESS = 2
 
 class FragmentDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
-    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.frames, 1))
+    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, sceneContext.colorSet.frames, REGULAR_FRAME_THICKNESS))
 
-    val imageRectangle = Rectangle(drawRectangle)
+    @SwingCoordinate val imageRectangle = Rectangle(drawRectangle)
     imageRectangle.grow(-1, -1)
     drawImage(list, sceneContext, component, imageRectangle)
 
-    when (component.drawState) {
-      DrawState.DRAG, DrawState.SELECTED, DrawState.HOVER -> {
-        @SwingCoordinate val borderSpacing = Coordinates.getSwingDimension(sceneContext, FRAGMENT_BORDER_SPACING)
-        @SwingCoordinate val outerBorderThickness = Coordinates.getSwingDimension(sceneContext, FRAGMENT_OUTER_BORDER_THICKNESS)
+    if (isHighlighted(component)) {
+      @SwingCoordinate val borderSpacing = Coordinates.getSwingDimension(sceneContext, FRAGMENT_BORDER_SPACING)
 
-        val outerRectangle = Rectangle(drawRectangle)
-        outerRectangle.grow(2 * borderSpacing, 2 * borderSpacing)
+      @SwingCoordinate val outerRectangle = Rectangle(drawRectangle)
+      outerRectangle.grow(2 * borderSpacing, 2 * borderSpacing)
 
-        list.add(DrawRectangle(DRAW_FRAME_LEVEL, outerRectangle, frameColor(sceneContext, component), outerBorderThickness,2 * borderSpacing)
-        )
-      }
+      list.add(
+          DrawRectangle(
+              DRAW_FRAME_LEVEL,
+              outerRectangle,
+              frameColor(sceneContext, component),
+              HIGHLIGHTED_FRAME_THICKNESS,
+              2 * borderSpacing
+          )
+      )
     }
   }
 }
