@@ -32,6 +32,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.wireless.android.sdk.stats.AdbAssistantStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.actionSystem.*;
@@ -70,6 +71,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
 
   private final DevicePicker myDevicePicker;
   private final ListenableFuture<AndroidDebugBridge> myAdbFuture;
+  private final SettableFuture<Void> myRefreshAvdsFuture = SettableFuture.create();
 
   private JPanel myContentPane;
   private JBTabbedPane myTabbedPane;
@@ -127,6 +129,10 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
       throw new IllegalArgumentException("Unable to locate adb");
     }
     myAdbFuture = AdbService.getInstance().getDebugBridge(adb);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      myDevicePicker.refreshAvdsNow(null);
+      myRefreshAvdsFuture.set(null);
+    });
 
     DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
     setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
@@ -142,15 +148,23 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), getDisposable());
     loadingPanel.add(myDeployTargetInfos.isEmpty() ? myDevicesPanel : myContentPane);
 
-    loadingPanel.setLoadingText("Initializing ADB");
-
-    if (!myAdbFuture.isDone()) {
+    if (myAdbFuture.isDone()) {
+      if (!myRefreshAvdsFuture.isDone()) {
+        loadingPanel.startLoading();
+        sayLookingForAvds(loadingPanel);
+      }
+    } else {
+      loadingPanel.setLoadingText("Initializing ADB");
       loadingPanel.startLoading();
       Futures.addCallback(myAdbFuture, new FutureCallback<AndroidDebugBridge>() {
         @Override
         public void onSuccess(AndroidDebugBridge result) {
-          loadingPanel.stopLoading();
           Logger.getInstance(DeployTargetPickerDialog.class).info("Successfully obtained debug bridge");
+          if (myRefreshAvdsFuture.isDone()) {
+            loadingPanel.stopLoading();
+          } else {
+            sayLookingForAvds(loadingPanel);
+          }
         }
 
         @Override
@@ -163,6 +177,22 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     }
 
     return loadingPanel;
+  }
+
+  private void sayLookingForAvds(JBLoadingPanel thePanel) {
+    thePanel.setLoadingText("Looking for virtual devices");
+    Futures.addCallback(myRefreshAvdsFuture, new FutureCallback<Void>() {
+      @Override
+      public void onSuccess(Void vv) {
+        Logger.getInstance(DeployTargetPickerDialog.class).info("Successfully obtained list of AVDs");
+        thePanel.stopLoading();
+      }
+      @Override
+      public void onFailure(@Nullable Throwable tt) {
+        Logger.getInstance(DeployTargetPickerDialog.class).info("Unable to obtain list of AVDs", tt);
+        thePanel.stopLoading();
+      }
+    });
   }
 
   @Nullable
