@@ -24,114 +24,78 @@ import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.Failure;
-import com.intellij.ide.errorTreeView.NewEditableErrorTreeViewPanel;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.Navigatable;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.MessageView;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.*;
+import java.util.function.Predicate;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.openapi.wm.ToolWindowId.MESSAGES_WINDOW;
 
 public abstract class AbstractSyncMessages implements Disposable {
-  private static final NotificationSource NOTIFICATION_SOURCE = PROJECT_SYNC;
 
   private Project myProject;
-  @NotNull private final ExternalSystemNotificationManager myNotificationManager;
   @NotNull private final HashMap<ExternalSystemTaskId, List<NotificationData>> myCurrentNotifications = new HashMap<>();
   @NotNull private final HashMap<ExternalSystemTaskId, List<Failure>> myShownFailures = new HashMap<>();
 
-  protected AbstractSyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
+  protected AbstractSyncMessages(@NotNull Project project) {
     myProject = project;
-    myNotificationManager = manager;
   }
 
   public int getErrorCount() {
-    return getMessageCount(NotificationCategory.ERROR);
+    return countNotifications(notification -> notification.getNotificationCategory() == NotificationCategory.ERROR);
   }
 
   public int getMessageCount(@NotNull String groupName) {
-    return myNotificationManager.getMessageCount(groupName, NOTIFICATION_SOURCE, null, getProjectSystemId());
+    return countNotifications(notification -> notification.getTitle().equals(groupName));
+  }
+
+  private int countNotifications(@NotNull Predicate<NotificationData> condition) {
+    int total = 0;
+    for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
+      for (NotificationData notificationData : notificationDataList) {
+        if (condition.test(notificationData)) {
+          total++;
+        }
+      }
+    }
+    return total;
+
   }
 
   public boolean isEmpty() {
-    return getMessageCount((NotificationCategory)null) == 0;
-  }
-
-  private int getMessageCount(@Nullable NotificationCategory category) {
-    return myNotificationManager.getMessageCount(NOTIFICATION_SOURCE, category, getProjectSystemId());
+    return myCurrentNotifications.isEmpty();
   }
 
   public void removeAllMessages() {
-    myNotificationManager.clearNotifications(NOTIFICATION_SOURCE, getProjectSystemId());
     myCurrentNotifications.clear();
   }
 
   public void removeMessages(@NotNull String... groupNames) {
     Set<String> groupSet = new HashSet<>(Arrays.asList(groupNames));
+    LinkedList<ExternalSystemTaskId> toRemove = new LinkedList<>();
     for (ExternalSystemTaskId id : myCurrentNotifications.keySet()) {
       List<NotificationData> taskNotifications = myCurrentNotifications.get(id);
       taskNotifications.removeIf(notification -> groupSet.contains(notification.getTitle()));
       if (taskNotifications.isEmpty()) {
-        myCurrentNotifications.remove(id);
+        toRemove.add(id);
       }
     }
-
-    for (String groupName : groupNames) {
-      myNotificationManager.clearNotifications(groupName, NOTIFICATION_SOURCE, getProjectSystemId());
+    for (ExternalSystemTaskId taskId : toRemove) {
+      myCurrentNotifications.remove(taskId);
     }
-
-    ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(MESSAGES_WINDOW);
-    if (toolWindow != null) {
-      MessageView messageView = ServiceManager.getService(myProject, MessageView.class);
-      ApplicationManager.getApplication().invokeLater(() -> {
-        if (myProject.isDisposed()) {
-          return;
-        }
-        // Refresh UI to see updated list of messages.
-        NewEditableErrorTreeViewPanel messagesView = findMessagesView(messageView);
-        if (messagesView != null) {
-          messagesView.updateTree();
-        }
-      });
-    }
-  }
-
-  @Nullable
-  private NewEditableErrorTreeViewPanel findMessagesView(@NotNull MessageView messageView) {
-    NewEditableErrorTreeViewPanel messagesView = null;
-    for (Content content : messageView.getContentManager().getContents()) {
-      if (!content.isPinned()) {
-        String displayName = content.getDisplayName();
-        if (displayName != null && displayName.startsWith(getProjectSystemId().getReadableName())) {
-          JComponent component = content.getComponent();
-          if (component instanceof NewEditableErrorTreeViewPanel) {
-            messagesView = (NewEditableErrorTreeViewPanel)component;
-            break;
-          }
-        }
-      }
-    }
-    return messagesView;
   }
 
   public void report(@NotNull SyncMessage message) {
@@ -195,8 +159,6 @@ public abstract class AbstractSyncMessages implements Disposable {
   }
 
   public void report(@NotNull NotificationData notification) {
-    myNotificationManager.showNotification(getProjectSystemId(), notification);
-
     // Save on array to be shown by build view later.
     ExternalSystemTaskId taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
     myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);

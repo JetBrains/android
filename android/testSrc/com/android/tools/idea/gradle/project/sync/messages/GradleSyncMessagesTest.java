@@ -15,31 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.testFramework.IdeaTestCase;
-import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleSyncMessages}.
  */
 public class GradleSyncMessagesTest extends IdeaTestCase {
-  @Mock private ExternalSystemNotificationManager myNotificationManager;
-
   private GradleSyncMessages mySyncMessages;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
 
-    mySyncMessages = new GradleSyncMessages(getProject(), myNotificationManager);
+    mySyncMessages = new GradleSyncMessages(getProject());
   }
 
   public void testGetProjectSystemId() {
@@ -47,12 +39,15 @@ public class GradleSyncMessagesTest extends IdeaTestCase {
   }
 
   public void testRemoveProjectMessages() {
+    mySyncMessages.report(new SyncMessage("Project Structure Issues", MessageType.ERROR, "Message for test PSI"));
+    mySyncMessages.report(new SyncMessage("Missing Dependencies", MessageType.ERROR, "Message for test MD"));
+    mySyncMessages.report(new SyncMessage("Variant Selection Conflicts", MessageType.ERROR, "Message for test VSC"));
+    mySyncMessages.report(new SyncMessage("Generated Sources", MessageType.ERROR, "Message for test GS"));
+    mySyncMessages.report(new SyncMessage("Gradle Sync Issues", MessageType.ERROR, "Message for test GSI"));
+    mySyncMessages.report(new SyncMessage("Version Compatibility Issues", MessageType.ERROR, "Message for test VCI"));
+
+    assertFalse(mySyncMessages.isEmpty());
     mySyncMessages.removeProjectMessages();
-    verify(myNotificationManager).clearNotifications("Project Structure Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Missing Dependencies", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Variant Selection Conflicts", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Generated Sources", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Gradle Sync Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Version Compatibility Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+    assertTrue(mySyncMessages.isEmpty());
   }
 }
