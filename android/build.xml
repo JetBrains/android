@@ -32,8 +32,7 @@
     <target name="bazel-dependencies" unless="${skip.bazel.dependencies}">
         <exec executable="${bazel}" dir="${workspace}" failonerror="true">
             <arg value="build" />
-            <arg value="//tools/adt/idea/android:profiler-artifacts" />
-            <arg value="//tools/adt/idea/android:aia-artifacts" />
+            <arg value="//tools/adt/idea/android:artifacts" />
             <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
         </exec>
     </target>
