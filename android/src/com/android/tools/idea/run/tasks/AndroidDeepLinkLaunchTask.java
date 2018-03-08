@@ -68,7 +68,13 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
     return "am start" +
            " -a android.intent.action.VIEW" +
            " -c android.intent.category.BROWSABLE" +
-           " -d " + deepLink +
+           " -d " + singleQuoteShell(deepLink) +
            (extraFlags.isEmpty() ? "" : " " + extraFlags);
   }
+
+  @NotNull
+  private static String singleQuoteShell(@NotNull String literal) {
+    return "'" + literal.replace("'", "'\\''") + "'";
+  }
+
 }
