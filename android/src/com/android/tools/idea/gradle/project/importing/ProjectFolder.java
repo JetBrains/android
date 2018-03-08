@@ -25,9 +25,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
-import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.ensureExists;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 
 public abstract class ProjectFolder {
@@ -63,25 +61,27 @@ public abstract class ProjectFolder {
 
     @Override
     public void createIdeaProjectFolder() throws IOException {
+      deleteLibrariesFolder(myPath);
       File ideaFolderPath = new File(myPath, DIRECTORY_STORE_FOLDER);
-      if (ideaFolderPath.isDirectory()) {
-        // "libraries" is hard-coded in com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable
-        File librariesFolderPath = new File(ideaFolderPath, "libraries");
-        if (librariesFolderPath.exists()) {
-          // remove contents of libraries. This is useful when importing existing projects that may have invalid library entries (e.g.
-          // created with Studio 0.4.3 or earlier.)
-          if (!delete(librariesFolderPath)) {
-            getLogger().info(String.format("Failed to delete %1$s'", librariesFolderPath.getPath()));
-          }
-        }
-        return;
-      }
       ensureExists(ideaFolderPath);
     }
+  }
 
-    @NotNull
-    private Logger getLogger() {
-      return Logger.getInstance(getClass());
+  /*
+   *  Remove .idea/libraries folder under project folder.
+   */
+  public static void deleteLibrariesFolder(@NotNull File projectFolder) {
+    File ideaFolderPath = new File(projectFolder, DIRECTORY_STORE_FOLDER);
+    if (ideaFolderPath.isDirectory()) {
+      // "libraries" is hard-coded in com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable
+      File librariesFolderPath = new File(ideaFolderPath, "libraries");
+      if (librariesFolderPath.exists()) {
+        // remove contents of libraries. This is useful when importing existing projects that may have invalid library entries (e.g.
+        // created with Studio 0.4.3 or earlier.)
+        if (!delete(librariesFolderPath)) {
+          Logger.getInstance(ProjectFolder.class).info(String.format("Failed to delete %1$s'", librariesFolderPath.getPath()));
+        }
+      }
     }
   }
 }

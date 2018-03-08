@@ -19,12 +19,17 @@ import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.importing.ProjectFolder.deleteLibrariesFolder;
+
 public class IdeaSyncCachesInvalidator extends CachesInvalidator {
   @Override
   public void invalidateCaches() {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     for (Project project : openProjects) {
       DataNodeCaches.getInstance(project).clearCaches();
+      // Remove contents in .idea/libraries to recover from any invalid library entries.
+      deleteLibrariesFolder(getBaseDirPath(project));
     }
   }
 }

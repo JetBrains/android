@@ -17,7 +17,19 @@ package com.android.tools.idea.gradle.project.sync.idea.data;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
-public class IdeaSyncInvalidateCachesTest extends AndroidGradleTestCase {
+import java.io.File;
+
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
+
+public class IdeaSyncCachesInvalidatorTest extends AndroidGradleTestCase {
+  private IdeaSyncCachesInvalidator myInvalidator;
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    myInvalidator = new IdeaSyncCachesInvalidator();
+  }
 
   public void testCacheIsInvalidated() throws Exception {
     loadSimpleApplication();
@@ -26,12 +38,26 @@ public class IdeaSyncInvalidateCachesTest extends AndroidGradleTestCase {
     // All models are in cache
     assertFalse(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
 
-    // After erasing, models are not in the cache anymore
-    dataNodeCaches.clearCaches();
+    // After invalidating cache, models are not in the cache anymore
+    myInvalidator.invalidateCaches();
     assertTrue(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
 
     // Sync and check if models are replaced
     requestSyncAndWait();
     assertFalse(dataNodeCaches.isCacheMissingModels(dataNodeCaches.getCachedProjectData()));
+  }
+
+  public void testLibrariesFolderIsDeleted() {
+    // Create .idea/libraries folder under project folder.
+    File ideaFolderPath = new File(getBaseDirPath(getProject()), DIRECTORY_STORE_FOLDER);
+    File librariesFolderPath = new File(ideaFolderPath, "libraries");
+    assertTrue(librariesFolderPath.mkdirs());
+
+    // Verify that libraries folder exists.
+    assertExists(librariesFolderPath);
+
+    // Verify that after invalidating cache, libraries folder is deleted.
+    myInvalidator.invalidateCaches();
+    assertDoesntExist(librariesFolderPath);
   }
 }
