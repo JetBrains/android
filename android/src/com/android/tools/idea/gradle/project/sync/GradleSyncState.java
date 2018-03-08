@@ -80,6 +80,8 @@ public class GradleSyncState {
   @NotNull private final GradleSyncSummary mySummary;
   @NotNull private final GradleFiles myGradleFiles;
   @NotNull private final ProjectStructure myProjectStructure;
+  @GuardedBy("myLock")
+  @Nullable private GradleSyncInvoker.Request myRequest;
 
   @NotNull private final Object myLock = new Object();
 
@@ -91,6 +93,9 @@ public class GradleSyncState {
 
   @GuardedBy("myLock")
   private boolean mySyncInProgress;
+
+  @GuardedBy("myLock")
+  private boolean myNotifyUser;
 
   // Negative numbers mean that the events have not finished
   private long mySyncStartedTimestamp = -1L;
@@ -181,6 +186,46 @@ public class GradleSyncState {
     return syncStarted(false, notifyUser, request);
   }
 
+  /**
+   * Notification that a sync has re started.
+   *
+   * @return {@code true} if the previous sync can be restarted from the previous request; {@code false} if the
+   * current request cannot continue because there is already one in progress or there is no a previous request.
+   */
+  public boolean syncReStarted() {
+    if (!canRestart()) {
+      LOG.info(String.format("Sync cannot restart '%1$s'.", myProject.getName()));
+      return false;
+    }
+    boolean reSkipped;
+    boolean reNotifyUser;
+    GradleSyncInvoker.Request reRequest;
+    synchronized (myLock) {
+      if (mySyncInProgress) {
+        LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
+        return false;
+      }
+      reSkipped = mySyncSkipped;
+      reNotifyUser = myNotifyUser;
+      reRequest = myRequest;
+    }
+    assert reRequest != null;
+    return syncStarted(reSkipped, reNotifyUser, reRequest);
+  }
+
+  /**
+   * Check if previous sync request can be restarted.
+   * @return {@code true} if there is no sync in progress and there is a previous request, {@code false} otherwise.
+   */
+  public boolean canRestart() {
+    synchronized (myLock) {
+      if (mySyncInProgress) {
+        return false;
+      }
+      return myRequest != null;
+    }
+  }
+
   private boolean syncStarted(boolean syncSkipped, boolean notifyUser, @NotNull GradleSyncInvoker.Request request) {
     synchronized (myLock) {
       if (mySyncInProgress) {
@@ -188,6 +233,8 @@ public class GradleSyncState {
         return false;
       }
       mySyncSkipped = syncSkipped;
+      myNotifyUser = notifyUser;
+      myRequest = request;
       mySyncInProgress = true;
     }
 
