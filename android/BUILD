@@ -276,6 +276,16 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+# Various artifacts that the ANT and within-idea studio build depend on.
+filegroup(
+    name = "artifacts",
+    srcs = [
+        ":aia-artifacts",
+        ":profiler-artifacts",
+        "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
+    ],
+)
+
 maven_repo(
     name = "test_deps",
     # keep sorted: for buildifier
