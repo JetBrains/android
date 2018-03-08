@@ -99,6 +99,7 @@ public class StudioIcons {
       public static final Icon CARD_VIEW = load("/studio/icons/layout-editor/palette/card-view.png"); // 16x16
       public static final Icon CHECK_BOX = load("/studio/icons/layout-editor/palette/check-box.png"); // 16x16
       public static final Icon CHECKED_TEXT_VIEW = load("/studio/icons/layout-editor/palette/checked-text-view.png"); // 16x16
+      public static final Icon CHIP = load("/studio/icons/layout-editor/palette/chip.png"); // 16x16
       public static final Icon CHRONOMETER = load("/studio/icons/layout-editor/palette/chronometer.png"); // 16x16
       public static final Icon COLLAPSING_TOOLBAR_LAYOUT = load("/studio/icons/layout-editor/palette/collapsing-toolbar-layout.png"); // 16x16
       public static final Icon CONSTRAINT_LAYOUT = load("/studio/icons/layout-editor/palette/constraint-layout.png"); // 16x16
@@ -133,6 +134,7 @@ public class StudioIcons {
       public static final Icon MERGE = load("/studio/icons/layout-editor/palette/merge.png"); // 16x16
       public static final Icon MULTI_AUTO_COMPLETE_TEXT_VIEW = load("/studio/icons/layout-editor/palette/multi-auto-complete-text-view.png"); // 16x16      
       public static final Icon NAVIGATION_VIEW = load("/studio/icons/layout-editor/palette/navigation-view.png"); // 16x16
+      public static final Icon NAV_HOST_FRAGMENT = load("/studio/icons/layout-editor/palette/nav-host-fragment.png"); // 16x16
       public static final Icon NESTED_SCROLL_VIEW = load("/studio/icons/layout-editor/palette/nested-scroll-view.png"); // 16x16
       public static final Icon NUMBER_DECIMAL_TEXTFIELD = load("/studio/icons/layout-editor/palette/number-decimal-textfield.png"); // 16x16
       public static final Icon NUMBER_PICKER = load("/studio/icons/layout-editor/palette/number-picker.png"); // 16x16
