@@ -33,9 +33,6 @@ public interface PsLibraryDependency extends PsBaseDependency {
 
   boolean hasPromotedVersion();
 
-  @NotNull
-  ImmutableCollection<PsDependency> getTransitiveDependencies();
-
   default void setVersion(@NotNull String version) {
     boolean modified = false;
     ArtifactDependencyModel reference = null;

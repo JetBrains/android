@@ -29,7 +29,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import java.util.function.Consumer
 
-class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsModelCollection<PsAndroidDependency> {
+abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModule) : PsModelCollection<PsAndroidDependency> {
 
   private val moduleDependenciesByGradlePath = mutableMapOf<String, PsModuleAndroidDependency>()
   private val libraryDependenciesBySpec = mutableMapOf<String, PsLibraryAndroidDependency>()
@@ -328,6 +328,19 @@ class PsAndroidDependencyCollection(private val parent: PsAndroidModule) : PsMod
       updateDependency(dependency, artifact, parsedModel)
     }
   }
+}
+
+/**
+ * A collection of parsed (configured) dependencies of [parent] module.
+ */
+class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDependencyCollection(parent) {
+}
+
+/**
+ * A collection of resolved dependencies of a specific [artifact] of module [parent].
+ */
+class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) :
+  PsAndroidDependencyCollection(artifact.parent.parent) {
 }
 
 @VisibleForTesting

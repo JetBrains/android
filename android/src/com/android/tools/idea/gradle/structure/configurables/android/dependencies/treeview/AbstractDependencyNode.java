@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import org.jetbrains.annotations.NotNull;
@@ -28,14 +29,16 @@ import java.util.List;
 
 public abstract class AbstractDependencyNode<T extends PsAndroidDependency> extends AbstractPsModelNode<T> {
   @Nullable
-  public static AbstractDependencyNode<?> createNode(@NotNull AbstractPsNode parent, @NotNull PsDependency dependency) {
+  public static AbstractDependencyNode<?> createNode(@NotNull AbstractPsNode parent,
+                                                     @Nullable PsAndroidDependencyCollection collection,
+                                                     @NotNull PsDependency dependency) {
     if (dependency instanceof PsLibraryAndroidDependency) {
       PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
-      return new LibraryDependencyNode(parent, libraryDependency);
+      return new LibraryDependencyNode(parent, collection, libraryDependency);
     }
     else if (dependency instanceof PsModuleAndroidDependency) {
       PsModuleAndroidDependency moduleDependency = (PsModuleAndroidDependency)dependency;
-      return new ModuleDependencyNode(parent, moduleDependency);
+      return new ModuleDependencyNode(parent, collection, moduleDependency);
     }
     return null;
   }

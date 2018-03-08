@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableCollection;
@@ -42,9 +43,10 @@ final class DependencyNodes {
 
   @NotNull
   static List<AbstractPsModelNode<?>> createNodesForResolvedDependencies(@NotNull AndroidArtifactNode parent,
+                                                                         @NotNull PsAndroidDependencyCollection collection,
                                                                          @NotNull Collection<PsAndroidDependency> dependencies,
                                                                          @NotNull PsUISettings uiSettings
-                                                     ) {
+  ) {
     List<AbstractPsModelNode<?>> children = Lists.newArrayList();
 
     List<PsDependency> declared = new SortedList<>(new PsDependencyComparator(uiSettings));
@@ -70,7 +72,7 @@ final class DependencyNodes {
             }
           }
         }
-        addTransitive(dependency, allTransitive);
+        addTransitive(dependency, collection, allTransitive);
       }
     }
 
@@ -80,7 +82,7 @@ final class DependencyNodes {
                                    .collect(Collectors.toList()));
 
     for (PsDependency dependency : declared) {
-      AbstractDependencyNode<?> child = AbstractDependencyNode.createNode(parent, dependency);
+      AbstractDependencyNode<?> child = AbstractDependencyNode.createNode(parent, collection, dependency);
       if (child != null) {
         children.add(child);
       }
@@ -90,6 +92,7 @@ final class DependencyNodes {
   }
 
   private static void addTransitive(@NotNull PsDependency dependency,
+                                    @NotNull PsAndroidDependencyCollection collection,
                                     @NotNull Multimap<PsDependency, PsDependency> allTransitive) {
     if (allTransitive.containsKey(dependency)) {
       return;
@@ -97,11 +100,11 @@ final class DependencyNodes {
 
     if (dependency instanceof PsLibraryAndroidDependency) {
       PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
-      ImmutableCollection<PsDependency> transitives = libraryDependency.getTransitiveDependencies();
+      ImmutableCollection<PsDependency> transitives = libraryDependency.getTransitiveDependencies(collection);
       allTransitive.putAll(dependency, transitives);
 
       for (PsDependency transitive : transitives) {
-        addTransitive(transitive, allTransitive);
+        addTransitive(transitive, collection, allTransitive);
       }
     }
   }
