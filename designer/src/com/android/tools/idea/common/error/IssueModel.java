@@ -47,7 +47,7 @@ public class IssueModel {
     myErrorCount = 0;
     ImmutableList.Builder<Issue> issueListBuilder = ImmutableList.builder();
 
-    for (IssueProvider provider : myIssueProviders) {
+    for (IssueProvider provider : ImmutableList.copyOf(myIssueProviders)) {
       provider.collectIssues(issueListBuilder);
     }
 
