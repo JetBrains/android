@@ -26,7 +26,6 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:+'
-    compile 'android.arch.lifecycle:runtime:+'
     compile 'com.google.guava:guava:18.0'
     compile 'com.android.support.constraint:constraint-layout:+'
     testCompile 'junit:junit:4.+'
