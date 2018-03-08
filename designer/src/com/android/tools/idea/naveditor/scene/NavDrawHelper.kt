@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
 import com.google.common.collect.ImmutableMap
 import java.awt.*
 import java.awt.BasicStroke.CAP_BUTT
@@ -61,7 +62,10 @@ fun frameColor(context: SceneContext, component: SceneComponent): Color {
 
   return when (component.drawState) {
     SceneComponent.DrawState.SELECTED -> colorSet.selectedFrames
-    SceneComponent.DrawState.HOVER, SceneComponent.DrawState.DRAG -> colorSet.highlightedFrames
+    SceneComponent.DrawState.HOVER ->
+      if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent)) colorSet.selectedFrames
+      else colorSet.highlightedFrames
+    SceneComponent.DrawState.DRAG -> colorSet.highlightedFrames
     else -> colorSet.frames
   }
 }
@@ -121,3 +125,4 @@ fun isHighlighted(component: SceneComponent): Boolean {
     else -> false
   }
 }
+
