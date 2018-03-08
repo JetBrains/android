@@ -21,7 +21,9 @@ import org.junit.Test;
 
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.idea.ui.wizard.WizardUtils.getUniqueName;
+import static com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName;
 import static com.google.common.truth.Truth.assertThat;
+import static org.gradle.internal.impldep.org.apache.commons.lang.StringUtils.repeat;
 
 public class WizardUtilsTest {
   private final Result ERROR = new Result(Severity.ERROR, "Some error message");
@@ -51,5 +53,15 @@ public class WizardUtilsTest {
   @Test
   public void getUniqueNameForSomeOKResult() {
     assertThat(getUniqueName("test", value -> value.endsWith("9") ? OK : ERROR)).isEqualTo("test9");
+  }
+
+  @Test
+  public void validatePackageNameWithNullPackage() {
+    assertThat(validatePackageName(null)).isEqualTo("Package name is missing");
+  }
+
+  @Test
+  public void validatePackageNameWithLongPackage() {
+    assertThat(validatePackageName(repeat("A", 200))).isEqualTo("Package name is too long");
   }
 }

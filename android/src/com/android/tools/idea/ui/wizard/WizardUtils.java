@@ -62,10 +62,10 @@ public final class WizardUtils {
 
   @Nullable
   public static String validatePackageName(@Nullable String packageName) {
+    packageName = (packageName == null) ? "" : packageName;
     if (packageName.length() >= PACKAGE_LENGTH_LIMIT) {
       return AndroidBundle.message("android.wizard.module.package.too.long");
     }
-    packageName = (packageName == null) ? "" : packageName;
     return AndroidUtils.validateAndroidPackageName(packageName);
   }
 
