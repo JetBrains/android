@@ -207,4 +207,27 @@ class SessionsViewTest {
     assertThat(stopProfilingButton.isEnabled).isFalse()
     assertThat(mySessionsManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
   }
+
+  @Test
+  fun testImportSessionsFromHprofFile() {
+    val sessionArtifacts = mySessionsView.sessionsList.model
+    assertThat(sessionArtifacts.size).isEqualTo(0)
+
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    mySessionsManager.beginSession(device, process1)
+    val session1 = mySessionsManager.selectedSession
+    assertThat(sessionArtifacts.size).isEqualTo(1)
+    assertThat(sessionArtifacts.getElementAt(0).session).isEqualTo(session1)
+    assertThat(mySessionsView.sessionsList.selectedIndex).isEqualTo(0)
+
+    val session = mySessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
+    mySessionsManager.update();
+    mySessionsManager.setSession(session)
+    assertThat(sessionArtifacts.size).isEqualTo(2)
+
+    val selectedSession = mySessionsManager.selectedSession
+    assertThat(session).isEqualTo(selectedSession)
+    assertThat(myProfilers.selectedSessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
+  }
 }

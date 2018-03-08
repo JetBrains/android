@@ -116,6 +116,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myIdeServices = ideServices;
     myPreferredProcessName = null;
     myStage = new NullMonitorStage(this);
+    mySessionsManager = new SessionsManager(this);
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -144,7 +145,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
     mySelectedSessionMetaData = Common.SessionMetaData.getDefaultInstance();
-    mySessionsManager = new SessionsManager(this);
     mySessionsManager.addDependency(this)
       .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
       .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
@@ -317,6 +317,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public void setMonitoringStage() {
     setStage(new StudioMonitorStage(this));
+  }
+
+
+  /**
+   *  Return the meta data of current selected session
+   */
+  @NotNull
+  public Common.SessionMetaData getSelectedSessionMetaData() {
+    return mySelectedSessionMetaData;
   }
 
   /**

@@ -68,7 +68,7 @@ public class ProfilerTableTest {
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      myTable.insertOrUpdateSession(session, sessionName, startTime, true, false);
+      myTable.insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
       sessions.add(session);
     }
 
@@ -110,9 +110,10 @@ public class ProfilerTableTest {
         .setSessionName(sessionName)
         .setJvmtiEnabled(useJvmti)
         .setLiveAllocationEnabled(useLiveAllocation)
+        .setType(Common.SessionMetaData.SessionType.FULL)
         .build();
 
-      myTable.insertOrUpdateSession(session, sessionName, startTime, useJvmti, useLiveAllocation);
+      myTable.insertOrUpdateSession(session, sessionName, startTime, useJvmti, useLiveAllocation, Common.SessionMetaData.SessionType.FULL);
       metaDatas.add(metaData);
     }
 

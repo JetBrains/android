@@ -192,6 +192,25 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   }
 
   @Override
+  public void importSession(ImportSessionRequest request, StreamObserver<ImportSessionResponse> responseObserver) {
+    mySessions.put(request.getSession().getSessionId(), request.getSession());
+
+    Common.Session session = request.getSession();
+    long sessionId = session.getSessionId();
+    Common.SessionMetaData metadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(sessionId)
+      .setSessionName(request.getSessionName())
+      .setJvmtiEnabled(false)
+      .setLiveAllocationEnabled(false)
+      .setType(request.getSessionType())
+      .build();
+    mySessionMetaDatas.put(sessionId, metadata);
+    myAttachAgentCalled = false;
+    responseObserver.onNext(ImportSessionResponse.newBuilder().build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
     assert (mySessions.containsKey(request.getSessionId()));
     Common.Session session = mySessions.get(request.getSessionId());

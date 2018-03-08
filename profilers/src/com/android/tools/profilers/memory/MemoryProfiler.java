@@ -29,10 +29,14 @@ import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -47,6 +51,23 @@ public class MemoryProfiler extends StudioProfiler {
   public MemoryProfiler(@NotNull StudioProfilers profilers) {
     super(profilers);
     myProfilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
+
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    sessionsManager.registerImportHandler("hprof", file -> {
+      byte[] bytes;
+      try {
+        bytes = Files.readAllBytes(Paths.get(file.getPath()));
+      }
+      catch (IOException e) {
+        Logger.getInstance(getClass()).error("Importing Session Failed: can not read from file location...");
+        return;
+      }
+      Common.Session session = sessionsManager.createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE);
+
+      sessionsManager.update();
+      sessionsManager.setSession(session);
+    });
+
   }
 
   @Override
