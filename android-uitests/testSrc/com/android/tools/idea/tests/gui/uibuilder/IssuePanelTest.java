@@ -94,7 +94,7 @@ public class IssuePanelTest {
 
   @Test
   public void testFixMissingFragmentNameWithoutCustomFragmentsAvailable() throws Exception {
-    myGuiTest.importSimpleApplication();
+    myGuiTest.importSimpleLocalApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
