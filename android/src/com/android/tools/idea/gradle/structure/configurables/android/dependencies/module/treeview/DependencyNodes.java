@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsD
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableCollection;
@@ -40,9 +41,9 @@ final class DependencyNodes {
   }
 
   @NotNull
-  static List<AbstractPsModelNode<?>> createNodesFor(@NotNull AndroidArtifactNode parent,
-                                                     @NotNull Collection<PsDependency> dependencies,
-                                                     @NotNull PsUISettings uiSettings
+  static List<AbstractPsModelNode<?>> createNodesForResolvedDependencies(@NotNull AndroidArtifactNode parent,
+                                                                         @NotNull Collection<PsAndroidDependency> dependencies,
+                                                                         @NotNull PsUISettings uiSettings
                                                      ) {
     List<AbstractPsModelNode<?>> children = Lists.newArrayList();
 
@@ -50,7 +51,7 @@ final class DependencyNodes {
     Multimap<PsDependency, PsDependency> allTransitive = HashMultimap.create();
     List<PsDependency> mayBeTransitive = Lists.newArrayList();
 
-    for (PsDependency dependency : dependencies) {
+    for (PsAndroidDependency dependency : dependencies) {
       Collection<DependencyModel> parsedModels = dependency.getParsedModels();
       if (parsedModels.isEmpty()) {
         mayBeTransitive.add(dependency);
