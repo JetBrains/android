@@ -425,7 +425,7 @@
                           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
+                          <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start by loading the device state from a saved snapshot.&lt;/html&gt;"/>
                         </properties>
                         <border type="none"/>
                         <children>
@@ -443,7 +443,7 @@
                             </constraints>
                             <properties>
                               <text value="Cold boot"/>
-                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
+                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start by loading the device state from a saved snapshot.&lt;/html&gt;"/>
                             </properties>
                           </component>
                           <component id="bd111" class="javax.swing.JRadioButton" binding="myFastBootRadioButton" default-binding="true">
@@ -453,7 +453,7 @@
                             <properties>
                               <selected value="true"/>
                               <text value="Quick boot"/>
-                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start from the state that was saved when the device last exited.&lt;/html&gt;"/>
+                              <toolTipText value="&lt;html&gt;Choose how the virtual device should start.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Cold boot&lt;/b&gt;&lt;br&gt;Start as from a power-up.&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Quick boot&lt;/b&gt;&lt;br&gt;Start by loading the device state from a saved snapshot.&lt;/html&gt;"/>
                             </properties>
                           </component>
                         </children>
