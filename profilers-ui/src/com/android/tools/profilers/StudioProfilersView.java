@@ -95,7 +95,7 @@ public class StudioProfilersView extends AspectObserver {
     mySplitter.setDividerWidth(JBUI.scale(2));
     mySplitter.setSecondComponent(myStageComponent);
     if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      mySessionsView = new SessionsView(myProfiler);
+      mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);
       mySplitter.setFirstComponent(mySessionsView.getComponent());
 
       // Prevent resize in collapse mode

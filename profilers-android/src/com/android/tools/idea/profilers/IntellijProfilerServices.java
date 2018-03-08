@@ -225,6 +225,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isSessionImportEnabled() {
+        return StudioFlags.PROFILER_IMPORT_SESSION.get();
+      }
+
+      @Override
       public boolean isSimpleperfEnabled() {
         return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
       }

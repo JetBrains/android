@@ -33,6 +33,7 @@ public interface FeatureConfig {
   boolean isNetworkRequestPayloadEnabled();
   boolean isNetworkThreadViewEnabled();
   boolean isSessionsEnabled();
+  boolean isSessionImportEnabled();
   boolean isSimpleperfEnabled();
   boolean isStartupCpuProfilingEnabled();
   // Add new features alphabetically instead of at the end of the list

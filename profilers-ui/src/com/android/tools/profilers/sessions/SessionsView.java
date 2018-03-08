@@ -22,9 +22,7 @@ import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.ProfilerAspect;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.ViewBinder;
+import com.android.tools.profilers.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -36,6 +34,7 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 
 import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
 import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_LABEL_BORDER;
@@ -61,10 +60,14 @@ public class SessionsView extends AspectObserver {
   @NotNull private final JList<SessionArtifact> mySessionsList;
   @NotNull private final DefaultListModel<SessionArtifact> mySessionsListModel;
 
+  @NotNull
+  private final IdeProfilerComponents myIdeProfilerComponents;
+
   private boolean myIsExpanded;
 
-  public SessionsView(@NotNull StudioProfilers profilers) {
+  public SessionsView(@NotNull StudioProfilers profilers, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myProfilers = profilers;
+    myIdeProfilerComponents = ideProfilerComponents;
     mySessionsManager = myProfilers.getSessionsManager();
     // Starts out with a collapsed sessions panel.
     // TODO b\73159126 make this configurable. e.g. save user's previous settings.
@@ -270,11 +273,23 @@ public class SessionsView extends AspectObserver {
       myProcessSelectionAction.clear();
       return;
     }
+    myProcessSelectionAction.clear();
+
+    // Add the dropdown action for loading from file
+    if (myProfilers.getIdeServices().getFeatureConfig().isSessionImportEnabled()) {
+      CommonAction loadAction = new CommonAction("Loading from file...", null);
+      loadAction.setAction(() -> {
+        myIdeProfilerComponents
+          .createImportDialog().
+          open(() -> "Open", Arrays.asList("hprof"), file -> {
+          });
+      });
+      myProcessSelectionAction.addChildrenActions(loadAction);
+    }
 
     Common.Device selectedDevice = myProfilers.getDevice();
     Common.Process selectedProcess = myProfilers.getProcess();
     // Rebuild the action tree.
-    myProcessSelectionAction.clear();
     for (Common.Device device : processMap.keySet()) {
       CommonAction deviceAction = new CommonAction(buildDeviceName(device), null);
       for (Common.Process process : processMap.get(device)) {

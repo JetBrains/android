@@ -109,6 +109,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean mySessionsViewEnabled = true;
 
   /**
+   * Toggle for faking session import support in tests.
+   */
+  private boolean mySessionsImportEnabled = true;
+
+  /**
    * Can toggle for tests via {@link #enableSimpleperf(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean mySimpleperfEnabled = false;
@@ -257,6 +262,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isSessionImportEnabled() {
+        return mySessionsImportEnabled;
+      }
+
+      @Override
       public boolean isSimpleperfEnabled() {
         return mySimpleperfEnabled;
       }
@@ -385,6 +395,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableSessionsView(boolean enabled) {
     mySessionsViewEnabled = enabled;
+  }
+
+  public void enableSessionImport(boolean enabled) {
+    mySessionsImportEnabled = enabled;
   }
 
   public void enableSimpleperf(boolean enabled) {
