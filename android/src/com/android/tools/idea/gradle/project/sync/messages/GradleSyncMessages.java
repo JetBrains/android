@@ -19,7 +19,6 @@ import com.android.tools.idea.project.messages.AbstractSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +35,8 @@ public class GradleSyncMessages extends AbstractSyncMessages {
     return ServiceManager.getService(project, GradleSyncMessages.class);
   }
 
-  public GradleSyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
-    super(project, manager);
+  public GradleSyncMessages(@NotNull Project project) {
+    super(project);
   }
 
   @Override
