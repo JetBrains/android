@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.dsl.api.util.TypeReference
  * Model for handling Gradle properties in the Project Structure Dialog
  */
 class PsVariable(private val property: GradlePropertyModel, val module: PsModule) {
-  val name = property.name
   val valueType = property.valueType
 
   fun <T> getUnresolvedValue(type: TypeReference<T>): T? {
@@ -36,8 +35,7 @@ class PsVariable(private val property: GradlePropertyModel, val module: PsModule
   fun setValue(aValue: Any) {
     if (property.valueType == GradlePropertyModel.ValueType.BOOLEAN) {
       property.setValue((aValue as String).toBoolean())
-    }
-    else {
+    } else {
       property.setValue(aValue)
     }
     module.isModified = true
@@ -47,4 +45,11 @@ class PsVariable(private val property: GradlePropertyModel, val module: PsModule
     property.delete()
     module.isModified = true
   }
+
+  fun setName(newName: String) {
+    property.rename(newName)
+    module.isModified = true
+  }
+
+  fun getName() = property.name
 }

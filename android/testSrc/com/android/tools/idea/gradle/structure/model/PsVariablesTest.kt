@@ -31,7 +31,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val variables = psAppModule.variables.getModuleVariables()
     assertThat(variables.size, equalTo(9))
     assertThat(
-      variables.map { it.name },
+      variables.map { it.getName() },
       hasItems(
         "myVariable",
         "variable1",
