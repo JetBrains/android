@@ -67,14 +67,11 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
     myPomDependencies.addAll(pomDependencies);
   }
 
-  @Override
   @NotNull
-  public ImmutableCollection<PsDependency> getTransitiveDependencies() {
-    PsAndroidModule module = getParent();
-
+  public ImmutableCollection<PsDependency> getTransitiveDependencies(@NotNull PsAndroidDependencyCollection artifactDependencies) {
     ImmutableSet.Builder<PsDependency> transitive = ImmutableSet.builder();
     for (PsArtifactDependencySpec dependency : myPomDependencies) {
-      PsLibraryAndroidDependency found = module.getDependencies().findLibraryDependency(dependency);
+      PsLibraryAndroidDependency found = artifactDependencies.findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }

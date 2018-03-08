@@ -129,19 +129,21 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
   private AndroidArtifactNode createArtifactNode(@NotNull PsAndroidArtifact artifact,
                                                  @NotNull List<PsAndroidDependency> dependencies,
                                                  @Nullable AndroidArtifactNode mainArtifactNode) {
+    PsAndroidDependencyCollection collection = new PsAndroidArtifactDependencyCollection(artifact);
     if (!dependencies.isEmpty() || mainArtifactNode != null) {
       AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
-      populate(artifactNode, dependencies, mainArtifactNode, getUiSettings());
+      populate(artifactNode, collection, dependencies, mainArtifactNode, getUiSettings());
       return artifactNode;
     }
     return null;
   }
 
   private static void populate(@NotNull AndroidArtifactNode artifactNode,
+                               @NotNull PsAndroidDependencyCollection collection,
                                @NotNull List<PsAndroidDependency> dependencies,
                                @Nullable AndroidArtifactNode mainArtifactNode,
                                @NotNull PsUISettings uiSettings) {
-    List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(artifactNode, dependencies, uiSettings);
+    List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(artifactNode, collection, dependencies, uiSettings);
     if (mainArtifactNode != null) {
       children.add(0, mainArtifactNode);
     }

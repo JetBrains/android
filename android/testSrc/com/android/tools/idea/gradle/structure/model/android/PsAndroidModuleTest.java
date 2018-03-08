@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -31,9 +27,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -347,49 +343,43 @@ public class PsAndroidModuleTest extends DependencyTestCase {
   @Ignore("b/73999281")
   public void /*test*/EditableDependencies() throws Throwable {
     // TODO(b/73999281): Uncomment when parsed and resolved dependencies are properly matched.
-    loadProject(PROJECT_WITH_APPAND_LIB);
+    loadProject(PSD_DEPENDENCY);
 
     Project resolvedProject = myFixture.getProject();
-    Module appModule = ModuleManager.getInstance(resolvedProject).findModuleByName("app");
-    assertNotNull(appModule);
-
-    // Make sure 'app' has an artifact dependency with version not including a '+'
-    GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-    assertNotNull(buildModel);
-    for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts("compile")) {
-      if ("com.android.support".equals(dependency.group().value()) && "appcompat-v7".equals(dependency.name().value())) {
-        dependency.setVersion("+");
-        break;
-      }
-    }
-
-    runWriteCommandAction(resolvedProject, buildModel::applyChanges);
-
-    //noinspection ConstantConditions
-    importProject(resolvedProject.getName(), new File(resolvedProject.getBasePath()), null);
-
     PsProject project = new PsProject(resolvedProject);
 
-    PsAndroidModule module = (PsAndroidModule)project.findModuleByName("app");
+    PsAndroidModule module = (PsAndroidModule)project.findModuleByName("mainModule");
     assertNotNull(module);
 
-    List<PsAndroidDependency> declaredDependencies = getDeclaredDependencies(module);
-    assertThat(declaredDependencies).hasSize(1);
+    List<PsAndroidDependency> declaredDependencies = getDependencies(module.getDependencies());
+    assertThat(declaredDependencies).hasSize(2);
 
-    // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsLibraryAndroidDependency appCompatV7 = (PsLibraryAndroidDependency)declaredDependencies.get(0);
-    assertTrue(appCompatV7.isDeclared());
+    // Verify that lib1 is considered a "editable" dependency, and it was matched properly
+    PsLibraryAndroidDependency lib1 = (PsLibraryAndroidDependency)declaredDependencies.get(1);
+    assertTrue(lib1.isDeclared());
 
-    PsArtifactDependencySpec resolvedSpec = appCompatV7.getSpec();
-    assertEquals("com.android.support", resolvedSpec.getGroup());
-    assertEquals("appcompat-v7", resolvedSpec.getName());
+    PsArtifactDependencySpec spec = lib1.getSpec();
+    assertEquals("com.example.libs", spec.getGroup());
+    assertEquals("lib1", spec.getName());
+    assertEquals("1.0", spec.getVersion());
 
-    // Verify that the variants where appcompat is are properly registered.
-    Collection<String> variants = appCompatV7.getVariants();
-    assertThat(variants).containsExactly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
+    Collection<String> variants = lib1.getVariants();
+    assertThat(variants).containsExactly("debug", "release");
 
     for (String variant : variants) {
       assertNotNull(module.findVariant(variant));
+      module.findVariant(variant).forEachArtifact(artifact -> {
+        if (artifact.getResolvedName().equals(ARTIFACT_MAIN)) {
+          if (artifact instanceof PsAndroidArtifact) {
+            PsAndroidArtifactDependencyCollection resolvedDependencies = new PsAndroidArtifactDependencyCollection(artifact);
+            // Verify that lib1 is considered a "editable" dependency, and it was matched properly
+            PsLibraryAndroidDependency resolved =
+              resolvedDependencies.findLibraryDependency("com.example.libs:lib1:1.0");
+            assertTrue(resolved.isDeclared());
+            assertFalse(resolved.getParsedModels().isEmpty());
+          }
+        }
+      });
     }
   }
 
@@ -404,21 +394,18 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
     assertNotNull(appModule);
 
-    List<PsAndroidDependency> declaredDependencies = getDeclaredDependencies(appModule);
+    List<PsAndroidDependency> declaredDependencies = getDependencies(appModule.getDependencies());
     assertThat(declaredDependencies).hasSize(1);
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
     PsLibraryAndroidDependency appCompatV7 = (PsLibraryAndroidDependency)declaredDependencies.get(0);
     assertTrue(appCompatV7.isDeclared());
 
-    PsArtifactDependencySpec declaredSpec = appCompatV7.getDeclaredSpec();
-    assertNotNull(declaredSpec);
-    assertEquals("com.android.support:appcompat-v7:+", declaredSpec.toString());
-
-    PsArtifactDependencySpec resolvedSpec = appCompatV7.getSpec();
-    assertEquals("com.android.support", resolvedSpec.getGroup());
-    assertEquals("appcompat-v7", resolvedSpec.getName());
-    assertThat(resolvedSpec.getVersion()).isNotEqualTo("+");
+    PsArtifactDependencySpec spec = appCompatV7.getSpec();
+    assertEquals("com.android.support", spec.getGroup());
+    assertEquals("appcompat-v7", spec.getName());
+    assertThat(spec.getVersion()).isEqualTo("+");
+    assertEquals("com.android.support:appcompat-v7:+", spec.toString());
 
     // Verify that the variants where appcompat is are properly registered.
     Collection<String> variants = appCompatV7.getVariants();
@@ -426,13 +413,28 @@ public class PsAndroidModuleTest extends DependencyTestCase {
 
     for (String variant : variants) {
       assertNotNull(appModule.findVariant(variant));
+      appModule.findVariant(variant).forEachArtifact(artifact -> {
+        if (artifact instanceof PsAndroidArtifact) {
+          PsAndroidArtifactDependencyCollection resolvedDependencies = new PsAndroidArtifactDependencyCollection(artifact);
+
+          // Verify that appcompat is considered a "editable" dependency, and it was matched properly
+          PsLibraryAndroidDependency resolvedAppCompatV7 =
+            resolvedDependencies.findLibraryDependency("com.android.support:appcompat-v7:26.0.1");
+          assertTrue(resolvedAppCompatV7.isDeclared());
+          assertFalse(resolvedAppCompatV7.getParsedModels().isEmpty());
+        }
+      });
     }
   }
 
   @NotNull
-  private static List<PsAndroidDependency> getDeclaredDependencies(@NotNull PsAndroidModule module) {
+  private static List<PsAndroidDependency> getDependencies(PsAndroidDependencyCollection dependencyCollection) {
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    module.getDependencies().forEachDeclaredDependency(dependencies::add);
+    dependencyCollection.forEach(dependency -> {
+      if (dependency.isDeclared()) {
+        dependencies.add(dependency);
+      }
+    });
     return dependencies;
   }
 

@@ -55,12 +55,12 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
 
     List<AbstractDependencyNode> children = Lists.newArrayList();
     for (Map.Entry<PsArtifactDependencySpec, List<PsLibraryAndroidDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
-      LibraryDependencyNode child = new LibraryDependencyNode(this, entry.getValue());
+      LibraryDependencyNode child = new LibraryDependencyNode(this, null, entry.getValue());
       children.add(child);
     }
 
     for (Map.Entry<String, List<PsModuleAndroidDependency>> entry : collector.moduleDependenciesByGradlePath.entrySet()) {
-      ModuleDependencyNode child = new ModuleDependencyNode(this, entry.getValue());
+      ModuleDependencyNode child = new ModuleDependencyNode(this, null, entry.getValue());
       children.add(child);
     }
 

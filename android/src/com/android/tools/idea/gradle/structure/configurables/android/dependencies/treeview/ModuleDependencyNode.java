@@ -19,11 +19,13 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -33,17 +35,21 @@ import static com.android.tools.idea.gradle.structure.model.PsDependency.TextTyp
 public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroidDependency> {
   private final List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
 
-  public ModuleDependencyNode(@NotNull AbstractPsNode parent, @NotNull PsModuleAndroidDependency dependency) {
+  public ModuleDependencyNode(@NotNull AbstractPsNode parent,
+                              @Nullable PsAndroidDependencyCollection collection,
+                              @NotNull PsModuleAndroidDependency dependency) {
     super(parent, dependency);
-    setUp(dependency);
+    setUp(dependency, collection);
   }
 
-  public ModuleDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<PsModuleAndroidDependency> dependencies) {
+  public ModuleDependencyNode(@NotNull AbstractPsNode parent,
+                              @Nullable PsAndroidDependencyCollection collection,
+                              @NotNull List<PsModuleAndroidDependency> dependencies) {
     super(parent, dependencies);
-    setUp(dependencies.get(0));
+    setUp(dependencies.get(0), collection);
   }
 
-  private void setUp(@NotNull PsModuleAndroidDependency moduleDependency) {
+  private void setUp(@NotNull PsModuleAndroidDependency moduleDependency, @Nullable PsAndroidDependencyCollection collection) {
     myName = moduleDependency.toText(PLAIN_TEXT);
 
     PsAndroidModule dependentModule = moduleDependency.getParent();
@@ -61,7 +67,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroid
           return; // Only show the dependencies in the main artifact.
         }
 
-        AbstractPsModelNode<?> child = AbstractDependencyNode.createNode(this, dependency);
+        AbstractPsModelNode<?> child = AbstractDependencyNode.createNode(this, collection, dependency);
         if (child != null) {
           myChildren.add(child);
         }

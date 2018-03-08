@@ -87,12 +87,6 @@ public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibra
     }
   }
 
-  @Override
-  @NotNull
-  public ImmutableCollection<PsDependency> getTransitiveDependencies() {
-    return ImmutableList.of();
-  }
-
   void setDependenciesFromPomFile(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
     myPomDependencies.clear();
     myPomDependencies.addAll(pomDependencies);
