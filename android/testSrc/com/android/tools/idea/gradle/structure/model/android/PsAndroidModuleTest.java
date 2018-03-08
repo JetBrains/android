@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -40,7 +39,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * Tests for {@link PsAndroidModule}.
  */
-public class PsAndroidModuleTest extends AndroidGradleTestCase {
+public class PsAndroidModuleTest extends DependencyTestCase {
 
   public void testFlavorDimensions() throws Throwable {
     loadProject(PSD_SAMPLE);
