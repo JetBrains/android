@@ -16,36 +16,16 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositories
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
-import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_REPO
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Assert.assertThat
-import java.io.File
 
-class DependencyManagementTest : AndroidGradleTestCase() {
+class DependencyManagementTest : DependencyTestCase() {
 
   private lateinit var resolvedProject: Project
   private lateinit var project: PsProject
-
-  override fun updateVersionAndDependencies(projectRoot: File) {
-    val localRepositories = getLocalRepositories()
-    val testRepositoryPath = File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)).absolutePath!!
-    val repositories = """
-      maven {
-        name 'test'
-        url 'file:$testRepositoryPath'
-      }
-      $localRepositories
-      """
-    AndroidGradleTests.updateGradleVersions(projectRoot, repositories, null)
-  }
 
   override fun setUp() {
     super.setUp()
