@@ -18,8 +18,7 @@
 
 buildscript {
     repositories {
-        jcenter()
-        google()
+        // added programmatically by tests
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.0'
@@ -31,7 +30,6 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
-        google()
+        // added programmatically by tests
     }
 }
