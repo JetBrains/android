@@ -18,6 +18,8 @@ package com.android.tools.adtui.stdui;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -48,8 +50,11 @@ class CommonButtonUI extends BasicButtonUI {
   protected void installDefaults(AbstractButton b) {
     super.installDefaults(b);
     b.setOpaque(false);
-    // TODO: This is only for 16x16 icon buttons
-    b.setBorder(BorderFactory.createEmptyBorder(JBUI.scale(4), JBUI.scale(4), JBUI.scale(5), JBUI.scale(5)));
+    Border border = b.getBorder();
+    if (border == null || border instanceof UIResource) {
+      // TODO: This is only for 16x16 icon buttons
+      b.setBorder(BorderFactory.createEmptyBorder(JBUI.scale(4), JBUI.scale(4), JBUI.scale(5), JBUI.scale(5)));
+    }
   }
 
   @Override
