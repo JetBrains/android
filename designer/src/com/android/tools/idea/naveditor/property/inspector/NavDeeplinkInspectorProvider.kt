@@ -25,7 +25,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 
 class NavDeeplinkInspectorProvider :
-  NavListInspectorProvider<NavDeeplinkProperty>(NavDeeplinkProperty::class.java, DEEPLINK, "Add Deep Link") {
+  NavListInspectorProvider<NavDeeplinkProperty>(NavDeeplinkProperty::class.java, DEEPLINK, "Deep Link") {
 
   override fun doAddItem(existing: NlComponent?, parents: List<NlComponent>, surface: DesignSurface?) {
     assert(parents.size == 1)

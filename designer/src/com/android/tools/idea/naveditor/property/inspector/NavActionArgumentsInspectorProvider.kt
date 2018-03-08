@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
+import java.awt.Dimension
 import javax.swing.BorderFactory
 import javax.swing.JPanel
 import javax.swing.table.TableCellRenderer
@@ -97,6 +98,8 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
 
       table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
       table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
+      table.minimumSize = Dimension(0, 36)
+      table.emptyText.text = "No arguments on the destination"
 
       val nameCellRenderer = JBTextField()
       nameCellRenderer.isEnabled = false
@@ -123,8 +126,7 @@ class NavActionArgumentsInspectorProvider : InspectorProvider<NavPropertiesManag
       table.putClientProperty("terminateEditOnFocusLost", true)
 
       panel.add(table, BorderLayout.CENTER)
-      val emptyPanel = JPanel()
-      inspector.addExpandableComponent("Arguments", null, emptyPanel, emptyPanel)
+      inspector.addTitle("Argument Default Values")
       inspector.addPanel(panel)
     }
 

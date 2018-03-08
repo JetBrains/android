@@ -359,6 +359,12 @@ public class InspectorPanelTest extends PropertyTestCase {
           return label;
         }
       }
+      else if (component instanceof JPanel) {
+        JLabel label = findFirstLabelWithText(Arrays.asList(((JPanel)component).getComponents()));
+        if (!StringUtil.isEmpty(label.getText())) {
+          return label;
+        }
+      }
     }
     return null;
   }
