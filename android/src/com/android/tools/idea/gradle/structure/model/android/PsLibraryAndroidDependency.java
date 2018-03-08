@@ -37,7 +37,6 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class PsLibraryAndroidDependency extends PsAndroidDependency implements PsLibraryDependency {
   @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
-  @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
   @NotNull private PsArtifactDependencySpec mySpec;
 
   @Nullable private final Library myResolvedModel;
@@ -63,10 +62,6 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
     return myResolvedModel;
   }
 
-  void addTransitiveDependency(@NotNull String dependency) {
-    myTransitiveDependencies.add(dependency);
-  }
-
   void setDependenciesFromPomFile(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
     myPomDependencies.clear();
     myPomDependencies.addAll(pomDependencies);
@@ -78,12 +73,6 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
     PsAndroidModule module = getParent();
 
     ImmutableSet.Builder<PsDependency> transitive = ImmutableSet.builder();
-    for (String dependency : myTransitiveDependencies) {
-      PsAndroidDependency found = module.getDependencies().findLibraryDependency(dependency);
-      if (found != null) {
-        transitive.add(found);
-      }
-    }
     for (PsArtifactDependencySpec dependency : myPomDependencies) {
       PsLibraryAndroidDependency found = module.getDependencies().findLibraryDependency(dependency);
       if (found != null) {
