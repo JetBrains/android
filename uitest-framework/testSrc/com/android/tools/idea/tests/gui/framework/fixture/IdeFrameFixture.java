@@ -606,11 +606,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public DialogFixture findDialog(@NotNull String title) {
-    return new DialogFixture(robot(), robot().finder().find(Matchers.byTitle(JDialog.class, title)));
-  }
-
-  @NotNull
   public DialogFixture waitForDialog(@NotNull String title) {
     return new DialogFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byTitle(JDialog.class, title)));
   }
