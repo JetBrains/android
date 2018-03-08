@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.property2.api.*
+import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
 import com.android.tools.idea.uibuilder.property2.model.HorizontalEditorPanelModel
@@ -60,7 +61,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     addComponent(inspector, properties[ANDROID_URI, ATTR_TEXT_SIZE], textAppearanceLabel)
     addComponent(inspector, properties[ANDROID_URI, ATTR_LINE_SPACING_EXTRA], textAppearanceLabel)
     addComponent(inspector, properties[ANDROID_URI, ATTR_TEXT_COLOR], textAppearanceLabel)
-    // TODO: addTextStyle(inspector, properties)
+    addTextStyle(inspector, properties, textAppearanceLabel)
     addAlignment(inspector, properties, textAppearanceLabel)
   }
 
@@ -70,22 +71,42 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     return line
   }
 
+  private fun addTextStyle(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
+    val textStyle = properties.getOrNull(ANDROID_URI, ATTR_TEXT_STYLE) as? NeleFlagsPropertyItem ?: return
+    val allCaps = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALL_CAPS) ?: return
+    val bold = textStyle.flag(TextStyle.VALUE_BOLD)
+    val italic = textStyle.flag(TextStyle.VALUE_ITALIC)
+    val model = HorizontalEditorPanelModel(textStyle, formModel)
+    val panel = HorizontalEditorPanel(model)
+    val line = inspector.addComponent(model, panel)
+    panel.add(createIconEditor(line, bold, "Bold", TEXT_STYLE_BOLD, "true", "false"))
+    panel.add(createIconEditor(line, italic, "Italics", TEXT_STYLE_ITALIC, "true", "false"))
+    panel.add(createIconEditor(line, allCaps, "All Caps", TEXT_STYLE_UPPERCASE, "true", "false"))
+    group.addChild(line)
+  }
+
   private fun addAlignment(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
     val alignment = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALIGNMENT) ?: return
     val model = HorizontalEditorPanelModel(alignment, formModel)
     val panel = HorizontalEditorPanel(model)
     val line = inspector.addComponent(model, panel)
-    panel.add(createIconEditor(alignment, "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START, line))
-    panel.add(createIconEditor(alignment, "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START, line))
-    panel.add(createIconEditor(alignment, "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER, line))
-    panel.add(createIconEditor(alignment, "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END, line))
-    panel.add(createIconEditor(alignment, "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END, line))
+    panel.add(createIconEditor(line, alignment, "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START))
+    panel.add(createIconEditor(line, alignment, "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START))
+    panel.add(createIconEditor(line, alignment, "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER))
+    panel.add(createIconEditor(line, alignment, "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END))
+    panel.add(createIconEditor(line, alignment, "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END))
     group.addChild(line)
   }
 
-  private fun createIconEditor(property: NelePropertyItem, description: String, icon: Icon, trueValue: String, line: InspectorLineModel):
-      Pair<PropertyEditorModel, JComponent> {
-    val model = ToggleButtonPropertyEditorModel(description, icon, trueValue, "", property, formModel)
+  private fun createIconEditor(
+    line: InspectorLineModel,
+    property: PropertyItem,
+    description: String,
+    icon: Icon,
+    trueValue: String,
+    falseValue: String = ""
+  ): Pair<PropertyEditorModel, JComponent> {
+    val model = ToggleButtonPropertyEditorModel(description, icon, trueValue, falseValue, property, formModel)
     val editor = ToggleButtonPropertyEditor(model)
     model.line = line
     return model to editor

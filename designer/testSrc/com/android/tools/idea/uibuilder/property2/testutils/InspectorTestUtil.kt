@@ -26,6 +26,8 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.dom.attrs.AttributeFormat
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito.*
 import javax.swing.JComponent
@@ -45,6 +47,12 @@ class InspectorTestUtil(parent: Disposable, facet: AndroidFacet, fixture: JavaCo
 
   fun addProperty(namespace: String, name: String, type: NelePropertyType) {
     _properties.put(namespace, name, makeProperty(namespace, name, type))
+  }
+
+  fun addFlagsProperty(namespace: String, name: String, values: List<String>) {
+    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flag))
+    values.forEach { definition.addValue(it) }
+    _properties.put(namespace, name, makeFlagsProperty(namespace, definition))
   }
 
   fun removeProperty(namespace: String, name: String) {

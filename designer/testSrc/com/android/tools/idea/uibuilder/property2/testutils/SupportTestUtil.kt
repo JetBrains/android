@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2.testutils
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.property.MockNlComponent
+import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
@@ -41,6 +42,10 @@ open class SupportTestUtil(parentDisposable: Disposable, private val facet: Andr
 
   fun makeProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
     return NelePropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", model, components)
+  }
+
+  fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
+    return NeleFlagsPropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", model, components)
   }
 
   private fun createComponent(tag: String, parentTag: String, activityName: String): NlComponent {
