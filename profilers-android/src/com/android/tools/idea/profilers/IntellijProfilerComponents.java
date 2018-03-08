@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.ExportDialog;
+import com.android.tools.profilers.ImportDialog;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
@@ -115,6 +116,12 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @Override
   public ExportDialog createExportDialog() {
     return new IntellijExportDialog(myProject);
+  }
+
+  @NotNull
+  @Override
+  public ImportDialog createImportDialog() {
+    return new IntellijImportDialog(myProject);
   }
 
   @NotNull

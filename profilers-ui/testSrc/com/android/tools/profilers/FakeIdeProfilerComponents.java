@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.stacktrace.*;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.TextFieldWithHistory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,10 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
-import java.util.function.IntPredicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertFalse;
@@ -103,6 +101,18 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
                        @NotNull Supplier<String> fileNameSupplier,
                        @NotNull Supplier<String> extensionSupplier,
                        @NotNull Consumer<File> saveToFile) {
+      }
+    };
+  }
+
+  @NotNull
+  @Override
+  public ImportDialog createImportDialog() {
+    return new ImportDialog() {
+      @Override
+      public void open(@NotNull Supplier<String> dialogTitleSupplier,
+                       @NotNull List<String> validExtensions,
+                       @NotNull Consumer<VirtualFile> fileOpenedCallback) {
       }
     };
   }

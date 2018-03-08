@@ -52,6 +52,9 @@ public interface IdeProfilerComponents {
   ExportDialog createExportDialog();
 
   @NotNull
+  ImportDialog createImportDialog();
+
+  @NotNull
   DataViewer createFileViewer(@NotNull File file);
 
   @NotNull

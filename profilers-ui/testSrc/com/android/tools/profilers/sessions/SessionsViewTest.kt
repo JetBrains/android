@@ -17,10 +17,7 @@ package com.android.tools.profilers.sessions
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.FakeGrpcServer
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -44,7 +41,7 @@ class SessionsViewTest {
     myTimer = FakeTimer()
     myProfilers = StudioProfilers(myGrpcServer.client, FakeIdeProfilerServices(), myTimer)
     mySessionsManager = myProfilers.sessionsManager
-    mySessionsView = SessionsView(myProfilers)
+    mySessionsView = SessionsView(myProfilers, FakeIdeProfilerComponents())
   }
 
   @Test
@@ -93,15 +90,23 @@ class SessionsViewTest {
 
     myProfilerService.addDevice(device1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(1)
-    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
+    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Loading from file..." }
+    assertThat(deviceAction1.isSelected).isFalse()
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(0)
+
+    myProfilerService.addDevice(device1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
+    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isFalse()
     assertThat(deviceAction1.childrenActionCount).isEqualTo(0)
 
     myProfilerService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(1)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
@@ -112,7 +117,7 @@ class SessionsViewTest {
 
     myProfilerService.addProcess(device1, process2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(1)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
@@ -125,7 +130,7 @@ class SessionsViewTest {
     myProfilerService.addDevice(device2)
     myProfilerService.addProcess(device2, process3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
