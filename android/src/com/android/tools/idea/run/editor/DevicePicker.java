@@ -52,6 +52,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.*;
 import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable,
@@ -79,6 +80,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   private final LaunchCompatibilityChecker myCompatibilityChecker;
 
   private List<AvdInfo> myAvdInfos = new ArrayList<>();
+  private boolean myAvdInfosHasInitialized = false;
 
   public DevicePicker(@NotNull Disposable parent,
                       int runContextId,
@@ -114,9 +116,6 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
-
-    postUpdate();
-    refreshAvds(null);
 
     Disposer.register(parent, this);
   }
@@ -186,17 +185,21 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   public void refreshAvds(@Nullable AvdInfo avdToSelect) {
     myDevicesList.setPaintBusy(true);
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      List<AvdInfo> avdInfos = ImmutableList.copyOf(AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true));
+      refreshAvdsNow(avdToSelect);
+    });
+  }
 
-      invokeLater(() -> {
-        if (myDevicesList == null) { // Don't update anything after disposal of the dialog.
-          return;
-        }
+  public void refreshAvdsNow(@Nullable AvdInfo avdToSelect) {
+    List<AvdInfo> avdInfos = ImmutableList.copyOf(AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true));
 
-        myAvdInfos = avdInfos;
-        updateModelAndSelectAvd(avdToSelect);
-        myDevicesList.setPaintBusy(false);
-      });
+    invokeLater(() -> {
+      if (myDevicesList == null) { // Don't update anything after disposal of the dialog.
+        return;
+      }
+      myAvdInfos = avdInfos;
+      myAvdInfosHasInitialized = true;
+      updateModelAndSelectAvd(avdToSelect);
+      myDevicesList.setPaintBusy(false);
     });
   }
 
@@ -297,17 +300,19 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       return;
     }
     Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValuesList());
-    List<AvdInfo> avdInfos = myAvdInfos;
     myDevicesList.setPaintBusy(true);
     // Obtaining device list is a potentially long running operation. Execute it on a background thread.
     executeOnPooledThread(() -> {
       List<IDevice> connectedDevices = Arrays.asList(bridge.getDevices());
-      DevicePickerListModel model = new DevicePickerListModel(connectedDevices, avdInfos);
 
       invokeLater(() -> {
         if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
           return;
         }
+        if (!myAvdInfosHasInitialized) {
+          return;
+        }
+        DevicePickerListModel model = new DevicePickerListModel(connectedDevices, myAvdInfos);
         setModel(model);
         if (avdToSelect != null) {
           selectAvd(avdToSelect);
