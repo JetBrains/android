@@ -84,7 +84,7 @@ public class EspressoRecorderTest {
 
     RecordingDialogFixture.find(guiTest.robot()).clickOk();
     TestClassNameInputDialogFixture.find(guiTest.robot()).clickOk();
-    MessagesFixture.findByTitle(guiTest.robot(), "Missing Espresso dependencies").clickYes();
+    MessagesFixture.findByTitle(guiTest.robot(), "Missing or obsolete Espresso dependencies").clickYes();
 
     // Run Android test.
     ideFrameFixture.waitForGradleProjectSyncToFinish();
