@@ -15,14 +15,17 @@
  */
 package com.android.tools.profilers.sessions
 
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.MemoryProfiler
+import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
+import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -35,6 +38,8 @@ import org.junit.Test
 import java.awt.event.ActionEvent
 
 class SessionsViewTest {
+
+  private val VALID_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
 
   private val myProfilerService = FakeProfilerService(false)
   private val myMemoryService = FakeMemoryService()
@@ -264,7 +269,7 @@ class SessionsViewTest {
     assertThat(sessionArtifacts.getElementAt(0).session).isEqualTo(session1)
 
     val session = mySessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
-    mySessionsManager.update();
+    mySessionsManager.update()
     mySessionsManager.setSession(session)
     assertThat(sessionArtifacts.size).isEqualTo(2)
 
@@ -334,5 +339,53 @@ class SessionsViewTest {
     sessionItem1 = sessionArtifacts.getElementAt(1) as SessionItem
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem1.session).isEqualTo(session1)
+  }
+
+  @Test
+  fun testCpuItemMouseInteraction() {
+    mySessionsView.sessionsList.ui = HeadlessListUI()
+    mySessionsView.sessionsList.setSize(100, 100)
+    val ui = FakeUi(mySessionsView.sessionsList)
+    val sessionArtifacts = mySessionsView.sessionsList.model
+    assertThat(sessionArtifacts.size).isEqualTo(0)
+
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val traceInfoId = 13
+    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setTraceId(traceInfoId).setFromTimestamp(10).setToTimestamp(11).build()
+    myCpuService.addTraceInfo(cpuTraceInfo)
+
+    myProfilerService.setTimestampNs(1)
+    mySessionsManager.beginSession(device, process)
+    mySessionsManager.endCurrentSession()
+    val session = mySessionsManager.selectedSession
+
+    assertThat(sessionArtifacts.size).isEqualTo(1)
+    var sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
+    assertThat(sessionItem.session).isEqualTo(session)
+
+    ui.layout()
+    ui.mouse.click(50, 50) // Click on the session
+    ui.layout()
+    ui.mouse.click(10, 10) // Clicking on the arrow to expand the session artifacts showing the CpuCaptureSessionArtifact
+    assertThat(sessionArtifacts.size).isEqualTo(2)
+    sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
+    val cpuCaptureItem = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
+    assertThat(sessionItem.session).isEqualTo(session)
+    assertThat(cpuCaptureItem.session).isEqualTo(session)
+
+    // Prepare FakeCpuService to return a valid trace.
+    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+    myCpuService.setValidTrace(true)
+    val traceBytes = ByteString.copyFrom(TestUtils.getWorkspaceFile(VALID_TRACE_PATH).readBytes())
+    myCpuService.setTrace(traceBytes)
+
+    assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
+    ui.mouse.click(50, 50) // Clicking on the CpuCaptureSessionArtifact should open CPU profiler and select the capture
+    assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
+    val selectedCapture = (myProfilers.stage as CpuProfilerStage).capture
+    // Makes sure that there is a capture selected and it's the one we clicked.
+    assertThat(selectedCapture).isNotNull()
+    assertThat(selectedCapture!!.traceId).isEqualTo(traceInfoId)
   }
 }
