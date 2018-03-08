@@ -38,6 +38,7 @@ public final class EnergyEventStateChart {
     .add(EnergyDuration.Kind.ALARM, ENERGY_ALARM)
     .add(EnergyDuration.Kind.JOB, ENERGY_JOB)
     .add(EnergyDuration.Kind.WAKE_LOCK, ENERGY_WAKE_LOCK)
+    .add(EnergyDuration.Kind.UNKNOWN, TRANSPARENT_COLOR)
     .build();
 
   @NotNull
