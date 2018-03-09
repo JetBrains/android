@@ -33,7 +33,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
-import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.impl.CoreProgressManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -46,6 +46,7 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
+import com.intellij.util.containers.ConcurrentLongObjectMap;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.ComponentFinder;
@@ -66,6 +67,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -298,7 +300,7 @@ public final class GuiTests {
           .until(() -> {
             boolean notified = listener.myNotified;
             if (notified) {
-              boolean isIdle = !anyProgressIndicator();
+              boolean isIdle = noProgressIndicator();
               if (isIdle) {
                 ProjectManager.getInstance().removeProjectManagerListener(listener);
               }
@@ -652,15 +654,19 @@ public final class GuiTests {
       .expecting("background tasks to finish")
       .until(() -> {
         robot.waitForIdle();
-        return !anyProgressIndicator();
+        return noProgressIndicator();
       });
   }
 
-  private static boolean anyProgressIndicator() {
-    ProgressManager progressManager = ProgressManager.getInstance();
-    return progressManager.hasModalProgressIndicator() ||
-           progressManager.hasProgressIndicator() ||
-           progressManager.hasUnsafeProgressIndicator();
+  private static boolean noProgressIndicator() {
+    try {
+      Field field = CoreProgressManager.class.getDeclaredField("currentIndicators");
+      field.setAccessible(true);
+      return ((ConcurrentLongObjectMap)field.get(null)).isEmpty();
+    }
+    catch (NoSuchFieldException | IllegalAccessException ex) {
+      throw new RuntimeException("Failure retrieving CoreProgressManager.currentIndicators", ex);
+    }
   }
 
   public static void waitForProjectIndexingToFinish(@NotNull Project project) {
