@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.EnergyProfiler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -54,7 +55,7 @@ public final class BatteryModel {
   private final PowerProfile myPowerProfile;
   private final long mySampleIntervalNs;
 
-  private double myCpuTotalPercent;
+  private PowerProfile.CpuCoreUsage[] myLastCpuCoresUsage;
   @NotNull
   private PowerProfile.NetworkType myNetworkType = PowerProfile.NetworkType.NONE;
   private boolean myIsTransmitting;
@@ -101,9 +102,9 @@ public final class BatteryModel {
   public void handleEvent(long timestampNs, @NotNull BatteryModel.Event energyEvent, Object eventArg) {
     switch (energyEvent) {
       case CPU_USAGE:
-        double cpuTotalPercent = (double)eventArg;
-        if (Double.compare(myCpuTotalPercent, cpuTotalPercent) != 0) {
-          myCpuTotalPercent = cpuTotalPercent;
+        PowerProfile.CpuCoreUsage[] cpuCoresUsage = (PowerProfile.CpuCoreUsage[])eventArg;
+        if (!Arrays.equals(myLastCpuCoresUsage, cpuCoresUsage)) {
+          myLastCpuCoresUsage = cpuCoresUsage;
           addNewCpuSample(timestampNs);
         }
         break;
@@ -165,7 +166,7 @@ public final class BatteryModel {
   }
 
   private void addNewCpuSample(long timestampNs) {
-    addNewSample(timestampNs, sample -> sample.setCpuUsage(myPowerProfile.getCpuUsage(myCpuTotalPercent)));
+    addNewSample(timestampNs, sample -> sample.setCpuUsage(myPowerProfile.getCpuUsage(myLastCpuCoresUsage)));
   }
 
   private void addNewNetworkSample(long timestampNs) {
@@ -210,7 +211,7 @@ public final class BatteryModel {
   public enum Event {
     /**
      * The amount of CPU being used changed.
-     * arg: A double representing total CPU percent, from 0.0 to 1.0
+     * arg: An array of CPU usage {@link PowerProfile.CpuCoreUsage}, each element on a per-core level.
      */
     CPU_USAGE,
 

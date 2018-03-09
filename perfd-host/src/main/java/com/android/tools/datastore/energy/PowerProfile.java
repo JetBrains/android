@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * on power profiles</a>, which this class aims to emulate.
  */
 public interface PowerProfile {
-  int getCpuUsage(double percent);
+  int getCpuUsage(@NotNull CpuCoreUsage[] usages);
 
   int getNetworkUsage(@NotNull NetworkType type, @NotNull NetworkState state);
 
@@ -75,8 +75,19 @@ public interface PowerProfile {
    */
   final class DefaultPowerProfile implements PowerProfile {
     @Override
-    public int getCpuUsage(double percent) {
-      return (int)(percent * 500);
+    public int getCpuUsage(@NotNull CpuCoreUsage[] usages) {
+      double totalMilliAmps = 0;
+      for (CpuCoreUsage core : usages) {
+        double f = core.myFrequencyKhz * 0.001; // normalize to MHz
+        double f2 = f * f;
+        double f3 = f2 * f;
+        // Based on measurements on a Walleye device at various core frequencies for both the big and little cores.
+        // The empirical results are then fitted against a cubic polynomial, resulting in the following equations.
+        totalMilliAmps += (2.48408e-8 * f3 - 0.0000468129 * f2 + 0.0551123 * f - 1.96322) * core.myAppUsage * core.myCoreUsage;
+        // TODO add small core equation below into the mix
+        //small core: (5.79689e-9 * f3 - 8.31587e-6 * f2 + 0.0109841 * f + 0.513398) * core.myAppUsage;
+      }
+      return (int)totalMilliAmps;
     }
 
     @Override
@@ -96,6 +107,26 @@ public interface PowerProfile {
         }
       }
       return usage;
+    }
+  }
+
+  /**
+   * Represents the per-core usage of the CPU.
+   */
+  final class CpuCoreUsage {
+    public final double myAppUsage;
+    public final double myCoreUsage;
+    public final int myFrequencyKhz;
+
+    /**
+     * @param appUsage     The total amount of CPU resources of the target app, relative to actual CPU usage (not idle) [0, 1].
+     * @param coreUsage    The amount of total usage of the core, relative to the total time elapsed [0, 1].
+     * @param frequencyKhz The frequency (in kHz) the core was last operating at.
+     */
+    public CpuCoreUsage(double appUsage, double coreUsage, int frequencyKhz) {
+      myAppUsage = appUsage;
+      myCoreUsage = coreUsage;
+      myFrequencyKhz = frequencyKhz;
     }
   }
 }
