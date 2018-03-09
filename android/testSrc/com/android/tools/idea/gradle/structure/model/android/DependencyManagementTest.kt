@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.project.Project
@@ -37,13 +38,145 @@ class DependencyManagementTest : DependencyTestCase() {
     project = PsProject(resolvedProject)
   }
 
-  fun testDependencies() {
+  fun testParsedDependencies() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
     assertThat(appModule.dependencies.findModuleDependency(":mainModule"), notNullValue())
     val libModule = project.findModuleByName("mainModule") as PsAndroidModule
+    val lib10 = libModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+    val lib091 = libModule.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1")
+    assertThat(lib10, notNullValue())
+    assertThat(lib091, notNullValue())
+    assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib2:1.0"), nullValue())
+    assertThat(libModule.dependencies.findLibraryDependency("com.example.jlib:lib3:1.0"), nullValue())
+    assertThat(libModule.dependencies.findLibraryDependency("com.example.jlib:lib4:1.0"), nullValue())
+
+    assertThat(lib10!!.configurationNames, hasItems("implementation", "debugImplementation"))
+    assertThat(lib091!!.configurationNames, hasItems("releaseImplementation"))
+  }
+
+  fun testResolvedDependencies() {
+    val libModule = project.findModuleByName("mainModule") as PsAndroidModule
+
+    run {
+      val artifact = libModule.findVariant("debug")!!.findArtifact(ARTIFACT_MAIN)
+      val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+      val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+      val lib2 = dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
+      val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
+      val lib4 = dependencies.findLibraryDependency("com.example.jlib:lib4:1.0")
+      assertThat(lib1, notNullValue())
+      assertThat(lib2, notNullValue())
+      assertThat(lib3, notNullValue())
+      assertThat(lib4, notNullValue())
+      assertThat(lib1!!.isDeclared, equalTo(true))
+      assertThat(lib2!!.isDeclared, equalTo(false))
+      assertThat(lib3!!.isDeclared, equalTo(false))
+      assertThat(lib4!!.isDeclared, equalTo(false))
+    }
+
+    run {
+      val artifact = libModule.findVariant("release")!!.findArtifact(ARTIFACT_MAIN)
+      val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+      val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+      val lib2 = dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
+      val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
+      val lib4 = dependencies.findLibraryDependency("com.example.jlib:lib4:1.0")
+      assertThat(lib1, notNullValue())
+      assertThat(lib2, notNullValue())
+      assertThat(lib3, notNullValue())
+      assertThat(lib4, notNullValue())
+      assertThat(lib1!!.isDeclared, equalTo(true))
+      assertThat(lib2!!.isDeclared, equalTo(false))
+      assertThat(lib3!!.isDeclared, equalTo(false))
+      assertThat(lib4!!.isDeclared, equalTo(false))
+    }
+  }
+
+  fun testParsedModelMatching() {
+    val libModule = project.findModuleByName("mainModule") as PsAndroidModule
+    assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+
+    val artifact = libModule.findVariant("debug")!!.findArtifact(ARTIFACT_MAIN)
+    val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+    val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+    assertThat(lib1, notNullValue())
+    assertThat(lib1!!.isDeclared, equalTo(true))
+    // TODO(b/74425541): All the matching parsed models should be matched.
+    // assertThat(lib1.configurationNames, hasItems("implementation", "debugImplementation"))
+  }
+
+  fun testPromotedParsedModelMatching() {
+    val libModule = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
     assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1"), notNullValue())
+
+    val artifact = libModule.findVariant("release")!!.findArtifact(ARTIFACT_MAIN)
+    val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+    val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+    assertThat(lib1, notNullValue())
+    assertThat(lib1!!.isDeclared, equalTo(true))
+    // Despite requesting a different version the 'releaseImplementation' configuration should be included in the promoted
+    // version of the resolved dependency since it is where it tries to contribute to.
+    // TODO(b/74424544): Version promotions should be reported if there are conflicting configuration statements.
+    // assertThat(lib1.configurationNames, hasItems("implementation", "releaseImplementation"))
+  }
+
+  fun testParsedDependencyPromotions() {
+    val libModule = project.findModuleByName("mainModule") as PsAndroidModule
+    run {
+      val lib1 = libModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+      val lib2 = libModule.dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
+      val lib3 = libModule.dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
+      val lib4 = libModule.dependencies.findLibraryDependency("com.example.jlib:lib4:1.0")
+      assertThat(lib1, notNullValue())
+      assertThat(lib2, nullValue())
+      assertThat(lib3, nullValue())
+      assertThat(lib4, nullValue())
+      assertThat(lib1!!.isDeclared, equalTo(true))
+      assertThat(lib1.hasPromotedVersion(), equalTo(false))
+    }
+    run {
+      val artifact = libModule.findVariant("release")!!.findArtifact(ARTIFACT_MAIN)
+      val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+      val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+      val lib2 = dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
+      val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
+      val lib4 = dependencies.findLibraryDependency("com.example.jlib:lib4:1.0")
+      assertThat(lib1, notNullValue())
+      assertThat(lib2, notNullValue())
+      assertThat(lib3, notNullValue())
+      assertThat(lib4, notNullValue())
+      assertThat(lib1!!.isDeclared, equalTo(true))
+      assertThat(lib2!!.isDeclared, equalTo(false))
+      assertThat(lib3!!.isDeclared, equalTo(false))
+      assertThat(lib4!!.isDeclared, equalTo(false))
+      // TODO(b/74424544): Version promotions should be reported if there are conflicting configuration statements.
+//      assertThat(lib1.hasPromotedVersion(), equalTo(true))
+      assertThat(lib2.hasPromotedVersion(), equalTo(false))
+      assertThat(lib3.hasPromotedVersion(), equalTo(false))
+      assertThat(lib4.hasPromotedVersion(), equalTo(false))
+    }
+    run {
+      val artifact = libModule.findVariant("debug")!!.findArtifact(ARTIFACT_MAIN)
+      val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+      val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
+      val lib2 = dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
+      val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
+      val lib4 = dependencies.findLibraryDependency("com.example.jlib:lib4:1.0")
+      assertThat(lib1, notNullValue())
+      assertThat(lib2, notNullValue())
+      assertThat(lib3, notNullValue())
+      assertThat(lib4, notNullValue())
+      assertThat(lib1!!.isDeclared, equalTo(true))
+      assertThat(lib2!!.isDeclared, equalTo(false))
+      assertThat(lib3!!.isDeclared, equalTo(false))
+      assertThat(lib4!!.isDeclared, equalTo(false))
+      assertThat(lib1.hasPromotedVersion(), equalTo(false))
+      assertThat(lib2.hasPromotedVersion(), equalTo(false))
+      assertThat(lib3.hasPromotedVersion(), equalTo(false))
+      assertThat(lib4.hasPromotedVersion(), equalTo(false))
+    }
   }
 
   fun testAddLibraryDependency() {
