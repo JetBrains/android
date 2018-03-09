@@ -61,6 +61,34 @@ class LlvmSymbolizerTest {
   }
 
   @Test
+  fun testSymbolizeBinariesBuiltOnWindows() {
+    val arch = "arm64"
+    val symLocator = SymbolFilesLocator(mapOf(Pair(arch, setOf(Paths.get(testDataDir, "win").toFile()!!))))
+    val symbolizer = LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
+    val expectedSymbolsFile = Paths.get(testDataDir, "win", EXPECTED_SYMBOLS_FILE_NAME).toFile()
+    Assert.assertTrue(expectedSymbolsFile.exists())
+    for (line in expectedSymbolsFile.readLines()) {
+      val symParts = line.split('|')
+      val offset = symParts[0].toLong(16)
+      val name = symParts[1]
+      val sourceFile = symParts[2]
+      val lineNumber = symParts[3].toInt()
+      val module = "/data/app/com.someapp.name-abcd09876abds==/lib/arm64/" + LIB_FILE_NAME
+
+      // +1 to get an address within the function, rather than function start address
+      val offsetWithinFunction = offset + 1
+      val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
+      Assert.assertNotNull(symbol)
+      Assert.assertEquals(name, symbol.name)
+      // TODO (ezemtsov): Uncomment the next line and harden the check once
+      // https://reviews.llvm.org/D44290 is landed in LLVM.
+      // Assert.assertEquals(symbol.sourceFile, sourceFile)
+      Assert.assertTrue(symbol.sourceFile.endsWith(sourceFile))
+      Assert.assertTrue(symbol.lineNumber >= lineNumber)
+    }
+  }
+
+  @Test
   fun testExeRestart() {
     val symbolizer = createSymbolizer()
     for (arch in architectures) {

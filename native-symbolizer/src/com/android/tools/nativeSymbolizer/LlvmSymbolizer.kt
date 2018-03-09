@@ -88,12 +88,18 @@ class LlvmSymbolizer(private val symbolizerExe: String, private val symLocator: 
     if (response.size < 2)
       return Symbol(name, module)
 
-    val locationParts = response[1].trim().split(':')
-    if (locationParts.isEmpty())
+    // Location line looks like this: <path to source file>:<line number>:<column number>
+    val locationLine = response[1].trim()
+    val indexBeforeColumn = locationLine.lastIndexOf(':')
+    if (indexBeforeColumn < 2)
       return Symbol(name, module)
 
-    val sourceFile = locationParts[0]
-    val lineNumber = locationParts.getOrNull(1)?.toIntOrNull() ?: 0
+    val indexBeforeLine = locationLine.lastIndexOf(':', indexBeforeColumn - 1)
+    if (indexBeforeColumn < 1)
+      return Symbol(name, module)
+
+    val sourceFile = locationLine.substring(0, indexBeforeLine)
+    val lineNumber = locationLine.substring(indexBeforeLine + 1, indexBeforeColumn).toIntOrNull() ?: 0
 
     return Symbol(name, module, sourceFile, lineNumber)
   }
