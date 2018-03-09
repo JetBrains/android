@@ -86,7 +86,7 @@ class BatteryModelTest {
 
 
     run {
-      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.CPU_USAGE, 0.5)
+      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.CPU_USAGE, arrayOf(PowerProfile.CpuCoreUsage(1.0, 0.5, 2457600)))
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 3)
 
       assertThat(samples[0].timestamp).isEqualTo(timeCurrNs)
@@ -99,7 +99,7 @@ class BatteryModelTest {
       assertThat(samples[2].cpuUsage).isEqualTo(samples[0].cpuUsage)
 
       timeCurrNs = fastForward(timeCurrNs, samples.size)
-      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.CPU_USAGE, 0.0)
+      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.CPU_USAGE, arrayOf(PowerProfile.CpuCoreUsage(0.0, 0.5, 2457600)))
     }
 
     run {
@@ -148,7 +148,7 @@ class BatteryModelTest {
     batteryModel.handleEvent(timeCurrNs + 1, BatteryModel.Event.NETWORK_DOWNLOAD, true)
     batteryModel.handleEvent(timeCurrNs + 2, BatteryModel.Event.NETWORK_DOWNLOAD, false)
     batteryModel.handleEvent(timeCurrNs + 3, BatteryModel.Event.NETWORK_TYPE_CHANGED, PowerProfile.NetworkType.NONE)
-    batteryModel.handleEvent(timeCurrNs + 3, BatteryModel.Event.CPU_USAGE, 1.0)
+    batteryModel.handleEvent(timeCurrNs + 3, BatteryModel.Event.CPU_USAGE, arrayOf(PowerProfile.CpuCoreUsage(1.0, 1.0, 2457600)))
 
     val sample = batteryModel.getNSamplesStartingAt(timeCurrNs, 1)[0]
 
