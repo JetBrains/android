@@ -79,7 +79,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   private void setUpStartupCpuProfiling() {
     myStartupCpuProfileCheckBox.addItemListener(e -> myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected()));
     myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected());
-    myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(StartupCpuProfilingConfiguration.DEFAULT_CONFIGS
+    myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(StartupCpuProfilingConfiguration.getDefaultConfigs()
                                                                       .toArray(new StartupCpuProfilingConfiguration[0])));
     myStartupCpuConfigsComboBox.setRenderer(new ColoredListCellRenderer<StartupCpuProfilingConfiguration>() {
       @Override
