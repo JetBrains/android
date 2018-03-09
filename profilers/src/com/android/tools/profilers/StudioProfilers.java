@@ -47,7 +47,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.android.tools.profiler.proto.CpuProfiler.*;
+import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 
 /**
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
@@ -106,6 +107,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private long myRefreshDevices;
 
+  private final Map<Common.SessionMetaData.SessionType, Runnable> mySessionChangeListener;
+
   public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
   }
@@ -117,6 +120,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myPreferredProcessName = null;
     myStage = new NullMonitorStage(this);
     mySessionsManager = new SessionsManager(this);
+    mySessionChangeListener = new HashMap<>();
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -135,6 +139,32 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (!myTimeline.getSelectionRange().isEmpty()) {
         myTimeline.setStreaming(false);
       }
+    });
+
+    registerSessionChangeListener(Common.SessionMetaData.SessionType.FULL, () -> {
+      // Set the stage before updating the timeline, otherwise the stage's scrollbar would not pick up the initial timeline changes.
+      setStage(new StudioMonitorStage(this));
+      if (isSessionAlive(mySelectedSession)) {
+        // The session is live - move the timeline to the current time.
+        TimeResponse timeResponse = myClient.getProfilerClient()
+          .getCurrentTime(TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
+        myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
+        if (startupCpuProfilingStarted()) {
+          setStage(new CpuProfilerStage(this));
+        }
+      }
+      else {
+        // The session is finished, reset the timeline to include the entire data range.
+        myTimeline.reset(mySelectedSession.getStartTimestamp(), mySelectedSession.getEndTimestamp());
+        // We are not streaming so we don't need the view range to have the extra initial buffer if the session's duration is short.
+        // Just set the view range to be the data range.
+        myTimeline.getViewRange().set(myTimeline.getDataRange());
+        myTimeline.setIsPaused(true);
+      }
+
+      // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the session
+      // is properly assigned before firing this aspect change.
+      changed(ProfilerAspect.AGENT);
     });
 
     myProcesses = Maps.newHashMap();
@@ -321,7 +351,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
 
   /**
-   *  Return the meta data of current selected session
+   * Return the meta data of current selected session
    */
   @NotNull
   public Common.SessionMetaData getSelectedSessionMetaData() {
@@ -356,6 +386,16 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
+  /**
+   * Register the listener to set proper stage when a new session is selected.
+   *
+   * @param sessionType type of the new session.
+   * @param listener    listener to register.
+   */
+  public void registerSessionChangeListener(Common.SessionMetaData.SessionType sessionType, Runnable listener) {
+    mySessionChangeListener.put(sessionType, listener);
+  }
+
   private void selectedSessionChanged() {
     Common.Session newSession = mySessionsManager.getSelectedSession();
 
@@ -378,29 +418,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return;
     }
 
-    // Set the stage before updating the timeline, otherwise the stage's scrollbar would not pick up the initial timeline changes.
-    setStage(new StudioMonitorStage(this));
-    if (isSessionAlive(mySelectedSession)) {
-      // The session is live - move the timeline to the current time.
-      TimeResponse timeResponse = myClient.getProfilerClient()
-        .getCurrentTime(TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
-      myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
-      if (startupCpuProfilingStarted()) {
-        setStage(new CpuProfilerStage(this));
-      }
-    }
-    else {
-      // The session is finished, reset the timeline to include the entire data range.
-      myTimeline.reset(mySelectedSession.getStartTimestamp(), mySelectedSession.getEndTimestamp());
-      // We are not streaming so we don't need the view range to have the extra initial buffer if the session's duration is short.
-      // Just set the view range to be the data range.
-      myTimeline.getViewRange().set(myTimeline.getDataRange());
-      myTimeline.setIsPaused(true);
-    }
-
-    // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the session
-    // is properly assigned before firing this aspect change.
-    changed(ProfilerAspect.AGENT);
+    // Set the stage base on session type
+    Common.SessionMetaData.SessionType sessionType = mySelectedSessionMetaData.getType();
+    assert mySessionChangeListener.containsKey(sessionType);
+    mySessionChangeListener.get(sessionType).run();
   }
 
   private void profilingSessionChanged() {

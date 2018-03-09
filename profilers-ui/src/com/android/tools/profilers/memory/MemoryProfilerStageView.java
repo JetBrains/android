@@ -69,7 +69,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
   @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
-  @NotNull private SelectionComponent mySelectionComponent;
+  @Nullable private SelectionComponent mySelectionComponent;
   @Nullable private CaptureObject myCaptureObject = null;
 
   @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
@@ -102,7 +102,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myChartCaptureSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
 
-    myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
+    // Do not initialize the monitor UI if it only contains heap dump data.
+    // In this case, mySelectionComponent is null and we will not build the context menu
+    if (!getStage().isMemoryCaptureOnly()) {
+      myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
+    }
     myCapturePanel = buildCaptureUi();
     myInstanceDetailsSplitter.setOpaque(true);
     myInstanceDetailsSplitter.setFirstComponent(myClassSetView.getComponent());
@@ -176,6 +180,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     captureObjectChanged();
     allocationTrackingChanged();
     buildContextMenu(mySelectionComponent);
+
+    if (getStage().isMemoryCaptureOnly()) {
+      getStage().loadHeapDumpCaptureObject(SwingUtilities::invokeLater);
+    }
   }
 
   @Override
@@ -472,7 +480,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return panel;
   }
 
-  private void buildContextMenu(@NotNull JComponent component) {
+  private void buildContextMenu(@Nullable JComponent component) {
+    if (component == null) {
+      return;
+    }
+
     IdeProfilerComponents ideProfilerComponents = getIdeComponents();
     ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 

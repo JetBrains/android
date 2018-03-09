@@ -18,13 +18,11 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.TimeRequest;
 import com.android.tools.profiler.proto.Profiler.TimeResponse;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
@@ -63,11 +61,28 @@ public class MemoryProfiler extends StudioProfiler {
         return;
       }
       Common.Session session = sessionsManager.createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE);
-
-      sessionsManager.update();
-      sessionsManager.setSession(session);
+      // Bind the imported session with heap dump data through MemoryClient
+      HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
+        .setFileName(file.getName())
+        .build();
+      ImportHeapDumpRequest heapDumpRequest = ImportHeapDumpRequest.newBuilder()
+        .setSession(session)
+        .setData(ByteString.copyFrom(bytes))
+        .setInfo(heapDumpInfo)
+        .build();
+      ImportHeapDumpResponse response = myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
+      // Select the new session
+      if (response.getStatus() == ImportHeapDumpResponse.Status.SUCCESS) {
+        sessionsManager.update();
+        sessionsManager.setSession(session);
+      }
+      else {
+        Logger.getInstance(getClass()).error("Importing Session Failed: can not import heap dump...");
+      }
     });
 
+    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
+                                              () -> myProfilers.setStage(new MemoryProfilerStage(myProfilers)));
   }
 
   @Override

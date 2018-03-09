@@ -176,6 +176,21 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
+  public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
+    ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
+    myExplicitDumpDataStatus = DumpDataResponse.Status.SUCCESS;
+    myExplicitHeapDumpInfo =
+      HeapDumpInfo.newBuilder()
+        .setSuccess(true)
+        .build();
+    myHeapDumpInfoBuilder.addInfos(myExplicitHeapDumpInfo);
+    myExplicitSnapshotBuffer = request.getData().toByteArray();
+    responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
+    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void triggerHeapDump(TriggerHeapDumpRequest request,
                               StreamObserver<TriggerHeapDumpResponse> responseObserver) {
     TriggerHeapDumpResponse.Builder builder = TriggerHeapDumpResponse.newBuilder();

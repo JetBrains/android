@@ -16,13 +16,16 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
@@ -30,6 +33,9 @@ import org.junit.Test;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
+import java.io.File;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +45,7 @@ import java.util.stream.IntStream;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.*;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
@@ -47,7 +54,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   private StudioProfilersView myProfilersView;
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myProfilerService, myService);
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myProfilerService, myService, new FakeCpuService());
 
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
@@ -231,6 +239,30 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myMockLoader.runTask();
     assertView(fakeCapture2, fakeCapture2.getHeapSet(0), null, null, false);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
+  }
+
+  @Test
+  public void testLoadHeapDumpFromFile() throws Exception {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+
+    // Create a temp file
+    String data = "random_string_~!@#$%^&*()_+";
+    File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
+    PrintWriter printWriter = new PrintWriter(file);
+    printWriter.write(data);
+    printWriter.close();
+
+    // Import heap dump from file
+    sessionsManager.importSessionFromFile(file);
+    Common.Session session = sessionsManager.getSelectedSession();
+    long dumpTime = session.getStartTimestamp();
+    DumpDataRequest request = DumpDataRequest.newBuilder()
+      .setDumpTime(dumpTime)
+      .setSession(session)
+      .build();
+    DumpDataResponse response = myProfilers.getClient().getMemoryClient().getHeapDump(request);
+
+    assertThat(response.getData()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
   }
 
   private void assertSelection(@Nullable CaptureObject expectedCaptureObject,

@@ -168,6 +168,16 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
+  public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
+    ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
+    myStatsTable.insertOrReplaceHeapInfo(request.getSession(), request.getInfo());
+    myStatsTable.insertHeapDumpData(request.getSession(), 0, DumpDataResponse.Status.SUCCESS, request.getData());
+    responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
+    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
