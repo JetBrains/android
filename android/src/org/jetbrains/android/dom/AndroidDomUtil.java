@@ -372,7 +372,7 @@ public class AndroidDomUtil {
     }
 
     final ResourceValue resValue = attribute.getValue();
-    if (resValue == null || (localOnly && resValue.getNamespace() != null)) {
+    if (resValue == null || (localOnly && resValue.getPackage() != null)) {
       return null;
     }
 

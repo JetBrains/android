@@ -102,7 +102,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     final List<ResolveResult> result = new ArrayList<>();
 
     if (elements.isEmpty() && myResourceValue.getResourceName() != null &&
-        !AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myResourceValue.getNamespace())) {
+        !AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myResourceValue.getPackage())) {
       // Dynamic items do not appear in the XML scanning file index; look for
       // these in the resource repositories.
       LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(myFacet.getModule());
@@ -120,7 +120,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
         // In non-namespaced project we allowed the usage of "tools:" without proper xmlns declaration.
         // TODO(namespaces): revisit this once we have code-completion working in namespaced projects.
         if (resourceType == ResourceType.SAMPLE_DATA &&
-            SdkConstants.TOOLS_NS_NAME.equals(myResourceValue.getNamespace()) &&
+            SdkConstants.TOOLS_NS_NAME.equals(myResourceValue.getPackage()) &&
             ResourceRepositoryManager.getOrCreateInstance(myFacet).getNamespacing() == AaptOptions.Namespacing.DISABLED) {
           namespace = ResourceNamespace.TOOLS;
         }
@@ -176,7 +176,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (resType == null) {
       return;
     }
-    String resourcePackage = resValue.getNamespace();
+    String resourcePackage = resValue.getPackage();
     ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resourcePackage, myElement);
     if (manager != null) {
       String resName = resValue.getResourceName();
