@@ -214,7 +214,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
-   * Create and select a new session
+   * Create and a new session with a specific type
    *
    * @param sessionName name of the new session
    * @param sessionType type of the new session

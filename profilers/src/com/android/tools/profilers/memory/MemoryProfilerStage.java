@@ -35,6 +35,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
@@ -78,6 +79,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final MemoryStageLegends myTooltipLegends;
   private final EaseOutModel myInstructionsEaseOutModel;
 
+  /**
+   * Whether the stage only contains heap dump data imported from hprof file
+   */
+  private final boolean myIsMemoryCaptureOnly;
+
   @NotNull
   private final Common.Session mySessionData;
   private DurationDataModel<GcDurationData> myGcStatsModel;
@@ -110,6 +116,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @VisibleForTesting
   public MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers);
+    myIsMemoryCaptureOnly = profilers.getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
     mySessionData = profilers.getSession();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
@@ -301,6 +308,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
   }
 
+  public boolean isMemoryCaptureOnly() {
+    return myIsMemoryCaptureOnly;
+  }
+
   /**
    * Find a pending allocation or heap dump capture matching {@code myPendingCaptureStartTime} if no capture is currently selected.
    * Selection range will also be updated to match if the capture isn't ongoing.
@@ -325,6 +336,18 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
           (captureToSelect.value.getDuration() != Long.MAX_VALUE || captureToSelect.value.getSelectableWhenMaxDuration())) {
         selectCaptureDuration(captureToSelect.value, loadJoiner);
       }
+    }
+  }
+
+  public void loadHeapDumpCaptureObject(@NotNull Executor loadJoiner) {
+    Range dataRange = new Range(-1, 1);
+    myPendingCaptureStartTime = mySessionData.getStartTimestamp();
+
+    if (myPendingCaptureStartTime != INVALID_START_TIME) {
+      List<SeriesData<CaptureDurationData<CaptureObject>>> series =
+        new ArrayList<>(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(dataRange));
+      assert series.size() == 1;
+      selectCaptureDuration(series.get(0).value, loadJoiner);
     }
   }
 
