@@ -95,7 +95,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
       ResourceValue newValue = ResourceValue.parse(newResName, true, true, false);
       if (newValue == null || newValue.getPrefix() == '\0') {
         // Note: We're using value.getResourceType(), not resType.getName() here, because we want the "+" in the new name
-        newValue = ResourceValue.referenceTo(value.getPrefix(), value.getNamespace(), value.getResourceType(), newResName);
+        newValue = ResourceValue.referenceTo(value.getPrefix(), value.getPackage(), value.getResourceType(), newResName);
       }
 
       myValue.setValue(newValue);
