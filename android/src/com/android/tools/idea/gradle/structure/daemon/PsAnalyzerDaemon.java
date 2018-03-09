@@ -84,7 +84,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
       Ref<Boolean> updatesFound = new Ref<>(false);
       if (module instanceof PsAndroidModule) {
         PsAndroidModule androidModule = (PsAndroidModule)module;
-        androidModule.getDependencies().forEachDeclaredDependency(dependency -> {
+        androidModule.getDependencies().forEach(dependency -> {
           if (dependency instanceof PsLibraryDependency) {
             boolean found = checkForUpdates((PsLibraryDependency)dependency);
             if (found) {
