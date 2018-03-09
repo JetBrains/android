@@ -2,7 +2,7 @@
 
 buildscript {
     repositories {
-        jcenter()
+        // repositories added programmatically by tests
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.4.0-dev'
@@ -14,7 +14,7 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        // repositories added programmatically by tests
     }
 }
 
