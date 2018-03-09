@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ArtifactComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
@@ -26,6 +25,7 @@ import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,69 +55,35 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
   private List<? extends AndroidArtifactNode> createChildren(@NotNull PsAndroidModule module,
                                                              @NotNull Map<String, PsVariant> variantsByName) {
     List<AndroidArtifactNode> childrenNodes = Lists.newArrayList();
-
-    // [Outer map] key: variant name, value: dependencies by artifact
-    // [Inner map] key: artifact name, value: dependencies
-    Map<String, Map<String, List<PsAndroidDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
-
-    module.getDependencies().forEach(dependency -> {
-      if (!dependency.isDeclared()) {
-        return; // Only show "declared" dependencies as top-level dependencies.
-      }
-      for (PsDependencyContainer container : dependency.getContainers()) {
-        Map<String, List<PsAndroidDependency>> dependenciesByArtifact =
-          dependenciesByVariantAndArtifact.get(container.getVariant());
-
-        if (dependenciesByArtifact == null) {
-          dependenciesByArtifact = Maps.newHashMap();
-          dependenciesByVariantAndArtifact.put(container.getVariant(), dependenciesByArtifact);
-        }
-
-        List<PsAndroidDependency> artifactDependencies = dependenciesByArtifact.get(container.getArtifact());
-        if (artifactDependencies == null) {
-          artifactDependencies = Lists.newArrayList();
-          dependenciesByArtifact.put(container.getArtifact(), artifactDependencies);
-        }
-
-        artifactDependencies.add(dependency);
-      }
-    });
-
-    List<String> variantNames = Lists.newArrayList(dependenciesByVariantAndArtifact.keySet());
+    List<String> variantNames = new ArrayList<>(variantsByName.keySet());
     Collections.sort(variantNames);
 
     for (String variantName : variantNames) {
       PsVariant variant = variantsByName.get(variantName);
 
-      Map<String, List<PsAndroidDependency>> dependenciesByArtifact = dependenciesByVariantAndArtifact.get(variantName);
+      Map<String, PsAndroidArtifact> artifacts = Maps.newLinkedHashMap();
+      variant.forEachArtifact(artifact -> artifacts.put(artifact.getResolvedName(), artifact));
+      List<String> artifactNames = new ArrayList<>(artifacts.keySet());
+      //noinspection TestOnlyProblems
+      Collections.sort(artifactNames);
 
-      if (dependenciesByArtifact != null) {
-        List<String> artifactNames = Lists.newArrayList(dependenciesByArtifact.keySet());
-        //noinspection TestOnlyProblems
-        Collections.sort(artifactNames, ArtifactComparator.byName());
+      for (String artifactName : artifactNames) {
+        PsAndroidArtifact artifact = variant.findArtifact(artifactName);
+        assert artifact != null;
 
-        for (String artifactName : artifactNames) {
-          PsAndroidArtifact artifact = variant.findArtifact(artifactName);
-          assert artifact != null;
-
-          AndroidArtifactNode mainArtifactNode = null;
-          String mainArtifactName = ARTIFACT_MAIN;
-          if (!mainArtifactName.equals(artifactName)) {
-            // Add "main" artifact as a dependency of "unit test" or "android test" artifact.
-            PsAndroidArtifact mainArtifact = variant.findArtifact(mainArtifactName);
-            if (mainArtifact != null) {
-              List<PsAndroidDependency> artifactDependencies = dependenciesByArtifact.get(mainArtifactName);
-              if (artifactDependencies == null) {
-                artifactDependencies = Collections.emptyList();
-              }
-              mainArtifactNode = createArtifactNode(mainArtifact, artifactDependencies, null);
-            }
+        AndroidArtifactNode mainArtifactNode = null;
+        String mainArtifactName = ARTIFACT_MAIN;
+        if (!mainArtifactName.equals(artifactName)) {
+          // Add "main" artifact as a dependency of "unit test" or "android test" artifact.
+          PsAndroidArtifact mainArtifact = variant.findArtifact(mainArtifactName);
+          if (mainArtifact != null) {
+            mainArtifactNode = createArtifactNode(mainArtifact, null);
           }
+        }
 
-          AndroidArtifactNode artifactNode = createArtifactNode(artifact, dependenciesByArtifact.get(artifactName), mainArtifactNode);
-          if (artifactNode != null) {
-            childrenNodes.add(artifactNode);
-          }
+        AndroidArtifactNode artifactNode = createArtifactNode(artifact, mainArtifactNode);
+        if (artifactNode != null) {
+          childrenNodes.add(artifactNode);
         }
       }
     }
@@ -127,9 +93,10 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
   @Nullable
   private AndroidArtifactNode createArtifactNode(@NotNull PsAndroidArtifact artifact,
-                                                 @NotNull List<PsAndroidDependency> dependencies,
                                                  @Nullable AndroidArtifactNode mainArtifactNode) {
     PsAndroidDependencyCollection collection = new PsAndroidArtifactDependencyCollection(artifact);
+    List<PsAndroidDependency> dependencies = new ArrayList<>();
+    collection.forEach(dependencies::add);
     if (!dependencies.isEmpty() || mainArtifactNode != null) {
       AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
       populate(artifactNode, collection, dependencies, mainArtifactNode, getUiSettings());

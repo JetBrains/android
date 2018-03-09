@@ -340,9 +340,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     return variants;
   }
 
-  @Ignore("b/73999281")
-  public void /*test*/EditableDependencies() throws Throwable {
-    // TODO(b/73999281): Uncomment when parsed and resolved dependencies are properly matched.
+  public void testEditableDependencies() throws Throwable {
     loadProject(PSD_DEPENDENCY);
 
     Project resolvedProject = myFixture.getProject();

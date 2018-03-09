@@ -51,7 +51,7 @@ public abstract class PsAndroidDependency extends PsDependency implements PsAndr
     return (PsAndroidModule)super.getParent();
   }
 
-  void addContainer(@NotNull PsAndroidArtifact artifact) {
+  private void addContainer(@NotNull PsAndroidArtifact artifact) {
     myContainers.add(new PsDependencyContainer(artifact));
   }
 
