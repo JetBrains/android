@@ -42,6 +42,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -194,6 +195,48 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       assertThat(quickFixes.get(0)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+    }
+  }
+
+  /**
+   * Verify that an {@link AddGoogleMavenRepositoryHyperlink} is generated when the project is not initialized
+   * @throws Exception
+   */
+  public void testReportNotInitialized() throws Exception {
+    loadSimpleApplication();
+    mySyncMessagesStub.clearReportedMessages();
+
+    Module appModule = myModules.getAppModule();
+    Module spyAppModule = spy(appModule);
+    Project spyProject = spy(spyAppModule.getProject());
+    when(spyAppModule.getProject()).thenReturn(spyProject);
+    when(spyProject.isInitialized()).thenReturn(false);
+
+    when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
+
+    myReporter.report(mySyncIssue, spyAppModule, null);
+
+    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
+    assertNotNull(message);
+
+    // @formatter:off
+    assertAbout(syncMessage()).that(message).hasGroup("Unresolved Android dependencies")
+                                            .hasMessageLine("Failed to resolve: com.android.support:appcompat-v7:24.1.1", 0);
+    // @formatter:on
+
+    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    int expectedSize = IdeInfo.getInstance().isAndroidStudio() ? 2 : 1;
+    assertThat(quickFixes).hasSize(expectedSize);
+
+    NotificationHyperlink quickFix = quickFixes.get(0);
+    assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
+    AddGoogleMavenRepositoryHyperlink addQuickFix = (AddGoogleMavenRepositoryHyperlink)quickFix;
+    // Confirm that the build file was not assigned (this causes the hyperlink to search for it)
+    assertThat(addQuickFix.getBuildFile()).isNull();
+
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      quickFix = quickFixes.get(1);
+      assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
   }
 

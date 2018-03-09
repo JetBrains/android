@@ -37,7 +37,11 @@ public class AddGoogleMavenRepositoryHyperlink extends NotificationHyperlink {
   @Nullable private final VirtualFile myBuildFile;
   private final boolean mySyncAfterFix;
 
-  public AddGoogleMavenRepositoryHyperlink(@Nullable VirtualFile buildFile) {
+  public AddGoogleMavenRepositoryHyperlink() {
+    this(null, true);
+  }
+
+  public AddGoogleMavenRepositoryHyperlink(@NotNull VirtualFile buildFile) {
     this(buildFile, true);
   }
 
