@@ -47,17 +47,17 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
                                        new Dimension(EXPAND_COLLAPSE_COLUMN_WIDTH, Short.MAX_VALUE));
     myComponent.add(spacer, new TabularLayout.Constraint(0, 0));
 
-    JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.CPU);
+    JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.HEAP);
     icon.setBorder(ARTIFACT_ICON_BORDER);
     myComponent.add(icon, new TabularLayout.Constraint(0, 1));
 
     JLabel artifactName = new JLabel(getArtifact().getName());
-    artifactName.setBorder(ARTIFACT_PADDING);
-    artifactName.setFont(ARTIFACT_TITLE_FONT);
+    artifactName.setBorder(LABEL_PADDING);
+    artifactName.setFont(TITLE_FONT);
     JLabel artifactTime =
       new JLabel(TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(getArtifact().getTimestampNs())));
-    artifactTime.setBorder(ARTIFACT_PADDING);
-    artifactTime.setFont(ARTIFACT_STATUS_FONT);
+    artifactTime.setBorder(LABEL_PADDING);
+    artifactTime.setFont(STATUS_FONT);
     myComponent.add(artifactName, new TabularLayout.Constraint(0, 2));
     myComponent.add(artifactTime, new TabularLayout.Constraint(1, 2));
   }

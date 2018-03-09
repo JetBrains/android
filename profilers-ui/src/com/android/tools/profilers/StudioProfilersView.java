@@ -92,7 +92,7 @@ public class StudioProfilersView extends AspectObserver {
     mySplitter = new JBSplitter(false);
     mySplitter.setShowDividerIcon(false);
     mySplitter.setShowDividerControls(false);
-    mySplitter.setDividerWidth(JBUI.scale(2));
+    mySplitter.setDividerWidth(JBUI.scale(1));
     mySplitter.setSecondComponent(myStageComponent);
     if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
       mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);

@@ -29,6 +29,10 @@ public class ProfilerColors {
   private ProfilerColors() {
   }
 
+  public static final Color ACTIVE_SESSION_COLOR = new JBColor(0x58AB5C, 0x65BB69);
+
+  public static final Color SELECTED_SESSION_COLOR = new JBColor(0x397FE4, 0x7CAEFE);
+
   public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x387362);
 
   public static final Color CPU_USAGE_CAPTURED = new JBColor(0x0EA18D, 0x43CAA2);
@@ -50,41 +54,42 @@ public class ProfilerColors {
    * Represents pair of colors of non-selected and selected states of a thread.
    * The first color is for a non-selected thread, the second one is for a selected thread.
    */
-  public static final EnumColors.Builder<CpuProfilerStage.ThreadState> THREAD_STATES = new EnumColors.Builder<CpuProfilerStage.ThreadState>(2)
-    .add(CpuProfilerStage.ThreadState.RUNNING,
-         CPU_USAGE,
-         new JBColor(0x57D9B2, 0x387358))
-    .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
-         new JBColor(0x53B5A0, 0x44B67F),
-         new JBColor(0x84DEA7, 0x84DEA7))
-    .add(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED,
-         new JBColor(0x49917C, 0x3B9163),
-         new JBColor(0x599C74, 0x559B70))
-    .add(CpuProfilerStage.ThreadState.WAITING,
-         new JBColor(0xD4E675, 0x94A244),
-         new JBColor(0xD4E675, 0x94A244))
-    .add(CpuProfilerStage.ThreadState.WAITING_CAPTURED,
-         new JBColor(0xEFF35C, 0xDCF35C),
-         new JBColor(0xEFF35C, 0xDCF35C))
-    .add(CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED,
-         new JBColor(0xFFB74D, 0xFFCA28),
-         new JBColor(0xFFB74D, 0xFFCA28))
-    .add(CpuProfilerStage.ThreadState.SLEEPING,
-         new JBColor(0xEDEFF1, 0x3B3E42),
-         new JBColor(0x7BA6E9, 0x7BA6E9))
-    .add(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED,
-         new JBColor(0xD4D7DA, 0x4B4E52),
-         new JBColor(0x8FB3EA, 0x8FB3EA))
-    .add(CpuProfilerStage.ThreadState.DEAD,
-         Gray.TRANSPARENT,
-         Gray.TRANSPARENT)
-    .add(CpuProfilerStage.ThreadState.DEAD_CAPTURED,
-         Gray.TRANSPARENT,
-         Gray.TRANSPARENT)
-    // TODO: remove UNKNOWN mapping when all states are covered.
-    .add(CpuProfilerStage.ThreadState.UNKNOWN,
-         new JBColor(0xC1D6F6, 0x5A6E7D),
-         new JBColor(0xC1D6F6, 0x5A6E7D));
+  public static final EnumColors.Builder<CpuProfilerStage.ThreadState> THREAD_STATES =
+    new EnumColors.Builder<CpuProfilerStage.ThreadState>(2)
+      .add(CpuProfilerStage.ThreadState.RUNNING,
+           CPU_USAGE,
+           new JBColor(0x57D9B2, 0x387358))
+      .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
+           new JBColor(0x53B5A0, 0x44B67F),
+           new JBColor(0x84DEA7, 0x84DEA7))
+      .add(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED,
+           new JBColor(0x49917C, 0x3B9163),
+           new JBColor(0x599C74, 0x559B70))
+      .add(CpuProfilerStage.ThreadState.WAITING,
+           new JBColor(0xD4E675, 0x94A244),
+           new JBColor(0xD4E675, 0x94A244))
+      .add(CpuProfilerStage.ThreadState.WAITING_CAPTURED,
+           new JBColor(0xEFF35C, 0xDCF35C),
+           new JBColor(0xEFF35C, 0xDCF35C))
+      .add(CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED,
+           new JBColor(0xFFB74D, 0xFFCA28),
+           new JBColor(0xFFB74D, 0xFFCA28))
+      .add(CpuProfilerStage.ThreadState.SLEEPING,
+           new JBColor(0xEDEFF1, 0x3B3E42),
+           new JBColor(0x7BA6E9, 0x7BA6E9))
+      .add(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED,
+           new JBColor(0xD4D7DA, 0x4B4E52),
+           new JBColor(0x8FB3EA, 0x8FB3EA))
+      .add(CpuProfilerStage.ThreadState.DEAD,
+           Gray.TRANSPARENT,
+           Gray.TRANSPARENT)
+      .add(CpuProfilerStage.ThreadState.DEAD_CAPTURED,
+           Gray.TRANSPARENT,
+           Gray.TRANSPARENT)
+      // TODO: remove UNKNOWN mapping when all states are covered.
+      .add(CpuProfilerStage.ThreadState.UNKNOWN,
+           new JBColor(0xC1D6F6, 0x5A6E7D),
+           new JBColor(0xC1D6F6, 0x5A6E7D));
 
   public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
 
