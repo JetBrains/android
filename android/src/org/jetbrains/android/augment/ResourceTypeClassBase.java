@@ -45,8 +45,8 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
       // TODO(b/74325205): remove the need for this.
       resourceType = ResourceType.DECLARE_STYLEABLE;
     }
-    final Map<String, PsiType> fieldNames = new HashMap<>();
-    final PsiType basicType = ResourceType.DECLARE_STYLEABLE == resourceType ? PsiType.INT.createArrayType() : PsiType.INT;
+    Map<String, PsiType> fieldNames = new HashMap<>();
+    PsiType basicType = ResourceType.DECLARE_STYLEABLE == resourceType ? PsiType.INT.createArrayType() : PsiType.INT;
 
     for (String resName : repository.getItemsOfType(namespace, resourceType)) {
       fieldNames.put(resName, basicType);
@@ -60,8 +60,9 @@ public abstract class ResourceTypeClassBase extends AndroidLightClass {
           List<AttrResourceValue> attributes = value.getAllAttributes();
           for (AttrResourceValue attr : attributes) {
             if (manager.isResourcePublic(attr.getResourceType().getName(), attr.getName())) {
-              String packageName = attr.getNamespace().getPackageName();
-              if (StringUtil.isEmpty(packageName)) {
+              ResourceNamespace attrNamespace = attr.getNamespace();
+              String packageName = attrNamespace.getPackageName();
+              if (attrNamespace.equals(namespace) || StringUtil.isEmpty(packageName)) {
                 fieldNames.put(item.getName() + '_' + attr.getName(), PsiType.INT);
               } else {
                 fieldNames.put(item.getName() + '_' + packageName.replace('.', '_') + '_' + attr.getName(), PsiType.INT);
