@@ -25,9 +25,11 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -200,6 +202,32 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectMemoryHeap(@NotNull String heapName) {
+    AndroidProfilerEvent.MemoryHeap heapType;
+    switch (heapName) {
+      case CaptureObject.DEFAULT_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.DEFAULT_HEAP;
+        break;
+      case CaptureObject.APP_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.APP_HEAP;
+        break;
+      case CaptureObject.IMAGE_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.IMAGE_HEAP;
+        break;
+      case CaptureObject.ZYGOTE_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.ZYGOTE_HEAP;
+        break;
+      case CaptureObject.JNI_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.JNI_HEAP;
+        break;
+      default:
+        getLogger().error("Attempt to report selection of unknown heap name: " + heapName);
+        return;
+    }
+    newTracker(AndroidProfilerEvent.Type.SELECT_MEMORY_HEAP).setMemoryHeapId(heapType).track();
+  }
+
+  @Override
   public void trackSelectNetworkRequest() {
     track(AndroidProfilerEvent.Type.SELECT_CONNECTION);
   }
@@ -282,6 +310,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private Common.Device myDevice;
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
     @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
+    private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
     public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
       myEventType = eventType;
@@ -306,10 +335,19 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    public Tracker setMemoryHeapId(AndroidProfilerEvent.MemoryHeap heap) {
+      myMemoryHeap = heap;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
       populateCpuCaptureMetadata(profilerEvent);
       populateFilterMetadata(profilerEvent);
+      if (myEventType == AndroidProfilerEvent.Type.SELECT_MEMORY_HEAP) {
+        profilerEvent.setMemoryHeap(myMemoryHeap);
+      }
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
         .setAndroidProfilerEvent(profilerEvent);
@@ -431,5 +469,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
         profilerEvent.setCpuCaptureMetadata(captureMetadata);
       }
     }
+  }
+
+  private final static Logger getLogger() {
+    return Logger.getInstance(StudioFeatureTracker.class);
   }
 }

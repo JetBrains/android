@@ -51,14 +51,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return Logger.getInstance(LiveAllocationCaptureObject.class);
   }
 
-  static final String DEFAULT_HEAP_NAME = "default";
-  static final String IMAGE_HEAP_NAME = "image";
-  static final String ZYGOTE_HEAP_NAME = "zygote";
-  static final String APP_HEAP_NAME = "app";
-  static final String JNI_HEAP_NAME = "JNI";
-  // ID for JNI pseudo-heap, it should not overlap with real Android heaps
-  public static final int JNI_HEAP_ID = 4;
-
   @Nullable private MemoryProfilerStage myStage;
 
   @VisibleForTesting final ExecutorService myExecutorService;

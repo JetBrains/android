@@ -487,6 +487,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   public void selectHeapSet(@Nullable HeapSet heapSet) {
     mySelection.selectHeapSet(heapSet);
     selectCaptureFilter(getCaptureFilter());
+    if (heapSet != null) {
+      getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectMemoryHeap(heapSet.getName());
+    }
   }
 
   @Nullable

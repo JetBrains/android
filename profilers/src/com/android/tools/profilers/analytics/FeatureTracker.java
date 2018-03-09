@@ -181,6 +181,11 @@ public interface FeatureTracker {
   void trackSelectMemoryReferences();
 
   /**
+   * Track the user selecting a heap in the memory heap combobox.
+   */
+  void trackSelectMemoryHeap(@NotNull String heapName);
+
+  /**
    * Track the user selecting a row from a table of connections.
    */
   void trackSelectNetworkRequest();
