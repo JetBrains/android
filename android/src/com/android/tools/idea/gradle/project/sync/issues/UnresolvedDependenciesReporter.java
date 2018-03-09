@@ -209,6 +209,11 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
                                                         @Nullable VirtualFile buildFile,
                                                         @NotNull List<NotificationHyperlink> fixes) {
     Project project = module.getProject();
+    if (!project.isInitialized()) {
+      // No way to tell if the project contains the Google repository, add quick fix anyway (it will do nothing if it already has it)
+      fixes.add(new AddGoogleMavenRepositoryHyperlink());
+      return;
+    }
     if (buildFile != null) {
       GradleBuildModel moduleBuildModel = GradleBuildModel.parseBuildFile(buildFile, project, module.getName());
       if (moduleBuildModel.repositories().hasGoogleMavenRepository()) {

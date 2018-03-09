@@ -69,7 +69,7 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
     }
     else {
       // if project is not initialized, offer quickfixes.
-      hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(null));
+      hyperlinks.add(new AddGoogleMavenRepositoryHyperlink());
       hyperlinks.add(new OpenPluginBuildFileHyperlink());
     }
 
