@@ -239,7 +239,9 @@ public abstract class ResourceManager {
     return result;
   }
 
-  // searches only declarations such as "@+id/..."
+  /**
+   * Searches only declarations such as "@+id/...".
+   */
   @NotNull
   public List<XmlAttributeValue> findIdDeclarations(@NotNull String id) {
     if (!isResourcePublic(ResourceType.ID.getName(), id)) {
@@ -247,7 +249,7 @@ public abstract class ResourceManager {
     }
 
     Collection<VirtualFile> files =
-        FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, "+" + id, GlobalSearchScope.allScope(myProject));
+        FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, '+' + id, GlobalSearchScope.allScope(myProject));
 
     return findIdUsagesFromFiles(new HashSet<>(files), attributeValue -> {
       if (AndroidResourceUtil.isIdDeclaration(attributeValue)) {
@@ -258,7 +260,9 @@ public abstract class ResourceManager {
     });
   }
 
-  // searches only usages of id such as app:constraint_referenced_ids="[id1],[id2],..."
+  /**
+   * Searches only usages of the given id such as app:constraint_referenced_ids="[id1],[id2],...".
+   */
   @NotNull
   public List<XmlAttributeValue> findConstraintReferencedIds(@NotNull String id) {
     if (!isResourcePublic(ResourceType.ID.getName(), id)) {
@@ -266,7 +270,7 @@ public abstract class ResourceManager {
     }
 
     Collection<VirtualFile> files =
-      FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, "," + id, GlobalSearchScope.allScope(myProject));
+        FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, ',' + id, GlobalSearchScope.allScope(myProject));
 
     return findIdUsagesFromFiles(new HashSet<>(files), attributeValue -> {
       if (AndroidResourceUtil.isConstraintReferencedIds(attributeValue)) {
