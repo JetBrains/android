@@ -83,7 +83,7 @@ public class LaunchAndroidApplicationTest {
   @Test
   public void testRunOnEmulator() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
