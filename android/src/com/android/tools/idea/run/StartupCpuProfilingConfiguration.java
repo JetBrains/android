@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,13 +25,6 @@ import java.util.Objects;
 
 public class StartupCpuProfilingConfiguration {
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
-
-  public static final List<StartupCpuProfilingConfiguration> DEFAULT_CONFIGS = ImmutableList.of(
-    new StartupCpuProfilingConfiguration(Technology.SAMPLED_JAVA),
-    new StartupCpuProfilingConfiguration(Technology.INSTRUMENTED_JAVA)
-    // TODO: active it once simpleperf is supported: http://b/73886014
-    // new StartupCpuProfilingConfiguration(Technology.SAMPLED_NATIVE)
-  );
 
   @NotNull private final String myName;
   @NotNull private final Technology myTechnology;
@@ -62,12 +56,22 @@ public class StartupCpuProfilingConfiguration {
 
   @Nullable
   public static StartupCpuProfilingConfiguration getDefaultConfigByName(@NotNull String name) {
-    for (StartupCpuProfilingConfiguration config: DEFAULT_CONFIGS) {
+    for (StartupCpuProfilingConfiguration config : getDefaultConfigs()) {
       if (name.equals(config.getName())) {
         return config;
       }
     }
     return null;
+  }
+
+  public static List<StartupCpuProfilingConfiguration> getDefaultConfigs() {
+    ImmutableList.Builder<StartupCpuProfilingConfiguration> configs = new ImmutableList.Builder<StartupCpuProfilingConfiguration>()
+      .add(new StartupCpuProfilingConfiguration(Technology.SAMPLED_JAVA))
+      .add(new StartupCpuProfilingConfiguration(Technology.INSTRUMENTED_JAVA));
+    if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
+      configs.add(new StartupCpuProfilingConfiguration(Technology.SAMPLED_NATIVE));
+    }
+    return configs.build();
   }
 
   // TODO: unify with {@link ProfilingConfiguration}, b/73470862.

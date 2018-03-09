@@ -72,7 +72,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     try {
       deviceId = waitForPerfd(device, profilerService);
     }
-    catch (InterruptedException|TimeoutException e) {
+    catch (InterruptedException | TimeoutException e) {
       getLogger().debug(e);
       // Don't attach JVMTI agent for now, there is a chance that it will be attached during runtime.
       return "";
@@ -93,9 +93,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
     Profiler.ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getProfilerClient()
       .configureStartupAgent(Profiler.ConfigureStartupAgentRequest.newBuilder().setDeviceId(deviceId)
-                            // TODO: Find a way of finding the correct ABI
-                            .setAgentLibFileName(getAbiDependentLibPerfaName(device))
-                            .setAppPackageName(appPackageName).build());
+                               // TODO: Find a way of finding the correct ABI
+                               .setAgentLibFileName(getAbiDependentLibPerfaName(device))
+                               .setAppPackageName(appPackageName).build());
     return response.getAgentArgs().isEmpty() ? "" : "--attach-agent " + response.getAgentArgs();
   }
 
@@ -122,17 +122,24 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     StartupCpuProfilingConfiguration startupConfig = runConfig.getProfilerState().getStartupCpuProfilingConfiguration();
+    CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest
+      .newBuilder()
+      .setAppPackage(appPackageName)
+      .setDeviceId(deviceId)
+      .setConfiguration(getCpuProfilerConfiguration(startupConfig));
+
+    if (requestBuilder.getConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
+      requestBuilder.setAbiCpuArch(getSimpleperfAbi(device));
+    }
+
     CpuProfiler.StartupProfilingResponse response = profilerService
       .getProfilerClient().getCpuClient()
-      .startStartupProfiling(CpuProfiler.StartupProfilingRequest
-                               .newBuilder()
-                               .setAppPackage(appPackageName)
-                               .setDeviceId(deviceId)
-                               .setConfiguration(getCpuProfilerConfiguration(startupConfig, device))
-                               .build());
-    if (response.getFilePath().isEmpty()) {
+      .startStartupProfiling(requestBuilder.build());
+
+    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getProfilerType() != CpuProfiler.CpuProfilerType.ART) {
       return "";
     }
+
     StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(response.getFilePath());
     if (startupConfig.getTechnology() == StartupCpuProfilingConfiguration.Technology.SAMPLED_JAVA) {
       argsBuilder.append(" --sampling ").append(startupConfig.getSamplingInterval());
@@ -149,8 +156,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   @NotNull
-  private static CpuProfiler.CpuProfilerConfiguration getCpuProfilerConfiguration(@NotNull StartupCpuProfilingConfiguration configuration,
-                                                                               @NotNull IDevice device) {
+  private static CpuProfiler.CpuProfilerConfiguration getCpuProfilerConfiguration(@NotNull StartupCpuProfilingConfiguration configuration) {
     CpuProfiler.CpuProfilerConfiguration.Builder request = CpuProfiler.CpuProfilerConfiguration.newBuilder();
     switch (configuration.getTechnology()) {
       case SAMPLED_JAVA:
@@ -181,6 +187,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   /**
    * Waits for perfd to come online for maximum 1 minute.
+   *
    * @return ID of device, i.e {@link Common.Device#getDeviceId()}
    */
   private static long waitForPerfd(@NotNull IDevice device, @NotNull ProfilerService profilerService)
@@ -203,15 +210,38 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   @NotNull
   private static String getAbiDependentLibPerfaName(IDevice device) {
-    File dir = new File(PathManager.getHomePath(), "plugins/android/resources/perfa");
+    String abi = getBestAbi(device,
+                            "plugins/android/resources/perfa",
+                            "../../bazel-bin/tools/base/profiler/native/perfa/android",
+                            "libperfa.so");
+    return abi.isEmpty() ? "" : String.format("libperfa_%s.so", abi);
+  }
+
+  @NotNull
+  private static String getSimpleperfAbi(IDevice device) {
+    return getBestAbi(device,
+                      "plugins/android/resources/simpleperf",
+                      "../../prebuilts/tools/common/simpleperf",
+                      "simpleperf");
+  }
+
+  /**
+   * @return the most preferred ABI according to {@link IDevice#getAbis()} for which
+   *         {@param fileName} exists in {@param releaseDir} or {@param devDir}
+   */
+  @NotNull
+  private static String getBestAbi(@NotNull IDevice device,
+                                   @NotNull String releaseDir,
+                                   @NotNull String devDir,
+                                   @NotNull String fileName) {
+    File dir = new File(PathManager.getHomePath(), releaseDir);
     if (!dir.exists()) {
-      dir = new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/profiler/native/perfa/android");
+      dir = new File(PathManager.getHomePath(), devDir);
     }
     for (String abi : device.getAbis()) {
-      File candidate = new File(dir, abi + "/libperfa.so");
+      File candidate = new File(dir, abi + "/" + fileName);
       if (candidate.exists()) {
-        String abiCpuArch = Abi.getEnum(abi).getCpuArch();
-        return String.format("libperfa_%s.so", abiCpuArch);
+        return Abi.getEnum(abi).getCpuArch();
       }
     }
     return "";
