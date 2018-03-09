@@ -52,15 +52,12 @@ public class SingleLibraryDependencyDetails implements DependencyDetails {
   @Override
   public void display(@NotNull PsDependency dependency, @Nullable String configurationNames) {
     myDependency = (PsLibraryDependency)dependency;
-
-    PsArtifactDependencySpec spec = myDependency.getDeclaredSpec();
-    if (spec == null) {
-      spec = myDependency.getSpec();
-    }
+    PsArtifactDependencySpec spec = myDependency.getSpec();
 
     myGroupIdLabel.setText(spec.getGroup());
     myArtifactNameLabel.setText(spec.getName());
-    myResolvedVersionLabel.setText(myDependency.getSpec().getVersion());
+    // TODO(b/74430831): Retrieve and display all the resolved versions.
+    myResolvedVersionLabel.setText("");
 
     myRequestedVersionLabel.setText(spec.getVersion());
 

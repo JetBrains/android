@@ -108,7 +108,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
     for (PsDependency dependency : getItems()) {
       if (dependency instanceof PsLibraryDependency) {
         PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
-        if (spec.equals(libraryDependency.getDeclaredSpec())) {
+        if (spec.equals(libraryDependency.getSpec())) {
           return libraryDependency;
         }
       }
@@ -173,8 +173,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
 
     if (dependency instanceof PsLibraryDependency) {
       PsLibraryDependency library = (PsLibraryDependency)dependency;
-      PsArtifactDependencySpec spec = library.getDeclaredSpec();
-      assert spec != null;
+      PsArtifactDependencySpec spec = library.getSpec();
       text = spec.getDisplayText(uiSettings);
     }
     return text;

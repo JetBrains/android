@@ -40,10 +40,7 @@ public final class PsLibraryDependencyNavigationPath extends PsPath {
   public PsLibraryDependencyNavigationPath(@NotNull PsLibraryDependency dependency) {
     super(new PsModulePath(dependency.getParent()));
     myModuleName = dependency.getParent().getName();
-    PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
-    if (spec == null) {
-      spec = dependency.getSpec();
-    }
+    PsArtifactDependencySpec spec = dependency.getSpec();
     myNavigationText = dependency.toText(FOR_NAVIGATION);
     myDependency = spec.getName() + GRADLE_PATH_SEPARATOR + spec.getVersion();
   }
