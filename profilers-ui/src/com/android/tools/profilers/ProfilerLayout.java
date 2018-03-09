@@ -83,8 +83,9 @@ public class ProfilerLayout {
 
   // There is a border of 5 pixels that is not scaled.
   public static final int TOOLBAR_HEIGHT = JBUI.scale(25) + 5;
-  public static final Border TOOLBAR_LABEL_BORDER =
-    BorderFactory.createEmptyBorder(JBUI.scale(3), JBUI.scale(3), JBUI.scale(3), JBUI.scale(3));
+  public static final Border TOOLBAR_LABEL_BORDER = JBUI.Borders.empty(3, 8, 3, 3);
+  public static final Border TOOLBAR_ICON_BORDER = JBUI.Borders.empty(4);
+  public static final Font TOOLBAR_LABEL_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(11f);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

@@ -26,6 +26,7 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +38,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Arrays;
 
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_LABEL_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
 
 /**
@@ -46,7 +46,7 @@ import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
  */
 public class SessionsView extends AspectObserver {
   // Collapsed width should essentially look like a toolbar.
-  private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUI.scale(20);
+  private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUI.scale(32);
   private static final int SESSIONS_EXPANDED_MIN_WIDTH = JBUI.scale(200);
 
   @NotNull private final StudioProfilers myProfilers;
@@ -74,8 +74,10 @@ public class SessionsView extends AspectObserver {
     myIsExpanded = false;
     myComponent = new JPanel(new BorderLayout());
     myComponent.setBorder(AdtUiUtils.DEFAULT_RIGHT_BORDER);
-    // TODO b/73830434 replace with proper icon.
-    myExpandButton = new CommonButton(StudioIcons.Common.ZOOM_IN);
+    myExpandButton = new CommonButton(StudioIcons.Profiler.Toolbar.EXPAND_SESSION);
+    myExpandButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    myExpandButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+    myExpandButton.setBorder(TOOLBAR_ICON_BORDER);
     myExpandButton.setToolTipText("Expand the Sessions panel.");
     myExpandButton.addActionListener(new ActionListener() {
       @Override
@@ -84,8 +86,10 @@ public class SessionsView extends AspectObserver {
         initializeUI();
       }
     });
-    // TODO b/73830434 replace with proper icon.
-    myCollapseButton = new CommonButton(StudioIcons.Common.ZOOM_OUT);
+    myCollapseButton = new CommonButton(StudioIcons.Profiler.Toolbar.COLLAPSE_SESSION);
+    myCollapseButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    myCollapseButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+    myCollapseButton.setBorder(TOOLBAR_ICON_BORDER);
     myCollapseButton.setToolTipText("Collapse the Sessions panel.");
     myCollapseButton.addActionListener(new ActionListener() {
       @Override
@@ -95,8 +99,10 @@ public class SessionsView extends AspectObserver {
       }
     });
 
-    // TODO b/73830434 replace with proper icon.
-    myStopProfilingButton = new CommonButton(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
+    myStopProfilingButton = new CommonButton(StudioIcons.Profiler.Toolbar.STOP_SESSION);
+    myStopProfilingButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+    myStopProfilingButton.setAlignmentY(Component.CENTER_ALIGNMENT);
+    myStopProfilingButton.setBorder(TOOLBAR_ICON_BORDER);
     myStopProfilingButton.setToolTipText("Stop the current profiling session.");
     myStopProfilingButton.setEnabled(false);
     myStopProfilingButton.addActionListener(new ActionListener() {
@@ -108,6 +114,9 @@ public class SessionsView extends AspectObserver {
 
     myProcessSelectionAction = new CommonAction("", StudioIcons.Common.ADD);
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);
+    myProcessSelectionDropDown.setAlignmentX(Component.CENTER_ALIGNMENT);
+    myProcessSelectionDropDown.setAlignmentY(Component.CENTER_ALIGNMENT);
+    myProcessSelectionDropDown.setBorder(TOOLBAR_ICON_BORDER);
     myProfilers.addDependency(this)
       .onChange(ProfilerAspect.DEVICES, this::refreshProcessDropdown)
       .onChange(ProfilerAspect.PROCESSES, this::refreshProcessDropdown);
@@ -164,7 +173,13 @@ public class SessionsView extends AspectObserver {
     myComponent.removeAll();
     if (myIsExpanded) {
       myComponent.add(createToolbar(), BorderLayout.NORTH);
-      myComponent.add(mySessionsList, BorderLayout.CENTER);
+      JScrollPane scrollPane = new JBScrollPane(mySessionsList);
+      scrollPane.getViewport().setOpaque(false);
+      scrollPane.setOpaque(false);
+      scrollPane.setBorder(JBUI.Borders.empty());
+      scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+      myComponent.add(scrollPane, BorderLayout.CENTER);
     }
     else {
       // We only need the toolbar when collapsed
@@ -178,46 +193,42 @@ public class SessionsView extends AspectObserver {
   private JComponent createToolbar() {
     JPanel toolbar;
     if (myIsExpanded) {
-      toolbar = new JPanel(new TabularLayout("*,Fit,Fit", "*,Fit,*"));
+      toolbar = new JPanel();
+      toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
       toolbar.setBorder(AdtUiUtils.DEFAULT_BOTTOM_BORDER);
       toolbar.setMinimumSize(new Dimension(SESSIONS_EXPANDED_MIN_WIDTH, TOOLBAR_HEIGHT));
       toolbar.setPreferredSize(new Dimension(SESSIONS_EXPANDED_MIN_WIDTH, TOOLBAR_HEIGHT));
 
       JLabel label = new JLabel("SESSIONS");
+      label.setAlignmentY(Component.CENTER_ALIGNMENT);
       label.setBorder(TOOLBAR_LABEL_BORDER);
-      toolbar.add(label, new TabularLayout.Constraint(1, 0));
-
-      JPanel buttonPanel = new JPanel();
-      BoxLayout layout = new BoxLayout(buttonPanel, BoxLayout.X_AXIS);
-      buttonPanel.setLayout(layout);
-      buttonPanel.add(myProcessSelectionDropDown);
-      buttonPanel.add(myStopProfilingButton);
-      buttonPanel.add(myCollapseButton);
+      label.setFont(TOOLBAR_LABEL_FONT);
+      toolbar.add(label);
+      toolbar.add(Box.createHorizontalGlue());
+      toolbar.add(myProcessSelectionDropDown);
+      toolbar.add(myStopProfilingButton);
+      toolbar.add(myCollapseButton);
       myCollapseButton.setVisible(true);
       // Note - if we simply remove the expand button after it is clicked, next time we add it back it will
       // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
       // render and update its state even though it is hidden.
-      buttonPanel.add(myExpandButton);
+      toolbar.add(myExpandButton);
       myExpandButton.setVisible(false);
-      toolbar.add(buttonPanel, new TabularLayout.Constraint(0, 1, 3, 1));
     }
     else {
-      toolbar = new JPanel(new TabularLayout("*,Fit,*", "Fit,Fit,*"));
+      toolbar = new JPanel();
+      toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
       toolbar.setMinimumSize(new Dimension(SESSIONS_COLLAPSED_MIN_WIDTH, 0));
 
-      JPanel buttonPanel = new JPanel();
-      BoxLayout layout = new BoxLayout(buttonPanel, BoxLayout.Y_AXIS);
-      buttonPanel.setLayout(layout);
-      buttonPanel.add(myExpandButton);
+      toolbar.add(myExpandButton);
       myExpandButton.setVisible(true);
       // Note - if we simply remove the collapse button after it is clicked, next time we add it back it will
       // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
       // render and update its state even though it is hidden.
-      buttonPanel.add(myCollapseButton, new TabularLayout.Constraint(1, 0, 1, 3));
+      toolbar.add(myCollapseButton, new TabularLayout.Constraint(1, 0, 1, 3));
       myCollapseButton.setVisible(false);
-      buttonPanel.add(myProcessSelectionDropDown);
-      buttonPanel.add(myStopProfilingButton);
-      toolbar.add(buttonPanel, new TabularLayout.Constraint(0, 0, 1, 3));
+      toolbar.add(myProcessSelectionDropDown);
+      toolbar.add(myStopProfilingButton);
     }
 
     return toolbar;
