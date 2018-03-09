@@ -71,6 +71,9 @@ public class StartupCpuProfilingConfiguration {
     if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
       configs.add(new StartupCpuProfilingConfiguration(Technology.SAMPLED_NATIVE));
     }
+    if (StudioFlags.PROFILER_USE_ATRACE.get()) {
+      configs.add(new StartupCpuProfilingConfiguration(Technology.ATRACE));
+    }
     return configs.build();
   }
 
@@ -95,6 +98,13 @@ public class StartupCpuProfilingConfiguration {
       @Override
       public String getName() {
         return "Sampled (Native)";
+      }
+    },
+    ATRACE {
+      @NotNull
+      @Override
+      public String getName() {
+        return "System Trace";
       }
     };
 

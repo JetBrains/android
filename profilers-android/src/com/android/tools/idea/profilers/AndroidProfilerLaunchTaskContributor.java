@@ -171,6 +171,10 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
         request.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
         request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
         break;
+      case ATRACE:
+        request.setProfilerType(CpuProfiler.CpuProfilerType.ATRACE);
+        request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+        break;
     }
     request.setSamplingIntervalUs(configuration.getSamplingInterval());
     return request.build();
