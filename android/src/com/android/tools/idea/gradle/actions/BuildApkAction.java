@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
@@ -50,7 +52,9 @@ public class BuildApkAction extends DumbAwareAction {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-      ImmutableList<Module> appModules = ProjectStructure.getInstance(project).getAppModules();
+      List<Module> appModules = ProjectStructure.getInstance(project).getAppModules().stream()
+        .flatMap(module -> DynamicAppUtils.getModulesToBuild(module).stream())
+        .collect(Collectors.toList());
       if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToApkLocationTask(appModules, ACTION_TEXT));
