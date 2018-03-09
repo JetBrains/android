@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.annotations.VisibleForTesting
-import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
@@ -30,11 +29,9 @@ import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
-import com.intellij.ui.InplaceButton
-import com.intellij.ui.JBColor
-import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.SortedListModel
+import com.intellij.ui.*
 import com.intellij.ui.components.JBList
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Point
@@ -125,18 +122,22 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       list = JBList<NlProperty>(displayProperties)
       list.name = NAV_LIST_COMPONENT_NAME
       list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
-      list.cellRenderer = object : DefaultListCellRenderer() {
-        override fun getListCellRendererComponent(list: JList<*>, value: Any?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
-          super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-          text = (value as NlProperty?)?.name
+      list.cellRenderer = object: ColoredListCellRenderer<NlProperty>() {
+        override fun customizeCellRenderer(list: JList<out NlProperty>, value: NlProperty?, index: Int, selected: Boolean, hasFocus: Boolean) {
+          icon = if (selected && hasFocus) whiteIcon else this@NavListInspectorProvider.icon
+          if (selected && !hasFocus) {
+            background = UIUtil.getListUnfocusedSelectionBackground()
+            mySelectionForeground = UIUtil.getListForeground()
+          }
+          var text = (value)?.name ?: ""
           // TODO: truncate to actual width of the frame
           if (text.length > 25) {
             text = text.substring(0, 22) + "..."
           }
-          icon = if (isSelected) whiteIcon else this@NavListInspectorProvider.icon
-          return this
+          append(text)
         }
       }
+
       list.addMouseListener(object : MouseAdapter() {
         override fun mouseReleased(e: MouseEvent) {
           maybeShowPopup(e)
