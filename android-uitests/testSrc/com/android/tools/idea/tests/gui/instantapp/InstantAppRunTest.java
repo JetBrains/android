@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -59,7 +58,6 @@ public class InstantAppRunTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
-  @Rule public final ScreenshotsDuringTest movie = new ScreenshotsDuringTest();
 
   /**
    * Verify imported instant apps can be deployed to an emulator running API 26 or newer.
