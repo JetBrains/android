@@ -20,11 +20,13 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerPreferences;
@@ -53,9 +55,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
 
@@ -277,7 +281,21 @@ public class IntellijProfilerServices implements IdeProfilerServices {
 
   @Override
   public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
-    return CpuProfilingConfigService.getInstance(myProject).getConfigurations();
+    CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
+    CpuProfilingConfigService oldService = CpuProfilingConfigService.getInstance(myProject);
+
+    // We use the deprecated |oldService| to migrate the user created configurations to the new persistent class.
+    // |oldService| probably will be removed in coming versions of Android Studio: http://b/74601959
+    oldService.getConfigurations().forEach(
+      old -> configsState.addUserConfig(CpuProfilerConfigConverter.fromProto(old.toProto()))
+    );
+    // We don't need configurations from |oldService| anymore, so clear it.
+    oldService.setConfigurations(Collections.emptyList());
+
+    return CpuProfilerConfigConverter.toProto(configsState.getUserConfigs())
+      .stream()
+      .map(ProfilingConfiguration::fromProto)
+      .collect(Collectors.toList());
   }
 
   @NotNull

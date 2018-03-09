@@ -20,7 +20,10 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -121,12 +124,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    StartupCpuProfilingConfiguration startupConfig = runConfig.getProfilerState().getStartupCpuProfilingConfiguration();
+    String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
+    CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(module.getProject()).getConfigByName(configName);
+    if (startupConfig == null) {
+      return "";
+    }
     CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest
       .newBuilder()
       .setAppPackage(appPackageName)
       .setDeviceId(deviceId)
-      .setConfiguration(getCpuProfilerConfiguration(startupConfig));
+      .setConfiguration(CpuProfilerConfigConverter.toProto(startupConfig));
 
     if (requestBuilder.getConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
       requestBuilder.setAbiCpuArch(getSimpleperfAbi(device));
@@ -141,8 +148,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(response.getFilePath());
-    if (startupConfig.getTechnology() == StartupCpuProfilingConfiguration.Technology.SAMPLED_JAVA) {
-      argsBuilder.append(" --sampling ").append(startupConfig.getSamplingInterval());
+    if (startupConfig.getTechnology() == CpuProfilerConfig.Technology.SAMPLED_JAVA) {
+      argsBuilder.append(" --sampling ").append(startupConfig.getSamplingIntervalUs());
     }
 
     if (isAtLeastO(device)) {
@@ -153,31 +160,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   private static boolean isAtLeastO(@NotNull IDevice device) {
     return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
-  }
-
-  @NotNull
-  private static CpuProfiler.CpuProfilerConfiguration getCpuProfilerConfiguration(@NotNull StartupCpuProfilingConfiguration configuration) {
-    CpuProfiler.CpuProfilerConfiguration.Builder request = CpuProfiler.CpuProfilerConfiguration.newBuilder();
-    switch (configuration.getTechnology()) {
-      case SAMPLED_JAVA:
-        request.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-        break;
-      case INSTRUMENTED_JAVA:
-        request.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
-        break;
-      case SAMPLED_NATIVE:
-        request.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
-        request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-        break;
-      case ATRACE:
-        request.setProfilerType(CpuProfiler.CpuProfilerType.ATRACE);
-        request.setMode(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
-        break;
-    }
-    request.setSamplingIntervalUs(configuration.getSamplingInterval());
-    return request.build();
   }
 
   @Nullable

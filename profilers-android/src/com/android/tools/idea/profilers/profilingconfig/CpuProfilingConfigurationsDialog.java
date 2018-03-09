@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -222,11 +224,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     @Override
     public void apply() throws ConfigurationException {
-      CpuProfilingConfigService profilingConfigService = CpuProfilingConfigService.getInstance(myProject);
 
       // Check for configs with repeated names
       Set<String> configNames = new HashSet<>();
-      List<ProfilingConfiguration> configsToSave = new ArrayList<>();
+      List<CpuProfilerConfig> configsToSave = new ArrayList<>();
+
       for (int i = 0; i < myConfigurationsModel.getSize(); i++) {
         ProfilingConfiguration config = myConfigurationsModel.getElementAt(i);
         String configName = config.getName();
@@ -239,11 +241,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         configNames.add(configName);
 
         if (!config.isDefault()) {
-          configsToSave.add(config);
+          configsToSave.add(CpuProfilerConfigConverter.fromProto(config.toProto()));
         }
       }
 
-      profilingConfigService.setConfigurations(configsToSave);
+      CpuProfilerConfigsState.getInstance(myProject).setUserConfigs(configsToSave);
     }
 
     @Override
