@@ -994,6 +994,7 @@
     <projectService serviceImplementation="com.android.tools.idea.fd.InstantRunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.fd.FlightRecorder" />
 
+    <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
     <projectService serviceInterface="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceInterface="com.android.tools.idea.logcat.AndroidLogcatPreferences"

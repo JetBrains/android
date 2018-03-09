@@ -29,7 +29,10 @@ import java.util.List;
 
 /**
  * Service to persist the state of {@link ProfilingConfiguration}.
+ * @deprecated Use {@link com.android.tools.idea.run.profiler.CpuProfilerConfigsState} instead.
+ *             This class should be removed in later versions of Android Studio (http://b/74601959).
  */
+@Deprecated
 @State(name = "CpuProfilingConfigService", storages = @Storage("cpuProfilingConfigs.xml"))
 public class CpuProfilingConfigService implements PersistentStateComponent<CpuProfilingConfigService> {
 

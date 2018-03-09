@@ -22,7 +22,8 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.run.StartupCpuProfilingConfiguration;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,7 +56,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   private JTextPane myAdvancedProfilingDescription;
   private JLabel mySyncStatusMessage;
   private JCheckBox myStartupCpuProfileCheckBox;
-  private ComboBox<StartupCpuProfilingConfiguration> myStartupCpuConfigsComboBox;
+  private ComboBox<CpuProfilerConfig> myStartupCpuConfigsComboBox;
 
   public JComponent getComponent() {
     return myDescription;
@@ -79,12 +80,12 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   private void setUpStartupCpuProfiling() {
     myStartupCpuProfileCheckBox.addItemListener(e -> myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected()));
     myStartupCpuConfigsComboBox.setEnabled(myStartupCpuProfileCheckBox.isSelected());
-    myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(StartupCpuProfilingConfiguration.getDefaultConfigs()
-                                                                      .toArray(new StartupCpuProfilingConfiguration[0])));
-    myStartupCpuConfigsComboBox.setRenderer(new ColoredListCellRenderer<StartupCpuProfilingConfiguration>() {
+    myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(CpuProfilerConfigsState.getInstance(myProject).getConfigs()
+                                                                      .toArray(new CpuProfilerConfig[0])));
+    myStartupCpuConfigsComboBox.setRenderer(new ColoredListCellRenderer<CpuProfilerConfig>() {
       @Override
-      protected void customizeCellRenderer(@NotNull JList<? extends StartupCpuProfilingConfiguration> list,
-                                           StartupCpuProfilingConfiguration value,
+      protected void customizeCellRenderer(@NotNull JList<? extends CpuProfilerConfig> list,
+                                           CpuProfilerConfig value,
                                            int index,
                                            boolean selected,
                                            boolean hasFocus) {
@@ -109,7 +110,8 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
     myStartupCpuProfileCheckBox.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
 
-    StartupCpuProfilingConfiguration config = state.getStartupCpuProfilingConfiguration();
+    String name = state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
+    CpuProfilerConfig config = CpuProfilerConfigsState.getInstance(myProject).getConfigByName(name);
     if (config != null) {
       myStartupCpuConfigsComboBox.setSelectedItem(config);
     }
@@ -122,8 +124,8 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     state.ADVANCED_PROFILING_ENABLED = StudioFlags.PROFILER_ENABLED.get() && myAdvancedProfilingCheckBox.isSelected();
 
     state.STARTUP_CPU_PROFILING_ENABLED = StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get() && myStartupCpuProfileCheckBox.isSelected();
-    assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof StartupCpuProfilingConfiguration;
-    state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((StartupCpuProfilingConfiguration)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
+    assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof CpuProfilerConfig;
+    state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((CpuProfilerConfig)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
   }
 
   private void createUIComponents() {
