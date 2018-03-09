@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.StopWatch;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -78,12 +79,20 @@ public class RetryingInstaller {
     myLaunchStatus = launchStatus;
   }
 
-  public boolean install() {
+  @NotNull
+  public RetryingInstallerResult install() {
     InstallResult result = null;
     boolean retry = true;
+    int retryCount = 0;
+    StopWatch totalDuration = new StopWatch();
+    StopWatch lastInstallDuration = new StopWatch();
 
     while (!myLaunchStatus.isLaunchTerminated() && retry) {
+      retryCount++;
+      lastInstallDuration.restart();
       result = myInstaller.installApp(myDevice, myLaunchStatus);
+      lastInstallDuration.stop();
+
       if (result.installOutput != null) {
         if (result.failureCode == InstallResult.FailureCode.NO_ERROR) {
           myPrinter.stdout(result.installOutput);
@@ -147,7 +156,11 @@ public class RetryingInstaller {
       }
     }
 
-    return result != null && result.failureCode == InstallResult.FailureCode.NO_ERROR;
+    totalDuration.stop();
+    return new RetryingInstallerResult(result != null && result.failureCode == InstallResult.FailureCode.NO_ERROR,
+                                       retryCount,
+                                       totalDuration.getDuration(),
+                                       lastInstallDuration.getDuration());
   }
 
   public static class UserPrompter implements Prompter {
