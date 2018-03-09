@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.intellij.openapi.project.Project
-import org.hamcrest.CoreMatchers.notNullValue
-import org.hamcrest.CoreMatchers.nullValue
+import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 
 class DependencyManagementTest : DependencyTestCase() {
@@ -44,6 +43,7 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(appModule.dependencies.findModuleDependency(":mainModule"), notNullValue())
     val libModule = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+    assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1"), notNullValue())
   }
 
   fun testAddLibraryDependency() {
