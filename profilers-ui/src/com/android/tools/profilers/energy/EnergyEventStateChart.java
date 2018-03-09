@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.energy;
 
-
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
@@ -40,6 +41,11 @@ public final class EnergyEventStateChart {
     .add(EnergyDuration.Kind.WAKE_LOCK, ENERGY_WAKE_LOCK)
     .add(EnergyDuration.Kind.UNKNOWN, TRANSPARENT_COLOR)
     .build();
+  /**
+   * In energy events table, the timeline state chart color looks transparent, we highlight the start of each event, which works by taking
+   * the base {@link DURATION_STATE_NUM_COLORS} color and applying some transparency to it.
+   */
+  private static final float COLOR_ALPHA = 0.25f;
 
   @NotNull
   public static StateChart<EnergyEvent> create(@NotNull EnergyDuration duration, @NotNull Range range) {
@@ -49,7 +55,11 @@ public final class EnergyEventStateChart {
     StateChartModel<EnergyEvent> model = new StateChartModel<>();
     model.addSeries(new RangedSeries<>(range, series));
 
-    return create(model);
+    Color highlightColor = DURATION_STATE_ENUM_COLORS.getColor(duration.getKind());
+    Color stateChartColor = AdtUiUtils.overlayColor(DEFAULT_BACKGROUND.getRGB(), highlightColor.getRGB(), COLOR_ALPHA);
+    StateChart<EnergyEvent> stateChart = new StateChart<>(model, evt -> !evt.getIsTerminal() ? stateChartColor : TRANSPARENT_COLOR);
+    stateChart.setBarHighlightColor(highlightColor);
+    return stateChart;
   }
 
   @NotNull

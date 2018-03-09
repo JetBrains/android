@@ -28,7 +28,6 @@ import com.android.tools.profilers.HoverRowTable;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -44,6 +43,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
 
 /**
  * Energy events table view including wake lock, alarms, etc.
@@ -99,7 +99,7 @@ public final class EnergyEventsView {
 
   @NotNull private final EnergyProfilerStage myStage;
   @NotNull private final EventsTableModel myTableModel;
-  @NotNull private final JBTable myEventsTable;
+  @NotNull private final HoverRowTable myEventsTable;
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
@@ -117,6 +117,7 @@ public final class EnergyEventsView {
     myEventsTable.getColumnModel().getColumn(Column.KIND.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
+    myEventsTable.setTableHeaderBorder(TABLE_COLUMN_HEADER_BORDER);
 
     myEventsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myEventsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);

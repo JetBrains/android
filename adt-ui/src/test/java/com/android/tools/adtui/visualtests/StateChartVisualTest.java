@@ -255,6 +255,13 @@ public class StateChartVisualTest extends VisualTest {
       mNetworkStatusChart.setRenderMode(mode);
       mRadioStateChart.setRenderMode(mode);
     }));
+    // Highlight color is configurable, we use one color for each state chart for simplicity.
+    controls.add(VisualTest.createCheckbox("Show Highlight", e -> {
+      Color networkHighlightColor = e.getStateChange() == ItemEvent.SELECTED ? Color.BLUE : null;
+      mNetworkStatusChart.setBarHighlightColor(networkHighlightColor);
+      Color radioHighlightColor = e.getStateChange() == ItemEvent.SELECTED ? Color.RED : null;
+      mRadioStateChart.setBarHighlightColor(radioHighlightColor);
+    }));
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
                      new Dimension(300, Integer.MAX_VALUE)));

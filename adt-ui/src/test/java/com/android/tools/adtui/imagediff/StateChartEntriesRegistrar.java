@@ -32,6 +32,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerMultipleSeriesStateChart();
     registerTextStateChart();
     registerRepeatedState();
+    registerHighlightBarStateChart();
   }
 
   private void registerSimpleStateChart() {
@@ -103,6 +104,16 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         for (int i = 0; i < 15; i++) {
           addSeries();
         }
+      }
+    });
+  }
+
+  private void registerHighlightBarStateChart() {
+    register(new StateChartImageDiffEntry("highlight_bar_state_chart_baseline.png") {
+      @Override
+      protected void generateComponent() {
+        addSeries();
+        myStateChart.setBarHighlightColor(Color.BLACK);
       }
     });
   }
