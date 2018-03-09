@@ -27,6 +27,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +68,7 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    printer = new SkipEmptyLinesConsolePrinter(printer);
     FullApkInstaller
       installer = new FullApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
     for (ApkInfo apk : myApks) {
@@ -116,5 +118,28 @@ public class DeployApkTask implements LaunchTask {
        .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
        .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_APK)
        .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)));
+  }
+
+  private static class SkipEmptyLinesConsolePrinter implements ConsolePrinter {
+    private ConsolePrinter myPrinter;
+
+    public SkipEmptyLinesConsolePrinter(ConsolePrinter printer) {
+
+      myPrinter = printer;
+    }
+
+    @Override
+    public void stdout(@NotNull String message) {
+      if (!StringUtil.isEmptyOrSpaces(message)) {
+        myPrinter.stdout(StringUtil.trimTrailing(message, '\n'));
+      }
+    }
+
+    @Override
+    public void stderr(@NotNull String message) {
+      if (!StringUtil.isEmptyOrSpaces(message)) {
+        myPrinter.stderr(StringUtil.trimTrailing(message, '\n'));
+      }
+    }
   }
 }

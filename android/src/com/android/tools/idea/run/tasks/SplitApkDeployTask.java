@@ -21,10 +21,12 @@ import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.InstallResult;
 import com.android.tools.idea.run.RetryingInstaller;
+import com.android.tools.idea.run.RetryingInstallerResult;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
@@ -98,13 +100,14 @@ public class SplitApkDeployTask implements LaunchTask {
 
     RetryingInstaller retryingInstaller =
       new RetryingInstaller(myProject, device, installer, myContext.getApplicationId(), printer, launchStatus);
-    boolean status = retryingInstaller.install();
-    if (status) {
-      printer.stdout("Split APKs installed");
+    RetryingInstallerResult installResult = retryingInstaller.install();
+    if (installResult.isSuccess()) {
+      printer.stdout(String.format("Split APKs installed in %s",
+                                   StringUtil.formatDuration(installResult.getLastInstallDuration().toMillis())));
     }
 
-    myContext.notifyInstall(myProject, device, status);
-    return status;
+    myContext.notifyInstall(myProject, device, installResult.isSuccess());
+    return installResult.isSuccess();
   }
 
   private static final class SplitApkInstaller implements RetryingInstaller.Installer {
