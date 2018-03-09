@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.instantrun;
 
 import com.android.tools.idea.tests.gui.debugger.DebuggerTestBase;
+import com.android.tools.idea.tests.gui.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -48,7 +50,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 public class InstantRunTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   private static final String APP_NAME = "app";
   private static final Pattern EMPTY_OUTPUT= Pattern.compile("^$", Pattern.DOTALL);
@@ -86,11 +88,11 @@ public class InstantRunTest {
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -139,11 +141,11 @@ public class InstantRunTest {
   @Test
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -192,11 +194,11 @@ public class InstantRunTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/37506663
   public void activityRunningOnSeparateProcess() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -248,11 +250,11 @@ public class InstantRunTest {
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -297,11 +299,11 @@ public class InstantRunTest {
   @Test
   public void unnecessaryCleanCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture
@@ -313,7 +315,7 @@ public class InstantRunTest {
     ideFrameFixture
       .getRunToolWindow()
       .clickRerunApplication()
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     Wait.seconds(OUTPUT_RESET_TIMEOUT).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
@@ -359,7 +361,7 @@ public class InstantRunTest {
   @RunIn(TestGroup.QA)
   public void modifyVariableDuringDebugSession() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("Project204792");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     final String TEST_FILE = "app/src/main/java/com/bug204792/myapplication/TestJava.java";
     final Pattern pattern = Pattern.compile(".*Connecting to com.bug204792.myapplication.*", Pattern.DOTALL);
@@ -372,7 +374,7 @@ public class InstantRunTest {
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
 
     ideFrameFixture.debugApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ideFrameFixture.getDebugToolWindow()
@@ -427,11 +429,11 @@ public class InstantRunTest {
   @Test
   public void cmakeHotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -475,14 +477,21 @@ public class InstantRunTest {
   @Test
   public void installingPlatformWhileDeployingApp() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
-    emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
-                       "x86 Images",
-                       new ChooseSystemImageStepFixture.SystemImage("Lollipop", "22", "x86", "Android 5.1"),
-                       "device under test");
+
+    ChooseSystemImageStepFixture.SystemImage myAvdDesc =
+      new ChooseSystemImageStepFixture.SystemImage("Lollipop", "22", "x86", "Android 5.1");
+
+    String avdName = EmulatorGenerator.ensureAvdIsCreated(
+      ideFrameFixture.invokeAvdManager(),
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(myAvdDesc)
+        .build()
+    );
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     JButton button = waitUntilShowingAndEnabled(guiTest.robot(), ideFrameFixture.target(), new GenericTypeMatcher<JButton>(JButton.class) {
@@ -542,7 +551,7 @@ public class InstantRunTest {
       .clickFinish();
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     String MAIN_LAYOUT_FILE = "app/src/main/res/layout/activity_main.xml";
     String MAIN_ACTIVITY_FILE = "app/src/main/java/com/test/project/MainActivity.java";
@@ -574,7 +583,7 @@ public class InstantRunTest {
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
@@ -640,13 +649,20 @@ public class InstantRunTest {
   @Test
   public void fullBuildAndReinstall() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("Topeka");
-    emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
-                       "x86 Images",
-                       new ChooseSystemImageStepFixture.SystemImage("Marshmallow", "23", "x86", "Android 6.0"),
-                       "device under test");
+
+    ChooseSystemImageStepFixture.SystemImage myAvdDesc =
+      new ChooseSystemImageStepFixture.SystemImage("Marshmallow", "23", "x86", "Android 6.0");
+    String avdName = EmulatorGenerator.ensureAvdIsCreated(
+      ideFrameFixture.invokeAvdManager(),
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(myAvdDesc)
+        .build()
+    );
+
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     PatternTextMatcher runningAppMatcher = new PatternTextMatcher(RUN_OUTPUT);
