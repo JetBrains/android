@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenFolderNotificationListener;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
@@ -31,8 +32,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static org.mockito.Mockito.verify;
@@ -73,19 +73,64 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, NotificationType.ERROR);
   }
 
-  public void testExecuteWithSuccessfulBuild() throws IOException {
+  public void testExecuteWithSuccessfulBuild() {
     Module module = getModule();
 
     myTask.execute(createBuildResult(null /* build successful - no errors */));
     if (ShowFilePathAction.isSupported()) {
       String moduleName = module.getName();
-      String message =
-        "APK(s) generated successfully:<br/>Module '" + moduleName + "': <a href=\"" + GoToApkLocationTask.MODULE + moduleName +
-        "\">locate</a> or <a href=\"" + GoToApkLocationTask.ANALYZE + moduleName + "\">analyze</a> the APK.";
+      String message = getModuleNotificationMessage(moduleName, null);
       Map<String, File> apkPathsPerModule = Collections.singletonMap(moduleName, myApkPath);
       verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
                                              new OpenFolderNotificationListener(apkPathsPerModule, myProject));
     }
+  }
+
+  public void testExecuteWithSuccessfulBuildOfDynamicApp() throws IOException {
+    Module module = getModule();
+
+    // Create and setup dynamic feature module
+    Module featureModule = createModule("feature1");
+
+    // Simulate the path of the APK for the project's module.
+    File featureApkPath = createTempDir("featureApkLocation");
+    SortedMap<Module, File> modulesToPaths = new TreeMap<>((o1, o2) -> StringUtil.compare(o1.getName(), o2.getName(), false));
+    modulesToPaths.put(getModule(), myApkPath);
+    modulesToPaths.put(featureModule, featureApkPath);
+
+    myTask = new GoToApkLocationTask(getProject(), modulesToPaths, null, NOTIFICATION_TITLE);
+
+    myTask.execute(createBuildResult(null /* build successful - no errors */));
+    if (ShowFilePathAction.isSupported()) {
+      String moduleName = module.getName();
+      String featureModuleName = featureModule.getName();
+      Map<String, File> apkPathsPerModule = new HashMap<>();
+      apkPathsPerModule.put(moduleName, myApkPath);
+      apkPathsPerModule.put(featureModuleName, featureApkPath);
+      String message = getModuleNotificationMessage(featureModuleName, moduleName);
+      verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
+                                             new OpenFolderNotificationListener(apkPathsPerModule, myProject));
+    }
+  }
+
+  @NotNull
+  private static String getModuleNotificationMessage(@NotNull String moduleName, @Nullable String module2Name) {
+    return "APK(s) generated successfully:" +
+           getModuleLineNotificationMessage(moduleName) +
+           (module2Name == null ? "" : getModuleLineNotificationMessage(module2Name));
+  }
+
+  @NotNull
+  private static String getModuleLineNotificationMessage(@NotNull String moduleName) {
+    return "<br/>Module '" +
+           moduleName +
+           "': <a href=\"" +
+           GoToApkLocationTask.MODULE +
+           moduleName +
+           "\">locate</a> or <a href=\"" +
+           GoToApkLocationTask.ANALYZE +
+           moduleName +
+           "\">analyze</a> the APK.";
   }
 
   @NotNull

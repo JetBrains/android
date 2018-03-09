@@ -15,20 +15,30 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.android.tools.idea.testing.Facets;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 import java.util.Collections;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -40,6 +50,10 @@ public class BuildApkActionTest extends IdeaTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private ProjectStructure myProjectStructure;
+  @Mock private AndroidModuleModel myAndroidModel;
+  @Mock private IdeAndroidProject myIdeAndroidProject;
+  @Mock private AndroidModuleModel myAndroidModel2;
+  @Mock private IdeAndroidProject myIdeAndroidProject2;
   private BuildApkAction myAction;
 
   @Override
@@ -67,5 +81,48 @@ public class BuildApkActionTest extends IdeaTestCase {
     myAction.actionPerformed(event);
 
     verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), eq(Collections.emptyList()), any(OutputBuildAction.class));
+  }
+
+  public void testActionPerformedForDynamicApp() {
+    // Setup "app" as a dynamic app with a single feature "feature1"
+    Module appModule = createModule("app");
+    setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject);
+
+    Module featureModule = createModule("feature1");
+    setUpModuleAsAndroidModule(featureModule, myAndroidModel2, myIdeAndroidProject2);
+    when(myIdeAndroidProject.getDynamicFeatures()).thenReturn(ImmutableList.of(":feature1"));
+    when(myIdeAndroidProject2.getProjectType()).thenReturn(PROJECT_TYPE_DYNAMIC_FEATURE);
+
+    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.of(appModule));
+    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+
+    AnActionEvent event = mock(AnActionEvent.class);
+    when(event.getProject()).thenReturn(getProject());
+
+    myAction.actionPerformed(event);
+
+    Module[] allModules = {appModule, featureModule};
+    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), eq(Collections.emptyList()), any(OutputBuildAction.class));
+  }
+
+  private static void setUpModuleAsAndroidModule(Module module, AndroidModuleModel androidModel, IdeAndroidProject ideAndroidProject) {
+    setUpModuleAsGradleModule(module);
+
+    when(androidModel.getAndroidProject()).thenReturn(ideAndroidProject);
+
+    AndroidModelFeatures androidModelFeatures = mock(AndroidModelFeatures.class);
+    when(androidModel.getFeatures()).thenReturn(androidModelFeatures);
+
+    AndroidFacet androidFacet = Facets.createAndAddAndroidFacet(module);
+    androidFacet.getConfiguration().setModel(androidModel);
+  }
+
+  private static void setUpModuleAsGradleModule(Module module) {
+    GradleFacet gradleFacet = createAndAddGradleFacet(module);
+    gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR + module.getName();
+
+    GradleModuleModel
+      model = new GradleModuleModel(module.getName(), Collections.emptyList(), GRADLE_PATH_SEPARATOR + module.getName(), null, null);
+    gradleFacet.setGradleModuleModel(model);
   }
 }
