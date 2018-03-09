@@ -34,7 +34,16 @@ import static javax.swing.SortOrder.ASCENDING;
 import static javax.swing.SortOrder.DESCENDING;
 
 public interface CaptureObject extends MemoryObject {
+  String DEFAULT_HEAP_NAME = "default";
+  String IMAGE_HEAP_NAME = "image";
+  String ZYGOTE_HEAP_NAME = "zygote";
+  String APP_HEAP_NAME = "app";
+  String JNI_HEAP_NAME = "JNI";
+
   int DEFAULT_HEAP_ID = 0;
+  // ID for JNI pseudo-heap, it should not overlap with real Android heaps
+  int JNI_HEAP_ID = 4;
+
   int DEFAULT_CLASSLOADER_ID = -1;
   String INVALID_HEAP_NAME = "INVALID";
 

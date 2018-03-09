@@ -174,6 +174,10 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectMemoryHeap(@NotNull String heapName) {
+  }
+
+  @Override
   public void trackSelectNetworkRequest() {
 
   }
