@@ -37,6 +37,17 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Stores a cross reference between declarations and references of Android ID resources and the XML
+ * files containing them. The keys are the names of ID resources. The ID resource references
+ * containing a package name are represented as "<i>package_name</i>:<i>local_name</i>". References
+ * to ID resources of the Android framework are not stored. A '+' prefix in front of a name is used
+ * to distinguish declarations ("@+id/"). A ',' prefix in front of a name is used to distinguish
+ * a reference inside the value of a constraint_referenced_ids attribute (used in constraint
+ * layouts).
+ *
+ * <p>A special {@link #MARKER} key can be used to retrieve all ID resources declared or
+ * referenced in a file.
+ *
  * @author Eugene.Kudelevsky
  */
 public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>> {
@@ -47,35 +58,35 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
     @Override
     @NotNull
     public Map<String, Set<String>> map(@NotNull FileContent inputData) {
-      final CharSequence content = inputData.getContentAsText();
+      CharSequence content = inputData.getContentAsText();
 
-      if (CharArrayUtil.indexOf(content, SdkConstants.NS_RESOURCES, 0) == -1) {
+      if (CharArrayUtil.indexOf(content, SdkConstants.NS_RESOURCES, 0) < 0) {
         return Collections.emptyMap();
       }
-      final HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
-      
+      HashMap<String, Set<String>> map = new HashMap<>();
+
       NanoXmlUtil.parse(CharArrayUtil.readerFromCharSequence(inputData.getContentAsText()), new NanoXmlUtil.IXMLBuilderAdapter() {
         @Override
         public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type) throws Exception {
           super.addAttribute(key, nsPrefix, nsURI, value, type);
-          final boolean declaration = AndroidResourceUtil.isIdDeclaration(value);
+          boolean declaration = AndroidResourceUtil.isIdDeclaration(value);
 
           if (declaration || AndroidResourceUtil.isIdReference(value)) {
             String id = AndroidResourceUtil.getResourceNameByReferenceText(value);
 
             if (id != null) {
               if (declaration) {
-                id = "+" + id;
+                id = '+' + id;
               }
-              map.put(id, Collections.<String>emptySet());
+              map.put(id, Collections.emptySet());
             }
           }
           else if (AndroidResourceUtil.isConstraintReferencedIds(nsURI, nsPrefix, key)) {
-            // the value of app:constraint_referenced_ids has is a list of id which separated by comma.
+            // The value of the app:constraint_referenced_ids attribute is a comma-separated list of names of ID resources.
             if (value != null) {
               for (String id : value.split(",")) {
                 if (id != null) {
-                  map.put("," + id, Collections.emptySet());
+                  map.put(',' + id, Collections.emptySet());
                 }
               }
             }
@@ -83,7 +94,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
         }
       });
       if (!map.isEmpty()) {
-        map.put(MARKER, new HashSet<String>(map.keySet()));
+        map.put(MARKER, new HashSet<>(map.keySet()));
       }
       return map;
     }
@@ -100,53 +111,53 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
 
     @Override
     public Set<String> read(@NotNull DataInput in) throws IOException {
-      final int size = in.readInt();
+      int size = in.readInt();
 
-      if (size < 0 || size > 65535) { // 65K: maximum number of resources for a given type
+      if (size < 0 || size > 65535) { // 65K: maximum number of resources for a given type.
         // Something is very wrong (corrupt index); trigger an index rebuild.
         throw new IOException("Corrupt Index: Size " + size);
       }
 
-      final Set<String> result = new HashSet<String>(size);
+      Set<String> result = new HashSet<>(size);
 
       for (int i = 0; i < size; i++) {
-        final String s = in.readUTF();
+        String s = in.readUTF();
         result.add(s);
       }
       return result;
     }
   };
 
-  @NotNull
   @Override
+  @NotNull
   public ID<String, Set<String>> getName() {
     return INDEX_ID;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public DataIndexer<String, Set<String>, FileContent> getIndexer() {
     return INDEXER;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public KeyDescriptor<String> getKeyDescriptor() {
     return EnumeratorStringDescriptor.INSTANCE;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public DataExternalizer<Set<String>> getValueExternalizer() {
     return DATA_EXTERNALIZER;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public FileBasedIndex.InputFilter getInputFilter() {
     return new DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
       @Override
-      public boolean acceptInput(@NotNull final VirtualFile file) {
+      public boolean acceptInput(@NotNull VirtualFile file) {
         return file.isInLocalFileSystem();
       }
     };
