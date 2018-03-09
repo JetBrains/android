@@ -41,8 +41,8 @@ import java.io.File
  * In order of decreasing precedence:
  * NONE: This tag is either not an action or is invalid.
  * SELF: The destination attribute refers to the action's parent.
+ * GLOBAL: The action's parent is a navigation element.
  * REGULAR: The destination attribute refers to a sibling of the action's parent
- * GLOBAL: The destination attribute refers to one of the action's siblings, and their common parent is a navigation element
  * EXIT: The destination attribute refers to an element that is not under the action's parent's parent.
  */
 enum class ActionType {
@@ -133,14 +133,17 @@ val NlComponent.actionType: ActionType
       return ActionType.SELF
     }
 
+    if (myParent.isNavigation) {
+      return ActionType.GLOBAL
+    }
+
     myParent.parent?.let {
       if (it.containsDestination(actionDestinationId)) {
         return ActionType.REGULAR
       }
     }
 
-    return if (myParent.isNavigation && myParent.containsDestination(actionDestinationId)) ActionType.GLOBAL
-    else ActionType.EXIT
+    return ActionType.EXIT
   }
 
 private fun NlComponent.containsDestination(destinationId: String?): Boolean {
