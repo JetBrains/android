@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -47,7 +47,7 @@ class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableMo
   @Override
   public void reset() {
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    getModule().getDependencies().forEachDeclaredDependency(dependencies::add);
+    getModule().getDependencies().forEach(dependencies::add);
     Collections.sort(dependencies, new PsDependencyComparator(getContext().getUiSettings()));
     setItems(dependencies);
   }

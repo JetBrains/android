@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.structure.quickfix;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.base.Splitter;
 import org.jetbrains.annotations.NonNls;
@@ -55,28 +55,25 @@ public final class QuickFixes {
     PsModule module = context.getProject().findModuleByName(moduleName);
     if (module instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)module;
-      androidModule.getDependencies().forEachDeclaredDependency(declaredDependency -> {
-        if (declaredDependency instanceof PsLibraryDependency) {
-          setLibraryDependencyVersion((PsLibraryDependency)declaredDependency, dependency, version);
+      PsLibraryAndroidDependency libraryDependency = androidModule.getDependencies().findLibraryDependency(dependency);
+      if (libraryDependency != null) {
+        setLibraryDependencyVersion(libraryDependency, version);
         }
-      });
     }
     else if (module instanceof PsJavaModule) {
       PsJavaModule javaModule = (PsJavaModule)module;
       javaModule.forEachDeclaredDependency(declaredDependency -> {
         if (declaredDependency instanceof PsLibraryDependency) {
-          setLibraryDependencyVersion((PsLibraryDependency)declaredDependency, dependency, version);
+          if (((PsLibraryDependency)declaredDependency).getSpec().toString().equals(dependency)) {
+            setLibraryDependencyVersion((PsLibraryDependency)declaredDependency, version);
+          }
         }
       });
     }
   }
 
   private static void setLibraryDependencyVersion(@NotNull PsLibraryDependency dependency,
-                                                  @NotNull String dependencySpec,
                                                   @NotNull String version) {
-    PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
-    if (declaredSpec != null && dependencySpec.equals(declaredSpec.compactNotation())) {
-      dependency.setVersion(version);
-    }
+    dependency.setVersion(version);
   }
 }

@@ -62,11 +62,6 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
     moduleDependenciesByGradlePath.values.forEach(consumer)
   }
 
-  fun forEachDeclaredDependency(consumer: Consumer<PsAndroidDependency>) {
-    libraryDependenciesBySpec.values.filter { it.isDeclared }.forEach(consumer)
-    moduleDependenciesByGradlePath.values.filter { it.isDeclared }.forEach(consumer)
-  }
-
   fun forEachModuleDependency(consumer: Consumer<PsModuleAndroidDependency>) {
     moduleDependenciesByGradlePath.values.forEach(consumer)
   }
