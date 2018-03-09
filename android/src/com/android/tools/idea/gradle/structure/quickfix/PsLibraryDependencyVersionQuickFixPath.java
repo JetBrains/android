@@ -57,11 +57,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
 
   @NotNull
   private static String getCompactNotation(@NotNull PsLibraryDependency dependency) {
-    PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
-    if (spec == null) {
-      spec = dependency.getSpec();
-    }
-    return spec.compactNotation();
+    return dependency.getSpec().compactNotation();
   }
 
   @Override

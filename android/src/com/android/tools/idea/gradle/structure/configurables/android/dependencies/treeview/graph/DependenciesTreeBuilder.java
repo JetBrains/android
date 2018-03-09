@@ -65,7 +65,7 @@ public class DependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
       }
       LibraryDependencyNode node = (LibraryDependencyNode)userObject;
       for (PsLibraryAndroidDependency dependency : node.getModels()) {
-        if (spec.equals(dependency.getDeclaredSpec())) {
+        if (spec.equals(dependency.getSpec())) {
           return node;
         }
       }

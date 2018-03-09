@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.daemon.analysis;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
-import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +28,6 @@ public class PsJavaModuleAnalyzer extends PsModuleAnalyzer<PsJavaModule> {
 
   @Override
   protected void doAnalyze(@NotNull PsJavaModule module, @NotNull PsIssueCollection issueCollection) {
-    PsModulePath modulePath = new PsModulePath(module);
     module.forEachDependency(dependency -> {
       if (dependency instanceof PsLibraryDependency && dependency.isDeclared()) {
         PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;

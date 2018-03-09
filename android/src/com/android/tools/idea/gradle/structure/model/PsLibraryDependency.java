@@ -15,48 +15,32 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.google.common.collect.ImmutableCollection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.google.common.base.Strings.nullToEmpty;
 
 public interface PsLibraryDependency extends PsBaseDependency {
   @NotNull
   PsModule getParent();
 
-  @Nullable
-  PsArtifactDependencySpec getDeclaredSpec();
-
   boolean hasPromotedVersion();
 
+  /**
+   * Updates the parsed model with the new version.
+   *
+   * <p>The dependency instance and collections of resolved dependencies become invalid and should be reloaded.
+   */
   default void setVersion(@NotNull String version) {
     boolean modified = false;
-    ArtifactDependencyModel reference = null;
     for (DependencyModel parsedDependency : getParsedModels()) {
       if (parsedDependency instanceof ArtifactDependencyModel) {
         ArtifactDependencyModel dependency = (ArtifactDependencyModel)parsedDependency;
         dependency.setVersion(version);
-        if (reference == null) {
-          reference = dependency;
-        }
         modified = true;
       }
     }
     if (modified) {
-      GradleVersion parsedVersion = GradleVersion.parse(version);
-      PsArtifactDependencySpec resolvedSpec = getSpec();
-      String resolvedVersion = nullToEmpty(resolvedSpec.getVersion());
-      if (parsedVersion.compareTo(resolvedVersion) != 0) {
-        // Update the "resolved" spec with the new version
-        resolvedSpec = new PsArtifactDependencySpec(resolvedSpec.getName(), resolvedSpec.getGroup(), version);
-        setResolvedSpec(resolvedSpec);
-      }
-
-      setDeclaredSpec(createSpec(reference));
       setModified(true);
       getParent().fireDependencyModifiedEvent((PsDependency)this);
     }
@@ -75,11 +59,6 @@ public interface PsLibraryDependency extends PsBaseDependency {
     assert spec != null;
     return spec;
   }
-
-  // TODO(solodkyy): Remove when dependency objects become immutable and setVersion() reworked.
-  void setResolvedSpec(@NotNull PsArtifactDependencySpec spec);
-
-  void setDeclaredSpec(@NotNull PsArtifactDependencySpec spec);
 
   void setModified(boolean value);
 }

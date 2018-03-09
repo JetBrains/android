@@ -459,9 +459,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
   private static List<PsAndroidDependency> getDependencies(PsAndroidDependencyCollection dependencyCollection) {
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
     dependencyCollection.forEach(dependency -> {
-      if (dependency.isDeclared()) {
-        dependencies.add(dependency);
-      }
+      dependencies.add(dependency);
     });
     return dependencies;
   }

@@ -58,7 +58,7 @@ public final class QuickFixes {
       PsLibraryAndroidDependency libraryDependency = androidModule.getDependencies().findLibraryDependency(dependency);
       if (libraryDependency != null) {
         setLibraryDependencyVersion(libraryDependency, version);
-        }
+      }
     }
     else if (module instanceof PsJavaModule) {
       PsJavaModule javaModule = (PsJavaModule)module;

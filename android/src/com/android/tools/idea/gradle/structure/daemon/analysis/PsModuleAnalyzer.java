@@ -21,15 +21,11 @@ import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNav
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.regex.Pattern;
-
 import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.INFO;
 import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING;
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
 
 public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyzer<T> {
-  private static final Pattern URL_PATTERN = Pattern.compile("\\(?http://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
-
   @NotNull private final PsContext myContext;
 
   protected PsModuleAnalyzer(@NotNull PsContext context) {
@@ -41,8 +37,7 @@ public abstract class PsModuleAnalyzer<T extends PsModule> extends PsModelAnalyz
     PsArtifactDependencySpec resolvedSpec = dependency.getSpec();
     PsPath path = new PsLibraryDependencyNavigationPath(dependency);
 
-    PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
-    assert declaredSpec != null;
+    PsArtifactDependencySpec declaredSpec = dependency.getSpec();
     String declaredVersion = declaredSpec.getVersion();
     if (declaredVersion != null && declaredVersion.endsWith("+")) {
       String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds.";
