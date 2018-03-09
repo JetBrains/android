@@ -50,12 +50,14 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
    *      "Java_com_example_hellojni_HelloJni_stringFromJNI" (the native implementation).
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70629375
+  @RunIn(TestGroup.QA)
   @Test
   public void testShortcutNavigateFromJavaDefinitionToJniFunction() throws Exception {
-    IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/NdkHelloJni");
+    IdeFrameFixture ideFrame = guiTest.importProject("debugger/NdkHelloJni");
 
+    // Request Project Sync separately here.
+    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    
     guiTest.waitForBackgroundTasks();
 
     ideFrame.getEditor()
