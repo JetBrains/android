@@ -960,8 +960,6 @@ class NavSceneTest : NavTestCase() {
             "DrawRectangle,1,-140x-128x14x3,ffa7a7a7,1,1\n" +
             "DrawTruncatedText,3,Nested Graph,-140x-128x14x3,ffa7a7a7,Default:1:2,true\n" +
             "DrawTruncatedText,3,nav2,-140x-131x14x1,ff656565,Default:0:2,false\n" +
-            "DrawLine,2,-126x-127,-125x-127,b2a7a7a7,3:0:1\n" +
-            "DrawArrow,2,RIGHT,-125x-127x1x1,b2a7a7a7\n" +
             "\n" +
             "UNClip\n", list.serialize()
     )
