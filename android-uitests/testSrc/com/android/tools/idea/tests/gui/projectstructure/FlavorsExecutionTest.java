@@ -53,7 +53,7 @@ public class FlavorsExecutionTest {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
@@ -117,7 +117,7 @@ public class FlavorsExecutionTest {
     ideFrameFixture
       .getProjectView()
       .selectProjectPane()
-      .clickPath("SimpleApplication", "app")
+      .clickPath("SimpleLocalApplication", "app")
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Basic Activity")
       .getConfigureActivityStep()
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME, FIRST_ACTIVITY_NAME)
@@ -134,7 +134,7 @@ public class FlavorsExecutionTest {
     ideFrameFixture
       .getProjectView()
       .selectProjectPane()
-      .clickPath("SimpleApplication", "app")
+      .clickPath("SimpleLocalApplication", "app")
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Basic Activity")
       .getConfigureActivityStep()
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME, SECOND_ACTIVITY_NAME)
