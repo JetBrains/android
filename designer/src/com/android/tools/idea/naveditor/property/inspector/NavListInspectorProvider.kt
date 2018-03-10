@@ -92,7 +92,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
   inner class NavListInspectorComponent :
       InspectorComponent<NavPropertiesManager> {
 
-    private val displayProperties = SortedListModel<NlProperty>(compareBy { it.name })
+    private val displayProperties = SortedListModel<NlProperty>(compareBy { "${it.name} ${displayIdSuffix(it)}" })
     private val markerProperties = mutableListOf<PropertyType>()
     private val components = mutableListOf<NlComponent>()
     private var surface: NavDesignSurface? = null
@@ -131,7 +131,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
             mySelectionForeground = UIUtil.getListForeground()
           }
           val name = value?.name ?: ""
-          val id = value?.components?.getOrNull(0)?.id?.let { " (${it})" } ?: ""
+          val id = displayIdSuffix(value)
           append(name)
           append(id, SimpleTextAttributes.GRAYED_ATTRIBUTES)
         }
@@ -187,6 +187,9 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       inspector.addTitle(title, plusPanel)
       inspector.addPanel(panel)
     }
+
+    private fun displayIdSuffix(value: NlProperty?) =
+      value?.components?.getOrNull(0)?.id?.let { " (${it})" } ?: ""
 
     @VisibleForTesting
     fun createPopupContent(e: MouseEvent): ActionGroup? {
@@ -245,7 +248,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
 
       markerProperties.flatMap {
         it.refreshList()
-        it.properties.values
+        it.properties.values()
       }.forEach { displayProperties.add(it) }
     }
 

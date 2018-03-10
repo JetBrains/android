@@ -861,6 +861,36 @@ class NavSceneTest : NavTestCase() {
     )
   }
 
+  fun testPopToDestination() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2") {
+          action("a", popUpTo = "fragment1")
+        }
+      }
+    }
+    val list = DisplayList()
+    val surface = model.surface
+    val scene = surface.scene!!
+    scene.layout(0, SceneContext.get())
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+    assertEquals(
+      "Clip,0,0,966,928\n" +
+      "DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
+      "DrawPreviewUnavailable,491x401x74x126\n" +
+      "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
+      "DrawPreviewUnavailable,401x401x74x126\n" +
+      "DrawAction,NORMAL,400x400x76x128,490x400x76x128,NORMAL\n" +
+      "DrawArrow,2,RIGHT,481x461x5x6,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment2,400x390x76x5,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.serialize()
+    )
+  }
+
   fun testExitActions() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
