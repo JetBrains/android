@@ -59,4 +59,14 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
     // Click the hyperlink.
     myRobot.click(consoleView, clickPoint);
   }
+
+  /**
+   * Get the text of content of the sync console view
+   * @return
+   */
+  public String getSyncConsoleViewText() {
+    Content syncContent = getContent("Sync");
+    ConsoleViewImpl consoleView = myRobot.finder().findByType(syncContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
+    return consoleView.getText();
+  }
 }
