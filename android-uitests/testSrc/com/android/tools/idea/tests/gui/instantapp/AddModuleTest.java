@@ -29,8 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class AddModuleTest {
@@ -120,9 +119,7 @@ public class AddModuleTest {
 
     ideFrame.waitForGradleProjectSyncToFail(Wait.seconds(20));
 
-    ideFrame.getMessagesToolWindow()
-      .getGradleSyncContent()
-      .findMessage(ERROR, firstLineStartingWith("Resource shrinker cannot be used for libraries"));
+    assertThat(ideFrame.getBuildToolWindow().getSyncConsoleViewText()).contains("Resource shrinker cannot be used for libraries.");
   }
 
   /**
