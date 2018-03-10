@@ -393,6 +393,11 @@ public class InstantRunTest {
       .enterText("150");
 
     ideFrameFixture.findDebugApplicationButton().click();
+
+    DeployTargetPickerDialogFixture.find(ideFrameFixture.robot())
+      .selectDevice(avdName)
+      .clickOk();
+
     ideFrameFixture.getDebugToolWindow()
       .findContent(APP_NAME)
       .waitForOutput(new PatternTextMatcher(pattern), 120);
