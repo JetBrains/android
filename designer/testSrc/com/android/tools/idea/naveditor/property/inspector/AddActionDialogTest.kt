@@ -124,6 +124,32 @@ class AddActionDialogTest : NavTestCase() {
     )
     val dialog = dialogWrapper.dialog
 
+    dialog.myDestinationComboBox.selectedIndex = 4
+
+    assertEquals(model.find("f1"), dialog.myPopToComboBox.selectedItem)
+    assertFalse(dialog.myPopToComboBox.isEnabled)
+    assertTrue(dialog.myInclusiveCheckBox.isSelected)
+    assertFalse(dialog.myInclusiveCheckBox.isEnabled)
+
+    dialogWrapper.close(0)
+  }
+
+  fun testReturnToSourceRestoresPrevious() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
+
+    val dialogWrapper = AddActionDialog(
+        AddActionDialog.Defaults.NORMAL,
+        null,
+        model.find("f1")!!,
+        null
+    )
+    val dialog = dialogWrapper.dialog
+
     // Initial condition that will be restored
     dialog.myPopToComboBox.selectedIndex = 2
 
