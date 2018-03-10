@@ -129,7 +129,8 @@ val NlComponent.actionType: ActionType
 
     val myParent = parent ?: throw IllegalStateException()
 
-    if (myParent.id == actionDestinationId) {
+    val destination = effectiveDestinationId
+    if (myParent.id == destination) {
       return ActionType.SELF
     }
 
@@ -138,7 +139,7 @@ val NlComponent.actionType: ActionType
     }
 
     myParent.parent?.let {
-      if (it.containsDestination(actionDestinationId)) {
+      if (destination != null && it.containsDestination(destination)) {
         return ActionType.REGULAR
       }
     }
@@ -146,7 +147,7 @@ val NlComponent.actionType: ActionType
     return ActionType.EXIT
   }
 
-private fun NlComponent.containsDestination(destinationId: String?): Boolean {
+private fun NlComponent.containsDestination(destinationId: String): Boolean {
   return children.map { it.id }.contains(destinationId)
 }
 

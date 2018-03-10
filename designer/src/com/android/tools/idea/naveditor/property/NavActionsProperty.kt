@@ -17,7 +17,9 @@ package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.actionDestinationId
+import com.android.tools.idea.naveditor.model.inclusive
 import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 
 /**
@@ -33,11 +35,14 @@ class NavActionsProperty(components: List<NlComponent>) : ListProperty("Actions"
     properties.clear()
 
     components.flatMap { it.children }
-        .filter { it.isAction }
-        .forEach { child ->
-          child.actionDestinationId?.let {
-            properties.put(it, SimpleProperty(it, listOf(child)))
-          }
-        }
+      .filter { it.isAction }
+      .forEach { child ->
+        child.actionDestinationId?.also {
+          properties.put(it, SimpleProperty(it, listOf(child)))
+        } ?: child.popUpTo?.also {
+          val title = "${if (child.inclusive == true) "Caller of " else ""}$it"
+          properties.put(title, SimpleProperty(title, listOf(child)))
+        } ?: properties.put("Invalid Action", SimpleProperty("Invalid Action", listOf(child)))
+      }
   }
 }
