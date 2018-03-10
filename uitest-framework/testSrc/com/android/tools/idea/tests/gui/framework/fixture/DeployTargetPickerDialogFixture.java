@@ -76,21 +76,27 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
     String item =
       jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
     // Ignore everything after the parenthesis (typically includes stuff like API level and ABI)
-    return item.split("\\(", 2)[0].trim();
+    return removeParenthesisFrom(item);
   };
+
+  private static String removeParenthesisFrom(String text) {
+    return text.split("\\(", 2)[0].trim();
+  }
 
   /**
    *  Selects a device whose entry in the devices list is {@code text}. Any characters after the first parenthesis are ignored.
    */
   @NotNull
   public DeployTargetPickerDialogFixture selectDevice(String text) {
+    String nameToSearchFor = removeParenthesisFrom(text);
+
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), deviceList);
     jListFixture.replaceCellReader(DEVICE_PICKER_CELL_READER);
     // Workaround: b/72748687, increase timeout.
-    Wait.seconds(30).expecting(String.format("Deployment Target list to contain %s", text))
-      .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
-    jListFixture.selectItem(text);
+    Wait.seconds(30).expecting(String.format("Deployment Target list to contain %s", nameToSearchFor))
+      .until(() -> Arrays.asList(jListFixture.contents()).contains(nameToSearchFor));
+    jListFixture.selectItem(nameToSearchFor);
     return this;
   }
 

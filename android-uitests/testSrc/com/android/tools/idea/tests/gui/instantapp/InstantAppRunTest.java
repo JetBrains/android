@@ -24,6 +24,8 @@ import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities;
 import com.android.tools.idea.explorer.adbimpl.AdbFileOperations;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.tests.gui.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -53,11 +55,10 @@ import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
 public class InstantAppRunTest {
-  private static final String O_AVD_NAME = "O dev under test";
   private static final SystemImage O_AVD_IMAGE = new SystemImage("Oreo", "26", "x86", "Android 8.0 (Google APIs)");
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   /**
    * Verify imported instant apps can be deployed to an emulator running API 26 or newer.
@@ -80,15 +81,16 @@ public class InstantAppRunTest {
     String runConfigName = "topekabundle";
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
 
-    emulator.createAVD(
+    String avdName = EmulatorGenerator.ensureAvdIsCreated(
       ideFrame.invokeAvdManager(),
-      "x86 Images",
-      O_AVD_IMAGE,
-      O_AVD_NAME
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(O_AVD_IMAGE)
+        .build()
     );
 
     ideFrame.runApp(runConfigName)
-      .selectDevice(O_AVD_NAME)
+      .selectDevice(avdName)
       .clickOk();
 
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
@@ -137,11 +139,12 @@ public class InstantAppRunTest {
     // TODO remove the following workaround wait to workaround http://b/72666461
     guiTest.testSystem().waitForProjectSyncToFinish(ideFrame);
 
-    emulator.createAVD(
+    String avdName = EmulatorGenerator.ensureAvdIsCreated(
       ideFrame.invokeAvdManager(),
-      "x86 Images",
-      O_AVD_IMAGE,
-      O_AVD_NAME
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(O_AVD_IMAGE)
+        .build()
     );
 
     // Stuff can be happening again in the background while the emulator is being created.
@@ -149,7 +152,7 @@ public class InstantAppRunTest {
     guiTest.waitForBackgroundTasks();
 
     ideFrame.runApp(runConfigName)
-      .selectDevice(O_AVD_NAME)
+      .selectDevice(avdName)
       .clickOk();
 
     // Starting the device and provisioning the device can take a very long time
@@ -183,15 +186,16 @@ public class InstantAppRunTest {
     IdeFrameFixture ideFrame = guiTest.importProject("TopekaInstantApp", null);
     guiTest.testSystem().waitForProjectSyncToFinish(ideFrame);
 
-    emulator.createAVD(
+    String avdName = EmulatorGenerator.ensureAvdIsCreated(
       ideFrame.invokeAvdManager(),
-      "x86 Images",
-      O_AVD_IMAGE,
-      O_AVD_NAME
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(O_AVD_IMAGE)
+        .build()
     );
 
     AvdManagerDialogFixture avdManager = ideFrame.invokeAvdManager();
-    avdManager.startAvdWithName(O_AVD_NAME);
+    avdManager.startAvdWithName(avdName);
     avdManager.close();
 
     // TODO: Move these adb commands over to DeviceQueries and AndroidDebugBridgeUtils
