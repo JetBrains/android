@@ -79,6 +79,7 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
     return removeParenthesisFrom(item);
   };
 
+  // TODO the functionality provided by this method should be handled elsewhere. See http://b/74463797 for more information
   private static String removeParenthesisFrom(String text) {
     return text.split("\\(", 2)[0].trim();
   }
