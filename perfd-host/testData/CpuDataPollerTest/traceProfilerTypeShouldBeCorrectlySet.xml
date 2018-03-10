@@ -143,6 +143,32 @@ threads {
 }
 </message>
     </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetTraceInfo" Class="class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoRequest">
+        <Message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+from_timestamp: -9223372036854775808
+to_timestamp: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoRequest</clazz>
+        <functionCalled>profiler.proto.CpuService/GetTraceInfo</functionCalled>
+        <message>session {
+  session_id: 4321
+  device_id: 1234
+  pid: 5678
+}
+from_timestamp: -9223372036854775808
+to_timestamp: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.CpuService/GetTraceInfo" Class="class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoResponse</clazz>
+        <functionCalled>profiler.proto.CpuService/GetTraceInfo</functionCalled>
+        <message></message>
+    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest">
         <Message>configuration {
   profiler_type: SIMPLEPERF

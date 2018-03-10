@@ -536,6 +536,22 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     }
 
     @Override
+    public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> responseObserver) {
+      GetTraceInfoResponse.Builder response = GetTraceInfoResponse.newBuilder();
+
+      responseObserver.onNext(response.build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getTrace(GetTraceRequest request, StreamObserver<GetTraceResponse> responseObserver) {
+      GetTraceResponse.Builder response = GetTraceResponse.newBuilder();
+
+      responseObserver.onNext(response.build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> responseObserver) {
       responseObserver.onNext(CpuStartResponse.getDefaultInstance());
       responseObserver.onCompleted();

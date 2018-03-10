@@ -115,6 +115,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   private final DefaultDataSeries<DefaultDurationData> myInProgressTraceSeries;
 
+  private TraceInitiationType myInProgressTraceInitiationType;
+
   /**
    * The thread states combined with the capture states.
    */
@@ -135,6 +137,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public enum CaptureState {
+    // The state before initialization. Useful because we only set state when it changes.
+    UNINITIALIZED,
     // Waiting for a capture to start (displaying the current capture or not)
     IDLE,
     // There is a capture in progress
@@ -163,10 +167,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Represents the current state of the capture.
-   * It is initialized here but updated indirectly in the constructor, which calls {@link #updateProfilingState()}.
+   * It is marked as uninitialized here but will be updated in the constructor, which calls {@link #updateProfilingState()}.
    */
   @NotNull
-  private CaptureState myCaptureState = CaptureState.IDLE;
+  private CaptureState myCaptureState = CaptureState.UNINITIALIZED;
 
   /**
    * If there is a capture in progress, stores its start time.
@@ -174,6 +178,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private long myCaptureStartTimeNs;
 
   private CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable;
+
+  private final CpuCaptureStateUpdatable myCaptureStateUpdatable;
 
   @NotNull
   private final UpdatableManager myUpdatableManager;
@@ -235,11 +241,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     // Create an event representing the traces within the range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
+
     myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getSession());
     myCpuKernelModel = new CpuKernelModel(viewRange, this);
 
     myInProgressTraceSeries = new DefaultDataSeries<>();
     myInProgressTraceDuration = new DurationDataModel<>(new RangedSeries<>(viewRange, myInProgressTraceSeries));
+    myInProgressTraceInitiationType = TraceInitiationType.UNSPECIFIED_INITIATION;
 
     myEventMonitor = new EventMonitor(profilers);
 
@@ -270,6 +278,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
     myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
+    myCaptureStateUpdatable = new CpuCaptureStateUpdatable(() -> updateProfilingState());
+    // Calling updateProfilingState() in constructor makes sure the member fields are in a known predictable state.
     updateProfilingState();
     myProfilerModel.updateProfilingConfigurations();
 
@@ -355,6 +365,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myThreadsStates);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
+    getStudioProfilers().getUpdater().register(myCaptureStateUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -374,6 +385,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myThreadsStates);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
+    getStudioProfilers().getUpdater().unregister(myCaptureStateUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
@@ -630,21 +642,21 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
 
     if (response.getBeingProfiled()) {
+      setCaptureState(CaptureState.CAPTURING);
       // Make sure to consider the elapsed profiling time, obtained from the device, when setting the capture start time
       long elapsedTime = response.getCheckTimestamp() - response.getStartTimestamp();
       myCaptureStartTimeNs = currentTimeNs() - elapsedTime;
-      myCaptureState = CaptureState.CAPTURING;
       myInProgressTraceSeries.clear();
       myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
+      myInProgressTraceInitiationType = response.getInitiationType();
 
       // Sets the properties of myActiveConfig
       CpuProfilerConfiguration configuration = response.getConfiguration();
       myProfilerModel.setActiveConfig(ProfilingConfiguration.fromProto(configuration));
     }
     else {
-      // otherwise, invalidate capture start time
-      myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
-      myCaptureState = CaptureState.IDLE;
+      setCaptureState(CaptureState.IDLE);
+      myInProgressTraceSeries.clear();
     }
   }
 
@@ -755,11 +767,18 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myCaptureState;
   }
 
-  private void setCaptureState(@NotNull CaptureState captureState) {
-    myCaptureState = captureState;
-    // invalidate the capture start time when setting the capture state
-    myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
-    myAspect.changed(CpuProfilerAspect.CAPTURE_STATE);
+  @NotNull
+  public TraceInitiationType getCaptureInitiationType() {
+    return myInProgressTraceInitiationType;
+  }
+
+  public void setCaptureState(@NotNull CaptureState captureState) {
+    if (!myCaptureState.equals(captureState)) {
+      myCaptureState = captureState;
+      // invalidate the capture start time when setting the capture state
+      myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
+      myAspect.changed(CpuProfilerAspect.CAPTURE_STATE);
+    }
   }
 
   public void setCaptureFilter(@Nullable Pattern filter) {
@@ -899,6 +918,31 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     public void update(long elapsedNs) {
       if (myCaptureState == CaptureState.CAPTURING) {
         myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
+      }
+    }
+  }
+
+  private class CpuCaptureStateUpdatable implements Updatable {
+    @NotNull private final Runnable myCallback;
+
+    /**
+     * Number of update() runs before the callback is called.
+     *
+     * Updater is running 60 times per second, which is too frequent for checking capture state which
+     * requires a RPC call. Therefore, we check the state less often.
+     */
+    private final int UPDATE_COUNT_TO_CALL_CALLBACK = 6;
+    private int myUpdateCount = UPDATE_COUNT_TO_CALL_CALLBACK - 1;
+
+    public CpuCaptureStateUpdatable(@NotNull Runnable callback) {
+      myCallback = callback;
+    }
+
+    @Override
+    public void update(long elapsedNs) {
+      if (myUpdateCount++ >= UPDATE_COUNT_TO_CALL_CALLBACK) {
+        myCallback.run();         // call callback
+        myUpdateCount = 0;         // reset update count
       }
     }
   }

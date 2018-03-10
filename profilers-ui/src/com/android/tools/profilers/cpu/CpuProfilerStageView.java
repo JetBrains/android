@@ -32,6 +32,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.atrace.AtraceExporter;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
@@ -918,6 +919,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       case STOP_FAILURE:
         mySplitter.setSecondComponent(null);
         break;
+      case UNINITIALIZED:
+        mySplitter.setSecondComponent(null);
+        break;
     }
   }
 
@@ -948,7 +952,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateCaptureElapsedTime() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
-      myCaptureStatus.setText("Recording - " + TimeAxisFormatter.DEFAULT.getClockFormattedString(elapsedTimeUs));
+      String automatedTextOrEmpty = "";
+      if (myStage.getCaptureInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
+        automatedTextOrEmpty = " (automated)";
+      }
+      String text =
+        String.format("Recording%s - %s", automatedTextOrEmpty, TimeAxisFormatter.DEFAULT.getClockFormattedString(elapsedTimeUs));
+      myCaptureStatus.setText(text);
     }
   }
 
