@@ -69,11 +69,11 @@ open class AddActionDialog(
 
   // Open for testing
   open val enterTransition: String?
-    get() = (dialog.myEnterComboBox.selectedItem as ValueWithDisplayString).value
+    get() = (dialog.myEnterComboBox.selectedItem as ValueWithDisplayString?)?.value
 
   // Open for testing
   open val exitTransition: String?
-    get() = (dialog.myExitComboBox.selectedItem as ValueWithDisplayString).value
+    get() = (dialog.myExitComboBox.selectedItem as ValueWithDisplayString?)?.value
 
   // Open for testing
   open val popTo: String?
@@ -318,7 +318,7 @@ open class AddActionDialog(
       dialog.myExitComboBox.removeAllItems()
       dialog.myEnterComboBox.addItem(ValueWithDisplayString("None", null))
       dialog.myExitComboBox.addItem(ValueWithDisplayString("None", null))
-      val component = (event.item as DestinationListEntry).component
+      val component = (event.item as DestinationListEntry?)?.component
       var isFragment = false
       if (component != null) {
         isFragment = component.destinationType == FRAGMENT
@@ -336,7 +336,7 @@ open class AddActionDialog(
       val item = event.item as DestinationListEntry?
       if (event.stateChange == ItemEvent.SELECTED || item == null) {
         if (item != null && item.isReturnToSource) {
-          previousPopTo = dialog.myPopToComboBox.selectedItem as NlComponent
+          previousPopTo = dialog.myPopToComboBox.selectedItem as NlComponent?
           previousInclusive = dialog.myInclusiveCheckBox.isSelected
           dialog.myPopToComboBox.selectedItem = parent
           dialog.myPopToComboBox.isEnabled = false
