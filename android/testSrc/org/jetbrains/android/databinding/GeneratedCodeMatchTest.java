@@ -116,7 +116,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
     int verifiedClassCount = 0;
     for (ClassReader classReader : klassMap.values()) {
-      if (!shouldVerify(viewDataBindingClass, classReader, superClassLookup)) {
+      if (!shouldVerify(viewDataBindingClass, classReader)) {
         continue;
       }
       verifiedClassCount++;
@@ -136,12 +136,10 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     assertEquals("These classes are missing", "", StringUtil.join(missingClasses, "\n"));
   }
 
-  private static boolean shouldVerify(ClassReader viewDataBindingClass, ClassReader classReader, Map<ClassReader,
-    ClassReader> superClassLookup) {
+  private static boolean shouldVerify(ClassReader viewDataBindingClass, ClassReader classReader) {
     return classReader != null &&
            (viewDataBindingClass.getClassName().equals(classReader.getSuperName()) ||
-            DATA_BINDING_COMPONENT_CLASS_NAME.equals(classReader.getClassName()) ||
-            shouldVerify(viewDataBindingClass, superClassLookup.get(classReader), superClassLookup));
+            DATA_BINDING_COMPONENT_CLASS_NAME.equals(classReader.getClassName()));
   }
 
   @NotNull
