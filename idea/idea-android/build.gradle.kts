@@ -8,6 +8,7 @@ dependencies {
     compile(project(":compiler:frontend"))
     compile(project(":compiler:frontend.java"))
     compile(project(":idea"))
+    compile(project(":idea:idea-jvm"))
     compile(project(":idea:idea-core"))
     compile(project(":idea:ide-common"))
     compile(project(":idea:idea-gradle"))
@@ -31,7 +32,6 @@ dependencies {
     testCompile(ideaPluginDeps("build-common", plugin = "android"))
 
     testRuntime(projectDist(":kotlin-reflect"))
-    testRuntime(projectDist(":kotlin-compiler"))
     testRuntime(project(":plugins:android-extensions-ide"))
     testRuntime(project(":plugins:kapt3-idea"))
     testRuntime(project(":sam-with-receiver-ide-plugin"))
