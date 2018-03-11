@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.layoutinspector;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -40,13 +41,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class LayoutInspectorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
-
-  @Before
-  public void setUp() throws Exception {
-    guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
-  }
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   /**
    * Verify layout inspector is a full replacement for the hierarchy viewer
@@ -68,9 +63,11 @@ public class LayoutInspectorTest {
   @RunIn(TestGroup.SANITY)
   public void launchLayoutInspectorViaChooser() throws Exception {
     String appConfigName = "app";
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 
-    ideFrame.runApp(appConfigName).selectDevice(emulator.getDefaultAvdName()).clickOk();
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrame.invokeAvdManager());
+
+    ideFrame.runApp(appConfigName).selectDevice(avdName).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
 
@@ -81,7 +78,7 @@ public class LayoutInspectorTest {
     emulator.waitForProcessToStart(runWindow.findContent(appConfigName));
 
     //Wait for emulator to launch the app
-    IDevice emu = AndroidDebugBridgeUtils.getEmulator(emulator.getDefaultAvdName(), emulator.getEmulatorConnection(), 5);
+    IDevice emu = AndroidDebugBridgeUtils.getEmulator(avdName, emulator.getEmulatorConnection(), 5);
     assertThat(emu).isNotNull();
     new DeviceQueries(emu).waitUntilAppViewsAreVisible("google.simpleapplication", 5);
 
