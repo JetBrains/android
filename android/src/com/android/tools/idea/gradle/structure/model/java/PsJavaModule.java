@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.model.java;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
@@ -103,7 +103,8 @@ public class PsJavaModule extends PsModule {
     assert spec != null;
 
     PsParsedDependencies parsedDependencies = getParsedDependencies();
-    List<ArtifactDependencyModel> matchingParsedDependencies = parsedDependencies.findLibraryDependencies(spec, null);
+    List<ArtifactDependencyModel> matchingParsedDependencies =
+      parsedDependencies.findLibraryDependencies(spec.getGroup(), spec.getName());
     for (ArtifactDependencyModel parsedDependency : matchingParsedDependencies) {
       dependencyCollection.addLibraryDependency(spec, parsedDependency);
     }

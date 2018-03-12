@@ -102,8 +102,7 @@ class DependencyManagementTest : DependencyTestCase() {
     val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
     assertThat(lib1, notNullValue())
     assertThat(lib1!!.isDeclared, equalTo(true))
-    // TODO(b/74425541): All the matching parsed models should be matched.
-    // assertThat(lib1.configurationNames, hasItems("implementation", "debugImplementation"))
+    assertThat(lib1.configurationNames, hasItems("implementation", "debugImplementation"))
   }
 
   fun testPromotedParsedModelMatching() {
@@ -118,8 +117,7 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(lib1!!.isDeclared, equalTo(true))
     // Despite requesting a different version the 'releaseImplementation' configuration should be included in the promoted
     // version of the resolved dependency since it is where it tries to contribute to.
-    // TODO(b/74424544): Version promotions should be reported if there are conflicting configuration statements.
-    // assertThat(lib1.configurationNames, hasItems("implementation", "releaseImplementation"))
+     assertThat(lib1.configurationNames, hasItems("implementation", "releaseImplementation"))
   }
 
   fun testParsedDependencyPromotions() {
@@ -151,8 +149,7 @@ class DependencyManagementTest : DependencyTestCase() {
       assertThat(lib2!!.isDeclared, equalTo(false))
       assertThat(lib3!!.isDeclared, equalTo(false))
       assertThat(lib4!!.isDeclared, equalTo(false))
-      // TODO(b/74424544): Version promotions should be reported if there are conflicting configuration statements.
-//      assertThat(lib1.hasPromotedVersion(), equalTo(true))
+      assertThat(lib1.hasPromotedVersion(), equalTo(true))
       assertThat(lib2.hasPromotedVersion(), equalTo(false))
       assertThat(lib3.hasPromotedVersion(), equalTo(false))
       assertThat(lib4.hasPromotedVersion(), equalTo(false))
