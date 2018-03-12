@@ -117,7 +117,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       // Reproduce the tree element layout (see BasicTreeUI)
       val panel = JPanel()
       panel.layout = BoxLayout(panel, BoxLayout.LINE_AXIS)
-      val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent as BaseNode
+      val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent as BaseVariableNode
       val bounds = tree.getRowBounds(row)
       if (!nodeBeingEdited.isLeaf) {
         val icon = UIUtil.getTreeNodeIcon(tree.isExpanded(row), isSelected, tree.hasFocus())
@@ -157,10 +157,13 @@ class VariablesTable(private val project: Project, private val context: PsContex
       if (value !is String) {
         return null
       }
-      val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent as VariableNode
-      textBox.setVariants(nodeBeingEdited.variable.module.variables.getModuleVariables().map { it.getName() })
-      textBox.text = value
-      return textBox
+      val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent
+      if (nodeBeingEdited is BaseVariableNode) {
+        textBox.setVariants(nodeBeingEdited.variable.module.variables.getModuleVariables().map { it.getName() })
+        textBox.text = value
+        return textBox
+      }
+      return null
     }
 
     override fun getCellEditorValue(): Any = textBox.text
@@ -188,7 +191,11 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     override fun getValueAt(node: Any?, column: Int): Any? {
-      if (node !is BaseNode) {
+      if (node is ModuleNode && column == NAME) {
+        return node.toString()
+      }
+
+      if (node !is BaseVariableNode) {
         return ""
       }
 
@@ -209,7 +216,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
             val type = node.variable.valueType
             type != ValueType.MAP && type != ValueType.LIST
           } else {
-            false
+            node is BaseVariableNode
           }
         }
         else -> false
@@ -217,14 +224,14 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     override fun setValueAt(aValue: Any?, node: Any?, column: Int) {
-      if (aValue == null || node !is BaseNode) {
+      if (aValue !is String || node !is BaseVariableNode) {
         return
       }
       if (column == NAME) {
-        node.setName(aValue as String)
+        node.setName(aValue)
         nodeChanged(node)
       } else if (column == UNRESOLVED_VALUE) {
-        (node as VariableNode).variable.setValue(aValue)
+        node.setValue(aValue)
         nodeChanged(node)
       }
     }
@@ -234,20 +241,24 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  abstract class BaseNode(name: String) : DefaultMutableTreeNode(name) {
+  class ModuleNode(val module: PsModule) : DefaultMutableTreeNode(module.name)
+
+  abstract class BaseVariableNode(name: String, val variable: PsVariable) : DefaultMutableTreeNode(name) {
     abstract fun getUnresolvedValue(expanded: Boolean): String
     abstract fun getResolvedValue(expanded: Boolean): String
     abstract fun setName(newName: String)
+    fun setValue(newValue: String) = variable.setValue(newValue)
   }
 
-  class VariableNode(val variable: PsVariable) : BaseNode(variable.getName()) {
+  class VariableNode(variable: PsVariable) : BaseVariableNode(variable.getName(), variable) {
     init {
       when (variable.valueType) {
         GradlePropertyModel.ValueType.MAP -> {
-          variable.getUnresolvedValue(MAP_TYPE)?.forEach { add(MapItemNode(it)) }
+          variable.getUnresolvedValue(MAP_TYPE)?.forEach { add(MapItemNode(it.key, PsVariable(it.value, variable.module))) }
         }
         GradlePropertyModel.ValueType.LIST -> {
-          variable.getUnresolvedValue(LIST_TYPE)?.forEachIndexed { index, propertyModel -> add(ListItemNode(index, propertyModel)) }
+          variable.getUnresolvedValue(LIST_TYPE)
+            ?.forEachIndexed { index, propertyModel -> add(ListItemNode(index, PsVariable(propertyModel, variable.module))) }
         }
         else -> {
         }
@@ -293,28 +304,18 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  class ModuleNode(val module: PsModule) : BaseNode(module.name) {
-    override fun getUnresolvedValue(expanded: Boolean) = ""
-
-    override fun getResolvedValue(expanded: Boolean) = ""
-
-    override fun setName(newName: String) {
-      throw UnsupportedOperationException("Modules cannot be renamed in the Variables view")
-    }
-  }
-
-  class ListItemNode(val index: Int, private val propertyModel: GradlePropertyModel) : BaseNode(index.toString()) {
+  class ListItemNode(val index: Int, variable: PsVariable) : BaseVariableNode(index.toString(), variable) {
     override fun getUnresolvedValue(expanded: Boolean): String {
-      val value = propertyModel.getRawValue(STRING_TYPE) ?: ""
-      if (propertyModel.valueType == ValueType.STRING) {
+      val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
+      if (variable.valueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(value)
       }
       return value
     }
 
     override fun getResolvedValue(expanded: Boolean): String {
-      val resolvedValue = propertyModel.getValue(STRING_TYPE) ?: ""
-      if (propertyModel.valueType == ValueType.STRING) {
+      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
+      if (variable.valueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(resolvedValue)
       }
       return resolvedValue
@@ -325,20 +326,18 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
   }
 
-  class MapItemNode(private val mapValue: Map.Entry<String, GradlePropertyModel>) : BaseNode(mapValue.key) {
+  class MapItemNode(val key: String, variable: PsVariable) : BaseVariableNode(key, variable) {
     override fun getUnresolvedValue(expanded: Boolean): String {
-      val propertyModel = mapValue.value
-      val value = propertyModel.getRawValue(STRING_TYPE) ?: ""
-      if (propertyModel.valueType == ValueType.STRING) {
+      val value = variable.getUnresolvedValue(STRING_TYPE) ?: ""
+      if (variable.valueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(value)
       }
       return value
     }
 
     override fun getResolvedValue(expanded: Boolean): String {
-      val propertyModel = mapValue.value
-      val resolvedValue = propertyModel.getValue(STRING_TYPE) ?: ""
-      if (propertyModel.valueType == ValueType.STRING) {
+      val resolvedValue = variable.getResolvedValue(STRING_TYPE) ?: ""
+      if (variable.valueType == ValueType.STRING) {
         return StringUtil.wrapWithDoubleQuote(resolvedValue)
       }
       return resolvedValue
@@ -346,7 +345,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
     override fun setName(newName: String) {
       setUserObject(newName)
-      mapValue.value.rename(newName)
+      variable.setName(newName)
     }
   }
 }
