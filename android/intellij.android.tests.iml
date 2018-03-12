@@ -40,7 +40,6 @@
     <orderEntry type="module" module-name="intellij.java.execution.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
@@ -62,5 +61,6 @@
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" scope="TEST" name="lombok-ast" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
   </component>
 </module>
