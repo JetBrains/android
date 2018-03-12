@@ -38,7 +38,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
                                                                    ModuleDependencyModel {
   private static final Logger LOG = Logger.getInstance(ModuleDependencyModelImpl.class);
 
-  @NonNls private static final String PROJECT = "project";
+  @NonNls public static final String PROJECT = "project";
   @NonNls private static final String PATH = "path";
   @NonNls private static final String CONFIGURATION = "configuration";
 

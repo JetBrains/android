@@ -234,7 +234,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   }
 
   // Test for b/68188327
-  public void testMuliTypeApplicationStatementDoesNotThrowException() throws IOException {
+  public void testMultiTypeApplicationStatementDoesNotThrowException() throws IOException {
     String text = "dependencies {\n" +
                   "    implementation group: 'my.test.dep', name: 'artifact', version: 'version', {\n" +
                   "        exclude module: 'module1'\n" +

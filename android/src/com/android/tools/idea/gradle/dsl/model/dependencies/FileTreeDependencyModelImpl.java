@@ -32,7 +32,7 @@ import java.util.List;
 public class FileTreeDependencyModelImpl extends DependencyModelImpl implements FileTreeDependencyModel {
   private static final Logger LOG = Logger.getInstance(FileTreeDependencyModelImpl.class);
 
-  @NonNls private static final String FILE_TREE = "fileTree";
+  @NonNls public static final String FILE_TREE = "fileTree";
   @NonNls private static final String DIR = "dir";
   @NonNls private static final String INCLUDE = "include";
   @NonNls private static final String EXCLUDE = "exclude";

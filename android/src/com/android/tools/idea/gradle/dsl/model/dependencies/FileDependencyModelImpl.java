@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class FileDependencyModelImpl extends DependencyModelImpl implements FileDependencyModel {
-  @NonNls private static final String FILES = "files";
+  @NonNls public static final String FILES = "files";
 
   @NotNull private String myConfigurationName;
   @NotNull private final GradleDslExpression myFileDslExpression;

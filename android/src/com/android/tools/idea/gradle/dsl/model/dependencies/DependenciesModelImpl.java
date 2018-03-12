@@ -48,7 +48,15 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
           dependencies.addAll(ArtifactDependencyModelImpl.create(configurationName, element));
           if (element instanceof GradleDslMethodCall) {
             GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
-            dependencies.addAll(ModuleDependencyModelImpl.create(configurationName, methodCall));
+            if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
+              dependencies.addAll(ModuleDependencyModelImpl.create(configurationName, methodCall));
+            }
+            else if (methodCall.getMethodName().equals(FileDependencyModelImpl.FILES)) {
+              dependencies.addAll(FileDependencyModelImpl.create(configurationName, methodCall));
+            }
+            else if (methodCall.getMethodName().equals(FileTreeDependencyModelImpl.FILE_TREE)) {
+              dependencies.addAll(FileTreeDependencyModelImpl.create(configurationName, methodCall));
+            }
           }
         }
       }
