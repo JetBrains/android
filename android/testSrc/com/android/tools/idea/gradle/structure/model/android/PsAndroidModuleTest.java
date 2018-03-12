@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.util.Collection;
@@ -411,43 +410,42 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     }
   }
 
-  @Ignore("b/73999281")
-  public void /*test*/EditableDependenciesWithPlusInVersion() throws Throwable {
-    // TODO(b/73999281): Uncomment when parsed and resolved dependencies are properly matched.
-    loadProject(PROJECT_WITH_APPAND_LIB);
+  public void testEditableDependenciesWithPlusInVersion() throws Throwable {
+    loadProject(PSD_DEPENDENCY);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
 
-    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
-    assertNotNull(appModule);
+    PsAndroidModule modulePlus = (PsAndroidModule)project.findModuleByName("modulePlus");
+    assertNotNull(modulePlus);
 
-    List<PsAndroidDependency> declaredDependencies = getDependencies(appModule.getDependencies());
-    assertThat(declaredDependencies).hasSize(1);
+    List<PsAndroidDependency> declaredLib1Dependencies = getDependencies(modulePlus.getDependencies()).stream()
+      .filter(v -> v instanceof PsLibraryAndroidDependency && ((PsLibraryAndroidDependency)v).getSpec().getName().equals("lib1"))
+      .collect(toList());
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsLibraryAndroidDependency appCompatV7 = (PsLibraryAndroidDependency)declaredDependencies.get(0);
-    assertTrue(appCompatV7.isDeclared());
+    PsLibraryAndroidDependency lib1 = (PsLibraryAndroidDependency)declaredLib1Dependencies.get(0);
+    assertTrue(lib1.isDeclared());
 
-    PsArtifactDependencySpec spec = appCompatV7.getSpec();
-    assertEquals("com.android.support", spec.getGroup());
-    assertEquals("appcompat-v7", spec.getName());
-    assertThat(spec.getVersion()).isEqualTo("+");
-    assertEquals("com.android.support:appcompat-v7:+", spec.toString());
+    PsArtifactDependencySpec spec = lib1.getSpec();
+    assertEquals("com.example.libs", spec.getGroup());
+    assertEquals("lib1", spec.getName());
+    assertThat(spec.getVersion()).isEqualTo("0.+");
+    assertEquals("com.example.libs:lib1:0.+", spec.toString());
 
     // Verify that the variants where appcompat is are properly registered.
-    Collection<String> variants = appCompatV7.getVariants();
-    assertThat(variants).containsExactly("paidDebug", "paidRelease", "basicDebug", "basicRelease");
+    Collection<String> variants = lib1.getVariants();
+    assertThat(variants).containsExactly("debug", "release");
 
     for (String variant : variants) {
-      assertNotNull(appModule.findVariant(variant));
-      appModule.findVariant(variant).forEachArtifact(artifact -> {
-        if (artifact instanceof PsAndroidArtifact) {
+      assertNotNull(modulePlus.findVariant(variant));
+      modulePlus.findVariant(variant).forEachArtifact(artifact -> {
+        if (artifact instanceof PsAndroidArtifact && artifact.getResolvedName().equals(ARTIFACT_MAIN)) {
           PsAndroidArtifactDependencyCollection resolvedDependencies = new PsAndroidArtifactDependencyCollection(artifact);
 
-          // Verify that appcompat is considered a "editable" dependency, and it was matched properly
+          // Verify that lib1 is considered a "editable" dependency, and it was matched properly
           PsLibraryAndroidDependency resolvedAppCompatV7 =
-            resolvedDependencies.findLibraryDependency("com.android.support:appcompat-v7:26.0.1");
+            resolvedDependencies.findLibraryDependency("com.example.libs:lib1:0.9.1");
           assertTrue(resolvedAppCompatV7.isDeclared());
           assertFalse(resolvedAppCompatV7.getParsedModels().isEmpty());
         }

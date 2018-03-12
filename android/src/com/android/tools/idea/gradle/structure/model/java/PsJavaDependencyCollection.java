@@ -28,6 +28,7 @@ import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -49,9 +50,10 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
       GradleModuleVersion moduleVersion = libraryDependency.getModuleVersion();
       if (moduleVersion != null) {
         PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(moduleVersion);
-        ArtifactDependencyModel parsed = parsedDependencies.findLibraryDependency(moduleVersion);
+        List<ArtifactDependencyModel>
+          parsed = parsedDependencies.findLibraryDependencies(moduleVersion.getGroup(), moduleVersion.getName());
         PsLibraryJavaDependency dependency =
-          new PsLibraryJavaDependency(myParent, spec, libraryDependency, parsed != null ? ImmutableList.of(parsed) : ImmutableList.of());
+          new PsLibraryJavaDependency(myParent, spec, libraryDependency, parsed);
         myLibraryDependenciesBySpec.put(spec.toString(), dependency);
       }
     }

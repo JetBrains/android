@@ -164,51 +164,19 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) :
 
   private fun addLibrary(library: Library, artifact: PsAndroidArtifact) {
     val parsedModels = mutableListOf<ArtifactDependencyModel>()
-
     // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
     val parsedDependencies = parent.parsedDependencies
 
     val coordinates = GradleCoordinate.parseCoordinateString(library.artifactAddress)
-
     if (coordinates != null) {
       val spec = PsArtifactDependencySpec.create(coordinates)
-
       // TODO(b/74425541): Make sure it returns all the matching parsed dependencies rather than the first one.
-      val matchingParsedDependency =
-        parsedDependencies.findLibraryDependency(coordinates) { parsedDependency: DependencyModel -> artifact.contains(parsedDependency) }
-      if (matchingParsedDependency != null) {
-        val parsedVersionValue = matchingParsedDependency.version().value()
-        if (parsedVersionValue != null) {
-          // The dependency has a version in the build.gradle file.
-          // "tryParse" just in case the build.file has an invalid version.
-          val parsedVersion = GradleVersion.tryParse(parsedVersionValue)
-
-          val versionFromGradle = GradleVersion.parse(coordinates.revision)
-          if (parsedVersion != null && versionsMatch(parsedVersion, versionFromGradle)) {
-            // Match.
-            parsedModels.add(matchingParsedDependency)
-          } else {
-            // Version mismatch. This can happen when the project specifies an artifact version but Gradle uses a different version
-            // from a transitive dependency.
-            // Example:
-            // 1. Module 'app' depends on module 'lib'
-            // 2. Module 'app' depends on Guava 18.0
-            // 3. Module 'lib' depends on Guava 19.0
-            // Gradle will force module 'app' to use Guava 19.0
-
-            // This is a case that may look as a version mismatch:
-            //
-            // testCompile 'junit:junit:4.11+'
-            // androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
-            //
-            // Here 'espresso' brings junit 4.12, but there is no mismatch with junit 4.11, because they are in different artifacts.
-
-            // TODO(b/74425541): Reconsider duplicates.
-            // Create the dependency model that will be displayed in the "Dependencies" table.
-            parsedModels.add(matchingParsedDependency)
-          }
-        }
-      }
+      val matchingParsedDependencies =
+        parsedDependencies
+          .findLibraryDependencies(coordinates.groupId, coordinates.artifactId!!)
+          .filter { artifact.contains(it) }
+      // TODO(b/74425541): Reconsider duplicates.
+      parsedModels.addAll(matchingParsedDependencies)
       val androidDependency = PsLibraryAndroidDependency(parent, spec, listOf(artifact), library, parsedModels)
       androidDependency.setDependenciesFromPomFile(findDependenciesInPomFile(library.artifact))
       libraryDependenciesBySpec[androidDependency.spec.toString()] = androidDependency
