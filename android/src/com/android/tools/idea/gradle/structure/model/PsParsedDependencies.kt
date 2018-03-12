@@ -110,8 +110,21 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
     return null
   }
 
+  /**
+   * Finds library dependencies with matching [group] and [name].
+   */
+  fun findLibraryDependencies(
+    group: String?,
+    name: String
+  ): List<ArtifactDependencyModel> {
+    val id = createIdFrom(group, name)
+    val potentialMatches = parsedArtifactDependencies[id] ?: return listOf()
+    // Do not return live copy.
+    return potentialMatches.toList()
+  }
+
   fun findModuleDependency(gradlePath: String, predicate: (ModuleDependencyModel) -> Boolean): ModuleDependencyModel? =
-    parsedModuleDependencies.get(gradlePath).find(predicate)
+    parsedModuleDependencies[gradlePath]?.find(predicate)
 
   fun forEach(block: (DependencyModel) -> Unit) {
     parsedModuleDependencies.values().forEach(block)
@@ -125,6 +138,9 @@ class PsParsedDependencies(parsedModel: GradleBuildModel?) {
   fun forEachLibraryDependency(block: (ArtifactDependencyModel) -> Unit) {
     parsedArtifactDependencies.values().forEach(block)
   }
+
+  private fun createIdFrom(group: String?, name: String) =
+    joinAsGradlePath(listOf(group, name))
 
   private fun createIdFrom(dependency: ArtifactDependencyModel) =
     joinAsGradlePath(listOf(dependency.group().value(), dependency.name().value()))
