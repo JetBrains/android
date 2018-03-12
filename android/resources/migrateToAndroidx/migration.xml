@@ -118,15 +118,9 @@
   <migrate old-name="android.support.v7.graphics" new-name="androidx.appcompat.graphics" type="PACKAGE"/>
   <migrate old-name="android.support.v7.internal.widget" new-name="androidx.appcompat.internal.widget" type="PACKAGE"/>
   <migrate old-name="android.support.v7.internal" new-name="androidx.appcompat.internal" type="PACKAGE"/>
-  <migrate old-name="android.support.v7.media" new-name="androidx.appcompat.media" type="PACKAGE"/>
-  <migrate old-name="android.support.v7.preference" new-name="androidx.appcompat.preference" type="PACKAGE"/>
-  <migrate old-name="android.support.v7.recyclerview.extensions" new-name="androidx.appcompat.recyclerview.extensions" type="PACKAGE"/>
   <migrate old-name="android.support.v7.text" new-name="androidx.appcompat.text" type="PACKAGE"/>
-  <migrate old-name="android.support.v7.util" new-name="androidx.appcompat.util" type="PACKAGE"/>
   <migrate old-name="android.support.v7.view.menu" new-name="androidx.appcompat.view.menu" type="PACKAGE"/>
   <migrate old-name="android.support.v7.view" new-name="androidx.appcompat.view" type="PACKAGE"/>
-  <migrate old-name="android.support.v7.widget.helper" new-name="androidx.appcompat.widget.helper" type="PACKAGE"/>
-  <migrate old-name="android.support.v7.widget.util" new-name="androidx.appcompat.widget.util" type="PACKAGE"/>
   <migrate old-name="android.support.v7.widget" new-name="androidx.appcompat.widget" type="PACKAGE"/>
   <migrate old-name="android.support.v7" new-name="androidx.appcompat" type="PACKAGE"/>
   <migrate old-name="android.support.graphics.drawable" new-name="androidx.vectordrawable.graphics.drawable" type="PACKAGE"/>
@@ -156,7 +150,6 @@
   <migrate old-name="android.support.text.emoji.bundled.BundledEmojiCompatConfig" new-name="androidx.emoji.bundled.BundledEmojiCompatConfig" type="CLASS"/>
   <migrate old-name="android.support.text.emoji.widget" new-name="androidx.emoji.widget" type="PACKAGE"/>
   <migrate old-name="android.support.text.emoji.bundled" new-name="androidx.emoji.text.bundled" type="PACKAGE"/>
-  <migrate old-name="android.support.text.emoji.widget" new-name="androidx.emoji.text.widget" type="PACKAGE"/>
   <migrate old-name="android.support.text.emoji" new-name="androidx.emoji.text" type="PACKAGE"/>
   <migrate old-name="android.support.content" new-name="androidx.contentpager.content" type="PACKAGE"/>
   <migrate old-name="android.support.animation" new-name="androidx.dynamicanimation.animation" type="PACKAGE"/>
@@ -209,7 +202,6 @@
   <migrate old-name="android.support.v4.media.session.MediaControllerCompat" new-name="androidx.media.session.MediaControllerCompat" type="CLASS"/>
   <migrate old-name="android.support.v4.media.app" new-name="android.support.v4.media.app" type="PACKAGE"/>
   <migrate old-name="android.support.v4.media.session" new-name="android.support.v4.media.session" type="PACKAGE"/>
-  <migrate old-name="android.support.v4.media" new-name="android.support.v4.media" type="PACKAGE"/>
   <migrate old-name="android.support.v4.widget.CursorAdapter" new-name="androidx.cursoradapter.widget.CursorAdapter" type="CLASS"/>
   <migrate old-name="android.support.v4.widget.CursorFilter" new-name="androidx.cursoradapter.widget.CursorFilter" type="CLASS"/>
   <migrate old-name="android.support.v4.widget.ResourceCursorAdapter" new-name="androidx.cursoradapter.widget.ResourceCursorAdapter" type="CLASS"/>
@@ -284,13 +276,11 @@
   <migrate old-name="android.support.v4.media" new-name="androidx.core.media" type="PACKAGE"/>
   <migrate old-name="android.support.v4.net" new-name="androidx.core.net" type="PACKAGE"/>
   <migrate old-name="android.support.v4.os" new-name="androidx.core.os" type="PACKAGE"/>
-  <migrate old-name="android.support.v4.print" new-name="androidx.core.print" type="PACKAGE"/>
   <migrate old-name="android.support.v4.provider" new-name="androidx.core.provider" type="PACKAGE"/>
   <migrate old-name="android.support.v4.text.util" new-name="androidx.core.text.util" type="PACKAGE"/>
   <migrate old-name="android.support.v4.text" new-name="androidx.core.text" type="PACKAGE"/>
   <migrate old-name="android.support.v4.util" new-name="androidx.core.util" type="PACKAGE"/>
   <migrate old-name="android.support.v4.view.accessibility" new-name="androidx.core.view.accessibility" type="PACKAGE"/>
-  <migrate old-name="android.support.v4.view.animation" new-name="androidx.core.view.animation" type="PACKAGE"/>
   <migrate old-name="android.support.v4.view" new-name="androidx.core.view" type="PACKAGE"/>
   <migrate old-name="android.support.v4.widget" new-name="androidx.core.widget" type="PACKAGE"/>
   <migrate old-name="android.support.v4" new-name="androidx.core" type="PACKAGE"/>
@@ -435,4 +425,3 @@
   <migrate-dependency old-group-name="com.android.support.design.widget" old-artifact-name="design-widget" new-group-name="material-widget" new-artifact-name="com.google.android.material.widget" base-version="1.0.0-alpha1"/>
 
 </migration-map>
-
