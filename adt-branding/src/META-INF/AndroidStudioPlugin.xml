@@ -1,5 +1,5 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="/META-INF/IdeaPlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/JavaIdePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <module value="com.intellij.modules.androidstudio"/>
   <application-components>
     <component>
