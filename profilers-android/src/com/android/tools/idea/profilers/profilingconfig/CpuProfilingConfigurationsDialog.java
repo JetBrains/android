@@ -229,9 +229,6 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       List<ProfilingConfiguration> configsToSave = new ArrayList<>();
       for (int i = 0; i < myConfigurationsModel.getSize(); i++) {
         ProfilingConfiguration config = myConfigurationsModel.getElementAt(i);
-        if (config.isDefault()) {
-          continue;
-        }
         String configName = config.getName();
         if (StringUtil.isEmpty(configName)) {
           throw new ConfigurationException("Empty configuration names are not allowed. Please rename or delete them before continuing.");
@@ -239,9 +236,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         if (configNames.contains(configName)) {
           throw new ConfigurationException("Configuration with name \"" + configName + "\" already exists.");
         }
-
         configNames.add(configName);
-        configsToSave.add(config);
+
+        if (!config.isDefault()) {
+          configsToSave.add(config);
+        }
       }
 
       profilingConfigService.setConfigurations(configsToSave);
