@@ -35,7 +35,10 @@ public enum BuildMode {
   SOURCE_GEN,
 
   /** Build project with translation support. */
-  ASSEMBLE_TRANSLATE;
+  ASSEMBLE_TRANSLATE,
+
+  /** Build with the Gradle "bundle" task*/
+  BUNDLE;
 
   /**
    * This build mode is used when user invokes "Build" > "Make" or "Build" > "Rebuild". For these cases, Studio does not have a chance to

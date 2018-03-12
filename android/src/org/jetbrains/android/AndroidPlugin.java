@@ -17,13 +17,14 @@ package org.jetbrains.android;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.Extensions;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
 
@@ -42,6 +43,7 @@ public class AndroidPlugin implements ApplicationComponent {
     if (!IdeInfo.getInstance().isAndroidStudio()) {
       initializeForNonStudio();
     }
+    setUpActionsUnderFlag();
   }
 
   /**
@@ -65,6 +67,24 @@ public class AndroidPlugin implements ApplicationComponent {
     moveAction("Android.MainToolBarGradleGroup", IdeActions.GROUP_MAIN_TOOLBAR, "Android.MainToolBarActionGroup",
                new Constraints(Anchor.LAST, null));
     UsageTracker.getInstance().setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
+  }
+
+  private static void setUpActionsUnderFlag() {
+    if (StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get()) {
+      ActionManager actionManager = ActionManager.getInstance();
+      AnAction parentGroup = actionManager.getAction("BuildMenu");
+      if (parentGroup instanceof DefaultActionGroup) {
+        // Create new "Build Bundle(s) / APK(s)" group
+        final String groupId = "Android.BuildApkOrBundle";
+        DefaultActionGroup group = new DefaultActionGroup("Build Bundle(s) / APK(s)", true);
+        actionManager.registerAction(groupId, group);
+        ((DefaultActionGroup)parentGroup).add(group, new Constraints(Anchor.BEFORE, "Android.GenerateSignedApk"));
+
+        // Move "Build" actions to new "Build Bundle(s) / APK(s)" group
+        moveAction("Android.BuildApk", "BuildMenu", groupId, new Constraints(Anchor.FIRST, null));
+        moveAction("Android.BuildBundle", "BuildMenu", groupId, new Constraints(Anchor.AFTER, null));
+      }
+    }
   }
 
   @Override

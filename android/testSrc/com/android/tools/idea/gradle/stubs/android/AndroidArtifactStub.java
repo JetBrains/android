@@ -41,6 +41,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   private InstantRun myInstantRun;
   private TestOptions myTestOptions;
   @Nullable private final String myInstrumentedTestTaskName;
+  @Nullable private final String myBundleTaskName;
 
   public AndroidArtifactStub(@NotNull String name,
                              @NotNull String folderName,
@@ -52,6 +53,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     myOutputs = Collections.singletonList(output);
     myIdeLevel2DependenciesStub = new IdeDependenciesStub();
     myInstrumentedTestTaskName = "instrumentedTestsTaskName";
+    myBundleTaskName = "bundleTaskName";
   }
 
   @Override

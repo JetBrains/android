@@ -209,6 +209,13 @@ public class GradleTaskFinder {
           addAssembleTasksForTargetVariants(tasks, module);
 
           break;
+        case BUNDLE:
+          // The "Bundle" task is only valid for base (app) module, not for features, libraries, etc.
+          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+            String taskName = androidModel.getSelectedVariant().getMainArtifact().getBundleTaskName();
+            addTaskIfSpecified(tasks, gradlePath, taskName);
+          }
+          break;
         default:
           addAfterSyncTasks(tasks, gradlePath, properties);
           if (androidModel != null) {

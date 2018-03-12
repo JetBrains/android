@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.google.common.collect.ImmutableCollection;
@@ -100,6 +101,7 @@ public class OutputBuildAction implements BuildAction<OutputBuildAction.PostBuil
     }
 
     private void populate(@NotNull BuildController controller) {
+      findAndAddModel(controller, AppBundleProjectBuildOutput.class);
       ProjectBuildOutput projectBuildOutput = findAndAddModel(controller, ProjectBuildOutput.class);
       if (projectBuildOutput != null) {
         return;

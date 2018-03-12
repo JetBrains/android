@@ -245,6 +245,12 @@ public final class StudioFlags {
     "When provisioning devices and launching Instant Apps, use the AIA SDK library JAR to perform these functions if available",
     false);
 
+  public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
+    RUNDEBUG_GROUP, "android.bundle.build.enabled", "Enable the Build Bundle action",
+    "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
+    "Changing the value of this flag requires restarting Android Studio.",
+    false);
+
 
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
   public static final Flag<Boolean> GRADLE_INVOCATIONS_INDEXING_AWARE = Flag.create(

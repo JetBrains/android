@@ -257,6 +257,19 @@ public class GradleBuildInvoker {
     }
   }
 
+  public void bundle(@NotNull Module[] modules,
+                     @NotNull List<String> arguments,
+                     @Nullable BuildAction<?> buildAction) {
+    BuildMode buildMode = BUNDLE;
+    setProjectBuildMode(buildMode);
+    File projectPath = getBaseDirPath(myProject);
+    ListMultimap<Path, String> tasks =
+      GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
+    for (Path rootPath : tasks.keySet()) {
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
+    }
+  }
+
   public void rebuild() {
     BuildMode buildMode = REBUILD;
     setProjectBuildMode(buildMode);

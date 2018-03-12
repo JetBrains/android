@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.intellij.openapi.module.Module;
@@ -73,6 +74,11 @@ public class PostBuildModel {
   @Nullable
   public InstantAppProjectBuildOutput findInstantAppProjectBuildOutput(@NotNull Module module) {
     return findOutputModel(module, InstantAppProjectBuildOutput.class);
+  }
+
+  @Nullable
+  public AppBundleProjectBuildOutput findAppBundleProjectBuildOutput(@NotNull Module module) {
+    return findOutputModel(module, AppBundleProjectBuildOutput.class);
   }
 
   @Nullable
