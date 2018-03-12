@@ -30,7 +30,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCpuThread> {
+public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCpuThread, CpuProfilerStage.ThreadState> {
   /**
    * Maps a {@link StateChart} to a {@link EnumColors} helper class to return the proper color object for the {@link StateChart}
    */

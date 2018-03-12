@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -26,11 +27,12 @@ import java.util.concurrent.TimeUnit
 class CpuThreadsTooltipViewTest {
   private var timer: FakeTimer = FakeTimer()
   private var cpuService = FakeCpuService()
+  private val fakeProfilerService = FakeProfilerService()
   private lateinit var cpuStage: CpuProfilerStage
   private lateinit var cpuThreadsTooltip: CpuThreadsTooltip
   private lateinit var cpuThreadsTooltipView: FakeCpuThreadsTooltipView
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("CpuThreadsTooltipViewTest", cpuService)
+  val myGrpcChannel = FakeGrpcChannel("CpuThreadsTooltipViewTest", cpuService, fakeProfilerService)
 
   @Before
   fun setUp() {

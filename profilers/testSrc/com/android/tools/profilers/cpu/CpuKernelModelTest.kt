@@ -32,15 +32,15 @@ import org.junit.Test
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
-class CpuProcessModelTest {
-  private lateinit var myCpuModel: CpuProcessModel
+class CpuKernelModelTest {
+  private lateinit var myCpuModel: CpuKernelModel
   private val myRange = Range()
   private lateinit var myStage: CpuProfilerStage
 
   @Rule
   @JvmField
   var myGrpcChannel = FakeGrpcChannel(
-    "CpuProcessModelTest", FakeCpuService(), FakeProfilerService(),
+    "CpuKernelModelTest", FakeCpuService(), FakeProfilerService(),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
@@ -50,7 +50,7 @@ class CpuProcessModelTest {
     val services = FakeIdeProfilerServices()
     val profilers = StudioProfilers(myGrpcChannel.client, services, timer)
     myStage = CpuProfilerStage(profilers)
-    myCpuModel = CpuProcessModel(myRange, myStage)
+    myCpuModel = CpuKernelModel(myRange, myStage)
   }
 
   @Test
@@ -67,7 +67,7 @@ class CpuProcessModelTest {
     var itemAddedCalled = 0
     var itemRemovedCalled = 0;
     var contentsChangedCalled = 0;
-    myCpuModel.addListDataListener(object: ListDataListener {
+    myCpuModel.addListDataListener(object : ListDataListener {
       override fun intervalAdded(e: ListDataEvent) {
         itemAddedCalled++
       }
@@ -90,7 +90,7 @@ class CpuProcessModelTest {
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     myStage.capture = capture;
 
-    assertThat(contentsChangedCalled).isEqualTo(0)
+    assertThat(contentsChangedCalled).isEqualTo(1)
     assertThat(itemAddedCalled).isEqualTo(4)
     assertThat(itemRemovedCalled).isEqualTo(0)
 

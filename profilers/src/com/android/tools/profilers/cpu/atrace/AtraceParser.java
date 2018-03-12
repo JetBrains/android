@@ -158,17 +158,11 @@ public class AtraceParser implements TraceParser {
     CaptureNode node = new CaptureNode(new AtraceNodeModel(slice.getName()));
     node.setStartGlobal(convertToUserTimeUs(slice.getStartTime()));
     node.setEndGlobal(convertToUserTimeUs(slice.getEndTime()));
+    node.setStartThread(convertToUserTimeUs(slice.getStartTime()));
+    node.setEndThread(convertToUserTimeUs(slice.getStartTime() + slice.getCpuTime()));
     node.setDepth(depth);
     for (SliceGroup child : slice.getChildren()) {
       node.addChild(populateCaptureNode(child, depth + 1));
-    }
-    double notScheduledTime = (slice.getEndTime() - slice.getStartTime()) - slice.getCpuTime();
-    if (notScheduledTime > 0.0) {
-      CaptureNode schedNode = new CaptureNode(new AtraceNodeModel("", true));
-      schedNode.setStartGlobal(convertToUserTimeUs(slice.getStartTime() + slice.getCpuTime()));
-      schedNode.setEndGlobal(convertToUserTimeUs(slice.getEndTime()));
-      schedNode.setDepth(depth);
-      node.addChild(schedNode);
     }
     return node;
   }

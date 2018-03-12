@@ -71,24 +71,18 @@ class AtraceParserTest {
   }
 
   @Test
-  fun testGetCaptureTreesIdleState() {
+  fun testGetCaptureTreesSetsThreadTime() {
     val result = myParser.captureTrees
     val cpuThreadInfo = Iterables.find(result.keys, { key -> key?.id == TEST_PID })
 
     val captureNode = result[cpuThreadInfo]!!
-    assertThat((captureNode.getChildAt(1).data as AtraceNodeModel).isIdleCpu).isFalse()
-    // Grab the element at index 1 and use its child because, the child is the element that represents this nodes idle cpu time.
-    val idleLock = captureNode.getChildAt(1)
-    assertThat(idleLock.childCount).isEqualTo(1)
-    // Validate our child is our idle child.
-    assertThat((idleLock.getChildAt(0).data as AtraceNodeModel).isIdleCpu).isTrue()
-    val idleChild = idleLock.getChildAt(0)
-    // Validate our end time is equal to that of our parent.
-    assertThat(idleChild.endGlobal).isEqualTo(idleLock.endGlobal)
-    // Validate our depth is equal to our parents depth.
-    assertThat(idleChild.depth).isEqualTo(idleLock.depth)
-    // Validate that idle cpu nodes have no name.
-    assertThat((idleChild.data as AtraceNodeModel).name).isEmpty()
+    // Grab the element at index 1 and use its child because, the child is the element that has idle cpu time.
+    val child = captureNode.getChildAt(1)
+    // Validate our child's thread time starts at our global start.
+    assertThat(child.startThread).isEqualTo(child.startGlobal)
+    // Validate our end time does not equal our global end time.
+    assertThat(child.endThread).isNotEqualTo(child.endGlobal)
+    assertThat(child.endThread).isEqualTo(EXPECTED_THREAD_END_TIME)
   }
 
   @Test
@@ -138,6 +132,7 @@ class AtraceParserTest {
     private val EXPECTED_MAX_RANGE = 8.7701855499E10
     private val SINGLE_CHILD_EXPECTED_START = 87691109747
     private val SINGLE_CHILD_EXPECTED_END = 87691109965
+    private val EXPECTED_THREAD_END_TIME = 87691120751
     private val EXPECTED_CHILD_COUNT = 213
     private val EXPECTED_METHOD_NAME = "setupGridItem"
     private val TEST_PID = 2652
