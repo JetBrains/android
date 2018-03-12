@@ -46,7 +46,6 @@ import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.Cla
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   @NotNull private final FakeProfilerService myProfilerService = new FakeProfilerService();
@@ -99,10 +98,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     MemoryClassifierView classifierView = stageView.getClassifierView();
 
     JComponent captureComponent = stageView.getChartCaptureSplitter().getSecondComponent();
-    assertTrue(captureComponent == null || !captureComponent.isVisible());
-
+    assertThat(captureComponent).isNull();
     JComponent instanceComponent = stageView.getMainSplitter().getSecondComponent();
-    assertTrue(instanceComponent == null || !instanceComponent.isVisible());
+    assertThat(instanceComponent.isVisible()).isFalse();
 
     assertView(null, null, null, null, false);
 
@@ -114,9 +112,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myMockLoader.runTask();
 
     JTree classifierTree = classifierView.getTree();
-    assertNotNull(classifierTree);
+    assertThat(classifierTree).isNotNull();
     HeapSet selectedHeap = myStage.getSelectedHeapSet();
-    assertTrue(selectedHeap != null);
+    assertThat(selectedHeap).isNotNull();
     assertView(fakeCapture1, selectedHeap, null, null, false);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
 
@@ -126,7 +124,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
                              null);
     classifierTree = classifierView.getTree();
-    assertNotNull(classifierTree);
+    assertThat(classifierTree).isNotNull();
     selectedHeap = myStage.getSelectedHeapSet();
     // 2 heap changes: 1 from changing the capture, the other from the auto-selection after the capture is loaded.
     assertView(fakeCapture2, selectedHeap, null, null, false);
@@ -137,14 +135,14 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
     ClassSet selectedClassSet = findDescendantClassSetNodeWithInstance(getRootClassifierSet(classifierTree).getAdapter(), fakeInstance3);
-    assertNotNull(selectedClassSet);
+    assertThat(selectedClassSet).isNotNull();
     myStage.selectClassSet(selectedClassSet);
     assertView(fakeCapture2, fakeCapture2.getHeapSet(0), selectedClassSet, null, false);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0, 0);
 
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
+    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
-    assertEquals(ARRANGE_BY_PACKAGE, stageView.getClassGrouping().getComponent().getSelectedItem());
+    assertThat(stageView.getClassGrouping().getComponent().getSelectedItem()).isEqualTo(ARRANGE_BY_PACKAGE);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 0, 0);
 
     //noinspection unchecked
@@ -168,38 +166,38 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     final int endTime = 5;
     long deltaUs = TimeUnit.SECONDS.toMicros(endTime - startTime);
 
-    assertFalse(myStage.isTrackingAllocations());
+    assertThat(myStage.isTrackingAllocations()).isFalse();
 
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
     myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(startTime));
-    assertEquals("", stageView.getCaptureElapsedTimeLabel().getText());
+    assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
 
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
     myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
                                          TimeUnit.SECONDS.toNanos(Long.MAX_VALUE), true);
 
     myStage.trackAllocations(true);
-    assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true),
-                 stageView.getCaptureElapsedTimeLabel().getText());
+    assertThat(stageView.getCaptureElapsedTimeLabel().getText())
+      .isEqualTo("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(0, 0, true));
 
     myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(endTime));
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
-    assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true),
-                 stageView.getCaptureElapsedTimeLabel().getText());
+    assertThat(stageView.getCaptureElapsedTimeLabel().getText())
+      .isEqualTo("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true));
 
     // Triggering a heap dump should not affect the allocation recording duration
     myService.setExplicitHeapDumpStatus(TriggerHeapDumpResponse.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(TimeUnit.SECONDS.toNanos(invalidTime), TimeUnit.SECONDS.toNanos(Long.MAX_VALUE));
     myStage.requestHeapDump();
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
-    assertEquals("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true),
-                 stageView.getCaptureElapsedTimeLabel().getText());
+    assertThat(stageView.getCaptureElapsedTimeLabel().getText())
+      .isEqualTo("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(deltaUs, deltaUs, true));
 
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
     myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
                                          TimeUnit.SECONDS.toNanos(endTime), true);
     myStage.trackAllocations(false);
-    assertEquals("", stageView.getCaptureElapsedTimeLabel().getText());
+    assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
   }
 
   @Test
@@ -269,10 +267,10 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                                @Nullable HeapSet expectedHeapSet,
                                @Nullable ClassSet expectedClassSet,
                                @Nullable InstanceObject expectedInstanceObject) {
-    assertEquals(expectedCaptureObject, myStage.getSelectedCapture());
-    assertEquals(expectedHeapSet, myStage.getSelectedHeapSet());
-    assertEquals(expectedClassSet, myStage.getSelectedClassSet());
-    assertEquals(expectedInstanceObject, myStage.getSelectedInstanceObject());
+    assertThat(myStage.getSelectedCapture()).isEqualTo(expectedCaptureObject);
+    assertThat(myStage.getSelectedHeapSet()).isEqualTo(expectedHeapSet);
+    assertThat(myStage.getSelectedClassSet()).isEqualTo(expectedClassSet);
+    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(expectedInstanceObject);
   }
 
   private void assertView(@Nullable CaptureObject expectedCaptureObject,
@@ -285,69 +283,68 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getComponent().getModel();
 
     if (expectedCaptureObject == null) {
-      assertNull(stageView.getChartCaptureSplitter().getSecondComponent());
-      assertEquals("", stageView.getCaptureView().getLabel().getText());
-      assertEquals(heapObjectComboBoxModel.getSize(), 0);
-      assertNull(stageView.getClassifierView().getTree());
-      assertFalse(stageView.getClassSetView().getComponent().isVisible());
-      assertFalse(stageView.getInstanceDetailsView().getComponent().isVisible());
+      assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isNull();
+      assertThat(stageView.getCaptureView().getLabel().getText()).isEmpty();
+      assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
+      assertThat(stageView.getClassifierView().getTree()).isNull();
+      assertThat(stageView.getClassSetView().getComponent().isVisible()).isFalse();
+      assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isFalse();
       return;
     }
 
-    assertNotNull(stageView.getChartCaptureSplitter().getSecondComponent());
+    assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isNotNull();
     if (isCaptureLoading) {
-      assertEquals("", stageView.getCaptureView().getLabel().getText());
-      assertEquals(heapObjectComboBoxModel.getSize(), 0);
+      assertThat(stageView.getCaptureView().getLabel().getText()).isEmpty();
+      assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
     }
     else {
-      assertEquals(stageView.getCapturePanel(), stageView.getChartCaptureSplitter().getSecondComponent());
-      assertEquals(expectedCaptureObject.getName(), stageView.getCaptureView().getLabel().getText());
-      assertEquals(new HashSet<>(expectedCaptureObject.getHeapSets()),
-                   IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
-                     .collect(Collectors.toSet()));
-      assertEquals(expectedHeapSet, heapObjectComboBoxModel.getSelectedItem());
+      assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isEqualTo(stageView.getCapturePanel());
+      assertThat(stageView.getCaptureView().getLabel().getText()).isEqualTo(expectedCaptureObject.getName());
+      assertThat(IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
+                   .collect(Collectors.toSet())).isEqualTo(new HashSet<>(expectedCaptureObject.getHeapSets()));
+      assertThat(heapObjectComboBoxModel.getSelectedItem()).isEqualTo(expectedHeapSet);
     }
 
     if (expectedHeapSet == null) {
-      assertNull(stageView.getClassifierView().getTree());
+      assertThat(stageView.getClassifierView().getTree()).isNull();
       return;
     }
 
     JTree classifierTree = stageView.getClassifierView().getTree();
-    assertNotNull(classifierTree);
+    assertThat(classifierTree).isNotNull();
 
     if (expectedClassSet == null) {
-      assertEquals(null, classifierTree.getLastSelectedPathComponent());
-      assertFalse(stageView.getClassSetView().getComponent().isVisible());
-      assertFalse(stageView.getInstanceDetailsView().getComponent().isVisible());
+      assertThat(classifierTree.getLastSelectedPathComponent()).isNull();
+      assertThat(stageView.getClassSetView().getComponent().isVisible()).isFalse();
+      assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isFalse();
       return;
     }
 
     Object selectedClassNode = classifierTree.getLastSelectedPathComponent();
-    assertTrue(selectedClassNode instanceof MemoryObjectTreeNode);
-    assertTrue(((MemoryObjectTreeNode)selectedClassNode).getAdapter() instanceof ClassSet);
+    assertThat(selectedClassNode).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)selectedClassNode).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassSet> selectedClassObject = (MemoryObjectTreeNode<ClassSet>)selectedClassNode;
-    assertEquals(expectedClassSet, selectedClassObject.getAdapter());
+    assertThat(selectedClassObject.getAdapter()).isEqualTo(expectedClassSet);
 
-    assertTrue(stageView.getClassSetView().getComponent().isVisible());
+    assertThat(stageView.getClassSetView().getComponent().isVisible()).isTrue();
     JTree classSetTree = stageView.getClassSetView().getTree();
-    assertNotNull(classSetTree);
+    assertThat(classSetTree).isNotNull();
 
     if (expectedInstanceObject == null) {
-      assertEquals(null, classSetTree.getLastSelectedPathComponent());
-      assertFalse(stageView.getInstanceDetailsView().getComponent().isVisible());
+      assertThat(classSetTree.getLastSelectedPathComponent()).isNull();
+      assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isFalse();
       return;
     }
 
     Object selectedInstanceNode = classSetTree.getLastSelectedPathComponent();
-    assertTrue(selectedInstanceNode instanceof MemoryObjectTreeNode);
-    assertTrue(((MemoryObjectTreeNode)selectedInstanceNode).getAdapter() instanceof InstanceObject);
+    assertThat(selectedInstanceNode).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)selectedInstanceNode).getAdapter()).isInstanceOf(InstanceObject.class);
     //noinspection unchecked
     MemoryObjectTreeNode<InstanceObject> selectedInstanceObject = (MemoryObjectTreeNode<InstanceObject>)selectedInstanceNode;
-    assertEquals(expectedInstanceObject, selectedInstanceObject.getAdapter());
+    assertThat(selectedInstanceObject.getAdapter()).isEqualTo(expectedInstanceObject);
 
     boolean detailsViewVisible = expectedInstanceObject.getCallStackDepth() > 0 || !expectedInstanceObject.getReferences().isEmpty();
-    assertEquals(detailsViewVisible, stageView.getInstanceDetailsView().getComponent().isVisible());
+    assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isEqualTo(detailsViewVisible);
   }
 }
