@@ -911,10 +911,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     stopCapturing();
     CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
     assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
-    // Profiling Configurations should remain the same.
-    // However, the config object itself is expected to be different, as we copy it when start capturing.
     ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
-    assertThat(metadataConfig).isNotEqualTo(config);
     assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
     assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);

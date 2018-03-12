@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -151,5 +152,29 @@ public class ProfilingConfiguration {
       ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
     }
     return ourDefaultConfigurations;
+  }
+
+  /**
+   * Converts from {@link com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration} to {@link ProfilingConfiguration}.
+   */
+  @NotNull
+  public static ProfilingConfiguration fromProto(@NotNull CpuProfiler.CpuProfilerConfiguration proto) {
+    ProfilingConfiguration configuration = new ProfilingConfiguration(proto.getName(), proto.getProfilerType(), proto.getMode());
+    configuration.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
+    configuration.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
+    return configuration;
+  }
+
+  /**
+   * Converts {@code this} to {@link com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration}.
+   */
+  @NotNull
+  public CpuProfiler.CpuProfilerConfiguration toProto() {
+    return CpuProfiler.CpuProfilerConfiguration.newBuilder()
+      .setName(getName())
+      .setProfilerType(getProfilerType())
+      .setMode(getMode())
+      .setSamplingIntervalUs(getProfilingSamplingIntervalUs())
+      .setBufferSizeInMb(getProfilingBufferSizeInMb()).build();
   }
 }

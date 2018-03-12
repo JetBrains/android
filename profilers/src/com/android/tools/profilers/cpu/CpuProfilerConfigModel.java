@@ -81,16 +81,8 @@ public class CpuProfilerConfigModel {
       .onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, this::updateProfilingConfigurations);
   }
 
-  public void setActiveConfig(CpuProfilerType profilerType, CpuProfiler.CpuProfilerConfiguration.Mode mode,
-                              int bufferSizeLimitMb, int samplingIntervalUs) {
-    // The configuration name field is not actually used when retrieving the active configuration. The reason behind that is configurations,
-    // including their name, can be edited when a capture is still in progress. We only need to store the parameters used when starting
-    // the capture (i.e. buffer size, profiler type, profiling mode and sampling interval). The capture name is not used on the server side
-    // when starting a capture, so we simply ignore it here as well.
-    String anyConfigName = "Current config";
-    myActiveConfig = new ProfilingConfiguration(anyConfigName, profilerType, mode);
-    myActiveConfig.setProfilingBufferSizeInMb(bufferSizeLimitMb);
-    myActiveConfig.setProfilingSamplingIntervalUs(samplingIntervalUs);
+  public void setActiveConfig(ProfilingConfiguration configuration) {
+    myActiveConfig = configuration;
   }
 
   public ProfilingConfiguration getActiveConfig() {
