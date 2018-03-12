@@ -64,6 +64,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myExportCpuTraceEnabled = false;
 
   /**
+   * Can toggle for tests via {@link #enableImportTrace(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myImportCpuTraceEnabled = false;
+
+  /**
    * Toggle for faking jvmti agent support in tests.
    */
   private boolean myJvmtiAgentEnabled = false;
@@ -206,6 +211,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isExportCpuTraceEnabled() {
         return myExportCpuTraceEnabled;
+      }
+
+      @Override
+      public boolean isImportCpuTraceEnabled() {
+        return myImportCpuTraceEnabled;
       }
 
       @Override
@@ -387,5 +397,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableExportTrace(boolean enabled) {
     myExportCpuTraceEnabled = enabled;
+  }
+
+  public void enableImportTrace(boolean enabled) {
+    myImportCpuTraceEnabled = enabled;
   }
 }
