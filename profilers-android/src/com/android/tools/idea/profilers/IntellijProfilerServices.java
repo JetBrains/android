@@ -180,6 +180,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isImportCpuTraceEnabled() {
+        return StudioFlags.PROFILER_IMPORT_CPU_TRACE.get();
+      }
+
+      @Override
       public boolean isJniReferenceTrackingEnabled() {
         return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
       }
