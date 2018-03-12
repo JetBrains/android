@@ -88,7 +88,7 @@ final class EnergyDetailsOverview extends JPanel {
           html.renderJobFinished(firstFinished.getJobFinished());
         }
         break;
-      case LOCATION_REQUEST:
+      case LOCATION:
         EnergyEvent firstRequested = duration.getEventList().stream().filter(e -> e.hasLocationUpdateRequested()).findFirst().orElse(null);
         if (firstRequested != null) {
           html.renderLocationUpdateRequested(firstRequested.getLocationUpdateRequested());

@@ -33,11 +33,11 @@ import java.util.stream.Collectors;
 public final class EnergyDuration implements Comparable<EnergyDuration> {
 
   public enum Kind {
-    UNKNOWN,
-    WAKE_LOCK,
-    ALARM,
-    JOB,
-    LOCATION_REQUEST;
+    UNKNOWN ("n/a"),
+    WAKE_LOCK ("Wake Lock"),
+    ALARM("Alarm"),
+    JOB("Job"),
+    LOCATION("Location");
 
     @NotNull
     public static Kind from(@NotNull EnergyProfiler.EnergyEvent event) {
@@ -59,7 +59,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
         case LOCATION_UPDATE_REQUESTED:
         case LOCATION_UPDATE_REMOVED:
         case LOCATION_CHANGED:
-          return LOCATION_REQUEST;
+          return LOCATION;
 
         default:
           getLogger().warn("Unsupported Kind for " + event.getMetadataCase().name());
@@ -67,12 +67,15 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
       }
     }
 
+    @NotNull private final String myDisplayName;
+
+    Kind(@NotNull String displayName) {
+      myDisplayName = displayName;
+    }
+
     @NotNull
     public String getDisplayName() {
-      String kindStr = name().replace('_', ' ');
-      // Capitalize first letter because it looks nicer in the table
-      kindStr = kindStr.substring(0, 1).toUpperCase(Locale.US) + kindStr.substring(1).toLowerCase(Locale.US);
-      return kindStr;
+      return myDisplayName;
     }
   }
 
@@ -94,37 +97,74 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   }
 
   /**
-   * Returns the duration name, which is tag for wake lock, etc.
+   * Returns the duration event critical data as a header string.
+   *
+   * <li>
+   *   <ul>WAKE_LOCK returns the wake lock level, for example "Wake lock: PARTIAL".</ul>
+   *   <ul>ALARM returns the alarm type, for example "Alarm: RTC_WAKEUP".</ul>
+   *   <ul>LOCATION returns "Location: Request".</ul>
+   *   <ul>Others returns the duration kind, for example, "Job".</ul>
+   * </li>
    */
   @NotNull
   public String getName() {
-    switch (myEventList.get(0).getMetadataCase()) {
-      case WAKE_LOCK_ACQUIRED:
-        // TODO(b/73852076): Handle if the first event item is a released wakelock
-        return myEventList.get(0).getWakeLockAcquired().getTag();
-      case ALARM_SET:
-        if (myEventList.get(0).getAlarmSet().hasListener()) {
-          return myEventList.get(0).getAlarmSet().getListener().getTag();
+    Kind kind = getKind();
+    String namePart = "";
+    switch (kind) {
+      case WAKE_LOCK:
+        if (getEventList().get(0).hasWakeLockAcquired()) {
+          namePart = getWakeLockLevelName(getEventList().get(0).getWakeLockAcquired().getLevel());
         }
         break;
-      case ALARM_CANCELLED:
-        if (myEventList.get(0).getAlarmCancelled().hasListener()) {
-          return myEventList.get(0).getAlarmCancelled().getListener().getTag();
+      case ALARM:
+        if (getEventList().get(0).hasAlarmSet()) {
+          namePart = getAlarmTypeName(getEventList().get(0).getAlarmSet().getType());
         }
         break;
-      case JOB_SCHEDULED:
-        return String.valueOf(myEventList.get(0).getJobScheduled().getJob().getJobId());
-      case JOB_STARTED:
-        return String.valueOf(myEventList.get(0).getJobStarted().getParams().getJobId());
-      case JOB_STOPPED:
-        return String.valueOf(myEventList.get(0).getJobStopped().getParams().getJobId());
-      case JOB_FINISHED:
-        return String.valueOf(myEventList.get(0).getJobFinished().getParams().getJobId());
+      case LOCATION:
+        namePart = "Request";
+        break;
       default:
-        getLogger().warn("First event in duration is " + myEventList.get(0).getMetadataCase().name());
         break;
     }
-    return "unspecified";
+    return !namePart.isEmpty() ? String.format("%s: %s", kind.getDisplayName(), namePart) : kind.getDisplayName();
+  }
+
+  /**
+   * Returns the duration description string.
+   *
+   * <li>
+   *   <ul>WAKE_LOCK returns its tag, that could be empty string.</ul>
+   *   <ul>ALARM returns either the creator package from PendingIntent, or the listener tag.</ul>
+   *   <ul>JOB returns the job id and job service name.</ul>
+   *   <ul>Others returns "n/a".</ul>
+   * </li>
+   */
+  @NotNull
+  public String getDescription() {
+    switch (getKind()) {
+      case WAKE_LOCK:
+        if (getEventList().get(0).hasWakeLockAcquired()) {
+          return getEventList().get(0).getWakeLockAcquired().getTag();
+        }
+        break;
+      case ALARM:
+        if (getEventList().get(0).hasAlarmSet()) {
+          EnergyProfiler.AlarmSet alarmSet = getEventList().get(0).getAlarmSet();
+          return alarmSet.hasOperation() ? alarmSet.getOperation().getCreatorPackage()
+                                         : alarmSet.hasListener() ? alarmSet.getListener().getTag() : "";
+        }
+        break;
+      case JOB:
+        if (getEventList().get(0).hasJobScheduled()) {
+          EnergyProfiler.JobInfo job = getEventList().get(0).getJobScheduled().getJob();
+          return String.format("%d:%s", job.getJobId(), job.getServiceName());
+        }
+        break;
+      default:
+        break;
+    }
+    return "n/a";
   }
 
   @NotNull Kind getKind() {
@@ -161,5 +201,39 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(EnergyDuration.class);
+  }
+
+  @NotNull
+  public static String getWakeLockLevelName(@NotNull EnergyProfiler.WakeLockAcquired.Level level) {
+    switch (level) {
+      case FULL_WAKE_LOCK:
+        return "Full";
+      case PARTIAL_WAKE_LOCK:
+        return "Partial";
+      case SCREEN_DIM_WAKE_LOCK:
+        return "Screen Dim";
+      case SCREEN_BRIGHT_WAKE_LOCK:
+        return "Screen Bright";
+      case PROXIMITY_SCREEN_OFF_WAKE_LOCK:
+        return "Proximity Screen Off";
+      default:
+        return "n/a";
+    }
+  }
+
+  @NotNull
+  public static String getAlarmTypeName(@NotNull EnergyProfiler.AlarmSet.Type type) {
+    switch (type) {
+      case RTC:
+        return "RTC";
+      case RTC_WAKEUP:
+        return "RTC Wakeup";
+      case ELAPSED_REALTIME:
+        return "Elapsed Realtime";
+      case ELAPSED_REALTIME_WAKEUP:
+        return "Elapsed Realtime Wakeup";
+      default:
+        return "n/a";
+    }
   }
 }
