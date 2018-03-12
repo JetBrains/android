@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
@@ -34,7 +33,6 @@ import com.android.tools.idea.observable.ui.IconProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
-import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
@@ -58,7 +56,6 @@ import com.intellij.ui.RecentsManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,8 +91,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private final JBScrollPane myRoot;
 
-  @Nullable private final AndroidFacet myFacet;
-
   /**
    * All parameters are calculated for validity every time any of them changes, and the first error
    * found is set here. This is then registered as its own validator with {@link #myRoot}.
@@ -114,19 +109,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private EvaluationState myEvaluationState = EvaluationState.NOT_EVALUATING;
 
-  /**
-   * @param facet If present, affects some of the UI components (e.g. autocomplete by other
-   *              objects in the same scope/knowledge of android manifest details). Can be null if
-   *              your UI doesn't need the information provided by the module, for example creating
-   *              things at project creation time.
-   */
   public ConfigureTemplateParametersStep(@NotNull RenderTemplateModel model,
                                          @NotNull String title,
-                                         @NotNull List<NamedModuleTemplate> templates,
-                                         @Nullable AndroidFacet facet) {
+                                         @NotNull List<NamedModuleTemplate> templates) {
     super(model, title);
 
-    myFacet = facet;
     myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myRoot = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
@@ -155,12 +142,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     TemplateHandle template = getModel().getTemplateHandle();
     if (template != null && template.getMetadata().getIconType() == AndroidIconType.NOTIFICATION) {
-      // The myFacet field will only be null if this step is being shown for a brand new, not-yet-created
+      // The Android Facet field will only be null if this step is being shown for a brand new, not-yet-created
       // project (a project must exist before it gets a facet associated with it). However, there are
       // currently no activities in the "new project" flow that need to create notification icons, so we
-      // can always assume that myFacet will be non-null here.
-      assert myFacet != null;
-      return Collections.singletonList(new GenerateIconsStep(myFacet, getModel()));
+      // can always assume that Android Facet will be non-null here.
+      assert getModel().getAndroidFacet() != null;
+      return Collections.singletonList(new GenerateIconsStep(getModel().getAndroidFacet(), getModel()));
     }
     else {
       return super.createDependentSteps();
@@ -218,9 +205,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     });
 
-    Module module = myFacet == null ? null : myFacet.getModule();
     for (final Parameter parameter : templateMetadata.getParameters()) {
-      RowEntry row = createRowForParameter(module, parameter);
+      RowEntry row = createRowForParameter(getModel().getModule(), parameter);
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
         property.addListener(sender -> {
@@ -362,7 +348,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   private boolean isNewModule() {
-    return myFacet == null;
+    return getModel().getModule() == null;
   }
 
   /**
@@ -390,12 +376,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     Set<String> excludedParameters = Sets.newHashSet();
 
     try {
+      int projectType = getModel().getAndroidFacet() == null ? -1 : getModel().getAndroidFacet().getConfiguration().getProjectType();
       Map<String, Object> additionalValues = Maps.newHashMap();
       additionalValues.put(ATTR_PACKAGE_NAME, getModel().packageName().get());
       ObjectProperty<NamedModuleTemplate> template = getModel().getTemplate();
       additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, template.get().getName());
-      additionalValues
-        .put(ATTR_IS_INSTANT_APP, (myFacet != null && (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE)) || getModel().instantApp().get());
+      additionalValues.put(ATTR_IS_INSTANT_APP, projectType == PROJECT_TYPE_FEATURE || getModel().instantApp().get());
       additionalValues.put(ATTR_COMPANY_DOMAIN, getInitialDomain(false));
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
@@ -474,7 +460,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     String message = null;
 
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
-    Module module = myFacet == null ? null : myFacet.getModule();
+    Module module = getModel().getModule();
     Project project = getModel().getProject().getValueOrNull();
     SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getTemplate().get());
 
@@ -545,17 +531,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   @Override
   protected void onProceeding() {
-    // canGoForward guarantees this optional value is present
-    NamedModuleTemplate template = getModel().getTemplate().get();
-    AndroidModuleTemplate paths = template.getPaths();
-
-    File moduleRoot = paths.getModuleRoot();
-    if (moduleRoot == null) {
-      getLog()
-        .error(String.format("%s failure: can't create files because module root is not found. Please report this error.", getTitle()));
-      return;
-    }
-
     // Some parameter values should be saved for later runs through this wizard, so do that first.
     for (RowEntry rowEntry : myParameterRows.values()) {
       rowEntry.accept();
@@ -577,28 +552,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Language language = getModel().getLanguage().get();
       templateValues.put(ATTR_LANGUAGE, language);
       templateValues.put(ATTR_KOTLIN_SUPPORT, language == Language.KOTLIN);
-    }
-
-    templateValues.put(ATTR_SOURCE_PROVIDER_NAME, template.getName());
-    if (isNewModule()) {
-      templateValues.put(ATTR_IS_LAUNCHER, true);
-    }
-
-    TemplateValueInjector templateInjector = new TemplateValueInjector(templateValues)
-      .setModuleRoots(paths, getModel().packageName().get());
-
-    if (myFacet == null) {
-      // If we don't have an AndroidFacet, we must have the Android Sdk info
-      templateInjector.setBuildVersion(getModel().androidSdkInfo().getValue(), getModel().getProject().getValueOrNull());
-    }
-    else {
-      templateInjector.setFacet(myFacet);
-
-      // Register application-wide settings
-      String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
-      if (!getModel().packageName().get().equals(applicationPackage)) {
-        templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(myFacet));
-      }
     }
   }
 
@@ -740,7 +693,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Joiner filenameJoiner = Joiner.on('.').skipNulls();
 
       int suffix = 2;
-      Module module = myFacet != null ? myFacet.getModule() : null;
+      Module module = getModel().getModule();
       Project project = getModel().getProject().getValueOrNull();
       Set<Object> relatedValues = getRelatedValues(parameter);
       SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getTemplate().get());

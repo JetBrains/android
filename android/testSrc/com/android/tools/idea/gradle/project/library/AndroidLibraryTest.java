@@ -80,13 +80,13 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     // Create a Wizard and add an Activity to the lib module
     TemplateHandle myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile("Activity", "Empty Activity"));
     NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultTemplateAt(new File(project.getProjectFilePath()));
-    RenderTemplateModel render = new RenderTemplateModel(libModule, myTemplateHandle, "com.example", template, "command");
+    RenderTemplateModel render = new RenderTemplateModel(libAndroidFacet, myTemplateHandle, "com.example", template, "command");
 
     List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(libAndroidFacet, null);
     assertThat(moduleTemplates).isNotEmpty();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates, libAndroidFacet));
+    wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates));
     ModelWizard modelWizard = wizardBuilder.build();
     Disposer.register(project, modelWizard);
     myInvokeStrategy.updateAllSteps();
