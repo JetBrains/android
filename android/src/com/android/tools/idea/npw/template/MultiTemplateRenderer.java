@@ -28,6 +28,11 @@ public final class MultiTemplateRenderer {
 
   public interface TemplateRenderer {
     /**
+     * Runs any needed Model pre-initialisation, for example, setting Template default values.
+     */
+    default void init() {}
+
+    /**
      * Run validation, but don't write any file
      * @return true if the validation succeeded. Returning false will stop any call to {@link #render()}
      */
@@ -82,6 +87,12 @@ public final class MultiTemplateRenderer {
     myRequestCount--;
 
     if (myRequestCount == 0) {
+      // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first, we make sure
+      // they are properly initialized when doDryRun/render is called bellow.
+      for (TemplateRenderer renderer : myTemplateRenderers) {
+        renderer.init();
+      }
+
       for (TemplateRenderer renderer : myTemplateRenderers) {
         if (!renderer.doDryRun()) {
           return;

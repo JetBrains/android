@@ -21,6 +21,7 @@ import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -42,6 +43,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +53,7 @@ import java.util.Map;
 
 import static com.android.SdkConstants.DOT_JAVA;
 import static com.android.SdkConstants.DOT_KT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * A model responsible for instantiating a FreeMarker {@link Template} into the current project
@@ -68,8 +70,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final StringProperty myPackageName;
   @NotNull private final BoolProperty myInstantApp;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
-  @Nullable private final Module myModule;
-  private final boolean myIsNewProject;
+  @Nullable private final AndroidFacet myFacet;
 
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -79,21 +80,21 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   @Nullable private IconGenerator myIconGenerator;
 
-  public RenderTemplateModel(@NotNull Module module,
+  public RenderTemplateModel(@NotNull AndroidFacet facet,
                              @Nullable TemplateHandle templateHandle,
                              @NotNull String initialPackageSuggestion,
                              @NotNull NamedModuleTemplate template,
                              @NotNull String commandName) {
-    myProject = new OptionalValueProperty<>(module.getProject());
-    myModule = module;
+    Project project = facet.getModule().getProject();
+    myProject = new OptionalValueProperty<>(project);
+    myFacet = facet;
     myInstantApp = new BoolValueProperty(false);
     myPackageName = new StringValueProperty(initialPackageSuggestion);
     myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
     myMultiTemplateRenderer = new MultiTemplateRenderer();
-    myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(module.getProject()));
-    myIsNewProject = myProject.getValueOrNull() == null;
+    myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(project));
     init();
   }
 
@@ -102,7 +103,7 @@ public final class RenderTemplateModel extends WizardModel {
                              @NotNull NamedModuleTemplate template,
                              @NotNull String commandName) {
     myProject = moduleModel.getProject();
-    myModule = null;
+    myFacet = null;
     myInstantApp = moduleModel.instantApp();
     myPackageName = moduleModel.packageName();
     myTemplates = new ObjectValueProperty<>(template);
@@ -111,7 +112,6 @@ public final class RenderTemplateModel extends WizardModel {
     myMultiTemplateRenderer = moduleModel.getMultiTemplateRenderer();
     myMultiTemplateRenderer.incrementRenders();
     myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(myProject.getValueOrNull()));
-    myIsNewProject = myProject.getValueOrNull() == null;
     init();
   }
 
@@ -121,6 +121,16 @@ public final class RenderTemplateModel extends WizardModel {
 
   private static Logger getLog() {
     return Logger.getInstance(RenderTemplateModel.class);
+  }
+
+  @Nullable
+  public Module getModule() {
+    return myFacet == null ? null : myFacet.getModule();
+  }
+
+  @Nullable
+  public AndroidFacet getAndroidFacet() {
+    return myFacet;
   }
 
   @NotNull
@@ -191,6 +201,38 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   private class FreeMarkerTemplateRenderer implements MultiTemplateRenderer.TemplateRenderer {
+
+    @Override
+    public void init() {
+      AndroidModuleTemplate paths = myTemplates.get().getPaths();
+      File moduleRoot = paths.getModuleRoot();
+      if (moduleRoot == null) {
+        getLog().error("RenderTemplateModel can't create files because module root is not found. Please report this error.");
+        return;
+      }
+
+      myTemplateValues.put(ATTR_SOURCE_PROVIDER_NAME, myTemplates.get().getName());
+      if (getModule() == null) { // New Module
+        myTemplateValues.put(ATTR_IS_LAUNCHER, true);
+      }
+
+      TemplateValueInjector templateInjector = new TemplateValueInjector(myTemplateValues)
+        .setModuleRoots(paths, packageName().get());
+
+      if (myFacet == null) {
+        // If we don't have an AndroidFacet, we must have the Android Sdk info
+        templateInjector.setBuildVersion(androidSdkInfo().getValue(), getProject().getValueOrNull());
+      }
+      else {
+        templateInjector.setFacet(myFacet);
+
+        // Register application-wide settings
+        String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
+        if (!packageName().get().equals(applicationPackage)) {
+          myTemplateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(myFacet));
+        }
+      }
+    }
 
     @Override
     public boolean doDryRun() {
@@ -275,7 +317,7 @@ public final class RenderTemplateModel extends WizardModel {
       .withDryRun(dryRun)
       .withShowErrors(true)
       .withModuleRoot(paths.getModuleRoot())
-      .withModule(myModule)
+      .withModule(getModule())
       .withParams(myTemplateValues)
       .intoOpenFiles(filesToOpen)
       .intoTargetFiles(filesToReformat)

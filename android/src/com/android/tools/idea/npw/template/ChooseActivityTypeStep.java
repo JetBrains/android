@@ -75,24 +75,21 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   private final StringProperty myInvalidParameterMessage = new StringValueProperty();
   private final ListenerManager myListeners = new ListenerManager();
 
-  private @Nullable AndroidFacet myFacet;
-
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
                                 @NotNull RenderTemplateModel renderModel,
                                 @NotNull FormFactor formFactor,
                                 @NotNull List<NamedModuleTemplate> moduleTemplates) {
     this(moduleModel, renderModel, formFactor);
-    init(formFactor, moduleTemplates, null);
+    init(formFactor, moduleTemplates);
   }
 
   public ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel,
                                 @NotNull RenderTemplateModel renderModel,
                                 @NotNull FormFactor formFactor,
-                                @NotNull AndroidFacet facet,
                                 @NotNull VirtualFile targetDirectory) {
     this(moduleModel, renderModel, formFactor);
-    List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
-    init(formFactor, moduleTemplates, facet);
+    List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(renderModel.getAndroidFacet(), targetDirectory);
+    init(formFactor, moduleTemplates);
   }
 
   private ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel, @NotNull RenderTemplateModel renderModel,
@@ -102,10 +99,8 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   }
 
   private void init(@NotNull FormFactor formFactor,
-                    @NotNull List<NamedModuleTemplate> moduleTemplates,
-                    @Nullable AndroidFacet facet) {
+                    @NotNull List<NamedModuleTemplate> moduleTemplates) {
     myModuleTemplates = moduleTemplates;
-    myFacet = facet;
     List<TemplateHandle> templateHandles = TemplateManager.getInstance().getTemplateList(formFactor);
 
     myTemplateRenderers = Lists.newArrayListWithExpectedSize(templateHandles.size() + 1);  // Extra entry for "Add No Activity" template
@@ -137,7 +132,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   @Override
   public Collection<? extends ModelWizardStep> createDependentSteps() {
     String title = message("android.wizard.config.activity.title");
-    return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, myModuleTemplates, myFacet));
+    return Lists.newArrayList(new ConfigureTemplateParametersStep(myRenderModel, title, myModuleTemplates));
   }
 
   @Override
@@ -246,7 +241,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
   }
 
   private boolean isNewModule() {
-    return myFacet == null;
+    return myRenderModel.getModule() == null;
   }
 
   private TemplateRenderer[] createGalleryList(@NotNull List<TemplateRenderer> templateRenderers) {

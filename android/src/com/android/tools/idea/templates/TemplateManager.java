@@ -504,12 +504,12 @@ public class TemplateManager {
           String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
           Project project = facet.getModule().getProject();
 
-          RenderTemplateModel renderModel = new RenderTemplateModel(module, null, initialPackageSuggestion, moduleTemplates.get(0),
+          RenderTemplateModel renderModel = new RenderTemplateModel(facet, null, initialPackageSuggestion, moduleTemplates.get(0),
             AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
 
           NewModuleModel moduleModel = new NewModuleModel(project);
           ChooseActivityTypeStep chooseActivityTypeStep =
-            new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, facet, targetDirectory);
+            new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
           ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
 
           new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
