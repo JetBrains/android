@@ -290,6 +290,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag
     .create(NDK, "cmakeclionfeatures", "Enable CMake language support from CLion",
             "If enabled, language support features (e.g. syntax highlighting) currently present in CLion will be turned on.", true);
+  public static final Flag<Boolean> LLDB_ASSEMBLY_DEBUGGING = Flag.create(
+    NDK, "debugging.assembly", "Enable assembly debugging",
+    "If enabled, frames without sources will show the assembly of the function and allow breakpoints to be set there", false);
 
   private StudioFlags() {
   }
