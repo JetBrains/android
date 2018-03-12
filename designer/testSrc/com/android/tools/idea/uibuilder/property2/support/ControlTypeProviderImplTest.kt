@@ -22,10 +22,22 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.dom.attrs.AttributeFormat
 import org.junit.Test
 import org.mockito.Mockito.mock
 
 class ControlTypeProviderImplTest: AndroidTestCase() {
+
+  @Test
+  fun testFlagEditorForFlagProperties() {
+    val util = SupportTestUtil(testRootDisposable, myFacet, myFixture, TEXT_VIEW)
+    val provide = ControlTypeProviderImpl()
+    val definition = AttributeDefinition(name, null, null, listOf(AttributeFormat.Flag))
+    val property = util.makeFlagsProperty(ANDROID_URI, definition)
+    val enumSupport = mock(EnumSupport::class.java)
+    assertThat(provide(property, enumSupport)).isEqualTo(ControlType.FLAG_EDITOR)
+  }
 
   @Test
   fun testComboBoxForEnumSupport() {

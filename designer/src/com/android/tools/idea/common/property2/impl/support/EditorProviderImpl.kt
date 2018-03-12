@@ -17,12 +17,14 @@ package com.android.tools.idea.common.property2.impl.support
 
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.ui.ActionButtonBinding
 import com.android.tools.idea.common.property2.impl.ui.PropertyComboBox
 import com.android.tools.idea.common.property2.impl.ui.PropertyTextField
 import com.android.tools.idea.common.property2.impl.ui.PropertyThreeStateCheckBox
+import com.android.tools.idea.common.property2.impl.ui.*
 import javax.swing.JComponent
 
 /**
@@ -60,6 +62,12 @@ class EditorProviderImpl<in P : PropertyItem>(
       ControlType.THREE_STATE_BOOLEAN -> {
         val model = ThreeStateBooleanPropertyEditorModel(property, formModel)
         val editor = PropertyThreeStateCheckBox(model)
+        return model to editor
+      }
+
+      ControlType.FLAG_EDITOR -> {
+        val model = FlagPropertyEditorModel(property as FlagsPropertyItem<*>, formModel)
+        val editor = FlagPropertyEditor(model)
         return model to editor
       }
     }
