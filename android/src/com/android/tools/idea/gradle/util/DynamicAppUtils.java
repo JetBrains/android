@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -25,6 +26,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -81,6 +83,21 @@ public class DynamicAppUtils {
       return true;
     }
     return androidModule.getAndroidProject().getDynamicFeatures().isEmpty();
+  }
+
+  @NotNull
+  public static List<Module> getModulesSupportingBundleTask(@NotNull Project project) {
+    return ProjectStructure.getInstance(project).getAppModules().stream()
+      .filter(module -> supportsBundleTask(module))
+      .collect(Collectors.toList());
+  }
+
+  public static boolean supportsBundleTask(@NotNull Module module) {
+    AndroidModuleModel androidModule = AndroidModuleModel.get(module);
+    if (androidModule == null) {
+      return false;
+    }
+    return !StringUtil.isEmpty(androidModule.getSelectedVariant().getMainArtifact().getBundleTaskName());
   }
 
   @NotNull
