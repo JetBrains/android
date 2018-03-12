@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.tools.idea.common.property2.api.ControlType
 import com.android.tools.idea.common.property2.api.ControlTypeProvider
 import com.android.tools.idea.common.property2.api.EnumSupport
+import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 
@@ -28,8 +29,16 @@ class ControlTypeProviderImpl : ControlTypeProvider<NelePropertyItem> {
 
   override fun invoke(property: NelePropertyItem, enumSupport: EnumSupport?) =
     when {
-      enumSupport != null -> ControlType.COMBO_BOX
-      property.type == NelePropertyType.BOOLEAN -> ControlType.THREE_STATE_BOOLEAN
-      else -> ControlType.TEXT_EDITOR
+      property is NeleFlagsPropertyItem ->
+        ControlType.FLAG_EDITOR
+
+      enumSupport != null ->
+        ControlType.COMBO_BOX
+
+      property.type == NelePropertyType.BOOLEAN ->
+        ControlType.THREE_STATE_BOOLEAN
+
+      else ->
+        ControlType.TEXT_EDITOR
     }
 }

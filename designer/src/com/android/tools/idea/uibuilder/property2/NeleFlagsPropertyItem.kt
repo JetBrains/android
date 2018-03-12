@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.property2.api.FlagPropertyItem
+import com.android.tools.idea.common.property2.api.FlagsPropertyItem
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
@@ -40,7 +42,7 @@ class NeleFlagsPropertyItem(
   libraryName: String,
   model: NelePropertiesModel,
   components: List<NlComponent>
-) : NelePropertyItem(namespace, name, type, attrDefinition, libraryName, model, components) {
+) : NelePropertyItem(namespace, name, type, attrDefinition, libraryName, model, components), FlagsPropertyItem<NeleFlagPropertyItem> {
   private val _flags = mutableListOf<NeleFlagPropertyItem>()
   private val _lastValues = mutableSetOf<String>()
   private var _lastValue: String? = null
@@ -53,7 +55,7 @@ class NeleFlagsPropertyItem(
       return _lastValues
     }
 
-  val maskValue: Int
+  override val maskValue: Int
     get() {
       cacheValues()
       return _lastMaskValue
@@ -65,7 +67,7 @@ class NeleFlagsPropertyItem(
       return _lastFormattedValue!!
     }
 
-  val flags: List<NeleFlagPropertyItem>
+  override val flags: List<NeleFlagPropertyItem>
     get() {
       if (_flags.isEmpty()) {
           attrDefinition.values.mapTo(_flags, { NeleFlagPropertyItem(this, it, lookupMaskValue(it)) })
@@ -82,7 +84,7 @@ class NeleFlagsPropertyItem(
       }
     }
 
-  fun flag(itemName: String): NeleFlagPropertyItem {
+  override fun flag(itemName: String): NeleFlagPropertyItem {
     return flags.find { it.name == itemName } ?: throw IllegalArgumentException(itemName)
   }
 
@@ -169,7 +171,9 @@ class NeleFlagsPropertyItem(
  *
  * A generated [PropertyItem] which can be used in an editor in the property inspector.
  */
-class NeleFlagPropertyItem(val flags: NeleFlagsPropertyItem, override val name: String, val maskValue: Int): PropertyItem {
+class NeleFlagPropertyItem(override val flags: NeleFlagsPropertyItem,
+                           override val name: String,
+                           override val maskValue: Int): FlagPropertyItem {
   override val namespace: String
     get() = flags.namespace
 
@@ -180,12 +184,13 @@ class NeleFlagPropertyItem(val flags: NeleFlagsPropertyItem, override val name: 
     get() = false
 
   override var value: String?
-    get() = if (flags.isFlagSet(this)) SdkConstants.VALUE_TRUE else SdkConstants.VALUE_FALSE
-    set(value) {
-      val on = value?.equals(SdkConstants.VALUE_TRUE, true) == true
-      flags.setFlag(this, on)
-    }
+    get() = if (actualValue) SdkConstants.VALUE_TRUE else SdkConstants.VALUE_FALSE
+    set(value) { actualValue = value?.equals(SdkConstants.VALUE_TRUE, true) == true }
 
-  val effectiveValue: Boolean
+  override var actualValue: Boolean
+    get() = flags.isFlagSet(this)
+    set(value) = flags.setFlag(this, value)
+
+  override val effectiveValue: Boolean
     get() = if (maskValue == 0) flags.maskValue == 0 else maskValue and flags.maskValue == maskValue
 }
