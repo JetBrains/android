@@ -89,6 +89,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final CaptureModel.Details.Type DEFAULT_CAPTURE_DETAILS = CaptureModel.Details.Type.CALL_CHART;
 
   private final CpuThreadsModel myThreadsStates;
+  private final CpuKernelModel myCpuKernelModel;
   private final AxisComponentModel myCpuUsageAxis;
   private final AxisComponentModel myThreadCountAxis;
   private final AxisComponentModel myTimeAxisGuide;
@@ -235,6 +236,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // Create an event representing the traces within the range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
     myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getSession());
+    myCpuKernelModel = new CpuKernelModel(viewRange, this);
 
     myInProgressTraceSeries = new DefaultDataSeries<>();
     myInProgressTraceDuration = new DurationDataModel<>(new RangedSeries<>(viewRange, myInProgressTraceSeries));
@@ -847,6 +849,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   public CpuThreadsModel getThreadStates() {
     return myThreadsStates;
+  }
+
+  @NotNull
+  public CpuKernelModel getCpuKernelModel() {
+    return myCpuKernelModel;
   }
 
   /**

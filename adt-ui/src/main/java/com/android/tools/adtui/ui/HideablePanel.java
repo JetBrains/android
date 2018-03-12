@@ -98,8 +98,7 @@ public class HideablePanel extends JPanel {
   /**
    * @param expanded sets the internal state for animating the expanding/collapsing of the child component.
    */
-  @VisibleForTesting
-  void setExpanded(boolean expanded) {
+  public void setExpanded(boolean expanded) {
     if (myExpanded != expanded) {
       myExpanded = expanded;
       myChild.setVisible(expanded);

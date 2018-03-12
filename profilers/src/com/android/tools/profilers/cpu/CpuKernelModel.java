@@ -15,25 +15,27 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
-import com.android.utils.SparseArray;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 /**
- * List model that managed CpuState information. When an {@link AtraceCpuCapture} is selected this class is responsible for
+ * List model that manages CpuState information. When a {@link AtraceCpuCapture} is selected this class is responsible for
  * updating the list model with each cpu's data series.
  */
-public class CpuProcessModel extends DefaultListModel<CpuProcessModel.CpuState> {
+public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
   @NotNull private final CpuProfilerStage myStage;
 
   @NotNull private final Range myRange;
 
   @NotNull private final AspectObserver myAspectObserver;
 
-  public CpuProcessModel(@NotNull Range range, @NotNull CpuProfilerStage stage) {
+  public CpuKernelModel(@NotNull Range range, @NotNull CpuProfilerStage stage) {
     myRange = range;
     myStage = stage;
     myAspectObserver = new AspectObserver();
@@ -50,8 +52,9 @@ public class CpuProcessModel extends DefaultListModel<CpuProcessModel.CpuState> 
       int count = ((AtraceCpuCapture)capture).getCpuCount();
       for (int i = 0; i < count; i++) {
         addElement(new CpuState(i, myStage));
-      };
+      }
     }
+    fireContentsChanged(this, 0, getSize());
   }
 
   public class CpuState {
