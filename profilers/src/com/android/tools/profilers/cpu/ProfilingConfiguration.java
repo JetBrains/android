@@ -63,11 +63,6 @@ public class ProfilingConfiguration {
    */
   private int myProfilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US;
 
-  /**
-   * Used to determine if the config is a default config or a custom config.
-   */
-  private boolean myIsDefault = false;
-
   public ProfilingConfiguration() {
     // Default constructor to be used by CpuProfilingConfigService
   }
@@ -75,17 +70,9 @@ public class ProfilingConfiguration {
   public ProfilingConfiguration(String name,
                                 CpuProfilerType profilerType,
                                 CpuProfiler.CpuProfilerConfiguration.Mode mode) {
-    this(name, profilerType, mode, false);
-  }
-
-  private ProfilingConfiguration(String name,
-                                 CpuProfilerType profilerType,
-                                 CpuProfiler.CpuProfilerConfiguration.Mode mode,
-                                 boolean isDefault) {
     myName = name;
     myProfilerType = profilerType;
     myMode = mode;
-    myIsDefault = isDefault;
   }
 
   public CpuProfiler.CpuProfilerConfiguration.Mode getMode() {
@@ -125,7 +112,7 @@ public class ProfilingConfiguration {
   }
 
   public boolean isDefault() {
-    return myIsDefault;
+    return getDefaultProfilingConfigurations().stream().anyMatch(configuration -> configuration.getName().equals(getName()));
   }
 
   public int getRequiredDeviceLevel() {
@@ -151,20 +138,16 @@ public class ProfilingConfiguration {
     if (ourDefaultConfigurations == null) {
       ProfilingConfiguration artSampled = new ProfilingConfiguration(ART_SAMPLED,
                                                                      CpuProfilerType.ART,
-                                                                     CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED,
-                                                                     true);
+                                                                     CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
       ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ART_INSTRUMENTED,
                                                                           CpuProfilerType.ART,
-                                                                          CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED,
-                                                                          true);
+                                                                          CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
       ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
                                                                      CpuProfilerType.SIMPLEPERF,
-                                                                     CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED,
-                                                                     true);
+                                                                     CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
       ProfilingConfiguration atrace = new ProfilingConfiguration(ATRACE,
                                                                  CpuProfilerType.ATRACE,
-                                                                 CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED,
-                                                                 true);
+                                                                 CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
       ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
     }
     return ourDefaultConfigurations;
