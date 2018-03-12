@@ -396,12 +396,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
       .setSession(getStudioProfilers().getSession())
-      .setConfiguration(CpuProfilerConfiguration.newBuilder()
-                          .setMode(config.getMode())
-                          .setProfilerType(config.getProfilerType())
-                          .setBufferSizeInMb(config.getProfilingBufferSizeInMb())
-                          .setSamplingIntervalUs(config.getProfilingSamplingIntervalUs())
-      )
+      .setConfiguration(config.toProto())
       .setAbiCpuArch(getStudioProfilers().getProcess().getAbiCpuArch())
       .build();
 
@@ -418,9 +413,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private void startCapturingCallback(CpuProfilingAppStartResponse response,
                                       ProfilingConfiguration profilingConfiguration) {
     if (response.getStatus().equals(CpuProfilingAppStartResponse.Status.SUCCESS)) {
-      myProfilerModel.setActiveConfig(profilingConfiguration.getProfilerType(), profilingConfiguration.getMode(),
-                                      profilingConfiguration.getProfilingBufferSizeInMb(),
-                                      profilingConfiguration.getProfilingSamplingIntervalUs());
+      myProfilerModel.setActiveConfig(profilingConfiguration);
       setCaptureState(CaptureState.CAPTURING);
       myCaptureStartTimeNs = currentTimeNs();
       myInProgressTraceSeries.clear();
@@ -644,8 +637,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
       // Sets the properties of myActiveConfig
       CpuProfilerConfiguration configuration = response.getConfiguration();
-      myProfilerModel.setActiveConfig(configuration.getProfilerType(), configuration.getMode(), configuration.getBufferSizeInMb(),
-                                      configuration.getSamplingIntervalUs());
+      myProfilerModel.setActiveConfig(ProfilingConfiguration.fromProto(configuration));
     }
     else {
       // otherwise, invalidate capture start time
