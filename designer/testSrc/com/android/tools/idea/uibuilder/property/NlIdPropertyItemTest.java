@@ -19,6 +19,7 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 
@@ -93,6 +94,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     }).when(myBuilder).show();
 
     myItem.setValue("other");
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getId()).isEqualTo("other");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/other");
     assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/other");
@@ -100,6 +102,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     // Set id again, this time expect references to be changed without showing a dialog
     verify(myBuilder, times(1)).show();
     myItem.setValue("last");
+    UIUtil.dispatchAllInvocationEvents();
     verify(myBuilder, times(1)).show();
 
     assertThat(myTextView.getId()).isEqualTo("last");

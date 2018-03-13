@@ -67,7 +67,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
   private static final ResourceNamespace NAMESPACE = ResourceNamespace.ANDROID;
   private static final String CACHE_DIRECTORY = "framework_resource_cache";
   private static final String CACHE_FILE_HEADER = "Framework resource cache";
-  private static final String CACHE_FILE_FORMAT_VERSION = "1";
+  private static final String CACHE_FILE_FORMAT_VERSION = "2";
   private static final String ANDROID_PLUGIN_ID = "org.jetbrains.android";
   private static final Logger LOG = Logger.getInstance(FrameworkResourceRepository.class);
 
@@ -120,6 +120,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     }
 
     ResourceMerger resourceMerger = new ResourceMerger(0);
+    resourceMerger.setPreserveOriginalItems(true);
     resourceMerger.addDataSet(resourceSet);
     repository.getItems().update(resourceMerger);
 
@@ -835,6 +836,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
       super("AndroidFramework", NAMESPACE, null, false);
       myWithLocaleResources = withLocaleResources;
       addSource(resourceFolder);
+      setShouldParseResourceIds(true);
       setTrackSourcePositions(false);
       setCheckDuplicates(false);
     }

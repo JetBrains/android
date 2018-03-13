@@ -38,9 +38,8 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlElement;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.XmlRecursiveElementVisitor;
+import com.intellij.psi.xml.*;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
@@ -49,7 +48,6 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -150,13 +148,13 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Override
   @NotNull
   public Collection<? extends ResourceValue> getVariants(ConvertContext context) {
-    Set<ResourceValue> result = new HashSet<>();
     Module module = context.getModule();
-    if (module == null) return result;
+    if (module == null || module.isDisposed()) return Collections.emptySet();
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) return result;
+    if (facet == null) return Collections.emptySet();
 
-    final Set<ResourceType> recommendedTypes = getResourceTypes(context);
+    Set<ResourceValue> result = new HashSet<>();
+    Set<ResourceType> recommendedTypes = getResourceTypes(context);
 
     if (recommendedTypes.contains(ResourceType.BOOL) && recommendedTypes.size() < VALUE_RESOURCE_TYPES.size()) {
       // Is this resource reference expected to be a @bool reference? Specifically
@@ -207,7 +205,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       final char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
 
       if (value.startsWith(NEW_ID_PREFIX)) {
-        addVariantsForIdDeclaration(result, facet, prefix, value);
+        addVariantsForIdDeclaration(context, facet, prefix, value, result);
       }
 
       if (recommendedTypes.size() >= 1 && myExpandedCompletionSuggestion) {
@@ -246,10 +244,30 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return result;
   }
 
-  private void addVariantsForIdDeclaration(Set<ResourceValue> result, AndroidFacet facet, char prefix, String value) {
-    for (String name : ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getIds(false)) {
-      final ResourceValue ref = referenceTo(prefix, "+id", null, name, true);
+  private void addVariantsForIdDeclaration(@NotNull ConvertContext context, @NotNull AndroidFacet facet, char prefix, @NotNull String value,
+                                           @NotNull Set<ResourceValue> result) {
+    ResourceNamespace namespace = ResourceNamespace.TODO;
 
+    // Find matching ID resource references in the current file.
+    XmlFile file = context.getFile();
+    file.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlAttributeValue(XmlAttributeValue attributeValue) {
+        String valueText = attributeValue.getValue();
+        if (valueText != null && valueText.startsWith(ID_PREFIX) && valueText.length() > ID_PREFIX.length()) {
+          String name = valueText.substring(ID_PREFIX.length());
+          ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
+          if (!value.startsWith(doToString(ref))) {
+            result.add(ref);
+          }
+        }
+      }
+    });
+
+    // Find matching ID resource declarations.
+    Collection<String> ids = AppResourceRepository.getOrCreateInstance(facet).getItemsOfType(namespace, ResourceType.ID);
+    for (String name : ids) {
+      ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
       if (!value.startsWith(doToString(ref))) {
         result.add(ref);
       }

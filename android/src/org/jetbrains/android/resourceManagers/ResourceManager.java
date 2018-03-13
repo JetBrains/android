@@ -32,15 +32,11 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.Predicate;
-import com.intellij.util.indexing.FileBasedIndex;
-import org.jetbrains.android.AndroidIdIndex;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -71,7 +67,7 @@ public abstract class ResourceManager {
    */
   @Deprecated
   @NotNull
-  public abstract ResourceNamespace getResourceNamespace();
+  protected abstract ResourceNamespace getResourceNamespace();
 
   /**
    * Returns the resource repository associated with this resource manager.
@@ -243,15 +239,14 @@ public abstract class ResourceManager {
    * Searches only declarations such as "@+id/...".
    */
   @NotNull
-  public List<XmlAttributeValue> findIdDeclarations(@NotNull String id) {
+  public List<XmlAttributeValue> findIdDeclarations(@NotNull ResourceNamespace namespace, @NotNull String id) {
     if (!isResourcePublic(ResourceType.ID.getName(), id)) {
       return Collections.emptyList();
     }
 
-    Collection<VirtualFile> files =
-        FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, '+' + id, GlobalSearchScope.allScope(myProject));
+    Set<VirtualFile> files = getFilesDeclaringId(namespace, id);
 
-    return findIdUsagesFromFiles(new HashSet<>(files), attributeValue -> {
+    return findIdUsagesFromFiles(files, attributeValue -> {
       if (AndroidResourceUtil.isIdDeclaration(attributeValue)) {
         String idInAttr = AndroidResourceUtil.getResourceNameByReferenceText(attributeValue.getValue());
         return id.equals(idInAttr);
@@ -264,15 +259,14 @@ public abstract class ResourceManager {
    * Searches only usages of the given id such as app:constraint_referenced_ids="[id1],[id2],...".
    */
   @NotNull
-  public List<XmlAttributeValue> findConstraintReferencedIds(@NotNull String id) {
+  public List<XmlAttributeValue> findConstraintReferencedIds(@NotNull ResourceNamespace namespace, @NotNull String id) {
     if (!isResourcePublic(ResourceType.ID.getName(), id)) {
       return Collections.emptyList();
     }
 
-    Collection<VirtualFile> files =
-        FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, ',' + id, GlobalSearchScope.allScope(myProject));
+    Set<VirtualFile> files = getFilesDeclaringId(namespace, id);
 
-    return findIdUsagesFromFiles(new HashSet<>(files), attributeValue -> {
+    return findIdUsagesFromFiles(files, attributeValue -> {
       if (AndroidResourceUtil.isConstraintReferencedIds(attributeValue)) {
         String ids = attributeValue.getValue();
         if (ids != null) {
@@ -283,68 +277,43 @@ public abstract class ResourceManager {
     });
   }
 
-  private List<XmlAttributeValue> findIdUsagesFromFiles(@NotNull Set<VirtualFile> fileSet, @NotNull Predicate<XmlAttributeValue> condition) {
+  @NotNull
+  private Set<VirtualFile> getFilesDeclaringId(@NotNull ResourceNamespace namespace, @NotNull String id) {
+    Set<VirtualFile> files = new HashSet<>();
+    for (AbstractResourceRepository repository : getLeafResourceRepositories()) {
+      List<ResourceItem> items = repository.getResourceItems(namespace, ResourceType.ID, id);
+      for (ResourceItem item : items) {
+        VirtualFile file = LocalResourceRepository.getItemVirtualFile(item);
+        if (file != null) {
+          files.add(file);
+        }
+      }
+    }
+    return files;
+  }
+
+  private List<XmlAttributeValue> findIdUsagesFromFiles(@NotNull Set<VirtualFile> fileSet,
+                                                        @NotNull Predicate<XmlAttributeValue> condition) {
     List<XmlAttributeValue> usages = new ArrayList<>();
 
     PsiManager psiManager = PsiManager.getInstance(myProject);
 
-    for (VirtualFile subdir : getResourceSubdirsToSearchIds()) {
-      for (VirtualFile file : subdir.getChildren()) {
-        if (fileSet.contains(file)) {
-          PsiFile psiFile = psiManager.findFile(file);
-          if (psiFile instanceof XmlFile) {
-            psiFile.accept(new XmlRecursiveElementVisitor() {
-              @Override
-              public void visitXmlAttributeValue(XmlAttributeValue attributeValue) {
-                if (condition.apply(attributeValue)) {
-                  usages.add(attributeValue);
-                }
+    for (VirtualFile file : fileSet) {
+      if (fileSet.contains(file)) {
+        PsiFile psiFile = psiManager.findFile(file);
+        if (psiFile instanceof XmlFile) {
+          psiFile.accept(new XmlRecursiveElementVisitor() {
+            @Override
+            public void visitXmlAttributeValue(XmlAttributeValue attributeValue) {
+              if (condition.apply(attributeValue)) {
+                usages.add(attributeValue);
               }
-            });
-          }
+            }
+          });
         }
       }
     }
     return usages;
-  }
-
-  @NotNull
-  public Collection<String> getIds(boolean declarationsOnly) {
-    if (myProject.isDisposed()) {
-      return Collections.emptyList();
-    }
-    GlobalSearchScope scope = GlobalSearchScope.allScope(myProject);
-
-    FileBasedIndex index = FileBasedIndex.getInstance();
-    Map<VirtualFile, Set<String>> file2idEntries = new HashMap<>();
-
-    index.processValues(AndroidIdIndex.INDEX_ID, AndroidIdIndex.MARKER, null, (file, value) -> {
-      file2idEntries.put(file, value);
-      return true;
-    }, scope);
-
-    Set<String> result = new HashSet<>();
-
-    for (VirtualFile resSubdir : getResourceSubdirsToSearchIds()) {
-      for (VirtualFile resFile : resSubdir.getChildren()) {
-        Set<String> idEntries = file2idEntries.get(resFile);
-
-        if (idEntries != null) {
-          for (String idEntry : idEntries) {
-            if (idEntry.startsWith("+")) {
-              idEntry = idEntry.substring(1);
-            }
-            else if (declarationsOnly) {
-              continue;
-            }
-            if (isResourcePublic(ResourceType.ID.getName(), idEntry)) {
-              result.add(idEntry);
-            }
-          }
-        }
-      }
-    }
-    return result;
   }
 
   @NotNull
@@ -396,7 +365,7 @@ public abstract class ResourceManager {
       elements.add(new LazyValueResourceElementWrapper(resource, context));
     }
     if (resType.equals("id")) {
-      elements.addAll(findIdDeclarations(resName));
+      elements.addAll(findIdDeclarations(namespace, resName));
     }
     if (elements.isEmpty()) {
       ResourceFolderType folderType = ResourceFolderType.getTypeByName(resType);

@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.DataFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -120,7 +121,8 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  private static void compareContents(FrameworkResourceRepository fromSourceFiles, FrameworkResourceRepository fromCache) {
+  private static void compareContents(@NotNull FrameworkResourceRepository fromSourceFiles,
+                                      @NotNull FrameworkResourceRepository fromCache) {
     List<ResourceItem> resourceItems = fromSourceFiles.getAllResourceItems();
     List<ResourceItem> cacheResourceItems = fromCache.getAllResourceItems();
     Collections.sort(resourceItems);
@@ -129,7 +131,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     for (int i = 0; i < resourceItems.size(); i++) {
       ResourceItem withoutCache = resourceItems.get(i);
       ResourceItem withCache = cacheResourceItems.get(i);
-      assertEquals("Different ResourceItem at position " + i, withoutCache, withCache);
+      assertTrue("Different ResourceItem at position " + i, isEquivalentResourceItem(withoutCache, withCache));
       assertEquals("Different FolderConfiguration at position " + i, withoutCache.getConfiguration(), withCache.getConfiguration());
       assertEquals("Different ResourceValue at position " + i,
                    withoutCache.getResourceValue(), withCache.getResourceValue());
@@ -143,17 +145,42 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       for (int i = 0; i < publicResources.size(); i++) {
         ResourceItem withoutCache = publicResources.get(i);
         ResourceItem withCache = publicResources2.get(i);
-        assertEquals("Public resource difference at position " + i + " for type " + type.getName(), withoutCache, withCache);
+        assertTrue("Public resource difference at position " + i + " for type " + type.getName(),
+                   isEquivalentResourceItem(withoutCache, withCache));
       }
     }
   }
 
-  private static void checkContents(FrameworkResourceRepository repository) {
+  private static boolean isEquivalentResourceItem(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
+    if (!item1.getType().equals(item2.getType())) {
+      return false;
+    }
+    if (!item1.getNamespace().equals(item2.getNamespace())) {
+      return false;
+    }
+    if (!item1.getName().equals(item2.getName())) {
+      return false;
+    }
+    if (!Objects.equals(item1.getLibraryName(), item2.getLibraryName())) {
+      return false;
+    }
+    DataFile source1 = item1.getSource();
+    DataFile source2 = item2.getSource();
+    if (source1 == source2) {
+      return true;
+    }
+    if ((source1 == null) != (source2 == null)) {
+      return false;
+    }
+    return source1.getFile().equals(source2.getFile());
+  }
+
+  private static void checkContents(@NotNull FrameworkResourceRepository repository) {
     checkPublicResourcesCount(repository);
     checkAttributes(repository);
   }
 
-  private static void checkAttributes(FrameworkResourceRepository repository) {
+  private static void checkAttributes(@NotNull FrameworkResourceRepository repository) {
     // `typeface` is declared first at top-level and later referenced from within `<declare-styleable>`. Make sure the later reference
     // doesn't shadow the original definition.
     checkAttrDefinition(repository, "typeface");
@@ -162,13 +189,13 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     checkAttrDefinition(repository, "appCategory");
   }
 
-  private static void checkAttrDefinition(FrameworkResourceRepository repository, String attrName) {
+  private static void checkAttrDefinition(@NotNull FrameworkResourceRepository repository, @NotNull String attrName) {
     ResourceItem attrItem = repository.getResourceItems(ResourceNamespace.ANDROID, ResourceType.ATTR, attrName).get(0);
     AttrResourceValue attrValue = (AttrResourceValue)attrItem.getResourceValue();
     assertFalse(attrValue.getAttributeValues().isEmpty());
   }
 
-  private static void checkPublicResourcesCount(FrameworkResourceRepository repository) {
+  private static void checkPublicResourcesCount(@NotNull FrameworkResourceRepository repository) {
     List<ResourceItem> resourceItems = repository.getAllResourceItems();
     assertTrue("Too few resources: " + resourceItems.size(), resourceItems.size() >= 10000);
     for (ResourceItem item : resourceItems) {

@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.resourceManagers;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.resources.ResourceFolderType;
@@ -74,7 +73,7 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public ResourceNamespace getResourceNamespace() {
+  protected ResourceNamespace getResourceNamespace() {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myFacet);
     return repositoryManager.getNamespace();
   }
@@ -229,15 +228,16 @@ public class LocalResourceManager extends ResourceManager {
 
   @NotNull
   public List<PsiElement> findResourcesByFieldName(@NotNull String resClassName, @NotNull String fieldName) {
+    ResourceNamespace namespace = getResourceNamespace();
     List<PsiElement> targets = new ArrayList<>();
     if (resClassName.equals(ResourceType.ID.getName())) {
-      targets.addAll(findIdDeclarations(fieldName));
+      targets.addAll(findIdDeclarations(namespace, fieldName));
     }
     ResourceFolderType folderType = ResourceFolderType.getTypeByName(resClassName);
     if (folderType != null) {
       targets.addAll(findResourceFiles(folderType, fieldName, false, true));
     }
-    for (ResourceElement element : findValueResources(ResourceNamespace.TODO, resClassName, fieldName, false)) {
+    for (ResourceElement element : findValueResources(namespace, resClassName, fieldName, false)) {
       targets.add(element.getName().getXmlAttributeValue());
     }
     if (resClassName.equals(ResourceType.ATTR.getName())) {
