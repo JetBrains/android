@@ -43,6 +43,55 @@ import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
 
 public class GroovyDslWriter implements GradleDslWriter {
   @Override
+  public PsiElement moveDslElement(@NotNull GradleDslElement element) {
+    // 1. Get the anchor where we need to move the element to.
+    GradleDslElement anchorAfter = element.getAnchor();
+
+    GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
+    if (psiElement == null) {
+      return null;
+    }
+
+    PsiElement parentPsiElement = getParentPsi(element);
+    if (parentPsiElement == null) {
+      return null;
+    }
+
+    PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
+
+    // 2. Create a dummy element that we can move the element to.
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
+    PsiElement lineTerminator = factory.createLineTerminator(1);
+    PsiElement toReplace = parentPsiElement.addAfter(lineTerminator, anchor);
+
+    // 3. Find the element we need to actually replace. The psiElement we have may be a child of what we need.
+    PsiElement e = element.getPsiElement();
+    while (!(e.getParent() instanceof GroovyFile || e.getParent() instanceof GrClosableBlock)) {
+      // Make sure e isn't going to be set to null.
+      if (e.getParent() == null) {
+        e = element.getPsiElement();
+        break;
+      }
+      e = e.getParent();
+    }
+
+    // 4. Copy the old PsiElement tree.
+    PsiElement treeCopy = e.copy();
+
+    // 5. Replace what we need to replace.
+    PsiElement newTree = toReplace.replace(treeCopy);
+
+    // 6. Delete the original tree.
+    e.delete();
+
+    // 7. Set the new PsiElement. Note: The internal state of this element will have invalid elements. It is required to reparse the file
+    // to obtain the correct elements.
+    element.setPsiElement(newTree);
+
+    return element.getPsiElement();
+  }
+
+  @Override
   public PsiElement createDslElement(@NotNull GradleDslElement element) {
     GradleDslElement anchorAfter = element.getAnchor();
     GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());

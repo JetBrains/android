@@ -199,6 +199,11 @@ public abstract class GradleDslElement implements AnchorProvider {
     return myDslFile.getWriter().createDslElement(this);
   }
 
+  @Nullable
+  public PsiElement move() {
+    return myDslFile.getWriter().moveDslElement(this);
+  }
+
   /**
    * Deletes this element and all it's children from the .gradle file.
    */

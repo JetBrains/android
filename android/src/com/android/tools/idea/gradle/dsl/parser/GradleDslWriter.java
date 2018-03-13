@@ -42,6 +42,8 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public interface GradleDslWriter {
+  PsiElement moveDslElement(@NotNull GradleDslElement element);
+
   PsiElement createDslElement(@NotNull GradleDslElement element);
 
   void deleteDslElement(@NotNull GradleDslElement element);
@@ -71,6 +73,9 @@ public interface GradleDslWriter {
   void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap);
 
   class Adapter implements GradleDslWriter {
+    @Override
+    public PsiElement moveDslElement(@NotNull GradleDslElement element) { return null; }
+
     @Override
     public PsiElement createDslElement(@NotNull GradleDslElement element) { return null; }
 
