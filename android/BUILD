@@ -185,6 +185,7 @@ iml_module(
         "slow",
         "cpu:3",
         "block-network",
+        "no_test_foundry",  # b/73948555
         "no_test_mac",
         "no_test_windows",
     ],

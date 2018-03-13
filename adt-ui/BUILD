@@ -5,7 +5,10 @@ iml_module(
     srcs = ["src/main/java"],
     iml_files = ["adt-ui.iml"],
     resources = ["resources"],
-    tags = ["managed"],
+    tags = [
+        "managed",
+        "no_test_foundry",  # b/73948555
+    ],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_resources = ["src/test/resources"],
     # do not sort: must match IML order
