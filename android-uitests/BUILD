@@ -110,7 +110,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
-    tags = COMMON_TAGS + ["manual"],  # testFileHandleRelease fails after 2017.3.1 merge
+    tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":android-uitests_testlib"],
 )
