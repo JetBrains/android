@@ -1011,7 +1011,6 @@
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
       <pattern type="xml">xmlTag()</pattern>
     </psi.referenceProvider>
-    <fileBasedIndex implementation="org.jetbrains.android.AndroidIdIndex"/>
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
     <projectService serviceInterface="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"
                     serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>

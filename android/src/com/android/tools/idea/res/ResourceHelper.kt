@@ -452,15 +452,21 @@ fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
   return null
 }
 
+/**
+ * Returns the {@link ResourceNamespace} for the given PSI element, or null if the project is misconfigured.
+ *
+ * Has to be called inside a read action.
+ */
+fun getNamespace(element: PsiElement): ResourceNamespace? {
+  return ResourceRepositoryManager.getOrCreateInstance(AndroidFacet.getInstance(element) ?: return null).namespace
+}
+
 /** A pair of the current ("context") [ResourceNamespace] and a [ResourceNamespace.Resolver] for dealing with prefixes. */
 data class ResourceNamespaceContext(val currentNs: ResourceNamespace, val resolver: ResourceNamespace.Resolver)
 
 /** Constructs the right [ResourceNamespaceContext] for a given [XmlElement]. */
 fun getNamespacesContext(element: XmlElement): ResourceNamespaceContext? {
-  return ResourceNamespaceContext(
-    ResourceRepositoryManager.getOrCreateInstance(AndroidFacet.getInstance(element) ?: return null).namespace,
-    getNamespaceResolver(element)
-  )
+  return ResourceNamespaceContext(getNamespace(element)?: return null, getNamespaceResolver(element))
 }
 
 /** Resolves a given [ResourceUrl] in the context of the given [XmlElement]. */

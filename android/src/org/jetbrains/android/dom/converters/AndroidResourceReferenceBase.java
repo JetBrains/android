@@ -176,13 +176,16 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (resType == null) {
       return;
     }
-    String resourcePackage = resValue.getPackage();
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resourcePackage, myElement);
-    if (manager != null) {
-      String resName = resValue.getResourceName();
-      if (resName != null) {
-        ResourceNamespace namespace = resourcePackage == null ? ResourceNamespace.TODO : ResourceNamespace.fromPackageName(resourcePackage);
-        manager.collectLazyResourceElements(namespace, resType.getName(), resName, attrReference, myElement, elements);
+    String resName = resValue.getResourceName();
+    if (resName != null) {
+      String resPackage = resValue.getPackage();
+      ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage, myElement);
+      if (manager != null) {
+        ResourceNamespace namespace =
+            resPackage == null ? ResourceHelper.getNamespace(myElement) : ResourceNamespace.fromPackageName(resPackage);
+        if (namespace != null) {
+          manager.collectLazyResourceElements(namespace, resType.getName(), resName, attrReference, myElement, elements);
+        }
       }
     }
   }

@@ -222,11 +222,13 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   }
 
   private static void prepareIdRenaming(XmlAttributeValue value, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
-    LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     allRenames.remove(value);
+    LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     String id = AndroidResourceUtil.getResourceNameByReferenceText(value.getValue());
     assert id != null;
-    List<XmlAttributeValue> idDeclarations = manager.findIdDeclarations(id);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    ResourceNamespace namespace = repositoryManager.getNamespace();
+    List<XmlAttributeValue> idDeclarations = manager.findIdDeclarations(namespace, id);
     ProjectFileIndex fileIndex = ProjectRootManager.getInstance(facet.getModule().getProject()).getFileIndex();
     for (XmlAttributeValue idDeclaration : idDeclarations) {
       // Only include explicit definitions (android:id). References through
@@ -254,7 +256,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
 
     // Rename the id in app:constraint_referenced_ids attribute, which contains a list of id and use comma as separator.
-    List<XmlAttributeValue> usages = manager.findConstraintReferencedIds(id);
+    List<XmlAttributeValue> usages = manager.findConstraintReferencedIds(namespace, id);
     for (XmlAttributeValue usage : usages) {
       // Include the element in refactoring only if it is a part of the project.
       if (fileIndex.isInContent(usage.getContainingFile().getVirtualFile())) {
