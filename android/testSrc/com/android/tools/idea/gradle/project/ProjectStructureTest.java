@@ -33,7 +33,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.builder.model.AndroidProject.*;
-import static com.android.ide.common.repository.GradleVersion.parse;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
@@ -113,6 +112,39 @@ public class ProjectStructureTest extends IdeaTestCase {
     assertThat(leafModules).doesNotContain(leaf3);
   }
 
+  public void testLeafModulesContainsBaseAndFeatureModules() throws Throwable {
+    Module appModule = createAndroidModule("app", "3.2", PROJECT_TYPE_APP);
+    Module feature1Module = createAndroidModule("feature1", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE);
+    Module feature2Module = createAndroidModule("feature2", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE);
+
+    // Make appModule depend on feature1Module and feature2Module
+    ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, Throwable>)() -> {
+      ModuleRootManager rootManager = ModuleRootManager.getInstance(appModule);
+      ModifiableRootModel modifiableModel = rootManager.getModifiableModel();
+      modifiableModel.addModuleOrderEntry(feature1Module);
+      modifiableModel.addModuleOrderEntry(feature2Module);
+      try {
+        modifiableModel.commit();
+      }
+      catch (Throwable e) {
+        modifiableModel.dispose();
+        throw e;
+      }
+      return null;
+    });
+
+    // Method to test:
+    myProjectStructure.analyzeProjectStructure(new EmptyProgressIndicator());
+
+    // Verify that the app modules where properly identified.
+    ImmutableList<Module> appModules = myProjectStructure.getAppModules();
+    assertThat(appModules).containsExactly(appModule);
+
+    // Verify that app and leaf modules are returned.
+    ImmutableList<Module> leafModules = myProjectStructure.getLeafModules();
+    assertThat(leafModules).containsExactly(appModule, feature1Module, feature2Module);
+  }
+
   @NotNull
   private Module createAndroidModule(@NotNull String name, @NotNull String pluginVersion, int projectType) {
     Module module = createGradleModule(name);
@@ -145,7 +177,7 @@ public class ProjectStructureTest extends IdeaTestCase {
     when(androidProject.getProjectType()).thenReturn(projectType);
 
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
-    when(androidModel.getModelVersion()).thenReturn(parse(pluginVersion));
+    when(androidModel.getModelVersion()).thenReturn(GradleVersion.parse(pluginVersion));
   }
 
   private static void setUpAsJavaModule(@NotNull Module module, boolean buildable) {

@@ -35,9 +35,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
 
 public class ProjectStructure {
@@ -104,7 +104,8 @@ public class ProjectStructure {
           return true;
         }
         ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-        leafModules.removeAll(Arrays.asList(rootManager.getDependencies()));
+        // Remove all dependencies, except 'app' or 'dynamic-feature' modules
+        leafModules.removeAll(Arrays.stream(rootManager.getDependencies()).filter(m -> !isAppOrFeature(m)).collect(Collectors.toList()));
       }
       else {
         // Remove non-Gradle modules from "leaf" modules.
@@ -125,6 +126,19 @@ public class ProjectStructure {
 
       myModuleFinderRef.set(moduleFinder);
     }
+  }
+
+  private static boolean isAppOrFeature(@NotNull Module module) {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    if (androidModel == null) {
+      return false;
+    }
+
+    int projectType = androidModel.getAndroidProject().getProjectType();
+    return projectType == PROJECT_TYPE_APP ||
+           projectType == PROJECT_TYPE_INSTANTAPP ||
+           projectType == PROJECT_TYPE_FEATURE ||
+           projectType == PROJECT_TYPE_DYNAMIC_FEATURE;
   }
 
   private static boolean isApp(@NotNull AndroidModuleModel androidModel) {
