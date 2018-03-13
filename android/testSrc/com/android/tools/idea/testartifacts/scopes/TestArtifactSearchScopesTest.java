@@ -181,6 +181,19 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertFalse(scopes.getUnitTestExcludeScope().accept(file));
   }
 
+  public void testResolvedScopeForTestOnlyModuleProject() throws Exception {
+    loadProject(TEST_ONLY_MODULE);
+    Module testModule = getModule("test");
+    TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(testModule);
+    assertNotNull(testArtifactSearchScopes);
+
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
+    Library junit = libraryTable.getLibraryByName(JUNIT);
+    assertNotNull(junit);
+    FileRootSearchScope androidTestExcludeScope = testArtifactSearchScopes.getAndroidTestExcludeScope();
+    assertScopeContainsLibrary(androidTestExcludeScope, junit, false);
+  }
+
   @NotNull
   private VirtualFile createFile(@NotNull String relativePath) {
     File file = new File(myFixture.getProject().getBasePath(), toSystemDependentPath(relativePath));
