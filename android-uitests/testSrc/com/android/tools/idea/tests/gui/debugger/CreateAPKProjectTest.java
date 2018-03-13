@@ -79,7 +79,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // Bug: http://b/65172343
+  @RunIn(TestGroup.SANITY)
   public void createProjectFromLocallyBuiltApk() throws Exception {
     File projectRoot = buildApkLocally("ApkDebug");
 
@@ -331,7 +331,8 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
 
   @NotNull
   private File buildApkLocally(@NotNull String apkProjectToImport) throws IOException {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport);
+    IdeFrameFixture ideFrame = guiTest.importProject(apkProjectToImport);
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(120));
 
     ideFrame.waitAndInvokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)");
     guiTest.waitForBackgroundTasks();

@@ -36,7 +36,8 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
   public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull final GenericTypeMatcher<JDialog> matcher) {
     FileChooserDialogFixture dialog = new FileChooserDialogFixture(robot, find(robot, FileChooserDialogImpl.class, matcher));
     AsyncProcessIcon progressIcon = GuiTests.waitUntilShowing(robot, dialog.target(), Matchers.byType(AsyncProcessIcon.class));
-    Wait.seconds(5).expecting("the progress icon to stop").until(() -> !progressIcon.isRunning());
+    // TODO: http://b/72834057 Consider a different way of waiting for this.
+    Wait.seconds(15).expecting("the progress icon to stop").until(() -> !progressIcon.isRunning());
     return dialog;
   }
 
