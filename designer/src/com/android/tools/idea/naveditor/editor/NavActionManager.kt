@@ -36,10 +36,10 @@ import javax.swing.JComponent
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: GotoComponentAction = GotoComponentAction(surface)
 
-  // Open for testing only
-  open val createDestinationMenu by lazy { CreateDestinationMenu(mySurface) }
+  private val createDestinationMenu by lazy { CreateDestinationMenu(mySurface) }
 
-  private val addExistingDestinationMenu by lazy { AddExistingDestinationMenu(mySurface) }
+  // Open for testing only
+  open val addExistingDestinationMenu by lazy { AddExistingDestinationMenu(mySurface) }
 
   override fun registerActionsShortcuts(component: JComponent) {
     ActionManager.registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)

@@ -22,13 +22,13 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.pointToString
 import com.android.tools.idea.common.scene.draw.stringToPoint
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
+import icons.StudioIcons.NavEditor.Toolbar.ADD_EXISTING
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.Point
 
 private val text1 = "Click "
-private val text2 = " to add a new destination"
+private val text2 = " to add an existing destination"
 @SwingCoordinate
 private val FONT_SIZE = 13
 @SwingCoordinate
@@ -55,8 +55,8 @@ class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand
     g2.drawString(text1, x, y)
     x += g2.fontMetrics.stringWidth(text1)
 
-    ADD_DESTINATION.paintIcon(null, g2, x, y - ADD_DESTINATION.iconHeight + VERTICAL_OFFSET)
-    x += ADD_DESTINATION.iconWidth
+    ADD_EXISTING.paintIcon(null, g2, x, y - ADD_EXISTING.iconHeight + VERTICAL_OFFSET)
+    x += ADD_EXISTING.iconWidth
 
     g2.drawString(text2, x, y)
   }
