@@ -49,6 +49,13 @@ public class CpuCaptureParser {
   static final int MAX_SUPPORTED_TRACE_SIZE = 1024 * 1024 * 100; // 100MB
 
   /**
+   * Used as ID of imported traces. Importing a trace will happen once per session,
+   * so we can have an arbitrary ID as it's going to be unique within a session.
+   */
+  @VisibleForTesting
+  static final int IMPORTED_TRACE_ID = 42;
+
+  /**
    * Maps a trace id to a corresponding {@link CompletableFuture<CpuCapture>}.
    */
   private final Map<Integer, CompletableFuture<CpuCapture>> myCaptures;
@@ -123,6 +130,91 @@ public class CpuCaptureParser {
     }
 
     return myCaptures.get(traceId);
+  }
+
+  /**
+   * Parses a {@link File} into a {@link CompletableFuture<CpuCapture>} that executes in {@link IdeProfilerServices#getPoolExecutor()}.
+   * Return null if the file doesn't exist or point to a directory.
+   *
+   * When a trace file is considered large (see {@link #MAX_SUPPORTED_TRACE_SIZE}), a dialog should be displayed so they user can decide if
+   * they want to abort the trace parsing or continue with it.
+   */
+  @Nullable
+  public CompletableFuture<CpuCapture> parse(File traceFile) {
+    if (!traceFile.exists() || traceFile.isDirectory()) {
+      // Nothing to be parsed. We shouldn't even try to do it.
+      getLogger().info("Trace not parsed, as its path doesn't exist or points to a directory.");
+      return null;
+    }
+
+    long fileLength = traceFile.length();
+    if (fileLength > MAX_SUPPORTED_TRACE_SIZE) {
+      // Trace is too big. Ask the user if they want to proceed with parsing.
+      Runnable yesCallback = () -> {
+        getLogger().warn(String.format("Parsing long (%d bytes) trace file.", fileLength));
+        // User decided to proceed. Try parsing the trace file.
+        myCaptures.put(IMPORTED_TRACE_ID,
+                       CompletableFuture.supplyAsync(() -> tryParsingFileWithDifferentParsers(traceFile), myServices.getPoolExecutor()));
+      };
+
+      Runnable noCallback = () -> {
+        // User aborted the parsing before it starts. Return null and don't try to parse the file.
+        getLogger().warn(String.format("Parsing of a long (%d bytes) trace file was aborted by the user.", fileLength));
+        myCaptures.put(IMPORTED_TRACE_ID, null);
+      };
+
+      // Open the dialog warning the user the file is too large and asking them if they want to proceed with parsing.
+      myServices.openParseLargeTracesDialog(yesCallback, noCallback);
+    }
+    else {
+      // Trace file is not too big to be parsed. Parse it normally.
+      myCaptures.put(IMPORTED_TRACE_ID,
+                     CompletableFuture.supplyAsync(() -> tryParsingFileWithDifferentParsers(traceFile), myServices.getPoolExecutor()));
+    }
+    return myCaptures.get(IMPORTED_TRACE_ID);
+  }
+
+  /**
+   * Try parsing a given {@link File} into a {@link CpuCapture} using {@link ArtTraceParser}, then {@link SimpleperfTraceParser}
+   * (if simpleperf flag is enabled), then {@link AtraceParser} (if atrace flag is enabled). Return null if the file can't be parsed by any
+   * of them.
+   */
+  private CpuCapture tryParsingFileWithDifferentParsers(File traceFile) {
+    try {
+      // First try parsing the trace file as an ART trace.
+      ArtTraceParser artTraceParser = new ArtTraceParser();
+      return artTraceParser.parse(traceFile, IMPORTED_TRACE_ID);
+    }
+    catch (Exception ignored) {
+      // We should go on and try parsing the file as a simpleperf or atrace trace.
+    }
+
+    if (myServices.getFeatureConfig().isSimpleperfEnabled()) {
+      try {
+        // Then, try parsing the file as a simpleperf trace if its flag is enabled.
+        // TODO (b/74525724): When obtaining package name directly from simpleperf traces, don't pass "unknown" to the constructor.
+        SimpleperfTraceParser simpleperfParser = new SimpleperfTraceParser("unknown");
+        return simpleperfParser.parse(traceFile, IMPORTED_TRACE_ID);
+      }
+      catch (Exception ignored) {
+        // We should go on and try parsing the file as an atrace trace.
+      }
+    }
+
+    if (myServices.getFeatureConfig().isAtraceEnabled()) {
+      try {
+        // Finally, try parsing the file as an atrace trace if its flag is enabled.
+        // TODO (b/74526422): Figure out how to get the app process ID from atrace trace file, so we can pass to AtraceParser constructor.
+        AtraceParser atraceParser = new AtraceParser(1);
+        return atraceParser.parse(traceFile, IMPORTED_TRACE_ID);
+      }
+      catch (Exception ignored) {
+        // Ignore the exception and continue the flow to return null
+      }
+    }
+    // File couldn't be parsed by any of the parsers. Log the issue and return null.
+    getLogger().warn(String.format("Parsing %s has failed.", traceFile.getPath()));
+    return null;
   }
 
   private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, int traceId, ByteString traceBytes,
