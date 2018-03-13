@@ -611,7 +611,7 @@ public final class GroovyDslUtil {
   @Nullable
   static PsiElement getPsiElementForAnchor(@NotNull PsiElement parent, @Nullable GradleDslElement dslAnchor) {
     PsiElement anchorAfter = dslAnchor == null ? null : dslAnchor.getPsiElement();
-    if (anchorAfter == null) {
+    if (anchorAfter == null && parent instanceof GrClosableBlock) {
       PsiElement element = parent.getFirstChild();
       // Skip the first non-empty element, this is normally the '{' of a closable block.
       if (element != null) {

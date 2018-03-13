@@ -238,7 +238,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull File file, @NotNull String contents) throws IOException {
-    assertThat(FileUtils.readFileToString(file).replaceAll("[ \\t]+", "")).isEqualTo(contents.replaceAll("[ \\t]+", ""));
+    assertThat(FileUtils.readFileToString(file).replaceAll("[ \\t]+", "").trim())
+      .isEqualTo(contents.replaceAll("[ \\t]+", "").trim());
   }
 
   protected void applyChangesAndReparse(@NotNull final ProjectBuildModel buildModel) {
@@ -522,6 +523,17 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       GradlePropertyModel tempModel = actualValues.get(i);
       verifyPropertyModel(message, tempModel, expectedValues.get(i), resolveItems);
     }
+  }
+
+  public static void verifyMapProperty(@Nullable GradlePropertyModel model,
+                                       @NotNull Map<String, Object> expectedValues,
+                                       @NotNull PropertyType type,
+                                       int dependencies,
+                                       @NotNull String name) {
+    verifyMapProperty(model, expectedValues);
+    assertEquals(type, model.getPropertyType());
+    assertEquals(dependencies, model.getDependencies().size());
+    assertEquals(name, model.getName());
   }
 
   public static void verifyMapProperty(@Nullable GradlePropertyModel model,
