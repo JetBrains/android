@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
@@ -61,7 +60,6 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
                         @NotNull ViewSettings settings,
                         @NotNull Collection<String> sourceFileExtensions) {
     super(project, artifacts, settings);
-    assert !ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get();
     myNativeLibraryName = nativeLibraryName;
     myNativeLibraryType = nativeLibraryType;
     mySourceFileExtensions = sourceFileExtensions;
