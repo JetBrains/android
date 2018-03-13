@@ -32,5 +32,6 @@
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
     <orderEntry type="library" name="sherpa-solver" level="project" />
     <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
   </component>
 </module>
