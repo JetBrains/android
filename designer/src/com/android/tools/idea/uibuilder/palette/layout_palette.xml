@@ -189,7 +189,7 @@
     <item tag="MultiAutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
     <item tag="CheckedTextView" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
     <item tag="android.support.design.widget.TextInputLayout" suggested="true" meta="material"/>
-    <item tag="androidx.widget.TextInputLayout" suggested="true" meta="material"/>
+    <item tag="com.google.android.material.widget.TextInputLayout" suggested="true" meta="material"/>
   </group>
   <group name="Buttons">
     <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
@@ -202,7 +202,7 @@
           materialReference="https://material.io/guidelines/components/selection-controls.html#selection-controls-switch"/>
     <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
-    <item tag="androidx.widget.FloatingActionButton" suggested="true" meta="material"
+    <item tag="com.google.android.material.widget.FloatingActionButton" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
   </group>
   <group name="Widgets">
@@ -366,33 +366,33 @@
   <group name="Containers">
     <item tag="Spinner"/>
     <item tag="android.support.v7.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
-    <item tag="androidx.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
+    <item tag="androidx.recyclerview.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
     <item tag="ScrollView"/>
     <item tag="HorizontalScrollView" suggested="true"/>
 
     <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
-    <item tag="androidx.widget.NestedScrollView" suggested="true"/>
+    <item tag="androidx.core.widget.NestedScrollView" suggested="true"/>
     <item tag="android.support.v4.view.ViewPager"/>
-    <item tag="androidx.widget.ViewPager"/>
+    <item tag="androidx.viewpager.widget.ViewPager"/>
     <item tag="android.support.v7.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
-    <item tag="androidx.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
+    <item tag="androidx.cardview.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
     <item tag="android.support.v4.view.ViewPager" id="Tabs" title="Tabs"/>
-    <item tag="androidx.widget.ViewPager" id="Tabs2" title="Tabs"/>
+    <item tag="androidx.viewpager.widget.ViewPager" id="Tabs2" title="Tabs"/>
     <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
-    <item tag="androidx.widget.AppBarLayout" suggested="true"/>
+    <item tag="com.google.android.material.widget.AppBarLayout" suggested="true"/>
     <item tag="android.support.design.widget.NavigationView" suggested="true"/>
-    <item tag="androidx.widget.NavigationView" suggested="true"/>
+    <item tag="com.google.android.material.widget.NavigationView" suggested="true"/>
     <item tag="android.support.design.widget.BottomNavigationView" suggested="true"/>
-    <item tag="androidx.widget.BottomNavigationView" suggested="true"/>
+    <item tag="com.google.android.material.widget.BottomNavigationView" suggested="true"/>
     <item tag="android.support.v7.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
-    <item tag="androidx.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="androidx.appcompat.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
     <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
-    <item tag="androidx.widget.TabLayout" suggested="true" meta="material"
+    <item tag="com.google.android.material.widget.TabLayout" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
     <item tag="android.support.design.widget.TabItem" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
-    <item tag="androidx.widget.TabItem" meta="material"
+    <item tag="com.google.android.material.widget.TabItem" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
 
     <item tag="ViewStub"/>
@@ -417,7 +417,7 @@
   </group>
   <group name="Legacy">
     <item tag="android.support.v7.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
-    <item tag="androidx.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
+    <item tag="androidx.gridlayout.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
     <item tag="ListView"/>
     <item tag="TabHost"/>
     <item tag="RelativeLayout"/>

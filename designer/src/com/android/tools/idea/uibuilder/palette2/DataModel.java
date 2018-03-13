@@ -72,7 +72,8 @@ public class DataModel {
     // This filter will hide or display the androidx.* components in the palette depending on whether the
     // project supports the androidx libraries.
     Condition<Palette.Item> androidxFilter = item -> {
-      boolean isAndroidxTag = item.getTagName().startsWith(ANDROIDX_PKG);
+      boolean isAndroidxTag = item.getTagName().startsWith(ANDROIDX_PKG) ||
+        item.getTagName().startsWith(MATERIAL2_PKG);
       boolean isOldSupportLibTag = !isAndroidxTag && item.getTagName().startsWith(ANDROID_SUPPORT_PKG_PREFIX);
       if (!isAndroidxTag && !isOldSupportLibTag) {
         return true;
