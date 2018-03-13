@@ -33,5 +33,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="analytics-protos" level="project" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
+    <orderEntry type="library" name="protobuf" level="project" />
   </component>
 </module>

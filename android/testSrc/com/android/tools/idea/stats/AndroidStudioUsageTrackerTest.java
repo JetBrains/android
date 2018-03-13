@@ -39,7 +39,7 @@ public class AndroidStudioUsageTrackerTest extends TestCase {
   }
 
   @Test
-  public void testDeviceToDeviceInfo() throws Exception {
+  public void testDeviceToDeviceInfo() {
     DeviceInfo info = AndroidStudioUsageTracker.deviceToDeviceInfo(createMockDevice());
     assertEquals(info.getAnonymizedSerialNumber(), AnonymizerUtil.anonymizeUtf8("serial"));
     assertEquals(info.getBuildTags(), "release-keys");
@@ -53,7 +53,7 @@ public class AndroidStudioUsageTrackerTest extends TestCase {
   }
 
   @Test
-  public void testDeviceToDeviceInfoApilLevelOnly() throws Exception {
+  public void testDeviceToDeviceInfoApilLevelOnly() {
     DeviceInfo info = AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly(createMockDevice());
     // Test only Api Level is set
     assertEquals(info.getBuildApiLevelFull(), "24");

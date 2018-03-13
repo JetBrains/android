@@ -287,7 +287,7 @@ public class DataStoreService {
   }
 
   private final class ReportTimerTask extends TimerTask {
-    private long myStartTime = System.nanoTime();
+    private final long myStartTime = System.nanoTime();
 
     @Override
     public void run() {
