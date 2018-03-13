@@ -27,7 +27,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.psi.PsiClass;
 import com.intellij.ui.components.panels.VerticalLayout;
@@ -75,22 +74,11 @@ public class CreateDestinationMenu extends NavToolbarMenu {
   @VisibleForTesting
   private String myDefaultId;
   private String myDefaultLabel;
-  private JComponent myButton;
 
   CreateDestinationMenu(@NotNull NavDesignSurface surface) {
     super(surface, "New Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION);
     mySchema = surface.getSchema();
     myMainPanel = createNewPanel();
-  }
-
-  @Override
-  public JComponent createCustomComponent(Presentation presentation) {
-    myButton = super.createCustomComponent(presentation);
-    return myButton;
-  }
-
-  public void show() {
-    show(myButton);
   }
 
   @Override

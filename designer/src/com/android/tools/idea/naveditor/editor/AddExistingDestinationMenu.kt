@@ -21,6 +21,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
@@ -48,18 +49,18 @@ import java.awt.MediaTracker
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.*
-import javax.swing.BorderFactory
-import javax.swing.ImageIcon
-import javax.swing.JPanel
-import javax.swing.ListModel
+import javax.swing.*
 import javax.swing.event.DocumentEvent
 
 /**
  * "Add" popup menu in the navigation editor.
  */
+// open for testing only
 @VisibleForTesting
-class AddExistingDestinationMenu(surface: NavDesignSurface) :
+open class AddExistingDestinationMenu(surface: NavDesignSurface) :
     NavToolbarMenu(surface, "Available Destinations", StudioIcons.NavEditor.Toolbar.ADD_EXISTING) {
+
+  private lateinit var myButton: JComponent
 
   @VisibleForTesting
   val destinations: List<Destination>
@@ -212,6 +213,16 @@ class AddExistingDestinationMenu(surface: NavDesignSurface) :
         }
     )
     return result
+  }
+
+  override fun createCustomComponent(presentation: Presentation): JComponent {
+    myButton = super.createCustomComponent(presentation)
+    return myButton
+  }
+
+  // open for testing only
+  open fun show() {
+    show(myButton)
   }
 
   companion object {

@@ -26,7 +26,7 @@ import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawEmptyDesigner
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
+import icons.StudioIcons.NavEditor.Toolbar.ADD_EXISTING
 import java.awt.Point
 
 @SwingCoordinate
@@ -43,7 +43,7 @@ class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() 
     @NavCoordinate b: Int
   ): Boolean {
     @NavCoordinate val width = Coordinates.getAndroidDimension(surface, WIDTH)
-    @NavCoordinate val height = Coordinates.getAndroidDimension(surface, ADD_DESTINATION.iconHeight)
+    @NavCoordinate val height = Coordinates.getAndroidDimension(surface, ADD_EXISTING.iconHeight)
 
     myLeft = ((l + r - width) / 2).toFloat()
     myTop = ((t + b - height) / 2).toFloat()
@@ -71,6 +71,6 @@ class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() 
 
   override fun mouseRelease(x: Int, y: Int, closestTargets: MutableList<Target>) {
     val navActionManager = surface.actionManager as? NavActionManager
-    navActionManager?.createDestinationMenu?.show()
+    navActionManager?.addExistingDestinationMenu?.show()
   }
 }

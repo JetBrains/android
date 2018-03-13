@@ -33,7 +33,7 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
     show(e.inputEvent.source as JComponent)
   }
 
-  protected fun show(component: JComponent) {
+  fun show(component: JComponent) {
     val balloonBuilder = JBPopupFactory.getInstance()
       .createBalloonBuilder(mainPanel)
       .setShadow(true)
