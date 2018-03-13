@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -49,17 +48,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   @NotNull private final static Predicate<ElementList.ElementItem> ANY_FILTER = e -> true;
 
   @NotNull private final ElementList myProperties = new ElementList();
-
-  /**
-   * Represents the state of an element.
-   */
-  private enum ElementState {
-    TO_BE_ADDED, // Does not exist on file, should be added.
-    TO_BE_REMOVED, // Exists on file but should be deleted.
-    EXISTING, // Exists on file and should stay there.
-    HIDDEN, // Exists on file but invisible to the model.
-    APPLIED, // These properties come from another file. These elements are not updated with calls to apply/create/delete.
-  }
 
   protected GradlePropertiesDslElement(@Nullable GradleDslElement parent,
                                        @Nullable PsiElement psiElement,
