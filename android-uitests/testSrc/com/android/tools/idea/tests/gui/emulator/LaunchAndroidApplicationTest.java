@@ -452,7 +452,7 @@ public class LaunchAndroidApplicationTest {
   @RunIn(TestGroup.QA)
   @Test
   public void turnOnOrOffBuildCache() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
 
     File homeDir = new File(SystemProperties.getUserHome());
     File androidHomeDir = new File(homeDir, ".android");
