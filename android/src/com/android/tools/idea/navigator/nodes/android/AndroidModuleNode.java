@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
@@ -115,17 +114,15 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
       result.add(new AndroidJniFolderNode(project, ndkModuleModel, settings));
     }
 
-    if (StudioFlags.NELE_SAMPLE_DATA.get()) {
-      try {
-        VirtualFile sampleDataDirectory = SampleDataResourceRepository.getSampleDataDir(facet, false);
-        PsiDirectory sampleDataPsi = sampleDataDirectory != null ? PsiManager.getInstance(project).findDirectory(sampleDataDirectory) : null;
-        if (sampleDataPsi != null) {
-          result.add(new PsiDirectoryNode(project, sampleDataPsi, settings));
-        }
+    try {
+      VirtualFile sampleDataDirectory = SampleDataResourceRepository.getSampleDataDir(facet, false);
+      PsiDirectory sampleDataPsi = sampleDataDirectory != null ? PsiManager.getInstance(project).findDirectory(sampleDataDirectory) : null;
+      if (sampleDataPsi != null) {
+        result.add(new PsiDirectoryNode(project, sampleDataPsi, settings));
       }
-      catch (IOException ignore) {
-        // The folder doesn't exist so we do not add it
-      }
+    }
+    catch (IOException ignore) {
+      // The folder doesn't exist so we do not add it
     }
 
     return result;

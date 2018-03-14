@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sampledata;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -54,19 +53,11 @@ public class AddSampleDataFileAction extends AnAction {
   public void update(AnActionEvent e) {
     super.update(e);
 
-    if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
-      e.getPresentation().setEnabledAndVisible(false);
-      return;
-    }
     e.getPresentation().setEnabledAndVisible(getFacetFromAction(e) != null);
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
-      return;
-    }
-
     AndroidFacet facet = getFacetFromAction(e);
     if (facet == null) {
       return;

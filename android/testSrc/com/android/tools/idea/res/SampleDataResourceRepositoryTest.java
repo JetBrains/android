@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,8 +43,6 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-
-    StudioFlags.NELE_SAMPLE_DATA.override(true);
   }
 
   @NotNull

@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.SampleDataResourceRepository;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.PlatformIcons;
@@ -62,11 +63,6 @@ public class CreateSampleDataDirectory extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
-      e.getPresentation().setEnabledAndVisible(false);
-      return;
-    }
-
     AndroidFacet facet = getFacet(e);
     boolean visible;
     try {
@@ -81,10 +77,6 @@ public class CreateSampleDataDirectory extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
-      return;
-    }
-
     AndroidFacet facet = getFacet(e);
     assert facet != null; // Needs to exist or the action wouldn't be visible
     try {
