@@ -81,9 +81,6 @@ public class RelativeLayoutTest {
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
-
-    // Before dragging the component, make sure there is no other task running.
-    myGuiTest.robot().waitForIdle();
     layout.dragComponentToSurface("Widgets", "ImageView");
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
