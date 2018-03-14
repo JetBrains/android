@@ -18,7 +18,9 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.profilers.CloseButton;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,11 +46,12 @@ public class EnergyDetailsView extends JPanel {
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
     CommonTabbedPane myTabsPanel = new CommonTabbedPane();
-    myDetailsOverview = new EnergyDetailsOverview(stageView);
-    myTabsPanel.addTab("Details", myDetailsOverview);
-
+    myDetailsOverview = new EnergyDetailsOverview();
     myCallstackView = new EnergyCallstackView(stageView);
-    myTabsPanel.add("Callstack", myCallstackView);
+    JPanel detailsPanel = new JPanel(new VerticalFlowLayout());
+    detailsPanel.add(myDetailsOverview);
+    detailsPanel.add(myCallstackView);
+    myTabsPanel.addTab("Details", new JBScrollPane(detailsPanel));
 
     CloseButton closeButton = new CloseButton(e -> stageView.getStage().setSelectedDuration(null));
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));

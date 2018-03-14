@@ -16,6 +16,7 @@
 package com.android.tools.profilers.energy;
 
 import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.JBEmptyBorder;
@@ -30,75 +31,81 @@ import java.util.concurrent.TimeUnit;
 
 final class EnergyDetailsOverview extends JPanel {
 
-  @NotNull private final EnergyProfilerStageView myStageView;
-  @NotNull private final JTextPane myTextPane;
+  @NotNull private final JTextPane myTextPane = new JTextPane();
 
-  public EnergyDetailsOverview(@NotNull EnergyProfilerStageView stageView) {
+  public EnergyDetailsOverview() {
     super(new BorderLayout());
-    setBorder(new JBEmptyBorder(10, 10, 5, 5));
-    myStageView = stageView;
+    setBorder(new JBEmptyBorder(5, 5, 5, 0));
 
-    myTextPane = new JTextPane();
     myTextPane.setContentType("text/html");
     myTextPane.setBackground(null);
     myTextPane.setBorder(null);
     myTextPane.setEditable(false);
     Font labelFont = UIManager.getFont("Label.font");
     StyleSheet styleSheet = ((HTMLDocument)myTextPane.getDocument()).getStyleSheet();
-    styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: 11pt; }");
-    styleSheet.addRule("p { margin: 4 0 4 0; }");
+    styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: 13pt; }");
+    styleSheet.addRule("p { margin: 2 0 2 0; }");
     add(myTextPane);
   }
 
   /**
-   * Set the details overview for a specific duration, if given {@code duration} is {@code null}, this make overview empty.
+   * Set the details overview for a specific duration, if given {@code duration} is {@code null}, the overview is empty.
+   * <li>
+   *   <ul>Wake lock acquire data is shown, but release data is redundant and is not shown.</ul>
+   *   <ul>Alarm set data is shown, alarm cancel data is redundant and is not shown.</ul>
+   *   <ul>Job scheduled data and finished data is shown, the start/stop data is not user code and is not shown.</ul>
+   * </li>
    */
   public void setDuration(@Nullable EnergyDuration duration) {
     myTextPane.setText("");
-    if (duration == null) {
+    if (duration == null || duration.getKind() == EnergyDuration.Kind.UNKNOWN) {
       return;
     }
-
     UiHtmlText html = new UiHtmlText();
-    for (EnergyProfiler.EnergyEvent event : duration.getEventList()) {
-      renderMetadataTitle(html, event);
 
-      switch (event.getMetadataCase()) {
-        case WAKE_LOCK_ACQUIRED:
-          html.renderWakeLockAcquired(event.getWakeLockAcquired());
-          break;
-        case ALARM_SET:
-          html.renderAlarmSet(event.getAlarmSet());
-          break;
-        case ALARM_CANCELLED:
-          html.renderAlarmCancelled(event.getAlarmCancelled());
-          break;
-        case JOB_SCHEDULED:
-          html.renderJobScheduled(event.getJobScheduled());
-          break;
-        case JOB_STARTED:
-          html.renderJobStarted(event.getJobStarted());
-          break;
-        case JOB_STOPPED:
-          html.renderJobStopped(event.getJobStopped());
-          break;
-        case JOB_FINISHED:
-          html.renderJobFinished(event.getJobFinished());
-          break;
-        default:
-          getLogger().warn("Unsupported overview " + event.getMetadataCase());
-          break;
-      }
-      html.appendNewLine();
+    // TODO(b/74204071): Clean up these streams once we know the first item in the duration will always be the initiating event
+    switch (duration.getKind()) {
+      case WAKE_LOCK:
+        EnergyEvent firstAcquire = duration.getEventList().stream().filter(e -> e.hasWakeLockAcquired()).findFirst().orElse(null);
+        if (firstAcquire != null) {
+          html.renderWakeLockAcquired(firstAcquire.getWakeLockAcquired());
+        }
+        break;
+      case ALARM:
+        EnergyEvent firstAlarmSet = duration.getEventList().stream().filter(e -> e.hasAlarmSet()).findFirst().orElse(null);
+        if (firstAlarmSet != null) {
+          html.renderAlarmSet(firstAlarmSet.getAlarmSet());
+        }
+        break;
+      case JOB:
+        EnergyEvent firstScheduled = duration.getEventList().stream().filter(e -> e.hasJobScheduled()).findFirst().orElse(null);
+        if (firstScheduled != null) {
+          html.renderJobScheduled(firstScheduled.getJobScheduled());
+        }
+        EnergyEvent firstFinished = duration.getEventList().stream().filter(e -> e.hasJobFinished()).findFirst().orElse(null);
+        if (firstFinished != null) {
+          html.renderJobFinished(firstFinished.getJobFinished());
+        }
+        break;
+      default:
+        getLogger().warn("Unsupported overview " + duration.getKind().name());
+        break;
     }
+
+    renderDuration(html, duration);
     myTextPane.setText(html.toString());
   }
 
-  private void renderMetadataTitle(@NotNull UiHtmlText html, @NotNull EnergyProfiler.EnergyEvent event) {
-    long timeNs = event.getTimestamp() - myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
-    String time = StringUtil.formatDuration(TimeUnit.NANOSECONDS.toMillis(timeNs));
-    String title = String.format("<b>%s</b>&nbsp;%s", event.getMetadataCase().name(), time);
-    html.appendTitle(title);
+  /**
+   * Renders the duration amount if the last event in duration is terminal. For example, the duration is 10s from the wake lock acquire
+   * to the last wake lock release. If the last event is not terminal, does not show the duration amount.
+   */
+  private static void renderDuration(@NotNull UiHtmlText html, @NotNull EnergyDuration duration) {
+    EnergyProfiler.EnergyEvent lastEvent = duration.getEventList().get(duration.getEventList().size() - 1);
+    if (lastEvent.getIsTerminal()) {
+      long durationNs = lastEvent.getTimestamp() - duration.getEventList().get(0).getTimestamp();
+      html.appendTitleAndValue("Duration", StringUtil.formatDuration(TimeUnit.NANOSECONDS.toMillis(durationNs)));
+    }
   }
 
   @NotNull

@@ -20,10 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -62,6 +59,14 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
           getLogger().warn("Unsupported Kind for " + event.getMetadataCase().name());
           return UNKNOWN;
       }
+    }
+
+    @NotNull
+    public String getDisplayName() {
+      String kindStr = name().replace('_', ' ');
+      // Capitalize first letter because it looks nicer in the table
+      kindStr = kindStr.substring(0, 1).toUpperCase(Locale.US) + kindStr.substring(1).toLowerCase(Locale.US);
+      return kindStr;
     }
   }
 

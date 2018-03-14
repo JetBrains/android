@@ -15,11 +15,12 @@
  */
 package com.android.tools.profilers.energy;
 
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,16 +48,13 @@ public final class EnergyCallstackView extends JPanel {
       return;
     }
 
-    long sessionStartTime = myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
+    long startTimeNs = myStageView.getStage().getStudioProfilers().getSession().getStartTimestamp();
     for (EnergyProfiler.EnergyEvent event : duration.getEventList()) {
       if (event.getTraceId().isEmpty()) {
         continue;
       }
-      long timeMs = TimeUnit.NANOSECONDS.toMillis(event.getTimestamp() - sessionStartTime);
-      String description = event.getMetadataCase() + " " + StringUtil.formatDuration(timeMs);
 
-      // TODO: Get real data and remove the fake callstack string below.
-      String callstackString = getCallstackString(event.getTraceId());
+      String callstackString = myStageView.getStage().requestBytes(event.getTraceId()).toStringUtf8();
       List<CodeLocation> codeLocationList = Arrays.stream(callstackString.split("\\n"))
         .filter(line -> !line.trim().isEmpty())
         .map(line -> new StackFrameParser(line).toCodeLocation())
@@ -64,28 +62,14 @@ public final class EnergyCallstackView extends JPanel {
       StackTraceModel model = new StackTraceModel(myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator());
       StackTraceView stackTraceView = myStageView.getIdeComponents().createStackView(model);
       stackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, codeLocationList);
-      HideablePanel hideablePanel = new HideablePanel.Builder(description, stackTraceView.getComponent()).build();
-      add(hideablePanel);
-    }
-  }
+      JComponent traceComponent = stackTraceView.getComponent();
 
-  @NotNull
-  private static String getCallstackString(String traceId) {
-    if (traceId.contains("acquire")) {
-      return "android.os.PowerManager$WakeLock.acquire(PowerManager.java:32)\n" +
-             "com.activity.energy.WakeLockActivity.runAcquire(WakeLockActivity.java:29)\n" +
-             "java.lang.reflect.Method.invoke(Native Method)\n" +
-             "com.android.tools.profiler.FakeAndroid.onRequest(FakeAndroid.java:133)\n" +
-             "android.tools.SimpleWebServer.handle(SimpleWebServer.java:179)\n" +
-             "android.tools.SimpleWebServer.run(SimpleWebServer.java:127)";
-    }
-    else {
-      return "android.os.PowerManager$WakeLock.release(PowerManager.java:42)\n" +
-             "com.activity.energy.WakeLockActivity.runRelease(WakeLockActivity.java:30)\n" +
-             "java.lang.reflect.Method.invoke(Native Method)\n" +
-             "com.android.tools.profiler.FakeAndroid.onRequest(FakeAndroid.java:133)\n" +
-             "android.tools.SimpleWebServer.handle(SimpleWebServer.java:179)\n" +
-             "android.tools.SimpleWebServer.run(SimpleWebServer.java:127)";
+      String time = TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp() - startTimeNs));
+      String metadataCase = event.getMetadataCase().name();
+      String description = metadataCase.substring(metadataCase.lastIndexOf('_') + 1) + " - " + time;
+      HideablePanel hideablePanel = new HideablePanel.Builder(description, traceComponent).build();
+      hideablePanel.setBorder(new JBEmptyBorder(0, 0, 5, 0));
+      add(hideablePanel);
     }
   }
 }
