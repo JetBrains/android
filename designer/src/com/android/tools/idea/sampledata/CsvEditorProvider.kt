@@ -16,7 +16,6 @@
 package com.android.tools.idea.sampledata
 
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.SampleDataResourceRepository
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
@@ -35,8 +34,6 @@ class CsvEditorProvider : FileEditorProvider, DumbAware {
    * FileEditorProvider ID for the CSV sample data editor
    */
   override fun accept(project: Project, virtualFile: VirtualFile): Boolean {
-    if (!StudioFlags.NELE_SAMPLE_DATA.get()) return false
-
     val psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile)
     if (psiFile is PsiPlainTextFile && "csv" == virtualFile.extension?.toLowerCase()) {
       val sampleDataDirectory = AndroidFacet.getInstance(psiFile)?.let { SampleDataResourceRepository.getSampleDataDir(it, false) }

@@ -20,7 +20,6 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -148,9 +147,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     LocalResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(facet);
     repositories.addAll(libraries);
     repositories.add(resources);
-    if (StudioFlags.NELE_SAMPLE_DATA.get()) {
-      repositories.add(new SampleDataResourceRepository(facet));
-    }
+    repositories.add(new SampleDataResourceRepository(facet));
     return repositories;
   }
 

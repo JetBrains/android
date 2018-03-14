@@ -23,7 +23,6 @@ import com.android.resources.ResourceAccessibility;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNamespaceContext;
@@ -328,7 +327,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
     }
-    if (StudioFlags.NELE_SAMPLE_DATA.get() && TOOLS_URI.equals(element.getXmlElementNamespace())) {
+    if (TOOLS_URI.equals(element.getXmlElementNamespace())) {
       // For tools: attributes, we also add the mock types
       types.add(ResourceType.SAMPLE_DATA);
     }
