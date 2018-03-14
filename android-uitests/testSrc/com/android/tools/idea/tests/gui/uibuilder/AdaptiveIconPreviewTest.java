@@ -111,7 +111,7 @@ public class AdaptiveIconPreviewTest {
     Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.openThemeSelectionDialog()
-      .selectsTheme("Holo Light", "android:Theme.Holo.Light")
+      .selectTheme("Holo Light", "android:Theme.Holo.Light")
       .clickOk();
     /* disabled due to failing assertion (b/64162841)
     toolbar.leaveConfigToolbar()
@@ -119,7 +119,7 @@ public class AdaptiveIconPreviewTest {
     assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ffe6e6e6");
     */
     toolbar.openThemeSelectionDialog()
-      .selectsTheme("Material Dark", "android:Theme.Material")
+      .selectTheme("Material Dark", "android:Theme.Material")
       .clickOk();
     /* disabled due to failing assertion (b/64162841)
     toolbar.leaveConfigToolbar()
