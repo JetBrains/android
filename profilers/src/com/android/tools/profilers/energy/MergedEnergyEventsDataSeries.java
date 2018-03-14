@@ -42,7 +42,7 @@ import java.util.*;
  *    [===============]     [=======]   [========]
  * </pre>
  */
-public class MergedEnergyEventsDataSeries implements DataSeries<EnergyEvent> {
+public final class MergedEnergyEventsDataSeries implements DataSeries<EnergyEvent> {
 
   @NotNull private final EnergyEventsDataSeries myDelegateSeries;
   private final List<EnergyDuration.Kind> myKindsFilter;
@@ -58,7 +58,6 @@ public class MergedEnergyEventsDataSeries implements DataSeries<EnergyEvent> {
 
   @Override
   public List<SeriesData<EnergyEvent>> getDataForXRange(Range xRange) {
-    // TODO(b/74217538): Cache last result
     List<SeriesData<EnergyEvent>> sourceData = myDelegateSeries.getDataForXRange(xRange);
     List<SeriesData<EnergyEvent>> destData = new ArrayList<>();
     Set<Integer> activeEventGroups = new HashSet<>();

@@ -21,7 +21,6 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.stub.StreamObserver;
@@ -246,43 +245,5 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
     myCpuTable.initialize(connection);
-  }
-
-  /**
-   * Stores a response of a determined type to avoid making unnecessary queries to the database.
-   *
-   * Often, there is no need for querying the database to get the response corresponding to the request made.
-   * For example, in the threads monitor each thread has a ThreadStateDataSeries that will call
-   * {@link #getThreads(GetThreadsRequest, StreamObserver)} passing a request with the same arguments (start/end timestamp,
-   * pid, and session). In these cases, we can query the database once and return a cached result for the subsequent calls.
-   *
-   * @param <T> type of the response stored
-   */
-  private static class ResponseData<T> {
-    private Common.Session mySession;
-    private long myStart;
-    private long myEnd;
-    private T myResponse;
-
-    private ResponseData(Common.Session session, long startTimestamp, long endTimestamp, T response) {
-      mySession = session;
-      myStart = startTimestamp;
-      myEnd = endTimestamp;
-      myResponse = response;
-    }
-
-    public boolean matches(Common.Session session, long startTimestamp, long endTimestamp) {
-      boolean isSessionEquals = (mySession == null && session == null) || (mySession != null && mySession.equals(session));
-      return isSessionEquals && myStart == startTimestamp && myEnd == endTimestamp;
-    }
-
-    public T getResponse() {
-      return myResponse;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static ResponseData createEmpty() {
-      return new ResponseData(null, 0, 0, null);
-    }
   }
 }

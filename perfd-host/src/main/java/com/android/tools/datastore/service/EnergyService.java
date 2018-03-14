@@ -44,6 +44,11 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
   private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Consumer<Runnable> myFetchExecutor;
 
+  @SuppressWarnings("unchecked")
+  private ResponseData<EnergySamplesResponse> myLastSamplesResponse = ResponseData.createEmpty();
+  @SuppressWarnings("unchecked")
+  private ResponseData<EnergyEventsResponse> myLastEventsResponse = ResponseData.createEmpty();
+
   public EnergyService(@NotNull DataStoreService service, @NotNull Consumer<Runnable> fetchExecutor) {
     this(new BatteryModel(), service, fetchExecutor);
   }
@@ -104,19 +109,27 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
 
   @Override
   public void getSamples(EnergyRequest request, StreamObserver<EnergySamplesResponse> responseObserver) {
-    EnergyProfiler.EnergySamplesResponse.Builder response = EnergyProfiler.EnergySamplesResponse.newBuilder();
-    List<EnergySample> samples = myEnergyTable.findSamples(request);
-    response.addAllSamples(samples);
-    responseObserver.onNext(response.build());
+    if (!myLastSamplesResponse.matches(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
+      EnergyProfiler.EnergySamplesResponse.Builder response = EnergyProfiler.EnergySamplesResponse.newBuilder();
+      List<EnergySample> samples = myEnergyTable.findSamples(request);
+      response.addAllSamples(samples);
+      myLastSamplesResponse =
+        new ResponseData<>(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp(), response.build());
+    }
+    responseObserver.onNext(myLastSamplesResponse.getResponse());
     responseObserver.onCompleted();
   }
 
   @Override
   public void getEvents(EnergyRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
-    EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
-    List<EnergyEvent> events = myEnergyTable.findEvents(request);
-    response.addAllEvents(events);
-    responseObserver.onNext(response.build());
+    if (!myLastEventsResponse.matches(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
+      EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
+      List<EnergyEvent> events = myEnergyTable.findEvents(request);
+      response.addAllEvents(events);
+      myLastEventsResponse =
+        new ResponseData<>(request.getSession(), request.getStartTimestamp(), request.getEndTimestamp(), response.build());
+    }
+    responseObserver.onNext(myLastEventsResponse.getResponse());
     responseObserver.onCompleted();
   }
 
