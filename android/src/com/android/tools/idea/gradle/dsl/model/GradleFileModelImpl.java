@@ -33,10 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class GradleFileModelImpl implements GradleFileModel {
@@ -78,10 +75,18 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     return myGradleDslFile.getFile();
   }
 
+  @Override
+  @NotNull
+  public Map<String, GradlePropertyModel> getInScopeProperties() {
+    return myGradleDslFile.getInScopeElements().entrySet().stream()
+      .collect(Collectors.toMap(e -> e.getKey(), e -> new GradlePropertyModelImpl(e.getValue())));
+  }
+
   @NotNull
   @Override
   public List<GradlePropertyModel> getDeclaredProperties() {
-    return myGradleDslFile.getContainedElements(false).stream().map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
+    return myGradleDslFile.getContainedElements(false).stream().map(e -> new GradlePropertyModelImpl(e))
+      .collect(Collectors.toList());
   }
 
   @NotNull

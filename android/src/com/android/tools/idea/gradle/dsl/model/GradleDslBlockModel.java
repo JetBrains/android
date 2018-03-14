@@ -29,6 +29,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -57,6 +58,13 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   public Map<String, GradlePropertyModel> getInScopeProperties() {
     return myDslElement.getInScopeElements().entrySet().stream()
       .collect(Collectors.toMap(e -> e.getKey(), e -> new GradlePropertyModelImpl(e.getValue())));
+  }
+
+  @Override
+  @NotNull
+  public List<GradlePropertyModel> getDeclaredProperties() {
+    return myDslElement.getContainedElements(true).stream().filter(e -> !(e instanceof GradlePropertiesDslElement))
+      .map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
   }
 
   @NotNull

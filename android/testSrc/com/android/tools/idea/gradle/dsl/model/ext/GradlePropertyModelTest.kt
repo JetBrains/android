@@ -3403,6 +3403,42 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
+  fun testGetDeclaredProperties() {
+    val text = """
+               android {
+                 def outerVar = "Spooky"
+                 buildTypes {
+                   debug {
+                     def var = sneaky
+                     minifyEnabled true
+                   }
+                 }
+               }
+               ext  {
+                 prop1 = "property"
+                 def var = "value"
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extProperties = buildModel.ext().declaredProperties
+    val androidProperties = buildModel.android()!!.declaredProperties
+    val debugProperties = buildModel.android()!!.buildTypes()[0].declaredProperties
+
+    assertSize(2 ,extProperties)
+    assertSize(3, androidProperties)
+    assertSize(2, debugProperties)
+
+    verifyPropertyModel(extProperties[0], STRING_TYPE, "property", STRING, REGULAR, 0, "prop1")
+    verifyPropertyModel(extProperties[1], STRING_TYPE, "value", STRING, VARIABLE, 0, "var")
+    verifyPropertyModel(androidProperties[0], STRING_TYPE, "Spooky", STRING, VARIABLE, 0, "outerVar")
+    verifyPropertyModel(androidProperties[1], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var")
+    verifyPropertyModel(androidProperties[2], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "minifyEnabled")
+    verifyPropertyModel(debugProperties[0], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var")
+    verifyPropertyModel(debugProperties[1], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "minifyEnabled")
+  }
+
   private fun runSetPropertyTest(text: String, type: PropertyType) {
     writeToBuildFile(text)
 
