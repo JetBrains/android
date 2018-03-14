@@ -45,9 +45,7 @@ public class ThemeSelectionDialogFixture extends IdeaDialogFixture<ThemeSelectio
   @NotNull
   public ThemeSelectionDialogFixture selectTheme(@NotNull String category, @NotNull String theme) {
     getCategoriesTree().clickPath(category);
-    robot().waitForIdle();
     getThemeList().clickItem(theme);
-    robot().waitForIdle();
     return this;
   }
 
