@@ -25,7 +25,7 @@ public class EnergyUsage extends LineChartModel {
   @NotNull private final Range myUsageRange;
 
   public EnergyUsage(@NotNull StudioProfilers profilers) {
-    myUsageRange = new Range(0, 100);
+    myUsageRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
     EnergyUsageDataSeries dataSeries = new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession());
     myUsageSeries = new RangedContinuousSeries(getSeriesLabel(), profilers.getTimeline().getViewRange(), myUsageRange, dataSeries);
     add(myUsageSeries);

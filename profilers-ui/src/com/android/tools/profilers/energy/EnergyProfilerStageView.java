@@ -128,7 +128,6 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     axisPanel.setOpaque(false);
     final AxisComponent leftAxis = new AxisComponent(getStage().getAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
-    leftAxis.setShowMax(true);
     leftAxis.setShowUnitAtMax(true);
     leftAxis.setHideTickAtMin(true);
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
