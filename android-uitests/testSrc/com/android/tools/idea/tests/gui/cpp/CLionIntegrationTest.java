@@ -88,7 +88,7 @@ public class CLionIntegrationTest {
 
     // Complete the new statement.
     editor.moveBetween("BUFFER_OFFSET(", "")
-      .enterText("kid_age")
+      .typeText("kid_age")
       .invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
 
     // Check declaration.

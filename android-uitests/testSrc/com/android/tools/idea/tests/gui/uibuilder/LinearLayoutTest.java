@@ -135,8 +135,7 @@ public final class LinearLayoutTest {
     editor.moveBetween("AppTheme", "");
     editor.invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
 
-    // Editor inserts the closing tag automatically.
-    editor.enterText("<item name=\"linear_layout_style\">@style/vertical_linear_layout");
+    editor.pasteText("<item name=\"linear_layout_style\">@style/vertical_linear_layout</item>");
 
     editor.open(myLayoutPath.toString());
     Wait.seconds(10)
