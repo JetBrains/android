@@ -63,14 +63,9 @@ public class PsSigningConfigCollection implements PsModelCollection<PsSigningCon
     }
   }
 
-  @Override
   @Nullable
-  @SuppressWarnings("TypeParameterExtendsFinalClass")
-  public <S extends PsSigningConfig> S findElement(@NotNull String name, @NotNull Class<S> type) {
-    if (PsSigningConfig.class.equals(type)) {
-      return type.cast(mySigningConfigsByName.get(name));
-    }
-    return null;
+  public PsSigningConfig findElement(@NotNull String name) {
+    return mySigningConfigsByName.get(name);
   }
 
   @Override
