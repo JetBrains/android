@@ -621,7 +621,7 @@ public final class GroovyDslUtil {
       // Find the last empty (no newlines or content) child after the initial element.
       while (element != null) {
         element = element.getNextSibling();
-        if (Strings.isNullOrEmpty(element.getText()) || element.getText().matches("[\\t ]+") ) {
+        if (element != null && (Strings.isNullOrEmpty(element.getText()) || element.getText().matches("[\\t ]+"))) {
           continue;
         }
         break;
