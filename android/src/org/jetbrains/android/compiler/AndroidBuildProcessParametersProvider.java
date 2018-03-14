@@ -1,5 +1,6 @@
 package org.jetbrains.android.compiler;
 
+import com.android.ide.common.build.ApkData;
 import com.android.jarutils.SignedJarBuilder;
 import com.android.manifmerger.Merger;
 import com.android.prefs.AndroidLocation;
@@ -24,6 +25,7 @@ public class AndroidBuildProcessParametersProvider extends BuildProcessParameter
                             PathManager.getJarPathForClass(ImmutableList.class),    // guava
                             PathManager.getJarPathForClass(AndroidLocation.class),
                             PathManager.getJarPathForClass(Merger.class),           // manifest merger
-                            PathManager.getJarPathForClass(BuildException.class)); // gradle tooling
+                            PathManager.getJarPathForClass(ApkData.class),          // sdk common
+                            PathManager.getJarPathForClass(BuildException.class));  // gradle tooling
   }
 }

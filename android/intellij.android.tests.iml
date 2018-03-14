@@ -48,7 +48,6 @@
     <orderEntry type="module" module-name="intellij.android.layoutInspector" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
     <orderEntry type="module" module-name="intellij.android.analyzer" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
@@ -62,6 +61,7 @@
     <orderEntry type="library" scope="TEST" name="lombok-ast" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.builder-model" scope="TEST" />
     <orderEntry type="library" name="protobuf" level="project" />
   </component>
 </module>

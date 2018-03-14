@@ -9,11 +9,15 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="layoutlib" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="intellij.platform.annotations.java5" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="library" name="ASM" level="project" />
+    <orderEntry type="library" name="com.android.tools:annotations:26.0.0" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdk-common:26.0.0" level="project" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
   </component>
 </module>

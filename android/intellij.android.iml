@@ -99,7 +99,6 @@
     <orderEntry type="module" module-name="intellij.android.javaLibModel" />
     <orderEntry type="module" module-name="intellij.android.javaLibModel.builder" />
     <orderEntry type="module" module-name="intellij.android.layoutInspector" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="intellij.android.flags" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
@@ -112,5 +111,6 @@
     <orderEntry type="library" name="XStream" level="project" />
     <orderEntry type="library" name="jgraphx" level="project" />
     <orderEntry type="library" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.builder-model" />
   </component>
 </module>
