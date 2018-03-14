@@ -73,8 +73,10 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
     override fun getNetworkUsage(type: PowerProfile.NetworkType, state: PowerProfile.NetworkState): Int {
       return when (type) {
-        PowerProfile.NetworkType.WIFI -> if (state == PowerProfile.NetworkState.ACTIVE) WIFI_ACTIVE else 0
-        PowerProfile.NetworkType.RADIO -> if (state == PowerProfile.NetworkState.ACTIVE) RADIO_ACTIVE else 0
+        PowerProfile.NetworkType.WIFI ->
+          if (state == PowerProfile.NetworkState.SENDING || state == PowerProfile.NetworkState.RECEIVING) WIFI_ACTIVE else 0
+        PowerProfile.NetworkType.RADIO ->
+          if (state == PowerProfile.NetworkState.SENDING || state == PowerProfile.NetworkState.RECEIVING) RADIO_ACTIVE else 0
         else -> 0
       }
     }

@@ -171,8 +171,13 @@ public final class BatteryModel {
 
   private void addNewNetworkSample(long timestampNs) {
     addNewSample(timestampNs, sample -> {
-      PowerProfile.NetworkState networkState =
-        (myIsReceiving || myIsTransmitting) ? PowerProfile.NetworkState.ACTIVE : PowerProfile.NetworkState.IDLE;
+      PowerProfile.NetworkState networkState = PowerProfile.NetworkState.IDLE;
+      if (myIsReceiving) {
+        networkState = PowerProfile.NetworkState.RECEIVING;
+      }
+      else if (myIsTransmitting) {
+        networkState = PowerProfile.NetworkState.SENDING;
+      }
       return sample.setNetworkUsage(myPowerProfile.getNetworkUsage(myNetworkType, networkState));
     });
   }
