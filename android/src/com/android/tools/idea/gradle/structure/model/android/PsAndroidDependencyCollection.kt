@@ -45,9 +45,6 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
 
   fun findLibraryDependencies(group: String?, name: String): List<PsLibraryAndroidDependency> =
     libraryDependenciesBySpec.values.filter { it.spec.group == group && it.spec.name == name }
-
-
-  fun findModuleDependency(modulePath: String): PsModuleAndroidDependency? = moduleDependenciesByGradlePath[modulePath]
 }
 
 /**

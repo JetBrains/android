@@ -348,7 +348,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule module = (PsAndroidModule)project.findModuleByName("mainModule");
     assertNotNull(module);
 
-    List<PsAndroidDependency> declaredDependencies = getDependencies(module.getDependencies());
+    List<PsAndroidDependency> declaredDependencies = module.getDependencies().items();
     assertThat(declaredDependencies).hasSize(3);
     {
       // Verify that lib1:1.0 is considered a "editable" dependency, and it was matched properly
@@ -419,9 +419,13 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule modulePlus = (PsAndroidModule)project.findModuleByName("modulePlus");
     assertNotNull(modulePlus);
 
-    List<PsAndroidDependency> declaredLib1Dependencies = getDependencies(modulePlus.getDependencies()).stream()
-      .filter(v -> v instanceof PsLibraryAndroidDependency && ((PsLibraryAndroidDependency)v).getSpec().getName().equals("lib1"))
-      .collect(toList());
+    List<PsAndroidDependency> declaredLib1Dependencies =
+      modulePlus
+        .getDependencies()
+        .items()
+        .stream()
+        .filter(v -> v instanceof PsLibraryAndroidDependency && ((PsLibraryAndroidDependency)v).getSpec().getName().equals("lib1"))
+        .collect(toList());
 
     // Verify that appcompat is considered a "editable" dependency, and it was matched properly
     PsLibraryAndroidDependency lib1 = (PsLibraryAndroidDependency)declaredLib1Dependencies.get(0);
@@ -451,15 +455,6 @@ public class PsAndroidModuleTest extends DependencyTestCase {
         }
       });
     }
-  }
-
-  @NotNull
-  private static List<PsAndroidDependency> getDependencies(PsAndroidDependencyCollection dependencyCollection) {
-    List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    dependencyCollection.forEach(dependency -> {
-      dependencies.add(dependency);
-    });
-    return dependencies;
   }
 
   public void testCanDependOnModules() throws Throwable {

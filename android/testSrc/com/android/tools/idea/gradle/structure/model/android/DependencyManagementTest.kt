@@ -243,3 +243,6 @@ class DependencyManagementTest : DependencyTestCase() {
 //    assertThat(module.findModuleDependency(":jModuleL"), notNullValue())
   }
 }
+
+fun PsAndroidDependencyCollection.findModuleDependency(gradlePath: String) =
+  items().singleOrNull { it is PsModuleAndroidDependency && it.gradlePath == gradlePath }
