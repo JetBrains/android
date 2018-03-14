@@ -33,9 +33,11 @@
           below. You can also
           <a href="https://d.android.com/studio/releases/index.html#3-2">read the full release notes</a>
           in a browser or <a href="https://d.android.com/r/studio-wna/3.2.0/video-overview.html">watch a video overview</a> on YouTube.
+          <br><br>
+          To open this panel again later, select <b>Help &gt; What's New in Android Studio</b> from the main menu.
 
         <div style="padding-left: 10px; padding-right: 10px;">
-          <h2>Support for Dynamic Apps</h2>
+          <h1>Support for Dynamic Apps</h1>
 
           Dynamic Apps is an easier way to update and deploy your app to an ever-growing ecosystem of
           diverse Android devices. With Dynamic Apps, you need to build and upload only a single build artifact,
@@ -48,7 +50,9 @@
           Apps and build Android App Bundles.
 
           <br><br>
-          <img src="https://d.android.com/studio/releases/assistant/3.2.0/studio-build.png">
+          <div align="center">
+            <img src="https://d.android.com/studio/releases/assistant/3.2.0/studio-build.png">
+          </div>
 
           <br><br>
           To learn more about how to configure your project to support Dynamic Apps, read the following
@@ -62,7 +66,7 @@
             <li><a href="https://d.android.com">Build and Upload Android App Bundles</a></li>
           <ul>
 
-          <h2>Navigation Editor</h2>
+          <h1>Navigation Editor</h1>
 
           The Navigation Editor lets you visualize and edit navigation behavior between different components
           and activities in your app, so you can better assess whether navigation flows are correct and easy
@@ -70,10 +74,12 @@
           in a browser.
 
           <br><br>
-          <img src="https://d.android.com/studio/releases/assistant/3.2.0/app-navigation.png">
+          <div align="center">
+            <img src="https://d.android.com/studio/releases/assistant/3.2.0/app-navigation.png">
+          </div>
 
           <br><br>
-          <h2>New Energy Profiler</h2>
+          <h1>New Energy Profiler</h1>
 
           <a href="https://d.android.com/studio/profile/android-profiler.html">The Android Profiler</a>
           <img src="https://d.android.com/studio/images/buttons/toolbar-android-profiler.png" width="16" height="16">
@@ -83,10 +89,12 @@
           most energy.
 
           <br><br>
-          <img src="https://d.android.com/studio/releases/assistant/3.2.0/studio-profiler.png">
+          <div align="center">
+            <img src="https://d.android.com/studio/releases/assistant/3.2.0/studio-profiler.png">
+          </div>
 
           <br>
-          <h2>New Code Shrinker</h2>
+          <h1>New Code Shrinker</h1>
 
           R8 is a new tool for code shrinking and obfuscation that replaces ProGuard. You can start using a
           <b>preview</b> version of R8 by including the following in your project’s
