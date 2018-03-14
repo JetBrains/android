@@ -28,7 +28,6 @@
     <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" exported="" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -53,5 +52,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" exported="" scope="RUNTIME" name="asm-tools" level="project" />
+    <orderEntry type="library" exported="" name="com.android.tools:sdk-common:26.0.0" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.builder-model" />
   </component>
 </module>
