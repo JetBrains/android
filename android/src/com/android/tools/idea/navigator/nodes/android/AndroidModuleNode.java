@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
+import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
@@ -41,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 
 /**
@@ -175,6 +177,27 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     }
 
     return sources;
+  }
+
+  @Override
+  public boolean contains(@NotNull VirtualFile file) {
+    if (super.contains(file)) {
+      return true;
+    }
+    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
+
+      // If there is a native-containing module then check it for externally referenced header files
+      AndroidFacet facet = AndroidFacet.getInstance(getModule());
+      if (facet == null || facet.getConfiguration().getModel() == null) {
+        return false;
+      }
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
+      if (ndkModuleModel != null) {
+        return NdkModuleNode.containedInIncludeFolders(ndkModuleModel, file);
+      }
+      return false;
+    }
+    return false;
   }
 
   @Override

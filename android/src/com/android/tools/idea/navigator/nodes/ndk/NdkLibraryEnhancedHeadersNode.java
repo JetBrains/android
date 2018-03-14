@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
+
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeFolder;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.google.common.collect.ImmutableSet;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
+import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode;
+import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes;
 import com.google.common.collect.Iterables;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
@@ -41,37 +44,39 @@ import java.util.*;
 
 import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> implements FolderGroupNode {
-  private static final Set<String> HEADER_FILE_EXTENSIONS = ImmutableSet.of("h", "hpp", "hh", "h++", "hxx");
+public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<NativeArtifact>> implements FolderGroupNode {
 
   @NotNull private final String myNativeLibraryName;
   @NotNull private final String myNativeLibraryType;
   @NotNull private final Collection<String> mySourceFileExtensions;
+  @NotNull private final NativeIncludes myNativeIncludes;
 
   @Nullable private VirtualFile myLibraryFolder;
 
-  public NdkLibraryNode(@NotNull Project project,
-                        @NotNull String nativeLibraryName,
-                        @NotNull String nativeLibraryType,
-                        @NotNull Collection<NativeArtifact> artifacts,
-                        @NotNull ViewSettings settings,
-                        @NotNull Collection<String> sourceFileExtensions) {
+  public NdkLibraryEnhancedHeadersNode(@NotNull Project project,
+                                       @NotNull String nativeLibraryName,
+                                       @NotNull String nativeLibraryType,
+                                       @NotNull Collection<NativeArtifact> artifacts,
+                                       @NotNull NativeIncludes nativeIncludes,
+                                       @NotNull ViewSettings settings,
+                                       @NotNull Collection<String> sourceFileExtensions) {
     super(project, artifacts, settings);
-    assert !ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get();
+    assert ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get();
     myNativeLibraryName = nativeLibraryName;
     myNativeLibraryType = nativeLibraryType;
     mySourceFileExtensions = sourceFileExtensions;
+    myNativeIncludes = nativeIncludes;
   }
 
   @NotNull
-  static Collection<AbstractTreeNode> getSourceFolderNodes(@NotNull Project project,
-                                                           @NotNull Collection<NativeArtifact> artifacts,
-                                                           @NotNull ViewSettings settings,
-                                                           @NotNull Collection<String> sourceFileExtensions) {
+  private static Collection<AbstractTreeNode> getSourceFolderNodes(
+    @NotNull Project project,
+    @NotNull Collection<NativeArtifact> artifacts,
+    @NotNull ViewSettings settings,
+    @NotNull Collection<String> sourceFileExtensions) {
     TreeMap<String, RootFolder> rootFolders = new TreeMap<>();
 
     for (NativeArtifact artifact : artifacts) {
@@ -87,10 +92,8 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
       mergeFolders(rootFolders);
     }
 
-    Set<String> fileExtensions = new HashSet<>(sourceFileExtensions.size() + HEADER_FILE_EXTENSIONS.size());
+    Set<String> fileExtensions = new HashSet<>(sourceFileExtensions.size());
     fileExtensions.addAll(sourceFileExtensions);
-    // add header files extension explicitly as the model only provides the extensions of source files.
-    fileExtensions.addAll(HEADER_FILE_EXTENSIONS);
 
     PsiManager psiManager = PsiManager.getInstance(project);
     List<AbstractTreeNode> children = new ArrayList<>();
@@ -118,10 +121,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
 
   @NotNull
   private static List<VirtualFile> getSourceFolders(@NotNull NativeArtifact artifact) {
-    List<File> sourceFolders = new ArrayList<>();
-    for (File headerRoot : artifact.getExportedHeaders()) {
-      sourceFolders.add(headerRoot);
-    }
+    List<File> sourceFolders = new ArrayList<>(artifact.getExportedHeaders());
     for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
       sourceFolders.add(sourceFolder.getFolderPath());
     }
@@ -129,7 +129,8 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
     return convertToVirtualFiles(sourceFolders);
   }
 
-  private static void addSourceFiles(TreeMap<String, RootFolder> rootFolders, NativeArtifact artifact) {
+
+  private static void addSourceFiles(@NotNull TreeMap<String, RootFolder> rootFolders, @NotNull NativeArtifact artifact) {
     for (VirtualFile sourceFile : getSourceFiles(artifact)) {
       VirtualFile sourceFolder = sourceFile.getParent();
       String path = sourceFolder.getPath();
@@ -144,9 +145,6 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
     for (NativeFile sourceFile : artifact.getSourceFiles()) {
       File source = sourceFile.getFilePath();
       sourceFiles.add(source);
-      for (String extension : HEADER_FILE_EXTENSIONS) {
-        sourceFiles.add(new File(source.getParentFile(), getNameWithoutExtension(source) + "." + extension));
-      }
     }
 
     return convertToVirtualFiles(sourceFiles);
@@ -167,20 +165,22 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
   }
 
   /**
-   * Groups folders recursively if either two folders share a common parent folder or a folder is a parent of another folder.
+   * Groups folders together if either two folders share a common parent folder or a folder is a parent of another folder.
    */
-  private static void groupFolders(TreeMap<String, RootFolder> rootFolders) {
+  private static void groupFolders(@NotNull TreeMap<String, RootFolder> rootFolders) {
     String keyToMerge = rootFolders.lastKey();
     while (keyToMerge != null) {
       RootFolder folderToMerge = rootFolders.get(keyToMerge);
       VirtualFile folderToMergeParent = folderToMerge.rootFolder.getParent();
       if (folderToMergeParent == null) {
+        // No parent found, cannot merge
         keyToMerge = rootFolders.lowerKey(keyToMerge);
         continue;
       }
 
       RootFolder targetFolder = rootFolders.get(folderToMergeParent.getPath());
       if (targetFolder != null) {
+        // Parent found and is already on rootFolders, merge to it
         targetFolder.sourceFolders.addAll(folderToMerge.sourceFolders);
         targetFolder.sourceFiles.addAll(folderToMerge.sourceFiles);
         rootFolders.remove(keyToMerge);
@@ -190,12 +190,14 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
 
       String previousKey = rootFolders.lowerKey(keyToMerge);
       if (previousKey == null) {
+        // Parent is not on rootFolder, but there are not siblings, no need to merge and since there are no more keys to process we can finish.
         break;
       }
 
       RootFolder previousFolder = rootFolders.get(previousKey);
       VirtualFile previousFolderParent = previousFolder.rootFolder.getParent();
       if (previousFolderParent != null && previousFolderParent.getPath().equals(folderToMergeParent.getPath())) {
+        // keyToMerge and previousKey share the same parent, create the parent and merge both on it.
         targetFolder = rootFolders.computeIfAbsent(folderToMergeParent.getPath(), k -> new RootFolder(folderToMergeParent));
         targetFolder.sourceFolders.addAll(folderToMerge.sourceFolders);
         targetFolder.sourceFolders.addAll(previousFolder.sourceFolders);
@@ -207,14 +209,15 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
         continue;
       }
 
+      // Cannot be merged since there are no siblings, but there are other keys remaining.
       keyToMerge = previousKey;
     }
   }
 
   /**
-   * Merges folders recursively if one folder is an ancestor of another folder.
+   * Merges folders together if one folder is an ancestor of another folder.
    */
-  private static void mergeFolders(TreeMap<String, RootFolder> rootFolders) {
+  private static void mergeFolders(@NotNull TreeMap<String, RootFolder> rootFolders) {
     String keyToMerge = rootFolders.lastKey();
     while (keyToMerge != null) {
       RootFolder folderToMerge = rootFolders.get(keyToMerge);
@@ -243,6 +246,9 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
+    IncludesViewNode includesNode = new IncludesViewNode(getNotNullProject(), myNativeIncludes, getSettings());
+    List<AbstractTreeNode> result = new ArrayList<>();
+    result.add(includesNode);
     Collection<AbstractTreeNode> sourceFolderNodes =
       getSourceFolderNodes(getNotNullProject(), getArtifacts(), getSettings(), mySourceFileExtensions);
     if (sourceFolderNodes.size() == 1) {
@@ -251,7 +257,8 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
       NdkSourceFolderNode sourceFolderNode = (NdkSourceFolderNode)node;
       sourceFolderNode.setShowFolderPath(false);
       myLibraryFolder = sourceFolderNode.getVirtualFile();
-      return sourceFolderNode.getChildren();
+      result.addAll(sourceFolderNode.getChildren());
+      return result;
     }
 
     for (AbstractTreeNode sourceFolderNode : sourceFolderNodes) {
@@ -260,11 +267,12 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
       }
     }
     myLibraryFolder = null;
-    return sourceFolderNodes;
+    result.addAll(sourceFolderNodes);
+    return result;
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.addText(myNativeLibraryName, REGULAR_ATTRIBUTES);
     if (!myNativeLibraryType.isEmpty()) {
       presentation.addText(" (" +
@@ -284,7 +292,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
         }
       }
     }
-    return false;
+    return containedInIncludeFolders(myNativeIncludes, file);
   }
 
   @Override
@@ -316,7 +324,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
     if (!super.equals(o)) {
       return false;
     }
-    NdkLibraryNode that = (NdkLibraryNode)o;
+    NdkLibraryEnhancedHeadersNode that = (NdkLibraryEnhancedHeadersNode)o;
     return getValue() == that.getValue();
   }
 
@@ -357,6 +365,10 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
     Collection<NativeArtifact> artifacts = getValue();
     assert artifacts != null;
     return artifacts;
+  }
+
+  public static boolean containedInIncludeFolders(NativeIncludes myNativeIncludes, VirtualFile file) {
+    return IncludesViewNode.containedInIncludeFolders(myNativeIncludes, file);
   }
 
   private static final class RootFolder {
