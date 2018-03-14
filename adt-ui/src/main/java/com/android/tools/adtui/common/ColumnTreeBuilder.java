@@ -898,7 +898,7 @@ public class ColumnTreeBuilder {
       if (row != myHoveredRow) {
         int oldHoveredRow = myHoveredRow;
         myHoveredRow = row;
-        if (oldHoveredRow != -1) {
+        if (oldHoveredRow != -1 && oldHoveredRow < tree.getRowCount()) {
           tree.repaint(getHoverBounds(tree, oldHoveredRow));
         }
         if (myHoveredRow != -1) {
@@ -918,7 +918,9 @@ public class ColumnTreeBuilder {
       if (myHoveredRow != -1) {
         int oldHoveredRow = myHoveredRow;
         myHoveredRow = -1;
-        tree.repaint(getHoverBounds(tree, oldHoveredRow));
+        if (oldHoveredRow < tree.getRowCount()) {
+          tree.repaint(getHoverBounds(tree, oldHoveredRow));
+        }
       }
     }
 
