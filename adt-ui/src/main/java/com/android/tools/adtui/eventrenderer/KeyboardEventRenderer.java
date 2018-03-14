@@ -22,6 +22,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.JBFont;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,7 +55,12 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
   }
 
   @Override
-  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> action) {
+  public void draw(@NotNull Component parent,
+                   @NotNull Graphics2D g2d,
+                   @NotNull AffineTransform transform,
+                   double length,
+                   boolean isMouseOver,
+                   @Nullable EventAction<E> action) {
     if (!(action instanceof KeyboardAction)) {
       return;
     }

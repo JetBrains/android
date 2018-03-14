@@ -16,7 +16,7 @@
 package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
-import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -32,28 +32,38 @@ public interface SimpleEventRenderer<E> {
   /**
    * Primary draw function for events. This function will get called only when an event is supposed to have something drawn.
    *
-   * @param parent    The parent element to draw to.
-   * @param g2d       The graphics object used to draw elements.
-   * @param transform The coordinates on the screen where the event starts
-   * @param length    The length of the event if the event has a unit of time associated with its rendering.
-   * @param data      The EventAction data used to trigger this draw event. This data can contain some addtional information
-   *                  used by the renderers such as the string passed via keyboard event. If this argument is null the renderer
-   *                  is expected to ignore the additional data or is not expected to use it.
+   * @param parent      The parent element to draw to.
+   * @param g2d         The graphics object used to draw elements.
+   * @param transform   The coordinates on the screen where the event starts
+   * @param length      The length of the event if the event has a unit of time associated with its rendering.
+   * @param isMouseOver True if the mouse is over the data element passed in, otherwise false.
+   * @param data        The EventAction data used to trigger this draw event. This data can contain some addtional information
+   *                    used by the renderers such as the string passed via keyboard event. If this argument is null the renderer
+   *                    is expected to ignore the additional data or is not expected to use it.
    */
-  void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, @Nullable EventAction<E> data);
+  void draw(@NotNull Component parent,
+            @NotNull Graphics2D g2d,
+            @NotNull AffineTransform transform,
+            double length,
+            boolean isMouseOver,
+            @Nullable EventAction<E> data);
 
-  default void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length) {
-    draw(parent, g2d, transform, length, null);
+  default void draw(@NotNull Component parent,
+                    @NotNull Graphics2D g2d,
+                    @NotNull AffineTransform transform,
+                    double length,
+                    boolean isMouseOver) {
+    draw(parent, g2d, transform, length, isMouseOver, null);
   }
 
 
   /**
    * Return an ImageIcon with border. The border surrounds the original icon and has a constant thickness.
    *
-   * @param icon         The original icon.
-   * @param margin       Thickness of the icon's border. The returned ImageIcon is 2*margin larger than then original
-   *                     icon in height and width to reserve space to draw the border.
-   * @param borderColor  Color of the icon's border.
+   * @param icon        The original icon.
+   * @param margin      Thickness of the icon's border. The returned ImageIcon is 2*margin larger than then original
+   *                    icon in height and width to reserve space to draw the border.
+   * @param borderColor Color of the icon's border.
    */
   static ImageIcon createImageIconWithBackgroundBorder(Icon icon, int margin, Color borderColor) {
     BufferedImage originalImage = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);

@@ -44,10 +44,11 @@ public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
   }
 
   @Override
-  public void draw(Component parent,
-                   Graphics2D g2d,
-                   AffineTransform transform,
+  public void draw(@NotNull Component parent,
+                   @NotNull Graphics2D g2d,
+                   @NotNull AffineTransform transform,
                    double length,
+                   boolean isMouseOver,
                    EventAction<E> notUsedData) {
     Icon icon = SimpleEventRenderer.createImageIconWithBackgroundBorder(myIcon, BORDER_MARGIN, parent.getBackground());
     AffineTransform originalTransform = g2d.getTransform();

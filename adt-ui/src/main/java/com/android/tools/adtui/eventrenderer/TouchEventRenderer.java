@@ -17,6 +17,7 @@ package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -36,10 +37,11 @@ public class TouchEventRenderer<E> implements SimpleEventRenderer<E> {
   private static final int BORDER_MARGIN = 2;
 
   @Override
-  public void draw(Component parent,
-                   Graphics2D g2d,
-                   AffineTransform transform,
+  public void draw(@NotNull Component parent,
+                   @NotNull Graphics2D g2d,
+                   @NotNull AffineTransform transform,
                    double length,
+                   boolean isMouseOver,
                    EventAction<E> notUsedData) {
     Color currentColor = g2d.getColor();
     Stroke currentStroke = g2d.getStroke();

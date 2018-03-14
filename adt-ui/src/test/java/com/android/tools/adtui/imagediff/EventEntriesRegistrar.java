@@ -16,14 +16,12 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.eventrenderer.EventIconRenderer;
-import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
-import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
-import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
+import com.android.tools.adtui.eventrenderer.*;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.event.*;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +34,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerMultipleInlineActivitiesEvent();
     registerSimpleTapEvent();
     registerSimpleTapAndHoldEvent();
+    registerSimpleEventExpandingComponent();
     registerMultipleTapEvents();
     registerAddActivityBeforeStartEvent();
   }
@@ -127,36 +126,66 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleTapEvent() {
-    register(new SimpleTapEventImageDiffEntry("simple_tap_event_baseline.png") {
+    register(new SimpleEventImageDiffEntry("simple_tap_event_baseline.png") {
 
       @Override
       protected void generateTestData() {
         long eventTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(500); // Add some arbitrary offset to range start
-        performTap(eventTime, eventTime);
+        performEvent(eventTime, eventTime, EventTypeDiffEntry.TAP);
       }
     });
   }
 
   private void registerSimpleTapAndHoldEvent() {
-    register(new SimpleTapEventImageDiffEntry("simple_tap_and_hold_event_baseline.png") {
+    register(new SimpleEventImageDiffEntry("simple_tap_and_hold_event_baseline.png") {
 
       @Override
       protected void generateTestData() {
         long eventTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(500); // Add some arbitrary offset to range start
-        performTap(eventTime, 0);
+        performEvent(eventTime, 0, EventTypeDiffEntry.TAP);
       }
     });
   }
 
   private void registerMultipleTapEvents() {
-    register(new SimpleTapEventImageDiffEntry("multiple_tap_events_baseline.png") {
+    register(new SimpleEventImageDiffEntry("multiple_tap_events_baseline.png") {
 
       @Override
       protected void generateTestData() {
         long eventTime1 = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(500); // Add some arbitrary offset to range start
         long eventTime2 = eventTime1 + TimeUnit.MILLISECONDS.toMicros(600); // Give some time between the events
-        performTap(eventTime1, eventTime1);
-        performTap(eventTime2, eventTime2);
+        performEvent(eventTime1, eventTime1, EventTypeDiffEntry.TAP);
+        performEvent(eventTime2, eventTime2, EventTypeDiffEntry.TAP);
+      }
+    });
+  }
+
+  private void registerSimpleEventExpandingComponent() {
+    register(new SimpleEventImageDiffEntry("simple_event_expanding_event.png") {
+
+      @Override
+      protected void generateTestData() {
+        // Add one event for reference.
+        long startTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(400); // Add some arbitrary offset to range start
+        long endTime = startTime + TimeUnit.MILLISECONDS.toMicros(600); // Give some time between the events
+        performEvent(startTime, endTime, EventTypeDiffEntry.FRAME_GOOD);
+
+        // Add a second event to mouse over.
+        startTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(1000); // Add some arbitrary offset to range start
+        endTime = startTime + TimeUnit.MILLISECONDS.toMicros(2000); // Give some time between the events
+        performEvent(startTime, endTime, EventTypeDiffEntry.FRAME_BAD);
+
+        // Add a third event to show that our mouse over frame is on top of overlapping frames.
+        startTime = myRangeStartUs + TimeUnit.MILLISECONDS.toMicros(1300); // Add some arbitrary offset to range start
+        endTime = startTime + TimeUnit.MILLISECONDS.toMicros(1300); // Give some time between the events
+        performEvent(startTime, endTime, EventTypeDiffEntry.FRAME_GOOD);
+      }
+
+      @Override
+      protected void setUp() {
+        super.setUp();
+        // Dispatch a mouse moved event to set our mose position.
+        mySimpleEventComponent.dispatchEvent(new MouseEvent(mySimpleEventComponent, MouseEvent.MOUSE_MOVED, 0, 0, 32, 0, 0, false));
       }
     });
   }
@@ -206,28 +235,33 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     }
   }
 
-  private static abstract class SimpleTapEventImageDiffEntry extends AnimatedComponentImageDiffEntry {
+  private static abstract class SimpleEventImageDiffEntry extends AnimatedComponentImageDiffEntry {
+    enum EventTypeDiffEntry {
+      TAP,
+      FRAME_GOOD,
+      FRAME_BAD,
+    }
 
     private static final int ICON_WIDTH = 16;
 
     private static final int ICON_HEIGHT = 16;
 
-    private static final Map<SimpleEventType, SimpleEventRenderer> MOCK_RENDERERS;
+    private static final Map<EventTypeDiffEntry, SimpleEventRenderer> MOCK_RENDERERS;
 
     static {
       MOCK_RENDERERS = new HashMap();
-      MOCK_RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer());
-      MOCK_RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png"));
-      MOCK_RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer());
+      MOCK_RENDERERS.put(EventTypeDiffEntry.TAP, new TouchEventRenderer());
+      MOCK_RENDERERS.put(EventTypeDiffEntry.FRAME_GOOD, new ExpandingEventRenderer(Color.BLUE));
+      MOCK_RENDERERS.put(EventTypeDiffEntry.FRAME_BAD, new ExpandingEventRenderer(Color.RED));
     }
 
     protected SimpleEventComponent mySimpleEventComponent;
 
     protected EventModel myEventModel;
 
-    private DefaultDataSeries<EventAction<SimpleEventType>> myData;
+    private DefaultDataSeries<EventAction<EventTypeDiffEntry>> myData;
 
-    SimpleTapEventImageDiffEntry(String baselineFilename) {
+    SimpleEventImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
     }
 
@@ -248,8 +282,8 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myComponents.add(myEventModel);
     }
 
-    protected void performTap(long startTime, long endTime) {
-      EventAction<SimpleEventType> event = new EventAction<>(startTime, endTime, SimpleEventType.TOUCH);
+    protected void performEvent(long startTime, long endTime, EventTypeDiffEntry entry) {
+      EventAction<EventTypeDiffEntry> event = new EventAction<>(startTime, endTime, entry);
       myData.add(startTime, event);
     }
   }
