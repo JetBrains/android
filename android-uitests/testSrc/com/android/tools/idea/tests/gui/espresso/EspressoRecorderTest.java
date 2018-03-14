@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.espresso;
 
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -37,7 +38,7 @@ import java.util.regex.Pattern;
 public class EspressoRecorderTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   private static final String APP_NAME = "MyActivityTest";
   private static final String TEST_RECORDER_APP = "TestRecorderapp";
@@ -68,14 +69,14 @@ public class EspressoRecorderTest {
   @Test
   public void addDependencyOnFly() throws Exception {
     guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
-
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
       .invokeMenuPath("Run", "Record Espresso Test");
     DeployTargetPickerDialogFixture.find(guiTest.robot())
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ideFrameFixture.getDebugToolWindow()
@@ -115,10 +116,11 @@ public class EspressoRecorderTest {
 
     popupList.get().clickItem("Wrapper[MyActivityTest]");
 
-    // Stop the emulator so the AVD name appears consistently in the deployment dialog:
+    // TODO remove this line. Requires updating the deploy target picker dialog fixture to properly show us names. See http://b/74779369
     emulator.getEmulatorConnection().killEmulator();
+
     DeployTargetPickerDialogFixture.find(guiTest.robot())
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     // Wait until tests run completion.
