@@ -60,44 +60,4 @@ public abstract class MemoryProfilerTestBase {
 
   protected void onProfilersCreated(StudioProfilers profilers) {
   }
-
-  protected static class FakeCaptureObjectLoader extends CaptureObjectLoader {
-    @Nullable
-    private ListenableFutureTask<CaptureObject> myTask;
-    private boolean isReturnImmediateFuture;
-
-    @NotNull
-    @Override
-    public ListenableFuture<CaptureObject> loadCapture(@NotNull CaptureObject captureObject,
-                                                       @Nullable Range queryRange,
-                                                       @Nullable Executor queryJoiner) {
-      if (isReturnImmediateFuture) {
-        return Futures.immediateFuture(captureObject.load(queryRange, queryJoiner) ? captureObject : null);
-      }
-      else {
-        cancelTask();
-        myTask = ListenableFutureTask.create(() -> captureObject.load(queryRange, queryJoiner) ? captureObject : null);
-        return myTask;
-      }
-    }
-
-    public void runTask() {
-      if (myTask != null) {
-        myTask.run();
-        myTask = null;
-      }
-    }
-
-    public void cancelTask() {
-      if (myTask != null) {
-        myTask.cancel(true);
-        myTask = null;
-      }
-    }
-
-    public void setReturnImmediateFuture(boolean val) {
-      isReturnImmediateFuture = val;
-      cancelTask();
-    }
-  }
 }

@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
 import com.android.tools.profilers.stacktrace.CodeLocation;

@@ -258,6 +258,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .setDumpTime(dumpTime)
       .setSession(session)
       .build();
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
     DumpDataResponse response = myProfilers.getClient().getMemoryClient().getHeapDump(request);
 
     assertThat(response.getData()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));

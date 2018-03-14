@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
@@ -25,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An artifact representation of a memory heap dump.
@@ -77,7 +80,26 @@ public final class HprofSessionArtifact implements SessionArtifact {
 
   @Override
   public void onSelect() {
-    // TODO b\67509689 handle selection of the hprof capture.
+    // If the capture selected is not part of the currently selected session, we need to select the session containing the capture.
+    boolean needsToChangeSession = mySession != myProfilers.getSession();
+    if (needsToChangeSession) {
+      myProfilers.getSessionsManager().setSession(mySession);
+    }
+
+    // If memory profiler is not yet open, we need to do it.
+    boolean needsToOpenMemoryProfiler = !(myProfilers.getStage() instanceof MemoryProfilerStage);
+    if (needsToOpenMemoryProfiler) {
+      myProfilers.setStage(new MemoryProfilerStage(myProfilers));
+    }
+
+    // Adjust the view range to fit the capture object.
+    assert myProfilers.getStage() instanceof MemoryProfilerStage;
+    long startTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getStartTime());
+    long endTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getEndTime());
+    Range captureRange = new Range(startTimestamp, endTimestamp);
+    myProfilers.getTimeline().ensureRangeFitsViewRange(captureRange);
+    // Finally, we set and select the capture in the MemoryProfilerStage, which should be the current stage of StudioProfilers.
+    ((MemoryProfilerStage)myProfilers.getStage()).getSelectionModel().set(captureRange.getMin(), captureRange.getMax());
   }
 
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,

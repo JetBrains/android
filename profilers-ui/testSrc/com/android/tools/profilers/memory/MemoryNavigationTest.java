@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
