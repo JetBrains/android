@@ -49,7 +49,7 @@ class DragCreateActionTest : NavTestCase() {
     val component = scene.getSceneComponent(FRAGMENT1)!!
 
     dragFromActionHandle(interactionManager, component, component.centerX, component.centerY, surface.currentSceneView)
-    val action = model.find("action")!!
+    val action = model.find("action_${FRAGMENT1}_self")!!
     assertTrue(surface.selectionModel.selection.contains(action))
 
     val expected = "NlComponent{tag=<navigation>, instance=0}\n" +
@@ -57,7 +57,7 @@ class DragCreateActionTest : NavTestCase() {
         "        NlComponent{tag=<action>, instance=2}"
 
     verifyModel(model, expected)
-    verifySelection(model)
+    assertEquals(listOf("action_${FRAGMENT1}_self"), surface.selectionModel.selection.map { it.id })
   }
 
   fun testDragCreateToOtherFragment() {
@@ -85,7 +85,7 @@ class DragCreateActionTest : NavTestCase() {
         "        NlComponent{tag=<action>, instance=4}"
 
     verifyModel(model, expected)
-    verifySelection(model)
+    assertEquals(listOf("action_${FRAGMENT1}_to_${FRAGMENT2}"), surface.selectionModel.selection.map { it.id })
   }
 
   fun testDragCreateToInclude() {
@@ -110,7 +110,7 @@ class DragCreateActionTest : NavTestCase() {
         "    NlComponent{tag=<include>, instance=3}"
 
     verifyModel(model, expected)
-    verifySelection(model)
+    assertEquals(listOf("action_${FRAGMENT1}_to_nav"), surface.selectionModel.selection.map { it.id })
   }
 
   fun testDragAbandon() {
@@ -145,7 +145,6 @@ class DragCreateActionTest : NavTestCase() {
     private val FRAGMENT1 = "fragment1"
     private val FRAGMENT2 = "fragment2"
     private val EXISTINGACTION = "action1"
-    private val NEWACTION = "action"
 
     private fun initializeNavDesignSurface(model: SyncNlModel): NavDesignSurface {
       val surface = model.surface as NavDesignSurface
@@ -180,11 +179,6 @@ class DragCreateActionTest : NavTestCase() {
     private fun verifyModel(model: SyncNlModel, expected: String) {
       val tree = NlTreeDumper().toTree(model.components)
       assertEquals(expected, tree)
-    }
-
-    private fun verifySelection(model: SyncNlModel) {
-      val action = model.find(NEWACTION)!!
-      assertTrue(model.surface.selectionModel.selection.equals(listOf(action)))
     }
   }
 }

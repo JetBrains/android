@@ -21,6 +21,7 @@ import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlComponent.stripId
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
 import com.android.tools.idea.res.resolveStringValue
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
@@ -154,7 +155,7 @@ var NlComponent.actionDestinationId: String? by IdAutoAttributeDelegate(Navigati
 var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
 var NlComponent.exitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_EXIT_ANIM)
 // TODO: Use IdAutoAttributeDelegate for popUpTo
-var NlComponent.popUpTo: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)
+var NlComponent.popUpTo: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)
 var NlComponent.inclusive: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)
 var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_SINGLE_TOP)
 var NlComponent.document: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_DOCUMENT)
@@ -175,9 +176,23 @@ val NlComponent.actionDestination: NlComponent?
     return model.components.firstOrNull { it.id == targetId }
   }
 
-fun NlComponent.createAction(destinationId: String? = null): NlComponent {
+/**
+ * [actionSetup] should include everything needed to set the default id (destination, popTo, and popToInclusive).
+ */
+@JvmOverloads
+fun NlComponent.createAction(destinationId: String? = null, actionSetup: NlComponent.() -> Unit = {}): NlComponent {
   val newAction = createChild(NavigationSchema.TAG_ACTION)
   newAction.actionDestinationId = destinationId
+  newAction.actionSetup()
+  // TODO: it would be nice if, when we changed something affecting the below logic and the id hasn't been changed,
+  // we could update the id as a refactoring so references are also updated.
+  newAction.assignId(when {
+    newAction.popUpTo == id && newAction.inclusive -> "action_${this.id}_pop"
+    newAction.popUpTo != id && newAction.inclusive -> "action_${this.id}_pop_including_${newAction.popUpTo}"
+    newAction.effectiveDestinationId == id -> "action_${this.id}_self"
+    parent == null -> "action_global_${newAction.effectiveDestinationId}"
+    else -> "action_${id}_to_${newAction.effectiveDestinationId}"
+  })
   return newAction
 }
 
@@ -186,10 +201,10 @@ fun NlComponent.createSelfAction(): NlComponent {
 }
 
 fun NlComponent.createReturnToSourceAction(): NlComponent {
-  val newAction = createAction()
-  newAction.popUpTo = id
-  newAction.inclusive = true
-  return newAction
+  return createAction {
+    popUpTo = parent?.id
+    inclusive = true
+  }
 }
 
 fun NlComponent.setAsStartDestination() {
@@ -214,7 +229,7 @@ private fun NlComponent.createChild(tagName: String): NlComponent {
 val NlComponent.effectiveDestinationId: String?
   get() {
     actionDestinationId?.let { return it }
-    return if (inclusive) null else NlComponent.stripId(popUpTo)
+    return if (inclusive) null else popUpTo
   }
 
 @VisibleForTesting

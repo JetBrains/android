@@ -196,4 +196,36 @@ class NavComponentHelperTest2 : NavTestCase() {
     val action3 = model.find("a3")!!
     assertEquals(action3.effectiveDestinationId, "f1")
   }
+
+  fun testDefaultActionIds() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    val root = model.components[0]!!
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_to_f2", f1.createAction("f2").id) }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self", f1.createAction("f1").id) }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self2", f1.createAction("f1").id) }
+    WriteCommandAction.runWriteCommandAction(project) {
+      assertEquals(
+          "action_f1_pop",
+          f1.createAction {
+            popUpTo = "f1"
+            inclusive = true
+          }.id)
+    }
+    WriteCommandAction.runWriteCommandAction(project) {
+      assertEquals(
+          "action_f1_pop_including_f2",
+          f1.createAction {
+            popUpTo = "f2"
+            inclusive = true
+          }.id)
+    }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_global_f1", root.createAction("f1").id) }
+  }
 }

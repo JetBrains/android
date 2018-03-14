@@ -104,7 +104,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     provider.showAndUpdateFromDialog(dialog, manager.designSurface)
 
     assertEquals(1, actionsList.itemsCount)
-    val newAction = model.find("action")!!
+    val newAction = model.find("action_f2_to_f1")!!
     assertTrue(model.surface.selectionModel.selection.contains(newAction))
   }
 

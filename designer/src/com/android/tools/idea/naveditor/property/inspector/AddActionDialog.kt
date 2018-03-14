@@ -19,6 +19,7 @@ import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlComponent.stripId
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.model.*
 import com.android.tools.idea.naveditor.property.editors.getAnimatorsPopupContent
@@ -400,17 +401,19 @@ open class AddActionDialog(
 
   @VisibleForTesting
   fun writeUpdatedAction(): NlComponent {
-    return WriteCommandAction.runWriteCommandAction(null, Computable<NlComponent> {
-      val realComponent = existingAction ?: source.createAction()
-      realComponent.actionDestinationId = destination?.id
-      realComponent.enterAnimation = enterTransition
-      realComponent.exitAnimation = exitTransition
-      realComponent.popUpTo = popTo
-      realComponent.inclusive = isInclusive
-      realComponent.singleTop = isSingleTop
-      realComponent.document = isDocument
-      realComponent.clearTask = isClearTask
-      realComponent
+    return WriteCommandAction.runWriteCommandAction(
+        null, Computable<NlComponent> {
+      val actionSetup: NlComponent.() -> Unit = {
+        actionDestinationId = destination?.id
+        enterAnimation = enterTransition
+        exitAnimation = exitTransition
+        popUpTo = stripId(popTo)
+        inclusive = isInclusive
+        singleTop = isSingleTop
+        document = isDocument
+        clearTask = isClearTask
+      }
+      existingAction?.apply(actionSetup) ?: source.createAction(actionSetup = actionSetup)
     })
   }
 
