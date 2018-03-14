@@ -16,6 +16,10 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.eventrenderer.EventIconRenderer;
+import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
+import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
+import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
 import com.android.tools.adtui.model.event.SimpleEventType;
 import com.android.tools.profilers.ProfilerMonitorTooltip;
 import com.android.tools.profilers.ProfilerMonitorView;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 
 public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
   private static int BORDER_MARGIN = 2;
@@ -40,13 +38,17 @@ public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
     this(load(icon));
   }
 
-  EventIconRenderer(@NotNull Icon icon) {
+  public EventIconRenderer(@NotNull Icon icon) {
     myIcon = icon;
     myIconWidth = myIcon.getIconWidth();
   }
 
   @Override
-  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> notUsedData) {
+  public void draw(Component parent,
+                   Graphics2D g2d,
+                   AffineTransform transform,
+                   double length,
+                   EventAction<E> notUsedData) {
     Icon icon = SimpleEventRenderer.createImageIconWithBackgroundBorder(myIcon, BORDER_MARGIN, parent.getBackground());
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);

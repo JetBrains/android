@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.model.event.KeyboardAction;
 import com.android.tools.adtui.model.event.KeyboardData;
 import org.junit.Before;
