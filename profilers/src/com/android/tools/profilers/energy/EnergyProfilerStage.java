@@ -17,9 +17,12 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -160,6 +163,21 @@ public class EnergyProfilerStage extends Stage {
   @Nullable
   public EnergyDuration getSelectedDuration() {
     return mySelectedDuration;
+  }
+
+  @NotNull
+  public ByteString requestBytes(@NotNull String id) {
+    if (StringUtil.isEmpty(id)) {
+      return ByteString.EMPTY;
+    }
+
+    Profiler.BytesRequest request = Profiler.BytesRequest.newBuilder()
+      .setId(id)
+      .setSession(getStudioProfilers().getSession())
+      .build();
+
+    Profiler.BytesResponse response = getStudioProfilers().getClient().getProfilerClient().getBytes(request);
+    return response.getContents();
   }
 
   public static class EnergyLegends extends LegendComponentModel {

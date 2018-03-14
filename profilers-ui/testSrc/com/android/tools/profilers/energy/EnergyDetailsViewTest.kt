@@ -48,6 +48,7 @@ class EnergyDetailsViewTest {
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(400))
     .setWakeLockReleased(wakeLockReleased)
     .setEventId(123)
+    .setIsTerminal(true)
     .build()
   private val callstackText = "android.os.PowerManager\$WakeLock.acquire(PowerManager.java:32)\n"
 
@@ -68,6 +69,7 @@ class EnergyDetailsViewTest {
   private val alarmCancelledEvent = EnergyEvent.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(900))
     .setAlarmCancelled(alarmCancelled)
+    .setIsTerminal(true)
     .build()
 
   private val periodicJob = EnergyProfiler.JobInfo.newBuilder()
@@ -142,36 +144,23 @@ class EnergyDetailsViewTest {
     view.setDuration(EnergyDuration(Arrays.asList(wakeLockAcquireEvent, wakeLockReleaseEvent)))
     val wakeLockTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(wakeLockTextPane.text) {
-      assertUiContainsLabelAndValue(this, "Name", "wakeLockTag")
+      assertUiContainsLabelAndValue(this, "Tag", "wakeLockTag")
       assertUiContainsLabelAndValue(this, "Level", "SCREEN_DIM_WAKE_LOCK")
       assertUiContainsLabelAndValue(this, "Flags", "ACQUIRE_CAUSES_WAKEUP")
-
-      assertUiContainsLabelAndValue(this, "WAKE_LOCK_ACQUIRED", "200ms")
-      assertUiContainsLabelAndValue(this, "WAKE_LOCK_RELEASED", "400ms")
+      assertUiContainsLabelAndValue(this, "Duration", "200ms")
     }
   }
 
   @Test
-  fun alarmSetIsProperlyRendered() {
-    view.setDuration(EnergyDuration(Arrays.asList(alarmSetEvent)))
+  fun alarmIsProperlyRendered() {
+    view.setDuration(EnergyDuration(Arrays.asList(alarmSetEvent, alarmCancelledEvent)))
     val alarmTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(alarmTextPane.text) {
-      assertUiContainsLabelAndValue(this, "ALARM_SET", "600ms")
       assertUiContainsLabelAndValue(this, "TriggerTime", "1s")
       assertUiContainsLabelAndValue(this, "IntervalTime", "100ms")
       assertUiContainsLabelAndValue(this, "WindowTime", "200ms")
       assertUiContainsLabelAndValue(this, "Creator", "package\\b.+\\bUID\\b.+\\b1234")
-    }
-  }
-
-  @Test
-  fun alarmCancelledIsProperlyRendered() {
-    view.setDuration(EnergyDuration(Arrays.asList(alarmSetEvent, alarmCancelledEvent)))
-    val alarmTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
-    with(alarmTextPane.text) {
-      assertUiContainsLabelAndValue(this, "ALARM_SET", "600ms")
-      assertUiContainsLabelAndValue(this, "ALARM_CANCELLED", "900ms")
-      assertUiContainsLabelAndValue(this, "ListenerTag", "cancelledTag")
+      assertUiContainsLabelAndValue(this, "Duration", "300ms")
     }
   }
 
@@ -225,38 +214,19 @@ class EnergyDetailsViewTest {
   }
 
   @Test
-  fun jobStartedIsProperlyRendered() {
-    val jobStarted = EnergyProfiler.JobStarted.newBuilder().setParams(jobParams).setWorkOngoing(true).build()
-    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(300)).setJobStarted(jobStarted).build()
-    view.setDuration(EnergyDuration(Arrays.asList(event)))
-    val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
-    with(textPane.text) {
-      assertJobParamsLabelsAndValues(this)
-      assertUiContainsLabelAndValue(this,"WorkOngoing", "true")
-    }
-  }
-
-  @Test
-  fun jobStoppedIsProperlyRendered() {
-    val jobStopped = EnergyProfiler.JobStopped.newBuilder().setParams(jobParams).setReschedule(true).build()
-    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(400)).setJobStopped(jobStopped).build()
-    view.setDuration(EnergyDuration(Arrays.asList(event)))
-    val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
-    with(textPane.text) {
-      assertJobParamsLabelsAndValues(this)
-      assertUiContainsLabelAndValue(this, "Reschedule", "true")
-    }
-  }
-
-  @Test
-  fun jobFinishedIsProperlyRendered() {
+  fun jobFinishedAndDurationIsProperlyRendered() {
+    val jobScheduled = JobScheduled.newBuilder().setJob(periodicJob).setResult(JobScheduled.Result.RESULT_SUCCESS).build()
+    val scheduled = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(100)).setJobScheduled(jobScheduled).build()
     val jobFinished = EnergyProfiler.JobFinished.newBuilder().setParams(jobParams).build()
-    val event = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(500)).setJobFinished(jobFinished).build()
-    view.setDuration(EnergyDuration(Arrays.asList(event)))
+    val finished = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(500)).setJobFinished(jobFinished).setIsTerminal(true).build()
+    view.setDuration(EnergyDuration(Arrays.asList(scheduled, finished)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
-      assertJobParamsLabelsAndValues(this)
-      assertUiContainsLabelAndValue(this, "NeedsReschedule", "false")
+      assertUiContainsLabelAndValue(this, "TriggerContentAuthorities", "auth1, auth2")
+      assertUiContainsLabelAndValue(this, "IsOverrideDeadlineExpired", "true")
+      assertUiContainsLabelAndValue(this,"Extras", "ExtrasValue")
+      assertUiContainsLabelAndValue(this,"TransientExtras", "TransientExtrasValue")
+      assertUiContainsLabelAndValue(this,"Duration", "400ms")
     }
   }
 
@@ -277,16 +247,6 @@ class EnergyDetailsViewTest {
     assertUiContainsLabelAndValue(uiText, "RequiresStorageNotLow", "false")
     assertUiContainsLabelAndValue(uiText, "Extras", "ExtrasValue")
     assertUiContainsLabelAndValue(uiText, "TransientExtras", "TransientExtrasValue")
-  }
-
-  private fun assertJobParamsLabelsAndValues(uiText: String) {
-    assertUiContainsLabelAndValue(uiText, "JobId", "3333")
-    assertUiContainsLabelAndValue(uiText, "TriggerContentAuthorities", "auth1, auth2")
-    assertThat(uiText).doesNotContain("TriggerContentURIs")
-    assertUiContainsLabelAndValue(uiText, "IsOverrideDeadlineExpired", "true")
-    assertUiContainsLabelAndValue(uiText,"Extras", "ExtrasValue")
-    assertUiContainsLabelAndValue(uiText,"TransientExtras", "TransientExtrasValue")
-
   }
 
   private fun assertUiContainsLabelAndValue(uiText: String, label: String, value: String) {

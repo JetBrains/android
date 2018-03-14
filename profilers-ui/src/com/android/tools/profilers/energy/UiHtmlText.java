@@ -56,9 +56,27 @@ final class UiHtmlText {
 
   public void renderAlarmSet(@NotNull EnergyProfiler.AlarmSet alarmSet) {
     appendTitleAndValue("Type", alarmSet.getType().name());
-    appendTitleAndValue("TriggerTime", StringUtil.formatDuration(alarmSet.getTriggerMs()));
-    appendTitleAndValue("IntervalTime", StringUtil.formatDuration(alarmSet.getIntervalMs()));
-    appendTitleAndValue("WindowTime", StringUtil.formatDuration(alarmSet.getWindowMs()));
+    // triggerTimeMs depends on alarm type, see https://developer.android.com/reference/android/app/AlarmManager.html#constants.
+    String triggerTime = StringUtil.formatDuration(alarmSet.getTriggerMs());
+    switch (alarmSet.getType()) {
+      case RTC:
+      case RTC_WAKEUP:
+        appendTitleAndValue("TriggerTime in System.currentTimeMillis()", triggerTime);
+        break;
+      case ELAPSED_REALTIME:
+      case ELAPSED_REALTIME_WAKEUP:
+        appendTitleAndValue("TriggerTime in SystemClock.elapsedRealtime()", triggerTime);
+        break;
+      default:
+        break;
+    }
+    // Interval time and Window time are not required in all set methods, only visible when the value is not zero.
+    if (alarmSet.getIntervalMs() > 0) {
+      appendTitleAndValue("IntervalTime", StringUtil.formatDuration(alarmSet.getIntervalMs()));
+    }
+    if (alarmSet.getWindowMs() > 0) {
+      appendTitleAndValue("WindowTime", StringUtil.formatDuration(alarmSet.getWindowMs()));
+    }
     switch(alarmSet.getSetActionCase()) {
       case OPERATION:
         renderPendingIntent(alarmSet.getOperation());
@@ -92,7 +110,7 @@ final class UiHtmlText {
   }
 
   public void renderWakeLockAcquired(@NotNull EnergyProfiler.WakeLockAcquired wakeLockAcquired) {
-    appendTitleAndValue("Name", wakeLockAcquired.getTag());
+    appendTitleAndValue("Tag", wakeLockAcquired.getTag());
     appendTitleAndValue("Level", wakeLockAcquired.getLevel().name());
     if (!wakeLockAcquired.getFlagsList().isEmpty()) {
       String creationFlags = wakeLockAcquired.getFlagsList().stream()
@@ -163,7 +181,7 @@ final class UiHtmlText {
   }
 
   private void renderJobParams(@NotNull EnergyProfiler.JobParameters jobParams) {
-    appendTitleAndValue("JobId", String.valueOf(jobParams.getJobId()));
+    // Job Id is redundant from JobInfo, so does not show it.
     if (jobParams.getTriggeredContentAuthoritiesCount() != 0) {
       appendTitleAndValues("TriggerContentAuthorities", jobParams.getTriggeredContentAuthoritiesList());
     }
