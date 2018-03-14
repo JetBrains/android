@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
@@ -25,7 +24,6 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsModelCollection
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies
 import com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import java.util.function.Consumer
 
@@ -177,27 +175,6 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) :
         matchingParsedDependency.wrapInList())
     moduleDependenciesByGradlePath[gradlePath] = dependency
   }
-}
-
-@VisibleForTesting
-fun versionsMatch(parsedVersion: GradleVersion, versionFromGradle: GradleVersion): Boolean {
-  var result = versionFromGradle.compareTo(parsedVersion)
-  if (result == 0) {
-    return true
-  } else if (result < 0) {
-    // The "parsed" version might have a '+' sign.
-    if (parsedVersion.majorSegment.acceptsGreaterValue()) {
-      return true
-    } else if (parsedVersion.minorSegment != null && parsedVersion.minorSegment!!.acceptsGreaterValue()) {
-      return parsedVersion.major == versionFromGradle.major
-    } else if (parsedVersion.microSegment != null && parsedVersion.microSegment!!.acceptsGreaterValue()) {
-      result = parsedVersion.major - versionFromGradle.major
-      return if (result != 0) {
-        false
-      } else parsedVersion.minor == versionFromGradle.minor
-    }
-  }
-  return result == 0
 }
 
 fun <T> T?.wrapInList(): List<T> = if (this != null) listOf(this) else listOf()
