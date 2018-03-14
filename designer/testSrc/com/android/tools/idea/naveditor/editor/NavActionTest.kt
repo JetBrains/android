@@ -43,7 +43,7 @@ class NavActionTest : NavTestCase() {
             "    NlComponent{tag=<fragment>, instance=1}\n" +
             "    NlComponent{tag=<action>, instance=2}", NlTreeDumper().toTree(model.components)
     )
-    val globalAction = model.find("action")!!
+    val globalAction = model.find("action_global_fragment1")!!
 
     assertNotNull(globalAction.parent)
     assertNull(globalAction.parent?.id)
@@ -69,7 +69,7 @@ class NavActionTest : NavTestCase() {
             "    NlComponent{tag=<fragment>, instance=1}\n" +
             "        NlComponent{tag=<action>, instance=2}", NlTreeDumper().toTree(model.components)
     )
-    val returnToSourceAction = model.find("action")!!
+    val returnToSourceAction = model.find("action_fragment1_pop")!!
 
     assertEquals(component.id, returnToSourceAction.popUpTo)
     assertTrue(returnToSourceAction.inclusive)
@@ -113,7 +113,7 @@ class NavActionTest : NavTestCase() {
             "        NlComponent{tag=<action>, instance=2}", NlTreeDumper().toTree(model.components)
     )
 
-    val selfAction = model.find("action")!!
+    val selfAction = model.find("action_fragment1_self")!!
     assertTrue(selfAction.isSelfAction)
     assertTrue(model.surface.selectionModel.selection.equals(listOf(selfAction)))
   }
