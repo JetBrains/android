@@ -179,8 +179,33 @@ public class EditorFixture {
    *
    * @param text the text to type at the current editor position
    */
+  public EditorFixture typeText(@NotNull final String text) {
+    getFocusedEditor();
+    robot.typeText(text);
+    return this;
+  }
+
+  /**
+   * Paste the given text into the editor
+   *
+   * @param text the text to paste at the current editor position
+   */
+  public EditorFixture pasteText(@NotNull final String text) {
+    getFocusedEditor();
+    robot.pasteText(text);
+    return this;
+  }
+
+  /**
+   * Enter the given text into the editor. Types short strings, pastes longer ones to save time. Most fixtures or tests that enter
+   * text into the editor should use this method. If there's a good reason to force one mode of entry or the other, use typeText or
+   * pasteText as appropriate.
+   *
+   * @param text the text to enter at the current editor position
+   */
   public EditorFixture enterText(@NotNull final String text) {
-    robot.enterText(text, getFocusedEditor());
+    getFocusedEditor();
+    robot.enterText(text);
     return this;
   }
 
