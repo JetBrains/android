@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit
 class BatteryModelTest {
   companion object {
     private val SAMPLE_INTERVAL_NS = TimeUnit.MILLISECONDS.toNanos(200)
+    private val MIN_CPU_FREQUENCY = 300000
+    private val MAX_CPU_FREQUENCY = 2457600
   }
 
   /**
@@ -86,7 +88,11 @@ class BatteryModelTest {
 
 
     run {
-      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.CPU_USAGE, arrayOf(PowerProfile.CpuCoreUsage(1.0, 0.5, 2457600)))
+      batteryModel.handleEvent(
+          timeCurrNs,
+          BatteryModel.Event.CPU_USAGE,
+          arrayOf(PowerProfile.CpuCoreUsage(1.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY))
+      )
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 3)
 
       assertThat(samples[0].timestamp).isEqualTo(timeCurrNs)
@@ -99,7 +105,11 @@ class BatteryModelTest {
       assertThat(samples[2].cpuUsage).isEqualTo(samples[0].cpuUsage)
 
       timeCurrNs = fastForward(timeCurrNs, samples.size)
-      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.CPU_USAGE, arrayOf(PowerProfile.CpuCoreUsage(0.0, 0.5, 2457600)))
+      batteryModel.handleEvent(
+          timeCurrNs,
+          BatteryModel.Event.CPU_USAGE,
+          arrayOf(PowerProfile.CpuCoreUsage(0.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY))
+      )
     }
 
     run {
@@ -148,7 +158,11 @@ class BatteryModelTest {
     batteryModel.handleEvent(timeCurrNs + 1, BatteryModel.Event.NETWORK_DOWNLOAD, true)
     batteryModel.handleEvent(timeCurrNs + 2, BatteryModel.Event.NETWORK_DOWNLOAD, false)
     batteryModel.handleEvent(timeCurrNs + 3, BatteryModel.Event.NETWORK_TYPE_CHANGED, PowerProfile.NetworkType.NONE)
-    batteryModel.handleEvent(timeCurrNs + 3, BatteryModel.Event.CPU_USAGE, arrayOf(PowerProfile.CpuCoreUsage(1.0, 1.0, 2457600)))
+    batteryModel.handleEvent(
+        timeCurrNs + 3,
+        BatteryModel.Event.CPU_USAGE,
+        arrayOf(PowerProfile.CpuCoreUsage(1.0, 1.0, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY))
+    )
 
     val sample = batteryModel.getNSamplesStartingAt(timeCurrNs, 1)[0]
 

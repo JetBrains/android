@@ -22,7 +22,6 @@ import com.android.tools.datastore.energy.PowerProfile.CpuCoreUsage;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuCoreUsageData;
-import com.google.common.primitives.Ints;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -186,11 +185,9 @@ public final class EnergyDataPoller extends PollRunner {
           assert i < myCpuCoreMinFreqInKhz.length;
           int minFreqKhz = myCpuCoreMinFreqInKhz[i];
           int maxFreqKhz = myCpuCoreMaxFreqInKhz[i];
-          int clampedFreq = Ints.constrainToRange(currCore.getFrequencyInKhz(), minFreqKhz, maxFreqKhz);
-          int normalizedFreq = ((clampedFreq - minFreqKhz) / (maxFreqKhz - minFreqKhz)) * (2457600 - 300000) + 300000;
           double elapsedCore = currCore.getElapsedTimeInMillisec() - prevCore.getElapsedTimeInMillisec();
           double corePercent = (currCore.getSystemCpuTimeInMillisec() - prevCore.getSystemCpuTimeInMillisec()) / elapsedCore;
-          cpuCoresUtilization[i] = new CpuCoreUsage(appPercent, corePercent, normalizedFreq);
+          cpuCoresUtilization[i] = new CpuCoreUsage(appPercent, corePercent, minFreqKhz, maxFreqKhz, currCore.getFrequencyInKhz());
         }
 
         myBatteryModel.handleEvent(currUsageData.getEndTimestamp(), BatteryModel.Event.CPU_USAGE, cpuCoresUtilization);

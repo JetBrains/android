@@ -16,7 +16,14 @@
 package com.android.tools.datastore.energy;
 
 import com.android.tools.profiler.proto.NetworkProfiler;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.primitives.Ints;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Returns the current used for performing various operations. All methods return values in
@@ -74,18 +81,35 @@ public interface PowerProfile {
    * A default power profile based on energy values measured on a Pixel2.
    */
   final class DefaultPowerProfile implements PowerProfile {
+    static final int MIN_CORE_FREQ_KHZ = 300000;
+    static final int MAX_BIG_CORE_FREQ_KHZ = 2457600;
+    static final int MAX_LITTLE_CORE_FREQ_KHZ = 1900800;
+
     @Override
     public int getCpuUsage(@NotNull CpuCoreUsage[] usages) {
       double totalMilliAmps = 0;
-      for (CpuCoreUsage core : usages) {
-        double f = core.myFrequencyKhz * 0.001; // normalize to MHz
-        double f2 = f * f;
-        double f3 = f2 * f;
+      if (usages.length == 0) {
+        return 0;
+      }
+
+      List<CpuCoreUsage> usagesList = Arrays.asList(usages);
+      Collections.sort(usagesList, Comparator.comparingInt(o -> o.myMaxFrequencyKhz));
+
+      // TODO Support more than 2 CPU frequency bins?
+      boolean higherFrequency; // We only support two frequency bins presently.
+      for (CpuCoreUsage core : usagesList) {
+        higherFrequency = core.myMaxFrequencyKhz > usagesList.get(0).myMaxFrequencyKhz;
+        double fMhz = renormalizeFrequency(core, higherFrequency ? MAX_BIG_CORE_FREQ_KHZ : MAX_LITTLE_CORE_FREQ_KHZ);
+        double f2 = fMhz * fMhz;
+        double f3 = f2 * fMhz;
         // Based on measurements on a Walleye device at various core frequencies for both the big and little cores.
         // The empirical results are then fitted against a cubic polynomial, resulting in the following equations.
-        totalMilliAmps += (2.48408e-8 * f3 - 0.0000468129 * f2 + 0.0551123 * f - 1.96322) * core.myAppUsage * core.myCoreUsage;
-        // TODO add small core equation below into the mix
-        //small core: (5.79689e-9 * f3 - 8.31587e-6 * f2 + 0.0109841 * f + 0.513398) * core.myAppUsage;
+        if (higherFrequency) {
+          totalMilliAmps += (2.48408e-8 * f3 - 0.0000468129 * f2 + 0.0551123 * fMhz - 1.96322) * core.myAppUsage * core.myCoreUsage;
+        }
+        else {
+          totalMilliAmps += (5.79689e-9 * f3 - 8.31587e-6 * f2 + 0.0109841 * fMhz + 0.513398) * core.myAppUsage * core.myCoreUsage;
+        }
       }
       return (int)totalMilliAmps;
     }
@@ -108,6 +132,13 @@ public interface PowerProfile {
       }
       return usage;
     }
+
+    @VisibleForTesting
+    static double renormalizeFrequency(@NotNull CpuCoreUsage core, int maxFrequencyKhz) {
+      double clampedFreq = Ints.constrainToRange(core.myFrequencyKhz, core.myMinFrequencyKhz, core.myMaxFrequencyKhz);
+      return (((clampedFreq - core.myMinFrequencyKhz) / (core.myMaxFrequencyKhz - core.myMinFrequencyKhz)) *
+              (maxFrequencyKhz - MIN_CORE_FREQ_KHZ) + MIN_CORE_FREQ_KHZ) * 0.001; // Change to MHz as well.
+    }
   }
 
   /**
@@ -116,16 +147,22 @@ public interface PowerProfile {
   final class CpuCoreUsage {
     public final double myAppUsage;
     public final double myCoreUsage;
+    private final int myMinFrequencyKhz;
+    private final int myMaxFrequencyKhz;
     public final int myFrequencyKhz;
 
     /**
-     * @param appUsage     The total amount of CPU resources of the target app, relative to actual CPU usage (not idle) [0, 1].
-     * @param coreUsage    The amount of total usage of the core, relative to the total time elapsed [0, 1].
-     * @param frequencyKhz The frequency (in kHz) the core was last operating at.
+     * @param appUsage        The total amount of CPU resources of the target app, relative to actual CPU usage (not idle) [0, 1].
+     * @param coreUsage       The amount of total usage of the core, relative to the total time elapsed [0, 1].
+     * @param minFrequencyKhz The min frequency (in kHz) the core is able to sustain.
+     * @param maxFrequencyKhz The max frequency (in kHz) the core is able to lower to.
+     * @param frequencyKhz    The frequency (in kHz) the core was last operating at.
      */
-    public CpuCoreUsage(double appUsage, double coreUsage, int frequencyKhz) {
+    public CpuCoreUsage(double appUsage, double coreUsage, int minFrequencyKhz, int maxFrequencyKhz, int frequencyKhz) {
       myAppUsage = appUsage;
       myCoreUsage = coreUsage;
+      myMinFrequencyKhz = minFrequencyKhz;
+      myMaxFrequencyKhz = maxFrequencyKhz;
       myFrequencyKhz = frequencyKhz;
     }
   }
