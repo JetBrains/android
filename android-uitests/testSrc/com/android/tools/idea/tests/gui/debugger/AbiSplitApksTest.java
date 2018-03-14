@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import com.android.tools.idea.tests.gui.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
-import com.intellij.openapi.util.Ref;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -33,7 +38,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRunner.class)
 public class AbiSplitApksTest extends DebuggerTestBase {
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   private final static String ABI_TYPE_X86 = "x86";
   private final static String ABI_TYPE_X86_64 = "x86_64";
@@ -113,26 +118,33 @@ public class AbiSplitApksTest extends DebuggerTestBase {
                              "app/src/main/jni/native-lib.c",
                              "return (*env)->NewStringUTF(env, message);");
 
-    Ref<String> apkNameRef = new Ref<>();
+    String expectedApkName = "";
+    String avdName = "";
     if (abiType.equals(ABI_TYPE_X86)) {
-      apkNameRef.set("app-x86-debug.apk");
-      emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+      expectedApkName = "app-x86-debug.apk";
+      avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrame.invokeAvdManager());
     } else if (abiType.equals(ABI_TYPE_X86_64)) {
-      apkNameRef.set("app-x86_64-debug.apk");
-      emulator.createAVD(
-        guiTest.ideFrame().invokeAvdManager(),
-        "x86 Images",
-        new ChooseSystemImageStepFixture.SystemImage("Marshmallow",
-                                                     "23",
-                                                     "x86_64",
-                                                     "Android 6.0 (Google APIs)"),
-        emulator.getDefaultAvdName());
+      expectedApkName = "app-x86_64-debug.apk";
+
+      ChooseSystemImageStepFixture.SystemImage systemImageSpec = new ChooseSystemImageStepFixture.SystemImage(
+        "Marshmallow",
+        "23",
+        "x86_64",
+        "Android 6.0 (Google APIs)"
+      );
+      avdName = EmulatorGenerator.ensureAvdIsCreated(
+        ideFrame.invokeAvdManager(),
+        new AvdSpec.Builder()
+          .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+          .setSystemImageSpec(systemImageSpec)
+          .build()
+      );
     } else {
       throw new RuntimeException("Not supported ABI type provided: " + abiType);
     }
 
     ideFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     // Wait for session to start: For x64, it takes longer time to wait for emulator come online.
@@ -143,6 +155,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     ideFrame.stopApp();
     ProjectViewFixture.PaneFixture projectPane = ideFrame.getProjectView().selectProjectPane();
 
+    final String apkNameRef = expectedApkName;
     Wait.seconds(30).expecting("The apk file is generated.").until(() -> {
       try {
         projectPane.clickPath("BasicCmakeAppForUI",
@@ -151,7 +164,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
                               "intermediates",
                               "instant-run-apk",
                               "debug",
-                              apkNameRef.get());
+                              apkNameRef);
         return true;
       } catch (LocationUnavailableException e) {
         return false;
