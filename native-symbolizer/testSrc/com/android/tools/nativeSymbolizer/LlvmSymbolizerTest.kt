@@ -80,10 +80,7 @@ class LlvmSymbolizerTest {
       val symbol = symbolizer.symbolize(arch, module, offsetWithinFunction)!!
       Assert.assertNotNull(symbol)
       Assert.assertEquals(name, symbol.name)
-      // TODO (ezemtsov): Uncomment the next line and harden the check once
-      // https://reviews.llvm.org/D44290 is landed in LLVM.
-      // Assert.assertEquals(symbol.sourceFile, sourceFile)
-      Assert.assertTrue(symbol.sourceFile.endsWith(sourceFile))
+      Assert.assertEquals(symbol.sourceFile.replace('\\', '/'), sourceFile)
       Assert.assertTrue(symbol.lineNumber >= lineNumber)
     }
   }
