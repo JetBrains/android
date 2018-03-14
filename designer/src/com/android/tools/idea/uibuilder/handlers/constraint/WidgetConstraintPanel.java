@@ -98,7 +98,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
 
   public WidgetConstraintPanel(@NotNull List<NlComponent> components) {
     super(new GridBagLayout());
-    super.setBorder(new EmptyBorder(4, 0, 0, 0));
+    setBorder(JBUI.Borders.empty(0, 0, 4, WidgetSliderUI.thumbSize));
     ColorSet colorSet = new InspectorColorSet();
     mMain = new SingleWidgetView(this, colorSet);
     setPreferredSize(new Dimension(JBUI.scale(200), JBUI.scale(216)));
