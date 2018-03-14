@@ -18,10 +18,12 @@ package com.android.tools.idea.avdmanager;
 import com.android.annotations.VisibleForTesting;
 import com.android.repository.io.FileUtilKt;
 import com.android.resources.Density;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.collect.Maps;
@@ -481,11 +483,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @NotNull
       @Override
       public String valueOf(AvdInfo info) {
-        String result = "Android " + SdkVersionInfo.getVersionString(info.getAndroidVersion().getFeatureLevel());
-        if (!info.getTag().equals(SystemImage.DEFAULT_TAG)) {
-          result += " (" + info.getTag().getDisplay() + ")";
-        }
-        return result;
+        return targetString(info.getAndroidVersion(), info.getTag());
       }
     },
     new AvdColumnInfo("CPU/ABI", JBUI.scale(60)) {
@@ -498,6 +496,17 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     new AvdSizeColumnInfo("Size on Disk"),
     myActionsColumnRenderer,
   };
+
+  @VisibleForTesting
+  static String targetString(@NotNull AndroidVersion version, @NotNull IdDisplay tag) {
+    StringBuilder resultBuilder = new StringBuilder(32);
+    resultBuilder.append("Android ");
+    resultBuilder.append(SdkVersionInfo.getVersionStringSanitized(version.getFeatureLevel()));
+    if (!tag.equals(SystemImage.DEFAULT_TAG)) {
+      resultBuilder.append(" (").append(tag.getDisplay()).append(")");
+    }
+    return resultBuilder.toString();
+  }
 
   private void refreshErrorCheck() {
     boolean refreshUI = myNotificationPanel.getComponentCount() > 0;
