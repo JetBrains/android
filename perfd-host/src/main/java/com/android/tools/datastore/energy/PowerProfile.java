@@ -67,14 +67,19 @@ public interface PowerProfile {
     SCANNING,
 
     /**
-     * The network is in a high power state and ready to send (radio only)
+     * The network is in a high power state and ready to send (radio only).
      */
     READY,
 
     /**
-     * The network is actively sending and/or receiving data
+     * The network is actively sending data.
      */
-    ACTIVE,
+    SENDING,
+
+    /**
+     * The network is actively receiving data.
+     */
+    RECEIVING,
   }
 
   /**
@@ -118,16 +123,39 @@ public interface PowerProfile {
     public int getNetworkUsage(@NotNull NetworkType type, @NotNull NetworkState state) {
       int usage = 0;
       if (type == NetworkType.WIFI) {
-        if (state == NetworkState.ACTIVE) {
-          usage += 150;
+        switch (state) {
+          case READY:
+            break;
+          case RECEIVING:
+            usage += 100;
+            break;
+          case SENDING:
+            usage += 250;
+            break;
+          case IDLE:
+            usage += 1;
+            break;
+          default:
+            break;
         }
       }
       else if (type == NetworkType.RADIO) {
-        if (state == NetworkState.ACTIVE) {
-          usage += 200;
-        }
-        else if (state == NetworkState.READY) {
-          usage += 100;
+        switch (state) {
+          case READY:
+            usage += 10;
+            break;
+          case RECEIVING:
+            usage += 50;
+            break;
+          case SENDING:
+            usage += 200;
+            break;
+          case IDLE:
+            usage += 1;
+            break;
+          case SCANNING:
+            usage += 5;
+            break;
         }
       }
       return usage;
