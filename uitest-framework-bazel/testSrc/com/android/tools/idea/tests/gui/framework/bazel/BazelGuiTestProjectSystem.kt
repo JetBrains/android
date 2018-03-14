@@ -94,7 +94,7 @@ android_sdk_repository(
     logger.info("Waiting for sync to start.")
 
     val consoleFixture = BazelConsoleToolWindowFixture(ideFrameFixture.project, ideFrameFixture.robot())
-    Wait.seconds(2).expecting("Bazel sync started").until(consoleFixture::hasSyncStarted)
+    Wait.seconds(2).expecting("Bazel sync to start").until(consoleFixture::hasSyncStarted)
 
     logger.info("Sync in progress; waiting for background tasks to finish.")
 
