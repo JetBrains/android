@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.api.util;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,4 +32,10 @@ public interface GradleDslModel {
    */
   @NotNull
   Map<String, GradlePropertyModel> getInScopeProperties();
+
+  /**
+   * @return a list containing all of the {@link GradlePropertyModel}s that are declared within this element.
+   */
+  @NotNull
+  List<GradlePropertyModel> getDeclaredProperties();
 }

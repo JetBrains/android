@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 
-public interface TestOptionsModel {
+public interface TestOptionsModel extends GradleDslModel {
   @NotNull
   GradleNullableValue<String> reportDir();
 

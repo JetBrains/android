@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-public interface LintOptionsModel {
+public interface LintOptionsModel extends GradleDslModel {
   @NotNull
   GradleNullableValue<Boolean> abortOnError();
 

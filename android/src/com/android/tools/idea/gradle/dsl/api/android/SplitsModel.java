@@ -18,9 +18,10 @@ package com.android.tools.idea.gradle.dsl.api.android;
 import com.android.tools.idea.gradle.dsl.api.android.splits.AbiModel;
 import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
 import com.android.tools.idea.gradle.dsl.api.android.splits.LanguageModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface SplitsModel {
+public interface SplitsModel extends GradleDslModel {
   @NotNull
   AbiModel abi();
 

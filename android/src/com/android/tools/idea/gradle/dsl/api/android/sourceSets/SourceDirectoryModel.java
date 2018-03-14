@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.sourceSets;
 
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface SourceDirectoryModel {
+public interface SourceDirectoryModel extends GradleDslModel {
   @NotNull
   String name();
 

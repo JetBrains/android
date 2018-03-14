@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import org.jetbrains.annotations.NotNull;
 
-public interface DataBindingModel {
+public interface DataBindingModel extends GradleDslModel {
   @NotNull
   GradleNullableValue<Boolean> addDefaultAdapters();
 
