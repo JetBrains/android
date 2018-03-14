@@ -16,11 +16,13 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.stacktrace.DataViewer;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +42,7 @@ public class IntellijDataViewer implements DataViewer {
   }
 
   @NotNull
-  public static IntellijDataViewer createEditorViewer(@NotNull String content, @Nullable FileType contentType) {
+  public static IntellijDataViewer createEditorViewer(@NotNull Disposable parent, @NotNull String content, @Nullable FileType contentType) {
     try {
       EditorFactory editorFactory = EditorFactory.getInstance();
 
@@ -64,6 +66,13 @@ public class IntellijDataViewer implements DataViewer {
       if (contentType != null) {
         editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, contentType));
       }
+
+      Disposer.register(parent, new Disposable() {
+        @Override
+        public void dispose() {
+          editorFactory.releaseEditor(editor);
+        }
+      });
       return new IntellijDataViewer(editor.getComponent(), null);
     }
     catch (Exception | AssertionError e) {
