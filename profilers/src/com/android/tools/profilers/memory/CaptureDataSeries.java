@@ -42,6 +42,8 @@ abstract class CaptureDataSeries<T extends CaptureObject> implements DataSeries<
   }
 
   protected static long getDurationUs(long startTimeNs, long endTimeNs) {
-    return endTimeNs == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
+    return endTimeNs == Long.MAX_VALUE
+           ? Long.MAX_VALUE
+           : TimeUnit.NANOSECONDS.toMicros(endTimeNs) - TimeUnit.NANOSECONDS.toMicros(startTimeNs);
   }
 }
