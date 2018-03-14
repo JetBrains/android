@@ -121,7 +121,7 @@ public class LaunchAndroidApplicationTest {
    */
   @RunIn(TestGroup.SANITY)
   @Test
-  public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
+  public void testDebugOnEmulator() throws IOException {
     guiTest.importSimpleLocalApplication();
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
