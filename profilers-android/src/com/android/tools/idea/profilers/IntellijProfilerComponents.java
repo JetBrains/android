@@ -159,7 +159,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
       return IntellijDataViewer.createInvalidViewer();
     }
 
-    return IntellijDataViewer.createEditorViewer(content, FILE_TYPE_MAP.getOrDefault(extension, null));
+    return IntellijDataViewer.createEditorViewer(myProject, content, FILE_TYPE_MAP.getOrDefault(extension, null));
   }
 
   @NotNull
