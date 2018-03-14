@@ -68,7 +68,7 @@ public class ThemeConfigurationTest {
 
     parentComboBox.selectItem("Show all themes");
     ThemeSelectionDialogFixture.find(guiTest.robot())
-      .selectsTheme("Material Dark", "android:Theme.Material")
+      .selectTheme("Material Dark", "android:Theme.Material")
       .clickOk();
     parentComboBox.requireSelection("android:Theme.Material");
 

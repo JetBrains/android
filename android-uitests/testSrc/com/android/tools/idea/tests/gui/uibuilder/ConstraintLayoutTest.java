@@ -307,13 +307,13 @@ public class ConstraintLayoutTest {
 
     preview.getConfigToolbar()
       .openThemeSelectionDialog()
-      .selectsTheme("Material Light", "android:Theme.Material.Light")
+      .selectTheme("Material Light", "android:Theme.Material.Light")
       .clickOk();
     preview.getConfigToolbar()
       .requireTheme("Light");
     preview.getConfigToolbar()
       .openThemeSelectionDialog()
-      .selectsTheme("Material Dark", "android:Theme.Material")
+      .selectTheme("Material Dark", "android:Theme.Material")
       .clickOk();
     preview.getConfigToolbar()
       .requireTheme("Material");
