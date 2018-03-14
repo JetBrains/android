@@ -462,7 +462,7 @@ public class InstantRunTest {
   }
 
   /**
-   * Verifies that Studio suggests to install when correspnding platform is not installed while deploying
+   * Verifies that Studio suggests to install when corresponding platform is not installed while deploying
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
@@ -507,8 +507,9 @@ public class InstantRunTest {
     });
     new JButtonFixture(guiTest.robot(), button).click();
 
+    // TODO: http://b/72834057 Consider a different way to wait for this.
     DialogFixture downloadDialog =
-      findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
+      findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(60)).using(guiTest.robot());
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
     Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
