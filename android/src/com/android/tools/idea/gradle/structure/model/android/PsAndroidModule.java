@@ -74,7 +74,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Nullable
   public PsBuildType findBuildType(@NotNull String buildType) {
-    return getOrCreateBuildTypeCollection().findElement(buildType, PsBuildType.class);
+    return getOrCreateBuildTypeCollection().findElement(buildType);
   }
 
   public void forEachBuildType(@NotNull Consumer<PsBuildType> consumer) {
@@ -105,7 +105,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Nullable
   public PsProductFlavor findProductFlavor(@NotNull String name) {
-    return getOrCreateProductFlavorCollection().findElement(name, PsProductFlavor.class);
+    return getOrCreateProductFlavorCollection().findElement(name);
   }
 
   @NotNull
@@ -119,7 +119,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Nullable
   public PsVariant findVariant(@NotNull String name) {
-    return getOrCreateVariantCollection().findElement(name, PsVariant.class);
+    return getOrCreateVariantCollection().findElement(name);
   }
 
   @NotNull
@@ -138,7 +138,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Nullable
   public PsSigningConfig findSigningConfig(@NotNull String signingConfig) {
-    return getOrCreateSigningConfigCollection().findElement(signingConfig, PsSigningConfig.class);
+    return getOrCreateSigningConfigCollection().findElement(signingConfig);
   }
 
   public void forEachSigningConfig(@NotNull Consumer<PsSigningConfig> consumer) {

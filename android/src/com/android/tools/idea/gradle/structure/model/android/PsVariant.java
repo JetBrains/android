@@ -83,7 +83,7 @@ public class PsVariant extends PsChildModel implements PsAndroidModel {
 
   @Nullable
   public PsAndroidArtifact findArtifact(@NotNull String name) {
-    return getOrCreateArtifactCollection().findElement(name, PsAndroidArtifact.class);
+    return getOrCreateArtifactCollection().findElement(name);
   }
 
   public void forEachArtifact(@NotNull Consumer<PsAndroidArtifact> consumer) {

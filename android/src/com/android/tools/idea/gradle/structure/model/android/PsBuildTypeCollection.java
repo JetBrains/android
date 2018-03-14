@@ -65,13 +65,9 @@ public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
     }
   }
 
-  @Override
   @Nullable
-  public <S extends PsBuildType> S findElement(@NotNull String name, @NotNull Class<S> type) {
-    if (PsBuildType.class.equals(type)) {
-      return type.cast(myBuildTypesByName.get(name));
-    }
-    return null;
+  public PsBuildType findElement(@NotNull String name) {
+    return myBuildTypesByName.get(name);
   }
 
   @Override

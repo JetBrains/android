@@ -60,12 +60,6 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
   }
 
   @Override
-  @Nullable
-  public <S extends PsJavaDependency> S findElement(@NotNull String name, @NotNull Class<S> type) {
-    return null;
-  }
-
-  @Override
   public void forEach(@NotNull Consumer<PsJavaDependency> consumer) {
     forEachDependency(myLibraryDependenciesBySpec, consumer);
   }

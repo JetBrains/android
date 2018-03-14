@@ -67,10 +67,8 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
   public ImmutableCollection<PsDependency> getTransitiveDependencies(@NotNull PsAndroidDependencyCollection artifactDependencies) {
     ImmutableSet.Builder<PsDependency> transitive = ImmutableSet.builder();
     for (PsArtifactDependencySpec dependency : myPomDependencies) {
-      PsLibraryAndroidDependency found = artifactDependencies.findLibraryDependency(dependency);
-      if (found != null) {
-        transitive.add(found);
-      }
+      List<PsLibraryAndroidDependency> found = artifactDependencies.findLibraryDependencies(dependency.getGroup(), dependency.getName());
+      transitive.addAll(found);
     }
 
     return transitive.build();

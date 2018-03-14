@@ -16,13 +16,10 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
 public interface PsModelCollection<T extends PsModel> {
-  @Nullable
-  <S extends T> S findElement(@NotNull String name, @NotNull Class<S> type);
 
   void forEach(@NotNull Consumer<T> consumer);
 }

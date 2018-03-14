@@ -60,11 +60,9 @@ public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidA
     myArtifactsByName.put(artifact.getName(), new PsAndroidArtifact(myParent, artifact.getName(), artifact));
   }
 
-  @Override
   @Nullable
-  public <S extends PsAndroidArtifact> S findElement(@NotNull String name, @NotNull Class<S> type) {
-    PsAndroidArtifact found = myArtifactsByName.get(name);
-    return type.isInstance(found) ? type.cast(found) : null;
+  public PsAndroidArtifact findElement(@NotNull String name) {
+    return myArtifactsByName.get(name);
   }
 
   @Override

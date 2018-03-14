@@ -34,29 +34,6 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
   protected val moduleDependenciesByGradlePath = mutableMapOf<String, PsModuleAndroidDependency>()
   protected val libraryDependenciesBySpec = mutableMapOf<String, PsLibraryAndroidDependency>()
 
-  fun findElement(spec: PsArtifactDependencySpec): PsLibraryAndroidDependency? {
-    val dependency = findElement(spec.toString(), PsLibraryAndroidDependency::class.java)
-    return when {
-      dependency != null -> dependency
-      spec.version.isNullOrEmpty() ->
-        libraryDependenciesBySpec.entries
-          .singleOrNull { PsArtifactDependencySpec.create(it.key)?.let { it.group == spec.group && it.name == spec.name } == true }
-          ?.value
-      else -> null
-    }
-  }
-
-  override fun <S : PsAndroidDependency> findElement(name: String, type: Class<S>): S? {
-    // Note: Cannot be inlined: https://youtrack.jetbrains.com/issue/KT-23053
-    @Suppress("UnnecessaryVariable")
-    val uncastType = type
-    return when (type) {
-      PsModuleAndroidDependency::class.java -> uncastType.cast(moduleDependenciesByGradlePath[name])
-      PsLibraryAndroidDependency::class.java -> uncastType.cast(libraryDependenciesBySpec[name])
-      else -> null
-    }
-  }
-
   override fun forEach(consumer: Consumer<PsAndroidDependency>) {
     libraryDependenciesBySpec.values.forEach(consumer)
     moduleDependenciesByGradlePath.values.forEach(consumer)
@@ -66,13 +43,13 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
     moduleDependenciesByGradlePath.values.forEach(consumer)
   }
 
-  fun findLibraryDependency(compactNotation: String): PsLibraryAndroidDependency? =
-    findElement(compactNotation, PsLibraryAndroidDependency::class.java)
+  fun findLibraryDependency(compactNotation: String): PsLibraryAndroidDependency? = libraryDependenciesBySpec[compactNotation]
 
-  fun findLibraryDependency(spec: PsArtifactDependencySpec): PsLibraryAndroidDependency? = findElement(spec)
+  fun findLibraryDependencies(group: String?, name: String): List<PsLibraryAndroidDependency> =
+    libraryDependenciesBySpec.values.filter { it.spec.group == group && it.spec.name == name }
 
-  fun findModuleDependency(modulePath: String): PsModuleAndroidDependency? =
-    findElement(modulePath, PsModuleAndroidDependency::class.java)
+
+  fun findModuleDependency(modulePath: String): PsModuleAndroidDependency? = moduleDependenciesByGradlePath[modulePath]
 }
 
 /**

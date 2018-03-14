@@ -48,11 +48,9 @@ class PsVariantCollection implements PsModelCollection<PsVariant> {
     });
   }
 
-  @Override
   @Nullable
-  public <S extends PsVariant> S findElement(@NotNull String name, @NotNull Class<S> type) {
-    PsVariant found = myVariantsByName.get(name);
-    return type.isInstance(found) ? type.cast(found) : null;
+  public PsVariant findElement(@NotNull String name) {
+    return myVariantsByName.get(name);
   }
 
   @Override
