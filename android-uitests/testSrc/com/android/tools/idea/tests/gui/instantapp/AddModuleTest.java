@@ -53,9 +53,9 @@ public class AddModuleTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/64950482
+  @RunIn(TestGroup.QA)
   public void addFeatureModule() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleInstantApp");
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 
@@ -70,7 +70,7 @@ public class AddModuleTest {
     ideFrame.waitForGradleProjectSyncToFinish();
 
     ProjectViewFixture.PaneFixture androidPane = ideFrame.getProjectView().selectAndroidPane();
-    androidPane.clickPath("mylibrary");
+    androidPane.clickPath("feature");
   }
 
   /**
