@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.KeyboardAction;
@@ -55,7 +55,6 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
 
   @Override
   public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> action) {
-    //Cache off current state of g2d.
     if (!(action instanceof KeyboardAction)) {
       return;
     }
@@ -113,7 +112,8 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
   }
 
   private void drawIcon(Component parent, Graphics2D g2d, AffineTransform transform, KeyboardAction action) {
-    Icon icon = SimpleEventRenderer.createImageIconWithBackgroundBorder(KEYBOARD_ICON_LOOKUP.get(action.getData().toString()), BORDER_MARGIN, parent.getBackground());
+    Icon icon = SimpleEventRenderer
+      .createImageIconWithBackgroundBorder(KEYBOARD_ICON_LOOKUP.get(action.getData().toString()), BORDER_MARGIN, parent.getBackground());
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);
     icon.paintIcon(parent, g2d, -icon.getIconWidth() / 2, 0);

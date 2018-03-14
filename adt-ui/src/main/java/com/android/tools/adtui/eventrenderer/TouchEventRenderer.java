@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
 import com.intellij.ui.JBColor;
@@ -31,31 +31,34 @@ public class TouchEventRenderer<E> implements SimpleEventRenderer<E> {
                                                          new Color(0xCC9876D8, true));
   private static final int MIN_LENGTH = 20;
 
-  // TODO: make this accessible for on mouse over to adjust height.
-  private int myLineWidth = 12;
+  private static final int LINE_WIDTH = 12;
 
   private static final int BORDER_MARGIN = 2;
 
   @Override
-  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> notUsedData) {
+  public void draw(Component parent,
+                   Graphics2D g2d,
+                   AffineTransform transform,
+                   double length,
+                   EventAction<E> notUsedData) {
     Color currentColor = g2d.getColor();
     Stroke currentStroke = g2d.getStroke();
-    double xPosition = transform.getTranslateX() - myLineWidth / 2.0;
-    double yPosition = transform.getTranslateY() + myLineWidth / 2.0;
+    double xPosition = transform.getTranslateX() - LINE_WIDTH / 2.0;
+    double yPosition = transform.getTranslateY() + LINE_WIDTH / 2.0;
 
     g2d.setColor(parent.getBackground());
-    Ellipse2D.Double ellipse = new Ellipse2D.Double(xPosition - BORDER_MARGIN, yPosition - BORDER_MARGIN, myLineWidth + BORDER_MARGIN * 2,
-                                                    myLineWidth + BORDER_MARGIN * 2);
+    Ellipse2D.Double ellipse = new Ellipse2D.Double(xPosition - BORDER_MARGIN, yPosition - BORDER_MARGIN, LINE_WIDTH + BORDER_MARGIN * 2,
+                                                    LINE_WIDTH + BORDER_MARGIN * 2);
     g2d.fill(ellipse);
     g2d.setColor(TOUCH_COLOR);
-    ellipse = new Ellipse2D.Double(xPosition, yPosition, myLineWidth, myLineWidth);
+    ellipse = new Ellipse2D.Double(xPosition, yPosition, LINE_WIDTH, LINE_WIDTH);
     g2d.fill(ellipse);
     // If the duration of mouse down was significant we draw a trailing line for it.
     if (length >= MIN_LENGTH) {
-      BasicStroke str = new BasicStroke(myLineWidth);
+      BasicStroke str = new BasicStroke(LINE_WIDTH);
       g2d.setStroke(str);
       g2d.setColor(HOLD_COLOR);
-      RoundRectangle2D.Double rect = new RoundRectangle2D.Double(xPosition, yPosition, length, myLineWidth, myLineWidth, myLineWidth);
+      RoundRectangle2D.Double rect = new RoundRectangle2D.Double(xPosition, yPosition, length, LINE_WIDTH, LINE_WIDTH, LINE_WIDTH);
       g2d.fill(rect);
       g2d.setStroke(currentStroke);
     }

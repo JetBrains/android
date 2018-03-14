@@ -16,8 +16,9 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,7 +60,6 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   }
 
   protected void render() {
-    //TODO Pull logic of combining events out of component and into EventHandler
     double max = myModel.getRangedSeries().getXRange().getMax();
     mIconsToDraw.clear();
     List<SeriesData<EventAction<E>>> series = myModel.getRangedSeries().getSeries();
@@ -107,6 +107,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     public long getStartTimestamp() {
       return mStartTimestamp;
     }
+
     public long getEndTimestamp() {
       return mEndTimestamp;
     }

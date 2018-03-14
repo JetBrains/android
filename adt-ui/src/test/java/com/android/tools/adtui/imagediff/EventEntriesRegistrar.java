@@ -16,6 +16,10 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.eventrenderer.EventIconRenderer;
+import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
+import com.android.tools.adtui.eventrenderer.SimpleEventRenderer;
+import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.event.*;
 
@@ -215,15 +219,6 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       MOCK_RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer());
       MOCK_RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png"));
       MOCK_RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer());
-    }
-
-    /**
-     * Enum that defines what Icon to draw for an event action.
-     */
-    private enum ActionType {
-      TOUCH,
-      ROTATE,
-      KEYBOARD
     }
 
     protected SimpleEventComponent mySimpleEventComponent;
