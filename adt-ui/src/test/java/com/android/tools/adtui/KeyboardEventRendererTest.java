@@ -53,7 +53,7 @@ public class KeyboardEventRendererTest {
   @Test
   public void testStringPaint() {
     String textToDraw = "Text";
-    myRenderer.draw(new JPanel(), myGraphics2D, new AffineTransform(), 0,
+    myRenderer.draw(new JPanel(), myGraphics2D, new AffineTransform(), 0, false,
                     new KeyboardAction(0, 0, new KeyboardData(textToDraw)));
     verify(myGraphics2D).drawString(eq(textToDraw), anyInt(), anyInt());
   }
@@ -61,8 +61,8 @@ public class KeyboardEventRendererTest {
   @Test
   public void testIconPaint() {
     JPanel panel = new JPanel();
-    myRenderer.draw(panel, myGraphics2D, new AffineTransform(), 0,
-                    new KeyboardAction(0, 0, new KeyboardData("KEYCODE_BACK")));
+    myRenderer.draw(panel, myGraphics2D, new AffineTransform(), 0,false,
+                    new KeyboardAction(0, 0,  new KeyboardData("KEYCODE_BACK")));
     verify(myGraphics2D).drawImage(any(Image.class), anyInt(), anyInt(), eq(panel));
   }
 }

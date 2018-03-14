@@ -23,6 +23,8 @@ import com.android.tools.adtui.model.event.EventModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,9 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   private final ArrayList<EventRenderData<E>> mIconsToDraw;
 
   private boolean myRender;
+
+  private double myMouseX;
+
   /**
    * Component that renders EventActions as a series of icons.
    */
@@ -52,6 +57,18 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     mIconsToDraw = new ArrayList<>();
     myRender = true;
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseExited(MouseEvent e) {
+        myMouseX = -1;
+      }
+    });
+    addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        myMouseX = e.getX();
+      }
+    });
   }
 
   private void modelChanged() {
@@ -83,16 +100,49 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     double min = myModel.getRangedSeries().getXRange().getMin();
     double max = myModel.getRangedSeries().getXRange().getMax();
     double scaleFactor = dim.getWidth();
+    int mouseOverIndex = -1;
     for (int i = 0; i < mIconsToDraw.size(); i++) {
       EventRenderData<E> data = mIconsToDraw.get(i);
       double normalizedPositionStart = ((data.getStartTimestamp() - min) / (max - min));
       double normalizedPositionEnd = ((data.getEndTimestamp() - min) / (max - min));
-      AffineTransform translate = AffineTransform
-        .getTranslateInstance(normalizedPositionStart * scaleFactor, 0);
-      EventAction<E> action = data.getAction();
-      SimpleEventRenderer<E> renderer = mRenderers.get(action.getType());
-      renderer.draw(this, g2d, translate, (normalizedPositionEnd - normalizedPositionStart) * scaleFactor, action);
+      double normalizedMouseX = myMouseX / scaleFactor;
+      boolean isMouseOverElement = normalizedMouseX > normalizedPositionStart && normalizedMouseX <= normalizedPositionEnd;
+      // Find the first element we moused over
+      if (isMouseOverElement && mouseOverIndex == -1) {
+        // Cache off index to draw last so this element draws on top of all other items.
+        mouseOverIndex = i;
+      }
+      else {
+        drawEvent(data, g2d, min, max, scaleFactor, false);
+      }
     }
+    if (mouseOverIndex >= 0) {
+      drawEvent(mIconsToDraw.get(mouseOverIndex), g2d, min, max, scaleFactor, true);
+    }
+  }
+
+  /**
+   * Helper function to call into renderer and draw event elements.
+   * @param data Current {@link EventRenderData} element used to grab the event action, as well as normalized positions.
+   * @param g2d Graphics context to draw to.
+   * @param min Series range min value.
+   * @param max Series range max value.
+   * @param scaleFactor Amount to scale normalized values up by.
+   * @param isMouseOverElement If the mouse is over the supplied {@link EventRenderData}
+   */
+  private void drawEvent(EventRenderData<E> data, Graphics2D g2d, double min, double max, double scaleFactor, boolean isMouseOverElement) {
+    double normalizedPositionStart = ((data.getStartTimestamp() - min) / (max - min));
+    double normalizedPositionEnd = ((data.getEndTimestamp() - min) / (max - min));
+    AffineTransform translate = AffineTransform
+      .getTranslateInstance(normalizedPositionStart * scaleFactor, 0);
+    EventAction<E> action = data.getAction();
+    SimpleEventRenderer<E> renderer = mRenderers.get(action.getType());
+    renderer.draw(this,
+                  g2d,
+                  translate,
+                  (normalizedPositionEnd - normalizedPositionStart) * scaleFactor,
+                  isMouseOverElement,
+                  action);
   }
 
   private static class EventRenderData<E> {
