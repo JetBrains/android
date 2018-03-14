@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -38,7 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class NewKotlinProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   private static final String APP_NAME = "app";
   private static final String KOTLIN_FILE = "MainActivity.kt";
@@ -72,9 +73,10 @@ public class NewKotlinProjectTest {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
 
-    emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
+
     ideFrameFixture.runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
@@ -111,9 +113,9 @@ public class NewKotlinProjectTest {
     assertThat(C_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
     ideFrameFixture.getEditor().close();
 
-    emulator.createDefaultAVD(ideFrameFixture.invokeAvdManager());
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
     ideFrameFixture.runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+      .selectDevice(avdName)
       .clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME)
