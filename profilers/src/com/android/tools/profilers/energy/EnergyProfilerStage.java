@@ -14,6 +14,7 @@
 package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.EnergyAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
@@ -54,7 +55,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   public EnergyProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myDetailedUsage = new DetailedEnergyUsage(profilers);
-    myAxis = new AxisComponentModel(myDetailedUsage.getUsageRange(), EnergyMonitor.ENERGY_AXIS_FORMATTER);
+    myAxis = new AxisComponentModel(myDetailedUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT);
     myEventMonitor = new EventMonitor(profilers);
     myLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getDataRange(), false);
     myTooltipLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange(), true);
@@ -214,9 +215,9 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
 
     EnergyLegends(DetailedEnergyUsage detailedUsage, Range range, boolean isTooltip) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
-      myCpuLegend = new SeriesLegend(detailedUsage.getCpuUsageSeries(), EnergyMonitor.ENERGY_AXIS_FORMATTER, range, "CPU",
+      myCpuLegend = new SeriesLegend(detailedUsage.getCpuUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "CPU",
                                      Interpolatable.SegmentInterpolator);
-      myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyMonitor.ENERGY_AXIS_FORMATTER, range, "NETWORK",
+      myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "NETWORK",
                                          Interpolatable.SegmentInterpolator);
 
       List<SeriesLegend> legends = Lists.newArrayList(myCpuLegend, myNetworkLegend);

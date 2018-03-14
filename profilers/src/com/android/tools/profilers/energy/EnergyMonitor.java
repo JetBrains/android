@@ -15,8 +15,7 @@ package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.formatter.EnergyAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -25,8 +24,7 @@ import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class EnergyMonitor extends ProfilerMonitor {
-
-  static final BaseAxisFormatter ENERGY_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "mA");
+  public static final int MAX_EXPECTED_USAGE = 400;
 
   @NotNull private final EnergyUsage myUsage;
   @NotNull private final AxisComponentModel myAxis;
@@ -36,7 +34,7 @@ public class EnergyMonitor extends ProfilerMonitor {
   public EnergyMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
     myUsage = new EnergyUsage(profilers);
-    myAxis = new AxisComponentModel(myUsage.getUsageRange(), ENERGY_AXIS_FORMATTER);
+    myAxis = new AxisComponentModel(myUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT);
     myAxis.setClampToMajorTicks(true);
     myLegends = new Legends(myUsage, getTimeline().getDataRange(), false);
     myTooltipLegends = new Legends(myUsage, getTimeline().getTooltipRange(), true);
@@ -100,7 +98,7 @@ public class EnergyMonitor extends ProfilerMonitor {
 
     public Legends(@NotNull EnergyUsage usage, @NotNull Range range, boolean highlight) {
       super(highlight ? 0 : LEGEND_UPDATE_FREQUENCY_MS);
-      myUsageLegend = new SeriesLegend(usage.getUsageDataSeries(), ENERGY_AXIS_FORMATTER, range);
+      myUsageLegend = new SeriesLegend(usage.getUsageDataSeries(), EnergyAxisFormatter.DEFAULT, range);
       add(myUsageLegend);
     }
 

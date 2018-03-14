@@ -19,48 +19,91 @@ import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
 public class EnergyAxisFormatter extends BaseAxisFormatter {
-  public static final EnergyAxisFormatter SIMPLE = new EnergyAxisFormatter(1, 5, 10);
-  public static final EnergyAxisFormatter DETAILED = new EnergyAxisFormatter(2, 5, 10);
+  static final int DEFAULT_MAJOR_INTERVAL = 200;
+  public static final String[] LABELS = {"Light", "Medium", "Heavy"};
 
-  private static final int BASE = 10;
-  private static final int MULTIPLIER = 1000;
-  private static final int[] MIN_INTERVALS = new int[]{1, 1, 1};
-  private static String[] UNITS = new String[]{"uA", "mA", "A"};
-  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{1, 2, 5, 10});
+  public static final EnergyAxisFormatter DEFAULT = new EnergyAxisFormatter(0, LABELS.length, 1);
 
   private EnergyAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 
+  @NotNull
+  @Override
+  public String getFormattedString(double globalRange, double value, boolean includeUnit) {
+    int index = (int) Math.ceil(value / DEFAULT_MAJOR_INTERVAL);
+    if (index <= 0) {
+      return "None";
+    }
+    if (index <= LABELS.length) {
+      return LABELS[index - 1];
+    }
+    long majorInterval = getMajorInterval(globalRange);
+    double previousMarkerValue = value % majorInterval != 0 ? value - value % majorInterval : value - majorInterval;
+    // The previous marker does not cover the largest label so returns the largest label.
+    if (previousMarkerValue <= DEFAULT_MAJOR_INTERVAL * (LABELS.length - 1)) {
+      return LABELS[LABELS.length - 1];
+    }
+    return "";
+  }
+
+  /**
+   * Returns the major interval value for drawing the markers, given a global range. If the global range is too large to show all markers,
+   * the number of markers is at most {@code LABELS.length} but can be smaller to fit the range.
+   */
+  @Override
+  public long getMajorInterval(double range) {
+    int numTicks = (int) (range / DEFAULT_MAJOR_INTERVAL);
+    if (numTicks < 1) {
+      return (long) range;
+    }
+    if (numTicks <= LABELS.length) {
+      return DEFAULT_MAJOR_INTERVAL;
+    }
+    // Reduces the number of ticks until it is 2, otherwise there is only one marker which is the range.
+    int largestMarkerValue = LABELS.length * DEFAULT_MAJOR_INTERVAL;
+    for (numTicks = LABELS.length - 1; numTicks > 1; numTicks--) {
+      long interval = largestMarkerValue / numTicks;
+      // When the different is equal to interval, the number of ticks is no longer the value of numTicks because there will be
+      // another marker drawn. Needs to continue to next iteration. For example, the range is 900 and numTicks is 2, although
+      // {@code range == largestMarkerValue + largestMarketValue / 2}; if the interval is 300, there will be markers drawn at
+      // 300, 600 and 900, but there is no formatted string for the 900 marker; so the interval should be 600.
+      if (range < largestMarkerValue + interval) {
+        return interval;
+      }
+    }
+    return (long) range;
+  }
+
   @Override
   protected int getNumUnits() {
-    return UNITS.length;
+    return LABELS.length;
   }
 
   @NotNull
   @Override
   protected String getUnit(int index) {
-    return UNITS[index];
+    return index < LABELS.length ? LABELS[index] : "";
   }
 
   @Override
   protected int getUnitBase(int index) {
-    return BASE;
+    return 1;
   }
 
   @Override
   protected int getUnitMultiplier(int index) {
-    return MULTIPLIER;
+    return 1;
   }
 
   @Override
   protected int getUnitMinimalInterval(int index) {
-    return MIN_INTERVALS[index];
+    return 1;
   }
 
   @NotNull
   @Override
   protected TIntArrayList getUnitBaseFactors(int index) {
-    return BASE_FACTORS;
+    return new TIntArrayList(0);
   }
 }

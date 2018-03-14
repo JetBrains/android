@@ -17,6 +17,7 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.AxisComponentModel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.LineChartModel
+import com.android.tools.adtui.model.formatter.EnergyAxisFormatter
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profilers.FakeGrpcChannel
@@ -76,7 +77,7 @@ class EnergyMonitorTest {
   @Test
   fun testLegends() {
     val legends = monitor.legends
-    assertThat(legends.usageLegend.value).isEqualTo("50 mA")
+    assertThat(legends.usageLegend.value).isEqualTo(EnergyAxisFormatter.LABELS[0])
   }
 
   @Test
