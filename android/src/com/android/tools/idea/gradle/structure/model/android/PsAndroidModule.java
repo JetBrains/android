@@ -198,8 +198,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     // Update/reset the "parsed" model.
     addLibraryDependencyToParsedModel(scopesNames, library);
 
-    // Reset dependencies.
-    myDependencyCollection = null;
+    resetDependencies();
 
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(library);
     assert spec != null;
@@ -212,11 +211,17 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     // Update/reset the "parsed" model.
     addModuleDependencyToParsedModel(scopesNames, modulePath);
 
-    // Reset dependencies.
-    myDependencyCollection = null;
+    resetDependencies();
 
     fireModuleDependencyAddedEvent(modulePath);
     setModified(true);
+  }
+
+  private void resetDependencies() {
+    myDependencyCollection = null;
+    forEachVariant(variant -> variant.forEachArtifact(artifact -> {
+      artifact.resetDependencies();
+    }));
   }
 
   @NotNull

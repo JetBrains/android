@@ -44,7 +44,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
 
     val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)!!
-    val artifactDependencies = PsAndroidArtifactDependencyCollection(freeReleaseMainArtifact)
+    val artifactDependencies = freeReleaseMainArtifact.dependencies
 
     val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
     assertThat(moduleDependency, notNullValue())
@@ -59,7 +59,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
 
     val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(ARTIFACT_UNIT_TEST)!!
-    val artifactDependencies = PsAndroidArtifactDependencyCollection(freeReleaseMainArtifact)
+    val artifactDependencies = freeReleaseMainArtifact.dependencies
 
     val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
     assertThat(moduleDependency, notNullValue())

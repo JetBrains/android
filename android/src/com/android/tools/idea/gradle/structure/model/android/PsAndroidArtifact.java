@@ -21,16 +21,13 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
@@ -49,6 +46,7 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
   @NotNull private final Icon myIcon;
 
   @Nullable private final IdeBaseArtifact myResolvedModel;
+  @Nullable private PsAndroidArtifactDependencyCollection myDependencies = null;
 
   public PsAndroidArtifact(@NotNull PsVariant parent, @NotNull String resolvedName, @Nullable IdeBaseArtifact resolvedModel) {
     super(parent);
@@ -114,13 +112,16 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
     return false;
   }
 
-  public boolean containsAny(@NotNull Collection<DependencyModel> parsedDependencies) {
-    for (DependencyModel parsedDependency : parsedDependencies) {
-      if (contains(parsedDependency)) {
-        return true;
-      }
+  @NotNull
+  public PsAndroidArtifactDependencyCollection getDependencies() {
+    if (myDependencies == null) {
+      myDependencies = new PsAndroidArtifactDependencyCollection(this);
     }
-    return false;
+    return myDependencies;
+  }
+
+  void resetDependencies() {
+    myDependencies = null;
   }
 
   public boolean contains(@NotNull DependencyModel parsedDependency) {
@@ -130,10 +131,6 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
 
   public boolean containsConfigurationName(@NotNull String configurationName) {
     return getPossibleConfigurationNames().contains(configurationName);
-  }
-
-  public boolean containsAnyConfigurationName(@NotNull Set<String> configurationNames) {
-    return !Sets.intersection(Sets.newHashSet(getPossibleConfigurationNames()), configurationNames).isEmpty();
   }
 
   @VisibleForTesting

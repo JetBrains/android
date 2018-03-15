@@ -65,7 +65,7 @@ class DependencyManagementTest : DependencyTestCase() {
 
     run {
       val artifact = libModule.findVariant("paidDebug")!!.findArtifact(ARTIFACT_MAIN)
-      val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+      val dependencies = artifact!!.dependencies
       val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
       val lib2 = dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
       val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
@@ -78,7 +78,7 @@ class DependencyManagementTest : DependencyTestCase() {
 
     run {
       val artifact = libModule.findVariant("paidRelease")!!.findArtifact(ARTIFACT_MAIN)
-      val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+      val dependencies = artifact!!.dependencies
       val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
       val lib2 = dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
       val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
@@ -95,7 +95,7 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
 
     val artifact = libModule.findVariant("paidDebug")!!.findArtifact(ARTIFACT_MAIN)
-    val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+    val dependencies = artifact!!.dependencies
     val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
     assertThat(lib1.testDeclared(), hasItems(true))
     assertThat(lib1.testScopes(), hasItems("implementation:debugImplementation"))
@@ -107,7 +107,7 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1"), notNullValue())
 
     val artifact = libModule.findVariant("paidRelease")!!.findArtifact(ARTIFACT_MAIN)
-    val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+    val dependencies = artifact!!.dependencies
     val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
     assertThat(lib1.testDeclared(), hasItems(true))
     // Despite requesting a different version the 'releaseImplementation' configuration should be included in the promoted
@@ -120,7 +120,7 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(libModule.dependencies.findLibraryDependency("com.example.libs:lib1:0.+"), notNullValue())
 
     val artifact = libModule.findVariant("release")!!.findArtifact(ARTIFACT_MAIN)
-    val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+    val dependencies = artifact!!.dependencies
     val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1")
     assertThat(lib1.testDeclared(), hasItems(true))
     assertThat(lib1.testScopes(), hasItems("implementation"))
@@ -141,7 +141,7 @@ class DependencyManagementTest : DependencyTestCase() {
     }
     run {
       val artifact = libModule.findVariant("paidRelease")!!.findArtifact(ARTIFACT_MAIN)
-      val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+      val dependencies = artifact!!.dependencies
       val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
       val lib2 = dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
       val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
@@ -157,7 +157,7 @@ class DependencyManagementTest : DependencyTestCase() {
     }
     run {
       val artifact = libModule.findVariant("paidDebug")!!.findArtifact(ARTIFACT_MAIN)
-      val dependencies = PsAndroidArtifactDependencyCollection(artifact!!)
+      val dependencies = artifact!!.dependencies
       val lib1 = dependencies.findLibraryDependency("com.example.libs:lib1:1.0")
       val lib2 = dependencies.findLibraryDependency("com.example.libs:lib2:1.0")
       val lib3 = dependencies.findLibraryDependency("com.example.jlib:lib3:1.0")
@@ -187,6 +187,12 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
 
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib2:1.0"), nullValue())
+    }
+
     project.applyChanges()
     requestSyncAndWait()
     reparse()
@@ -194,6 +200,12 @@ class DependencyManagementTest : DependencyTestCase() {
     module = project.findModuleByName("moduleA") as PsAndroidModule
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib2:1.0"), notNullValue())
+    }
   }
 
   fun testAddModuleDependency() {
@@ -206,6 +218,12 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
     assertThat(module.dependencies.findModuleDependency(":moduleB"), notNullValue())
 
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findModuleDependency(":moduleA"), nullValue())
+      assertThat(resolvedDependencies?.findModuleDependency(":moduleB"), nullValue())
+    }
+
     project.applyChanges()
     requestSyncAndWait()
     reparse()
@@ -213,6 +231,12 @@ class DependencyManagementTest : DependencyTestCase() {
     module = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(module.dependencies.findModuleDependency(":moduleA"), notNullValue())
     assertThat(module.dependencies.findModuleDependency(":moduleB"), notNullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findModuleDependency(":moduleA"), notNullValue())
+      assertThat(resolvedDependencies?.findModuleDependency(":moduleB"), notNullValue())
+    }
   }
 
   fun testAddJavaModuleDependency() {
@@ -221,12 +245,22 @@ class DependencyManagementTest : DependencyTestCase() {
     module.addModuleDependency(":jModuleK", listOf("implementation"))
     assertThat(module.dependencies.findModuleDependency(":jModuleK"), notNullValue())
 
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findModuleDependency(":jModuleK"), nullValue())
+    }
+
     project.applyChanges()
     requestSyncAndWait()
     reparse()
 
     module = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(module.dependencies.findModuleDependency(":jModuleK"), notNullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findModuleDependency(":jModuleK"), notNullValue())
+    }
   }
 
   // TODO(solodkyy): Implement support for Java to Java module dependencies.
