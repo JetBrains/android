@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
+import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 
@@ -307,5 +308,33 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val newMapNode =
       newAppNode.children().asSequence().find { "mapVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
     assertThat((newMapNode.getChildAt(0) as VariablesTable.MapItemNode).getUnresolvedValue(false), equalTo("\"new value\""))
+  }
+
+  fun testAddSimpleVariable() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val variablesTable = VariablesTable(project, psContext)
+    val tableModel = variablesTable.tableModel
+
+    val appNode = (tableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
+    assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVariable")))
+
+    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
+    val editorComp = variablesTable.editorComponent as JPanel
+    val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
+    textBox.text = "newVariable"
+    variablesTable.editingStopped(null)
+
+    val variableNode =
+      appNode.children().asSequence().find { "newVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
+    variableNode.setValue("new value")
+
+    appNode.module.applyChanges()
+    val newTableModel = VariablesTable(project, psContext).tableModel
+    val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
+    val newVariableNode =
+      newAppNode.children().asSequence().find { "newVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
+    assertThat(newVariableNode.getUnresolvedValue(false), equalTo("\"new value\""))
   }
 }
