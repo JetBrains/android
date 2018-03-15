@@ -16,9 +16,13 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
@@ -139,6 +143,20 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(components[1].getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo(HELLO_WORLD)
   }
 
+  fun testGetValueWithDefaultValue() {
+    val components = createTextView()
+    val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
+    val nlModel = components[0].model as SyncNlModel
+    val view = nlModel.surface.currentSceneView!!
+    val manager = view.sceneManager as SyncLayoutlibSceneManager
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
+    property.model.surface = nlModel.surface
+    waitUntilEventsProcessed(property.model)
+
+    assertThat(property.value).isNull()
+    assertThat(property.resolvedValue).isEqualTo("?attr/textAppearanceSmall")
+  }
+
   private fun createPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NelePropertyItem {
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
@@ -188,5 +206,14 @@ class NelePropertyItemTest : PropertyTestCase() {
   private fun isReferenceValue(property: NelePropertyItem, value: String): Boolean {
     property.value = value
     return property.isReference
+  }
+
+  // Ugly hack:
+  // The production code is executing the properties creation on a separate thread.
+  // This code makes sure that the last scheduled worker thread is finished,
+  // then we also need to wait for events on the UI thread.
+  private fun waitUntilEventsProcessed(model: NelePropertiesModel) {
+    model.lastSelectionUpdate?.get()
+    UIUtil.dispatchAllInvocationEvents()
   }
 }

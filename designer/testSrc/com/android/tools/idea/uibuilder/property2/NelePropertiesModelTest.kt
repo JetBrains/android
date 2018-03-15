@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants
 import com.android.SdkConstants.*
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
@@ -94,6 +96,22 @@ class NelePropertiesModelTest: LayoutTestCase() {
     UIUtil.dispatchAllInvocationEvents()
 
     verify(listener).propertyValuesChanged()
+  }
+
+  fun testAccessToDefaultPropertiesViaModel() {
+    // setup
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    val view = nlModel.surface.currentSceneView!!
+    val manager = view.sceneManager as SyncLayoutlibSceneManager
+    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", model, listOf(textView))
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
+    model.surface = nlModel.surface
+    waitUntilEventsProcessed(model)
+
+    // test
+    assertThat(model.provideDefaultValue(property)).isEqualTo("?attr/textAppearanceSmall")
   }
 
   private fun createNlModel(tag: String): SyncNlModel {

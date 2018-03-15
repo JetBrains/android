@@ -112,14 +112,27 @@ open class NelePropertyItem(
   override fun hashCode() = Objects.hash(namespace, name, type)
 
   private fun resolveValue(value: String?): String? {
+    return resolveValueUsingResolver(value ?: model.provideDefaultValue(this))
+  }
+
+  private fun resolveValueUsingResolver(value: String?): String? {
     if (value == null || !isReferenceValue(value)) return value
     val resolver = resolver ?: return value
     // TODO: Should an error if the value cannot be parsed and resolved...
     val url = ResourceUrl.parse(value) ?: return value
     val defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace
     val resRef = url.resolve(defaultNamespace, namespaceResolver)
+    val resValue = resolver.getResolvedResource(resRef) ?: return resolveFrameworkValueUsingResolver(value)
+    return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value ?: value
+  }
+
+  // TODO: Namespaces. Remove this when the framework & layoutlib is properly using prefixes for framework references
+  private fun resolveFrameworkValueUsingResolver(value: String): String {
+    val resolver = resolver ?: return value
+    val url = ResourceUrl.parse(value) ?: return value
+    val resRef = url.resolve(ResourceNamespace.ANDROID, namespaceResolver)
     val resValue = resolver.getResolvedResource(resRef) ?: return value
-    return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value
+    return if (resValue.resourceType == ResourceType.FONT) resValue.name else resValue.value ?: value
   }
 
   val resolver: ResourceResolver?
@@ -204,6 +217,7 @@ open class NelePropertyItem(
     // TODO: This should not be required, but it is for as long as getNamespaceResolver returns TOOLS_ONLY:
     if (resolver == ResourceNamespace.Resolver.TOOLS_ONLY && namespace == ANDROID_URI) return PREFIX_ANDROID
     val prefix = namespaceResolver.uriToPrefix(namespace) ?: return ""
+    @Suppress("ConvertToStringTemplate")
     return prefix + ":"
   }
 
