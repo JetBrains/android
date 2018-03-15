@@ -142,5 +142,22 @@ class EnergyEventsDataSeriesTest {
 
       assertThat(dataList.map { it.value }).containsExactlyElementsIn(mergedJobs)
     }
+
+    // Combine both jobs and wakelock events together
+    run {
+      val mergedSeries = MergedEnergyEventsDataSeries(dataSeries, EnergyDuration.Kind.WAKE_LOCK, EnergyDuration.Kind.JOB)
+      val range = Range(0.0, Double.MAX_VALUE)
+      val dataList = mergedSeries.getDataForXRange(range)
+      assertThat(dataList).hasSize(4)
+
+      val mergedAllEvents = listOf(
+        eventList.first { it.eventId == 1 },
+        eventList.first { it.eventId == 2 && it.isTerminal },
+        eventList.first { it.eventId == 4 },
+        eventList.first { it.eventId == 5 && it.isTerminal }
+      )
+
+      assertThat(dataList.map { it.value }).containsExactlyElementsIn(mergedAllEvents)
+    }
   }
 }

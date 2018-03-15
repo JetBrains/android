@@ -76,8 +76,8 @@ public class EnergyProfilerStage extends Stage {
     myEventModel = new StateChartModel<>();
     Range range = profilers.getTimeline().getViewRange();
     // StateChart renders series in reverse order
-    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.JOB)));
-    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.ALARM)));
+    myEventModel.addSeries(
+      new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.ALARM, EnergyDuration.Kind.JOB)));
     myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.WAKE_LOCK)));
   }
 

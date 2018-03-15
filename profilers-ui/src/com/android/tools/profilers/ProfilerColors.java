@@ -218,15 +218,13 @@ public class ProfilerColors {
   public static final Color MEMORY_ALLOC_BG = new JBColor(new Color(0xECF2FA), new Color(0x323940));
 
   /**
-   * TODO: Get actual energy colors from UX. (Currently they're copied from memory)
+   * TODO(b/74565772): Get actual energy colors from UX. (Currently they're copied from memory)
    */
+  public static final Color ENERGY_BACKGROUND = new JBColor(new Color(0xFFEE58), new Color(0xFFEE58));
+
   public static final Color ENERGY_CPU = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
 
-  public static final Color ENERGY_ALARM = new JBColor(new Color(0xF2E35C), new Color(0xF2E35C));
-
   public static final Color ENERGY_NETWORK = new JBColor(new Color(0x80EDDC), new Color(0x4EA783));
-
-  public static final Color ENERGY_JOB = new JBColor(new Color(0xFFFFFF), new Color(0xFFFFFF));
 
   public static final Color ENERGY_WAKE_LOCK = new JBColor(new Color(0xF44271), new Color(0xF44271));
 
