@@ -92,6 +92,8 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     val propertiesList = listOf(actionsList.model.getElementAt(0), actionsList.model.getElementAt(1))
     assertSameElements(propertiesList.map { it.components[0].id }, listOf("a1", "a2"))
     assertSameElements(propertiesList.map { it.name }, listOf("f2", "activity"))
+    assertEquals("activity (a2)", getElementText(actionsList, 0))
+    assertEquals("f2 (a1)", getElementText(actionsList, 1))
 
     panel.setComponent(listOf(f2), HashBasedTable.create<String, String, NlProperty>(), manager)
     assertEquals(0, actionsList.itemsCount)
@@ -107,6 +109,17 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     val newAction = model.find("action_f2_to_f1")!!
     assertTrue(model.surface.selectionModel.selection.contains(newAction))
   }
+
+  private fun getElementText(
+    actionsList: JBList<NlProperty>,
+    index: Int
+  ) = actionsList.cellRenderer.getListCellRendererComponent(
+      actionsList,
+      actionsList.model.getElementAt(index),
+      index,
+      false,
+      false
+  ).toString()
 
   fun testPopupContents() {
     val model = model("nav.xml") {
@@ -235,6 +248,7 @@ private fun <T> any(): T {
   Mockito.any<T>()
   return uninitialized()
 }
+@Suppress("UNCHECKED_CAST")
 private fun <T> uninitialized(): T = null as T
 
 private fun flatten(component: Component): List<Component> {

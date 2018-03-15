@@ -16,8 +16,6 @@
 package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlComponent.stripId
-import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.model.actionDestinationId
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
