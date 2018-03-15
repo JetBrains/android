@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue;
 import com.google.common.collect.Lists;
@@ -26,7 +25,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.stream.Collectors.toList;
@@ -337,124 +335,6 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     List<PsVariant> variants = Lists.newArrayList();
     module.forEachVariant(variants::add);
     return variants;
-  }
-
-  public void testEditableDependencies() throws Throwable {
-    loadProject(PSD_DEPENDENCY);
-
-    Project resolvedProject = myFixture.getProject();
-    PsProject project = new PsProject(resolvedProject);
-
-    PsAndroidModule module = (PsAndroidModule)project.findModuleByName("mainModule");
-    assertNotNull(module);
-
-    List<PsAndroidDependency> declaredDependencies = module.getDependencies().items();
-    assertThat(declaredDependencies).hasSize(3);
-    {
-      // Verify that lib1:1.0 is considered a "editable" dependency, and it was matched properly
-      PsLibraryAndroidDependency lib1 = (PsLibraryAndroidDependency)declaredDependencies.get(1);
-      assertTrue(lib1.isDeclared());
-
-      PsArtifactDependencySpec spec = lib1.getSpec();
-      assertEquals("com.example.libs", spec.getGroup());
-      assertEquals("lib1", spec.getName());
-      assertEquals("1.0", spec.getVersion());
-
-      Collection<String> variants = lib1.getVariants();
-      assertThat(variants).containsExactly("debug", "release");
-
-      for (String variant : variants) {
-        assertNotNull(module.findVariant(variant));
-        module.findVariant(variant).forEachArtifact(artifact -> {
-          if (artifact.getResolvedName().equals(ARTIFACT_MAIN)) {
-            if (artifact instanceof PsAndroidArtifact) {
-              PsAndroidArtifactDependencyCollection resolvedDependencies = new PsAndroidArtifactDependencyCollection(artifact);
-              // Verify that lib1 is considered a "editable" dependency, and it was matched properly
-              PsLibraryAndroidDependency resolved =
-                resolvedDependencies.findLibraryDependency("com.example.libs:lib1:1.0");
-              assertTrue(resolved.isDeclared());
-              assertFalse(resolved.getParsedModels().isEmpty());
-            }
-          }
-        });
-      }
-    }
-    {
-      // Verify that lib1:0.9.1 is considered a "editable" dependency, and it was matched properly
-      PsLibraryAndroidDependency lib1 = (PsLibraryAndroidDependency)declaredDependencies.get(2);
-      assertTrue(lib1.isDeclared());
-
-      PsArtifactDependencySpec spec = lib1.getSpec();
-      assertEquals("com.example.libs", spec.getGroup());
-      assertEquals("lib1", spec.getName());
-      assertEquals("0.9.1", spec.getVersion());
-
-      Collection<String> variants = lib1.getVariants();
-      assertThat(variants).containsExactly("release");
-
-      for (String variant : variants) {
-        assertNotNull(module.findVariant(variant));
-        module.findVariant(variant).forEachArtifact(artifact -> {
-          if (artifact.getResolvedName().equals(ARTIFACT_MAIN)) {
-            if (artifact instanceof PsAndroidArtifact) {
-              PsAndroidArtifactDependencyCollection resolvedDependencies = new PsAndroidArtifactDependencyCollection(artifact);
-              // Verify that lib1 is considered a "editable" dependency, and it was matched properly
-              PsLibraryAndroidDependency resolved =
-                resolvedDependencies.findLibraryDependency("com.example.libs:lib1:1.0");
-              assertTrue(resolved.isDeclared());
-              assertFalse(resolved.getParsedModels().isEmpty());
-            }
-          }
-        });
-      }
-    }
-  }
-
-  public void testEditableDependenciesWithPlusInVersion() throws Throwable {
-    loadProject(PSD_DEPENDENCY);
-
-    Project resolvedProject = myFixture.getProject();
-    PsProject project = new PsProject(resolvedProject);
-
-    PsAndroidModule modulePlus = (PsAndroidModule)project.findModuleByName("modulePlus");
-    assertNotNull(modulePlus);
-
-    List<PsAndroidDependency> declaredLib1Dependencies =
-      modulePlus
-        .getDependencies()
-        .items()
-        .stream()
-        .filter(v -> v instanceof PsLibraryAndroidDependency && ((PsLibraryAndroidDependency)v).getSpec().getName().equals("lib1"))
-        .collect(toList());
-
-    // Verify that appcompat is considered a "editable" dependency, and it was matched properly
-    PsLibraryAndroidDependency lib1 = (PsLibraryAndroidDependency)declaredLib1Dependencies.get(0);
-    assertTrue(lib1.isDeclared());
-
-    PsArtifactDependencySpec spec = lib1.getSpec();
-    assertEquals("com.example.libs", spec.getGroup());
-    assertEquals("lib1", spec.getName());
-    assertThat(spec.getVersion()).isEqualTo("0.+");
-    assertEquals("com.example.libs:lib1:0.+", spec.toString());
-
-    // Verify that the variants where appcompat is are properly registered.
-    Collection<String> variants = lib1.getVariants();
-    assertThat(variants).containsExactly("debug", "release");
-
-    for (String variant : variants) {
-      assertNotNull(modulePlus.findVariant(variant));
-      modulePlus.findVariant(variant).forEachArtifact(artifact -> {
-        if (artifact instanceof PsAndroidArtifact && artifact.getResolvedName().equals(ARTIFACT_MAIN)) {
-          PsAndroidArtifactDependencyCollection resolvedDependencies = new PsAndroidArtifactDependencyCollection(artifact);
-
-          // Verify that lib1 is considered a "editable" dependency, and it was matched properly
-          PsLibraryAndroidDependency resolvedAppCompatV7 =
-            resolvedDependencies.findLibraryDependency("com.example.libs:lib1:0.9.1");
-          assertTrue(resolvedAppCompatV7.isDeclared());
-          assertFalse(resolvedAppCompatV7.getParsedModels().isEmpty());
-        }
-      });
-    }
   }
 
   public void testCanDependOnModules() throws Throwable {
