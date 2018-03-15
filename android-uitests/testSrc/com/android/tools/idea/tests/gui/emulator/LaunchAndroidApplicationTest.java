@@ -31,6 +31,7 @@ import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -45,7 +46,11 @@ import static com.google.common.truth.Truth.assertThat;
 public class LaunchAndroidApplicationTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
+
+  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(new DeleteAvdsRule())
+    .around(emulator);
 
   private static final String APP_NAME = "app";
   private static final String FATAL_SIGNAL_11_OR_6 = ".*SIGSEGV.*|.*SIGABRT.*";

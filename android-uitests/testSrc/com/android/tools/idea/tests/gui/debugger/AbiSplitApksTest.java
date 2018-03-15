@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
 import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -33,12 +34,17 @@ import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRunner.class)
 public class AbiSplitApksTest extends DebuggerTestBase {
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
+
+  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(new DeleteAvdsRule())
+    .around(emulator);
 
   private final static String ABI_TYPE_X86 = "x86";
   private final static String ABI_TYPE_X86_64 = "x86_64";

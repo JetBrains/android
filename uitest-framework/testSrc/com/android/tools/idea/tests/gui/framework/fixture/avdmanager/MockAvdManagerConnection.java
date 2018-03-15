@@ -87,13 +87,12 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     giveEmulatorsChanceToExit(emulatorDevices, adb);
     // Force kill remaining emulators that didn't exit
     killEmulatorProcesses();
-    // Kill emulator crash report dialogs left behind
-    killEmulatorCrashReportProcess();
   }
 
   public void killEmulatorProcesses() {
     // Note that pgrep matches up to 15 characters.
     exec(isWindows ? "taskkill /F /IM qemu*" : "pkill -9 qemu");
+    // Kill emulator crash report dialogs left behind
     killEmulatorCrashReportProcess();
   }
 
@@ -102,6 +101,11 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
       Wait.seconds(30)
         .expecting("All emulators to have terminated gracefully")
         .until(() -> {
+          if (Thread.currentThread().isInterrupted()) {
+            // Exit early. Continue with rest of cleanup
+            return true;
+          }
+
           List<IDevice> devices = Arrays.asList(adb.getDevices());
           for (IDevice device : emulators) {
             if (device == null || !device.isEmulator()) {
@@ -138,7 +142,10 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   private static void exec(@NotNull String cmd) {
     try {
       Runtime.getRuntime().exec(cmd).waitFor(10, TimeUnit.SECONDS);
-    }  catch (Exception e) {
+    } catch (InterruptedException interrupted) {
+      // Continue keeping the thread interrupted. Don't block on anything to cleanup
+      Thread.currentThread().interrupt();
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
