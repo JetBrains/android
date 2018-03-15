@@ -201,7 +201,23 @@ public class GradleSyncInvoker {
     // And any changes to gradle files after sync started will result in another sync needed.
     myPreSyncProjectCleanUp.cleanUp(project);
 
-    setGradleSyncStateToStarted(project, request, listener);
+    // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
+    // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
+    boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
+    boolean started;
+    if (request.useCachedGradleModels) {
+      started = GradleSyncState.getInstance(project).skippedSyncStarted(!isImportedProject, request);
+    }
+    else {
+      started = GradleSyncState.getInstance(project).syncStarted(!isImportedProject, request);
+    }
+    if (!started) {
+      return;
+    }
+
+    if (listener != null) {
+      listener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
+    }
 
     boolean useNewGradleSync = NewGradleSync.isEnabled();
     if (!useNewGradleSync) {
@@ -238,29 +254,6 @@ public class GradleSyncInvoker {
       if (facet != null) {
         facet.getConfiguration().setModel(null);
       }
-    }
-  }
-
-  /**
-   * Call the appropriate project's GradleSyncState syncStarted method based on current project state.
-   * @param project       Project that needs to change its state
-   * @param syncRequest   Request parameters
-   * @param syncListener  Listener to notify
-   */
-  private static void setGradleSyncStateToStarted(@NotNull Project project,
-                                       @NotNull Request syncRequest,
-                                       @Nullable GradleSyncListener syncListener) {
-    // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
-    // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
-    boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
-    if (syncRequest.useCachedGradleModels) {
-      GradleSyncState.getInstance(project).skippedSyncStarted(!isImportedProject, syncRequest);
-    }
-    else {
-      GradleSyncState.getInstance(project).syncStarted(!isImportedProject, syncRequest);
-    }
-    if (syncListener != null) {
-      syncListener.syncStarted(project, syncRequest.useCachedGradleModels, syncRequest.generateSourcesOnSuccess);
     }
   }
 
