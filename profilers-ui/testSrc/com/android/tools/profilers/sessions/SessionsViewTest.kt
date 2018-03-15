@@ -272,7 +272,7 @@ class SessionsViewTest {
     assertThat(sessionArtifacts.size).isEqualTo(1)
     assertThat(sessionArtifacts.getElementAt(0).session).isEqualTo(session1)
 
-    val session = mySessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
+    val session = mySessionsManager.createImportedSession("fake.hprof", Common.SessionMetaData.SessionType.MEMORY_CAPTURE, 0, 0, 0)
     mySessionsManager.update()
     mySessionsManager.setSession(session)
     assertThat(sessionArtifacts.size).isEqualTo(2)

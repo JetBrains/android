@@ -221,15 +221,22 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * @return the new session
    */
   @NotNull
-  public Common.Session createImportedSession(@NotNull String sessionName, @NotNull Common.SessionMetaData.SessionType sessionType) {
+  public Common.Session createImportedSession(@NotNull String sessionName,
+                                              @NotNull Common.SessionMetaData.SessionType sessionType,
+                                              long startTimestamp,
+                                              long endTimestamp,
+                                              long startTimestampEpochMs) {
     Common.Session session = Common.Session.newBuilder()
       .setSessionId(generateUniqueSessionId())
+      .setStartTimestamp(startTimestamp)
+      .setEndTimestamp(endTimestamp)
       .build();
 
     Profiler.ImportSessionRequest sessionRequest = Profiler.ImportSessionRequest.newBuilder()
       .setSession(session)
       .setSessionName(sessionName)
       .setSessionType(sessionType)
+      .setStartTimestampEpochMs(startTimestampEpochMs)
       .build();
     myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
     return session;

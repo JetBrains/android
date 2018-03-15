@@ -171,7 +171,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
     ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
     myStatsTable.insertOrReplaceHeapInfo(request.getSession(), request.getInfo());
-    myStatsTable.insertHeapDumpData(request.getSession(), 0, DumpDataResponse.Status.SUCCESS, request.getData());
+    myStatsTable.insertHeapDumpData(request.getSession(), request.getInfo().getStartTime(), DumpDataResponse.Status.SUCCESS, request.getData());
     responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();

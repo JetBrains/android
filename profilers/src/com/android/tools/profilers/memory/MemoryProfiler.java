@@ -57,13 +57,20 @@ public class MemoryProfiler extends StudioProfiler {
         bytes = Files.readAllBytes(Paths.get(file.getPath()));
       }
       catch (IOException e) {
-        Logger.getInstance(getClass()).error("Importing Session Failed: can not read from file location...");
+        getLogger().error("Importing Session Failed: can not read from file location...");
         return;
       }
-      Common.Session session = sessionsManager.createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE);
-      // Bind the imported session with heap dump data through MemoryClient
+      long dumpTimeStamp = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
+
+      // Heap dump and session share a time range of [dumpTimeStamp, dumpTimeStamp + 1) which contains dumpTimestamp as its only integer point.
+      Common.Session session = sessionsManager
+        .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, dumpTimeStamp, dumpTimeStamp + 1,
+                               TimeUnit.NANOSECONDS.toMillis(dumpTimeStamp));
+      // Bind the imported session with heap dump data through MemoryClient.
       HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
         .setFileName(file.getName())
+        .setStartTime(dumpTimeStamp)
+        .setEndTime(dumpTimeStamp + 1)
         .build();
       ImportHeapDumpRequest heapDumpRequest = ImportHeapDumpRequest.newBuilder()
         .setSession(session)
