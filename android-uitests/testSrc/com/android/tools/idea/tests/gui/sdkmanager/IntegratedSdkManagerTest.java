@@ -82,7 +82,7 @@ public class IntegratedSdkManagerTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void installPackage() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     IdeSettingsDialogFixture ideSettingsDialogFixture = ideFrameFixture.openIdeSettings().selectSdkPage();

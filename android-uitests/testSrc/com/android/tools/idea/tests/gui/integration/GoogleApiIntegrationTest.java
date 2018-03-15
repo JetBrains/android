@@ -64,7 +64,7 @@ public class GoogleApiIntegrationTest {
   @Test
   @RunIn(TestGroup.SANITY)
   public void testGoogleApiIntegration() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 
     ProjectStructureDialogFixture projectStructureDialog =
         ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
