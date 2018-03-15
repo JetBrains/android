@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.variables
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.intellij.openapi.options.BaseConfigurable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.PopupStep
+import com.intellij.openapi.ui.popup.util.BaseListPopupStep
+import com.intellij.ui.AnActionButton
 import com.intellij.ui.ToolbarDecorator
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
@@ -55,11 +60,25 @@ class VariablesConfigurable(private val project: Project, private val context: P
       }
     })
     panel.add(ToolbarDecorator.createDecorator(table)
-        .setAddAction {}
+        .setAddAction { createAddAction(it, table) }
         .setRemoveAction { table.deleteSelectedVariables() }
         .setEditAction {}
         .createPanel(), BorderLayout.CENTER)
     return panel
+  }
+
+  private fun createAddAction(button: AnActionButton, table: VariablesTable) {
+    val actions = listOf(
+      AddAction("1. Simple value", GradlePropertyModel.ValueType.STRING),
+      AddAction("2. List", GradlePropertyModel.ValueType.LIST),
+      AddAction("3. Map", GradlePropertyModel.ValueType.MAP)
+    )
+    val popup = JBPopupFactory.getInstance().createListPopup(object : BaseListPopupStep<AddAction>(null, actions) {
+      override fun onChosen(selectedValue: AddAction?, finalChoice: Boolean): PopupStep<*>? {
+        return doFinalStep { selectedValue?.type?.let { table.addVariable(it) } }
+      }
+    })
+    popup.show(button.preferredPopupPoint)
   }
 
   override fun apply() {
@@ -67,4 +86,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
     isModified = false
   }
 
+  class AddAction(val text: String, val type: GradlePropertyModel.ValueType) {
+    override fun toString() = text
+  }
 }
