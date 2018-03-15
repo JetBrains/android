@@ -73,6 +73,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private boolean myIsAppBeingProfiled;
 
+  private long myOngoingCaptureStartTimestamp;
+
   private int myTraceId = FAKE_TRACE_ID;
 
   private CpuProfiler.CpuProfilerType myProfilerType = CpuProfiler.CpuProfilerType.ART;
@@ -146,12 +148,22 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     CpuProfiler.ProfilingStateResponse.Builder response = CpuProfiler.ProfilingStateResponse.newBuilder();
     response.setBeingProfiled(myIsAppBeingProfiled);
     if (myIsAppBeingProfiled) {
-      response.setConfiguration(myProfilerConfiguration);
+      response.setConfiguration(myProfilerConfiguration).setStartTimestamp(myOngoingCaptureStartTimestamp);
       myProfilerType = myProfilerConfiguration.getProfilerType();
     }
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
+  }
+
+  /**
+   * Receives a {@link CpuProfiler.CpuProfilerConfiguration} and sets the state of the service to be profiling using such configuration.
+   * If the configuration passed is null, {@link #myIsAppBeingProfiled} should be set to false.
+   */
+  public void setOngoingCaptureConfiguration(@Nullable CpuProfiler.CpuProfilerConfiguration configuration, long startTimestamp) {
+    myProfilerConfiguration = configuration;
+    myOngoingCaptureStartTimestamp = startTimestamp;
+    myIsAppBeingProfiled = configuration != null;
   }
 
   public void setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status status) {
