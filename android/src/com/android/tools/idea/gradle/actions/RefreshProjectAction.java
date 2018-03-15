@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.android.tools.idea.gradle.project.sync.ng.GradleProjectRefresh;
+import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemProcessingManager;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 /**
  * The action button to refresh Gradle projects in Gradle View Toolbar.
@@ -45,6 +47,13 @@ public class RefreshProjectAction extends AndroidStudioGradleAction {
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     // We save all documents because there is a possible case that there is an external system config file changed inside the ide.
     FileDocumentManager.getInstance().saveAllDocuments();
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, GradleSyncStats.Trigger.TRIGGER_USER_REQUEST);
+    boolean useNewGradleSync = NewGradleSync.isEnabled();
+    if (useNewGradleSync) {
+      GradleProjectRefresh projectRefresh = new GradleProjectRefresh(project);
+      projectRefresh.refresh();
+    }
+    else {
+      ExternalSystemUtil.refreshProjects(project, SYSTEM_ID, true);
+    }
   }
 }
