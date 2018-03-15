@@ -22,10 +22,46 @@ import org.junit.Assert.fail
 import org.junit.Test
 import java.awt.Color
 import java.awt.FontMetrics
+import java.awt.Shape
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 
 class CaptureNodeHRendererTest {
+
+  @Test
+  fun renderIdleCpuTime() {
+    val simpleNode = CaptureNode(AtraceNodeModel("SomeName"))
+    simpleNode.startGlobal = 10;
+    simpleNode.endGlobal = 20;
+    simpleNode.startThread = 10;
+    simpleNode.endThread = 15;
+    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
+    val fakeGraphics = TestGraphics2D()
+    renderer.render(fakeGraphics, simpleNode, renderWindow, false)
+    assertThat(fakeGraphics.fillShapes).hasSize(2)
+
+    // Validate we get two shapes drawn, the first one is the expected size of the window.
+    // The second on is the size of the idle time. In this case half our global time.
+    fakeGraphics.expectFillShapes(renderWindow, Rectangle2D.Double(5.0, 0.0, 5.0, 10.0))
+  }
+
+  @Test
+  fun renderIdleCpuTimeDoesNotHappenOnOtherModels() {
+    val simpleNode = CaptureNode(SingleNameModel("SomeName"))
+    simpleNode.startGlobal = 10;
+    simpleNode.endGlobal = 20;
+    simpleNode.startThread = 10;
+    simpleNode.endThread = 15;
+    val renderer = CaptureNodeHRenderer(CaptureModel.Details.Type.CALL_CHART)
+    val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 10.0f,10.0f)
+    val fakeGraphics = TestGraphics2D()
+    renderer.render(fakeGraphics, simpleNode, renderWindow, false)
+    assertThat(fakeGraphics.fillShapes).hasSize(1)
+
+    // Validate we get the expected size of the window.
+    fakeGraphics.expectFillShapes(renderWindow)
+  }
 
   @Test
   fun renderInvalidNodeShouldThrowException() {
@@ -222,9 +258,25 @@ class CaptureNodeHRendererTest {
 
   private class TestGraphics2D : Graphics2DDelegate(UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
     var drawnString: String? = null
+    val fillShapes: MutableList<Shape> = ArrayList()
 
     override fun drawString(s: String, x: Float, y: Float) {
       drawnString = s
+    }
+
+    override fun fill(s: Shape) {
+      fillShapes.add(s)
+    }
+
+    fun expectFillShapes(vararg rectangles: Rectangle2D) {
+      for (i in rectangles.indices) {
+        val boundsA = fillShapes[i].bounds2D;
+        val boundsB = rectangles[i];
+        assertThat(boundsA.x).isWithin(0.0001).of(boundsB.x)
+        assertThat(boundsA.y).isWithin(0.0001).of(boundsB.y)
+        assertThat(boundsA.width).isWithin(0.0001).of(boundsB.width)
+        assertThat(boundsA.height).isWithin(0.0001).of(boundsB.height)
+      }
     }
   }
 

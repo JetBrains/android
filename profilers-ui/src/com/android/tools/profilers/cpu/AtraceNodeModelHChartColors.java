@@ -41,28 +41,21 @@ class AtraceNodeModelHChartColors {
   }
 
   /**
-   * For idle cpu nodes we darken the color otherwise we use the usage captured color. This gives the UI a consistent look
-   * across CPU, Kernel, Threads, and trace nodes.
+   * For cpu idle time (time the node is scheduled wall clock, but not thread time). we apply a slightly darker
+   * shade of the CPU_USAGE_CAPTURED color to show a subtle difference in timings.
    */
-  static Color getFillColor(@NotNull CaptureNodeModel model, boolean isUnmatched) {
-    validateModel(model);
-    AtraceNodeModel atraceModel = (AtraceNodeModel)model;
-    Color color = ProfilerColors.CPU_USAGE_CAPTURED;
-    if (atraceModel.isIdleCpu()) {
-      color = ColorUtil.darker(color, 3);
-    }
+  static Color getIdleCpuColor(@NotNull CaptureNodeModel model, boolean isUnmatched) {
+    Color color = ColorUtil.darker(ProfilerColors.CPU_USAGE_CAPTURED, 3);
     return isUnmatched ? toUnmatchColor(color) : color;
   }
 
   /**
-   * For idle cpu nodes we return a transparent border otherwise we use the same border as {@link SingleNameModelHChartColors}.
+   * We use the usage captured color. This gives the UI a consistent look
+   * across CPU, Kernel, Threads, and trace nodes.
    */
-  static Color getBorderColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
+  static Color getFillColor(@NotNull CaptureNodeModel model, boolean isUnmatched) {
     validateModel(model);
-    AtraceNodeModel atraceModel = (AtraceNodeModel)model;
-    if (atraceModel.isIdleCpu()) {
-      return UIUtil.TRANSPARENT_COLOR;
-    }
-    return SingleNameModelHChartColors.getBorderColor(model, chartType, isUnmatched);
+    Color color = ProfilerColors.CPU_USAGE_CAPTURED;
+    return isUnmatched ? toUnmatchColor(color) : color;
   }
 }
