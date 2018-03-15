@@ -110,10 +110,8 @@ public class NdkModuleNode extends AndroidViewModuleNode {
         children.add(node);
       }
     }
-    if (!ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
-      if (children.size() == 1) {
-        return children.get(0).getChildren();
-      }
+    if (children.size() == 1) {
+      return children.get(0).getChildren();
     }
     return children;
   }
