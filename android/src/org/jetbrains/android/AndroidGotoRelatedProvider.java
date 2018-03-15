@@ -1,6 +1,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -19,7 +20,6 @@ import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -39,7 +39,7 @@ import java.util.*;
  */
 public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
-  public static boolean ourAddDeclarationToManifest = false;
+  public static boolean ourAddDeclarationToManifest;
 
   private static final String[] CONTEXT_CLASSES = {
     SdkConstants.CLASS_ACTIVITY,
@@ -53,7 +53,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   @Override
   public List<? extends GotoRelatedItem> getItems(@NotNull PsiElement element) {
     final Computable<List<GotoRelatedItem>> items = getLazyItemsComputable(element);
-    return items != null ? items.compute() : Collections.<GotoRelatedItem>emptyList();
+    return items != null ? items.compute() : Collections.emptyList();
   }
 
   @Nullable
@@ -128,7 +128,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
     final List<GotoRelatedItem> items;
 
     if (isContextClass) {
-      items = new ArrayList<GotoRelatedItem>(collectRelatedLayoutFiles(facet, aClass));
+      items = new ArrayList<>(collectRelatedLayoutFiles(facet, aClass));
 
       if (addDeclarationInManifest) {
         if (item != null) {
@@ -142,12 +142,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
     else {
       items = Collections.singletonList(item);
     }
-    return new Computable<List<GotoRelatedItem>>() {
-      @Override
-      public List<GotoRelatedItem> compute() {
-        return items;
-      }
-    };
+    return () -> items;
   }
 
   @Nullable
@@ -189,65 +184,59 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
     final Module module = facet.getModule();
     final GlobalSearchScope scope = module.getModuleScope(false);
 
-    return new Computable<List<GotoRelatedItem>>() {
-      @Override
-      public List<GotoRelatedItem> compute() {
-        final JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-        final List<PsiClass> psiContextClasses = new ArrayList<PsiClass>();
+    return () -> {
+      final JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
+      final List<PsiClass> psiContextClasses = new ArrayList<>();
 
-        // Explicitly chosen in the layout/menu file with a tools:context attribute?
-        PsiClass declared = AndroidPsiUtils.getContextClass(module, file);
-        if (declared != null) {
-          return Collections.singletonList(new GotoRelatedItem(declared, "JAVA"));
-        }
-
-        for (String contextClassName : CONTEXT_CLASSES) {
-          final PsiClass contextClass = facade.findClass(
-            contextClassName, module.getModuleWithDependenciesAndLibrariesScope(false));
-
-          if (contextClass != null) {
-            psiContextClasses.add(contextClass);
-          }
-        }
-
-        if (psiContextClasses.isEmpty()) {
-          return Collections.emptyList();
-        }
-        final List<GotoRelatedItem> result = new ArrayList<GotoRelatedItem>();
-
-        ReferencesSearch.search(field, scope).forEach(new Processor<PsiReference>() {
-          @Override
-          public boolean process(PsiReference reference) {
-            PsiElement element = reference.getElement();
-
-            if (!(element instanceof PsiReferenceExpression)) {
-              return true;
-            }
-            element = element.getParent();
-
-            if (!(element instanceof PsiExpressionList)) {
-              return true;
-            }
-            element = element.getParent();
-
-            if (!(element instanceof PsiMethodCallExpression)) {
-              return true;
-            }
-            final String methodName = ((PsiMethodCallExpression)element).
-              getMethodExpression().getReferenceName();
-
-            if ("setContentView".equals(methodName) || "inflate".equals(methodName)) {
-              final PsiClass relatedClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
-
-              if (relatedClass != null && isInheritorOfOne(relatedClass, psiContextClasses)) {
-                result.add(new GotoRelatedItem(relatedClass, "JAVA"));
-              }
-            }
-            return true;
-          }
-        });
-        return result;
+      // Explicitly chosen in the layout/menu file with a tools:context attribute?
+      PsiClass declared = AndroidPsiUtils.getContextClass(module, file);
+      if (declared != null) {
+        return Collections.singletonList(new GotoRelatedItem(declared, "JAVA"));
       }
+
+      for (String contextClassName : CONTEXT_CLASSES) {
+        final PsiClass contextClass = facade.findClass(
+          contextClassName, module.getModuleWithDependenciesAndLibrariesScope(false));
+
+        if (contextClass != null) {
+          psiContextClasses.add(contextClass);
+        }
+      }
+
+      if (psiContextClasses.isEmpty()) {
+        return Collections.emptyList();
+      }
+      final List<GotoRelatedItem> result = new ArrayList<>();
+
+      ReferencesSearch.search(field, scope).forEach(reference -> {
+        PsiElement element = reference.getElement();
+
+        if (!(element instanceof PsiReferenceExpression)) {
+          return true;
+        }
+        element = element.getParent();
+
+        if (!(element instanceof PsiExpressionList)) {
+          return true;
+        }
+        element = element.getParent();
+
+        if (!(element instanceof PsiMethodCallExpression)) {
+          return true;
+        }
+        final String methodName = ((PsiMethodCallExpression)element).
+          getMethodExpression().getReferenceName();
+
+        if ("setContentView".equals(methodName) || "inflate".equals(methodName)) {
+          final PsiClass relatedClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+
+          if (relatedClass != null && isInheritorOfOne(relatedClass, psiContextClasses)) {
+            result.add(new GotoRelatedItem(relatedClass, "JAVA"));
+          }
+        }
+        return true;
+      });
+      return result;
     };
   }
 
@@ -262,7 +251,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
   @NotNull
   private static List<GotoRelatedItem> collectRelatedLayoutFiles(@NotNull final AndroidFacet facet, @NotNull PsiClass context) {
-    final Set<PsiFile> files = new HashSet<PsiFile>();
+    final Set<PsiFile> files = new HashSet<>();
 
     context.accept(new JavaRecursiveElementWalkingVisitor() {
       @Override
@@ -278,7 +267,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
         }
         final String resFieldName = info.getFieldName();
         LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-        final List<PsiElement> resources = resourceManager.findResourcesByFieldName(resClassName, resFieldName);
+        final List<PsiElement> resources = resourceManager.findResourcesByFieldName(ResourceNamespace.TODO, resClassName, resFieldName);
 
         for (PsiElement resource : resources) {
           if (resource instanceof PsiFile) {
@@ -290,7 +279,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
     if (files.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<GotoRelatedItem> result = new ArrayList<GotoRelatedItem>(files.size());
+    final List<GotoRelatedItem> result = new ArrayList<>(files.size());
 
     for (PsiFile file : files) {
       result.add(new MyGotoRelatedLayoutItem(file));

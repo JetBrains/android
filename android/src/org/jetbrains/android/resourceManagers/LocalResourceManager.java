@@ -223,12 +223,18 @@ public class LocalResourceManager extends ResourceManager {
     if (fieldName == null) {
       return Collections.emptyList();
     }
-    return findResourcesByFieldName(type, fieldName);
+
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(field);
+    if (repositoryManager == null) {
+      return Collections.emptyList();
+    }
+    ResourceNamespace namespace = repositoryManager.getNamespace();
+    return findResourcesByFieldName(namespace, type, fieldName);
   }
 
   @NotNull
-  public List<PsiElement> findResourcesByFieldName(@NotNull String resClassName, @NotNull String fieldName) {
-    ResourceNamespace namespace = getResourceNamespace();
+  public List<PsiElement> findResourcesByFieldName(@NotNull ResourceNamespace namespace, @NotNull String resClassName,
+                                                   @NotNull String fieldName) {
     List<PsiElement> targets = new ArrayList<>();
     if (resClassName.equals(ResourceType.ID.getName())) {
       targets.addAll(findIdDeclarations(namespace, fieldName));
@@ -255,5 +261,15 @@ public class LocalResourceManager extends ResourceManager {
       }
     }
     return targets;
+  }
+
+  /**
+   * @deprecated Use {@link #findResourcesByFieldName(ResourceNamespace, String, String)}.
+   * Preserved temporarily for compatibility with the Kotlin plugin.
+   */
+  @Deprecated
+  @NotNull
+  public List<PsiElement> findResourcesByFieldName(@NotNull String resClassName, @NotNull String fieldName) {
+    return findResourcesByFieldName(getResourceNamespace(), resClassName, fieldName);
   }
 }
