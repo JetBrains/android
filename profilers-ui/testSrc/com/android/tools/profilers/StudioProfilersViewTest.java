@@ -29,6 +29,7 @@ import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.truth.Truth;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.JBSplitter;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -304,16 +305,16 @@ public class StudioProfilersViewTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     JComponent splitter = view.getComponent();
-    assertThat(splitter).isInstanceOf(JBSplitter.class);
-    assertThat(((JBSplitter)splitter).getFirstComponent()).isNull();
+    assertThat(splitter).isInstanceOf(ThreeComponentsSplitter.class);
+    assertThat(((ThreeComponentsSplitter)splitter).getFirstComponent()).isNull();
 
     // Test the true case as well.
     services.enableSessionsView(true);
     profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
     view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     splitter = view.getComponent();
-    assertThat(splitter).isInstanceOf(JBSplitter.class);
-    assertThat(((JBSplitter)splitter).getFirstComponent()).isNotNull();
+    assertThat(splitter).isInstanceOf(ThreeComponentsSplitter.class);
+    assertThat(((ThreeComponentsSplitter)splitter).getFirstComponent()).isNotNull();
   }
 
   public void transitionStage(Stage stage) throws Exception {

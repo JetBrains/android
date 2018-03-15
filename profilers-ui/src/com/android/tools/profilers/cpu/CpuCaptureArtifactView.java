@@ -25,6 +25,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
+
 /**
  * A {@link SessionArtifactView} that represents a CPU capture object.
  */
@@ -38,6 +40,9 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
     // 1st column reserved for expand-collapse row, 2nd column for artifact's icon
     // 1st row for showing name, second row for time.
     myComponent = new JPanel(new TabularLayout("Fit,Fit,*", "Fit,Fit"));
+    if (isHovered()) {
+      myComponent.setBackground(HOVERED_SESSION_COLOR);
+    }
     myComponent.setBorder(isSessionSelected() ?
                           BorderFactory.createCompoundBorder(SELECTED_BORDER, ARTIFACT_PADDING) :
                           BorderFactory.createCompoundBorder(UNSELECTED_BORDER, ARTIFACT_PADDING));

@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 
 import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
 
@@ -90,11 +91,15 @@ public abstract class SessionArtifactView<T extends SessionArtifact> {
     return myArtifactDrawInfo.mySelected;
   }
 
+  public boolean isHovered() {
+    return myArtifactDrawInfo.myHovered;
+  }
+
   /**
-   * Handles the click event that occurred within this view. Note that the input point's coordinate is relative to this view's component
+   * Handles the mouse event that occurred within this view. Note that the input point's coordinate is relative to this view's component
    * reference frame. The default action is to call {@link SessionArtifact#onSelect()}.
    */
-  public void handleClick(@NotNull Point point) {
+  public void handleMouseEvent(@NotNull MouseEvent event) {
     myArtifact.onSelect();
   }
 
@@ -104,11 +109,13 @@ public abstract class SessionArtifactView<T extends SessionArtifact> {
   public static class ArtifactDrawInfo {
     final int myIndex;
     final boolean mySelected;
+    final boolean myHovered;
     final boolean myCellHasFocus;
 
-    ArtifactDrawInfo(int index, boolean isSelected, boolean cellHasFocus) {
+    ArtifactDrawInfo(int index, boolean isSelected, boolean isHovered, boolean cellHasFocus) {
       myIndex = index;
       mySelected = isSelected;
+      myHovered = isHovered;
       myCellHasFocus = cellHasFocus;
     }
   }

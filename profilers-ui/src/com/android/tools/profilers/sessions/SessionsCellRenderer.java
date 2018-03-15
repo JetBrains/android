@@ -68,10 +68,8 @@ final class SessionsCellRenderer implements ListCellRenderer<SessionArtifact> {
     assert myCellComponentMap.containsKey(myCurrentIndex);
     // Transform the mouse event (which is in the JList's coordinate system) to be relative to the cell.
     Rectangle cellRect = mySessionsList.getCellBounds(myCurrentIndex, myCurrentIndex);
-    Point point = event.getPoint();
-    point.x -= cellRect.x;
-    point.y -= cellRect.y;
-    myCellComponentMap.get(myCurrentIndex).handleClick(point);
+    event.translatePoint(-cellRect.x, -cellRect.y);
+    myCellComponentMap.get(myCurrentIndex).handleMouseEvent(event);
   }
 
   @Override
@@ -81,7 +79,8 @@ final class SessionsCellRenderer implements ListCellRenderer<SessionArtifact> {
                                                 boolean isSelected,
                                                 boolean cellHasFocus) {
     // TODO b/74432628 include hover information so individual cell can react accordingly.
-    SessionArtifactView.ArtifactDrawInfo drawInfo = new SessionArtifactView.ArtifactDrawInfo(index, isSelected, cellHasFocus);
+    SessionArtifactView.ArtifactDrawInfo drawInfo =
+      new SessionArtifactView.ArtifactDrawInfo(index, isSelected, myCurrentIndex == index, cellHasFocus);
     SessionArtifactView component = myViewBinder.build(drawInfo, item);
     myCellComponentMap.put(index, component);
     return component.getComponent();

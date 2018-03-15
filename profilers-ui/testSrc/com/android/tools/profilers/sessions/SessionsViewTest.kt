@@ -348,6 +348,16 @@ class SessionsViewTest {
     sessionItem1 = sessionArtifacts.getElementAt(1) as SessionItem
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem1.session).isEqualTo(session1)
+
+    // Double clicking should select and also expand/collapse
+    ui.layout()
+    ui.mouse.doubleClick(cellBound.x + 1, cellBound.y + 1)
+    assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
+    assertThat(sessionArtifacts.size).isEqualTo(4)
+    ui.layout()
+    ui.mouse.doubleClick(cellBound.x + 1, cellBound.y + 1)
+    assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
+    assertThat(sessionArtifacts.size).isEqualTo(2)
   }
 
   @Test
