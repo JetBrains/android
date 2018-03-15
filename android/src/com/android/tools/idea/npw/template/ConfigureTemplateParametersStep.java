@@ -82,7 +82,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  */
 public final class ConfigureTemplateParametersStep extends ModelWizardStep<RenderTemplateModel> {
   private final List<NamedModuleTemplate> myTemplates;
-  private final StringProperty myPackageName;
 
   private final BindingsManager myBindings = new BindingsManager();
   private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = IconLoader.createLoadingCache();
@@ -129,7 +128,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     myFacet = facet;
     myTemplates = templates;
-    myPackageName = model.packageName();
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myRoot = StudioWizardStepPanel.wrappedWithVScroll(myValidatorPanel);
 
@@ -306,7 +304,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       RowEntry<?> rowEntry;
       if (module != null) {
         rowEntry = new RowEntry<>(parameter.name,
-                                  new PackageComboProvider(module.getProject(), parameter, myPackageName.get(),
+                                  new PackageComboProvider(module.getProject(), parameter, getModel().packageName().get(),
                                                            getRecentsKeyForParameter(parameter)));
       }
       else {
@@ -317,7 +315,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       //noinspection unchecked
       StringProperty packageName = (StringProperty)rowEntry.getProperty();
       assert packageName != null;
-      myBindings.bindTwoWay(packageName, myPackageName);
+      myBindings.bindTwoWay(packageName, getModel().packageName());
       return rowEntry;
     }
 
@@ -393,7 +391,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
     try {
       Map<String, Object> additionalValues = Maps.newHashMap();
-      additionalValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
+      additionalValues.put(ATTR_PACKAGE_NAME, getModel().packageName().get());
       ObjectProperty<NamedModuleTemplate> template = getModel().getTemplate();
       additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, template.get().getName());
       additionalValues
@@ -487,7 +485,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
 
       Set<Object> relatedValues = getRelatedValues(parameter);
-      message = parameter.validate(project, module, sourceProvider, myPackageName.get(), property.get(), relatedValues);
+      message = parameter.validate(project, module, sourceProvider, getModel().packageName().get(), property.get(), relatedValues);
 
       if (message != null) {
         break;
@@ -587,7 +585,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     }
 
     TemplateValueInjector templateInjector = new TemplateValueInjector(templateValues)
-      .setModuleRoots(paths, myPackageName.get());
+      .setModuleRoots(paths, getModel().packageName().get());
 
     if (myFacet == null) {
       // If we don't have an AndroidFacet, we must have the Android Sdk info
@@ -598,7 +596,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
       // Register application-wide settings
       String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
-      if (!myPackageName.get().equals(applicationPackage)) {
+      if (!getModel().packageName().get().equals(applicationPackage)) {
         templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(myFacet));
       }
     }
@@ -746,7 +744,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Project project = getModel().getProject().getValueOrNull();
       Set<Object> relatedValues = getRelatedValues(parameter);
       SourceProvider sourceProvider = AndroidGradleModuleUtils.getSourceProvider(getModel().getTemplate().get());
-      while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {
+      while (!parameter.uniquenessSatisfied(project, module, sourceProvider, getModel().packageName().get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, extPart);
         suffix++;
       }
