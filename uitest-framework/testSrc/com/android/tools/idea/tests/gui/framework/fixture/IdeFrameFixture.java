@@ -341,7 +341,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       });
 
     GuiTests.waitForBackgroundTasks(robot());
-    robot().waitForIdle();
 
     return this;
   }
