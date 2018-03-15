@@ -114,11 +114,11 @@ public class CpuProfilerConfigModel {
   }
 
   public void updateProfilingConfigurations() {
-    List<ProfilingConfiguration> savedConfigs = myProfilers.getIdeServices().getCpuProfilingConfigurations();
+    List<ProfilingConfiguration> savedConfigs = myProfilers.getIdeServices().getUserCpuProfilerConfigs();
     myCustomProfilingConfigurations = filterConfigurations(savedConfigs, false);
     myCustomProfilingConfigurationsDeviceFiltered = filterConfigurations(savedConfigs, true);
 
-    List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
+    List<ProfilingConfiguration> defaultConfigs = myProfilers.getIdeServices().getDefaultCpuProfilerConfigs();
     myDefaultProfilingConfigurations = filterConfigurations(defaultConfigs, true);
 
     Common.Device selectedDevice = myProfilers.getDevice();

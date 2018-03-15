@@ -62,12 +62,12 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(realConfigs[0].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
     assertThat(realConfigs[0].name).isEqualTo(ProfilingConfiguration.ART_SAMPLED)
-    assertThat(realConfigs[0].isDefault).isTrue()
+    assertThat(isDefault(realConfigs[0])).isTrue()
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[1].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(realConfigs[1].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
     assertThat(realConfigs[1].name).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
-    assertThat(realConfigs[1].isDefault).isTrue()
+    assertThat(isDefault(realConfigs[1])).isTrue()
 
     setDevice(AndroidVersion.VersionCodes.O)
     model!!.updateProfilingConfigurations()
@@ -79,20 +79,20 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(realConfigs[0].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
     assertThat(realConfigs[0].name).isEqualTo(ProfilingConfiguration.ART_SAMPLED)
-    assertThat(realConfigs[0].isDefault).isTrue()
+    assertThat(isDefault(realConfigs[0])).isTrue()
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[1].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(realConfigs[1].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
     assertThat(realConfigs[1].name).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
-    assertThat(realConfigs[1].isDefault).isTrue()
+    assertThat(isDefault(realConfigs[1])).isTrue()
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[2].profilerType).isEqualTo(CpuProfilerType.SIMPLEPERF)
     assertThat(realConfigs[2].name).isEqualTo(ProfilingConfiguration.SIMPLEPERF)
-    assertThat(realConfigs[2].isDefault).isTrue()
+    assertThat(isDefault(realConfigs[2])).isTrue()
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[3].profilerType).isEqualTo(CpuProfilerType.ATRACE)
     assertThat(realConfigs[3].name).isEqualTo(ProfilingConfiguration.ATRACE)
-    assertThat(realConfigs[3].isDefault).isTrue()
+    assertThat(isDefault(realConfigs[3])).isTrue()
   }
 
   @Test
@@ -109,13 +109,13 @@ class CpuProfilerConfigModelTest {
     assertThat(realConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(realConfigs[0].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED)
     assertThat(realConfigs[0].name).isEqualTo(ProfilingConfiguration.ART_SAMPLED)
-    assertThat(realConfigs[0].isDefault).isTrue()
+    assertThat(isDefault(realConfigs[0])).isTrue()
     assertThat(realConfigs[0].requiredDeviceLevel).isEqualTo(0)
     // Second actual configuration should be ART Instrumented
     assertThat(realConfigs[1].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(realConfigs[1].mode).isEqualTo(CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED)
     assertThat(realConfigs[1].name).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED)
-    assertThat(realConfigs[1].isDefault).isTrue()
+    assertThat(isDefault(realConfigs[1])).isTrue()
     assertThat(realConfigs[1].requiredDeviceLevel).isEqualTo(0)
   }
 
@@ -200,15 +200,19 @@ class CpuProfilerConfigModelTest {
   fun profilingConfigIsNotCustomByDefault() {
     myServices.addCustomProfilingConfiguration("FakeConfig", CpuProfilerType.ART)
     model!!.updateProfilingConfigurations()
-    assertThat(model!!.profilingConfiguration.isDefault).isTrue()
+    assertThat(isDefault(model!!.profilingConfiguration)).isTrue()
 
     val customConfigs = model!!.customProfilingConfigurations
     assertThat(customConfigs).hasSize(1)
     assertThat(customConfigs[0].name).isEqualTo("FakeConfig")
     assertThat(customConfigs[0].profilerType).isEqualTo(CpuProfilerType.ART)
     assertThat(customConfigs[0].requiredDeviceLevel).isEqualTo(0)
-    assertThat(customConfigs[0].isDefault).isFalse()
+    assertThat(isDefault(customConfigs[0])).isFalse()
   }
+
+  private fun isDefault(configuration: ProfilingConfiguration) = myServices
+    .defaultCpuProfilerConfigs
+    .any { configuration.name == it.name }
 
   private fun setDevice(featureLevel: Int) {
     val device = Device.newBuilder().setFeatureLevel(featureLevel).setSerial("TestSerial").setState(Device.State.ONLINE).build()
