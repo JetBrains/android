@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.instantrun;
 
 import com.android.tools.idea.tests.gui.debugger.DebuggerTestBase;
 import com.android.tools.idea.tests.gui.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
 import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
@@ -32,6 +33,7 @@ import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
@@ -50,7 +52,11 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 public class InstantRunTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
+
+  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(new DeleteAvdsRule())
+    .around(emulator);
 
   private static final String APP_NAME = "app";
   private static final Pattern EMPTY_OUTPUT= Pattern.compile("^$", Pattern.DOTALL);

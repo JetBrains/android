@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -31,6 +32,7 @@ import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
@@ -39,7 +41,10 @@ import java.util.regex.Pattern;
 public class ProjectWithKotlinTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  private final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(new DeleteAvdsRule())
+    .around(emulator);
 
   private static final String CLASS_NAME = "KotlinClass";
   private static final String KOTLIN_EXTENSION = ".kt";

@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.layoutinspector;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
 import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -31,6 +32,7 @@ import com.android.tools.idea.tests.util.ddmlib.DeviceQueries;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.util.List;
@@ -41,7 +43,11 @@ import static com.google.common.truth.Truth.assertThat;
 public class LayoutInspectorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
+
+  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(new DeleteAvdsRule())
+    .around(emulator);
 
   /**
    * Verify layout inspector is a full replacement for the hierarchy viewer

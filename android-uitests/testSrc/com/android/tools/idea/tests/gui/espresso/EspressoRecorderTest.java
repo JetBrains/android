@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.espresso;
 
+import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
 import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
@@ -28,6 +29,7 @@ import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.awt.event.KeyEvent;
@@ -38,7 +40,11 @@ import java.util.regex.Pattern;
 public class EspressoRecorderTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
+
+  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(new DeleteAvdsRule())
+    .around(emulator);
 
   private static final String APP_NAME = "MyActivityTest";
   private static final String TEST_RECORDER_APP = "TestRecorderapp";
