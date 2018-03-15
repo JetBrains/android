@@ -17,11 +17,7 @@ package com.android.tools.idea.gradle.structure.quickfix;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.base.Splitter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -41,45 +37,24 @@ public final class QuickFixes {
 
     String action = segments.get(0);
     if (SET_LIBRARY_DEPENDENCY_QUICK_FIX.equals(action)) {
-      assert segments.size() == 4;
+      assert segments.size() == 5;
       String moduleName = segments.get(1);
       String dependency = segments.get(2);
-      String version = segments.get(3);
-      setLibraryDependencyVersion(context, moduleName, dependency, version);
+      String configurationName = segments.get(3);
+      String version = segments.get(4);
+      setLibraryDependencyVersion(context, moduleName, dependency, configurationName, version);
     }
   }
 
   private static void setLibraryDependencyVersion(@NonNls PsContext context,
                                                   @NotNull String moduleName,
                                                   @NotNull String dependency,
+                                                  @NotNull String configurationName,
                                                   @NotNull String version) {
     PsModule module = context.getProject().findModuleByName(moduleName);
-    if (module instanceof PsAndroidModule) {
-      PsAndroidModule androidModule = (PsAndroidModule)module;
-      // TODO(b/74939453): Use both the scope and the version to locate the dependency.
-      PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(dependency);
-      if (spec != null) {
-        List<PsLibraryAndroidDependency> libraryDependencies =
-          androidModule.getDependencies().findLibraryDependencies(spec.getGroup(), spec.getName());
-        for (PsLibraryAndroidDependency libraryDependency : libraryDependencies) {
-          setLibraryDependencyVersion(libraryDependency, version);
-        }
-      }
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(dependency);
+    if (module != null && spec != null) {
+      module.setLibraryDependencyVersion(spec, configurationName, version);
     }
-    else if (module instanceof PsJavaModule) {
-      PsJavaModule javaModule = (PsJavaModule)module;
-      javaModule.forEachDeclaredDependency(declaredDependency -> {
-        if (declaredDependency instanceof PsLibraryDependency) {
-          if (((PsLibraryDependency)declaredDependency).getSpec().toString().equals(dependency)) {
-            setLibraryDependencyVersion((PsLibraryDependency)declaredDependency, version);
-          }
-        }
-      });
-    }
-  }
-
-  private static void setLibraryDependencyVersion(@NotNull PsLibraryDependency dependency,
-                                                  @NotNull String version) {
-    dependency.setVersion(version);
   }
 }

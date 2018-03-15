@@ -52,7 +52,7 @@ public class PsModuleTest extends AndroidGradleTestCase {
     PsLibraryAndroidDependency dependency =
       psAppModule.getDependencies().findLibraryDependencies(GUAVA_GROUP, GUAVA_NAME).stream().findFirst().orElse(null);
     assertThat(dependency, notNullValue());
-    dependency.setVersion("20.0");
+    psAppModule.setLibraryDependencyVersion(dependency.getSpec(), "api", "20.0");
     assertThat(buildFileDocument.getText(), not(containsString(UPDATED_GUAVA_COORDINATES)));
     assertThat(psAppModule.isModified(), is(true));
     psAppModule.applyChanges();

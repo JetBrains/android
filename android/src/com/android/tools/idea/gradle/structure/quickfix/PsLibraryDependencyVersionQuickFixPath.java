@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.quickfix;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.base.Joiner;
@@ -34,6 +33,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   @NotNull private final String myDependency;
   @NotNull private final String myVersion;
   @NotNull private final String myQuickFixText;
+  @NotNull private final String myConfigurationName;
 
   public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency, @NotNull String quickFixText) {
     super(null);
@@ -41,6 +41,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
     myDependency = getCompactNotation(dependency);
     String version = dependency.getSpec().getVersion();
     assert version != null;
+    myConfigurationName = dependency.getJoinedConfigurationNames();  // Parsed dependencies have only one configuration name.
     myVersion = version;
     myQuickFixText = quickFixText;
   }
@@ -51,6 +52,7 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
     super(null);
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
+    myConfigurationName = dependency.getJoinedConfigurationNames();  // Parsed dependencies have only one configuration name.
     myVersion = version;
     myQuickFixText = quickFixText;
   }
@@ -63,13 +65,14 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   @Override
   @NotNull
   public String toText(@NotNull TexType type) {
-    return myDependency;
+    return String.format("%s (%s)", myDependency, myConfigurationName);
   }
 
   @Override
   @NotNull
   public String getHyperlinkDestination(@NotNull PsContext context) {
-    String path = Joiner.on(QUICK_FIX_PATH_SEPARATOR).join(SET_LIBRARY_DEPENDENCY_QUICK_FIX, myModuleName, myDependency, myVersion);
+    String path = Joiner.on(QUICK_FIX_PATH_SEPARATOR)
+      .join(SET_LIBRARY_DEPENDENCY_QUICK_FIX, myModuleName, myDependency, myConfigurationName, myVersion);
     return QUICK_FIX_PATH_TYPE + path;
   }
 
@@ -88,11 +91,12 @@ public final class PsLibraryDependencyVersionQuickFixPath extends PsPath {
     return Objects.equal(myModuleName, path.myModuleName) &&
            Objects.equal(myDependency, path.myDependency) &&
            Objects.equal(myVersion, path.myVersion) &&
+           Objects.equal(myConfigurationName, path.myConfigurationName) &&
            Objects.equal(myQuickFixText, path.myQuickFixText);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(super.hashCode(), myModuleName, myDependency, myVersion, myQuickFixText);
+    return Objects.hashCode(super.hashCode(), myModuleName, myDependency, myVersion, myConfigurationName, myQuickFixText);
   }
 }
