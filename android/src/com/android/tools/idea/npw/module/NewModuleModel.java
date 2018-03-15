@@ -14,34 +14,30 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewModuleModel extends WizardModel {
@@ -92,7 +88,7 @@ public final class NewModuleModel extends WizardModel {
     myApplicationName = projectModel.applicationName();
     myTemplateFile.setValue(templateFile);
     myMultiTemplateRenderer = projectModel.getMultiTemplateRenderer();
-    myMultiTemplateRenderer.increment();
+    myMultiTemplateRenderer.incrementRenders();
 
     myBindings.bind(myPackageName, myProjectPackageName, myIsInstantApp.not());
   }
