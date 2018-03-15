@@ -93,21 +93,19 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return matcher.isMatching(output);
     }
 
-    /**
-     * Don't use this method. It does a spin wait for a condition, which may
-     * never happen. This can cause the test to block indefinitely until the
-     * test thread gets interrupted.
-     */
-    @Deprecated
     @NotNull
-    public String getOutput() {
-      ConsoleViewImpl consoleView;
-      while ((consoleView = findVisibleConsoleView()) == null || consoleView.getEditor() == null) {
-        // If our handle has been replaced, find it again.
-        JComponent consoleComponent = getTabComponent("Console");
-        myRobot.click(consoleComponent);
-      }
-      return consoleView.getEditor().getDocument().getText();
+    public String getOutput(long secondsToWait) {
+      Ref<String> outputText = new Ref<>();
+      Wait.seconds(secondsToWait)
+        .expecting("output text to not be null")
+        .until(() -> {
+          String output = pollOutput();
+          if (output != null) {
+            outputText.set(output);
+          }
+          return output != null;
+        });
+      return outputText.get();
     }
 
     @Nullable
