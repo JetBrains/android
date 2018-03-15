@@ -406,6 +406,7 @@ public class StudioIcons {
     }
 
     public static class Sessions {
+      public static final Icon ALLOCATIONS = load("/studio/icons/profiler/sessions/allocations.png"); // 16x16
       public static final Icon BOOKMARK = load("/studio/icons/profiler/sessions/bookmark.png"); // 16x16
       public static final Icon CPU = load("/studio/icons/profiler/sessions/cpu.png"); // 16x16
       public static final Icon HEAP = load("/studio/icons/profiler/sessions/heap.png"); // 16x16
