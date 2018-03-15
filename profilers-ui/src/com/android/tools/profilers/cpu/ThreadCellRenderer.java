@@ -77,16 +77,13 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     stateChart.setOpaque(true);
     // 1 is index of the selected color, 0 is of the non-selected
     // See more: {@link ProfilerColors#THREAD_STATES}
-    myColors.get(stateChart).setColorIndex(isSelected ? 1 : 0);
+    // For now we always use the non-selected color.
+    myColors.get(stateChart).setColorIndex(0);
 
     if (isSelected) {
       // Cell is selected. Update its background accordingly.
-      panel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
       myLabel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
       myLabel.setForeground(ProfilerColors.SELECTED_THREAD_LABEL_TEXT);
-      // As the state chart is opaque the selected background wouldn't be visible
-      // if we didn't set the opaqueness to false if the cell is selected.
-      stateChart.setOpaque(false);
     }
     else if (myHoveredIndex == index) {
       // Cell is hovered. Draw the hover overlay over it.

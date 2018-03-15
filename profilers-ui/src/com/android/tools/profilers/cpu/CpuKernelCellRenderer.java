@@ -73,7 +73,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
                                                 boolean cellHasFocus) {
     JPanel panel = new JPanel(new TabularLayout("150px,*", "30px"));
     panel.setBackground(list.getBackground());
-    myLabel.setText(String.format("Cpu (%d)", value.getCpuId()));
+    myLabel.setText(String.format("CPU %d", value.getCpuId()));
     myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
     myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
 
@@ -91,16 +91,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
     StateChart<CpuThreadInfo> stateChart = getOrCreateStateChart(cpuId, model);
     stateChart.setOpaque(true);
 
-    if (isSelected) {
-      // Cell is selected. Update its background accordingly.
-      panel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
-      myLabel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
-      myLabel.setForeground(ProfilerColors.SELECTED_THREAD_LABEL_TEXT);
-      // As the state chart is opaque the selected background wouldn't be visible
-      // if we didn't set the opaqueness to false if the cell is selected.
-      stateChart.setOpaque(false);
-    }
-    else if (myHoveredIndex == index) {
+    if (myHoveredIndex == index) {
       // Cell is hovered. Draw the hover overlay over it.
       JPanel overlay = new JPanel();
       overlay.setBackground(ProfilerColors.DEFAULT_HOVER_COLOR);
