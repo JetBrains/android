@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
 
-import static org.fest.util.Preconditions.checkNotNull;
+import static com.google.common.base.Verify.verifyNotNull;
 
 public final class FixedColumnTableFixture extends JTableFixture {
   private final JTableFixture myFixed;
@@ -123,6 +123,6 @@ public final class FixedColumnTableFixture extends JTableFixture {
   @Override
   public JTableHeaderFixture tableHeader() {
     JTableHeader tableHeader = driver().tableHeaderOf(target());
-    return new FixedColumnTableHeaderFixture(robot(), checkNotNull(tableHeader));
+    return new FixedColumnTableHeaderFixture(robot(), verifyNotNull(tableHeader));
   }
 }

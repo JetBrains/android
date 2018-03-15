@@ -45,12 +45,12 @@ import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.TextMatcher;
-import org.fest.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -60,7 +60,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assert.fail;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
@@ -364,10 +363,10 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     private List<ActionButton> getConsoleToolbarButtons() {
-      ConsoleViewImpl consoleView = checkNotNull(findVisibleConsoleView());
+      ConsoleViewImpl consoleView = verifyNotNull(findVisibleConsoleView());
       Container commonAncestor = SwingUtilities.getAncestorOfClass(JBTabs.class, consoleView);
       Container actionToolbar = myRobot.finder().find(commonAncestor, Matchers.byType(ActionToolbarImpl.class));
-      return Lists.newArrayList(myRobot.finder().findAll(actionToolbar, Matchers.byType(ActionButton.class)));
+      return new ArrayList<>(myRobot.finder().findAll(actionToolbar, Matchers.byType(ActionButton.class)));
     }
   }  // End class ContentFixture
 
