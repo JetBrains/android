@@ -77,6 +77,18 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     throw new IllegalStateException("Node type not supported.");
   }
 
+  private Color getIdleCpuColor(CaptureNode node) {
+    // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
+
+    // The only nodes that actually show idle time are the atrace nodes. As such they are the only ones,
+    // that return a custom color for the idle cpu time.
+    CaptureNodeModel nodeModel = node.getData();
+    if (nodeModel instanceof AtraceNodeModel) {
+      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, node.isUnmatched());
+    }
+    return getFillColor(node);
+  }
+
   private Color getBorderColor(CaptureNode node) {
     // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
     CaptureNodeModel nodeModel = node.getData();
@@ -86,10 +98,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     else if (nodeModel instanceof NativeNodeModel) {
       return NativeModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
-    // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
-    else if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
-    }
+    // AtraceNodeModel is a SingleNameModel and uses the same colors for the border.
     else if (nodeModel instanceof SingleNameModel) {
       return SingleNameModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
     }
@@ -109,13 +118,33 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   public void render(@NotNull Graphics2D g, @NotNull CaptureNode node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
     // Draw rectangle background
     CaptureNode captureNode = node;
+    CaptureNodeModel nodeModel = node.getData();
     Color nodeColor = getFillColor(captureNode);
+    Color idleColor = getIdleCpuColor(captureNode);
     if (isFocused) {
       // All colors we use in call and flame charts are pretty bright, so darkening them works as an effective highlight
       nodeColor = ColorUtil.darker(nodeColor, 2);
+      idleColor = ColorUtil.darker(idleColor, 2);
     }
     g.setPaint(nodeColor);
     g.fill(drawingArea);
+
+    double clockLength = node.getEnd() - node.getStart();
+    double threadLength = node.getEndThread() - node.getStartThread();
+    // If we have a difference in our clock length and thread time that means we have idle time.
+    // For now we only do this for node that have an atrace capture node model.
+    if (nodeModel instanceof AtraceNodeModel && threadLength > 0 && clockLength - threadLength > 0) {
+      // Idle time width is 1 minus the  ratio of clock time, and thread time.
+      double ratio = 1 - (threadLength / clockLength);
+      double cpuIdleTimeRatio = ratio *  drawingArea.getWidth();
+      g.setPaint(idleColor);
+      // The Idle time is drawn at the end of our total time, as such we start at our X + our idle time.
+      // The width is then defined as the total width minus our idle time ratio.
+      g.fill(new Rectangle2D.Double(drawingArea.getX() + cpuIdleTimeRatio,
+                                    drawingArea.getY(),
+                                    drawingArea.getWidth() - cpuIdleTimeRatio,
+                                    drawingArea.getHeight()));
+    }
 
     // Draw rectangle outline.
     g.setPaint(getBorderColor(captureNode));
