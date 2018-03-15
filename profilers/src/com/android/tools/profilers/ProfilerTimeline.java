@@ -268,8 +268,18 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     myViewRangeUs.set(minUs, maxUs);
   }
 
+  /**
+   * Zooms out by 10% of the current view range length.
+   */
   public void zoomOut() {
-    myZoomLeft += myViewRangeUs.getLength() * 0.1f;
+    zoomOutBy(myViewRangeUs.getLength() * 0.1f);
+  }
+
+  /**
+   * Zooms out by a given amount in microseconds.
+   */
+  public void zoomOutBy(double amountUs) {
+    myZoomLeft += amountUs;
   }
 
   public void zoomIn() {

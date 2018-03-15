@@ -92,7 +92,8 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomOut() {
-    Updater updater = new Updater(new FakeTimer());
+    FakeTimer timer = new FakeTimer();
+    Updater updater = new Updater(timer);
     ProfilerTimeline timeline = new ProfilerTimeline(updater);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
@@ -126,6 +127,25 @@ public class ProfilerTimelineTest {
     timeline.zoom(60, .1);
     assertEquals(0, viewRange.getMin(), DELTA);
     assertEquals(70, viewRange.getMax(), DELTA);
+
+    // Test zoomOutBy
+    viewRange.set(0, 10);
+    assertEquals(10, viewRange.getLength(), DELTA);
+    timeline.zoomOutBy(20);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Time enough to complete zooming out
+    // We can't zoom out further than 0, so we zoom out towards the right side. The view range should be [0, 30]
+    assertEquals(0, viewRange.getMin(), DELTA);
+    assertEquals(30, viewRange.getMax(), DELTA);
+    assertEquals(30, viewRange.getLength(), DELTA);
+
+    viewRange.set(50, 60);
+    assertEquals(10, viewRange.getLength(), DELTA);
+    timeline.zoomOutBy(20);
+    timer.tick(TimeUnit.SECONDS.toNanos(10)); // Time enough to complete zooming out
+    // We should zoom out evenly on both sides, so the view range should be [40, 70]
+    assertEquals(40, viewRange.getMin(), DELTA);
+    assertEquals(70, viewRange.getMax(), DELTA);
+    assertEquals(30, viewRange.getLength(), DELTA);
   }
 
   @Test
