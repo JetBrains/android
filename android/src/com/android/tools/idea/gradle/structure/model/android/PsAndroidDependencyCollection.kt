@@ -19,32 +19,33 @@ import com.android.builder.model.level2.Library
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
-import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsModelCollection
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies
 import com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.LinkedListMultimap
 import java.util.function.Consumer
 
 abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModule) : PsModelCollection<PsAndroidDependency> {
+  protected data class LibraryKey(val group: String, val name: String)
 
-  protected val moduleDependenciesByGradlePath = mutableMapOf<String, PsModuleAndroidDependency>()
-  protected val libraryDependenciesBySpec = mutableMapOf<String, PsLibraryAndroidDependency>()
+  protected val moduleDependenciesByGradlePath = LinkedListMultimap.create<String, PsModuleAndroidDependency>()!!
+  protected val libraryDependenciesBySpec = LinkedListMultimap.create<LibraryKey, PsLibraryAndroidDependency>()!!
 
   override fun forEach(consumer: Consumer<PsAndroidDependency>) {
-    libraryDependenciesBySpec.values.forEach(consumer)
-    moduleDependenciesByGradlePath.values.forEach(consumer)
+    libraryDependenciesBySpec.values().forEach(consumer)
+    moduleDependenciesByGradlePath.values().forEach(consumer)
   }
 
   fun forEachModuleDependency(consumer: Consumer<PsModuleAndroidDependency>) {
-    moduleDependenciesByGradlePath.values.forEach(consumer)
+    moduleDependenciesByGradlePath.values().forEach(consumer)
   }
 
-  fun findLibraryDependency(compactNotation: String): PsLibraryAndroidDependency? = libraryDependenciesBySpec[compactNotation]
-
   fun findLibraryDependencies(group: String?, name: String): List<PsLibraryAndroidDependency> =
-    libraryDependenciesBySpec.values.filter { it.spec.group == group && it.spec.name == name }
+    libraryDependenciesBySpec[LibraryKey(group.orEmpty(), name)].toList()
+
+  protected fun PsArtifactDependencySpec.toLibraryKey(): LibraryKey = LibraryKey(group.orEmpty(), name)
 }
 
 /**
@@ -61,33 +62,28 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
 
   private fun collectParsedDependencies(parsedDependencies: PsParsedDependencies) {
     val artifactsByConfigurationNames = buildArtifactsByConfigurations()
-    val specs = mutableMapOf<PsArtifactDependencySpec, MutableList<ArtifactDependencyModel>>()
     parsedDependencies.forEachLibraryDependency { libraryDependency ->
       val spec = PsArtifactDependencySpec(
         libraryDependency.name().value(),
         libraryDependency.group().value(),
-        // TODO(solodkyy): Properly handle wildcard versions.
         libraryDependency.version().value()
       )
-      specs.getOrPut(spec, { mutableListOf() }).add(libraryDependency)
-    }
-    for ((spec, parsedModels) in specs) {
-      val artifacts = parsedModels.flatMap { artifactsByConfigurationNames[it.configurationName()] ?: listOf() }.toSet()
-      libraryDependenciesBySpec[spec.toString()] = PsLibraryAndroidDependency(
-        parent, spec, artifacts.toList(), null, parsedModels
+      val artifacts = artifactsByConfigurationNames[libraryDependency.configurationName()] ?: listOf()
+      libraryDependenciesBySpec.put(
+        spec.toLibraryKey(), PsLibraryAndroidDependency(
+          parent, spec, artifacts, null, listOf(libraryDependency)
+        )
       )
     }
-    val moduleDependencyGradlePaths = mutableMapOf<String, MutableList<ModuleDependencyModel>>()
     parsedDependencies.forEachModuleDependency { moduleDependency ->
-      moduleDependencyGradlePaths.getOrPut(moduleDependency.path().value(), { mutableListOf() }).add(moduleDependency)
-    }
-    for ((gradlePath, parsedModels) in moduleDependencyGradlePaths) {
-      val artifacts = parsedModels.flatMap { artifactsByConfigurationNames[it.configurationName()] ?: listOf() }.toSet()
-      // TODO(solodkyy): Handle pre AGP 3.0 configurations.
+      val gradlePath = moduleDependency.path().value()
+      val artifacts = artifactsByConfigurationNames[moduleDependency.configurationName()] ?: listOf()
       val resolvedModule = parent.parent.findModuleByGradlePath(gradlePath)?.resolvedModel
-      moduleDependenciesByGradlePath[gradlePath] = PsModuleAndroidDependency(
-        parent, gradlePath, artifacts.toList(), null,
-        resolvedModule, parsedModels
+      moduleDependenciesByGradlePath.put(
+        gradlePath, PsModuleAndroidDependency(
+          parent, gradlePath, artifacts.toList(), null,
+          resolvedModule, listOf(moduleDependency)
+        )
       )
     }
   }
@@ -151,7 +147,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) :
       parsedModels.addAll(matchingParsedDependencies)
       val androidDependency = PsLibraryAndroidDependency(parent, spec, listOf(artifact), library, parsedModels)
       androidDependency.setDependenciesFromPomFile(findDependenciesInPomFile(library.artifact))
-      libraryDependenciesBySpec[androidDependency.spec.toString()] = androidDependency
+      libraryDependenciesBySpec.put(androidDependency.spec.toLibraryKey(), androidDependency)
     }
   }
 
@@ -170,8 +166,8 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact) :
         projectVariant,
         resolvedModule,
         matchingParsedDependency.wrapInList())
-    moduleDependenciesByGradlePath[gradlePath] = dependency
+    moduleDependenciesByGradlePath.put(gradlePath, dependency)
   }
 }
 
-fun <T> T?.wrapInList(): List<T> = if (this != null) listOf(this) else listOf()
+private fun <T> T?.wrapInList(): List<T> = if (this != null) listOf(this) else listOf()

@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import one.util.streamex.MoreCollectors;
 import org.hamcrest.Matcher;
 
 import java.util.List;
@@ -37,7 +38,8 @@ import static org.junit.Assume.assumeThat;
 public class PsModuleTest extends AndroidGradleTestCase {
 
 
-  private static final String ORIGINAL_GUAVA_COORDINATES = "com.google.guava:guava:19.0";
+  private static final String GUAVA_GROUP = "com.google.guava";
+  private static final String GUAVA_NAME = "guava";
   private static final String UPDATED_GUAVA_COORDINATES = "com.google.guava:guava:20.0";
 
   public void testApplyChanges() throws Exception {
@@ -47,7 +49,9 @@ public class PsModuleTest extends AndroidGradleTestCase {
     Document buildFileDocument = getDocument();
     assumeThat(buildFileDocument.getText(), not(containsString(UPDATED_GUAVA_COORDINATES)));
 
-    PsLibraryAndroidDependency dependency = psAppModule.getDependencies().findLibraryDependency(ORIGINAL_GUAVA_COORDINATES);
+    PsLibraryAndroidDependency dependency =
+      psAppModule.getDependencies().findLibraryDependencies(GUAVA_GROUP, GUAVA_NAME).stream().findFirst().orElse(null);
+    assertThat(dependency, notNullValue());
     dependency.setVersion("20.0");
     assertThat(buildFileDocument.getText(), not(containsString(UPDATED_GUAVA_COORDINATES)));
     assertThat(psAppModule.isModified(), is(true));

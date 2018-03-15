@@ -57,9 +57,7 @@ public abstract class PsDependency extends PsChildModel implements PsBaseDepende
     if (myParsedModels.isEmpty()) {
       return Collections.emptyList();
     }
-    List<String> names = Lists.newArrayList(myParsedModels.stream().map(DependencyModel::configurationName).collect(Collectors.toSet()));
-    Collections.sort(names);
-    return names;
+    return myParsedModels.stream().map(DependencyModel::configurationName).distinct().collect(Collectors.toList());
   }
 
   @Override

@@ -55,12 +55,6 @@ public abstract class PsAndroidDependency extends PsDependency implements PsAndr
     myContainers.add(new PsDependencyContainer(artifact));
   }
 
-  @TestOnly
-  @NotNull
-  public Collection<String> getVariants() {
-    return myContainers.stream().map(PsDependencyContainer::getVariant).collect(Collectors.toSet());
-  }
-
   @NotNull
   public Collection<PsDependencyContainer> getContainers() {
     return myContainers;

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.quickfix;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -55,9 +56,14 @@ public final class QuickFixes {
     PsModule module = context.getProject().findModuleByName(moduleName);
     if (module instanceof PsAndroidModule) {
       PsAndroidModule androidModule = (PsAndroidModule)module;
-      PsLibraryAndroidDependency libraryDependency = androidModule.getDependencies().findLibraryDependency(dependency);
-      if (libraryDependency != null) {
-        setLibraryDependencyVersion(libraryDependency, version);
+      // TODO(b/74939453): Use both the scope and the version to locate the dependency.
+      PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(dependency);
+      if (spec != null) {
+        List<PsLibraryAndroidDependency> libraryDependencies =
+          androidModule.getDependencies().findLibraryDependencies(spec.getGroup(), spec.getName());
+        for (PsLibraryAndroidDependency libraryDependency : libraryDependencies) {
+          setLibraryDependencyVersion(libraryDependency, version);
+        }
       }
     }
     else if (module instanceof PsJavaModule) {
