@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -175,7 +176,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                 }
 
                 List<PsiElement> resources = ModuleResourceManagers.getInstance(facet).getLocalResourceManager()
-                    .findResourcesByFieldName(ResourceType.STRING.getName(), resource.name);
+                    .findResourcesByFieldName(ResourceNamespace.TODO, ResourceType.STRING.getName(), resource.name);
 
                 for (PsiElement resElement : resources) {
                   if (resElement instanceof XmlAttributeValue) {

@@ -186,7 +186,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     String oldName = cls.getName();
     if (appResources.hasResourceItem(DECLARE_STYLEABLE, oldName)) {
       LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-      for (PsiElement element : manager.findResourcesByFieldName(STYLEABLE.getName(), oldName)) {
+      for (PsiElement element : manager.findResourcesByFieldName(ResourceNamespace.TODO, STYLEABLE.getName(), oldName)) {
         if (element instanceof XmlAttributeValue) {
           if (element.getParent() instanceof XmlAttribute) {
             XmlTag tag = ((XmlAttribute)element.getParent()).getParent();
