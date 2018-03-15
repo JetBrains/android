@@ -60,7 +60,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jsr305" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-client" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-common" />
     <orderEntry type="library" name="jna" level="project" />
