@@ -17,6 +17,16 @@ apply plugin: 'com.android.application'
 
 android {
   compileSdkVersion 19 // This will be replaced by AndroidGradleTestCase
+
+  flavorDimensions "dim1"
+  productFlavors {
+    paid {
+      dimension "dim1"
+    }
+    free {
+      dimension "dim1"
+    }
+  }
 }
 
 dependencies {
