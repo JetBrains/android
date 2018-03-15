@@ -112,9 +112,14 @@ public interface IdeProfilerServices {
   void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback);
 
   /**
-   * Returns the profiling configurations saved for a project.
+   * Returns the profiling configurations saved by the user for a project.
    */
-  List<ProfilingConfiguration> getCpuProfilingConfigurations();
+  List<ProfilingConfiguration> getUserCpuProfilerConfigs();
+
+  /**
+   * @return default profiling configurations.
+   */
+  List<ProfilingConfiguration> getDefaultCpuProfilerConfigs();
 
   /**
    * Returns the application ID. For example, "com.google.sample.tunnel".

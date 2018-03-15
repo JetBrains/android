@@ -45,6 +45,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
@@ -240,7 +241,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         }
         configNames.add(configName);
 
-        if (!config.isDefault()) {
+        if (!isDefaultConfig(config)) {
           configsToSave.add(CpuProfilerConfigConverter.fromProto(config.toProto()));
         }
       }
@@ -252,6 +253,12 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     public boolean isModified() {
       // TODO: Handle that properly.
       return true;
+    }
+
+    private static boolean isDefaultConfig(@NotNull ProfilingConfiguration configuration) {
+      return CpuProfilerConfigsState.getDefaultConfigs()
+        .stream()
+        .anyMatch(c -> c.getName().equals(configuration.getName()));
     }
 
     private class ProfilingConfigurationsListCellRenderer implements ListCellRenderer<ProfilingConfiguration> {

@@ -280,7 +280,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
+  public List<ProfilingConfiguration> getUserCpuProfilerConfigs() {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
     CpuProfilingConfigService oldService = CpuProfilingConfigService.getInstance(myProject);
 
@@ -293,6 +293,14 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     oldService.setConfigurations(Collections.emptyList());
 
     return CpuProfilerConfigConverter.toProto(configsState.getUserConfigs())
+      .stream()
+      .map(ProfilingConfiguration::fromProto)
+      .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
+    return CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs())
       .stream()
       .map(ProfilingConfiguration::fromProto)
       .collect(Collectors.toList());

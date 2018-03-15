@@ -21,6 +21,8 @@ import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -311,8 +313,25 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
+  public List<ProfilingConfiguration> getUserCpuProfilerConfigs() {
     return myCustomProfilingConfigurations;
+  }
+
+  @Override
+  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
+    ProfilingConfiguration artSampled = new ProfilingConfiguration(ProfilingConfiguration.ART_SAMPLED,
+                                                                   CpuProfiler.CpuProfilerType.ART,
+                                                                   CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+    ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ProfilingConfiguration.ART_INSTRUMENTED,
+                                                                        CpuProfiler.CpuProfilerType.ART,
+                                                                        CpuProfiler.CpuProfilerConfiguration.Mode.INSTRUMENTED);
+    ProfilingConfiguration simpleperf = new ProfilingConfiguration(ProfilingConfiguration.SIMPLEPERF,
+                                                                   CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                                   CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+    ProfilingConfiguration atrace = new ProfilingConfiguration(ProfilingConfiguration.ATRACE,
+                                                               CpuProfiler.CpuProfilerType.ATRACE,
+                                                               CpuProfiler.CpuProfilerConfiguration.Mode.SAMPLED);
+    return ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
   }
 
   @NotNull
