@@ -237,6 +237,9 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"3.0.1\""))
     assertThat(tableModel.isCellEditable(variableNode, 1), equalTo(true))
 
+    tableModel.setValueAt("\"3.0.1\"", variableNode, 1)
+    assertThat(variableNode.variable.module.isModified, equalTo(false))
+
     tableModel.setValueAt("new value", variableNode, 1)
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"new value\""))
 
@@ -263,10 +266,13 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.isCellEditable(listNode, 1), equalTo(false))
 
     variablesTable.tree.expandPath(TreePath(listNode.path))
-    val firstElementNode = listNode.getChildAt(0)
+    val firstElementNode = listNode.getChildAt(0) as VariablesTable.ListItemNode
     assertThat(tableModel.isCellEditable(listNode, 1), equalTo(false))
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"proguard-rules.txt\""))
     assertThat(tableModel.isCellEditable(firstElementNode, 1), equalTo(true))
+
+    tableModel.setValueAt("\"proguard-rules.txt\"", firstElementNode, 1)
+    assertThat(firstElementNode.variable.module.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", firstElementNode, 1)
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"new value\""))
@@ -294,10 +300,13 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.isCellEditable(mapNode, 1), equalTo(false))
 
     variablesTable.tree.expandPath(TreePath(mapNode.path))
-    val firstElementNode = mapNode.getChildAt(0)
+    val firstElementNode = mapNode.getChildAt(0) as VariablesTable.MapItemNode
     assertThat(tableModel.isCellEditable(mapNode, 1), equalTo(false))
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"\"double\" quotes\""))
     assertThat(tableModel.isCellEditable(firstElementNode, 1), equalTo(true))
+
+    tableModel.setValueAt("\"\"double\" quotes\"", firstElementNode, 1)
+    assertThat(firstElementNode.variable.module.isModified, equalTo(false))
 
     tableModel.setValueAt("new value", firstElementNode, 1)
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"new value\""))

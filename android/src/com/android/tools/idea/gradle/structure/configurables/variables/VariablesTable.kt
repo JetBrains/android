@@ -241,7 +241,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
     }
 
     override fun setValueAt(aValue: Any?, node: Any?, column: Int) {
-      if (aValue !is String) {
+      if (aValue !is String || aValue == getValueAt(node, column)) {
         return
       }
 
