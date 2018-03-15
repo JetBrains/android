@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
@@ -37,15 +35,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-final class DependencyNodes {
+public final class DependencyNodes {
   private DependencyNodes() {
   }
 
   @NotNull
-  static List<AbstractPsModelNode<?>> createNodesForResolvedDependencies(@NotNull AndroidArtifactNode parent,
-                                                                         @NotNull PsAndroidDependencyCollection collection,
-                                                                         @NotNull Collection<PsAndroidDependency> dependencies,
-                                                                         @NotNull PsUISettings uiSettings
+  public static List<AbstractPsModelNode<?>> createNodesForResolvedDependencies(@NotNull AndroidArtifactNode parent,
+                                                                                @NotNull PsAndroidDependencyCollection collection,
+                                                                                @NotNull Collection<PsAndroidDependency> dependencies,
+                                                                                @NotNull PsUISettings uiSettings
   ) {
     List<AbstractPsModelNode<?>> children = Lists.newArrayList();
 

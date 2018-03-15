@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencyNodes.createNodesForResolvedDependencies;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodes.createNodesForResolvedDependencies;
 
 class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroidModule> {
 
