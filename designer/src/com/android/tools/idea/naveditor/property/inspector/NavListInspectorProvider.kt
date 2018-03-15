@@ -122,6 +122,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
       list = JBList<NlProperty>(displayProperties)
       list.name = NAV_LIST_COMPONENT_NAME
       list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+      list.fixedCellWidth = 1
       list.cellRenderer = object: ColoredListCellRenderer<NlProperty>() {
         override fun customizeCellRenderer(list: JList<out NlProperty>, value: NlProperty?, index: Int, selected: Boolean, hasFocus: Boolean) {
           icon = if (selected && hasFocus) whiteIcon else this@NavListInspectorProvider.icon
@@ -129,12 +130,10 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
             background = UIUtil.getListUnfocusedSelectionBackground()
             mySelectionForeground = UIUtil.getListForeground()
           }
-          var text = (value)?.name ?: ""
-          // TODO: truncate to actual width of the frame
-          if (text.length > 25) {
-            text = text.substring(0, 22) + "..."
-          }
-          append(text)
+          val name = value?.name ?: ""
+          val id = value?.components?.getOrNull(0)?.id?.let { " (${it})" } ?: ""
+          append(name)
+          append(id, SimpleTextAttributes.GRAYED_ATTRIBUTES)
         }
       }
 
