@@ -166,7 +166,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void importSession(ImportSessionRequest request, StreamObserver<ImportSessionResponse> responseObserver) {
-    myTable.insertOrUpdateSession(request.getSession(), request.getSessionName(), 0, false, false,
+    myTable.insertOrUpdateSession(request.getSession(), request.getSessionName(), request.getStartTimestampEpochMs(), false, false,
                                   request.getSessionType());
     responseObserver.onNext(ImportSessionResponse.newBuilder().build());
     responseObserver.onCompleted();
