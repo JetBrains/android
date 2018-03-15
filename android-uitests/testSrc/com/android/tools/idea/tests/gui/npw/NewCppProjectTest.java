@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -26,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.LinkCppProjectFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
+import com.intellij.openapi.wm.IdeFrame;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +44,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class NewCppProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   private static final String APP_NAME = "app";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(".*adb shell am start .*myapplication\\.MainActivity.*", Pattern.DOTALL);
@@ -148,7 +150,7 @@ public class NewCppProjectTest {
 
     assertAndroidPanePath(true, "app", "cpp", "native-lib.cpp"); // app/cpp reappears and contains native-lib.cpp
 
-    runAppOnEmulator();
+    runAppOnEmulator(ideFixture);
   }
 
   /**
@@ -175,7 +177,9 @@ public class NewCppProjectTest {
   private void createNewProjectWithCpp(boolean hasExceptionSupport, boolean hasRuntimeInformation) throws Exception {
     createCppProject(hasExceptionSupport, hasRuntimeInformation);
 
-    String gradleCppFlags = guiTest.ideFrame().getEditor()
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    String gradleCppFlags = ideFrame.getEditor()
       .open("app/build.gradle")
       .moveBetween("cppFlags \"", "")
       .getCurrentLine();
@@ -183,7 +187,7 @@ public class NewCppProjectTest {
     String cppFlags = String.format("%s %s", hasRuntimeInformation ? "-frtti" : "",  hasExceptionSupport ? "-fexceptions" : "").trim();
     Assert.assertEquals(String.format("cppFlags \"%s\"", cppFlags), gradleCppFlags.trim());
 
-    runAppOnEmulator();
+    runAppOnEmulator(ideFrame);
   }
 
   private void createCppProject(boolean hasExceptionSupport, boolean hasRuntimeInformation) {
@@ -207,16 +211,15 @@ public class NewCppProjectTest {
     guiTest.waitForBackgroundTasks();
   }
 
-  private void runAppOnEmulator() throws ClassNotFoundException {
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+  private void runAppOnEmulator(@NotNull IdeFrameFixture ideFrame) {
+    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrame.invokeAvdManager());
 
-    guiTest.ideFrame()
-      .runApp(APP_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+    ideFrame.runApp(APP_NAME)
+      .selectDevice(avdName)
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    ExecutionToolWindowFixture.ContentFixture contentFixture = guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME);
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrame.getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
