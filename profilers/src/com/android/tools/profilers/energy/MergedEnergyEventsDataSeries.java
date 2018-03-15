@@ -21,10 +21,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A data series where multiple, separate series are merged into one.
@@ -48,11 +45,15 @@ import java.util.Set;
 public class MergedEnergyEventsDataSeries implements DataSeries<EnergyEvent> {
 
   @NotNull private final EnergyEventsDataSeries myDelegateSeries;
-  private EnergyDuration.Kind myKindFilter;
+  private final List<EnergyDuration.Kind> myKindsFilter;
 
-  public MergedEnergyEventsDataSeries(@NotNull EnergyEventsDataSeries delegateSeries, @NotNull EnergyDuration.Kind kindFilter) {
+  /**
+   * @param delegateSeries A source series whose events will be read from and then merged
+   * @param kindsFilter A list of one or more event kinds to merge into a single bar
+   */
+  public MergedEnergyEventsDataSeries(@NotNull EnergyEventsDataSeries delegateSeries, @NotNull EnergyDuration.Kind... kindsFilter) {
     myDelegateSeries = delegateSeries;
-    myKindFilter = kindFilter;
+    myKindsFilter = Arrays.asList(kindsFilter);
   }
 
   @Override
@@ -63,7 +64,7 @@ public class MergedEnergyEventsDataSeries implements DataSeries<EnergyEvent> {
     Set<Integer> activeEventGroups = new HashSet<>();
 
     for (SeriesData<EnergyEvent> eventData : sourceData) {
-      if (EnergyDuration.Kind.from(eventData.value) != myKindFilter) {
+      if (!myKindsFilter.contains(EnergyDuration.Kind.from(eventData.value))) {
         continue;
       }
 

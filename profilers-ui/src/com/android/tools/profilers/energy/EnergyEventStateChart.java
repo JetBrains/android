@@ -35,8 +35,8 @@ public final class EnergyEventStateChart {
    * bar where each stage of its lifetime (sending, receiving, etc.) is highlighted with unique colors.
    */
   private static final EnumColors<EnergyDuration.Kind> DURATION_STATE_ENUM_COLORS = new EnumColors.Builder<EnergyDuration.Kind>(1)
-    .add(EnergyDuration.Kind.ALARM, ENERGY_ALARM)
-    .add(EnergyDuration.Kind.JOB, ENERGY_JOB)
+    .add(EnergyDuration.Kind.ALARM, ENERGY_BACKGROUND)
+    .add(EnergyDuration.Kind.JOB, ENERGY_BACKGROUND)
     .add(EnergyDuration.Kind.WAKE_LOCK, ENERGY_WAKE_LOCK)
     .add(EnergyDuration.Kind.UNKNOWN, TRANSPARENT_COLOR)
     .build();
