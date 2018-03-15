@@ -37,3 +37,6 @@ abstract class DependencyTestCase : AndroidGradleTestCase() {
     AndroidGradleTests.updateGradleVersions(projectRoot, repositories, null)
   }
 }
+
+internal fun PsAndroidDependencyCollection.findModuleDependency(gradlePath: String) =
+  items().mapNotNull { it as? PsModuleAndroidDependency }.singleOrNull { it.gradlePath == gradlePath }
