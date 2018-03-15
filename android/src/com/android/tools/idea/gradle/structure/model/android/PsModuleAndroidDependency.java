@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Collection;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
@@ -99,5 +101,19 @@ public class PsModuleAndroidDependency extends PsAndroidDependency implements Ps
   @Nullable
   public Module getResolvedModel() {
     return myResolvedModel;
+  }
+
+  @Nullable
+  public PsAndroidArtifact findReferredArtifact() {
+    PsModule referred = getParent().getParent().findModuleByGradlePath(getGradlePath());
+    String moduleVariantName = getConfigurationName();
+    if (moduleVariantName != null && referred instanceof PsAndroidModule) {
+      PsAndroidModule androidModule = (PsAndroidModule)referred;
+      PsVariant moduleVariant = androidModule.findVariant(moduleVariantName);
+      if (moduleVariant != null) {
+        return moduleVariant.findArtifact(ARTIFACT_MAIN);
+      }
+    }
+    return null;
   }
 }

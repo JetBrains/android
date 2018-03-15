@@ -258,6 +258,3 @@ private fun PsAndroidDependencyCollection.findLibraryDependency(compactNotation:
 private fun List<PsLibraryAndroidDependency>?.testScopes(): List<String> = orEmpty().map { it.configurationNames.joinToString(":") }
 private fun List<PsLibraryAndroidDependency>?.testDeclared() : List<Boolean> = orEmpty().map { it.isDeclared }
 private fun List<PsLibraryAndroidDependency>?.testHasPromotedVersion() : List<Boolean> = orEmpty().map { it.hasPromotedVersion() }
-
-private fun PsAndroidDependencyCollection.findModuleDependency(gradlePath: String) =
-  items().singleOrNull { it is PsModuleAndroidDependency && it.gradlePath == gradlePath }
