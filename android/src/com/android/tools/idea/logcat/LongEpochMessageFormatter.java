@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatLongEpochMessageParser;
 import com.android.ddmlib.logcat.LogCatMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 final class LongEpochMessageFormatter implements MessageFormatter {
-  private static final DateTimeFormatter FORMATTER = new DateTimeFormatterBuilder()
+  private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
     .append(DateTimeFormatter.ISO_LOCAL_DATE)
     .appendLiteral(' ')
     .appendValue(ChronoField.HOUR_OF_DAY, 2)
@@ -45,45 +46,70 @@ final class LongEpochMessageFormatter implements MessageFormatter {
 
   private static final Pattern DATE_TIME = Pattern.compile("\\d+-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d.\\d\\d\\d");
 
-  private static final Pattern HEADER_MESSAGE = Pattern.compile("^("
-                                                                + DATE_TIME
-                                                                + ") +("
-                                                                + PROCESS_ID
-                                                                + ")-("
-                                                                + THREAD_ID
-                                                                + ")/("
-                                                                + PACKAGE
-                                                                + ") ("
-                                                                + PRIORITY
-                                                                + ")/("
-                                                                + TAG
-                                                                + "): ("
-                                                                + MESSAGE
-                                                                + ")$");
+  private static final Pattern EPOCH_TIME_HEADER_MESSAGE = Pattern.compile("^("
+                                                                           + LogCatLongEpochMessageParser.EPOCH_TIME
+                                                                           + ") +("
+                                                                           + PROCESS_ID
+                                                                           + ")-("
+                                                                           + THREAD_ID
+                                                                           + ")/("
+                                                                           + PACKAGE
+                                                                           + ") ("
+                                                                           + PRIORITY
+                                                                           + ")/("
+                                                                           + TAG
+                                                                           + "): ("
+                                                                           + MESSAGE
+                                                                           + ")$");
 
+  private static final Pattern DATE_TIME_HEADER_MESSAGE = Pattern.compile("^("
+                                                                          + DATE_TIME
+                                                                          + ") +("
+                                                                          + PROCESS_ID
+                                                                          + ")-("
+                                                                          + THREAD_ID
+                                                                          + ")/("
+                                                                          + PACKAGE
+                                                                          + ") ("
+                                                                          + PRIORITY
+                                                                          + ")/("
+                                                                          + TAG
+                                                                          + "): ("
+                                                                          + MESSAGE
+                                                                          + ")$");
+
+  private final AndroidLogcatPreferences myPreferences;
   private final ZoneId myTimeZone;
 
-  LongEpochMessageFormatter(@NotNull ZoneId timeZone) {
+  LongEpochMessageFormatter(@NotNull AndroidLogcatPreferences preferences, @NotNull ZoneId timeZone) {
+    myPreferences = preferences;
     myTimeZone = timeZone;
   }
 
   @NotNull
   @Override
   public String format(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
-    Object dateTime = FORMATTER.format(LocalDateTime.ofInstant(header.getTimestampInstant(), myTimeZone));
+    Instant timestampInstant = header.getTimestampInstant();
+    assert timestampInstant != null;
+
+    Object timestampString = myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH
+                             ? LogCatLongEpochMessageParser.EPOCH_TIME_FORMATTER.format(timestampInstant)
+                             : DATE_TIME_FORMATTER.format(LocalDateTime.ofInstant(timestampInstant, myTimeZone));
+
     Object processIdThreadId = header.getPid() + "-" + header.getTid();
     Object priority = header.getLogLevel().getPriorityLetter();
 
     // Replacing spaces with non breaking spaces makes parsing easier later
     Object tag = header.getTag().replace(' ', '\u00A0');
 
-    return String.format(Locale.ROOT, format, dateTime, processIdThreadId, header.getAppName(), priority, tag, message);
+    return String.format(Locale.ROOT, format, timestampString, processIdThreadId, header.getAppName(), priority, tag, message);
   }
 
   @Nullable
   @Override
   public LogCatMessage tryParse(@NotNull String message) {
-    Matcher matcher = HEADER_MESSAGE.matcher(message);
+    Matcher matcher =
+      myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH ? EPOCH_TIME_HEADER_MESSAGE.matcher(message) : DATE_TIME_HEADER_MESSAGE.matcher(message);
 
     if (!matcher.matches()) {
       return null;
@@ -96,10 +122,17 @@ final class LongEpochMessageFormatter implements MessageFormatter {
     int threadId = Integer.parseInt(matcher.group(3));
     String tag = matcher.group(6);
 
-    LocalDateTime dateTime = LocalDateTime.parse(matcher.group(1), FORMATTER);
-    Instant instant = dateTime.toInstant(myTimeZone.getRules().getOffset(dateTime));
+    Instant timestampInstant;
 
-    LogCatHeader header = new LogCatHeader(priority, processId, threadId, /* package= */ matcher.group(4), tag, instant);
+    if (myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH) {
+      timestampInstant = LogCatLongEpochMessageParser.EPOCH_TIME_FORMATTER.parse(matcher.group(1), Instant::from);
+    }
+    else {
+      LocalDateTime timestampDateTime = LocalDateTime.parse(matcher.group(1), DATE_TIME_FORMATTER);
+      timestampInstant = timestampDateTime.toInstant(myTimeZone.getRules().getOffset(timestampDateTime));
+    }
+
+    LogCatHeader header = new LogCatHeader(priority, processId, threadId, /* package= */ matcher.group(4), tag, timestampInstant);
     return new LogCatMessage(header, /* message= */ matcher.group(7));
   }
 }
