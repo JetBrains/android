@@ -53,7 +53,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   private final AndroidLogcatPreferences myPreferences;
 
   public AndroidLogcatFormatter(@NotNull ZoneId timeZone, @NotNull AndroidLogcatPreferences preferences) {
-    myLongEpochFormatter = new LongEpochMessageFormatter(timeZone);
+    myLongEpochFormatter = new LongEpochMessageFormatter(preferences, timeZone);
     myLongFormatter = new LongMessageFormatter();
 
     myPreferences = preferences;
@@ -83,9 +83,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   }
 
   /**
-   * Create a format string for use with {@link #formatMessage(String, String)}. Most commonly you
-   * should just assign its result to {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING}, which
-   * is checked against to determine what the final format of any logcat line will be.
+   * Creates a format string for the formatMessage methods that take one.
    */
   @NotNull
   public static String createCustomFormat(boolean showTime, boolean showPid, boolean showPackage, boolean showTag) {
@@ -108,19 +106,6 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     }
     builder.append(": %6$s");
     return builder.toString();
-  }
-
-  /**
-   * Helper method useful for previewing what final output will look like given a custom formatter.
-   */
-  @NotNull
-  String formatMessage(@NotNull String format, @NotNull String message) {
-    if (format.isEmpty()) {
-      return message;
-    }
-
-    LogCatMessage logcatMessage = parseMessage(message);
-    return formatMessage(format, logcatMessage.getHeader(), logcatMessage.getMessage());
   }
 
   @NotNull
@@ -203,19 +188,27 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     return sb.toString();
   }
 
+  @NotNull
   @Override
-  public String formatMessage(String msg) {
-    String continuation = tryParseContinuation(msg);
+  public String formatMessage(@NotNull String message) {
+    String continuation = tryParseContinuation(message);
+
     if (continuation != null) {
       return CONTINUATION_INDENT + continuation;
     }
-    else {
-      LogCatMessage message = tryParseMessage(msg);
-      if (message != null) {
-        return formatMessage(myPreferences.LOGCAT_FORMAT_STRING, msg);
-      }
+
+    LogCatMessage logcatMessage = tryParseMessage(message);
+
+    if (logcatMessage == null || myPreferences.LOGCAT_FORMAT_STRING.isEmpty()) {
+      return message;
     }
 
-    return msg; // Unknown message format, return as is
+    return formatMessage(logcatMessage);
+  }
+
+  @NotNull
+  String formatMessage(@NotNull LogCatMessage message) {
+    String format = myPreferences.LOGCAT_FORMAT_STRING.isEmpty() ? FULL_FORMAT : myPreferences.LOGCAT_FORMAT_STRING;
+    return formatMessage(format, message.getHeader(), message.getMessage());
   }
 }

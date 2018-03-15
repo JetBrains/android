@@ -93,7 +93,6 @@ public class AndroidLogcatView implements Disposable {
 
   private final DeviceContext myDeviceContext;
   private final String myToolWindowId;
-  private final AndroidLogcatFormatter myFormatter;
   private final AndroidLogFilterModel myLogFilterModel;
 
   private volatile IDevice myDevice;
@@ -145,9 +144,9 @@ public class AndroidLogcatView implements Disposable {
 
     Disposer.register(myProject, this);
 
-    myFormatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(project));
+    AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(project));
 
-    myLogFilterModel = new AndroidLogFilterModel(myFormatter) {
+    myLogFilterModel = new AndroidLogFilterModel(formatter) {
       @NotNull
       private AndroidLogcatPreferences getPreferences() {
         return AndroidLogcatPreferences.getInstance(project);
@@ -169,8 +168,8 @@ public class AndroidLogcatView implements Disposable {
       }
     };
 
-    myLogConsole = new AndroidLogConsole(project, myLogFilterModel, myFormatter, this);
-    myLogcatReceiver = new MyLogcatListener(myFormatter, myLogConsole, myLogFilterModel);
+    myLogConsole = new AndroidLogConsole(project, myLogFilterModel, formatter, this);
+    myLogcatReceiver = new MyLogcatListener(formatter, myLogConsole, myLogFilterModel);
 
     DeviceContext.DeviceSelectionListener deviceSelectionListener =
       new DeviceContext.DeviceSelectionListener() {
@@ -492,7 +491,14 @@ public class AndroidLogcatView implements Disposable {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      if (new ConfigureLogcatFormatDialog(myView.myProject, myView.myFormatter).showAndGet()) {
+      Project project = myView.myProject;
+      AndroidLogcatPreferences preferences = AndroidLogcatPreferences.getInstance(project);
+      ConfigureLogcatHeaderDialog dialog = new ConfigureLogcatHeaderDialog(project, preferences, ZoneId.systemDefault());
+
+      if (dialog.showAndGet()) {
+        preferences.LOGCAT_FORMAT_STRING = dialog.getFormat();
+        preferences.SHOW_AS_SECONDS_SINCE_EPOCH = dialog.getShowAsSecondsSinceEpochCheckBox().isSelected();
+
         myView.myLogConsole.refresh();
       }
     }

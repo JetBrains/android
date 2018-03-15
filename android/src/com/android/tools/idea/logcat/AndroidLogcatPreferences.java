@@ -40,6 +40,8 @@ public final class AndroidLogcatPreferences implements PersistentStateComponent<
    */
   public String LOGCAT_FORMAT_STRING = "";
 
+  public boolean SHOW_AS_SECONDS_SINCE_EPOCH;
+
   public static AndroidLogcatPreferences getInstance(Project project) {
     return ServiceManager.getService(project, AndroidLogcatPreferences.class);
   }
