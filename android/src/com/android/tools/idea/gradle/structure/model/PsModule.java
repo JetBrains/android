@@ -222,6 +222,9 @@ public abstract class PsModule extends PsChildModel {
 
   public abstract void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames);
   public abstract void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames);
+  public abstract void setLibraryDependencyVersion(@NotNull PsArtifactDependencySpec spec,
+                                                   @NotNull String configurationName,
+                                                   @NotNull String newVersion);
 
   public interface DependenciesChangeListener extends EventListener {
     void dependencyChanged(@NotNull DependencyChangedEvent event);

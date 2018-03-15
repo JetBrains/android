@@ -117,4 +117,11 @@ public class PsJavaModule extends PsModule {
   public void addModuleDependency(@NotNull String modulePath, @NotNull List<String> scopesNames) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public void setLibraryDependencyVersion(@NotNull PsArtifactDependencySpec spec,
+                                          @NotNull String configurationName,
+                                          @NotNull String newVersion) {
+    throw new UnsupportedOperationException();
+  }
 }

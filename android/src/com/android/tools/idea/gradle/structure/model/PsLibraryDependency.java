@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
-import com.google.common.collect.ImmutableCollection;
 import org.jetbrains.annotations.NotNull;
 
 public interface PsLibraryDependency extends PsBaseDependency {
@@ -25,29 +23,6 @@ public interface PsLibraryDependency extends PsBaseDependency {
   PsModule getParent();
 
   boolean hasPromotedVersion();
-
-  /**
-   * Updates the parsed model with the new version.
-   *
-   * <p>The dependency instance and collections of resolved dependencies become invalid and should be reloaded.
-   */
-  default void setVersion(@NotNull String version) {
-    boolean modified = false;
-    for (DependencyModel parsedDependency : getParsedModels()) {
-      if (parsedDependency instanceof ArtifactDependencyModel) {
-        ArtifactDependencyModel dependency = (ArtifactDependencyModel)parsedDependency;
-        dependency.setVersion(version);
-        modified = true;
-      }
-    }
-    if (modified) {
-      setModified(true);
-      getParent().fireDependencyModifiedEvent((PsDependency)this);
-    }
-  }
-
-  @NotNull
-  ImmutableCollection<DependencyModel> getParsedModels();
 
   @NotNull
   PsArtifactDependencySpec getSpec();

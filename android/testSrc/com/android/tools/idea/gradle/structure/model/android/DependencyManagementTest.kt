@@ -208,6 +208,44 @@ class DependencyManagementTest : DependencyTestCase() {
     }
   }
 
+  fun testEditLibraryDependencyVersion() {
+    var module = project.findModuleByName("moduleA") as PsAndroidModule
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+    module.addLibraryDependency("com.example.libs:lib1:1.0", listOf("implementation"))
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+    }
+
+    project.applyChanges()
+    requestSyncAndWait()
+    reparse()
+
+    module = project.findModuleByName("moduleA") as PsAndroidModule
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val resolvedDependency = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
+      assertThat(resolvedDependency, notNullValue())
+      assertThat(resolvedDependency?.first()?.hasPromotedVersion(), equalTo(false))
+    }
+
+    module.setLibraryDependencyVersion(PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!, "implementation", "0.9.1")
+
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1"), notNullValue())
+
+    run {
+      val resolvedDependencies = module.findVariant("release")?.findArtifact(ARTIFACT_MAIN)?.dependencies
+      val resolvedDependency = resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:1.0")
+      assertThat(resolvedDependency, notNullValue())
+      assertThat(resolvedDependency?.first()?.hasPromotedVersion(), equalTo(true))
+    }
+  }
+
   fun testAddModuleDependency() {
     var module = project.findModuleByName("mainModule") as PsAndroidModule
     assertThat(module.dependencies.findModuleDependency(":moduleA"), nullValue())
