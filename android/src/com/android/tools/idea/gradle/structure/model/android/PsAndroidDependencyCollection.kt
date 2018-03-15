@@ -45,6 +45,8 @@ abstract class PsAndroidDependencyCollection(protected val parent: PsAndroidModu
   fun findLibraryDependencies(group: String?, name: String): List<PsLibraryAndroidDependency> =
     libraryDependenciesBySpec[LibraryKey(group.orEmpty(), name)].toList()
 
+  fun isEmpty(): Boolean = moduleDependenciesByGradlePath.isEmpty && libraryDependenciesBySpec.isEmpty
+
   protected fun PsArtifactDependencySpec.toLibraryKey(): LibraryKey = LibraryKey(group.orEmpty(), name)
 }
 

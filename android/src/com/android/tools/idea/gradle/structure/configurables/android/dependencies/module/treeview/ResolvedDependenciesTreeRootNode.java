@@ -94,11 +94,9 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
   @Nullable
   private AndroidArtifactNode createArtifactNode(@NotNull PsAndroidArtifact artifact,
                                                  @Nullable AndroidArtifactNode mainArtifactNode) {
-    PsAndroidDependencyCollection collection = new PsAndroidArtifactDependencyCollection(artifact);
-    List<PsAndroidDependency> dependencies = collection.items();
-    if (!dependencies.isEmpty() || mainArtifactNode != null) {
+    if (!artifact.getDependencies().isEmpty() || mainArtifactNode != null) {
       AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
-      populate(artifactNode, collection, dependencies, mainArtifactNode, getUiSettings());
+      populate(artifactNode, artifact.getDependencies(), mainArtifactNode, getUiSettings());
       return artifactNode;
     }
     return null;
@@ -106,14 +104,12 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
   private static void populate(@NotNull AndroidArtifactNode artifactNode,
                                @NotNull PsAndroidDependencyCollection collection,
-                               @NotNull List<PsAndroidDependency> dependencies,
                                @Nullable AndroidArtifactNode mainArtifactNode,
                                @NotNull PsUISettings uiSettings) {
-    List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(artifactNode, collection, dependencies, uiSettings);
+    List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(artifactNode, collection, collection.items(), uiSettings);
     if (mainArtifactNode != null) {
       children.add(0, mainArtifactNode);
     }
     artifactNode.setChildren(children);
   }
-
 }
