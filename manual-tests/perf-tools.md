@@ -116,6 +116,24 @@ effects.**
 
 ![Memory - Object Allocation][memory3]
 
+### JNI References Allocation
+
+1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
+1. In the QA App, select the "JNI References Allocation" scenario.
+1. Press the "run" button
+1. You should see **7 trash cans appearing on the memory graph**
+1. Select a region of the memory graph containing all of those 7 trash cans
+1. Select **JNI heap** from the drop-down above the class list
+1. Find and click **MemoryTaskCategory$AllocationTestObject** row in the class list
+1. You should see 5000 in the *Allocations* and *Deallocations* columns
+1. Click any **JNI Global reference** in the Instance View
+1. In the *Allocation Call Stack* section below you should see lines *newRef3*, *newRef2*, *newRef3*
+   and *native_memory.cpp* next to them.
+
+![Memory - Object Allocation][memory4]
+![Memory - Object Allocation][memory5]
+
+
 ## Network
 
 ### Http Request
@@ -197,6 +215,8 @@ of whichever profiler you have selected.
 [memory1]: res/perf-tools/memory1.png
 [memory2]: res/perf-tools/memory2.png
 [memory3]: res/perf-tools/memory3.png
+[memory4]: res/perf-tools/jni-tracking-app.png
+[memory5]: res/perf-tools/jni-tracking.png
 [network1]: res/perf-tools/network1.png
 [network2]: res/perf-tools/network2.png
 [event]: res/perf-tools/event.png
