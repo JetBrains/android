@@ -22,6 +22,7 @@ import com.android.tools.datastore.energy.PowerProfile.CpuCoreUsage;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.CpuProfiler.CpuCoreConfigResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuCoreUsageData;
+import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +36,6 @@ import java.util.List;
  * pollers get called first.
  */
 public final class EnergyDataPoller extends PollRunner {
-
   @NotNull private final Common.Session mySession;
   @NotNull private final BatteryModel myBatteryModel;
   @NotNull private final EnergyTable myEnergyTable;
@@ -77,10 +77,18 @@ public final class EnergyDataPoller extends PollRunner {
     myCpuCoreMaxFreqInKhz = new int[response.getConfigsCount()];
     // Core ID should always be in the range of [0..num_cores-1] and unique.
     boolean[] myIsCpuCorePopulated = new boolean[response.getConfigsCount()];
-    boolean isValidCpuCoreConfig = true;
+    boolean isValidCpuCoreConfig = response.getConfigsCount() > 0;
+    if (!isValidCpuCoreConfig) {
+      // TODO test on single core phones.
+      getLog().debug("No valid configs found!");
+    }
+
     for (CpuCoreConfigResponse.CpuCoreConfigData config : response.getConfigsList()) {
       int core = config.getCore();
       if (core >= response.getConfigsCount() || myIsCpuCorePopulated[core]) {
+        getLog().debug(core > response.getConfigsCount() ?
+                       String.format("Core index %d is >= the number of configs (%d) reported!", core, response.getConfigsCount()) :
+                       "Core index already populated!");
         isValidCpuCoreConfig = false;
         break;
       }
@@ -89,6 +97,9 @@ public final class EnergyDataPoller extends PollRunner {
       int minFreq = config.getMinFrequencyInKhz();
       int maxFreq = config.getMaxFrequencyInKhz();
       if (minFreq <= 0 || minFreq >= maxFreq) {
+        getLog().debug(minFreq <= 0 ?
+                       String.format("Min frequency %d <= 0!", minFreq) :
+                       String.format("Min frequency %d >= max frequency of %d!", minFreq, maxFreq));
         isValidCpuCoreConfig = false;
         break;
       }
@@ -204,5 +215,10 @@ public final class EnergyDataPoller extends PollRunner {
     for (EnergyProfiler.EnergyEvent event : myEnergyService.getEvents(request).getEventsList()) {
       myEnergyTable.insertOrReplace(mySession, event);
     }
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(EnergyDataPoller.class);
   }
 }
