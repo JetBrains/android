@@ -442,7 +442,6 @@ public final class GuiTests {
 
       if (predicate.test(s)) {
         new JListFixture(robot, list).clickItem(i);
-        robot.waitForIdle();
         return;
       }
       items.add(s);
