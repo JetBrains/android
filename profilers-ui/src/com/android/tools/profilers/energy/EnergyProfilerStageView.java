@@ -34,7 +34,7 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
-  @NotNull private final JBScrollPane myEventsComponent;
+  @NotNull private final JPanel myEventsPanel;
   @NotNull private final EnergyDetailsView myDetailsView;
 
   public EnergyProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull EnergyProfilerStage energyProfilerStage) {
@@ -47,10 +47,15 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     JBSplitter verticalSplitter = new JBSplitter(true);
     verticalSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     verticalSplitter.setFirstComponent(buildMonitorUi());
-    EnergyEventsView eventsView = new EnergyEventsView(this);
-    myEventsComponent = new JBScrollPane(eventsView.getComponent());
-    myEventsComponent.setVisible(false);
-    verticalSplitter.setSecondComponent(myEventsComponent);
+
+    myEventsPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    myEventsPanel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+    myEventsPanel.add(getSelectionTimeLabel(), new TabularLayout.Constraint(0, 1));
+
+    JComponent eventsView = new EnergyEventsView(this).getComponent();
+    myEventsPanel.add(new JBScrollPane(eventsView), new TabularLayout.Constraint(1, 0, 1, 2));
+    myEventsPanel.setVisible(false);
+    verticalSplitter.setSecondComponent(myEventsPanel);
 
     myDetailsView = new EnergyDetailsView(this);
     myDetailsView.setMinimumSize(new Dimension(JBUI.scale(450), (int) myDetailsView.getMinimumSize().getHeight()));
@@ -153,17 +158,17 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     getStage().getSelectionModel().addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
-        myEventsComponent.setVisible(true);
+        myEventsPanel.setVisible(true);
       }
 
       @Override
       public void selectionCleared() {
-        myEventsComponent.setVisible(false);
+        myEventsPanel.setVisible(false);
       }
 
       @Override
       public void selectionCreationFailure() {
-        myEventsComponent.setVisible(false);
+        myEventsPanel.setVisible(false);
       }
     });
 
