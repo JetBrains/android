@@ -31,6 +31,8 @@ import org.junit.Test;
 
 import javax.swing.*;
 
+import java.io.IOException;
+
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,7 +41,7 @@ public class PropertiesTablePanelTest {
   private PropertiesTablePanel myPanel;
 
   @Before
-  public void setUp() {
+  public void setUp() throws IOException {
     ViewNode node = ViewNodeParser.parse(getViewNodeFlatString());
     PTableModel model = new PTableModel();
     model.setItems(LayoutInspectorContext.convertToItems(node.getGroupedProperties()));
