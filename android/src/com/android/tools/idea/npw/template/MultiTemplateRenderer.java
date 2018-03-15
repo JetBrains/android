@@ -42,11 +42,39 @@ public final class MultiTemplateRenderer {
   private final List<TemplateRenderer> myTemplateRenderers = new ArrayList<>();
   private int myRequestCount = 1;
 
-  // DO NOT SUBMIT AS IS: IF THIS WORKS MAKE THE API NICER OR ADD BETTER COMMENTS
-  public void increment() {
+  /**
+   * Call this method to indicate that one more render is available. Every call to this method needs to be later matched by a
+   * call to either {@link #requestRender(TemplateRenderer)} or {@link #skipRender()}
+   */
+  public void incrementRenders() {
     myRequestCount++;
   }
-  // DO NOT SUBMIT AS IS: IF THIS WORKS MAKE THE API NICER OR ADD BETTER COMMENTS
+
+  /**
+   * Enqueue a template render request, batching it into a collection that will all be validated and, if all valid, rendered, at some
+   * later time.
+   * Note: This class is intended to be used once and discarded. If you enqueue renderers after the previous renderers have executed,
+   * this method's behavior may not work as expected.
+   */
+  public void requestRender(@NotNull TemplateRenderer templateRenderer) {
+    myTemplateRenderers.add(templateRenderer);
+    countDown();
+  }
+
+  /**
+   * Skip a template render request, any pending batching collection will be all validated and, if all valid, rendered, at some
+   * later time.
+   * Note: This class is intended to be used once and discarded. If you enqueue renderers after the previous renderers have executed,
+   * this method's behavior may not work as expected.
+   */
+  public void skipRender() {
+    countDown();
+  }
+
+  /**
+   * Process batched requests. When all requests are accounted (#incrementRenders == #requestRender + #skipRender), we check that all
+   * requests are valid, and if they are, run render them all.
+   */
   private void countDown() {
     if (myRequestCount == 0) {
       throw new IllegalStateException("Invalid extra call to MultiTemplateRenderer#countDown");
@@ -64,21 +92,5 @@ public final class MultiTemplateRenderer {
         renderer.render();
       }
     }
-  }
-
-  /**
-   * Enqueue a template render request, batching it into a collection that will all be validated and, if all valid, rendered, at some
-   * later time.
-   * Note: This class is intended to be used once and discarded. If you enqueue renderers after the previous renderers have executed, t
-   * his method's behavior may not work as expected.
-   */
-  public void requestRender(@NotNull TemplateRenderer templateRenderer) {
-    myTemplateRenderers.add(templateRenderer);
-    countDown();
-  }
-
-  // DO NOT SUBMIT AS IS: IF THIS WORKS MAKE THE API NICER OR ADD BETTER COMMENTS
-  public void skipRender() {
-    countDown();
   }
 }

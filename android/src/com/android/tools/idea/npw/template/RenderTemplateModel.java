@@ -109,7 +109,7 @@ public final class RenderTemplateModel extends WizardModel {
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
     myMultiTemplateRenderer = moduleModel.getMultiTemplateRenderer();
-    myMultiTemplateRenderer.increment();
+    myMultiTemplateRenderer.incrementRenders();
     myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(myProject.getValueOrNull()));
     myIsNewProject = myProject.getValueOrNull() == null;
     init();
