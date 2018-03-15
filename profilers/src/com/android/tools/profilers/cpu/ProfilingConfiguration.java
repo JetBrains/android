@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -147,5 +148,35 @@ public class ProfilingConfiguration {
       .setMode(getMode())
       .setSamplingIntervalUs(getProfilingSamplingIntervalUs())
       .setBufferSizeInMb(getProfilingBufferSizeInMb()).build();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof ProfilingConfiguration)) {
+      return false;
+    }
+    ProfilingConfiguration incoming = (ProfilingConfiguration)obj;
+    return StringUtil.equals(getName(), incoming.getName()) &&
+           getProfilerType() == incoming.getProfilerType() &&
+           getMode() == incoming.getMode() &&
+           getProfilingSamplingIntervalUs() == incoming.getProfilingSamplingIntervalUs() &&
+           getProfilingBufferSizeInMb() == incoming.getProfilingBufferSizeInMb();
+  }
+
+  @Override
+  public int hashCode() {
+    int hashCode = 0;
+    if (getName() != null) {
+      hashCode = getName().hashCode();
+    }
+    if (getProfilerType() != null) {
+      hashCode ^= getProfilerType().hashCode();
+    }
+    if (getMode() != null) {
+      hashCode ^= getMode().hashCode();
+    }
+    hashCode ^= getProfilingSamplingIntervalUs();
+    hashCode ^= getProfilingBufferSizeInMb();
+    return hashCode;
   }
 }
