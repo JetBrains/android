@@ -26,6 +26,7 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -52,6 +53,7 @@ public class SessionsView extends AspectObserver {
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final SessionsManager mySessionsManager;
   @NotNull private final JComponent myComponent;
+  @NotNull private final JScrollPane myScrollPane;
   @NotNull private final JButton myExpandButton;
   @NotNull private final JButton myCollapseButton;
   @NotNull private final JButton myStopProfilingButton;
@@ -100,6 +102,7 @@ public class SessionsView extends AspectObserver {
     });
 
     myStopProfilingButton = new CommonButton(StudioIcons.Profiler.Toolbar.STOP_SESSION);
+    myStopProfilingButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_SESSION));
     myStopProfilingButton.setAlignmentX(Component.CENTER_ALIGNMENT);
     myStopProfilingButton.setAlignmentY(Component.CENTER_ALIGNMENT);
     myStopProfilingButton.setBorder(TOOLBAR_ICON_BORDER);
@@ -114,6 +117,7 @@ public class SessionsView extends AspectObserver {
 
     myProcessSelectionAction = new CommonAction("", StudioIcons.Common.ADD);
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);
+    myProcessSelectionDropDown.setToolTipText("Start a new profiling session.");
     myProcessSelectionDropDown.setAlignmentX(Component.CENTER_ALIGNMENT);
     myProcessSelectionDropDown.setAlignmentY(Component.CENTER_ALIGNMENT);
     myProcessSelectionDropDown.setBorder(TOOLBAR_ICON_BORDER);
@@ -123,13 +127,25 @@ public class SessionsView extends AspectObserver {
 
     mySessionsListModel = new DefaultListModel<>();
     mySessionsList = new SessionsList(mySessionsListModel);
-    mySessionsList.setMinimumSize(new Dimension(SESSIONS_EXPANDED_MIN_WIDTH, 0));
     mySessionsList.setOpaque(false);
     mySessionsManager.addDependency(this)
       .onChange(SessionAspect.SESSIONS, this::refreshSessions)
       .onChange(SessionAspect.PROFILING_SESSION, () -> myStopProfilingButton
         .setEnabled(!Common.Session.getDefaultInstance().equals(mySessionsManager.getProfilingSession())));
+
+    myScrollPane = new JBScrollPane(mySessionsList);
+    myScrollPane.getViewport().setOpaque(false);
+    myScrollPane.setOpaque(false);
+    myScrollPane.setBorder(BorderFactory.createEmptyBorder());
+    myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+
     initializeUI();
+  }
+
+  @NotNull
+  public static Dimension getComponentMinimizeSize(boolean isExpanded) {
+    return isExpanded ? new Dimension(SESSIONS_EXPANDED_MIN_WIDTH, 0) : new Dimension(SESSIONS_COLLAPSED_MIN_WIDTH, 0);
   }
 
   @NotNull
@@ -173,13 +189,7 @@ public class SessionsView extends AspectObserver {
     myComponent.removeAll();
     if (myIsExpanded) {
       myComponent.add(createToolbar(), BorderLayout.NORTH);
-      JScrollPane scrollPane = new JBScrollPane(mySessionsList);
-      scrollPane.getViewport().setOpaque(false);
-      scrollPane.setOpaque(false);
-      scrollPane.setBorder(JBUI.Borders.empty());
-      scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-      scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-      myComponent.add(scrollPane, BorderLayout.CENTER);
+      myComponent.add(myScrollPane, BorderLayout.CENTER);
     }
     else {
       // We only need the toolbar when collapsed

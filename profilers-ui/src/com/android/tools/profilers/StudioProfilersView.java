@@ -35,11 +35,11 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
@@ -69,9 +69,10 @@ public class StudioProfilersView extends AspectObserver {
   private final BorderLayout myLayout;
 
   /**
-   * Splitter between the sessions and main profiler stage panel.
+   * Splitter between the sessions and main profiler stage panel. We use IJ's {@link ThreeComponentsSplitter} as it supports zero-width
+   * divider while still handling mouse resize properly.
    */
-  @NotNull private final JBSplitter mySplitter;
+  @NotNull private final ThreeComponentsSplitter mySplitter;
   private final JPanel myStageComponent;
   private SessionsView mySessionsView;
   private JPanel myStageToolbar;
@@ -89,24 +90,24 @@ public class StudioProfilersView extends AspectObserver {
     myLayout = new BorderLayout();
     myStageComponent = new JPanel(myLayout);
 
-    mySplitter = new JBSplitter(false);
-    mySplitter.setShowDividerIcon(false);
-    mySplitter.setShowDividerControls(false);
-    mySplitter.setDividerWidth(JBUI.scale(1));
-    mySplitter.setSecondComponent(myStageComponent);
+    mySplitter = new ThreeComponentsSplitter();
+    mySplitter.setDividerWidth(0);
+    mySplitter.setDividerMouseZoneSize(-1);
+    mySplitter.setHonorComponentsMinimumSize(true);
+    mySplitter.setLastComponent(myStageComponent);
     if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
       mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);
-      mySplitter.setFirstComponent(mySessionsView.getComponent());
-
-      // Prevent resize in collapse mode
-      mySplitter.setResizeEnabled(false);
+      JComponent sessionsComponent = mySessionsView.getComponent();
+      mySplitter.setFirstComponent(sessionsComponent);
       // Let the Sessions panel min size govern how much space to reserve on the left.
-      mySplitter.setProportion(0f);
+      mySplitter.setFirstSize(0);
       mySessionsView.addExpandListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          mySplitter.setResizeEnabled(true);
+          mySplitter.setDividerMouseZoneSize(JBUI.scale(6));
           // TODO expand to previous session panel size.
+          sessionsComponent.setMinimumSize(SessionsView.getComponentMinimizeSize(true));
+          mySplitter.setFirstSize(0);
           mySplitter.revalidate();
           mySplitter.repaint();
         }
@@ -114,8 +115,9 @@ public class StudioProfilersView extends AspectObserver {
       mySessionsView.addCollapseListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          mySplitter.setResizeEnabled(false);
-          mySplitter.setProportion(0f);
+          mySplitter.setDividerMouseZoneSize(-1);
+          sessionsComponent.setMinimumSize(SessionsView.getComponentMinimizeSize(false));
+          mySplitter.setFirstSize(0);
           mySplitter.revalidate();
           mySplitter.repaint();
         }

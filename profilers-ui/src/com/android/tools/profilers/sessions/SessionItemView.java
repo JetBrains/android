@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,6 +33,7 @@ import java.util.Collections;
 import java.util.Date;
 
 import static com.android.tools.profilers.ProfilerColors.ACTIVE_SESSION_COLOR;
+import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
 
 /**
  * A {@link SessionArtifactView} that represents a {@link com.android.tools.profiler.proto.Common.Session}
@@ -51,6 +53,9 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     // 1st column reserved for expand-collapse row, 2nd column for the Session's title (time), 3rd column for the live session icon.
     // 1st row for showing session start time, 2nd row for name, 3rd row for duration
     myComponent = new JPanel(new TabularLayout("Fit,Fit,Fit,*", "Fit,Fit,Fit"));
+    if (isHovered()) {
+      myComponent.setBackground(HOVERED_SESSION_COLOR);
+    }
     Border selectionBorder = isSessionSelected() ?
                              JBUI.Borders.merge(SELECTED_BORDER, COMPONENT_PADDING, false) :
                              JBUI.Borders.merge(UNSELECTED_BORDER, COMPONENT_PADDING, false);
@@ -80,6 +85,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     // Session is ongoing.
     if (getArtifact().getSession().getEndTimestamp() == Long.MAX_VALUE) {
       JPanel liveDotWrapper = new JPanel();
+      liveDotWrapper.setOpaque(false);
       LiveSessionDot liveDot = new LiveSessionDot();
       liveDotWrapper.add(liveDot, BorderLayout.CENTER);
       myComponent.add(liveDotWrapper, new TabularLayout.Constraint(0, 2));
@@ -98,8 +104,8 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
   }
 
   @Override
-  public void handleClick(@NotNull Point point) {
-    if (myExpandCollapseButton != null && myExpandCollapseButton.contains(point)) {
+  public void handleMouseEvent(@NotNull MouseEvent event) {
+    if (myExpandCollapseButton != null && (myExpandCollapseButton.contains(event.getPoint()) || event.getClickCount() > 1)) {
       myExpandCollapseButton.doClick();
       return;
     }
