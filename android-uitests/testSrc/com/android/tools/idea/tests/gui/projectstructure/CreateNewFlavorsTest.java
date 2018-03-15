@@ -67,7 +67,7 @@ public class CreateNewFlavorsTest {
   @RunIn(TestGroup.SANITY)
   @Test
   public void createNewFlavors() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
     FlavorsTabFixture flavorsTabFixture =
       ideFrameFixture.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .selectConfigurable("app")
