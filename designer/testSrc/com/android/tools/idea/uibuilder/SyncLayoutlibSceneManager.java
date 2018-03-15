@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.util.PropertiesMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandAdapter;
 import com.intellij.openapi.command.CommandEvent;
@@ -26,12 +29,20 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.android.SdkConstants.PREFIX_ANDROID;
+
 /**
  * {@link LayoutlibSceneManager} used for tests that performs all operations synchronously.
  */
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
+  private final Map<Object, PropertiesMap> myDefaultProperties;
+
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
     super(model, model.getSurface(), EdtExecutorService.getInstance());
+    myDefaultProperties = new HashMap<>();
   }
 
   @Override
@@ -71,5 +82,26 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     if (task != null) {
       task.disableSecurityManager();
     }
+  }
+
+  @Override
+  @NotNull
+  public Map<Object, PropertiesMap> getDefaultProperties() {
+    return myDefaultProperties;
+  }
+
+  public void putDefaultPropertyValue(@NotNull NlComponent component,
+                                      @NotNull ResourceNamespace namespace,
+                                      @NotNull String attributeName,
+                                      @NotNull String resourceValue,
+                                      @Nullable String value) {
+    PropertiesMap map = myDefaultProperties.get(component.getSnapshot());
+    if (map == null) {
+      map = new PropertiesMap();
+      myDefaultProperties.put(component.getSnapshot(), map);
+    }
+    // TODO: Update for namespace support:
+    String key = (namespace == ResourceNamespace.ANDROID ? PREFIX_ANDROID : "") + attributeName;
+    map.put(key, new PropertiesMap.Property(resourceValue, value));
   }
 }

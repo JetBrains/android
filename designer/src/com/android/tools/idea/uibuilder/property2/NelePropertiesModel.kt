@@ -47,9 +47,10 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
   private val provider = NelePropertiesProvider(this)
   private val listeners = mutableListOf<PropertiesModelListener>()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
-  private val renderListener = RenderListener { ApplicationManager.getApplication().invokeLater { firePropertyValueChange() } }
+  private val renderListener = RenderListener { renderCompleted() }
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
+  private var defaultValueProvider: NeleDefaultPropertyProvider? = null
 
   var surface: DesignSurface?
     get() = activeSurface
@@ -83,6 +84,10 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
 
   fun propertyValueChanged(property: NelePropertyItem) {
     NlUsageTrackerManager.getInstance(activeSurface).logPropertyChange(property, -1)
+  }
+
+  fun provideDefaultValue(property: NelePropertyItem): String? {
+    return defaultValueProvider?.provideDefaultValue(property)
   }
 
   private fun createMergingUpdateQueue(): MergingUpdateQueue {
@@ -131,6 +136,7 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
           return@invokeLaterIfNeeded
         }
         properties = newProperties
+        defaultValueProvider = createNeleDefaultPropertyProvider()
         firePropertiesGenerated()
       }
     }
@@ -141,12 +147,25 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
     }
   }
 
+  private fun renderCompleted() {
+    UIUtil.invokeLaterIfNeeded {
+      // The default properties comes from layoutlib, so they may have changed:
+      defaultValueProvider = createNeleDefaultPropertyProvider()
+      firePropertyValueChange()
+    }
+  }
+
   private fun firePropertiesGenerated() {
     listeners.forEach { it.propertiesGenerated() }
   }
 
   private fun firePropertyValueChange() {
     listeners.forEach { it.propertyValuesChanged() }
+  }
+
+  private fun createNeleDefaultPropertyProvider(): NeleDefaultPropertyProvider? {
+    val view = activeSceneView ?: return null
+    return NeleDefaultPropertyProvider(view.sceneManager)
   }
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
