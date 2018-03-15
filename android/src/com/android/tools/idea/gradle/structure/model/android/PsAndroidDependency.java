@@ -20,12 +20,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public abstract class PsAndroidDependency extends PsDependency implements PsAndroidModel {
   @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newLinkedHashSet();
@@ -58,19 +55,5 @@ public abstract class PsAndroidDependency extends PsDependency implements PsAndr
   @NotNull
   public Collection<PsDependencyContainer> getContainers() {
     return myContainers;
-  }
-
-  public boolean isIn(@NotNull String artifactName, @Nullable String variantName) {
-    for (PsDependencyContainer container : myContainers) {
-      if (artifactName.equals(container.getArtifact())) {
-        if (variantName == null) {
-          return true;
-        }
-        if (variantName.equals(container.getVariant())) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }

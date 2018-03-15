@@ -17,57 +17,38 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
-import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 
 public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroidDependency> {
   private final List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
 
   public ModuleDependencyNode(@NotNull AbstractPsNode parent,
-                              @Nullable PsAndroidDependencyCollection collection,
                               @NotNull PsModuleAndroidDependency dependency) {
     super(parent, dependency);
-    setUp(dependency, collection);
+    setUp(dependency);
   }
 
   public ModuleDependencyNode(@NotNull AbstractPsNode parent,
-                              @Nullable PsAndroidDependencyCollection collection,
                               @NotNull List<PsModuleAndroidDependency> dependencies) {
     super(parent, dependencies);
-    setUp(dependencies.get(0), collection);
+    setUp(dependencies.get(0));
   }
 
-  private void setUp(@NotNull PsModuleAndroidDependency moduleDependency, @Nullable PsAndroidDependencyCollection collection) {
+  private void setUp(@NotNull PsModuleAndroidDependency moduleDependency) {
     myName = moduleDependency.toText(PLAIN_TEXT);
-
-    PsAndroidModule dependentModule = moduleDependency.getParent();
-    PsProject project = dependentModule.getParent();
-
-    PsModule referred = project.findModuleByGradlePath(moduleDependency.getGradlePath());
-    if (referred instanceof PsAndroidModule) {
-      PsAndroidModule androidModule = (PsAndroidModule)referred;
-      androidModule.getDependencies().forEach(dependency -> {
-        if (!dependency.isDeclared()) {
-          return; // Only show "declared" dependencies as top-level dependencies.
-        }
-        String moduleVariant = moduleDependency.getConfigurationName();
-        if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
-          return; // Only show the dependencies in the main artifact.
-        }
-
-        AbstractPsModelNode<?> child = AbstractDependencyNode.createNode(this, collection, dependency);
+    PsAndroidArtifact referredModuleMainArtifact = moduleDependency.findReferredArtifact();
+    if (referredModuleMainArtifact != null) {
+      PsAndroidArtifactDependencyCollection referredModuleDependencyCollection =
+        new PsAndroidArtifactDependencyCollection(referredModuleMainArtifact);
+      referredModuleDependencyCollection.forEach(dependency -> {
+        AbstractPsModelNode<?> child = AbstractDependencyNode.createNode(this, referredModuleDependencyCollection, dependency);
         if (child != null) {
           myChildren.add(child);
         }

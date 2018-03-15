@@ -38,7 +38,7 @@ public abstract class AbstractDependencyNode<T extends PsAndroidDependency> exte
     }
     else if (dependency instanceof PsModuleAndroidDependency) {
       PsModuleAndroidDependency moduleDependency = (PsModuleAndroidDependency)dependency;
-      return new ModuleDependencyNode(parent, collection, moduleDependency);
+      return new ModuleDependencyNode(parent, moduleDependency);
     }
     return null;
   }

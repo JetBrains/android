@@ -60,7 +60,7 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
     }
 
     for (Map.Entry<String, List<PsModuleAndroidDependency>> entry : collector.moduleDependenciesByGradlePath.entrySet()) {
-      ModuleDependencyNode child = new ModuleDependencyNode(this, null, entry.getValue());
+      ModuleDependencyNode child = new ModuleDependencyNode(this, entry.getValue());
       children.add(child);
     }
 
