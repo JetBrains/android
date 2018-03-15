@@ -36,7 +36,6 @@ import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.tree.TreeUtil.expandAll;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.core.MouseButton.LEFT_BUTTON;
-import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertTrue;
 
 public class GradleToolWindowFixture extends ToolWindowFixture {
@@ -75,7 +74,7 @@ public class GradleToolWindowFixture extends ToolWindowFixture {
   private static TreePath findTaskPath(@NotNull DefaultMutableTreeNode root, @NotNull String taskName) {
     List<DefaultMutableTreeNode> path = Lists.newArrayList();
     boolean found = fillTaskPath(root, taskName, path);
-    assertTrue("Failed to find task " + quote(taskName), found);
+    assertTrue("Failed to find task '" + taskName + "'", found);
     return new TreePath(path.toArray());
   }
 

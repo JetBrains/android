@@ -81,7 +81,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.util.Strings.quote;
 import static org.junit.Assert.*;
 
 /**
@@ -354,7 +353,7 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    waitForFileOpen.expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
+    waitForFileOpen.expecting("file '" + file.getPath() + "' to be opened and loaded").until(() -> {
       if (!file.equals(getCurrentFile())) {
         return false;
       }

@@ -84,7 +84,6 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.fest.swing.finder.WindowFinder.findFrame;
-import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -241,7 +240,7 @@ public final class GuiTests {
     }
 
     if (path == null) {
-      skipTest("Please specify " + description + ", using system property " + quote(propertyName));
+      skipTest("Please specify " + description + ", using system property '" + propertyName + "'");
     }
     return path;
   }

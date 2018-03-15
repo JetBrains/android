@@ -88,7 +88,6 @@ import static java.awt.event.InputEvent.META_MASK;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.fest.util.Strings.quote;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -145,7 +144,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return androidModel;
       }
     }
-    throw new AssertionError("Unable to find AndroidGradleModel for module " + quote(name));
+    throw new AssertionError("Unable to find AndroidGradleModel for module '" + name + "'");
   }
 
   @NotNull
@@ -327,7 +326,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       // http://b/72834057 - If we keep tweaking this value we should consider a different way of waiting for this.
       wait = Wait.seconds(60);
     }
-    wait.expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
+    wait.expecting("Build (" + buildMode + ") for project '" + project.getName() + "' to finish'")
       .until(() -> {
         if (buildMode == SOURCE_GEN) {
           PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
@@ -377,7 +376,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     VirtualFile file = projectRootDir.findFileByRelativePath(relativePath);
     if (requireExists) {
       //noinspection Contract
-      assertNotNull("Unable to find file with relative path " + quote(relativePath), file);
+      assertNotNull("Unable to find file with relative path '" + relativePath + "'", file);
     }
     return file;
   }
@@ -428,7 +427,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Project project = getProject();
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (!syncState.isSyncInProgress()) {
-      Wait.seconds(10).expecting("Syncing project " + quote(project.getName()) + " to finish")
+      Wait.seconds(10).expecting("Syncing project '" + project.getName() + "' to finish")
         .until(myGradleProjectEventListener::isSyncStarted);
     }
     return this;
@@ -453,7 +452,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
 
-    waitForSync.expecting("syncing project " + quote(project.getName()) + " to finish")
+    waitForSync.expecting("syncing project '" + project.getName() + "' to finish")
       .until(() -> {
         GradleSyncState syncState = GradleSyncState.getInstance(project);
         boolean syncFinished =
