@@ -394,7 +394,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void shouldOpenCpuProfileStageIfStartupProfilingStarted() throws Exception {
+  public void shouldOpenCpuProfileStageIfStartupProfilingStarted() {
     FakeTimer timer = new FakeTimer();
     FakeIdeProfilerServices ideServices = new FakeIdeProfilerServices();
     ideServices.enableStartupCpuProfiling(true);
@@ -420,7 +420,31 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testProcessStateChangesShouldNotTriggerStageChange() throws Exception {
+  public void timelineOriginIfStartupProfilingStarted() {
+    FakeTimer timer = new FakeTimer();
+    FakeIdeProfilerServices ideServices = new FakeIdeProfilerServices();
+    ideServices.enableStartupCpuProfiling(true);
+
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), ideServices, timer);
+    myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(42));
+
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
+    profilers.setPreferredProcessName(process.getName());
+
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, process);
+    myCpuService.setStartupProfiling(true);
+    myCpuService.setProfilingStartTimestamp(123456789);
+
+    // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
+    // and starts a new session with the preferred process name.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getTimeline().getDataRange().getMin()).isWithin(0.001).of(TimeUnit.NANOSECONDS.toMicros(123456789));
+  }
+
+  @Test
+  public void testProcessStateChangesShouldNotTriggerStageChange() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);

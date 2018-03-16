@@ -160,6 +160,7 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
     private boolean myIsBeingProfiled = false;
     private boolean myIsStartupProfiling = false;
+    private long myProfilingStartTimestamp = 0;
 
     public void setStartupProfiling(boolean isStartupProfiling) {
       myIsStartupProfiling = isStartupProfiling;
@@ -167,6 +168,10 @@ public class FakeGrpcServer extends FakeGrpcChannel {
         // if startup profiling is true, it means that an app is being profiled
         myIsBeingProfiled = true;
       }
+    }
+
+    public void setProfilingStartTimestamp(long timestamp) {
+      myProfilingStartTimestamp = timestamp;
     }
 
     @Override
@@ -205,7 +210,10 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void checkAppProfilingState(ProfilingStateRequest request,
                                        StreamObserver<ProfilingStateResponse> response) {
       response.onNext(
-        ProfilingStateResponse.newBuilder().setBeingProfiled(myIsBeingProfiled).setIsStartupProfiling(myIsStartupProfiling).build());
+        ProfilingStateResponse.newBuilder()
+          .setBeingProfiled(myIsBeingProfiled)
+          .setIsStartupProfiling(myIsStartupProfiling)
+          .setStartTimestamp(myProfilingStartTimestamp).build());
       response.onCompleted();
     }
   }
