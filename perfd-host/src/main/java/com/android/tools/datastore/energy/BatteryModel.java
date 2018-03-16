@@ -58,8 +58,8 @@ public final class BatteryModel {
   private PowerProfile.CpuCoreUsage[] myLastCpuCoresUsage;
   @NotNull
   private PowerProfile.NetworkType myNetworkType = PowerProfile.NetworkType.NONE;
-  private boolean myIsTransmitting;
-  private boolean myIsReceiving;
+  private long myReceivingBps;
+  private long mySendingBps;
 
   public BatteryModel() {
     this(new PowerProfile.DefaultPowerProfile(), DEFAULT_SAMPLE_INTERVAL_NS);
@@ -108,26 +108,17 @@ public final class BatteryModel {
           addNewCpuSample(timestampNs);
         }
         break;
-      case NETWORK_TYPE_CHANGED:
-        PowerProfile.NetworkType networkType = (PowerProfile.NetworkType)eventArg;
-        if (myNetworkType != networkType) {
-          myNetworkType = networkType;
-          addNewNetworkSample(timestampNs);
-        }
-        break;
 
-      case NETWORK_DOWNLOAD:
-        boolean isReceiving = (boolean)eventArg;
-        if (myIsReceiving != isReceiving) {
-          myIsReceiving = isReceiving;
-          addNewNetworkSample(timestampNs);
-        }
-        break;
-      case NETWORK_UPLOAD:
-        boolean isTransmitting = (boolean)eventArg;
-        if (myIsTransmitting != isTransmitting) {
-          myIsTransmitting = isTransmitting;
-          addNewNetworkSample(timestampNs);
+      case NETWORK_USAGE:
+        PowerProfile.NetworkStats networkStats = (PowerProfile.NetworkStats)eventArg;
+        if (myNetworkType != networkStats.myNetworkType ||
+            myReceivingBps != networkStats.myReceivingBps ||
+            mySendingBps != networkStats.mySendingBps) {
+          // TODO(b/75977959): Fix stale data usage below. E.g. when we transition from WIFI to RADIO, we'd have a spike since WIFI much faster than RADIO.
+          myNetworkType = networkStats.myNetworkType;
+          myReceivingBps = networkStats.myReceivingBps;
+          mySendingBps = networkStats.mySendingBps;
+          addNewNetworkSample(timestampNs, new PowerProfile.NetworkStats(myNetworkType, myReceivingBps, mySendingBps));
         }
         break;
     }
@@ -169,17 +160,8 @@ public final class BatteryModel {
     addNewSample(timestampNs, sample -> sample.setCpuUsage(myPowerProfile.getCpuUsage(myLastCpuCoresUsage)));
   }
 
-  private void addNewNetworkSample(long timestampNs) {
-    addNewSample(timestampNs, sample -> {
-      PowerProfile.NetworkState networkState = PowerProfile.NetworkState.IDLE;
-      if (myIsReceiving) {
-        networkState = PowerProfile.NetworkState.RECEIVING;
-      }
-      else if (myIsTransmitting) {
-        networkState = PowerProfile.NetworkState.SENDING;
-      }
-      return sample.setNetworkUsage(myPowerProfile.getNetworkUsage(myNetworkType, networkState));
-    });
+  private void addNewNetworkSample(long timestampNs, @NotNull PowerProfile.NetworkStats networkStats) {
+    addNewSample(timestampNs, sample -> sample.setNetworkUsage(myPowerProfile.getNetworkUsage(networkStats)));
   }
 
   private void addNewSample(long timestampNs,
@@ -221,22 +203,9 @@ public final class BatteryModel {
     CPU_USAGE,
 
     /**
-     * The current network type has changed.
-     * arg: A {@link PowerProfile.NetworkType} value.
+     * Something about the network hardware has changed.
+     * arg: A {@link PowerProfile.NetworkStats} value.
      */
-    NETWORK_TYPE_CHANGED,
-
-    /**
-     * The app started/stopped downloading some bytes.
-     * arg: true if downloading, false if stopped.
-     */
-    NETWORK_DOWNLOAD,
-
-    /**
-     * The app started/stopped uploading some bytes.
-     * arg: true if downloading, false if stopped.
-     */
-    NETWORK_UPLOAD,
-
+    NETWORK_USAGE,
   }
 }
