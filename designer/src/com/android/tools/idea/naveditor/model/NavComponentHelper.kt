@@ -21,7 +21,6 @@ import com.android.annotations.VisibleForTesting
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlComponent.stripId
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
 import com.android.tools.idea.res.resolveStringValue
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
@@ -186,14 +185,31 @@ fun NlComponent.createAction(destinationId: String? = null, actionSetup: NlCompo
   newAction.actionSetup()
   // TODO: it would be nice if, when we changed something affecting the below logic and the id hasn't been changed,
   // we could update the id as a refactoring so references are also updated.
-  newAction.assignId(when {
-    newAction.popUpTo == id && newAction.inclusive -> "action_${this.id}_pop"
-    newAction.popUpTo != id && newAction.inclusive -> "action_${this.id}_pop_including_${newAction.popUpTo}"
-    newAction.effectiveDestinationId == id -> "action_${this.id}_self"
-    parent == null -> "action_global_${newAction.effectiveDestinationId}"
-    else -> "action_${id}_to_${newAction.effectiveDestinationId}"
-  })
+  newAction.assignId(generateActionId(this, newAction.actionDestinationId, newAction.popUpTo, newAction.inclusive))
   return newAction
+}
+
+fun generateActionId(source: NlComponent, destinationId: String?, popTo: String?, inclusive: Boolean): String {
+  val displaySourceId = source.id ?: source.model.virtualFile.nameWithoutExtension
+  if (destinationId == null) {
+    if (popTo == null) {
+      return ""
+    }
+    if (inclusive) {
+      if (popTo == source.id) {
+        return "action_${displaySourceId}_pop"
+      }
+      return "action_${displaySourceId}_pop_including_${popTo}"
+    }
+  }
+  val effectiveId = destinationId ?: popTo
+  if (effectiveId == source.id) {
+    return "action_${displaySourceId}_self"
+  }
+  if (source.isNavigation) {
+    return "action_global_${effectiveId}"
+  }
+  return "action_${displaySourceId}_to_${effectiveId}"
 }
 
 fun NlComponent.createSelfAction(): NlComponent {
