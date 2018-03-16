@@ -55,6 +55,10 @@ public class StudioIcons {
     public static final Icon LOCKED_INLINE = load("/studio/icons/common/locked-inline.png"); // 16x16
     public static final Icon MISSING = load("/studio/icons/common/missing.png"); // 16x16
     public static final Icon MOVE_DOWN_SELECTED = load("/studio/icons/common/move-down-selected.png"); // 14x14
+    public static final Icon PROPERTY_BOUND_FOCUS = load("/studio/icons/common/property-bound-focus.png"); // 15x20
+    public static final Icon PROPERTY_BOUND = load("/studio/icons/common/property-bound.png"); // 15x20
+    public static final Icon PROPERTY_UNBOUND_FOCUS = load("/studio/icons/common/property-unbound-focus.png"); // 15x20
+    public static final Icon PROPERTY_UNBOUND = load("/studio/icons/common/property-unbound.png"); // 15x20
     public static final Icon RESET_ZOOM = load("/studio/icons/common/reset-zoom.png"); // 16x16
     public static final Icon SEARCH = load("/studio/icons/common/search.png"); // 16x16
     public static final Icon SUCCESS_INLINE_SELECTED = load("/studio/icons/common/success-inline-selected.png"); // 16x16
