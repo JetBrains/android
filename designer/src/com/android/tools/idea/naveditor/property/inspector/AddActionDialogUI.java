@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
+import com.intellij.ui.components.JBTextField;
 
 import javax.swing.*;
 
@@ -36,4 +37,5 @@ public class AddActionDialogUI {
   JCheckBox myDocumentCheckBox;
   JCheckBox myClearTaskCheckBox;
   JPanel myContentPanel;
+  JBTextField myIdTextField;
 }

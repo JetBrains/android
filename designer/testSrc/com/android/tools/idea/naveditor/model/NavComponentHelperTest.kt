@@ -23,6 +23,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -227,5 +228,61 @@ class NavComponentHelperTest2 : NavTestCase() {
           }.id)
     }
     WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_global_f1", root.createAction("f1").id) }
+  }
+
+  fun testGenerateActionId() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        navigation("subnav")
+      }
+    }
+
+    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", null, false))
+    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", "f2", false))
+    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", "f2", true))
+
+    assertEquals("action_subnav_self", generateActionId(model.find("subnav")!!, "subnav", "f2", true))
+
+    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", null, false))
+    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", "f1", false))
+    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", "f3", true))
+
+    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, "f1", null, false))
+    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, "f1", "f2", false))
+    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, null, "f1", false))
+
+    assertEquals("action_f1_pop", generateActionId(model.find("f1")!!, null, "f1", true))
+    assertEquals("action_f1_pop_including_f2", generateActionId(model.find("f1")!!, null, "f2", true))
+
+    assertEquals("action_nav_pop_including_f1", generateActionId(model.components[0]!!, null, "f1", true))
+
+    assertEquals("", generateActionId(model.find("f1")!!, null, null, true))
+  }
+
+  fun testCreateAction() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        navigation("subnav")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    WriteCommandAction.runWriteCommandAction(project) { f1.createAction("f2") }
+    var newAction = model.find("action_f1_to_f2")!!
+    assertEquals(f1, newAction.parent)
+    assertEquals("f2", newAction.actionDestinationId)
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      f1.createAction {
+        popUpTo = "f1"
+        inclusive = true
+      }
+    }
+    newAction = model.find("action_f1_pop")!!
+    assertEquals(f1, newAction.parent)
+    assertNull(newAction.actionDestinationId)
+    assertEquals("f1", newAction.popUpTo)
   }
 }

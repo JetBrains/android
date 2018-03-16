@@ -54,7 +54,8 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("@anim/fade_in", dialog.enterTransition)
     assertTrue(dialog.isClearTask)
     assertEquals(model.find("f1"), dialog.source)
-    assertEquals("@id/f2", dialog.popTo)
+    assertEquals("f2", dialog.popTo)
+    assertEquals("a1", dialog.id)
   }
 
   fun testContent() {
@@ -105,6 +106,8 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals("f2", dialog.myPopToComboBox.getItemAt(3).id)
     assertEquals(4, dialog.myPopToComboBox.itemCount)
 
+    assertEquals("action_f1_self", dialog.myIdTextField.text)
+
     dialogWrapper.close(0)
   }
 
@@ -130,6 +133,7 @@ class AddActionDialogTest : NavTestCase() {
     assertFalse(dialog.myPopToComboBox.isEnabled)
     assertTrue(dialog.myInclusiveCheckBox.isSelected)
     assertFalse(dialog.myInclusiveCheckBox.isEnabled)
+    assertEquals("action_f1_pop", dialog.myIdTextField.text)
 
     dialogWrapper.close(0)
   }
@@ -473,6 +477,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(f1, dialog.source)
     assertFalse(dialog.isInclusive)
     assertEquals(null, dialog.popTo)
+    assertEquals("", dialog.id)
     dialog.close(0)
 
     dialog = AddActionDialog(AddActionDialog.Defaults.GLOBAL, null, f1, null)
@@ -480,6 +485,7 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(model.find("root"), dialog.source)
     assertFalse(dialog.isInclusive)
     assertEquals(null, dialog.popTo)
+    assertEquals("action_global_f1", dialog.id)
     dialog.close(0)
 
     dialog = AddActionDialog(
@@ -491,7 +497,31 @@ class AddActionDialogTest : NavTestCase() {
     assertEquals(null, dialog.destination)
     assertEquals(f1, dialog.source)
     assertTrue(dialog.isInclusive)
-    assertEquals("@id/f1", dialog.popTo)
+    assertEquals("f1", dialog.popTo)
+    assertEquals("action_f1_pop", dialog.id)
+    dialog.close(0)
+  }
+
+  fun testIdUpdatesRespectfully() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    val f2 = model.find("f2")!!
+
+    val dialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f1, null)
+    assertEquals("", dialog.id)
+    dialog.dialog.myDestinationComboBox.selectedIndex = 3
+    assertEquals("action_f1_to_f2", dialog.id)
+    dialog.dialog.myDestinationComboBox.selectedIndex = 2
+    assertEquals("action_f1_self", dialog.id)
+    dialog.dialog.myIdTextField.text = "foo"
+    dialog.dialog.myDestinationComboBox.selectedIndex = 3
+    assertEquals("foo", dialog.id)
     dialog.close(0)
   }
 }
