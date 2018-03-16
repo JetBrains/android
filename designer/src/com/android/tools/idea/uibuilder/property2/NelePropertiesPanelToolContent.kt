@@ -46,6 +46,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
     properties.builders.add(LayoutInspectorBuilder(facet.module.project, editorProvider))
     properties.builders.add(ViewInspectorBuilder(facet.module.project, editorProvider))
     properties.builders.add(TextViewInspectorBuilder(editorProvider, properties.formModel))
+    properties.builders.add(ProgressBarInspectorBuilder(editorProvider))
     properties.builders.add(FavoritesInspectorBuilder(editorProvider))
   }
 
