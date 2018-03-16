@@ -30,6 +30,7 @@ import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.editors.layoutInspector.ptable.LITTableCellEditorProvider;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITableGroupItem;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITableRendererProvider;
 import com.android.tools.idea.editors.layoutInspector.ui.RollOverTree;
@@ -133,6 +134,9 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     myPropertiesTable = new PTable(myTableModel);
     myPropertiesTable.getColumnModel().getColumn(0).setMinWidth((int)(ToolWindowDefinition.DEFAULT_SIDE_WIDTH * 0.6));
     myPropertiesTable.setRendererProvider(LITableRendererProvider.getInstance());
+    if (StudioFlags.LAYOUT_INSPECTOR_EDITING_ENABLED.get()) {
+      myPropertiesTable.setEditorProvider(LITTableCellEditorProvider.INSTANCE);
+    }
     myPropertiesTable.setFillsViewportHeight(true);
     myPropertiesTable.getTableHeader().setReorderingAllowed(false);
     TableSpeedSearch propertiesSpeedSearch = new TableSpeedSearch(myPropertiesTable, (object, cell) -> {
@@ -242,7 +246,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   public void valueChanged(@NotNull TreeSelectionEvent event) {
     ViewNode selection = (ViewNode)myNodeTree.getLastSelectedPathComponent();
     if (selection != null) {
-      myTableModel.setItems(convertToItems(selection.getGroupedProperties()));
+      myTableModel.setItems(convertToItems(selection.getGroupedProperties(), new LayoutInspectorEditHandler()));
       if (myPreview != null) {
         myPreview.setSelectedNode(selection);
       }
@@ -250,12 +254,12 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   }
 
   @NotNull
-  public static List<PTableItem> convertToItems(@NotNull Map<String, List<ViewProperty>> properties) {
+  public static List<PTableItem> convertToItems(@NotNull Map<String, List<ViewProperty>> properties, @NotNull EditHandler editHandler) {
     List<PTableItem> items = new ArrayList<>();
     List<String> sortedKeys = new ArrayList<>(properties.keySet());
     Collections.sort(sortedKeys, String::compareToIgnoreCase);
     for (String key : sortedKeys) {
-      items.add(new LITableGroupItem(key, properties.get(key)));
+      items.add(new LITableGroupItem(key, properties.get(key), editHandler));
     }
     return items;
   }

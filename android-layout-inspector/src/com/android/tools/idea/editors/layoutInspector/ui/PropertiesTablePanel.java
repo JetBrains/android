@@ -35,7 +35,7 @@ import java.awt.*;
 
 public class PropertiesTablePanel extends JScrollPane implements ToolContent<LayoutInspectorContext> {
   public static final JBColor GROUP_BACKGROUND_COLOR = new JBColor(Gray._242, new Color(60, 63, 65));
-  public static final JBColor ITEM__BACKGROUND_COLOR = new JBColor(Gray._252, new Color(49, 52, 53));
+  public static final JBColor ITEM_BACKGROUND_COLOR = new JBColor(Gray._252, new Color(49, 52, 53));
 
   private PTable myTable;
 
