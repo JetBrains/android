@@ -21,6 +21,7 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValues;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
 
 import java.io.File;
@@ -46,6 +47,31 @@ public class NdkIncludeResolverTest {
         assertThat(resolved.myOriginalPath).contains("ndk-bundle");
       }
     }
+  }
+
+  /*
+  This function tests getPackagingFamilyBaseFolderNameRelativeToHome() which involves OS-specific path separator
+  (forward-slash on Linux\Mac and back-slash on Windows.
+   */
+  @Test
+  public void testPackagingGetPackagingFamilyBaseFolderNameRelativeToHome() {
+    List<SimpleIncludeValue> resolutions = ResolverTests.resolvedIncludes(
+      new NdkIncludeResolver(new File(PATH_TO_NDK)),
+      "-I{ndkPath}/sources/android/cpufeatures");
+    assertThat(resolutions).hasSize(1);
+    SimpleIncludeValue resolution = resolutions.get(0);
+    assertThat(resolution).isNotNull();
+    assertThat(resolution.getPackageType()).isEqualTo(PackageType.NdkComponent);
+    assertThat(resolution.mySimplePackageName).isEqualTo("CPU Features");
+    assertThat(resolution.myRelativeIncludeSubFolder).isEqualTo(
+      "/sources/android/cpufeatures/");
+
+    // Figure out the path for the current OS
+    String pathToNdkWithFileSystemSlashes = (File.separatorChar == '\\')
+      ? "\\path\\to\\ndk-bundle"
+      : "/path/to/ndk-bundle";
+
+    assertThat(resolution.getPackagingFamilyBaseFolderNameRelativeToHome()).isEqualTo(pathToNdkWithFileSystemSlashes);
   }
 
   @Test
