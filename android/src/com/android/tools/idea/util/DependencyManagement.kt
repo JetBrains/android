@@ -19,6 +19,7 @@ package com.android.tools.idea.util
 
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
+import com.android.support.AndroidxName
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.projectsystem.*
 import com.intellij.openapi.application.ApplicationManager
@@ -65,6 +66,11 @@ fun Module.dependsOnAndroidx(): Boolean = this.getDependencies().any { it.mavenG
  * Returns whether this module depends on the old support library artifacts (androidx)
  */
 fun Module.dependsOnOldSupportLib(): Boolean = this.getDependencies().any { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
+
+fun Module?.mapAndroidxName(name: AndroidxName): String {
+  val dependsOnAndroidx = this?.dependsOnAndroidx() ?: return name.defaultName()
+  return if (dependsOnAndroidx) name.newName() else name.oldName()
+}
 
 fun Module.mapGradleCoordinateToAndroidx(coordinate: String): String {
   if (this.isDisposed || coordinate.isEmpty()) {

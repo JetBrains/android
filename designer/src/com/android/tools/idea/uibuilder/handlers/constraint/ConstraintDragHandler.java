@@ -51,7 +51,7 @@ public class ConstraintDragHandler extends DragHandler {
       NlComponent component = components.get(0);
       myComponent = new TemporarySceneComponent(layout.getScene(), component);
       myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(component)), editor.pxToDp(NlComponentHelperKt.getH(component)), false);
-      if (component.getTagName().equals(SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.defaultName())) {
+      if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())) {
         if (SdkConstants.VALUE_VERTICAL.equals(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION))) {
           myComponent.setSize(2, 200, false);
         } else {

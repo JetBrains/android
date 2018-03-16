@@ -27,7 +27,9 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
@@ -248,7 +250,7 @@ public class NlDropListener extends DropTargetAdapter {
 
     NlWriteCommandAction.run(myDragReceiver, "", () -> {
       XmlTag tag = myDragReceiver.getTag();
-      tag.setName(CONSTRAINT_LAYOUT.defaultName());
+      tag.setName(DependencyManagementUtil.mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(tag), CONSTRAINT_LAYOUT));
 
       myDragReceiver.setTag(tag);
       transaction.commit();

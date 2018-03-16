@@ -227,7 +227,7 @@ public class DragDropInteraction extends Interaction {
         String error = null;
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
         for (NlComponent component : myDraggedComponents) {
-          if ((component.getTagName().equals(SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.defaultName()))
+          if (SdkConstants.CLASS_CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.getTagName())
               && (!(myCurrentHandler instanceof ConstraintLayoutHandler))) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.checks.ObjectAnimatorDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -65,7 +67,10 @@ public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase
             }
             if (annotation == null) {
               Project project = startElement.getProject();
-              new AddAnnotationFix(KEEP_ANNOTATION.defaultName(), container).invoke(project, null, container.getContainingFile());
+              String annotationName = DependencyManagementUtil.mapAndroidxName(
+                ModuleUtilCore.findModuleForPsiElement(startElement),
+                KEEP_ANNOTATION);
+              new AddAnnotationFix(annotationName, container).invoke(project, null, container.getContainingFile());
             }
           }
         }

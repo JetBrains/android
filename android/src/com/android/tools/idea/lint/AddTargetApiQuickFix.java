@@ -16,8 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -116,11 +119,14 @@ public class AddTargetApiQuickFix implements AndroidLintQuickFix {
     if (modifierList != null) {
       Project project = startElement.getProject();
       PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
-      String fqcn = myRequiresApi ? REQUIRES_API_ANNOTATION.defaultName() : FQCN_TARGET_API;
+      String fqcn;
       String annotationText;
       if (myRequiresApi) {
+        Module module = ModuleUtilCore.findModuleForPsiElement(startElement);
+        fqcn = DependencyManagementUtil.mapAndroidxName(module, REQUIRES_API_ANNOTATION);
         annotationText = "@" + fqcn + "(api=" + getAnnotationValue(true) + ")";
       } else {
+        fqcn = FQCN_TARGET_API;
         annotationText = "@" + fqcn + "(" + getAnnotationValue(true) + ")";
       }
       PsiAnnotation newAnnotation = elementFactory.createAnnotationFromText(annotationText, container);
