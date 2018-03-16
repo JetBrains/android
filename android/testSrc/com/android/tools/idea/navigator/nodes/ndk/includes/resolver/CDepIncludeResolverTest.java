@@ -29,7 +29,7 @@ public class CDepIncludeResolverTest {
   // When these find their way to RealWorldExamples class then this test is supposed to notice
   // them and fire an assert so that the new package can be added and a test written.
   @Test
-  public void exerciseRealWorldExamples() throws IOException {
+  public void exerciseRealWorldExamples() {
     for (ResolverTests.ResolutionResult resolved : ResolverTests.resolveAllRealWorldExamples(new CDepIncludeResolver())) {
       if (resolved.myResolution == null) {
         assertThat(resolved.myOriginalPath).doesNotContain(".zip/");
