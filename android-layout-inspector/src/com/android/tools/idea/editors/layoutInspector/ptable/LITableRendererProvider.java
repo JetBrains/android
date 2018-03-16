@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.layoutInspector.ptable;
 
 import com.android.tools.adtui.ptable.*;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
@@ -34,6 +35,7 @@ public class LITableRendererProvider implements PTableCellRendererProvider {
 
   private final LITableNameRenderer myNameRenderer;
   private final LIItemCellRenderer myItemCellRenderer;
+  private final TableCellRenderer myEditableItemCellRenderer;
 
   public static LITableRendererProvider getInstance() {
     if (ourInstance == null) {
@@ -45,6 +47,11 @@ public class LITableRendererProvider implements PTableCellRendererProvider {
   private LITableRendererProvider() {
     myNameRenderer = new LITableNameRenderer();
     myItemCellRenderer = new LIItemCellRenderer();
+    if (StudioFlags.LAYOUT_INSPECTOR_EDITING_ENABLED.get()) {
+      myEditableItemCellRenderer = new LIEditableItemCellRenderer();
+    } else {
+      myEditableItemCellRenderer = myItemCellRenderer;
+    }
   }
 
   @NotNull
@@ -56,7 +63,13 @@ public class LITableRendererProvider implements PTableCellRendererProvider {
   @NotNull
   @Override
   public TableCellRenderer getValueCellRenderer(@NotNull PTableItem item) {
-    return item.hasChildren() ? createGroupTableCellRenderer() : myItemCellRenderer;
+    if (item.hasChildren()) {
+      return createGroupTableCellRenderer();
+    }
+    if (item.isEditable(item.getColumnToEdit())) {
+      return myEditableItemCellRenderer;
+    }
+    return myItemCellRenderer;
   }
 
   private static ColoredTableCellRenderer createGroupTableCellRenderer() {
@@ -83,7 +96,7 @@ public class LITableRendererProvider implements PTableCellRendererProvider {
       myPanel.setForeground(getForeground());
       myPanel.setBackground(getBackground());
       if (!isSelected) {
-        myPanel.setBackground(PropertiesTablePanel.ITEM__BACKGROUND_COLOR);
+        myPanel.setBackground(PropertiesTablePanel.ITEM_BACKGROUND_COLOR);
       }
 
       return myPanel;

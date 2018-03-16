@@ -275,6 +275,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> LAYOUT_INSPECTOR_V2_PROTOCOL_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "capture.v2", "Enable using V2 protocol to capture view data",
     "If enabled, uses V2 protocol to capture view information from device.", false);
+  public static final Flag<Boolean> LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "ui.editing", "Enable editing ViewNode properties in the properties table.",
+    "If enabled, users can edit properties in the properties table.", false);
 
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(

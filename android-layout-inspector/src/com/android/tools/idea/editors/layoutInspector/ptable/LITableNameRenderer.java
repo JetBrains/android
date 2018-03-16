@@ -50,10 +50,10 @@ public class LITableNameRenderer implements PNameRenderer {
     myRenderer.setBackground(
       isSelected
       ? UIUtil.getTableSelectionBackground()
-      : item.hasChildren() ? PropertiesTablePanel.GROUP_BACKGROUND_COLOR : PropertiesTablePanel.ITEM__BACKGROUND_COLOR);
+      : item.hasChildren() ? PropertiesTablePanel.GROUP_BACKGROUND_COLOR : PropertiesTablePanel.ITEM_BACKGROUND_COLOR);
     myPanel.setBackground(isSelected
                           ? UIUtil.getTableSelectionBackground()
-                          : item.hasChildren() ? PropertiesTablePanel.GROUP_BACKGROUND_COLOR : PropertiesTablePanel.ITEM__BACKGROUND_COLOR);
+                          : item.hasChildren() ? PropertiesTablePanel.GROUP_BACKGROUND_COLOR : PropertiesTablePanel.ITEM_BACKGROUND_COLOR);
 
     String label = item.getParent() != null ? item.getParent().getChildLabel(item) : item.getName();
     myRenderer.append(label, SimpleTextAttributes.REGULAR_ATTRIBUTES);
