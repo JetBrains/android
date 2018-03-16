@@ -26,6 +26,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
@@ -103,12 +104,12 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
     List<LaunchTask> launchTasks = provider.getTasks(device, launchStatus, consolePrinter);
 
     // Assert
-    assertThat(launchTasks.size()).isEqualTo(3);
-    assertThat(launchTasks.get(0)).isInstanceOf(DismissKeyguardTask.class);
-    assertThat(launchTasks.get(1)).isInstanceOf(SplitApkDeployTask.class);
-    assertThat(launchTasks.get(2)).isInstanceOf(DefaultActivityLaunchTask.class);
-
-    SplitApkDeployTask deployTask = (SplitApkDeployTask)launchTasks.get(1);
+    launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
+    SplitApkDeployTask deployTask = (SplitApkDeployTask)launchTasks.stream()
+      .filter(x -> x instanceof SplitApkDeployTask)
+      .findFirst()
+      .orElse(null);
+    assertThat(deployTask).isNotNull();
     assertThat(deployTask.getContext()).isInstanceOf(DynamicAppDeployTaskContext.class);
 
     DynamicAppDeployTaskContext context = (DynamicAppDeployTaskContext)deployTask.getContext();
