@@ -414,6 +414,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setAbiCpuArch(getStudioProfilers().getProcess().getAbiCpuArch())
       .build();
 
+    // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
+    // aspect that depends on the former.
+    myInProgressTraceInitiationType = TraceInitiationType.INITIATED_BY_UI;
     setCaptureState(CaptureState.STARTING);
     CompletableFuture.supplyAsync(
       () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
@@ -642,13 +645,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
 
     if (response.getBeingProfiled()) {
-      setCaptureState(CaptureState.CAPTURING);
       // Make sure to consider the elapsed profiling time, obtained from the device, when setting the capture start time
       long elapsedTime = response.getCheckTimestamp() - response.getStartTimestamp();
       myCaptureStartTimeNs = currentTimeNs() - elapsedTime;
       myInProgressTraceSeries.clear();
       myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
+      // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
+      // aspect that depends on the former.
       myInProgressTraceInitiationType = response.getInitiationType();
+      setCaptureState(CaptureState.CAPTURING);
 
       // Sets the properties of myActiveConfig
       CpuProfilerConfiguration configuration = response.getConfiguration();

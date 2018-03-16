@@ -892,7 +892,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
         break;
       case CAPTURING:
-        myCaptureButton.setEnabled(true);
+        if (getStage().getCaptureInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
+          myCaptureButton.setEnabled(false);
+        }
+        else {
+          myCaptureButton.setEnabled(true);
+        }
         myCaptureStatus.setText("");
         myCaptureButton.setToolTipText("Stop recording");
         myCaptureButton.setIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING);
