@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -170,5 +168,11 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
   @NotNull
   public GradleDslFile getDslFile() {
     return myGradleDslFile;
+  }
+
+  @Override
+  @NotNull
+  public Map<String, List<BuildModelNotification>> getNotifications() {
+    return getAllInvolvedFiles().stream().collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
   }
 }

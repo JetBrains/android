@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Map;
+/**
+ * Interface to represent information, warnings and errors that are created by a GradleBuildModel.
+ * These can be obtained from a GradleFileModel by {@link GradleFileModel#getNotifications()}.
+ * The types of notification that can be provided are contained in {@link NotificationType}
+ */
+public interface BuildModelNotification {
+  enum NotificationType {
+    INCOMPLETE_PARSE, // Some elements in a build file related to this GradleFileModel couldn't be parsed.
+  }
 
-public interface GradleFileModel extends GradleDslModel {
+  boolean isCorrectionAvailable();
+
+  void correct();
+
   @NotNull
-  Project getProject();
-
-  void reparse();
-
-  boolean isModified();
-
-  void resetState();
-
-  @NotNull
-  VirtualFile getVirtualFile();
-
-  void applyChanges();
-
-  Map<String, List<BuildModelNotification>> getNotifications();
+  NotificationType getType();
 }

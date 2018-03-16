@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -306,5 +308,16 @@ public abstract class GradleDslElement implements AnchorProvider {
     }
 
     return results;
+  }
+
+  /**
+   * Helpers to quick obtain a notification instance for this elements build context.
+   * @param type type reference of the given notification, see {@link NotificationTypeReference} for possible values.
+   * @param <T> type of the notification
+   * @return the instance of the notification in the build model.
+   */
+  @NotNull
+  public <T extends BuildModelNotification> T notification(@NotNull NotificationTypeReference<T> type) {
+    return getDslFile().getContext().getNotificationForType(type);
   }
 }

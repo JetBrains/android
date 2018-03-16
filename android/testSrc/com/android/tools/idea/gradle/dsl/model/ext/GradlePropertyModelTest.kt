@@ -2295,7 +2295,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val map = propertyModel.getValue(MAP_TYPE)!!
       assertSize(1, map.entries)
       // Try to set a new map value.
-      propertyModel.getValue(MAP_TYPE)!!["key1"]!!.convertToEmptyMap().getMapValue("War")?.setValue("Death")
+      propertyModel.getValue(MAP_TYPE)!!["key1"]!!.convertToEmptyMap().getMapValue("War").setValue("Death")
     }
 
     applyChangesAndReparse(buildModel)
