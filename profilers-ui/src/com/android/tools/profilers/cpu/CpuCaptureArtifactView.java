@@ -52,10 +52,7 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
                                        new Dimension(EXPAND_COLLAPSE_COLUMN_WIDTH, Short.MAX_VALUE));
     myComponent.add(spacer, new TabularLayout.Constraint(0, 0));
 
-    JLabel icon = new JLabel(artifact.isOngoingCapture()
-                             // TODO(b/74975946): use proper icon for in-progress captures. Maybe animate.
-                             ? StudioIcons.LayoutEditor.Palette.PROGRESS_BAR
-                             : StudioIcons.Profiler.Sessions.CPU);
+    JLabel icon = new JLabel(StudioIcons.Profiler.Sessions.CPU);
     icon.setBorder(ARTIFACT_ICON_BORDER);
     myComponent.add(icon, new TabularLayout.Constraint(0, 1));
 
