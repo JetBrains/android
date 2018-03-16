@@ -242,6 +242,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isStartupCpuProfilingEnabled() {
         return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
       }
+
+      @Override
+      public boolean isCpuApiTracingEnabled() {
+        return StudioFlags.PROFILER_CPU_API_TRACING.get();
+      }
     };
   }
 

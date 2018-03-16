@@ -277,6 +277,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isStartupCpuProfilingEnabled() {
         return myStartupCpuProfilingEnabled;
       }
+
+      @Override
+      public boolean isCpuApiTracingEnabled() {
+        return true;
+      }
     };
   }
 

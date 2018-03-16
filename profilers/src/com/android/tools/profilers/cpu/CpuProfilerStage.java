@@ -397,7 +397,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myThreadsStates);
     getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
-    getStudioProfilers().getUpdater().register(myCaptureStateUpdatable);
+
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuApiTracingEnabled()) {
+      // TODO (b/75259594): We need to fix this issue before enabling the flag.
+      getStudioProfilers().getUpdater().register(myCaptureStateUpdatable);
+    }
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -418,7 +422,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myThreadsStates);
     getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
-    getStudioProfilers().getUpdater().unregister(myCaptureStateUpdatable);
+
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isCpuApiTracingEnabled()) {
+      // TODO (b/75259594): We need to fix this issue before enabling the flag.
+      getStudioProfilers().getUpdater().unregister(myCaptureStateUpdatable);
+    }
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
