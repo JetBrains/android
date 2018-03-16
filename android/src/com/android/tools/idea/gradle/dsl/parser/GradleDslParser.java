@@ -69,6 +69,17 @@ public interface GradleDslParser {
   /**
    * Returns a list of {@link GradleReferenceInjection}s that were derived from {@code psiElement} .
    * A {@link GradleDslExpression} is needed to resolve any variable names that need to be injected.
+   * This method only returns GradleReferenceInjections for which {@link GradleReferenceInjection#isResolved()}
+   * returns true.
+   *
+   * This method REQUIRES read access.
+   */
+  @NotNull
+  List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement);
+
+  /**
+   * Same as {@link #getResolvedInjections(GradleDslExpression, PsiElement)} apart from we also return references where
+   * {@link GradleReferenceInjection#isResolved()} returns false.
    *
    * This method REQUIRES read access.
    */
@@ -89,6 +100,12 @@ public interface GradleDslParser {
     @Nullable
     public Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve) {
       return null;
+    }
+
+    @Override
+    @NotNull
+    public List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+      return Collections.emptyList();
     }
 
     @Override

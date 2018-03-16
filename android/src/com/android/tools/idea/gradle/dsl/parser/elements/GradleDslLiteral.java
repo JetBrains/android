@@ -98,7 +98,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
       return Collections.emptyList();
     }
     return ApplicationManager.getApplication()
-      .runReadAction((Computable<List<GradleReferenceInjection>>)() -> getDslFile().getParser().getInjections(this, element));
+      .runReadAction((Computable<List<GradleReferenceInjection>>)() -> getDslFile().getParser().getResolvedInjections(this, element));
   }
 
   /**

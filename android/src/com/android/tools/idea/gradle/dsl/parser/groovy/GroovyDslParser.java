@@ -67,7 +67,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrStringInjection;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrIndexProperty;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
@@ -105,7 +104,7 @@ import static com.android.tools.idea.gradle.dsl.parser.dependencies.Dependencies
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
-import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getInjectionName;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.findInjections;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement.CREDENTIALS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME;
@@ -201,33 +200,20 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     // Otherwise resolve the value and then return the resolved text.
-    Collection<GradleReferenceInjection> injections = getInjections(context, literal);
+    Collection<GradleReferenceInjection> injections = getResolvedInjections(context, literal);
     return ensureUnquotedText(GradleReferenceInjection.injectAll(literal, injections));
   }
 
   @Override
   @NotNull
+  public List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+    return findInjections(context, psiElement, false);
+  }
+
+  @NotNull
+  @Override
   public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-
-    if (!(psiElement instanceof GrString)) {
-      return Collections.emptyList();
-    }
-
-    List<GradleReferenceInjection> injections = Lists.newArrayList();
-    GrStringInjection[] grStringInjections = ((GrString)psiElement).getInjections();
-    for (GrStringInjection injection : grStringInjections) {
-      if (injection != null) {
-        String name = getInjectionName(injection);
-        if (name != null) {
-          GradleDslElement referenceElement = context.resolveReference(name);
-          if (referenceElement != null) {
-            injections.add(new GradleReferenceInjection(referenceElement, injection, name));
-          }
-        }
-      }
-    }
-    return injections;
+    return findInjections(context, psiElement, true);
   }
 
   private static boolean parse(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
