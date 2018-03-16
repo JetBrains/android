@@ -28,10 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
@@ -544,7 +541,10 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     }
 
     return myElement.getResolvedVariables().stream()
-      .map(injection -> new GradlePropertyModelImpl(injection.getToBeInjected())).collect(
+      .map(injection -> {
+        GradleDslElement injected = injection.getToBeInjected();
+        return injected != null ? new GradlePropertyModelImpl(injected) : null;
+      }).filter(Objects::nonNull).collect(
         Collectors.toList());
   }
 }
