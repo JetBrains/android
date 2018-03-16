@@ -26,11 +26,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.concurrency.BoundedTaskExecutor;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
@@ -38,6 +37,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public class ResourceFolderRegistry {
@@ -183,8 +183,8 @@ public class ResourceFolderRegistry {
       List<ResourceFolderRepository> repositories = Lists.newArrayList();
       // Cap the threads to 4 for now. Scaling is okay from 1 to 2, but not necessarily much better as we go higher.
       int maxThreads = Math.min(4, Runtime.getRuntime().availableProcessors());
-      BoundedTaskExecutor
-        parallelExecutor = new BoundedTaskExecutor(PooledThreadExecutor.INSTANCE, maxThreads);
+      ExecutorService
+        parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRegistry", maxThreads);
       List<Future<ResourceFolderRepository>> repositoryJobs = Lists.newArrayList();
       for (Map.Entry<VirtualFile, AndroidFacet> entry : resDirectories.entrySet()) {
         repositoryJobs.add(queueRepositoryFuture(parallelExecutor, entry.getValue(), entry.getKey()));
@@ -209,7 +209,7 @@ public class ResourceFolderRegistry {
     }
 
     private static Future<ResourceFolderRepository> queueRepositoryFuture(
-      @NotNull final BoundedTaskExecutor myParallelBuildExecutor,
+      @NotNull final ExecutorService myParallelBuildExecutor,
       @NotNull final AndroidFacet facet,
       @NotNull final VirtualFile dir) {
       return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir, null));
