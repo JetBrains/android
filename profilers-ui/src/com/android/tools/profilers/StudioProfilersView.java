@@ -106,8 +106,14 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);
       JComponent sessionsComponent = mySessionsView.getComponent();
       mySplitter.setFirstComponent(sessionsComponent);
-      mySessionsView.addExpandListener(e -> toggleSessionsPanel(false));
-      mySessionsView.addCollapseListener(e -> toggleSessionsPanel(true));
+      mySessionsView.addExpandListener(e -> {
+        toggleSessionsPanel(false);
+        myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelStateChanged(true);
+      });
+      mySessionsView.addCollapseListener(e -> {
+        toggleSessionsPanel(true);
+        myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelStateChanged(false);
+      });
       boolean initiallyCollapsed =
         myProfiler.getIdeServices().getPersistentProfilerPreferences().getBoolean(SESSION_IS_COLLAPSED, false);
       toggleSessionsPanel(initiallyCollapsed);
@@ -134,6 +140,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
               int width = sessionsComponent.getWidth();
               if (mySessionsUiWidth != width) {
                 myProfiler.getIdeServices().getPersistentProfilerPreferences().setInt(SESSION_EXPANDED_WIDTH, width);
+                myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelResized();
               }
             }
           }, mySplitter);

@@ -19,6 +19,8 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
+import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,6 +58,31 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackChangeProcess(@Nullable Common.Process process) {
+
+  }
+
+  @Override
+  public void trackCreateSession(Common.SessionMetaData.SessionType sessionType, SessionsManager.SessionCreationSource sourceType) {
+
+  }
+
+  @Override
+  public void trackStopSession() {
+
+  }
+
+  @Override
+  public void trackSessionsPanelStateChanged(boolean isExpanded) {
+
+  }
+
+  @Override
+  public void trackSessionsPanelResized() {
+
+  }
+
+  @Override
+  public void trackSessionArtifactSelected(@NotNull SessionArtifact artifact, boolean isSessionLive) {
 
   }
 
