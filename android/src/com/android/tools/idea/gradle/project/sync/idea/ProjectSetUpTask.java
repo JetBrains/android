@@ -124,6 +124,18 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @Override
   public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+    Logger logger = getLogger();
+    if (isNotEmpty(errorDetails)) {
+      logger.warn(errorDetails);
+    }
+    logger.warn(errorMessage);
+
+    // Make sure the failure was not because sync is already running, if so, then return
+    // See b/75005810
+    if (errorMessage.contains(ExternalSystemBundle.message("error.resolve.already.running", ""))) {
+      return;
+    }
+
     unregisterAsNewProject(myProject);
 
     // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
@@ -133,14 +145,10 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       }
     });
 
-    if (isNotEmpty(errorDetails)) {
-      getLogger().warn(errorDetails);
-    }
     handleSyncFailure(errorMessage);
   }
 
   private void handleSyncFailure(@NotNull String errorMessage) {
-    getLogger().warn(errorMessage);
 
     String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
     // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
