@@ -34,8 +34,10 @@ import com.android.tools.profilers.sessions.SessionsView;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -58,7 +60,7 @@ import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
 
-public class StudioProfilersView extends AspectObserver {
+public class StudioProfilersView extends AspectObserver implements Disposable {
   private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
   private static final String SHORTCUT_MODIFIER_STRING =
     KeymapUtil.getKeystrokeText(KeyStroke.getKeyStroke(SystemInfo.isMac ? KeyEvent.VK_META : KeyEvent.VK_CONTROL, 0));
@@ -95,6 +97,7 @@ public class StudioProfilersView extends AspectObserver {
     mySplitter.setDividerMouseZoneSize(-1);
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setLastComponent(myStageComponent);
+    Disposer.register(this, mySplitter);
     if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
       mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);
       JComponent sessionsComponent = mySessionsView.getComponent();
@@ -136,6 +139,10 @@ public class StudioProfilersView extends AspectObserver {
 
     myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
     updateStageView();
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @VisibleForTesting

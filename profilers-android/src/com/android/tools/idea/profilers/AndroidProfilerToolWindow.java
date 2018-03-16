@@ -23,6 +23,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     myLayeredPane = new ProfilerLayeredPane();
     service.getDataStoreService().setNoPiiExceptionHanlder(myProfilers.getIdeServices()::reportNoPiiException);
     initializeUi();
+    Disposer.register(this, myView);
 
     myProfilers.addDependency(this)
       .onChange(ProfilerAspect.MODE, this::updateToolWindow)
