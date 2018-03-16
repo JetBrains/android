@@ -15,57 +15,20 @@
  */
 package com.android.tools.idea.resourceExplorer.editor
 
-import com.android.tools.idea.resourceExplorer.importer.ImportConfigurationManager
-import com.android.tools.idea.resourceExplorer.view.DesignAssetDetailView
-import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
-import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
-import com.android.tools.idea.resourceExplorer.view.ExternalResourceBrowser
-import com.android.tools.idea.resourceExplorer.view.ModuleResourceBrowser
-import com.android.tools.idea.resourceExplorer.view.QualifierMatcherPanel
-import com.android.tools.idea.resourceExplorer.viewmodel.*
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import org.jetbrains.android.facet.AndroidFacet
-import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
-import javax.swing.Box
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /**
  * Editor to manage the resources of the project
  */
 class ResourceExplorerEditor(facet: AndroidFacet) : UserDataHolderBase(), FileEditor {
-  private val root = JPanel(BorderLayout())
-
-  init {
-    val synchronizationManager = SynchronizationManager(facet)
-    val fileHelper = ResourceFileHelper.ResourceFileHelperImpl()
-    val importersProvider = ImportersProvider()
-    val configurationManager = ServiceManager.getService(facet.module.project, ImportConfigurationManager::class.java)
-
-    val externalResourceBrowserViewModel = ExternalBrowserViewModel(facet, fileHelper, importersProvider, synchronizationManager)
-    val qualifierPanelPresenter = QualifierMatcherPresenter(externalResourceBrowserViewModel::consumeMatcher, configurationManager)
-    val qualifierParserPanel = QualifierMatcherPanel(qualifierPanelPresenter)
-    val externalResourceBrowser = ExternalResourceBrowser(facet, externalResourceBrowserViewModel, qualifierParserPanel)
-
-    val internalResourceBrowser = ModuleResourceBrowser(ModuleResourcesBrowserViewModel(facet, synchronizationManager))
-    val designAssetDetailView = DesignAssetDetailView(DesignAssetDetailViewModel(facet.module))
-    internalResourceBrowser.addSelectionListener(designAssetDetailView)
-
-    val centerContainer = Box.createVerticalBox()
-    centerContainer.add(internalResourceBrowser)
-    centerContainer.add(designAssetDetailView)
-    root.add(externalResourceBrowser, BorderLayout.EAST)
-    root.add(centerContainer, BorderLayout.CENTER)
-
-    Disposer.register(this, synchronizationManager)
-  }
+  private val root = ResourceExplorer.createForEditor(this, facet)
 
   override fun getComponent(): JComponent = root
 
