@@ -22,6 +22,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.HandleViewDebug;
 import com.android.ddmlib.IDevice;
 import com.android.layoutinspector.model.ClientWindow;
+import com.android.layoutinspector.model.LayoutFileData;
 import com.android.layoutinspector.model.ViewNode;
 import com.android.layoutinspector.model.ViewProperty;
 import com.android.tools.adtui.ptable.PTable;
@@ -120,7 +121,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     return Logger.getInstance(LayoutInspectorContext.class);
   }
 
-  public LayoutInspectorContext(@NotNull LayoutFileData layoutParser,@NotNull Disposable parentDisposable) {
+  public LayoutInspectorContext(@NotNull LayoutFileData layoutParser, @NotNull Disposable parentDisposable) {
     myRoot = layoutParser.getNode();
     myBufferedImage = layoutParser.getBufferedImage();
 

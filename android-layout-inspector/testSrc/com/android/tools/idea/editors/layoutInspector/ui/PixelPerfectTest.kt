@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui
 
+import com.android.layoutinspector.model.LayoutFileData
+import com.android.layoutinspector.parser.LayoutFileDataParser
 import com.android.tools.idea.editors.layoutInspector.getTestFile
 import com.google.common.truth.Truth
 import org.jetbrains.android.AndroidTestCase
@@ -28,12 +30,12 @@ class PixelPerfectTest : AndroidTestCase() {
   private lateinit var myContext: com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext
   private lateinit var myPanel: com.android.tools.idea.editors.layoutInspector.ui.LayoutInspectorPanel
   private lateinit var myPreview: com.android.tools.idea.editors.layoutInspector.ui.ViewNodeActiveDisplay
-  private lateinit var myTestData: com.android.tools.idea.editors.layoutInspector.LayoutFileData
+  private lateinit var myTestData: LayoutFileData
 
   override fun setUp() {
     super.setUp()
     val file = getTestFile()
-    myTestData = com.android.tools.idea.editors.layoutInspector.LayoutFileData(file)
+    myTestData = LayoutFileDataParser.parseFromFile(file)
 
     myContext = com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext(myTestData, project)
     myPanel = com.android.tools.idea.editors.layoutInspector.ui.LayoutInspectorPanel(myContext)

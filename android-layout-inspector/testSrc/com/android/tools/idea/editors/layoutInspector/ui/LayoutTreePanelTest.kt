@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui
 
+import com.android.layoutinspector.model.LayoutFileData
+import com.android.layoutinspector.parser.LayoutFileDataParser
 import com.android.tools.idea.editors.layoutInspector.getTestFile
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
@@ -28,12 +30,12 @@ class LayoutTreePanelTest : AndroidTestCase() {
 
   private lateinit var myContext: com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext
   private lateinit var myPanel: com.android.tools.idea.editors.layoutInspector.ui.LayoutTreePanel
-  private lateinit var myTestData: com.android.tools.idea.editors.layoutInspector.LayoutFileData
+  private lateinit var myTestData: LayoutFileData
 
   override fun setUp() {
     super.setUp()
     val file = getTestFile()
-    myTestData = com.android.tools.idea.editors.layoutInspector.LayoutFileData(file)
+    myTestData = LayoutFileDataParser.parseFromFile(file)
 
     myContext = com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext(myTestData, project)
     myPanel = com.android.tools.idea.editors.layoutInspector.ui.LayoutTreePanel()
