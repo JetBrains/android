@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
@@ -207,5 +208,10 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
       addAppliedModelProperties(dslFile);
     }
+  }
+
+  @NotNull
+  public List<BuildModelNotification> getPublicNotifications() {
+    return myBuildModelContext.getPublicNotifications();
   }
 }

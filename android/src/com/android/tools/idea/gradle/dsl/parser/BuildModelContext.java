@@ -15,17 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.google.common.collect.ClassToInstanceMap;
+import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A context object used to hold information relevant to each unique instance of the project/build model.
@@ -38,6 +45,8 @@ public final class BuildModelContext {
   private final Project myProject;
   @NotNull
   private final GradleDslFileCache myFileCache;
+  @NotNull
+  private final ClassToInstanceMap<BuildModelNotification> myNotifications = MutableClassToInstanceMap.create();
 
   @NotNull
   public static BuildModelContext create(@NotNull Project project) {
@@ -47,6 +56,22 @@ public final class BuildModelContext {
   private BuildModelContext(@NotNull Project project) {
     myProject = project;
     myFileCache = new GradleDslFileCache(project);
+  }
+
+  @NotNull
+  public List<BuildModelNotification> getPublicNotifications() {
+    return new ArrayList<>(myNotifications.values());
+  }
+
+  @NotNull
+  public <T extends BuildModelNotification> T getNotificationForType(@NotNull NotificationTypeReference<T> type) {
+    if (myNotifications.containsKey(type.getClazz())) {
+      return myNotifications.getInstance(type.getClazz());
+    } else {
+      T notification = type.getConstructor().produce();
+      myNotifications.putInstance(type.getClazz(), notification);
+      return notification;
+    }
   }
 
   /**
