@@ -108,6 +108,12 @@ public class CpuDataPoller extends PollRunner {
     CpuProfiler.GetTraceInfoResponse traceInfoResponse = myPollingService.getTraceInfo(traceInfoRequest.build());
     for (CpuProfiler.TraceInfo traceInfo : traceInfoResponse.getTraceInfoList()) {
       if (traceInfo.getInitiationType().equals(CpuProfiler.TraceInitiationType.INITIATED_BY_API)) {
+        // Insert trace content before inserting trace info. Because once the consumer of datastore (CpuProfilerStage) sees a
+        // trace info, it may decide to automatically set and select it which requires the content is in the datastore.
+        CpuProfiler.GetTraceRequest.Builder traceRequest =
+          CpuProfiler.GetTraceRequest.newBuilder().setSession(mySession).setTraceId(traceInfo.getTraceId());
+        CpuProfiler.GetTraceResponse traceResponse = myPollingService.getTrace(traceRequest.build());
+        myCpuTable.insertTrace(mySession, traceInfo.getTraceId(), traceResponse.getProfilerType(), traceResponse.getData());
         // TODO(b/74358723): Revisit the logic to insert data into datastore.
         // Note the traceInfo returned by perfd is preliminary. For example, the start and end timestamps
         // are set when those events are perceived by perfd including the time spent by perfa waiting for the trace to
@@ -115,10 +121,6 @@ public class CpuDataPoller extends PollRunner {
         // the trace will be automatically selected, and we will parse the trace right away. In that case, we should insert
         // the accurate traceInfo.
         myCpuTable.insertTraceInfo(mySession, traceInfo);
-        CpuProfiler.GetTraceRequest.Builder traceRequest =
-          CpuProfiler.GetTraceRequest.newBuilder().setSession(mySession).setTraceId(traceInfo.getTraceId());
-        CpuProfiler.GetTraceResponse traceResponse = myPollingService.getTrace(traceRequest.build());
-        myCpuTable.insertTrace(mySession, traceInfo.getTraceId(), traceResponse.getProfilerType(), traceResponse.getData());
       }
     }
     myTraceInfoRequestStartTimestampNs = traceInfoResponse.getResponseTimestamp();

@@ -123,4 +123,11 @@ class TraceIdsIterator {
   public void addTrace(int traceId) {
     myTraceIds.add(traceId);
   }
+
+  /**
+   * Returns true if the given trace is already added.
+   */
+  public boolean contains(int traceId) {
+    return myTraceIds.contains(traceId);
+  }
 }
