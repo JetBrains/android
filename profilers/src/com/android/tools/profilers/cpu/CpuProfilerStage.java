@@ -101,6 +101,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final EaseOutModel myInstructionsEaseOutModel;
   private final CpuProfilerConfigModel myProfilerModel;
 
+  private final DurationDataModel<CpuTraceInfo> myRecentTraceDurations;
+
   /**
    * {@link DurationDataModel} used when a trace recording in progress.
    */
@@ -236,7 +238,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myLegends = new CpuStageLegends(myCpuUsage, dataRange);
 
-    // Create an event representing the traces within the range.
+    // Create an event representing the traces within the view range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
 
     myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getSession());
@@ -288,6 +290,35 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myCaptureParser = new CpuCaptureParser(getStudioProfilers().getIdeServices());
     // Populate the iterator with all TraceInfo existing in the current session.
     myTraceIdsIterator = new TraceIdsIterator(this, getTraceInfoFromRange(new Range(-Double.MAX_VALUE, Double.MAX_VALUE)));
+
+    // Create an event representing recently completed traces appearing in the unexplored data range.
+    myRecentTraceDurations =
+      new DurationDataModel<>(new RangedSeries<>(new Range(-Double.MAX_VALUE, Double.MAX_VALUE), getCpuTraceDataSeries()));
+    myRecentTraceDurations.addDependency(this).onChange(DurationDataModel.Aspect.DURATION_DATA, () -> {
+      Range xRange = myRecentTraceDurations.getSeries().getXRange();
+
+      CpuTraceInfo candidateToSelect = null;  // candidate trace to automatically set and select
+      List<SeriesData<CpuTraceInfo>> recentTraceInfo =
+        myRecentTraceDurations.getSeries().getDataSeries().getDataForXRange(xRange);
+      for (SeriesData<CpuTraceInfo> series : recentTraceInfo) {
+        CpuTraceInfo trace = series.value;
+        if (trace.getInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
+          if (!myTraceIdsIterator.contains(trace.getTraceId())) {
+            myTraceIdsIterator.addTrace(trace.getTraceId());
+            if (candidateToSelect == null || trace.getRange().getMax() > candidateToSelect.getRange().getMax()) {
+              candidateToSelect = trace;
+            }
+          }
+        }
+        // Update xRange's min to the latest end point we have seen. When we query next time, we want new traces only; not all traces.
+        if (trace.getRange().getMax() > xRange.getMin()) {
+          xRange.setMin(trace.getRange().getMax());
+        }
+      }
+      if (candidateToSelect != null) {
+        setAndSelectCapture(candidateToSelect.getTraceId());
+      }
+    });
   }
 
   private static Logger getLogger() {
@@ -359,6 +390,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myCpuUsage);
     getStudioProfilers().getUpdater().register(myInProgressTraceDuration);
     getStudioProfilers().getUpdater().register(myTraceDurations);
+    getStudioProfilers().getUpdater().register(myRecentTraceDurations);
     getStudioProfilers().getUpdater().register(myCpuUsageAxis);
     getStudioProfilers().getUpdater().register(myThreadCountAxis);
     getStudioProfilers().getUpdater().register(myTimeAxisGuide);
@@ -378,6 +410,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myCpuUsage);
     getStudioProfilers().getUpdater().unregister(myTraceDurations);
+    getStudioProfilers().getUpdater().unregister(myRecentTraceDurations);
     getStudioProfilers().getUpdater().unregister(myInProgressTraceDuration);
     getStudioProfilers().getUpdater().unregister(myCpuUsageAxis);
     getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
@@ -654,6 +687,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // aspect that depends on the former.
       myInProgressTraceInitiationType = response.getInitiationType();
       setCaptureState(CaptureState.CAPTURING);
+      // We should jump to live data when there is an ongoing recording.
+      getStudioProfilers().getTimeline().setStreaming(true);
 
       // Sets the properties of myActiveConfig
       CpuProfilerConfiguration configuration = response.getConfiguration();
