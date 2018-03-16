@@ -231,7 +231,6 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     }
     myConfig.getReducer().reduce(transformedShapes, transformedValues);
     assert transformedShapes.size() == transformedValues.size();
-
     for (int i = 0; i < transformedShapes.size(); i++) {
       Shape shape = transformedShapes.get(i);
       T value = transformedValues.get(i);
@@ -248,7 +247,9 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
         String text = AdtUiUtils.shrinkToFit(valueText, mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
         if (!text.isEmpty()) {
           g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
-          g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), (float)(rect.getY() + rect.getHeight() - TEXT_PADDING));
+          float textOffset = (float)(rect.getY() + (rect.getHeight() - mDefaultFontMetrics.getHeight()) / 2.0);
+          textOffset += mDefaultFontMetrics.getAscent();
+          g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), textOffset);
         }
       }
     }
