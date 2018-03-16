@@ -219,7 +219,14 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     List<T> transformedValues = new ArrayList<>(getRectangleCount());
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
     for (Rectangle2D.Float rectangle : getRectangles()) {
-      transformedShapes.add(scale.createTransformedShape(rectangle));
+      // Manually scaling the rectangle results in ~6x performance improvement over
+      // calling AffineTransform::createTransformedShape. The reason for this is the shape created is a Point2D.Double
+      // this shape has to support all types of points as such cannot be rendered as efficiently as a
+      // rectangle.
+      transformedShapes.add(new Rectangle2D.Float((float)(rectangle.getX() * scale.getScaleX()),
+                                                  (float)(rectangle.getY() * scale.getScaleY()),
+                                                  (float)(rectangle.getWidth() * scale.getScaleX()),
+                                                  (float)(rectangle.getHeight() * scale.getScaleY())));
       transformedValues.add(getRectangleValue(rectangle));
     }
     myConfig.getReducer().reduce(transformedShapes, transformedValues);
