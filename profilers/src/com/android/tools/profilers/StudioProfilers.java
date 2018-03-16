@@ -148,9 +148,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         // The session is live - move the timeline to the current time.
         TimeResponse timeResponse = myClient.getProfilerClient()
           .getCurrentTime(TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
-        myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
-        if (startupCpuProfilingStarted()) {
+
+        ProfilingStateResponse startupCpuProfilingState = getStartupCpuProfilingState();
+        if (startupCpuProfilingState != null) {
+          // TODO(b/75253573): this is a workaround until we get the startup profiling trace aligned with rest of profiling.
+          myTimeline.reset(startupCpuProfilingState.getStartTimestamp(), timeResponse.getTimestampNs());
           setStage(new CpuProfilerStage(this));
+        }
+        else {
+          myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
         }
       }
       else {
@@ -445,15 +451,23 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
+   * @return {@link ProfilingStateResponse} if startup profiling started, otherwise null.
    */
-  private boolean startupCpuProfilingStarted() {
+  @Nullable
+  private ProfilingStateResponse getStartupCpuProfilingState() {
     if (!getIdeServices().getFeatureConfig().isStartupCpuProfilingEnabled()) {
-      return false;
+      return null;
     }
+
     ProfilingStateResponse response = getClient().getCpuClient()
       .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
-    return response.getBeingProfiled() && response.getIsStartupProfiling();
+
+    if (response.getBeingProfiled() && response.getIsStartupProfiling()) {
+      return response;
+    }
+    else {
+      return null;
+    }
   }
 
   @NotNull
