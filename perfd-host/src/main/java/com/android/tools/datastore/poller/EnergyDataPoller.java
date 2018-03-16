@@ -71,43 +71,51 @@ public final class EnergyDataPoller extends PollRunner {
 
     myDataRequestStartTimestampNs = queryCurrentTime();
 
-    CpuCoreConfigResponse response =
-      myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(session.getDeviceId()).build());
+    CpuCoreConfigResponse response = CpuCoreConfigResponse.getDefaultInstance();
+    try {
+      // TODO: Test on single core phones to see if they report data via "cpu0" or "cpu".
+      response = myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(session.getDeviceId()).build());
+    }
+    catch (StatusRuntimeException e) {
+      getLog().debug("Unable to parse CPU frequency files.", e);
+    }
+
     myCpuCoreMinFreqInKhz = new int[response.getConfigsCount()];
     myCpuCoreMaxFreqInKhz = new int[response.getConfigsCount()];
     // Core ID should always be in the range of [0..num_cores-1] and unique.
     boolean[] myIsCpuCorePopulated = new boolean[response.getConfigsCount()];
     boolean isValidCpuCoreConfig = response.getConfigsCount() > 0;
-    if (!isValidCpuCoreConfig) {
-      // TODO test on single core phones.
+    if (isValidCpuCoreConfig) {
+      for (CpuCoreConfigResponse.CpuCoreConfigData config : response.getConfigsList()) {
+        int core = config.getCore();
+        if (core >= response.getConfigsCount() || myIsCpuCorePopulated[core]) {
+          getLog().debug(core > response.getConfigsCount() ?
+                         String.format("Core index %d is >= the number of configs (%d) reported!", core, response.getConfigsCount()) :
+                         "Core index already populated!");
+          isValidCpuCoreConfig = false;
+          break;
+        }
+
+        myIsCpuCorePopulated[core] = true;
+        int minFreq = config.getMinFrequencyInKhz();
+        int maxFreq = config.getMaxFrequencyInKhz();
+        if (minFreq <= 0 || minFreq >= maxFreq) {
+          getLog().debug(minFreq <= 0 ?
+                         String.format("Min frequency %d <= 0!", minFreq) :
+                         String.format("Min frequency %d >= max frequency of %d!", minFreq, maxFreq));
+          isValidCpuCoreConfig = false;
+          break;
+        }
+        myCpuCoreMinFreqInKhz[core] = minFreq;
+        myCpuCoreMaxFreqInKhz[core] = maxFreq;
+      }
+
+      myIsMinMaxCoreFreqValid = isValidCpuCoreConfig;
+    }
+    else {
       getLog().debug("No valid configs found!");
+      myIsMinMaxCoreFreqValid = false;
     }
-
-    for (CpuCoreConfigResponse.CpuCoreConfigData config : response.getConfigsList()) {
-      int core = config.getCore();
-      if (core >= response.getConfigsCount() || myIsCpuCorePopulated[core]) {
-        getLog().debug(core > response.getConfigsCount() ?
-                       String.format("Core index %d is >= the number of configs (%d) reported!", core, response.getConfigsCount()) :
-                       "Core index already populated!");
-        isValidCpuCoreConfig = false;
-        break;
-      }
-
-      myIsCpuCorePopulated[core] = true;
-      int minFreq = config.getMinFrequencyInKhz();
-      int maxFreq = config.getMaxFrequencyInKhz();
-      if (minFreq <= 0 || minFreq >= maxFreq) {
-        getLog().debug(minFreq <= 0 ?
-                       String.format("Min frequency %d <= 0!", minFreq) :
-                       String.format("Min frequency %d >= max frequency of %d!", minFreq, maxFreq));
-        isValidCpuCoreConfig = false;
-        break;
-      }
-      myCpuCoreMinFreqInKhz[core] = minFreq;
-      myCpuCoreMaxFreqInKhz[core] = maxFreq;
-    }
-
-    myIsMinMaxCoreFreqValid = isValidCpuCoreConfig;
   }
 
   // TODO: Remove this temporary function once we're not creating fake data anymore
@@ -166,7 +174,7 @@ public final class EnergyDataPoller extends PollRunner {
     }
 
     // CPU-related samples
-    if (myIsMinMaxCoreFreqValid) {
+    {
       CpuProfiler.CpuDataRequest cpuDataRequest =
         CpuProfiler.CpuDataRequest.newBuilder()
           .setSession(request.getSession())
@@ -185,22 +193,28 @@ public final class EnergyDataPoller extends PollRunner {
         double elapsed = (currUsageData.getElapsedTimeInMillisec() - prevUsageData.getElapsedTimeInMillisec());
         double appPercent = (currUsageData.getAppCpuTimeInMillisec() - prevUsageData.getAppCpuTimeInMillisec()) / elapsed;
 
-        final int coreCount = currUsageData.getCoresCount();
-        assert coreCount == prevUsageData.getCoresCount();
-        List<CpuCoreUsageData> coresUsageData = currUsageData.getCoresList();
-        List<CpuCoreUsageData> prevCoresUsageData = prevUsageData.getCoresList();
-        CpuCoreUsage[] cpuCoresUtilization = new CpuCoreUsage[coreCount];
-        for (int i = 0; i < coreCount; i++) {
-          CpuCoreUsageData currCore = coresUsageData.get(i);
-          CpuCoreUsageData prevCore = prevCoresUsageData.get(i);
-          assert i < myCpuCoreMinFreqInKhz.length;
-          int minFreqKhz = myCpuCoreMinFreqInKhz[i];
-          int maxFreqKhz = myCpuCoreMaxFreqInKhz[i];
-          double elapsedCore = currCore.getElapsedTimeInMillisec() - prevCore.getElapsedTimeInMillisec();
-          double corePercent = (currCore.getSystemCpuTimeInMillisec() - prevCore.getSystemCpuTimeInMillisec()) / elapsedCore;
-          cpuCoresUtilization[i] = new CpuCoreUsage(appPercent, corePercent, minFreqKhz, maxFreqKhz, currCore.getFrequencyInKhz());
+        CpuCoreUsage[] cpuCoresUtilization;
+        if (myIsMinMaxCoreFreqValid) {
+          final int coreCount = currUsageData.getCoresCount();
+          assert coreCount == prevUsageData.getCoresCount();
+          List<CpuCoreUsageData> coresUsageData = currUsageData.getCoresList();
+          List<CpuCoreUsageData> prevCoresUsageData = prevUsageData.getCoresList();
+          cpuCoresUtilization = new CpuCoreUsage[coreCount];
+          for (int i = 0; i < coreCount; i++) {
+            CpuCoreUsageData currCore = coresUsageData.get(i);
+            CpuCoreUsageData prevCore = prevCoresUsageData.get(i);
+            assert i < myCpuCoreMinFreqInKhz.length;
+            int minFreqKhz = myCpuCoreMinFreqInKhz[i];
+            int maxFreqKhz = myCpuCoreMaxFreqInKhz[i];
+            double elapsedCore = currCore.getElapsedTimeInMillisec() - prevCore.getElapsedTimeInMillisec();
+            double corePercent = (currCore.getSystemCpuTimeInMillisec() - prevCore.getSystemCpuTimeInMillisec()) / elapsedCore;
+            cpuCoresUtilization[i] = new CpuCoreUsage(appPercent, corePercent, minFreqKhz, maxFreqKhz, currCore.getFrequencyInKhz());
+          }
         }
-
+        else {
+          // Fallback for parsing failure.
+          cpuCoresUtilization = new CpuCoreUsage[]{new CpuCoreUsage(appPercent, 1.0, 0, 1, 1)};
+        }
         myBatteryModel.handleEvent(currUsageData.getEndTimestamp(), BatteryModel.Event.CPU_USAGE, cpuCoresUtilization);
         prevUsageData = currUsageData;
       }

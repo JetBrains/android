@@ -101,19 +101,20 @@ public interface PowerProfile {
       Collections.sort(usagesList, Comparator.comparingInt(o -> o.myMaxFrequencyKhz));
 
       // TODO Support more than 2 CPU frequency bins?
-      boolean higherFrequency; // We only support two frequency bins presently.
+      // We only support up to two frequency bins presently.
+      boolean lowerFrequencyCore; // Defaults single core system to big core.
       for (CpuCoreUsage core : usagesList) {
-        higherFrequency = core.myMaxFrequencyKhz > usagesList.get(0).myMaxFrequencyKhz;
-        double fMhz = renormalizeFrequency(core, higherFrequency ? MAX_BIG_CORE_FREQ_KHZ : MAX_LITTLE_CORE_FREQ_KHZ);
+        lowerFrequencyCore = core.myMaxFrequencyKhz < usagesList.get(usagesList.size() - 1).myMaxFrequencyKhz;
+        double fMhz = renormalizeFrequency(core, lowerFrequencyCore ? MAX_LITTLE_CORE_FREQ_KHZ : MAX_BIG_CORE_FREQ_KHZ);
         double f2 = fMhz * fMhz;
         double f3 = f2 * fMhz;
         // Based on measurements on a Walleye device at various core frequencies for both the big and little cores.
         // The empirical results are then fitted against a cubic polynomial, resulting in the following equations.
-        if (higherFrequency) {
-          totalMilliAmps += (2.48408e-8 * f3 - 0.0000468129 * f2 + 0.0551123 * fMhz - 1.96322) * core.myAppUsage * core.myCoreUsage;
+        if (lowerFrequencyCore) {
+          totalMilliAmps += (5.79689e-9 * f3 - 8.31587e-6 * f2 + 0.0109841 * fMhz + 0.513398) * core.myAppUsage * core.myCoreUsage;
         }
         else {
-          totalMilliAmps += (5.79689e-9 * f3 - 8.31587e-6 * f2 + 0.0109841 * fMhz + 0.513398) * core.myAppUsage * core.myCoreUsage;
+          totalMilliAmps += (2.48408e-8 * f3 - 0.0000468129 * f2 + 0.0551123 * fMhz - 1.96322) * core.myAppUsage * core.myCoreUsage;
         }
       }
       return (int)totalMilliAmps;
