@@ -18,6 +18,7 @@ package com.android.tools.datastore.energy;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -35,7 +36,7 @@ import java.util.List;
 public interface PowerProfile {
   int getCpuUsage(@NotNull CpuCoreUsage[] usages);
 
-  int getNetworkUsage(@NotNull NetworkType type, @NotNull NetworkState state);
+  int getNetworkUsage(@NotNull NetworkStats networkStats);
 
   enum NetworkType {
     WIFI,
@@ -72,14 +73,14 @@ public interface PowerProfile {
     READY,
 
     /**
-     * The network is actively sending data.
-     */
-    SENDING,
-
-    /**
      * The network is actively receiving data.
      */
     RECEIVING,
+
+    /**
+     * The network is actively sending data.
+     */
+    SENDING,
   }
 
   /**
@@ -121,43 +122,29 @@ public interface PowerProfile {
     }
 
     @Override
-    public int getNetworkUsage(@NotNull NetworkType type, @NotNull NetworkState state) {
-      int usage = 0;
-      if (type == NetworkType.WIFI) {
-        switch (state) {
-          case READY:
-            break;
-          case RECEIVING:
-            usage += 100;
-            break;
-          case SENDING:
-            usage += 250;
-            break;
-          case IDLE:
-            usage += 1;
-            break;
-          default:
-            break;
-        }
+    public int getNetworkUsage(@NotNull NetworkStats networkStats) {
+      if (networkStats.myNetworkType != NetworkType.WIFI && networkStats.myNetworkType != NetworkType.RADIO) {
+        return 0;
       }
-      else if (type == NetworkType.RADIO) {
-        switch (state) {
-          case READY:
-            usage += 10;
-            break;
-          case RECEIVING:
-            usage += 50;
-            break;
-          case SENDING:
-            usage += 200;
-            break;
-          case IDLE:
-            usage += 1;
-            break;
-          case SCANNING:
-            usage += 5;
-            break;
-        }
+
+      if (networkStats.myReceivingBps == 0 && networkStats.mySendingBps == 0) {
+        return 1;
+      }
+
+      int usage = 0;
+      // Since we don't have too much information other than bps, we will assume a power model consisting of:
+      // power_use = network_baseline + scaling_factor * load
+      // where load is a rough eyeball of setup/teardown costs, TCP overhead, packet head overhead, etc....
+      // Note: radio READY state is 10mA and SCANNING is 5mA.
+      if (networkStats.myReceivingBps > 0) {
+        usage += networkStats.myNetworkType == NetworkType.WIFI
+                 ? fitBps(1, 99, networkStats.myReceivingBps, 1000000)
+                 : fitBps(10, 40, networkStats.myReceivingBps, 200000);
+      }
+      if (networkStats.mySendingBps > 0) {
+        usage += networkStats.myNetworkType == NetworkType.WIFI
+                 ? fitBps(1, 249, networkStats.mySendingBps,  500000)
+                 : fitBps(10, 190, networkStats.mySendingBps, 200000);
       }
       return usage;
     }
@@ -167,6 +154,21 @@ public interface PowerProfile {
       double clampedFreq = Ints.constrainToRange(core.myFrequencyKhz, core.myMinFrequencyKhz, core.myMaxFrequencyKhz);
       return (((clampedFreq - core.myMinFrequencyKhz) / (core.myMaxFrequencyKhz - core.myMinFrequencyKhz)) *
               (maxFrequencyKhz - MIN_CORE_FREQ_KHZ) + MIN_CORE_FREQ_KHZ) * 0.001; // Change to MHz as well.
+    }
+
+    /**
+     * Fits a BPS value to the specified piece-wise L0 continuous linear function to produce a mA figure.
+     *
+     * @param base       Fixed constant mA for base usage.
+     * @param scale      Variable mA for network activity.
+     * @param bps        Actual BPS of network activity.
+     * @param normalizer This value is effectively the max value bps can be for the sake of computing the current draw. Anything higher
+     *                   than the normalizer will be capped at the value of the normalizer. This effectively caps and maps bps to the
+     *                   [0.0, 1.0] range.
+     * @return the mapped current draw (mA) for the given network speeds.
+     */
+    static int fitBps(double base, double scale, long bps, long normalizer) {
+      return (int)(base + scale * (double)Longs.constrainToRange(bps, 0, normalizer) / (double)normalizer);
     }
   }
 
@@ -193,6 +195,18 @@ public interface PowerProfile {
       myMinFrequencyKhz = minFrequencyKhz;
       myMaxFrequencyKhz = maxFrequencyKhz;
       myFrequencyKhz = frequencyKhz;
+    }
+  }
+
+  final class NetworkStats {
+    public final NetworkType myNetworkType;
+    public final long myReceivingBps;
+    public final long mySendingBps;
+
+    public NetworkStats(NetworkType type, long receivingBps, long sendingBps) {
+      myNetworkType = type;
+      myReceivingBps = receivingBps;
+      mySendingBps = sendingBps;
     }
   }
 }

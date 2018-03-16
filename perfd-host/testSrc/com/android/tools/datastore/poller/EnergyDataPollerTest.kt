@@ -71,12 +71,12 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
     override fun getCpuUsage(usages: Array<PowerProfile.CpuCoreUsage>) = (usages[0].myAppUsage * CPU_USAGE).toInt()
 
-    override fun getNetworkUsage(type: PowerProfile.NetworkType, state: PowerProfile.NetworkState): Int {
-      return when (type) {
+    override fun getNetworkUsage(stats: PowerProfile.NetworkStats): Int {
+      return when (stats.myNetworkType) {
         PowerProfile.NetworkType.WIFI ->
-          if (state == PowerProfile.NetworkState.SENDING || state == PowerProfile.NetworkState.RECEIVING) WIFI_ACTIVE else 0
+          if (stats.myReceivingBps > 0 || stats.mySendingBps > 0) WIFI_ACTIVE else 0
         PowerProfile.NetworkType.RADIO ->
-          if (state == PowerProfile.NetworkState.SENDING || state == PowerProfile.NetworkState.RECEIVING) RADIO_ACTIVE else 0
+          if (stats.myReceivingBps > 0 || stats.mySendingBps > 0) RADIO_ACTIVE else 0
         else -> 0
       }
     }

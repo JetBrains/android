@@ -43,6 +43,7 @@ public final class EnergyDataPoller extends PollRunner {
   private long myDataRequestStartTimestampNs;
   @Nullable
   private CpuProfiler.CpuUsageData myLastData = null;
+  private PowerProfile.NetworkType myLastKnownNetworkType = PowerProfile.NetworkType.NONE;
 
   @NotNull private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
   @NotNull private CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
@@ -154,21 +155,19 @@ public final class EnergyDataPoller extends PollRunner {
 
       NetworkProfiler.NetworkDataResponse networkDataResponse = myNetworkService.getData(networkDataRequest);
       for (NetworkProfiler.NetworkProfilerData networkData : networkDataResponse.getDataList()) {
-        if (networkData.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTIVITY_DATA) {
-          myBatteryModel.handleEvent(networkData.getEndTimestamp(),
-                                     BatteryModel.Event.NETWORK_TYPE_CHANGED,
-                                     PowerProfile.NetworkType.from(networkData.getConnectivityData().getDefaultNetworkType()));
-        }
-        else if (networkData.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.SPEED_DATA) {
-          // TODO(b/73487166): We can probably simplify this into one line by converting speedData
-          // directly into a single event type ourselves.
-          NetworkProfiler.SpeedData speedData = networkData.getSpeedData();
-          myBatteryModel.handleEvent(networkData.getEndTimestamp(),
-                                     BatteryModel.Event.NETWORK_DOWNLOAD,
-                                     speedData.getReceived() > 0);
-          myBatteryModel.handleEvent(networkData.getEndTimestamp(),
-                                     BatteryModel.Event.NETWORK_UPLOAD,
-                                     speedData.getSent() > 0);
+        switch (networkData.getDataCase()) {
+          case CONNECTIVITY_DATA:
+            // Don't send an event for connection change. Leave it for the next speed data.
+            myLastKnownNetworkType = PowerProfile.NetworkType.from(networkData.getConnectivityData().getDefaultNetworkType());
+            break;
+          case SPEED_DATA:
+            NetworkProfiler.SpeedData speedData = networkData.getSpeedData();
+            myBatteryModel.handleEvent(networkData.getEndTimestamp(),
+                                       BatteryModel.Event.NETWORK_USAGE,
+                                       new PowerProfile.NetworkStats(myLastKnownNetworkType, speedData.getReceived(), speedData.getSent()));
+            break;
+          default:
+            break;
         }
       }
     }

@@ -116,10 +116,14 @@ class BatteryModelTest {
       val downloadStartNs = timeCurrNs
       val uploadStartNs = fastForward(timeCurrNs, 2)
 
-      batteryModel.handleEvent(downloadStartNs, BatteryModel.Event.NETWORK_TYPE_CHANGED, PowerProfile.NetworkType.WIFI)
-      batteryModel.handleEvent(downloadStartNs, BatteryModel.Event.NETWORK_DOWNLOAD, true)
-      batteryModel.handleEvent(uploadStartNs, BatteryModel.Event.NETWORK_DOWNLOAD, false)
-      batteryModel.handleEvent(uploadStartNs, BatteryModel.Event.NETWORK_UPLOAD, true)
+      batteryModel.handleEvent(downloadStartNs, BatteryModel.Event.NETWORK_USAGE,
+          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+      batteryModel.handleEvent(downloadStartNs, BatteryModel.Event.NETWORK_USAGE,
+          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 100, 0))
+      batteryModel.handleEvent(uploadStartNs, BatteryModel.Event.NETWORK_USAGE,
+          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+      batteryModel.handleEvent(uploadStartNs, BatteryModel.Event.NETWORK_USAGE,
+          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 10))
 
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 4)
 
@@ -137,8 +141,10 @@ class BatteryModelTest {
 
       timeCurrNs = fastForward(timeCurrNs, samples.size)
 
-      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_UPLOAD, false)
-      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_TYPE_CHANGED, PowerProfile.NetworkType.NONE)
+      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_USAGE,
+          PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+      batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_USAGE,
+          PowerProfile.NetworkStats(PowerProfile.NetworkType.NONE, 0, 0))
     }
 
 
@@ -154,10 +160,14 @@ class BatteryModelTest {
     val batteryModel = BatteryModel(PowerProfile.DefaultPowerProfile(), SAMPLE_INTERVAL_NS)
     val timeCurrNs = TimeUnit.SECONDS.toNanos(9999)
 
-    batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_TYPE_CHANGED, PowerProfile.NetworkType.WIFI)
-    batteryModel.handleEvent(timeCurrNs + 1, BatteryModel.Event.NETWORK_DOWNLOAD, true)
-    batteryModel.handleEvent(timeCurrNs + 2, BatteryModel.Event.NETWORK_DOWNLOAD, false)
-    batteryModel.handleEvent(timeCurrNs + 3, BatteryModel.Event.NETWORK_TYPE_CHANGED, PowerProfile.NetworkType.NONE)
+    batteryModel.handleEvent(timeCurrNs, BatteryModel.Event.NETWORK_USAGE,
+        PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+    batteryModel.handleEvent(timeCurrNs + 1, BatteryModel.Event.NETWORK_USAGE,
+        PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 100, 10))
+    batteryModel.handleEvent(timeCurrNs + 2, BatteryModel.Event.NETWORK_USAGE,
+        PowerProfile.NetworkStats(PowerProfile.NetworkType.WIFI, 0, 0))
+    batteryModel.handleEvent(timeCurrNs + 3, BatteryModel.Event.NETWORK_USAGE,
+        PowerProfile.NetworkStats(PowerProfile.NetworkType.NONE, 0, 0))
     batteryModel.handleEvent(
         timeCurrNs + 3,
         BatteryModel.Event.CPU_USAGE,
