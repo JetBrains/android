@@ -62,7 +62,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndro
     myName = getText(dependency);
     // TODO(b/74380202): Setup children from Pom dependencies without a PsAndroidDependencyCollection.
     if (collection != null) {
-      ImmutableCollection<PsDependency> transitiveDependencies = dependency.getTransitiveDependencies(collection);
+      ImmutableCollection<PsLibraryAndroidDependency> transitiveDependencies = dependency.getTransitiveDependencies(collection);
 
       transitiveDependencies.stream().filter(transitive -> transitive instanceof PsLibraryAndroidDependency)
         .forEach(transitive -> {

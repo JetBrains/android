@@ -15,69 +15,70 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependencyCollection;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableCollection;
+import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.util.containers.SortedList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
+
+import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
+import static java.util.stream.Collectors.toList;
 
 public final class DependencyNodes {
   private DependencyNodes() {
   }
 
   @NotNull
-  public static List<AbstractPsModelNode<?>> createNodesForResolvedDependencies(@NotNull AndroidArtifactNode parent,
-                                                                                @NotNull PsAndroidDependencyCollection collection,
-                                                                                @NotNull Collection<PsAndroidDependency> dependencies,
-                                                                                @NotNull PsUISettings uiSettings
+  public static List<AbstractPsModelNode<?>> createNodesForResolvedDependencies(@NotNull AbstractPsNode parent,
+                                                                                @NotNull PsAndroidArtifact artifact
   ) {
+    return createNodesForResolvedDependencies(parent, artifact, Sets.newHashSet());
+  }
+
+  @NotNull
+  public static List<AbstractPsModelNode<?>> createNodesForResolvedDependencies(@NotNull AbstractPsNode parent,
+                                                                                @NotNull PsAndroidArtifact artifact,
+                                                                                Set<String> allTransitive
+  ) {
+    PsAndroidArtifactDependencyCollection collection = artifact.getDependencies();
     List<AbstractPsModelNode<?>> children = Lists.newArrayList();
 
-    List<PsDependency> declared = new SortedList<>(new PsDependencyComparator(uiSettings));
-    Multimap<PsDependency, PsDependency> allTransitive = HashMultimap.create();
-    List<PsDependency> mayBeTransitive = Lists.newArrayList();
+    List<PsDependency> declared = new SortedList<>(new PsDependencyComparator(parent.getUiSettings()));
+    List<PsAndroidDependency> mayBeTransitive = Lists.newArrayList();
 
-    for (PsAndroidDependency dependency : dependencies) {
-      Collection<DependencyModel> parsedModels = dependency.getParsedModels();
-      if (parsedModels.isEmpty()) {
-        mayBeTransitive.add(dependency);
-      }
-      else {
-        for (DependencyModel parsedModel : parsedModels) {
-          // In Android Libraries, the model will include artifacts declared in the "main" artifact in other artifacts as well. For example:
-          //   compile 'com.android.support:appcompat-v7:23.0.1'
-          // will be include as a dependency in "main", "android test" and "unit test" artifacts. Even though this is correct, it is
-          // inconsistent with what Android App models return. In the case of Android Apps, 'appcompat' will be included only in the
-          // "main" artifact.
-          for (PsAndroidArtifact artifact : parent.getModels()) {
-            if (artifact.contains(parsedModel)) {
-              declared.add(dependency);
-              break;
-            }
-          }
-        }
-        addTransitive(dependency, collection, allTransitive);
+    if (!artifact.getResolvedName().equals(ARTIFACT_MAIN)) {
+      PsVariant targetVariant = artifact.getParent();
+      PsAndroidArtifact targetArtifact = targetVariant.findArtifact(ARTIFACT_MAIN);
+      if (targetArtifact != null) {
+        AndroidArtifactNode artifactNode = new AndroidArtifactNode(parent, targetArtifact);
+        children.add(artifactNode);
       }
     }
+    for (PsAndroidDependency dependency : collection.items()) {
+      if (dependency.isDeclared()) {
+        declared.add(dependency);
+      }
+      else {
+        mayBeTransitive.add(dependency);
+      }
+      addTransitive(dependency, collection, allTransitive);
+    }
 
-    Collection<PsDependency> uniqueTransitives = allTransitive.values();
-    declared.addAll(mayBeTransitive.stream()
-                                   .filter(dependency -> !uniqueTransitives.contains(dependency))
-                                   .collect(Collectors.toList()));
+    // Any other dependencies that are not declared, but somehow were not found as transitive.
+    List<PsLibraryAndroidDependency> otherUnrecognised = mayBeTransitive
+      .stream()
+      .filter(it -> it instanceof PsLibraryAndroidDependency)
+      .map(it -> (PsLibraryAndroidDependency)it)
+      .filter(it -> !allTransitive.contains(it.getSpec().compactNotation()))
+      .collect(toList());
+    declared.addAll(otherUnrecognised);
 
     for (PsDependency dependency : declared) {
       AbstractDependencyNode<?> child = AbstractDependencyNode.createNode(parent, collection, dependency);
@@ -91,18 +92,14 @@ public final class DependencyNodes {
 
   private static void addTransitive(@NotNull PsDependency dependency,
                                     @NotNull PsAndroidDependencyCollection collection,
-                                    @NotNull Multimap<PsDependency, PsDependency> allTransitive) {
-    if (allTransitive.containsKey(dependency)) {
-      return;
-    }
-
+                                    @NotNull Set<String> allTransitive) {
     if (dependency instanceof PsLibraryAndroidDependency) {
       PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
-      ImmutableCollection<PsDependency> transitives = libraryDependency.getTransitiveDependencies(collection);
-      allTransitive.putAll(dependency, transitives);
 
-      for (PsDependency transitive : transitives) {
-        addTransitive(transitive, collection, allTransitive);
+      for (PsLibraryAndroidDependency transitive : libraryDependency.getTransitiveDependencies(collection)) {
+        if (allTransitive.add(transitive.getSpec().compactNotation())) {
+          addTransitive(transitive, collection, allTransitive);
+        }
       }
     }
   }

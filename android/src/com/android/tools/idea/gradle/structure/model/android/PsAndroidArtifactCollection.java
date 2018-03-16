@@ -32,7 +32,7 @@ import java.util.function.Consumer;
 
 public class PsAndroidArtifactCollection implements PsModelCollection<PsAndroidArtifact> {
   @NotNull private final PsVariant myParent;
-  @NotNull private final Map<String, PsAndroidArtifact> myArtifactsByName = Maps.newHashMap();
+  @NotNull private final Map<String, PsAndroidArtifact> myArtifactsByName = Maps.newLinkedHashMap();
 
   PsAndroidArtifactCollection(@NotNull PsVariant parent) {
     myParent = parent;

@@ -19,23 +19,20 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsVariant;
-import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodes.createNodesForResolvedDependencies;
+
 public class AndroidArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> {
-  @NotNull private List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
+  @NotNull private final List<AbstractPsModelNode<?>> myChildren;
 
   public AndroidArtifactNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidArtifact artifact) {
     super(parent, artifact, parent.getUiSettings());
-    setAutoExpandNode(true);
-  }
-
-  public AndroidArtifactNode(@NotNull AbstractPsNode parent, @NotNull List<PsAndroidArtifact> artifacts) {
-    super(parent, artifacts, parent.getUiSettings());
-    setAutoExpandNode(true);
+    setAutoExpandNode(!(parent instanceof AndroidArtifactNode));
+    myChildren = createNodesForResolvedDependencies(this, artifact);
   }
 
   @Override
@@ -48,9 +45,5 @@ public class AndroidArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> 
   @Override
   public SimpleNode[] getChildren() {
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
-  }
-
-  public void setChildren(@NotNull List<AbstractPsModelNode<?>> children) {
-    myChildren = children;
   }
 }
