@@ -256,12 +256,13 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       processComponent(myLayout);
 
       flatten();
-      PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT.defaultName());
-      //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
-
       NlModel model = myLayout.getModel();
       XmlTag layoutTag = myLayout.getTag();
       XmlTag rootTag = myRoot.getTag();
+
+      //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
+      PsiElement tag = myLayout.getTag().setName(
+        DependencyManagementUtil.mapAndroidxName(model.getModule(), CLASS_CONSTRAINT_LAYOUT));
 
       LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
       assert manager != null;
