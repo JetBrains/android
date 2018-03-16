@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
@@ -94,12 +93,15 @@ public final class HprofSessionArtifact implements SessionArtifact {
 
     // Adjust the view range to fit the capture object.
     assert myProfilers.getStage() instanceof MemoryProfilerStage;
+    MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
     long startTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getStartTime());
     long endTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getEndTime());
     Range captureRange = new Range(startTimestamp, endTimestamp);
     myProfilers.getTimeline().ensureRangeFitsViewRange(captureRange);
+
     // Finally, we set and select the capture in the MemoryProfilerStage, which should be the current stage of StudioProfilers.
     ((MemoryProfilerStage)myProfilers.getStage()).getSelectionModel().set(captureRange.getMin(), captureRange.getMax());
+    myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,

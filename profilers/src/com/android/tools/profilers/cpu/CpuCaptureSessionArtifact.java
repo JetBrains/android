@@ -113,6 +113,9 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
       assert myProfilers.getStage() instanceof CpuProfilerStage;
       ((CpuProfilerStage)myProfilers.getStage()).setAndSelectCapture(myInfo.getTraceId());
     }
+
+    myProfilers.getIdeServices().getFeatureTracker()
+      .trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 
   public boolean isOngoingCapture() {

@@ -18,6 +18,8 @@ package com.android.tools.profilers.analytics;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
+import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,6 +67,31 @@ public interface FeatureTracker {
    * if the process actually changes.
    */
   void trackChangeProcess(@Nullable Common.Process process);
+
+  /**
+   * Track when the user explicitly creates a new session via the Sessions UI.
+   */
+  void trackCreateSession(Common.SessionMetaData.SessionType sessionType, SessionsManager.SessionCreationSource sourceType);
+
+  /**
+   * Track when the user explicitly stops an ongoing profiling session, without starting a new one (e.g. selecting a new process).
+   */
+  void trackStopSession();
+
+  /**
+   * Track when the user toggles the Sessions panel.
+   */
+  void trackSessionsPanelStateChanged(boolean isExpanded);
+
+  /**
+   * Track when the user resizes the Sessions panel. This is only applicable in the expanded view.
+   */
+  void trackSessionsPanelResized();
+
+  /**
+   * Track when the user selects a session item in the UI, and whether the associated session is currently active.
+   */
+  void trackSessionArtifactSelected(@NotNull SessionArtifact artifact, boolean isSessionLive);
 
   /**
    * Track when the user takes an action to return back to the top-level monitor view (from a

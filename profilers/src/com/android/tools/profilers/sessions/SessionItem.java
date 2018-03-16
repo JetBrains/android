@@ -112,6 +112,8 @@ public class SessionItem implements SessionArtifact {
 
   @Override
   public void onSelect() {
+    // TODO b/75281845 check that we are already in StudioMonitorStage. If not, we should navigate to it.
     myProfilers.getSessionsManager().setSession(mySession);
+    myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 }

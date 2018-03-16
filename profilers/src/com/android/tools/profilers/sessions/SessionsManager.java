@@ -39,6 +39,13 @@ import static com.android.tools.profilers.StudioProfilers.buildSessionName;
  * memory heap dump, CPU capture)
  */
 public class SessionsManager extends AspectModel<SessionAspect> {
+  /**
+   * For usage tracking purposes - specify where a session creation was originated from.
+   */
+  public enum SessionCreationSource {
+    MANUAL, // Session is created by user selecting a process from the dropdown.
+    // TODO add enums for sessions created via the toolbar's profile button, or via opening the profiler UI manually
+  }
 
   /**
    * An interface for querying artifacts that belong to a session (e.g. heap dump, cpu capture, bookmarks).

@@ -93,6 +93,9 @@ public class MemoryProfiler extends StudioProfiler {
       else {
         Logger.getInstance(getClass()).error("Importing Session Failed: can not import heap dump...");
       }
+
+      myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
+                                                                          SessionsManager.SessionCreationSource.MANUAL);
     });
 
     myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,

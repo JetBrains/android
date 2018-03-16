@@ -22,11 +22,16 @@ import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionItem;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
 import com.intellij.openapi.diagnostic.Logger;
@@ -49,6 +54,25 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .put(MemoryProfilerStage.class, AndroidProfilerEvent.Stage.MEMORY_STAGE)
       .put(NetworkProfilerStage.class, AndroidProfilerEvent.Stage.NETWORK_STAGE)
       .build();
+
+  private final ImmutableMap<Common.SessionMetaData.SessionType, ProfilerSessionCreationMetaData.SessionType> SESSION_TYPE_MAP =
+    ImmutableMap.of(
+      Common.SessionMetaData.SessionType.FULL, ProfilerSessionCreationMetaData.SessionType.FULL_SESSION,
+      Common.SessionMetaData.SessionType.MEMORY_CAPTURE, ProfilerSessionCreationMetaData.SessionType.MEMORY_CAPTURE
+    );
+
+  private final ImmutableMap<SessionsManager.SessionCreationSource, ProfilerSessionCreationMetaData.CreationSource>
+    SESSION_CREATION_SOURCE_MAP =
+    ImmutableMap.of(
+      SessionsManager.SessionCreationSource.MANUAL, ProfilerSessionCreationMetaData.CreationSource.MANUAL
+    );
+
+  private final ImmutableMap<Class<? extends SessionArtifact>, ProfilerSessionSelectionMetaData.ArtifactType> SESSION_ARTIFACT_MAP =
+    ImmutableMap.of(
+      SessionItem.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_SESSION,
+      HprofSessionArtifact.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_HPROF,
+      CpuCaptureSessionArtifact.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_CPU_CAPTURE
+    );
 
   @NotNull
   private AndroidProfilerEvent.Stage myCurrStage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
@@ -88,6 +112,39 @@ public final class StudioFeatureTracker implements FeatureTracker {
       myActiveProcess = process;
       newTracker(AndroidProfilerEvent.Type.CHANGE_PROCESS).setDevice(myActiveDevice).track();
     }
+  }
+
+  @Override
+  public void trackCreateSession(Common.SessionMetaData.SessionType sessionType, SessionsManager.SessionCreationSource sourceType) {
+    ProfilerSessionCreationMetaData.Builder builder = ProfilerSessionCreationMetaData.newBuilder()
+      .setCreatedType(SESSION_TYPE_MAP.getOrDefault(sessionType, ProfilerSessionCreationMetaData.SessionType.UNKNOWN_SESSION))
+      .setCreationSource(
+        SESSION_CREATION_SOURCE_MAP.getOrDefault(sourceType, ProfilerSessionCreationMetaData.CreationSource.UNKNOWN_SOURCE));
+    newTracker(AndroidProfilerEvent.Type.SESSION_CREATED).setSessionCreationMetadata(builder.build()).track();
+  }
+
+  @Override
+  public void trackStopSession() {
+    track(AndroidProfilerEvent.Type.SESSION_STOPPED);
+  }
+
+  @Override
+  public void trackSessionsPanelStateChanged(boolean isExpanded) {
+    track(isExpanded ? AndroidProfilerEvent.Type.SESSION_UI_EXPANDED : AndroidProfilerEvent.Type.SESSION_UI_COLLAPSED);
+  }
+
+  @Override
+  public void trackSessionsPanelResized() {
+    track(AndroidProfilerEvent.Type.SESSION_UI_RESIZED);
+  }
+
+  @Override
+  public void trackSessionArtifactSelected(@NotNull SessionArtifact artifact, boolean isSessionLive) {
+    ProfilerSessionSelectionMetaData.Builder builder = ProfilerSessionSelectionMetaData.newBuilder()
+      .setSelectedType(
+        SESSION_ARTIFACT_MAP.getOrDefault(artifact.getClass(), ProfilerSessionSelectionMetaData.ArtifactType.UNKNOWN_ARTIFACT_TYPE))
+      .setIsSessionAlive(isSessionLive);
+    newTracker(AndroidProfilerEvent.Type.SESSION_ARTIFACT_SELECTED).setSessionSelectionMetadata(builder.build()).track();
   }
 
   @Override
@@ -310,6 +367,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private Common.Device myDevice;
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
     @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
+    @Nullable private ProfilerSessionCreationMetaData mySessionCreationMetadata;
+    @Nullable private ProfilerSessionSelectionMetaData mySessionArtifactMetadata;
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
     public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
@@ -341,6 +400,18 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    public Tracker setSessionCreationMetadata(ProfilerSessionCreationMetaData metadata) {
+      mySessionCreationMetadata = metadata;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setSessionSelectionMetadata(ProfilerSessionSelectionMetaData metadata) {
+      mySessionArtifactMetadata = metadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
       populateCpuCaptureMetadata(profilerEvent);
@@ -348,6 +419,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
       if (myEventType == AndroidProfilerEvent.Type.SELECT_MEMORY_HEAP) {
         profilerEvent.setMemoryHeap(myMemoryHeap);
       }
+      else if (myEventType == AndroidProfilerEvent.Type.SESSION_CREATED) {
+        profilerEvent.setSessionStartMetadata(mySessionCreationMetadata);
+      }
+      else if (myEventType == AndroidProfilerEvent.Type.SESSION_ARTIFACT_SELECTED) {
+        profilerEvent.setSessionArtifactMetadata(mySessionArtifactMetadata);
+      }
+
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
         .setAndroidProfilerEvent(profilerEvent);

@@ -133,6 +133,7 @@ public class SessionsView extends AspectObserver {
       @Override
       public void actionPerformed(ActionEvent e) {
         mySessionsManager.endCurrentSession();
+        myProfilers.getIdeServices().getFeatureTracker().trackStopSession();
       }
     });
 
@@ -341,6 +342,8 @@ public class SessionsView extends AspectObserver {
             processAction.setAction(() -> {
               myProfilers.setDevice(device);
               myProfilers.setProcess(process);
+              myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.FULL,
+                                                                                  SessionsManager.SessionCreationSource.MANUAL);
             });
             processAction.setSelected(process.equals(selectedProcess));
             deviceAction.addChildrenActions(processAction);
