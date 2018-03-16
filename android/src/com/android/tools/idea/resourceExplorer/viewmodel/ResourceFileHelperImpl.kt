@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.intellij.openapi.application.WriteAction
@@ -51,18 +52,19 @@ interface ResourceFileHelper {
         resourceName + if (asset.file.extension != null) "." + asset.file.extension else ""
 
     /**
-     * Create if necessary an return the directroy corresponding to the qualifiers
+     * Create if necessary and return the directory corresponding to the qualifiers
      * of the provided [DesignAsset].
      *
-     * @throws IOException if the facet does not contains any resource folder
+     * @throws IOException if the facet does not contain any resource folder
      */
     private fun getResourceFolderForAsset(asset: DesignAsset, facet: AndroidFacet): VirtualFile {
       val resourceDirs = ModuleResourceRepository.getOrCreateInstance(facet).resourceDirs
       if (resourceDirs.isEmpty()) {
         throw IOException("No resource directory found in this module (${facet.module.name})")
       }
-      val resourceSubdirs = AndroidResourceUtil.getResourceSubdirs(asset.type, resourceDirs)
-      val folderName = getFolderConfiguration(asset).getFolderName(asset.type)
+      val folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.getOrDefault(asset.type, ResourceFolderType.RAW)
+      val resourceSubdirs = AndroidResourceUtil.getResourceSubdirs(folderType, resourceDirs)
+      val folderName = getFolderConfiguration(asset).getFolderName(folderType)
       return findOrCreateResourceFolder(resourceSubdirs, folderName, facet)
     }
 
