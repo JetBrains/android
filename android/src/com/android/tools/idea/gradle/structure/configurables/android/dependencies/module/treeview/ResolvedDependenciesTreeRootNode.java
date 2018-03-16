@@ -19,19 +19,17 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
-import com.android.tools.idea.gradle.structure.model.android.*;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsVariant;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodes.createNodesForResolvedDependencies;
 
 class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroidModule> {
 
@@ -46,14 +44,11 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
     for (PsAndroidModule module : getModels()) {
       module.forEachVariant(variant -> variantsByName.put(variant.getName(), variant));
     }
-
-    PsAndroidModule androidModule = getModels().get(0);
-    return createChildren(androidModule, variantsByName);
+    return createChildren(variantsByName);
   }
 
   @NotNull
-  private List<? extends AndroidArtifactNode> createChildren(@NotNull PsAndroidModule module,
-                                                             @NotNull Map<String, PsVariant> variantsByName) {
+  private List<? extends AndroidArtifactNode> createChildren(@NotNull Map<String, PsVariant> variantsByName) {
     List<AndroidArtifactNode> childrenNodes = Lists.newArrayList();
     List<String> variantNames = new ArrayList<>(variantsByName.keySet());
     Collections.sort(variantNames);
@@ -64,52 +59,15 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
       Map<String, PsAndroidArtifact> artifacts = Maps.newLinkedHashMap();
       variant.forEachArtifact(artifact -> artifacts.put(artifact.getResolvedName(), artifact));
       List<String> artifactNames = new ArrayList<>(artifacts.keySet());
-      //noinspection TestOnlyProblems
-      Collections.sort(artifactNames);
 
       for (String artifactName : artifactNames) {
         PsAndroidArtifact artifact = variant.findArtifact(artifactName);
         assert artifact != null;
-
-        AndroidArtifactNode mainArtifactNode = null;
-        String mainArtifactName = ARTIFACT_MAIN;
-        if (!mainArtifactName.equals(artifactName)) {
-          // Add "main" artifact as a dependency of "unit test" or "android test" artifact.
-          PsAndroidArtifact mainArtifact = variant.findArtifact(mainArtifactName);
-          if (mainArtifact != null) {
-            mainArtifactNode = createArtifactNode(mainArtifact, null);
-          }
-        }
-
-        AndroidArtifactNode artifactNode = createArtifactNode(artifact, mainArtifactNode);
-        if (artifactNode != null) {
+        AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
           childrenNodes.add(artifactNode);
-        }
       }
     }
 
     return childrenNodes;
-  }
-
-  @Nullable
-  private AndroidArtifactNode createArtifactNode(@NotNull PsAndroidArtifact artifact,
-                                                 @Nullable AndroidArtifactNode mainArtifactNode) {
-    if (!artifact.getDependencies().isEmpty() || mainArtifactNode != null) {
-      AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
-      populate(artifactNode, artifact.getDependencies(), mainArtifactNode, getUiSettings());
-      return artifactNode;
-    }
-    return null;
-  }
-
-  private static void populate(@NotNull AndroidArtifactNode artifactNode,
-                               @NotNull PsAndroidDependencyCollection collection,
-                               @Nullable AndroidArtifactNode mainArtifactNode,
-                               @NotNull PsUISettings uiSettings) {
-    List<AbstractPsModelNode<?>> children = createNodesForResolvedDependencies(artifactNode, collection, collection.items(), uiSettings);
-    if (mainArtifactNode != null) {
-      children.add(0, mainArtifactNode);
-    }
-    artifactNode.setChildren(children);
   }
 }

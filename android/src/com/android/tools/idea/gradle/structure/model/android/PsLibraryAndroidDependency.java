@@ -64,9 +64,10 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
   }
 
   @NotNull
-  public ImmutableCollection<PsDependency> getTransitiveDependencies(@NotNull PsAndroidDependencyCollection artifactDependencies) {
-    ImmutableSet.Builder<PsDependency> transitive = ImmutableSet.builder();
+  public ImmutableCollection<PsLibraryAndroidDependency> getTransitiveDependencies(@NotNull PsAndroidDependencyCollection artifactDependencies) {
+    ImmutableSet.Builder<PsLibraryAndroidDependency> transitive = ImmutableSet.builder();
     for (PsArtifactDependencySpec dependency : myPomDependencies) {
+      // TODO(b/74948244): Include the requested version as a parsed model so that we see any promotions.
       List<PsLibraryAndroidDependency> found = artifactDependencies.findLibraryDependencies(dependency.getGroup(), dependency.getName());
       transitive.addAll(found);
     }
