@@ -137,8 +137,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public enum CaptureState {
-    // The state before initialization. Useful because we only set state when it changes.
-    UNINITIALIZED,
     // Waiting for a capture to start (displaying the current capture or not)
     IDLE,
     // There is a capture in progress
@@ -167,10 +165,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Represents the current state of the capture.
-   * It is marked as uninitialized here but will be updated in the constructor, which calls {@link #updateProfilingState()}.
    */
   @NotNull
-  private CaptureState myCaptureState = CaptureState.UNINITIALIZED;
+  private CaptureState myCaptureState;
 
   /**
    * If there is a capture in progress, stores its start time.
@@ -277,9 +274,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
+    myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
+    myCaptureState = CaptureState.IDLE;
     myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
     myCaptureStateUpdatable = new CpuCaptureStateUpdatable(() -> updateProfilingState());
     // Calling updateProfilingState() in constructor makes sure the member fields are in a known predictable state.
+
     updateProfilingState();
     myProfilerModel.updateProfilingConfigurations();
 

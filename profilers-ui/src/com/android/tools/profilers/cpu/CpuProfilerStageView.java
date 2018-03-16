@@ -930,9 +930,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       case STOP_FAILURE:
         mySplitter.setSecondComponent(null);
         break;
-      case UNINITIALIZED:
-        mySplitter.setSecondComponent(null);
-        break;
     }
   }
 
