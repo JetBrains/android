@@ -44,6 +44,11 @@ class BatteryModelTest {
     assertThat(sample.networkUsage).isEqualTo(0)
   }
 
+  private fun assertLowPowerUsage(sample: EnergyProfiler.EnergySample) {
+    assertThat(sample.cpuUsage).isLessThan(10)
+    assertThat(sample.networkUsage).isAtMost(1)
+  }
+
   @Test
   fun alignmentWorks() {
     assertThat(BatteryModel.align(193, 200)).isEqualTo(200)
@@ -151,7 +156,7 @@ class BatteryModelTest {
     // Final assert should check that the battery model could be returned back to default state.
     run {
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 1)
-      assertNoPowerUsage(samples[0])
+      assertLowPowerUsage(samples[0])
     }
   }
 
