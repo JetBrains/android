@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.model.java;
 
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Pair;
-import com.intellij.util.containers.HashSet;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
@@ -161,7 +160,7 @@ public class JavaModuleContentRootTest {
     return Pair.create(path, dir);
   }
 
-  private static class DomainObjectHashSet<T> extends HashSet<T> implements DomainObjectSet<T> {
+  private static class DomainObjectHashSet<T> extends java.util.HashSet<T> implements DomainObjectSet<T> {
     static <T> DomainObjectHashSet<T> newSet(@NotNull T...elements) {
       return new DomainObjectHashSet<>(elements);
     }
