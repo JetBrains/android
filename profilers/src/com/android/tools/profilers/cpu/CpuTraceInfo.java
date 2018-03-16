@@ -33,6 +33,7 @@ public class CpuTraceInfo implements ConfigurableDurationData {
   @NotNull private final String myTraceFilePath;
   @NotNull private final Range myRange;
   @NotNull private final CpuProfiler.CpuProfilerType myProfilerType;
+  @NotNull private final CpuProfiler.TraceInitiationType myInitiationType;
 
   public CpuTraceInfo(CpuProfiler.TraceInfo traceInfo) {
     myTraceId = traceInfo.getTraceId();
@@ -40,6 +41,7 @@ public class CpuTraceInfo implements ConfigurableDurationData {
     myRange = new Range(TimeUnit.NANOSECONDS.toMicros(traceInfo.getFromTimestamp()),
                         TimeUnit.NANOSECONDS.toMicros(traceInfo.getToTimestamp()));
     myProfilerType = traceInfo.getProfilerType();
+    myInitiationType = traceInfo.getInitiationType();
   }
 
   @Override
@@ -64,6 +66,11 @@ public class CpuTraceInfo implements ConfigurableDurationData {
   @NotNull
   public CpuProfiler.CpuProfilerType getProfilerType() {
     return myProfilerType;
+  }
+
+  @NotNull
+  public CpuProfiler.TraceInitiationType getInitiationType() {
+    return myInitiationType;
   }
 
   @Override

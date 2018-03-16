@@ -870,7 +870,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     Range range = getStage().getStudioProfilers().getTimeline().getDataRange();
     long min = (long)(info.getRange().getMin() - range.getMin());
     long max = (long)(info.getRange().getMax() - range.getMin());
-    return TimeAxisFormatter.DEFAULT.getClockFormattedString(min) + " - " + TimeAxisFormatter.DEFAULT.getClockFormattedString(max);
+    String automatedTextOrEmpty = "";
+    if (info.getInitiationType().equals(TraceInitiationType.INITIATED_BY_API)) {
+      automatedTextOrEmpty = "(automated) ";
+    }
+    String label = String.format("%s%s - %s", automatedTextOrEmpty, TimeAxisFormatter.DEFAULT.getClockFormattedString(min),
+                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(max));
+    return label;
   }
 
   private void updateCaptureState() {
