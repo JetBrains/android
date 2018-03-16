@@ -123,4 +123,10 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   public StructureViewBuilder getStructureViewBuilder() {
     return null;
   }
+
+  @Nullable
+  @Override
+  public VirtualFile getFile() {
+    return myFile;
+  }
 }
