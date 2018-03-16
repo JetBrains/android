@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -32,6 +33,7 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerMultipleSeriesStateChart();
     registerTextStateChart();
     registerRepeatedState();
+    registerMouseOverSeriesStateChart();
   }
 
   private void registerSimpleStateChart() {
@@ -50,6 +52,22 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       protected void generateComponent() {
         // Create a state chart with multiple series
         addSeries();
+        addSeries();
+      }
+    });
+  }
+
+  private void registerMouseOverSeriesStateChart() {
+    register(new StateChartImageDiffEntry("state_chart_mouse_over.png") {
+      @Override
+      protected void setUp() {
+        super.setUp();
+        myStateChart.mouseMoved(new MouseEvent(myStateChart, 0, 0, 0, 0, 0, 0, false, 0));
+      }
+
+      @Override
+      protected void generateComponent() {
+        // Create a state chart with multiple series
         addSeries();
       }
     });

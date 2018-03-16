@@ -43,6 +43,12 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
   }
 
   @Override
+  @NotNull
+  StateChart<CpuProfilerStage.ThreadState> getChartForModel(@NotNull CpuThreadsModel.RangedCpuThread model) {
+    return myStateCharts.get(model.getId()).getChart();
+  }
+
+  @Override
   public Component getListCellRendererComponent(JList list,
                                                 CpuThreadsModel.RangedCpuThread value,
                                                 int index,

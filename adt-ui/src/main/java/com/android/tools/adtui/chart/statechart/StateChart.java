@@ -22,6 +22,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
+import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -91,7 +92,6 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
                     @NotNull StateChartConfig<T> config,
                     @NotNull Function<T, Color> colorMapping,
                     @NotNull StateChartTextConverter<T> textConverter) {
-    super(config.getRectangleHeightRatio(), config.getRectangleMouseOverHeightRatio());
     myColorMapper = colorMapping;
     myRenderMode = RenderMode.BAR;
     myConfig = config;
@@ -235,11 +235,16 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     for (int i = 0; i < transformedShapes.size(); i++) {
       Shape shape = transformedShapes.get(i);
       T value = transformedValues.get(i);
-      g2d.setColor(getColor(value));
+      Rectangle2D rect = shape.getBounds2D();
+      Color color = getColor(value);
+      // If the mouse is over the current rectangle lighten the color a bit to show.
+      if (isMouseOverRectangle(rect)) {
+        color = ColorUtil.brighter(color, 2);
+      }
+      g2d.setColor(color);
       g2d.fill(shape);
       if (myRenderMode == RenderMode.TEXT) {
         String valueText = myTextConverter.convertToString(value);
-        Rectangle2D rect = shape.getBounds2D();
         String text = AdtUiUtils.shrinkToFit(valueText, mDefaultFontMetrics, (float)rect.getWidth() - TEXT_PADDING * 2);
         if (!text.isEmpty()) {
           g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);

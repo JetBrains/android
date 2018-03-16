@@ -17,6 +17,7 @@ package com.android.tools.adtui;
 
 import com.intellij.util.containers.ContainerUtil;
 
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -26,7 +27,7 @@ import java.util.Set;
 
 /**
  * Class to build and manipulate rectangles to be drawn in the profiler's UI. This class is not responsible
- * for drawing the rectangles, but only creating and sizing the rectangles according to the mouse over state.
+ * for drawing the rectangles, but only creating, and determining if the mouse is over a rectangle.
  * All dimensions used in this class are represented as a percentage. It is for the child class to scale the
  * rectangles to the dimensions needed for the control. The most common use case is scaling the rectangles by
  * the components width and height in the draw function.
@@ -34,27 +35,14 @@ import java.util.Set;
  * @param T is the value type used to be associated with stored rectangles.
  */
 public abstract class MouseAdapterComponent<T> extends AnimatedComponent implements MouseListener, MouseMotionListener {
-
-  private static final double EPISLON = 0.0000001;
-  private static final double HEIGHT_DELTA_PER_FRAME = .1;
-
   private double myNormalizedMouseX;
-  private double myDefaultHeight = 0;
-  private double myExpandedHeight = 0;
   private double myHeightFactor = 1;
   private final HashMap<Rectangle2D.Float, T> myRectangles;
 
   /**
-   * The constructor takes in the rectangle height when not under mouse, and height when under mouse (expanded).
-   * The height passed into the constructor follows the standard of working with percentages so the component
-   * does not assume the dimensions of the control.
-   *
-   * @param defaultHeightPercent  the standard height of the rectangle represented as a ratio from 0-1
-   * @param expandedHeightPercent the expanded height of the rectangle represented as a ratio from 0-1
+   * Default constructor for a MouseAdapterComponent, the constructor attaches mouse listeners.
    */
-  public MouseAdapterComponent(double defaultHeightPercent, double expandedHeightPercent) {
-    myDefaultHeight = defaultHeightPercent;
-    myExpandedHeight = expandedHeightPercent;
+  public MouseAdapterComponent() {
     myRectangles = new HashMap<>();
     attach();
   }
@@ -80,24 +68,9 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
   private Rectangle2D.Float buildRectangle(double xPercent, double yPercent, double widthPercent, double vGap) {
     // If we are less than the max height of our line, then increase the height.
     Rectangle2D.Float rect = new Rectangle2D.Float();
-    double height = rect.getHeight() + vGap;
-    if (myNormalizedMouseX != 0 && xPercent < myNormalizedMouseX && xPercent + widthPercent > myNormalizedMouseX) {
-      if (height + EPISLON < myExpandedHeight) {
-        height += HEIGHT_DELTA_PER_FRAME;
-      }
-      else {
-        height = myExpandedHeight;
-      }
-    }
-    else if (height - EPISLON > myDefaultHeight) {
-      height -= HEIGHT_DELTA_PER_FRAME;
-    }
-    else {
-      height = myDefaultHeight;
-    }
     // Because we start our activity line from the bottom and grow up we offset the height from the bottom of the component
     // instead of the top by subtracting our height from 1.
-    rect.setRect(xPercent, yPercent + (1 - height), widthPercent, (height - vGap) * myHeightFactor);
+    rect.setRect(xPercent, yPercent, widthPercent, (1 - vGap) * myHeightFactor);
     return rect;
   }
 
@@ -168,8 +141,24 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
    */
   private void setMousePointAndForwardEvent(double x, MouseEvent e) {
     // TODO (b/74547254): Revisit mouse over animation to be based on range instead of mouse coordinates.
-    myNormalizedMouseX = x / (1.0 * getWidth());
-    getParent().dispatchEvent(e);
+    myNormalizedMouseX = x;
+    // Parent can be null in test.
+    if (getParent() != null) {
+      getParent().dispatchEvent(e);
+    }
+  }
+
+  /**
+   * Returns whether the mouse is over a given rectangle.
+   *
+   * Note: The input rectangle is assumed to be scaled to screen space.
+   *
+   * @param rectangleScreenSpace The rectangle scaled to be in screen space.
+   * @return True if the mouse is within bounds of the {@code rectangleScreenSpace}. False otherwise.
+   */
+  public boolean isMouseOverRectangle(Rectangle2D rectangleScreenSpace) {
+    return myNormalizedMouseX >= rectangleScreenSpace.getX() &&
+           myNormalizedMouseX <= rectangleScreenSpace.getWidth() + rectangleScreenSpace.getX();
   }
 
   /**
