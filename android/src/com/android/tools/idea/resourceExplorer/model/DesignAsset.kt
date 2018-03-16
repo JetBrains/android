@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.resourceExplorer.model
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.configuration.ResourceQualifier
-import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+
+
+val externalResourceNamespace = ResourceNamespace.fromPackageName("external.design.resource")
 
 /**
  * A Design asset on disk.
@@ -28,11 +34,21 @@ import com.intellij.openapi.vfs.VirtualFile
  * This class helps to interface a project's resource with a external file
  */
 data class DesignAsset(
-    val file: VirtualFile,
-    val qualifiers: List<ResourceQualifier>,
-    val type : ResourceFolderType,
-    val name: String = file.nameWithoutExtension
-)
+  val file: VirtualFile,
+  val qualifiers: List<ResourceQualifier>,
+  val type: ResourceType,
+  val name: String = file.nameWithoutExtension,
+  val resourceItem: ResourceItem = ResourceItem(name, externalResourceNamespace, type, null, "external")
+
+) {
+  constructor(resourceItem: ResourceItem) : this(
+    file = VfsUtil.findFileByIoFile(resourceItem.file!!, true)!!, // TODO handle assertion
+    qualifiers = FolderConfiguration.getConfigForFolder(resourceItem.qualifiers)?.qualifiers?.toList() ?: emptyList(),
+    type = resourceItem.type,
+    name = resourceItem.name,
+    resourceItem = resourceItem
+  )
+}
 
 /**
  * Represents a set of design assets on disk grouped by base name.
@@ -41,8 +57,8 @@ data class DesignAsset(
  * gathered in the same DesignAssetSet under the name "icon"
  */
 data class DesignAssetSet(
-    val name: String,
-    var designAssets: List<DesignAsset>
+  val name: String,
+  var designAssets: List<DesignAsset>
 ) {
 
   /**
@@ -51,9 +67,9 @@ data class DesignAssetSet(
   fun getHighestDensityAsset(): DesignAsset {
     return designAssets.maxBy { asset ->
       asset.qualifiers
-          .filterIsInstance<DensityQualifier>()
-          .map { densityQualifier -> densityQualifier.value.dpiValue }
-          .singleOrNull() ?: 0
+        .filterIsInstance<DensityQualifier>()
+        .map { densityQualifier -> densityQualifier.value.dpiValue }
+        .singleOrNull() ?: 0
     } ?: designAssets[0]
   }
 }
@@ -63,17 +79,18 @@ data class DesignAssetSet(
  *
  * @param supportedTypes The file types supported for importation
  */
-fun getAssetSets(directory: VirtualFile,
-                 supportedTypes: Set<String>,
-                 qualifierMatcher: QualifierMatcher
+fun getAssetSets(
+  directory: VirtualFile,
+  supportedTypes: Set<String>,
+  qualifierMatcher: QualifierMatcher
 ): List<DesignAssetSet> {
   return getDesignAssets(directory, supportedTypes, directory, qualifierMatcher)
-      .groupBy(
-          { (drawableName, _) -> drawableName },
-          { (_, designAsset) -> designAsset }
-      )
-      .map { (drawableName, designAssets) -> DesignAssetSet(drawableName, designAssets) }
-      .toList()
+    .groupBy(
+      { (drawableName, _) -> drawableName },
+      { (_, designAsset) -> designAsset }
+    )
+    .map { (drawableName, designAssets) -> DesignAssetSet(drawableName, designAssets) }
+    .toList()
 }
 
 private fun getDesignAssets(
@@ -83,11 +100,11 @@ private fun getDesignAssets(
   qualifierMatcher: QualifierMatcher
 ): List<Pair<String, DesignAsset>> {
   return directory.children
-      .filter { it.isDirectory || supportedTypes.contains(it.extension) }
-      .flatMap {
-        if (it.isDirectory) getDesignAssets(it, supportedTypes, root, qualifierMatcher)
-        else listOf(createAsset(it, root, qualifierMatcher))
-      }
+    .filter { it.isDirectory || supportedTypes.contains(it.extension) }
+    .flatMap {
+      if (it.isDirectory) getDesignAssets(it, supportedTypes, root, qualifierMatcher)
+      else listOf(createAsset(it, root, qualifierMatcher))
+    }
 }
 
 private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: QualifierMatcher): Pair<String, DesignAsset> {
@@ -96,6 +113,6 @@ private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: Qualifie
   return resourceName to DesignAsset(
     child,
     qualifiers1.toList(),
-    ResourceFolderType.DRAWABLE
+    ResourceType.DRAWABLE
   )
 }

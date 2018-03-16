@@ -72,7 +72,9 @@ class ModuleResourcesBrowserViewModelTest {
 
     val values = viewModel.getResourceValues(ResourceType.COLOR)
     Truth.assertThat(values).isNotNull()
-    Truth.assertThat(values.map { it.value }).containsExactly("#3F51B5", "#303F9F", "#9dff00")
+    Truth.assertThat(values.flatMap { it.designAssets }
+      .map { it.resourceItem.resourceValue?.value })
+      .containsExactly("#3F51B5", "#303F9F", "#9dff00")
     // TODO Test dependencies
   }
 

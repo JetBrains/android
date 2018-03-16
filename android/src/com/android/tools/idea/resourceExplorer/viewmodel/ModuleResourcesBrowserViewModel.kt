@@ -93,7 +93,7 @@ class ModuleResourcesBrowserViewModel(
   private fun resourceItemToDesignAsset(resourceItem: ResourceItem): DesignAsset? {
     val virtualFile = resourceItem.file?.let { VfsUtil.findFileByIoFile(it, false) } ?: return null
     val qualifiers = resourceItem.configuration.qualifiers.asList()
-    return DesignAsset(virtualFile, qualifiers, ResourceFolderType.DRAWABLE)
+    return DesignAsset(virtualFile, qualifiers, ResourceType.DRAWABLE)
   }
 
   /**
