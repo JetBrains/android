@@ -93,22 +93,44 @@ public interface PowerProfile {
 
     @Override
     public int getCpuUsage(@NotNull CpuCoreUsage[] usages) {
-      double totalMilliAmps = 0;
       if (usages.length == 0) {
         return 0;
       }
 
+      double totalMilliAmps = 7.201; // Base power consumption for a suspended + idle CPU.
       List<CpuCoreUsage> usagesList = Arrays.asList(usages);
       Collections.sort(usagesList, Comparator.comparingInt(o -> o.myMaxFrequencyKhz));
 
-      // TODO Support more than 2 CPU frequency bins?
+      // TODO(b/75968214): Support more than 2 CPU frequency bins?
       // We only support up to two frequency bins presently.
       boolean lowerFrequencyCore; // Defaults single core system to big core.
+      boolean lowerClusterActivationAdded = false;
+      boolean higherClusterActivationAdded = false;
+      boolean cpuActivationAdded = false;
       for (CpuCoreUsage core : usagesList) {
         lowerFrequencyCore = core.myMaxFrequencyKhz < usagesList.get(usagesList.size() - 1).myMaxFrequencyKhz;
         double fMhz = renormalizeFrequency(core, lowerFrequencyCore ? MAX_LITTLE_CORE_FREQ_KHZ : MAX_BIG_CORE_FREQ_KHZ);
         double f2 = fMhz * fMhz;
         double f3 = f2 * fMhz;
+
+        // Approximately add CPU active cost and cluster active costs (approximately 6mA per category).
+        if (fMhz > MIN_CORE_FREQ_KHZ) {
+          if (!cpuActivationAdded) {
+            cpuActivationAdded = true;
+            totalMilliAmps += 17.757;
+          }
+
+          if (lowerFrequencyCore && !lowerClusterActivationAdded) {
+            lowerClusterActivationAdded = true;
+            totalMilliAmps += 6.478;
+          }
+          else if (!lowerFrequencyCore && !higherClusterActivationAdded) {
+            higherClusterActivationAdded = true;
+            totalMilliAmps += 6.141;
+          }
+        }
+
+        // Add per-cost cost.
         // Based on measurements on a Walleye device at various core frequencies for both the big and little cores.
         // The empirical results are then fitted against a cubic polynomial, resulting in the following equations.
         if (lowerFrequencyCore) {
