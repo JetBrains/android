@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
+import java.lang.IllegalStateException
 
 /**
  * Model for handling Gradle properties in the Project Structure Dialog
@@ -52,4 +53,15 @@ class PsVariable(private val property: GradlePropertyModel, val module: PsModule
   }
 
   fun getName() = property.name
+
+  fun addListValue(value: String): PsVariable {
+    if (valueType != GradlePropertyModel.ValueType.LIST) {
+      throw IllegalStateException("addListValue can only be called for list variables")
+    }
+
+    val listValue = property.addListValue()
+    listValue.setValue(value)
+    module.isModified = true
+    return PsVariable(listValue, module)
+  }
 }

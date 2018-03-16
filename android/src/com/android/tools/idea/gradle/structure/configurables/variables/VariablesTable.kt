@@ -177,10 +177,9 @@ class VariablesTable(private val project: Project, private val context: PsContex
       val nodeBeingEdited = (table as VariablesTable).tree.getPathForRow(row).lastPathComponent
       if (nodeBeingEdited is BaseVariableNode) {
         textBox.setVariants(nodeBeingEdited.variable.module.variables.getModuleVariables().map { it.getName() })
-        textBox.text = value
-        return textBox
       }
-      return null
+      textBox.text = value
+      return textBox
     }
 
     override fun getCellEditorValue(): Any = textBox.text
@@ -233,7 +232,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
             val type = node.variable.valueType
             type != ValueType.MAP && type != ValueType.LIST
           } else {
-            node is BaseVariableNode
+            node is BaseVariableNode || node is EmptyListItemNode
           }
         }
         else -> false
@@ -252,6 +251,18 @@ class VariablesTable(private val project: Project, private val context: PsContex
         val treeModel = tableTree!!.model as DefaultTreeModel
         treeModel.removeNodeFromParent(node)
         treeModel.insertNodeInto(variableNode, parent, index)
+        tableTree!!.expandPath(TreePath(variableNode.path))
+        return
+      }
+
+      if (node is EmptyListItemNode && column == UNRESOLVED_VALUE) {
+        val variableNode = node.createVariableNode(aValue)
+        val parent = node.parent as VariableNode
+        val index = parent.getIndex(node)
+        val treeModel = tableTree!!.model as DefaultTreeModel
+        treeModel.removeNodeFromParent(node)
+        treeModel.insertNodeInto(variableNode, parent, index)
+        treeModel.insertNodeInto(EmptyListItemNode(index + 1, parent.variable), parent, index + 1)
         return
       }
 
@@ -302,8 +313,11 @@ class VariablesTable(private val project: Project, private val context: PsContex
           variable.getUnresolvedValue(MAP_TYPE)?.forEach { add(MapItemNode(it.key, PsVariable(it.value, variable.module))) }
         }
         GradlePropertyModel.ValueType.LIST -> {
-          variable.getUnresolvedValue(LIST_TYPE)
-            ?.forEachIndexed { index, propertyModel -> add(ListItemNode(index, PsVariable(propertyModel, variable.module))) }
+          val list = variable.getUnresolvedValue(LIST_TYPE)
+          if (list != null) {
+            list.forEachIndexed { index, propertyModel -> add(ListItemNode(index, PsVariable(propertyModel, variable.module))) }
+            add(EmptyListItemNode(list.size, variable))
+          }
         }
         else -> {
         }
@@ -368,6 +382,13 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
     override fun setName(newName: String) {
       throw UnsupportedOperationException("List item indices cannot be renamed")
+    }
+  }
+
+  class EmptyListItemNode(val index: Int, private val containingList: PsVariable) : DefaultMutableTreeNode() {
+    fun createVariableNode(value: String): ListItemNode {
+      val newVariable = containingList.addListValue(value)
+      return ListItemNode(index, newVariable)
     }
   }
 
