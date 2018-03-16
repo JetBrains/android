@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestPr
 import com.android.tools.idea.tests.gui.framework.guitestsystem.CurrentGuiTestProjectSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -44,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
@@ -76,8 +74,8 @@ public class GuiTestRule implements TestRule {
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
   private IdeFrameFixture myIdeFrameFixture;
+  @Nullable private String myTestDirectory;
 
-  private final TemporaryFolder myTestDirectory = new TemporaryFolder();
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
   private final CurrentGuiTestProjectSystem myCurrentProjectSystem = new CurrentGuiTestProjectSystem();
@@ -106,7 +104,6 @@ public class GuiTestRule implements TestRule {
   @Override
   public Statement apply(final Statement base, final Description description) {
     RuleChain chain = RuleChain.emptyRuleChain()
-      .around(myTestDirectory)
       .around(new LogStartAndStop())
       .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
@@ -137,7 +134,7 @@ public class GuiTestRule implements TestRule {
             assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
             assumeOnlyWelcomeFrameShowing();
           }
-          setUp();
+          setUp(description.getMethodName());
           List<Throwable> errors = new ArrayList<>();
           try {
             base.evaluate();
@@ -171,14 +168,9 @@ public class GuiTestRule implements TestRule {
     assume().that(GuiTests.windowsShowing()).named("windows showing").hasSize(1);
   }
 
-  private void setUp() throws IOException {
-    // The temporary location might contain symlinks, such as /var@ -> /private/var on MacOS.
-    // EditorFixture seems to require a canonical path when opening the file.
-    File myTmpDir = myTestDirectory.newFolder().getCanonicalFile();
-
-    refreshFiles();
-    RecentProjectsManager.getInstance().setLastProjectCreationLocation(myTmpDir.getAbsolutePath());
-
+  private void setUp(@Nullable String methodName) {
+    myTestDirectory = methodName != null ? sanitizeFileName(methodName) : null;
+    GuiTests.setUpDefaultProjectCreationLocationPath(myTestDirectory);
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
 
@@ -345,7 +337,7 @@ public class GuiTestRule implements TestRule {
   public File copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
-    File projectPath = new File(myTestDirectory.newFolder(), projectDirName);
+    File projectPath = getTestProjectDirPath(projectDirName);
     if (projectPath.isDirectory()) {
       FileUtilRt.delete(projectPath);
     }
@@ -374,6 +366,11 @@ public class GuiTestRule implements TestRule {
   @NotNull
   protected File getMasterProjectDirPath(@NotNull String projectDirName) {
     return new File(GuiTests.getTestProjectsRootDirPath(), projectDirName);
+  }
+
+  @NotNull
+  protected File getTestProjectDirPath(@NotNull String projectDirName) {
+    return new File(GuiTests.getProjectCreationDirPath(myTestDirectory), projectDirName);
   }
 
   public void cleanUpProjectForImport(@NotNull File projectPath) {

@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.application.PathManager.PROPERTY_CONFIG_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -76,6 +77,9 @@ public class IdeTestApplication implements Disposable {
     if (!isLoaded()) {
       ourInstance = new IdeTestApplication();
       recreateDirectory(configDirPath);
+
+      File newProjectsRootDirPath = getProjectCreationDirPath(null);
+      recreateDirectory(newProjectsRootDirPath);
 
       ClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
       Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());

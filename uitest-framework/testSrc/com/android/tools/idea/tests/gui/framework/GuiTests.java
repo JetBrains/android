@@ -106,6 +106,8 @@ public final class GuiTests {
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
 
+  private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
+
   @NotNull
   public static List<Error> fatalErrorsFromIde() {
     List<AbstractMessage> errorMessages = MessagePool.getInstance().getFatalErrors(true, true);
@@ -252,6 +254,13 @@ public final class GuiTests {
     throw new AssumptionViolatedException(message);
   }
 
+  public static void setUpDefaultProjectCreationLocationPath(@Nullable String testDirectory) {
+    FileUtilRt.delete(getProjectCreationDirPath(null));
+    refreshFiles();
+    String lastProjectLocation = getProjectCreationDirPath(testDirectory).getPath();
+    RecentProjectsManager.getInstance().setLastProjectCreationLocation(lastProjectLocation);
+  }
+
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
   public static void waitForIdeToStart() {
@@ -316,6 +325,23 @@ public final class GuiTests {
       }
     }
     return listBuilder.build();
+  }
+
+  @NotNull
+  public static File getProjectCreationDirPath(@Nullable String testDirectory) {
+    return testDirectory != null ? new File(TMP_PROJECT_ROOT, testDirectory) : TMP_PROJECT_ROOT;
+  }
+
+  @NotNull
+  public static File createTempProjectCreationDir() {
+    try {
+      // The temporary location might contain symlinks, such as /var@ -> /private/var on MacOS.
+      // EditorFixture seems to require a canonical path when opening the file.
+      return createTempDir().getCanonicalFile();
+    }
+    catch (IOException ex) {
+      throw new IllegalStateException(ex);
+    }
   }
 
   @NotNull
