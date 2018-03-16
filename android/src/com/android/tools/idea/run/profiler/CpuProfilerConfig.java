@@ -102,8 +102,7 @@ public class CpuProfilerConfig {
   public int hashCode() {
     return HashCodes.mix(myName.hashCode(), myTechnology.hashCode(), mySamplingIntervalUs, myBufferSizeMb);
   }
-
-  // TODO: unify with {@link ProfilingConfiguration}, b/73470862.
+  
   public enum Technology {
     SAMPLED_JAVA {
       @NotNull
