@@ -17,9 +17,12 @@ package com.android.tools.idea.resourceExplorer.view
 
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.res.resolveMultipleColors
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.viewmodel.ModuleResourcesBrowserViewModel
 import com.google.common.cache.CacheBuilder
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.Gray
@@ -28,18 +31,28 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.*
+import java.awt.image.BufferedImage
 import javax.swing.*
 
-private val MAIN_CELL_BORDER = BorderFactory.createEmptyBorder(10, 30, 10, 30)
+private val LOG = Logger.getInstance(DesignAssetCellRenderer::class.java)
+private val MAIN_CELL_BORDER = JBUI.Borders.empty(10, 30, 10, 30)
 private val CONTENT_CELL_BORDER = BorderFactory.createCompoundBorder(
-  BorderFactory.createEmptyBorder(10, 0, 10, 0),
-  BorderFactory.createLineBorder(Gray.x41, 2)
+  JBUI.Borders.empty(10, 0, 10, 0),
+  JBUI.Borders.customLine(Gray.x41, 2)
+)
+private const val CHESSBOARD_CELL_SIZE = 10
+private const val CHESSBOARD_PATTERN_SIZE = 2 * CHESSBOARD_CELL_SIZE
+private val CHESSBOARD_COLOR_1 = JBColor(0xFF0000, 0x414243)
+private val CHESSBOARD_COLOR_2 = JBColor(0x00FF00, 0x393A3B)
+private val ICON_SIZE = JBUI.size(128)
+private val EMPTY_ICON = UIUtil.createImage(
+  ICON_SIZE.width, ICON_SIZE.height, BufferedImage.TYPE_INT_ARGB
 )
 
 /**
  * Base renderer for the asset list.
  */
-abstract class DesignAssetCellRenderer : ListCellRenderer<ResourceValue> {
+abstract class DesignAssetCellRenderer : ListCellRenderer<DesignAssetSet> {
 
   var title: String
     get() = titleLabel.text
@@ -78,15 +91,15 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<ResourceValue> {
   }
 
   override fun getListCellRendererComponent(
-    list: JList<out ResourceValue>,
-    value: ResourceValue,
+    list: JList<out DesignAssetSet>,
+    value: DesignAssetSet,
     index: Int,
     isSelected: Boolean,
     cellHasFocus: Boolean
   ): Component {
     mainPanel.preferredSize = JBUI.size(list.fixedCellWidth, list.fixedCellHeight)
     contentWrapper.removeAll()
-    val content = getContent(value, list.fixedCellWidth, list.fixedCellHeight, isSelected)
+    val content = getContent(value, list.fixedCellWidth, list.fixedCellHeight, isSelected, index)
     if (content != null) {
       contentWrapper.add(content)
     }
@@ -96,7 +109,13 @@ abstract class DesignAssetCellRenderer : ListCellRenderer<ResourceValue> {
     return mainPanel
   }
 
-  abstract fun getContent(value: ResourceValue, width: Int, height: Int, isSelected: Boolean): JComponent?
+  abstract fun getContent(
+    designAssetSet: DesignAssetSet,
+    width: Int,
+    height: Int,
+    isSelected: Boolean,
+    index: Int
+  ): JComponent?
 }
 
 class ColorResourceCellRenderer(
@@ -105,11 +124,17 @@ class ColorResourceCellRenderer(
 ) : DesignAssetCellRenderer() {
   private val backgroundPanel = ColorPreviewPanel()
 
-  override fun getContent(value: ResourceValue, width: Int, height: Int, isSelected: Boolean): JComponent? {
-    title = value.name
+  override fun getContent(
+    designAssetSet: DesignAssetSet,
+    width: Int,
+    height: Int,
+    isSelected: Boolean,
+    index: Int
+  ): JComponent? {
+    title = designAssetSet.name
 
     // TODO compute in background
-    val colors = resourceResolver.resolveMultipleColors(value, project).toSet().toList()
+    val colors = resourceResolver.resolveMultipleColors(designAssetSet.resolveValue(resourceResolver), project).toSet().toList()
     backgroundPanel.colorList = colors
     backgroundPanel.colorCodeLabel.text = if (colors.size == 1) {
       "#${ColorUtil.toHex(colors.first())}"
@@ -137,4 +162,88 @@ class ColorResourceCellRenderer(
       }
     }
   }
+}
+
+/**
+ * Renderer for drawable resource type.
+ * Rendering of the drawable is done in the background and [refreshListCallback] is
+ * called once it's finished.
+ */
+class DrawableResourceCellRenderer(
+  private val browserViewModel: ModuleResourcesBrowserViewModel,
+  private val refreshListCallback: (index: Int) -> Unit
+) : DesignAssetCellRenderer() {
+
+  private val imageIcon = ImageIcon(EMPTY_ICON)
+  private val content = ChessBoardPanel()
+  private val assetToImage = CacheBuilder.newBuilder()
+    .softValues()
+    .maximumSize(200)
+    .build<DesignAssetSet, Image>()
+
+  init {
+    content.add(JLabel(imageIcon).apply {
+      border = JBUI.Borders.empty(18)
+    })
+  }
+
+  override fun getContent(
+    designAssetSet: DesignAssetSet,
+    width: Int,
+    height: Int,
+    isSelected: Boolean,
+    index: Int
+  ): JComponent? {
+    title = designAssetSet.name
+    val image = assetToImage.getIfPresent(designAssetSet) ?: fetchImage(designAssetSet, index)
+    imageIcon.image = image
+    return content
+  }
+
+  private fun fetchImage(designAssetSet: DesignAssetSet, index: Int): Image {
+    val previewFuture = browserViewModel.getDrawablePreview(ICON_SIZE, designAssetSet)
+    val listener = Runnable {
+      val image = if (!previewFuture.isCancelled) previewFuture.get() ?: EMPTY_ICON else EMPTY_ICON
+      assetToImage.put(designAssetSet, image)
+      refreshListCallback(index)
+    }
+    previewFuture.addListener(listener, EdtExecutor.INSTANCE)
+    return EMPTY_ICON
+  }
+}
+
+private class ChessBoardPanel : JPanel(BorderLayout()) {
+  private var pattern: BufferedImage? = null
+
+  private fun createChessBoardPattern(g: Graphics, patternSize: Int, cellSize: Int): BufferedImage {
+    return UIUtil.createImage(g, patternSize, patternSize, BufferedImage.TYPE_INT_ARGB).apply {
+      val imageGraphics = this.graphics
+      imageGraphics.color = CHESSBOARD_COLOR_1
+      imageGraphics.fillRect(0, 0, patternSize, patternSize)
+      imageGraphics.color = CHESSBOARD_COLOR_2
+      imageGraphics.fillRect(0, cellSize, cellSize, cellSize)
+      imageGraphics.fillRect(cellSize, 0, cellSize, cellSize)
+    }
+  }
+
+  override fun paintComponent(g: Graphics) {
+    if (pattern == null) {
+      pattern = createChessBoardPattern(g, CHESSBOARD_PATTERN_SIZE, CHESSBOARD_CELL_SIZE)
+    }
+    pattern?.let {
+      (g as Graphics2D).paint = TexturePaint(it, Rectangle(0, 0, CHESSBOARD_PATTERN_SIZE, CHESSBOARD_PATTERN_SIZE))
+      g.fillRect(0, 0, size.width, size.height)
+    }
+  }
+}
+
+private fun DesignAssetSet.resolveValue(
+  resourceResolver: ResourceResolver
+): ResourceValue? {
+  val resourceItem = this.getHighestDensityAsset().resourceItem
+  val resolvedValue = resourceResolver.resolveResValue(resourceItem.resourceValue)
+  if (resolvedValue == null) {
+    LOG.warn("${resourceItem.name} couldn't be resolved")
+  }
+  return resolvedValue
 }

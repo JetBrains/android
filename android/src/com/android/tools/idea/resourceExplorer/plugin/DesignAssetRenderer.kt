@@ -65,5 +65,5 @@ class DesignAssetRendererManager private constructor() {
 private class NullDesignAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile) = false
   override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): ListenableFuture<out Image?> =
-    Futures.immediateFuture(null)
+    Futures.immediateCancelledFuture()
 }

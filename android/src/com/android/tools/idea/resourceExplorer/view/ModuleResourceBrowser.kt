@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
-import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.ModuleResourcesBrowserViewModel
@@ -51,16 +50,14 @@ class ModuleResourceBrowser(
 ) : JPanel(BorderLayout()) {
 
   private val listeners = mutableListOf<SelectionListener>()
-  private val designAssetsList: DesignAssetsList = DesignAssetsList(resourcesBrowserViewModel)
 
   private val sectionListModel: SectionListModel = SectionListModel()
   private val sectionList: SectionList = SectionList(sectionListModel)
 
   init {
-    setupDesignAssetList()
 
     sectionList.setSectionListCellRenderer(createSectionListCellRenderer())
-    populateSectionListModel(sectionListModel)
+    populateSectionListModel()
 
     val mainComponent = sectionList.mainComponent
     mainComponent.border = JBUI.Borders.empty(8)
@@ -72,27 +69,25 @@ class ModuleResourceBrowser(
     add(sections, BorderLayout.WEST)
   }
 
-  private fun createColorList(resourcesBrowserViewModel: ModuleResourcesBrowserViewModel): JList<ResourceValue> {
-    return JList<ResourceValue>().apply {
+  private fun createColorList(): JList<DesignAssetSet> {
+    return JList<DesignAssetSet>().apply {
       model = CollectionListModel(resourcesBrowserViewModel.getResourceValues(ResourceType.COLOR))
       cellRenderer = ColorResourceCellRenderer(resourcesBrowserViewModel.facet.module.project, resourcesBrowserViewModel.resourceResolver)
       setupListUI()
     }
   }
 
-  private fun setupDesignAssetList() {
-    designAssetsList.fixedCellWidth = 200
-    designAssetsList.fixedCellHeight = 200
-    designAssetsList.itemMargin = 50
-    designAssetsList.addListSelectionListener {
-      listeners.forEach { it.onDesignAssetSetSelected(designAssetsList.selectedValue) }
+  private fun createDrawableList(): JList<DesignAssetSet> {
+    return JList<DesignAssetSet>().apply {
+      model = CollectionListModel(resourcesBrowserViewModel.getResourceValues(ResourceType.DRAWABLE))
+      cellRenderer = DrawableResourceCellRenderer(resourcesBrowserViewModel, { _ -> this.repaint() })
+      setupListUI()
     }
   }
 
-  private fun populateSectionListModel(sectionListModel: SectionListModel) {
-    // TODO : remove this and populate from the viewModel
-    sectionListModel.addSection(AssetSection("Drawable", designAssetsList))
-    sectionListModel.addSection(AssetSection("Colors", createColorList(resourcesBrowserViewModel)))
+  private fun populateSectionListModel() {
+    sectionListModel.addSection(AssetSection("Drawable", createDrawableList()))
+    sectionListModel.addSection(AssetSection("Colors", createColorList()))
   }
 
   private fun createSectionListCellRenderer(): ListCellRenderer<Section<*>> {
