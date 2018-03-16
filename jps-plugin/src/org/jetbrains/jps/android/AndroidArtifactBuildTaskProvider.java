@@ -1,7 +1,6 @@
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
-import com.intellij.openapi.vfs.CharsetToolkit;
-import com.intellij.util.Base64;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
@@ -13,14 +12,15 @@ import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.builders.artifacts.ArtifactBuildTaskProvider;
 import org.jetbrains.jps.incremental.BuildTask;
 import org.jetbrains.jps.incremental.CompileContext;
-import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.model.JpsElement;
 import org.jetbrains.jps.model.artifact.JpsArtifact;
 import org.jetbrains.jps.model.module.JpsModule;
 import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +63,7 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
 
     return extension != null
            ? Collections.singletonList(new MyTask(artifact, extension, androidProps))
-           : Collections.<BuildTask>emptyList();
+           : Collections.emptyList();
   }
 
   private static class MyTask extends BuildTask {
@@ -80,7 +80,7 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
     }
 
     @Override
-    public void build(CompileContext context) throws ProjectBuildException {
+    public void build(CompileContext context) {
       final String artifactName = myArtifact.getName();
       final String entryName = "Artifact '" + artifactName + "'";
       final String messagePrefix = "[" + entryName + "] ";
@@ -99,11 +99,11 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
                                   : "";
       final String keyStorePassword = myProps.getKeyStorePassword();
       final String plainKeyStorePassword = keyStorePassword != null && !keyStorePassword.isEmpty()
-                                           ? new String(Base64.decode(keyStorePassword), CharsetToolkit.UTF8_CHARSET) : null;
+                                           ? new String(Base64.getDecoder().decode(keyStorePassword), StandardCharsets.UTF_8) : null;
 
       final String keyPassword = myProps.getKeyPassword();
       final String plainKeyPassword = keyPassword != null && !keyPassword.isEmpty()
-                                      ? new String(Base64.decode(keyStorePassword), CharsetToolkit.UTF8_CHARSET) : null;
+                                      ? new String(Base64.getDecoder().decode(keyPassword), StandardCharsets.UTF_8) : null;
       try {
         final Map<AndroidCompilerMessageKind,List<String>> messages =
           AndroidCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
