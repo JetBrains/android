@@ -60,6 +60,12 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
   }
 
   @Override
+  @NotNull
+  StateChart<CpuThreadInfo> getChartForModel(@NotNull CpuKernelModel.CpuState model) {
+    return myStateCharts.get(model.getCpuId()).getChart();
+  }
+
+  @Override
   public Component getListCellRendererComponent(JList<? extends CpuKernelModel.CpuState> list,
                                                 CpuKernelModel.CpuState value,
                                                 int index,

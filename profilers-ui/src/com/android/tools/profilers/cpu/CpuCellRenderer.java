@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -73,10 +74,28 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
       @Override
       public void mouseMoved(MouseEvent e) {
         Point p = new Point(e.getX(), e.getY());
+        int oldHoveredIndex = myHoveredIndex;
         myHoveredIndex = list.locationToIndex(p);
+        // Pass the mouse moved event onto the child statecharts.
+        // First we pass a mouse exited to reset positioning.
+        if (oldHoveredIndex != myHoveredIndex && list.getModel().getSize() > oldHoveredIndex && oldHoveredIndex >= 0) {
+          StateChart<K> chart = getChartForModel(list.getModel().getElementAt(myHoveredIndex));
+          chart.mouseExited(e);
+        }
+        // Second we pass the updated position of the mouse.
+        if (myHoveredIndex >= 0) {
+          StateChart<K> chart = getChartForModel(list.getModel().getElementAt(myHoveredIndex));
+          chart.mouseMoved(e);
+        }
       }
     });
   }
+
+  /**
+   * Function to translate a model to {@link StateChart}.
+   */
+  @NotNull
+  abstract StateChart<K> getChartForModel(@NotNull T model);
 
   /**
    * Contains a state chart and its corresponding model.
