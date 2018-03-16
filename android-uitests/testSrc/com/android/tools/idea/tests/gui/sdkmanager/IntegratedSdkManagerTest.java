@@ -34,8 +34,10 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -55,6 +57,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 public class IntegratedSdkManagerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final TemporaryFolder tmpFolder = new TemporaryFolder();
 
   private static final String INSTALL_PACKAGE_TAB = "SDK Platforms";
   private static final String SDK_PLATFORM_VERSION = "API 18";
@@ -118,7 +121,7 @@ public class IntegratedSdkManagerTest {
 
   @Test
   public void androidSdkManagerShowsFromWelcomeScreen() throws Exception {
-    setInvalidSdk(guiTest.welcomeFrame())
+    setInvalidSdk(guiTest.welcomeFrame(), tmpFolder.newFolder())
       .createNewProjectWhenSdkIsInvalid()
       .openSDKManager()
       .clickOK();
@@ -126,7 +129,7 @@ public class IntegratedSdkManagerTest {
 
   @Test
   public void androidSdkManagerShowsFromOpenProject() throws Exception {
-    setInvalidSdk(guiTest.importSimpleApplication())
+    setInvalidSdk(guiTest.importSimpleApplication(), tmpFolder.newFolder())
       .openFromMenu(SdkProblemDialogFixture::find, "File", "New", "New Project...")
       .openSDKManager()
       .clickOK();
@@ -140,13 +143,13 @@ public class IntegratedSdkManagerTest {
       .clickOK();
   }
 
-  private static WelcomeFrameFixture setInvalidSdk(WelcomeFrameFixture fixture) {
-    setInvalidSdkPath();
+  private static WelcomeFrameFixture setInvalidSdk(WelcomeFrameFixture fixture, @NotNull File invalidSdkDir) {
+    setInvalidSdkPath(invalidSdkDir);
     return fixture;
   }
 
-  private static IdeFrameFixture setInvalidSdk(IdeFrameFixture fixture) {
-    setInvalidSdkPath();
+  private static IdeFrameFixture setInvalidSdk(IdeFrameFixture fixture, @NotNull File invalidSdkDir) {
+    setInvalidSdkPath(invalidSdkDir);
     // Changing the SDK path triggers a gradle sync, and that will show a couple of dialogs to select/sync the SDK.
     fixture.waitForGradleProjectSyncToFail();
     SelectSdkDialogFixture.find(fixture.robot())
@@ -161,10 +164,10 @@ public class IntegratedSdkManagerTest {
    * a call to {@link GuiTests#setUpSdks()}
    */
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  private static void setInvalidSdkPath() {
+  private static void setInvalidSdkPath(@NotNull File invalidSdkDir) {
     ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(
       () -> {
-        File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath(null);
+        File invalidAndroidSdkPath = invalidSdkDir;
         File androidSdkPlatformPath = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS);
         androidSdkPlatformPath.mkdirs();
         IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath, null);
