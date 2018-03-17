@@ -220,20 +220,15 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     toolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    CommonButton endSession;
-    if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      endSession = new CommonButton(StudioIcons.Common.CLOSE);
-    }
-    else {
-      endSession = new CommonButton("End Session");
+    if (!myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
+      CommonButton endSession = new CommonButton("End Session");
       endSession.setFont(endSession.getFont().deriveFont(12.f));
       endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
+      endSession.addActionListener(event -> myProfiler.stop());
+      endSession.setToolTipText("Stop profiling and close tab");
+      rightToolbar.add(endSession);
+      rightToolbar.add(new FlatSeparator());
     }
-    endSession.addActionListener(event -> myProfiler.stop());
-    endSession.setToolTipText("Stop profiling and close tab");
-    rightToolbar.add(endSession);
-
-    rightToolbar.add(new FlatSeparator());
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
     CommonButton zoomOut = new CommonButton(StudioIcons.Common.ZOOM_OUT);
