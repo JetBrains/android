@@ -192,4 +192,22 @@ final class UiHtmlText {
     appendTitleAndValue("Extras", jobParams.getExtras());
     appendTitleAndValue("TransientExtras", jobParams.getTransientExtras());
   }
+
+  public void renderLocationUpdateRequested(@NotNull EnergyProfiler.LocationUpdateRequested locationRequested) {
+    EnergyProfiler.LocationRequest request = locationRequested.getRequest();
+    appendTitleAndValue("Provider", request.getProvider());
+    appendTitleAndValue("Priority", request.getPriority().name());
+    if (request.getIntervalMs() > 0) {
+      appendTitleAndValue("IntervalTime", StringUtil.formatDuration(request.getIntervalMs()));
+    }
+    if (request.getFastestIntervalMs() > 0) {
+      appendTitleAndValue("FastestIntervalTime", StringUtil.formatDuration(request.getFastestIntervalMs()));
+    }
+    if (request.getSmallestDisplacementMeters() > 0) {
+      appendTitleAndValue("SmallestDisplacement", request.getSmallestDisplacementMeters() + "m");
+    }
+    if (locationRequested.hasIntent()) {
+      renderPendingIntent(locationRequested.getIntent());
+    }
+  }
 }
