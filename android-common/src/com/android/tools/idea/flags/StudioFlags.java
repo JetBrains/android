@@ -295,7 +295,7 @@ public final class StudioFlags {
             "If enabled, language support features (e.g. syntax highlighting) currently present in CLion will be turned on.", true);
   public static final Flag<Boolean> LLDB_ASSEMBLY_DEBUGGING = Flag.create(
     NDK, "debugging.assembly", "Enable assembly debugging",
-    "If enabled, frames without sources will show the assembly of the function and allow breakpoints to be set there", true);
+    "If enabled, frames without sources will show the assembly of the function and allow breakpoints to be set there", false);
 
   public static final Flag<Boolean> ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT = Flag
     .create(NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
