@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.Color;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
@@ -38,6 +39,8 @@ public final class EnergyEventStateChart {
     .add(EnergyDuration.Kind.ALARM, ENERGY_BACKGROUND)
     .add(EnergyDuration.Kind.JOB, ENERGY_BACKGROUND)
     .add(EnergyDuration.Kind.WAKE_LOCK, ENERGY_WAKE_LOCK)
+    // TODO(b/74985548): Fix the location request color.
+    .add(EnergyDuration.Kind.LOCATION_REQUEST, Color.GREEN)
     .add(EnergyDuration.Kind.UNKNOWN, TRANSPARENT_COLOR)
     .build();
 
