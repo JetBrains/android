@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -37,7 +37,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class ProjectBuildModelImpl implements ProjectBuildModel {
-  @NotNull private final GradleDslFileCache myProjectFileCache;
+  @NotNull private final BuildModelContext myBuildModelContext;
   @NotNull private final GradleBuildFile myProjectBuildFile;
 
   @Nullable
@@ -51,10 +51,10 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
    * @param file the file contain the projects main build.gradle
    */
   private ProjectBuildModelImpl(@NotNull Project project, @NotNull VirtualFile file) {
-    myProjectFileCache = new GradleDslFileCache(project);
+    myBuildModelContext = BuildModelContext.create(project);
 
     // First parse the main project build file.
-    myProjectBuildFile = myProjectFileCache.getOrCreateBuildFile(file, project.getName());
+    myProjectBuildFile = myBuildModelContext.getOrCreateBuildFile(file, project.getName());
   }
 
 
@@ -71,7 +71,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     if (file == null) {
       return null;
     }
-    GradleBuildFile dslFile = myProjectFileCache.getOrCreateBuildFile(file);
+    GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file);
     return new GradleBuildModelImpl(dslFile);
   }
 
@@ -82,14 +82,14 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     if (file == null) {
       return null;
     }
-    GradleBuildFile dslFile = myProjectFileCache.getOrCreateBuildFile(file);
+    GradleBuildFile dslFile = myBuildModelContext.getOrCreateBuildFile(file);
     return new GradleBuildModelImpl(dslFile);
   }
 
   @Override
   @Nullable
   public GradleSettingsModel getProjectSettingsModel() {
-    GradleSettingsFile settingsFile = myProjectFileCache.getOrCreateSettingsFile(myProjectBuildFile.getProject());
+    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(myProjectBuildFile.getProject());
     if (settingsFile == null) {
       return null;
     }
@@ -108,7 +108,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @Override
   public void reparse() {
-    myProjectFileCache.clearAllFiles();
+    myBuildModelContext.reset();
     runOverProjectTree(GradleDslFile::reparse);
   }
 
@@ -116,7 +116,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     // This tree structure should NEVER contain any cycles. As such we assume none exist.
     Deque<GradleDslFile> currentFiles = new ArrayDeque<>();
     currentFiles.add(myProjectBuildFile);
-    GradleSettingsFile settingsFile = myProjectFileCache.getSettingsFile(myProjectBuildFile.getProject());
+    GradleSettingsFile settingsFile = myBuildModelContext.getSettingsFile(myProjectBuildFile.getProject());
     if (settingsFile != null) {
       currentFiles.add(settingsFile);
     }

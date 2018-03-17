@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
@@ -59,18 +58,17 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   @Nullable private GradleDslFile mySiblingDslFile;
 
   @NotNull private final List<ApplyDslElement> myAppliedFiles;
-  @NotNull private final GradleDslFileCache myDslFileCache;
+  @NotNull private final BuildModelContext myBuildModelContext;
 
-  protected GradleDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    this(file, project, moduleName, new GradleDslFileCache(project));
-  }
-
-  protected GradleDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName, @Nullable GradleDslFileCache fileCache) {
+  protected GradleDslFile(@NotNull VirtualFile file,
+                          @NotNull Project project,
+                          @NotNull String moduleName,
+                          @NotNull BuildModelContext context) {
     super(null, null, GradleNameElement.fake(moduleName));
     myFile = file;
     myProject = project;
     myAppliedFiles = new ArrayList<>();
-    myDslFileCache = fileCache != null ? fileCache : new GradleDslFileCache(project);
+    myBuildModelContext = context;
 
     Application application = ApplicationManager.getApplication();
     PsiFile psiFile = application.runReadAction((Computable<PsiFile>)() -> PsiManager.getInstance(myProject).findFile(myFile));
@@ -173,8 +171,8 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   }
 
   @NotNull
-  public GradleDslFileCache getDslFileCache() {
-    return myDslFileCache;
+  public BuildModelContext getContext() {
+    return myBuildModelContext;
   }
 
   @Override
@@ -204,7 +202,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
       }
 
       // Parse the file
-      GradleDslFile dslFile = myDslFileCache.getOrCreateBuildFile(file);
+      GradleDslFile dslFile = myBuildModelContext.getOrCreateBuildFile(file);
       applyElement.setAppliedDslFile(dslFile);
 
       addAppliedModelProperties(dslFile);

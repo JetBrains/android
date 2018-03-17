@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.collect.Lists;
@@ -48,7 +48,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
   @NotNull
   public static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName, new GradleDslFileCache(project));
+    GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName, BuildModelContext.create(project));
     settingsFile.parse();
     return new GradleSettingsModelImpl(settingsFile);
   }
@@ -174,7 +174,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       return null;
     }
     GradleBuildFile dslFile =
-      myGradleDslFile.getDslFileCache().getOrCreateBuildFile(buildFile, modulePath.substring(modulePath.lastIndexOf(':') + 1));
+      myGradleDslFile.getContext().getOrCreateBuildFile(buildFile, modulePath.substring(modulePath.lastIndexOf(':') + 1));
     return new GradleBuildModelImpl(dslFile);
   }
 
