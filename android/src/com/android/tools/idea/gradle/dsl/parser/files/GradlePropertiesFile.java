@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
@@ -36,8 +37,9 @@ public final class GradlePropertiesFile extends GradleDslFile {
   public GradlePropertiesFile(@NotNull Properties properties,
                               @NotNull VirtualFile file,
                               @NotNull Project project,
-                              @NotNull String moduleName) {
-    super(file, project, moduleName);
+                              @NotNull String moduleName,
+                              @NotNull BuildModelContext context) {
+    super(file, project, moduleName, context);
     myProperties = properties;
   }
 
@@ -131,7 +133,9 @@ public final class GradlePropertiesFile extends GradleDslFile {
 
     @Override
     @NotNull
-    public Collection<GradleDslElement> getChildren() { return ImmutableList.of(); }
+    public Collection<GradleDslElement> getChildren() {
+      return ImmutableList.of();
+    }
 
     @Override
     protected void apply() {

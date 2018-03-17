@@ -222,7 +222,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
     String standardProjectKey = getStandardProjectKey(projectReference);
     if (standardProjectKey != null) { // project(':project:path')
       String modulePath = standardProjectKey.substring(standardProjectKey.indexOf('\'') + 1, standardProjectKey.lastIndexOf('\''));
-      GradleSettingsFile file = dslFile.getDslFileCache().getOrCreateSettingsFile(dslFile.getProject());
+      GradleSettingsFile file = dslFile.getContext().getOrCreateSettingsFile(dslFile.getProject());
       if (file == null) {
         return null;
       }

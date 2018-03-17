@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,8 +27,8 @@ public class GradleSettingsFile extends GradleDslFile {
   public GradleSettingsFile(@NotNull VirtualFile file,
                             @NotNull Project project,
                             @NotNull String moduleName,
-                            @NotNull GradleDslFileCache fileCache) {
-    super(file, project, moduleName, fileCache);
+                            @NotNull BuildModelContext context) {
+    super(file, project, moduleName, context);
   }
 
   @Override

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.files;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -40,15 +41,10 @@ public class GradleDslFileCache {
   }
 
   @NotNull
-  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file) {
-    return getOrCreateBuildFile(file, file.getName());
-  }
-
-  @NotNull
-  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file, @NotNull String name) {
+  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file, @NotNull String name, @NotNull BuildModelContext context) {
     GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
-      dslFile = GradleBuildModelImpl.parseBuildFile(file, myProject, name, this);
+      dslFile = GradleBuildModelImpl.parseBuildFile(file, myProject, name, context);
       myParsedBuildFiles.put(file.getUrl(), dslFile);
     } else if (!(dslFile instanceof GradleBuildFile)) {
       throw new IllegalStateException("Found wrong type for build file in cache!");
@@ -72,7 +68,7 @@ public class GradleDslFileCache {
   }
 
   @Nullable
-  public GradleSettingsFile getOrCreateSettingsFile(@NotNull Project project) {
+  public GradleSettingsFile getOrCreateSettingsFile(@NotNull Project project, @NotNull BuildModelContext context) {
     VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
     if (file == null) {
       return null;
@@ -80,7 +76,7 @@ public class GradleDslFileCache {
 
     GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
-      dslFile = new GradleSettingsFile(file, myProject, "settings", this);
+      dslFile = new GradleSettingsFile(file, myProject, "settings", context);
       dslFile.parse();
       myParsedBuildFiles.put(file.getUrl(), dslFile);
     } else if (!(dslFile instanceof GradleSettingsFile)) {

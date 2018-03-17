@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.files;
 
 
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -25,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -38,8 +38,8 @@ public class GradleBuildFile extends GradleDslFile {
   public GradleBuildFile(@NotNull VirtualFile file,
                          @NotNull Project project,
                          @NotNull String moduleName,
-                         @Nullable GradleDslFileCache fileCache) {
-    super(file, project, moduleName, fileCache);
+                         @NotNull BuildModelContext context) {
+    super(file, project, moduleName, context);
   }
 
   @Override
