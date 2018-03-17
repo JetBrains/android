@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -44,7 +43,6 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
   }
 
   private static final int TEXT_PADDING = 3;
-  private static final int HIGHLIGHT_WIDTH = 2;
 
   private StateChartModel<T> myModel;
 
@@ -53,14 +51,6 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
    */
   @NotNull
   private Function<T, Color> myColorMapper;
-
-  /**
-   * A color used to highlight every state for BAR render mode only. If the highlight color is not null, there is a highlight of
-   * {@link HIGHLIGHT_WIDTH} at the beginning of every state start time point. The highlight color and {@link myColorMapper} are different,
-   * even if the mapped color is transparent, the highlight color may not be transparent.
-   */
-  @Nullable
-  private Color myBarHighlightColor;
 
   private float myHeightGap;
 
@@ -137,14 +127,6 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
    */
   public void setHeightGap(float gap) {
     myHeightGap = gap;
-  }
-
-  /**
-   * Set a highlight color which will be used to emphasize when a state change happens. If set to {@code null}, the state change highlight
-   * is cleared. This color only affects state charts that are rendered in {@link RenderMode.BAR} mode.
-   */
-  public void setBarHighlightColor(@Nullable Color barHighlightColor) {
-    myBarHighlightColor = barHighlightColor;
   }
 
   @NotNull
@@ -256,12 +238,6 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
           g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
           g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), (float)(rect.getY() + rect.getHeight() - TEXT_PADDING));
         }
-      }
-
-      if (myBarHighlightColor != null && myRenderMode == RenderMode.BAR) {
-        g2d.setColor(myBarHighlightColor);
-        Rectangle2D rect = shape.getBounds2D();
-        g2d.fill(new Rectangle2D.Double(rect.getX(), rect.getY(), Math.min(HIGHLIGHT_WIDTH, rect.getWidth()), rect.getHeight()));
       }
     }
 
