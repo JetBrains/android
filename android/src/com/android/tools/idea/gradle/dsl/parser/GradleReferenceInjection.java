@@ -13,7 +13,10 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.parser;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,9 +34,15 @@ public class GradleReferenceInjection {
   @NotNull
   private PsiElement myPsiInjection;
   @NotNull
+  private GradleDslExpression myOriginElement; // GradleDslElement that contains myPsiInjection.
+  @NotNull
   private String myName; // The name of the injection, e.g "prop1 = "Hello ${world}" -> "world" or "prop1 = hello" -> "hello"
 
-  public GradleReferenceInjection(@Nullable GradleDslElement injection, @NotNull PsiElement psiInjection, @NotNull String name) {
+  public GradleReferenceInjection(@NotNull GradleDslExpression originElement,
+                                  @Nullable GradleDslElement injection,
+                                  @NotNull PsiElement psiInjection,
+                                  @NotNull String name) {
+    myOriginElement = originElement;
     myToBeInjected = injection;
     myPsiInjection = psiInjection;
     myName = name;
@@ -46,6 +55,11 @@ public class GradleReferenceInjection {
   @Nullable
   public GradleDslElement getToBeInjected() {
     return myToBeInjected;
+  }
+
+  @NotNull
+  public GradleDslExpression getOriginElement() {
+    return myOriginElement;
   }
 
   /**
