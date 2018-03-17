@@ -53,6 +53,7 @@ public class MemoryJvmtiDataPoller extends PollRunner {
       myLiveAllocationTable.insertAllocationData(mySession, sample);
     }
     for (MemoryProfiler.BatchJNIGlobalRefEvent batchJniEvent : response.getJniReferenceEventBatchesList()) {
+      myLiveAllocationTable.insertThreadInfo(mySession, batchJniEvent.getThreadInfosList());
       myLiveAllocationTable.insertJniReferenceData(mySession, batchJniEvent);
     }
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
