@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
@@ -24,6 +25,7 @@ import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribu
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,7 +145,19 @@ final class MemoryClassSetView extends AspectObserver {
             }
           }
           return "";
-        }, value -> null, SwingConstants.RIGHT),
+        }, value -> null, value -> {
+          MemoryObject node = value.getAdapter();
+          if (node instanceof InstanceObject) {
+            InstanceObject instanceObject = (InstanceObject)node;
+            Range selectionRange = myStage.getSelectionModel().getSelectionRange();
+            long startTimeStamp = TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin());
+            long endTimeStamp = TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax());
+            if (instanceObject.getAllocTime() >= startTimeStamp && instanceObject.getAllocTime() < endTimeStamp) {
+              return SimpleTextAttributes.REGULAR_ATTRIBUTES;
+            }
+          }
+          return SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES;
+        }, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.ASCENDING,
