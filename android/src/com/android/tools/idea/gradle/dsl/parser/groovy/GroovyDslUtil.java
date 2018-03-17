@@ -663,7 +663,9 @@ public final class GroovyDslUtil {
     return false;
   }
 
-  static List<GradleReferenceInjection> findInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement, boolean includeUnresolved) {
+  static List<GradleReferenceInjection> findInjections(@NotNull GradleDslExpression context,
+                                                       @NotNull PsiElement psiElement,
+                                                       boolean includeUnresolved) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     if (!(psiElement instanceof GrString)) {
@@ -678,7 +680,7 @@ public final class GroovyDslUtil {
         if (name != null) {
           GradleDslElement referenceElement = context.resolveReference(name);
           if (includeUnresolved || referenceElement != null) {
-            injections.add(new GradleReferenceInjection(referenceElement, injection, name));
+            injections.add(new GradleReferenceInjection(context, referenceElement, injection, name));
           }
         }
       }

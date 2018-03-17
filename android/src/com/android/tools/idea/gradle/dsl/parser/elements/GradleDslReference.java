@@ -93,7 +93,7 @@ public final class GradleDslReference extends GradleDslSettableExpression {
       return null;
     }
 
-    return new GradleReferenceInjection(element, psiElement, text);
+    return new GradleReferenceInjection(this, element, psiElement, text);
   }
 
   /**
