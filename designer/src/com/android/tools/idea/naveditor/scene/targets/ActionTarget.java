@@ -58,8 +58,10 @@ public class ActionTarget extends BaseTarget {
   @NavCoordinate private static final int SELF_ACTION_LENGTH_3 = JBUI.scale(60);
   @NavCoordinate private static final int SELF_ACTION_LENGTH_4 = JBUI.scale(8);
 
-  @NavCoordinate private static final int ACTION_HORIZONTAL_PADDING = JBUI.scale(8);
-  @NavCoordinate private static final int ACTION_VERTICAL_PADDING = JBUI.scale(8);
+  @NavCoordinate private static final int ACTION_PADDING = JBUI.scale(8);
+  @NavCoordinate private static final int CONTROL_POINT_THRESHOLD = JBUI.scale(120);
+
+  private static final ConnectionDirection START_DIRECTION = RIGHT;
 
   public static class CurvePoints {
     @SwingCoordinate public Point p1;
@@ -179,31 +181,22 @@ public class ActionTarget extends BaseTarget {
     DrawAction.buildDisplayList(list, connectionType, sourceRect, myDestRect,
                                 selected ? SELECTED : mIsOver || myHighlighted ? HOVER : NORMAL);
 
-    @SwingCoordinate Rectangle rectangle = new Rectangle();
-    ArrowDirection direction;
+    boolean isSelfAction = sourceId.equals(targetId);
 
-    if (sourceId.equals(targetId)) {
-      rectangle.x = myDestRect.x +
-                    myDestRect.width +
-                    sceneContext
-                      .getSwingDimension(SELF_ACTION_LENGTH_1 - SELF_ACTION_LENGTH_3 - NavSceneManager.ACTION_ARROW_PERPENDICULAR / 2);
-      rectangle.y = getConnectionY(BOTTOM, myDestRect) + sceneContext.getSwingDimension(ACTION_VERTICAL_PADDING);
-      rectangle.width = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PERPENDICULAR);
-      rectangle.height = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL);
-      direction = ArrowDirection.UP;
+    ConnectionDirection direction = isSelfAction ? BOTTOM : getDestinationDirection(sourceRect, myDestRect);
+    Point arrowPoint = getArrowPoint(sceneContext, myDestRect, direction);
+
+    if (isSelfAction) {
+      arrowPoint.x += myDestRect.width / 2 + sceneContext.getSwingDimension(SELF_ACTION_LENGTH_1 - SELF_ACTION_LENGTH_3);
     }
-    else {
-      rectangle.x = getConnectionX(LEFT, myDestRect) + getDestinationDx(LEFT, sceneContext);
-      rectangle.y = getConnectionY(LEFT, myDestRect) - sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PERPENDICULAR) / 2;
-      rectangle.width = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL);
-      rectangle.height = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PERPENDICULAR);
-      direction = ArrowDirection.RIGHT;
-    }
+
+    ArrowDirection arrowDirection = getArrowDirection(direction);
+    Rectangle arrowRectangle = getArrowRectangle(sceneContext, arrowPoint, direction);
 
     NavColorSet colorSet = (NavColorSet)sceneContext.getColorSet();
     Color color = selected ? colorSet.getSelectedActions()
                            : mIsOver || myHighlighted ? colorSet.getHighlightedActions() : colorSet.getActions();
-    list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, direction, rectangle, color));
+    list.add(new DrawArrow(NavDrawHelperKt.DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
   }
 
   @Override
@@ -239,40 +232,31 @@ public class ActionTarget extends BaseTarget {
   public static CurvePoints getCurvePoints(@SwingCoordinate @NotNull Rectangle source,
                                            @SwingCoordinate @NotNull Rectangle dest,
                                            SceneContext sceneContext) {
-    ConnectionDirection sourceDirection = RIGHT;
-    ConnectionDirection destDirection = LEFT;
-    int startx = getConnectionX(sourceDirection, source);
-    int starty = getConnectionY(sourceDirection, source);
-    int endx = getConnectionX(destDirection, dest);
-    int endy = getConnectionY(destDirection, dest);
-    int dx = getDestinationDx(destDirection, sceneContext);
-    int dy = getDestinationDy(destDirection, sceneContext);
-    int scale_source = sceneContext.getSwingDimension(100);
-    int scale_dest = sceneContext.getSwingDimension(100);
+    ConnectionDirection destDirection = getDestinationDirection(source, dest);
     CurvePoints result = new CurvePoints();
     result.dir = destDirection;
-    result.p1 = new Point(startx, starty);
-    result.p2 = new Point(startx + scale_source * sourceDirection.getDeltaX(), starty + scale_source * sourceDirection.getDeltaY());
-    result.p3 = new Point(endx + dx + scale_dest * destDirection.getDeltaX(), endy + dy + scale_dest * destDirection.getDeltaY());
-    result.p4 = new Point(endx + dx, endy + dy);
+    result.p1 = getStartPoint(source);
+    result.p4 = getEndPoint(sceneContext, dest, destDirection);
+    result.p2 = getControlPoint(sceneContext, result.p1, result.p4, START_DIRECTION);
+    result.p3 = getControlPoint(sceneContext, result.p4, result.p1, destDirection);
+
     return result;
   }
 
   @NotNull
   public static SelfActionPoints getSelfActionPoints(@SwingCoordinate @NotNull Rectangle rect, @NotNull SceneContext sceneContext) {
-    ConnectionDirection sourceDirection = RIGHT;
-    ConnectionDirection destDirection = BOTTOM;
-
     SelfActionPoints selfActionPoints = new SelfActionPoints();
-    selfActionPoints.dir = destDirection;
+    selfActionPoints.dir = BOTTOM;
 
-    selfActionPoints.x[0] = getConnectionX(sourceDirection, rect);
+    Point start = getStartPoint(rect);
+
+    selfActionPoints.x[0] = start.x;
     selfActionPoints.x[1] = selfActionPoints.x[0] + sceneContext.getSwingDimension(SELF_ACTION_LENGTH_1);
     selfActionPoints.x[2] = selfActionPoints.x[1];
     selfActionPoints.x[3] = selfActionPoints.x[2] - sceneContext.getSwingDimension(SELF_ACTION_LENGTH_3) - 1;
     selfActionPoints.x[4] = selfActionPoints.x[3];
 
-    selfActionPoints.y[0] = getConnectionY(sourceDirection, rect);
+    selfActionPoints.y[0] = start.y;
     selfActionPoints.y[1] = selfActionPoints.y[0];
     selfActionPoints.y[2] = selfActionPoints.y[1] + rect.height / 2 + sceneContext.getSwingDimension(SELF_ACTION_LENGTH_2);
     selfActionPoints.y[3] = selfActionPoints.y[2];
@@ -281,20 +265,109 @@ public class ActionTarget extends BaseTarget {
     return selfActionPoints;
   }
 
-  private static int getConnectionX(@NotNull ConnectionDirection side, @NotNull Rectangle rect) {
-    return rect.x + side.getDeltaX() + (1 + side.getDeltaX()) * rect.width / 2;
+  @NotNull
+  private static Point getArrowPoint(@NotNull SceneContext context, @NotNull Rectangle rectangle, @NotNull ConnectionDirection direction) {
+    return shiftPoint(getConnectionPoint(rectangle, direction), direction, context.getSwingDimension(ACTION_PADDING));
   }
 
-  private static int getConnectionY(@NotNull ConnectionDirection side, @NotNull Rectangle rect) {
-    return rect.y + side.getDeltaY() + (1 + side.getDeltaY()) * rect.height / 2;
+  @NotNull
+  private static Point getStartPoint(@NotNull Rectangle rectangle) {
+    return getConnectionPoint(rectangle, START_DIRECTION);
   }
 
-  public static int getDestinationDx(@NotNull ConnectionDirection side, SceneContext sceneContext) {
-    return side.getDeltaX() * sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_HORIZONTAL_PADDING);
+  @NotNull
+  private static Point getEndPoint(@NotNull SceneContext context, @NotNull Rectangle rectangle, @NotNull ConnectionDirection direction) {
+    return shiftPoint(getConnectionPoint(rectangle, direction),
+                      direction,
+                      context.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_PADDING));
   }
 
-  public static int getDestinationDy(@NotNull ConnectionDirection side, SceneContext sceneContext) {
-    return side.getDeltaY() * sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL + ACTION_VERTICAL_PADDING);
+  @NotNull
+  private static Point getConnectionPoint(@NotNull Rectangle rectangle, @NotNull ConnectionDirection direction) {
+    return shiftPoint(getCenterPoint(rectangle), direction, rectangle.width / 2, rectangle.height / 2);
+  }
+
+  @NotNull
+  private static Point getControlPoint(@NotNull SceneContext context,
+                                       @NotNull Point p1,
+                                       @NotNull Point p2,
+                                       @NotNull ConnectionDirection direction) {
+    int shift = (int)Math.min(Math.hypot(p1.x - p2.x, p1.y - p2.y) / 2, context.getSwingDimension(CONTROL_POINT_THRESHOLD));
+    return shiftPoint(p1, direction, shift);
+  }
+
+  @NotNull
+  private static Point shiftPoint(@NotNull Point p, @NotNull ConnectionDirection direction, int shift) {
+    return shiftPoint(p, direction, shift, shift);
+  }
+
+  @NotNull
+  private static Point shiftPoint(@NotNull Point p, ConnectionDirection direction, int shiftX, int shiftY) {
+    return new Point(p.x + shiftX * direction.getDeltaX(), p.y + shiftY * direction.getDeltaY());
+  }
+
+  /**
+   * Determines which side of the destination the action should be attached to.
+   * If the starting point of the action is:
+   * Above the top-left to bottom-right diagonal of the destination, and higher than the center point of the destination: TOP
+   * Below the top-right to bottom-left diagonal of the destination, and lower than the center point of the destination: BOTTOM
+   * Otherwise: LEFT
+   */
+  @NotNull
+  private static ConnectionDirection getDestinationDirection(@NotNull Rectangle source, @NotNull Rectangle destination) {
+    Point start = getStartPoint(source);
+    Point end = getCenterPoint(destination);
+
+    float slope = (destination.width == 0) ? 1f : (float)destination.height / destination.width;
+    float rise = (start.x - end.x) * slope;
+    boolean higher = start.y < end.y;
+
+    if (higher && start.y < end.y + rise) {
+      return TOP;
+    }
+
+    if (!higher && start.y > end.y - rise) {
+      return BOTTOM;
+    }
+
+    return LEFT;
+  }
+
+  @NotNull
+  private static Rectangle getArrowRectangle(@NotNull SceneContext context, @NotNull Point p, @NotNull ConnectionDirection direction) {
+    Rectangle rectangle = new Rectangle();
+    int parallel = context.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL);
+    int perpendicular = context.getSwingDimension(NavSceneManager.ACTION_ARROW_PERPENDICULAR);
+    int deltaX = direction.getDeltaX();
+    int deltaY = direction.getDeltaY();
+
+    rectangle.x = p.x + (deltaX == 0 ? -perpendicular : (parallel * (deltaX - 1))) / 2;
+    rectangle.y = p.y + (deltaY == 0 ? -perpendicular : (parallel * (deltaY - 1))) / 2;
+    rectangle.width = Math.abs(deltaX * parallel) + Math.abs(deltaY * perpendicular);
+    rectangle.height = Math.abs(deltaX * perpendicular) + Math.abs(deltaY * parallel);
+
+    return rectangle;
+  }
+
+  @NotNull
+  private static ArrowDirection getArrowDirection(@NotNull ConnectionDirection direction) {
+    switch (direction) {
+      case LEFT:
+        return ArrowDirection.RIGHT;
+      case RIGHT:
+        return ArrowDirection.LEFT;
+      case TOP:
+        return ArrowDirection.DOWN;
+      case BOTTOM:
+        return ArrowDirection.UP;
+    }
+
+    throw new IllegalArgumentException();
+  }
+
+  @NotNull
+  private static Point getCenterPoint(@NotNull Rectangle rectangle) {
+    return new Point((int)rectangle.getCenterX(), (int)rectangle.getCenterY());
   }
 }
 

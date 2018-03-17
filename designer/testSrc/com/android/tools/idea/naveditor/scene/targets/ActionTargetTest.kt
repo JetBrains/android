@@ -85,14 +85,15 @@ class ActionTargetTest : NavTestCase() {
     val fragment1 = scene.getSceneComponent("fragment1")!!
     val navView = NavView(model.surface as NavDesignSurface, scene.sceneManager)
     val context = SceneContext.get(navView)
+    scene.layout(0, context)
     fragment1.buildDisplayList(0, list, context)
 
     assertEquals("DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
         "DrawPreviewUnavailable,491x401x74x126\n" +
-        "DrawAction,NORMAL,390x390x0x0,390x390x0x0,NORMAL\n" +
-        "DrawArrow,2,RIGHT,380x387x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment1,398x391x-8x5,ff656565,Default:0:9,false\n" +
-        "DrawIcon,390x390x7x7,START_DESTINATION\n" +
+        "DrawAction,NORMAL,490x400x76x128,400x400x76x128,NORMAL\n" +
+        "DrawArrow,2,UP,435x532x6x5,b2a7a7a7\n" +
+        "DrawTruncatedText,3,fragment1,498x390x68x5,ff656565,Default:0:9,false\n" +
+        "DrawIcon,490x389x7x7,START_DESTINATION\n" +
         "\n", list.generateSortedDisplayList(context))
 
     (fragment1.targets[fragment1.findTarget(ActionTarget::class.java)] as ActionTarget).isHighlighted = true
@@ -101,10 +102,92 @@ class ActionTargetTest : NavTestCase() {
 
     assertEquals("DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
         "DrawPreviewUnavailable,491x401x74x126\n" +
-        "DrawAction,NORMAL,390x390x0x0,390x390x0x0,HOVER\n" +
-        "DrawArrow,2,RIGHT,380x387x5x6,ffa7a7a7\n" +
-        "DrawTruncatedText,3,fragment1,398x391x-8x5,ff656565,Default:0:9,false\n" +
-        "DrawIcon,390x390x7x7,START_DESTINATION\n" +
+        "DrawAction,NORMAL,490x400x76x128,400x400x76x128,HOVER\n" +
+        "DrawArrow,2,UP,435x532x6x5,ffa7a7a7\n" +
+        "DrawTruncatedText,3,fragment1,498x390x68x5,ff656565,Default:0:9,false\n" +
+        "DrawIcon,490x389x7x7,START_DESTINATION\n" +
         "\n", list.generateSortedDisplayList(context))
   }
+
+  fun testDirection() {
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        fragment("fragment1")
+        fragment("fragment2") {
+          action(id = "action1", destination = "fragment1")
+        }
+        fragment("fragment3") {
+          action(id = "action2", destination = "fragment1")
+        }
+        fragment("fragment4") {
+          action(id = "action3", destination = "fragment1")
+        }
+        fragment("fragment5") {
+          action(id = "action4", destination = "fragment1")
+        }
+        fragment("fragment6") {
+          action(id = "action5", destination = "fragment1")
+        }
+      }
+    }
+
+    val scene = model.surface.scene!!
+
+    //  |---------|
+    //  |    2  3 |
+    //  | 4  1    |
+    //  |    5  6 |
+    //  |---------|
+    scene.getSceneComponent("fragment1")!!.setPosition(500, 500)
+    scene.getSceneComponent("fragment2")!!.setPosition(500, 0)
+    scene.getSceneComponent("fragment3")!!.setPosition(1000, 0)
+    scene.getSceneComponent("fragment4")!!.setPosition(0, 500)
+    scene.getSceneComponent("fragment5")!!.setPosition(500, 1000)
+    scene.getSceneComponent("fragment6")!!.setPosition(1000, 1000)
+
+    val list = DisplayList()
+    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+    // Arrows should be down for 2 and 3, right for 4, up for 5 and 6
+    assertEquals(
+        "Clip,0,0,1056,1198\n" +
+            "DrawRectangle,1,640x640x76x128,ffa7a7a7,1,0\n" +
+            "DrawPreviewUnavailable,641x641x74x126\n" +
+            "DrawIcon,640x629x7x7,START_DESTINATION\n" +
+            "DrawTruncatedText,3,fragment1,648x630x68x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "DrawRectangle,1,640x390x76x128,ffa7a7a7,1,0\n" +
+            "DrawPreviewUnavailable,641x391x74x126\n" +
+            "DrawAction,NORMAL,640x390x76x128,640x640x76x128,NORMAL\n" +
+            "DrawArrow,2,DOWN,675x631x6x5,b2a7a7a7\n" +
+            "DrawTruncatedText,3,fragment2,640x380x76x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "DrawRectangle,1,890x390x76x128,ffa7a7a7,1,0\n" +
+            "DrawPreviewUnavailable,891x391x74x126\n" +
+            "DrawAction,NORMAL,890x390x76x128,640x640x76x128,NORMAL\n" +
+            "DrawArrow,2,DOWN,675x631x6x5,b2a7a7a7\n" +
+            "DrawTruncatedText,3,fragment3,890x380x76x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "DrawRectangle,1,390x640x76x128,ffa7a7a7,1,0\n" +
+            "DrawPreviewUnavailable,391x641x74x126\n" +
+            "DrawAction,NORMAL,390x640x76x128,640x640x76x128,NORMAL\n" +
+            "DrawArrow,2,RIGHT,631x701x5x6,b2a7a7a7\n" +
+            "DrawTruncatedText,3,fragment4,390x630x76x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "DrawRectangle,1,640x890x76x128,ffa7a7a7,1,0\n" +
+            "DrawPreviewUnavailable,641x891x74x126\n" +
+            "DrawAction,NORMAL,640x890x76x128,640x640x76x128,NORMAL\n" +
+            "DrawArrow,2,UP,675x772x6x5,b2a7a7a7\n" +
+            "DrawTruncatedText,3,fragment5,640x880x76x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "DrawRectangle,1,890x890x76x128,ffa7a7a7,1,0\n" +
+            "DrawPreviewUnavailable,891x891x74x126\n" +
+            "DrawAction,NORMAL,890x890x76x128,640x640x76x128,NORMAL\n" +
+            "DrawArrow,2,UP,675x772x6x5,b2a7a7a7\n" +
+            "DrawTruncatedText,3,fragment6,890x880x76x5,ff656565,Default:0:9,false\n" +
+            "\n" +
+            "UNClip\n", list.serialize()
+    )
+  }
 }
+
