@@ -39,8 +39,6 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
 
-  // Empty test in gradle-feature - http://b.android.com/230792
-  com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
 
   // http://b/35788260
   com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
