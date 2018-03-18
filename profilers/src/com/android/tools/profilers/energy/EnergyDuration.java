@@ -36,8 +36,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
     UNKNOWN,
     WAKE_LOCK,
     ALARM,
-    JOB,
-    LOCATION_REQUEST;
+    JOB;
 
     @NotNull
     public static Kind from(@NotNull EnergyProfiler.EnergyEvent event) {
@@ -55,11 +54,6 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
         case JOB_STOPPED:
         case JOB_FINISHED:
           return JOB;
-
-        case LOCATION_UPDATE_REQUESTED:
-        case LOCATION_UPDATE_REMOVED:
-        case LOCATION_CHANGED:
-          return LOCATION_REQUEST;
 
         default:
           getLogger().warn("Unsupported Kind for " + event.getMetadataCase().name());
