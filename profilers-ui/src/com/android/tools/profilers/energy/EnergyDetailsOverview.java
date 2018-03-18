@@ -54,7 +54,6 @@ final class EnergyDetailsOverview extends JPanel {
    *   <ul>Wake lock acquire data is shown, but release data is redundant and is not shown.</ul>
    *   <ul>Alarm set data is shown, alarm cancel data is redundant and is not shown.</ul>
    *   <ul>Job scheduled data and finished data is shown, the start/stop data is not user code and is not shown.</ul>
-   *   <ul>Location update requested data is shown, other data is redundant and is not shown.</ul>
    * </li>
    */
   public void setDuration(@Nullable EnergyDuration duration) {
@@ -86,12 +85,6 @@ final class EnergyDetailsOverview extends JPanel {
         EnergyEvent firstFinished = duration.getEventList().stream().filter(e -> e.hasJobFinished()).findFirst().orElse(null);
         if (firstFinished != null) {
           html.renderJobFinished(firstFinished.getJobFinished());
-        }
-        break;
-      case LOCATION_REQUEST:
-        EnergyEvent firstRequested = duration.getEventList().stream().filter(e -> e.hasLocationUpdateRequested()).findFirst().orElse(null);
-        if (firstRequested != null) {
-          html.renderLocationUpdateRequested(firstRequested.getLocationUpdateRequested());
         }
         break;
       default:

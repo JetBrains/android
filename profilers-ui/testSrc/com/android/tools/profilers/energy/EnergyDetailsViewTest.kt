@@ -230,31 +230,6 @@ class EnergyDetailsViewTest {
     }
   }
 
-  @Test
-  fun locationUpdateRequestedIsProperlyRendered() {
-    val locationRequest = EnergyProfiler.LocationRequest.newBuilder()
-      .setProvider("ProviderValue")
-      .setPriority(EnergyProfiler.LocationRequest.Priority.BALANCED)
-      .setIntervalMs(100)
-      .setFastestIntervalMs(200)
-      .setSmallestDisplacementMeters(0.1f)
-      .build()
-    val requested = EnergyProfiler.LocationUpdateRequested.newBuilder()
-      .setIntent(EnergyProfiler.PendingIntent.newBuilder().setCreatorUid(1).setCreatorPackage("package"))
-      .setRequest(locationRequest)
-      .build()
-    val eventBuilder = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(10)).setLocationUpdateRequested(requested)
-    view.setDuration(EnergyDuration(Arrays.asList(eventBuilder.build())))
-    val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
-    with(textPane.text) {
-      assertUiContainsLabelAndValue(this,"Provider", "ProviderValue")
-      assertUiContainsLabelAndValue(this,"IntervalTime", "100ms")
-      assertUiContainsLabelAndValue(this, "FastestIntervalTime", "200ms")
-      assertUiContainsLabelAndValue(this, "SmallestDisplacement", "0.1m")
-      assertUiContainsLabelAndValue(this, "Creator", "package\\b.+\\bUID\\b.+\\b1")
-    }
-  }
-
   private fun assertJobInfoLabelsAndValues(uiText: String) {
     assertUiContainsLabelAndValue(uiText, "JobId", "1111")
     assertUiContainsLabelAndValue(uiText, "ServiceName", "ServiceNameValue")
