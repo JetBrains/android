@@ -20,6 +20,7 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
@@ -28,6 +29,7 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -75,6 +77,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 import org.w3c.dom.*;
 
 import javax.swing.*;
@@ -664,41 +667,77 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     /*
     Example Input:
     ERROR uses-sdk:minSdkVersion 4 cannot be smaller than version 8 declared in library
-    /.../mylib/AndroidManifest.xml Suggestion:use tools:overrideLibrary="com.mylib"
-    to force usage AndroidManifest.xml:11:5-72
+    /.../mylib/AndroidManifest.xml Suggestion: use a compatible library with a minSdk of
+    at most 4, or increase this project's minSdk version to at least 8,
+    or use tools:overrideLibrary="com.lib" to force usage (may lead to runtime failures)
      */
     HtmlBuilder sb = new HtmlBuilder();
-    int eq = message.indexOf('=');
-    if (eq < 0) {
-      throw new IllegalArgumentException("unexpected use suggestion format " + message);
-    }
-    int end = message.indexOf('"', eq + 2);
-    if (end < 0 || message.charAt(eq + 1) != '\"') {
-      throw new IllegalArgumentException("unexpected use suggestion format " + message);
-    }
-    final String suggestion = message.substring(message.indexOf(' ') + 1, end + 1);
-    if (!SourcePosition.UNKNOWN.equals(position.getPosition())) {
-      XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
-      Element element = getElementAt(mainManifest, position.getPosition().getStartLine(), position.getPosition().getStartColumn());
-      if (element != null && SdkConstants.TAG_USES_SDK.equals(element.getTagName())) {
-        sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(() -> {
-          int eq1 = suggestion.indexOf('=');
-          String attributeName = suggestion.substring(suggestion.indexOf(':') + 1, eq1);
-          String attributeValue = suggestion.substring(eq1 + 2, suggestion.length() - 1);
-          addToolsAttribute(mainManifest, element, attributeName, attributeValue);
-        }));
+
+    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(facet.getModule().getProject());
+    if (gradleVersion.isAtLeast(3, 0, 0)) {
+      final GradleBuildFile buildFile = GradleBuildFile.get(facet.getModule());
+      if (buildFile != null) {
+        int start = message.indexOf("to at least ");
+        if (start < 0) {
+          throw new IllegalArgumentException("unexpected use suggestion format " + message);
+        }
+        int end = message.indexOf(',', start);
+        if (end < 0) {
+          throw new IllegalArgumentException("unexpected use suggestion format " + message);
+        }
+        final String minSdkVersion = message.substring(start + 1, end - 1);
+        Runnable link =
+          () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile()) {
+            @Override
+            protected void run() throws Throwable {
+              GrStatementOwner defaultConfig = buildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
+              if (defaultConfig == null) {
+                buildFile.setValue(BuildFileKey.DEFAULT_CONFIG, "{}");
+                defaultConfig = buildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
+              }
+              assert defaultConfig != null;
+              buildFile.setValue(defaultConfig, BuildFileKey.MIN_SDK_VERSION, minSdkVersion);
+              requestSync(facet.getModule().getProject());
+            }
+          }.execute();
+        sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(link));
         sb.add(message.substring(end + 1));
       }
       else {
-        Logger.getInstance(ManifestPanel.class).warn("Can not find uses-sdk tag " + element);
         sb.add(message);
       }
+    } else {
+      // use tools override suggestion.
+      int eq = message.indexOf('=');
+      if (eq < 0) {
+        throw new IllegalArgumentException("unexpected use suggestion format " + message);
+      }
+      int end = message.indexOf('"', eq + 2);
+      if (end < 0 || message.charAt(eq + 1) != '\"') {
+        throw new IllegalArgumentException("unexpected use suggestion format " + message);
+      }
+      final String suggestion = message.substring(message.indexOf(' ') + 1, end + 1);
+      if (!SourcePosition.UNKNOWN.equals(position.getPosition())) {
+        XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
+        Element element = getElementAt(mainManifest, position.getPosition().getStartLine(), position.getPosition().getStartColumn());
+        if (element != null && SdkConstants.TAG_USES_SDK.equals(element.getTagName())) {
+          sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(() -> {
+            int eq1 = suggestion.indexOf('=');
+            String attributeName = suggestion.substring(suggestion.indexOf(':') + 1, eq1);
+            String attributeValue = suggestion.substring(eq1 + 2, suggestion.length() - 1);
+            addToolsAttribute(mainManifest, element, attributeName, attributeValue);
+          }));
+          sb.add(message.substring(end + 1));
+        }
+        else {
+          Logger.getInstance(ManifestPanel.class).warn("Can not find uses-sdk tag " + element);
+          sb.add(message);
+        }
+      } else {
+        sb.add(message);
+      }
+      sb.newlineIfNecessary().newline();
     }
-    else {
-      // If we do not have a uses-sdk tag in our main manifest, the suggestion is not useful
-      sb.add(message);
-    }
-    sb.newlineIfNecessary().newline();
     return sb.getHtml();
   }
 
