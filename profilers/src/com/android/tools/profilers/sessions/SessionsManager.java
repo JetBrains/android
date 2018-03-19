@@ -298,7 +298,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       mySessionArtifacts.add(item);
       List<SessionArtifact> artifacts = new ArrayList<>();
       myArtifactsFetchers.forEach(fetcher -> artifacts.addAll(fetcher.fetch(myProfilers, item.getSession(), item.getSessionMetaData())));
-      item.setCanExpand(!artifacts.isEmpty());
       if (item.isExpanded()) {
         mySessionArtifacts.addAll(artifacts);
       }

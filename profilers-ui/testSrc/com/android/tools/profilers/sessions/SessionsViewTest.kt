@@ -111,17 +111,21 @@ class SessionsViewTest {
     val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     myCpuService.addTraceInfo(cpuTraceInfo)
-    sessionItem0.isExpanded = true
+    mySessionsManager.update()
 
-    assertThat(sessionArtifacts.size).isEqualTo(4)
+    assertThat(sessionArtifacts.size).isEqualTo(6)
     sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    val hprofItem = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
-    val cpuCaptureItem = sessionArtifacts.getElementAt(2) as CpuCaptureSessionArtifact
+    val hprofItem0 = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
+    val cpuCaptureItem0 = sessionArtifacts.getElementAt(2) as CpuCaptureSessionArtifact
     sessionItem1 = sessionArtifacts.getElementAt(3) as SessionItem
+    val hprofItem1 = sessionArtifacts.getElementAt(4) as HprofSessionArtifact
+    val cpuCaptureItem1 = sessionArtifacts.getElementAt(5) as CpuCaptureSessionArtifact
     assertThat(sessionItem0.session).isEqualTo(session2)
-    assertThat(hprofItem.session).isEqualTo(session2)
-    assertThat(cpuCaptureItem.session).isEqualTo(session2)
+    assertThat(hprofItem0.session).isEqualTo(session2)
+    assertThat(cpuCaptureItem0.session).isEqualTo(session2)
     assertThat(sessionItem1.session).isEqualTo(session1)
+    assertThat(hprofItem1.session).isEqualTo(session1)
+    assertThat(cpuCaptureItem1.session).isEqualTo(session1)
   }
 
   @Test
@@ -286,7 +290,7 @@ class SessionsViewTest {
   fun testSessionItemMouseInteraction() {
     val sessionsList = mySessionsView.sessionsList
     sessionsList.ui = HeadlessListUI()
-    sessionsList.setSize(100, 100)
+    sessionsList.setSize(200,200)
     val ui = FakeUi(sessionsList)
     val sessionArtifacts = sessionsList.model
     assertThat(sessionArtifacts.size).isEqualTo(0)
@@ -308,21 +312,29 @@ class SessionsViewTest {
     mySessionsManager.endCurrentSession()
     val session2 = mySessionsManager.selectedSession
 
-    assertThat(sessionArtifacts.size).isEqualTo(2)
+    assertThat(sessionArtifacts.size).isEqualTo(6)
     // Sessions are sorted in descending order.
     var sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    var sessionItem1 = sessionArtifacts.getElementAt(1) as SessionItem
+    val hprofItem0 = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
+    val cpuCaptureItem0 = sessionArtifacts.getElementAt(2) as CpuCaptureSessionArtifact
+    var sessionItem1 = sessionArtifacts.getElementAt(3) as SessionItem
+    var hprofItem1 = sessionArtifacts.getElementAt(4) as HprofSessionArtifact
+    var cpuCaptureItem1 = sessionArtifacts.getElementAt(5) as CpuCaptureSessionArtifact
     assertThat(sessionItem0.session).isEqualTo(session2)
+    assertThat(hprofItem0.session).isEqualTo(session2)
+    assertThat(cpuCaptureItem0.session).isEqualTo(session2)
     assertThat(sessionItem1.session).isEqualTo(session1)
+    assertThat(hprofItem1.session).isEqualTo(session1)
+    assertThat(cpuCaptureItem1.session).isEqualTo(session1)
 
     // Clicking on the second session should select it.
     assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
     ui.layout()
-    var cellBound = sessionsList.getCellBounds(1, 1)
+    var cellBound = sessionsList.getCellBounds(3, 3)
     ui.mouse.click(cellBound.x + 1, cellBound.y + 1)
     assertThat(mySessionsManager.selectedSession).isEqualTo(session1)
 
-    // Clicking on the arrow region should expand but not select.
+    // Clicking on the arrow region should collapse but not select.
     ui.layout()
     cellBound = sessionsList.getCellBounds(0, 0)
     // Roughly estimating the expand arrow position
@@ -330,34 +342,23 @@ class SessionsViewTest {
     assertThat(mySessionsManager.selectedSession).isEqualTo(session1)
     assertThat(sessionArtifacts.size).isEqualTo(4)
     sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
-    val hprofItem = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
-    val cpuCaptureItem = sessionArtifacts.getElementAt(2) as CpuCaptureSessionArtifact
-    sessionItem1 = sessionArtifacts.getElementAt(3) as SessionItem
-    assertThat(sessionItem0.session).isEqualTo(session2)
-    assertThat(hprofItem.session).isEqualTo(session2)
-    assertThat(cpuCaptureItem.session).isEqualTo(session2)
-    assertThat(sessionItem1.session).isEqualTo(session1)
-
-    // Clicking again should collapse the session.
-    ui.layout()
-    // Roughly estimating the expand arrow position
-    ui.mouse.click(cellBound.x + EXPAND_ICON.iconWidth / 2, cellBound.y + EXPAND_ICON.iconHeight / 2)
-    assertThat(mySessionsManager.selectedSession).isEqualTo(session1)
-    assertThat(sessionArtifacts.size).isEqualTo(2)
-    sessionItem0 = sessionArtifacts.getElementAt(0) as SessionItem
     sessionItem1 = sessionArtifacts.getElementAt(1) as SessionItem
+    hprofItem1 = sessionArtifacts.getElementAt(2) as HprofSessionArtifact
+    cpuCaptureItem1 = sessionArtifacts.getElementAt(3) as CpuCaptureSessionArtifact
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem1.session).isEqualTo(session1)
+    assertThat(hprofItem1.session).isEqualTo(session1)
+    assertThat(cpuCaptureItem1.session).isEqualTo(session1)
 
     // Double clicking should select and also expand/collapse
     ui.layout()
     ui.mouse.doubleClick(cellBound.x + 1, cellBound.y + 1)
     assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
-    assertThat(sessionArtifacts.size).isEqualTo(4)
+    assertThat(sessionArtifacts.size).isEqualTo(6)
     ui.layout()
     ui.mouse.doubleClick(cellBound.x + 1, cellBound.y + 1)
     assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
-    assertThat(sessionArtifacts.size).isEqualTo(2)
+    assertThat(sessionArtifacts.size).isEqualTo(4)
   }
 
   @Test
@@ -380,18 +381,8 @@ class SessionsViewTest {
     mySessionsManager.endCurrentSession()
     val session = mySessionsManager.selectedSession
 
-    assertThat(sessionArtifacts.size).isEqualTo(1)
-    var sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
-    assertThat(sessionItem.session).isEqualTo(session)
-
-    ui.layout()
-    var cellBound = sessionsList.getCellBounds(0, 0)
-    ui.mouse.click(cellBound.x + 1, cellBound.y + 1) // Click on the session
-    ui.layout()
-    // Roughly estimating the expand arrow position to expand the session artifacts showing the CpuCaptureSessionArtifact
-    ui.mouse.click(cellBound.x + EXPAND_ICON.iconWidth / 2, cellBound.y + EXPAND_ICON.iconHeight / 2)
     assertThat(sessionArtifacts.size).isEqualTo(2)
-    sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
+    var sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
     val cpuCaptureItem = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
     assertThat(sessionItem.session).isEqualTo(session)
     assertThat(cpuCaptureItem.session).isEqualTo(session)
@@ -404,7 +395,7 @@ class SessionsViewTest {
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Clicking on the CpuCaptureSessionArtifact should open CPU profiler and select the capture
-    cellBound = sessionsList.getCellBounds(1, 1)
+    val cellBound = sessionsList.getCellBounds(1, 1)
     ui.mouse.click(cellBound.x + 1, cellBound.y + 1) // Click on the CPU artifact
     assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
     val selectedCapture = (myProfilers.stage as CpuProfilerStage).capture
@@ -433,21 +424,9 @@ class SessionsViewTest {
     mySessionsManager.endCurrentSession()
     val session = mySessionsManager.selectedSession
 
-    assertThat(sessionArtifacts.size).isEqualTo(1)
-    var sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
-    assertThat(sessionItem.session).isEqualTo(session)
-
-    ui.layout()
-    var cellBound = sessionsList.getCellBounds(0, 0)
-    // Click on the session.
-    ui.mouse.click(cellBound.x + 1, cellBound.y + 1)
-    ui.layout()
-    // Roughly estimating the expand arrow position to expand the session artifacts showing the CpuCaptureSessionArtifact.
-    ui.mouse.click(cellBound.x + EXPAND_ICON.iconWidth / 2, cellBound.y + EXPAND_ICON.iconHeight / 2)
-
     assertThat(sessionArtifacts.size).isEqualTo(2)
-    sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
-    val hprofItem = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
+    var sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
+    var hprofItem = sessionArtifacts.getElementAt(1) as HprofSessionArtifact
     assertThat(sessionItem.session).isEqualTo(session)
     assertThat(hprofItem.session).isEqualTo(session)
 
@@ -464,7 +443,7 @@ class SessionsViewTest {
     // Makes sure we're in monitor stage.
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java)
     // Clicking on the HprofSessionArtifact should open CPU profiler and select the capture.
-    cellBound = sessionsList.getCellBounds(1, 1)
+    val cellBound = sessionsList.getCellBounds(1, 1)
     // Click on the Hprof.
     ui.mouse.click(cellBound.x + 1, cellBound.y + 1)
     // Makes sure memory profiler stage is now open.

@@ -29,7 +29,6 @@ public class SessionItem implements SessionArtifact {
   @NotNull private Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
   private boolean myIsExpanded;
-  private boolean myCanExpand;
 
   public SessionItem(@NotNull StudioProfilers profilers, @NotNull Common.Session session) {
     myProfilers = profilers;
@@ -37,6 +36,8 @@ public class SessionItem implements SessionArtifact {
     Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
       .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(mySession.getSessionId()).build());
     mySessionMetaData = response.getData();
+    // Sessions are expanded by default.
+    myIsExpanded = true;
   }
 
   @NotNull
@@ -92,19 +93,6 @@ public class SessionItem implements SessionArtifact {
      * {@link SessionsManager#getSessionArtifacts()}.
      */
     myProfilers.getSessionsManager().update();
-  }
-
-  public boolean canExpand() {
-    return myCanExpand;
-  }
-
-  /**
-   * Sets whether this {@link SessionItem} can be expanded (e.g. it has additional artifacts to show}. Note that setting this to false
-   * does not auto collapse the {@link SessionItem} if it is already expanded. This allows the instance to keep the expansion state if
-   * artifacts are removed and new ones are added again.
-   */
-  public void setCanExpand(boolean canExpand) {
-    myCanExpand = canExpand;
   }
 
   @Override
