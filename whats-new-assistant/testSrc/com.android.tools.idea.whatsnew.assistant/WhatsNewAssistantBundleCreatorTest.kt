@@ -19,6 +19,7 @@ import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.flags.StudioFlags
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.net.URL
@@ -30,12 +31,14 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.clearOverride()
   }
 
+  @Test
   fun testDisabled() {
     StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(false)
 
     TestCase.assertFalse(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes())
   }
 
+  @Test
   fun testEnabledWithoutFile() {
     StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(true)
     val mockBundler = mock(AssistantBundleCreator::class.java)
@@ -48,6 +51,7 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
     WhatsNewAssistantBundleCreator.setTestCreator(null)
   }
 
+  @Test
   fun testEnabled() {
     StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(true)
     val mockBundler = mock(AssistantBundleCreator::class.java)

@@ -20,6 +20,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.startup.StartupActivity;
 
 
@@ -64,7 +65,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
 
     WhatsNewData data = service.getState();
 
-    if (GuiTestingService.getInstance().isGuiTestingMode() && !data.myIsUnderTest) {
+    if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()) {
       return;
     }
 
@@ -147,9 +148,5 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
   @VisibleForTesting
   public static class WhatsNewData {
     @Tag("shownVersion") public String myRevision;
-
-    // Not persisted. Used to indicate that we're in a UI test where this should be shown (by default it will not be shown in UI tests.
-    @Transient
-    public boolean myIsUnderTest = false;
   }
 }
