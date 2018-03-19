@@ -133,6 +133,15 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
     responseObserver.onCompleted();
   }
 
+  @Override
+  public void getEventGroup(EnergyEventGroupRequest request, StreamObserver<EnergyEventsResponse> responseObserver) {
+    EnergyProfiler.EnergyEventsResponse.Builder response = EnergyProfiler.EnergyEventsResponse.newBuilder();
+    List<EnergyEvent> events = myEnergyTable.findEventGroup(request);
+    response.addAllEvents(events);
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
   @NotNull
   @Override
   public List<DataStoreService.BackingNamespace> getBackingNamespaces() {
