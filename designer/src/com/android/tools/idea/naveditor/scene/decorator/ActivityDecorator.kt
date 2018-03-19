@@ -38,6 +38,7 @@ import java.awt.Rectangle
 @NavCoordinate private val ACTIVITY_ARC_SIZE = JBUI.scale(12)
 @NavCoordinate private val ACTIVITY_PADDING = JBUI.scale(8)
 @NavCoordinate private val ACTIVITY_TEXT_HEIGHT = JBUI.scale(26)
+@SwingCoordinate private val ACTIVITY_BORDER_WIDTH = JBUI.scale(1)
 
 class ActivityDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
@@ -57,6 +58,9 @@ class ActivityDecorator : NavScreenDecorator() {
     imageRectangle.height -= (activityTextHeight - activityPadding)
 
     drawImage(list, sceneContext, component, imageRectangle)
+    val imageBorder = Rectangle(imageRectangle)
+    imageBorder.grow(ACTIVITY_BORDER_WIDTH, ACTIVITY_BORDER_WIDTH)
+    list.add(DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, imageRectangle, NavColorSet.ACTIVITY_BORDER_COLOR, ACTIVITY_BORDER_WIDTH))
 
     val textRectangle = Rectangle(drawRectangle.x, imageRectangle.y + imageRectangle.height, drawRectangle.width, activityTextHeight)
     list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", textRectangle, textColor(sceneContext, component),
