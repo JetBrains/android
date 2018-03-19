@@ -63,18 +63,10 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     myComponent
       .setBorder(getIndex() == 0 ? selectionBorder : JBUI.Borders.merge(AdtUiUtils.DEFAULT_TOP_BORDER, selectionBorder, false));
 
-    if (getArtifact().canExpand()) {
-      myExpandCollapseButton = new CommonButton(getArtifact().isExpanded() ? COLLAPSE_ICON : EXPAND_ICON);
-      myExpandCollapseButton.setBorder(EXPAND_ICON_BORDER);
-      myExpandCollapseButton.addActionListener(e -> getArtifact().setExpanded(!getArtifact().isExpanded()));
-      myComponent.add(myExpandCollapseButton, new TabularLayout.Constraint(0, 0));
-    }
-    else {
-      JComponent spacer = new Box.Filler(new Dimension(EXPAND_COLLAPSE_COLUMN_WIDTH, 0),
-                                         new Dimension(EXPAND_COLLAPSE_COLUMN_WIDTH, 0),
-                                         new Dimension(EXPAND_COLLAPSE_COLUMN_WIDTH, Short.MAX_VALUE));
-      myComponent.add(spacer, new TabularLayout.Constraint(0, 0));
-    }
+    myExpandCollapseButton = new CommonButton(getArtifact().isExpanded() ? COLLAPSE_ICON : EXPAND_ICON);
+    myExpandCollapseButton.setBorder(EXPAND_ICON_BORDER);
+    myExpandCollapseButton.addActionListener(e -> getArtifact().setExpanded(!getArtifact().isExpanded()));
+    myComponent.add(myExpandCollapseButton, new TabularLayout.Constraint(0, 0));
 
     // TODO b\73780379 add duration.
     DateFormat timeFormat = new SimpleDateFormat("hh:mm a");

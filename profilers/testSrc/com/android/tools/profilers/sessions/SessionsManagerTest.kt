@@ -284,12 +284,10 @@ class SessionsManagerTest {
     var sessionItem1 = sessionItems[1] as SessionItem
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.canExpand()).isFalse()
-    assertThat(sessionItem0.isExpanded).isFalse()
+    assertThat(sessionItem0.isExpanded).isTrue()
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.canExpand()).isFalse()
-    assertThat(sessionItem1.isExpanded).isFalse()
+    assertThat(sessionItem1.isExpanded).isTrue()
 
     val heapDumpTimestamp = 10L
     val cpuTraceTimestamp = 20L
@@ -299,55 +297,44 @@ class SessionsManagerTest {
     myCpuService.addTraceInfo(cpuTraceInfo)
     myManager.update()
 
-    // Sessions should now be expandable
+    // Sessions should now be expandable and expanded by default
+    // The Hprof and CPU capture artifacts are now included and sorted in ascending order
     sessionItems = myManager.sessionArtifacts
-    assertThat(sessionItems).hasSize(2)
+    assertThat(sessionItems).hasSize(6)
     sessionItem0 = sessionItems[0] as SessionItem
-    sessionItem1 = sessionItems[1] as SessionItem
-    assertThat(sessionItem0.session).isEqualTo(session2)
-    assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.canExpand()).isTrue()
-    assertThat(sessionItem0.isExpanded).isFalse()
-    assertThat(sessionItem1.session).isEqualTo(session1)
-    assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.canExpand()).isTrue()
-    assertThat(sessionItem1.isExpanded).isFalse()
-
-    // Expand the first session, the hprof and cpu capture artifacts should now be included and sorted in ascending order.
-    sessionItem0.isExpanded = true
-    sessionItems = myManager.sessionArtifacts
-    assertThat(sessionItems).hasSize(4)
-    sessionItem0 = sessionItems[0] as SessionItem
-    val hprofItem = sessionItems[1] as HprofSessionArtifact
-    val cpuCaptureItem = sessionItems[2] as CpuCaptureSessionArtifact
+    val hprofItem0 = sessionItems[1] as HprofSessionArtifact
+    val cpuCaptureItem0 = sessionItems[2] as CpuCaptureSessionArtifact
     sessionItem1 = sessionItems[3] as SessionItem
+    val hprofItem1 = sessionItems[4] as HprofSessionArtifact
+    val cpuCaptureItem1 = sessionItems[5] as CpuCaptureSessionArtifact
 
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.canExpand()).isTrue()
     assertThat(sessionItem0.isExpanded).isTrue()
-    assertThat(hprofItem.session).isEqualTo(session2)
-    assertThat(hprofItem.timestampNs).isEqualTo(heapDumpTimestamp - session2Timestamp)
-    assertThat(cpuCaptureItem.session).isEqualTo(session2)
-    assertThat(cpuCaptureItem.timestampNs).isEqualTo(cpuTraceTimestamp - session2Timestamp)
+    assertThat(hprofItem0.session).isEqualTo(session2)
+    assertThat(hprofItem0.timestampNs).isEqualTo(heapDumpTimestamp - session2Timestamp)
+    assertThat(cpuCaptureItem0.session).isEqualTo(session2)
+    assertThat(cpuCaptureItem0.timestampNs).isEqualTo(cpuTraceTimestamp - session2Timestamp)
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.canExpand()).isTrue()
-    assertThat(sessionItem1.isExpanded).isFalse()
+    assertThat(sessionItem1.isExpanded).isTrue()
+    assertThat(hprofItem1.session).isEqualTo(session1)
+    assertThat(hprofItem1.timestampNs).isEqualTo(heapDumpTimestamp - session1Timestamp)
+    assertThat(cpuCaptureItem1.session).isEqualTo(session1)
+    assertThat(cpuCaptureItem1.timestampNs).isEqualTo(cpuTraceTimestamp - session1Timestamp)
 
-    // Collpase the session again
+    // Collapse the sessions
     sessionItem0.isExpanded = false
+    sessionItem1.isExpanded = false
     sessionItems = myManager.sessionArtifacts
     assertThat(sessionItems).hasSize(2)
     sessionItem0 = sessionItems[0] as SessionItem
     sessionItem1 = sessionItems[1] as SessionItem
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.canExpand()).isTrue()
     assertThat(sessionItem0.isExpanded).isFalse()
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.canExpand()).isTrue()
     assertThat(sessionItem1.isExpanded).isFalse()
   }
 
