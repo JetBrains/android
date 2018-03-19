@@ -90,6 +90,7 @@ class NavSceneTest : NavTestCase() {
             "DrawFilledRectangle,1,400x400x76x128,fffafafa,6\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,6\n" +
             "DrawPreviewUnavailable,404x404x68x111\n" +
+            "DrawRectangle,5,404x404x68x111,ffa7a7a7,1,0\n" +
             "DrawTruncatedText,3,Activity,400x515x76x13,ffa7a7a7,Default:1:9,true\n" +
             "DrawTruncatedText,3,activity,400x390x76x5,ff656565,Default:0:9,false\n" +
             "\n" +

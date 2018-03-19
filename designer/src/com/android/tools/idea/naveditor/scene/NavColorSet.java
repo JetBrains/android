@@ -42,6 +42,7 @@ public class NavColorSet extends ColorSet {
   public static final JBColor LASSO_FILL_COLOR = new JBColor(new Color(0x1a1886f7, true), new Color(0x1a9ccdff, true));
   public static final JBColor NO_PREVIEW_BACKGROUND_COLOR = new JBColor(new Color(0xfdfdfd), new Color(0xfdfdfd));
   public static final JBColor NO_PREVIEW_TEXT_COLOR = new JBColor(new Color(0xa7a7a7), new Color(0xa7a7a7));
+  public static final JBColor ACTIVITY_BORDER_COLOR = new JBColor(0xa7a7a7, 0x2d2f31);
 
   private Color mActions;
   private Color mHighlightedActions;
