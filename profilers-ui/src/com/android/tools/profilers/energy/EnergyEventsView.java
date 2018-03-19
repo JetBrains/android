@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profilers.BorderlessTableCellRenderer;
 import com.android.tools.profilers.HoverRowTable;
@@ -144,7 +145,14 @@ public final class EnergyEventsView {
       }
       int row = myEventsTable.getSelectedRow();
       if (row >= 0 && row < myEventsTable.getRowCount()) {
-        myStage.setSelectedDuration(myTableModel.getValue(myEventsTable.convertRowIndexToModel(row)));
+        EnergyDuration partialDuration = myTableModel.getValue(myEventsTable.convertRowIndexToModel(row));
+        EnergyProfiler.EnergyEventGroupRequest request = EnergyProfiler.EnergyEventGroupRequest.newBuilder()
+          .setSession(myStage.getStudioProfilers().getSession())
+          .setEventId(partialDuration.getEventList().get(0).getEventId())
+          .build();
+        EnergyDuration completeDuration =
+          new EnergyDuration(myStage.getStudioProfilers().getClient().getEnergyClient().getEventGroup(request).getEventsList());
+        myStage.setSelectedDuration(completeDuration);
       }
     });
   }
