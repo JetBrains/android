@@ -248,7 +248,7 @@ fun NlModel.createComponents(scene: Scene,
 }
 
 fun NlModel.moduleDependsOnAppCompat(): Boolean {
-  return this.module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) || this.module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+  return this.module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)
 }
 
 fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {

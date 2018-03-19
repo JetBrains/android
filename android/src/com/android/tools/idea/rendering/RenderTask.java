@@ -339,8 +339,8 @@ public class RenderTask {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour
-      boolean useSrcCompat = DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.APP_COMPAT_V7) ||
-                             DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+      boolean useSrcCompat = DependencyManagementUtil.dependsOn(getContext().getModule(),
+                                                                GoogleMavenArtifactId.APP_COMPAT_V7);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }

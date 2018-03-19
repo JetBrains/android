@@ -287,13 +287,6 @@ public final class TemplateValueInjector {
       String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(GoogleMavenArtifactId.ESPRESSO_CORE.getMavenGroupId(),
                                                                              GoogleMavenArtifactId.ESPRESSO_CORE.getMavenArtifactId(),
                                                                              null, false, sdkLocation, FileOpUtils.create());
-
-      if (espressoVersion == null) {
-        espressoVersion = RepositoryUrlManager.get().getLibraryRevision(GoogleMavenArtifactId.ANDROIDX_ESPRESSO_CORE.getMavenGroupId(),
-                                                                        GoogleMavenArtifactId.ANDROIDX_ESPRESSO_CORE.getMavenArtifactId(),
-                                                                        null, false, sdkLocation, FileOpUtils.create());
-      }
-
       if (espressoVersion != null) {
         myTemplateValues.put(ATTR_ESPRESSO_VERSION, espressoVersion);
       }
