@@ -118,7 +118,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val mapNode =
       appNode.children().asSequence().find { "mapVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
     assertThat(mapNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.MAP))
-    assertThat(mapNode.childCount, equalTo(2))
+    assertThat(mapNode.childCount, equalTo(3))
     assertThat(tableModel.getValueAt(mapNode, 0) as String, equalTo("mapVariable"))
     assertThat(tableModel.getValueAt(mapNode, 1) as String, equalTo("[a=\"double\" quotes, b='single' quotes]"))
 
@@ -133,6 +133,10 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val secondElementNode = mapNode.getChildAt(1)
     assertThat(tableModel.getValueAt(secondElementNode, 0) as String, equalTo("b"))
     assertThat(tableModel.getValueAt(secondElementNode, 1) as String, equalTo("\"'single' quotes\""))
+
+    val emptyElement = mapNode.getChildAt(2)
+    assertThat(tableModel.getValueAt(emptyElement, 0) as String, equalTo(""))
+    assertThat(tableModel.getValueAt(emptyElement, 1) as String, equalTo(""))
   }
 
   fun testModuleNodeRename() {
@@ -358,7 +362,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val tableModel = variablesTable.tableModel
 
     val appNode = (tableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
-    assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVariable")))
+    assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newList")))
 
     variablesTable.tree.selectionPath = TreePath(appNode.path)
     variablesTable.addVariable(GradlePropertyModel.ValueType.LIST)
@@ -386,6 +390,46 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"list item\""))
 
     val secondElementNode = newListNode.getChildAt(1)
+    assertThat(tableModel.getValueAt(secondElementNode, 0) as String, equalTo(""))
+    assertThat(tableModel.getValueAt(secondElementNode, 1) as String, equalTo(""))
+  }
+
+  fun testAddMap() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psContext = PsContext(PsProject(project), testRootDisposable)
+    val variablesTable = VariablesTable(project, psContext)
+    val tableModel = variablesTable.tableModel
+
+    val appNode = (tableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
+    assertThat(appNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newMap")))
+
+    variablesTable.tree.selectionPath = TreePath(appNode.path)
+    variablesTable.addVariable(GradlePropertyModel.ValueType.MAP)
+    val editorComp = variablesTable.editorComponent as JPanel
+    val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
+    textBox.text = "newMap"
+    variablesTable.editingStopped(null)
+
+    val variableNode =
+      appNode.children().asSequence().find { "newMap" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
+    assertThat(variableNode.childCount, equalTo(1))
+    assertThat(variablesTable.tree.isExpanded(TreePath(variableNode.path)), equalTo(true))
+
+    tableModel.setValueAt("key", variableNode.getChildAt(0), 0)
+    tableModel.setValueAt("value", variableNode.getChildAt(0), 1)
+    assertThat(variableNode.childCount, equalTo(2))
+
+    appNode.module.applyChanges()
+    val newTableModel = VariablesTable(project, psContext).tableModel
+    val newAppNode = (newTableModel.root as DefaultMutableTreeNode).firstChild as VariablesTable.ModuleNode
+    val newMapNode =
+      newAppNode.children().asSequence().find { "newMap" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
+
+    val firstElementNode = newMapNode.getChildAt(0)
+    assertThat(tableModel.getValueAt(firstElementNode, 0) as String, equalTo("key"))
+    assertThat(tableModel.getValueAt(firstElementNode, 1) as String, equalTo("\"value\""))
+
+    val secondElementNode = newMapNode.getChildAt(1)
     assertThat(tableModel.getValueAt(secondElementNode, 0) as String, equalTo(""))
     assertThat(tableModel.getValueAt(secondElementNode, 1) as String, equalTo(""))
   }
