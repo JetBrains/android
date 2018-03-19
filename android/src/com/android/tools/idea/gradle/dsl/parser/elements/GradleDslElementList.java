@@ -45,13 +45,22 @@ public class GradleDslElementList extends GradleDslElement {
     element.myParent = this;
     myToBeAddedElements.add(element);
     setModified(true);
+    updateDependenciesOnAddElement(element);
   }
 
   public void removeElement(@NotNull GradleDslElement element) {
-    if (myElements.contains(element)) {
-      myToBeRemovedElements.add(element);
-      setModified(true);
-    }
+    assert myElements.contains(element);
+    myToBeRemovedElements.add(element);
+    setModified(true);
+    updateDependenciesOnRemoveElement(element);
+  }
+
+  public void replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    assert oldElement.getFullName().equals(newElement.getFullName());
+    myToBeRemovedElements.add(oldElement);
+    myToBeAddedElements.add(newElement);
+    setModified(true);
+    updateDependenciesOnReplaceElement(oldElement, newElement);
   }
 
   @NotNull

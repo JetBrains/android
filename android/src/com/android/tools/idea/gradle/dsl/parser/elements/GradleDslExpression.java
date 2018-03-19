@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
@@ -59,6 +61,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
     super(parent, psiElement, name);
     myExpression = expression;
     myHasCycle = ThreeState.UNSURE;
+    resolve();
   }
 
   @Nullable
@@ -91,11 +94,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
   @Override
   @NotNull
   public List<GradleReferenceInjection> getResolvedVariables() {
-    if (myExpression == null) {
-      return Collections.emptyList();
-    }
-    return ApplicationManager.getApplication()
-      .runReadAction((Computable<List<GradleReferenceInjection>>)() -> getDslFile().getParser().getResolvedInjections(this, myExpression));
+    return myDependencies.stream().filter(e -> e.isResolved()).collect(Collectors.toList());
   }
 
   @Nullable
@@ -343,7 +342,17 @@ public abstract class GradleDslExpression extends GradleDslElement {
     for (int i = 0; i < nameParts.size() - 1; i++) {
       // Only look for variables on the first iteration, otherwise only properties should be accessible.
       element = extractElementFromProperties(properties, nameParts.get(i), i == 0);
-      // All elements we fine must be property elements on all but the last iteration.
+      while (element instanceof GradleDslReference) {
+        // Attempt to follow references
+        GradleReferenceInjection injection = ((GradleDslReference)element).getReferenceInjection();
+        if (injection == null) {
+          return null;
+        }
+
+        element = injection.getToBeInjected();
+      }
+
+      // All elements we find must be GradlePropertiesDslElement or references them on all but the last iteration.
       if (element == null || !(element instanceof GradlePropertiesDslElement)) {
         return null;
       }
@@ -508,8 +517,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
 
     seen.add(element);
 
-    Collection<GradleReferenceInjection> injections =
-      element.getDslFile().getParser().getResolvedInjections(element, element.getExpression());
+    Collection<GradleReferenceInjection> injections = element.getResolvedVariables();
 
     for (GradleReferenceInjection injection : injections) {
       if (injection.getToBeInjectedExpression() == null) {
@@ -526,5 +534,32 @@ public abstract class GradleDslExpression extends GradleDslElement {
     seen.remove(element);
     cycleFree.add(element);
     return false;
+  }
+
+  @Override
+  protected void resolve() {
+    setupDependencies(myExpression);
+  }
+
+  @NotNull
+  protected List<GradleReferenceInjection> fetchDependencies(@Nullable PsiElement element) {
+    if (element == null) {
+      return ImmutableList.of();
+    }
+    return ApplicationManager.getApplication()
+      .runReadAction((Computable<List<GradleReferenceInjection>>)() -> getDslFile().getParser().getInjections(this, element));
+  }
+
+  protected void setupDependencies(@Nullable PsiElement element) {
+    // Unregister any registered dependencies.
+    myDependencies.stream().filter(e -> e.getToBeInjected() != null).forEach(e -> e.getToBeInjected().unregisterDependent(e));
+    myDependencies.stream().filter(e -> e.getToBeInjected() == null)
+      .forEach(e -> getDslFile().getContext().getDependencyManager().unregisterUnresolvedReference(e));
+    myDependencies.clear();
+    myDependencies.addAll(fetchDependencies(element));
+    // Register any resolved dependencies with the elements they depend on.
+    myDependencies.stream().filter(e -> e.getToBeInjected() != null).forEach(e -> e.getToBeInjected().registerDependent(e));
+    myDependencies.stream().filter(e -> e.getToBeInjected() == null)
+      .forEach(e -> getDslFile().getContext().getDependencyManager().registerUnresolvedReference(e));
   }
 }

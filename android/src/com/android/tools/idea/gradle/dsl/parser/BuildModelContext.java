@@ -47,6 +47,8 @@ public final class BuildModelContext {
   private final GradleDslFileCache myFileCache;
   @NotNull
   private final ClassToInstanceMap<BuildModelNotification> myNotifications = MutableClassToInstanceMap.create();
+  @NotNull
+  private final DependencyManager myDependencyManager;
 
   @NotNull
   public static BuildModelContext create(@NotNull Project project) {
@@ -56,6 +58,12 @@ public final class BuildModelContext {
   private BuildModelContext(@NotNull Project project) {
     myProject = project;
     myFileCache = new GradleDslFileCache(project);
+    myDependencyManager = DependencyManager.create();
+  }
+
+  @NotNull
+  public DependencyManager getDependencyManager() {
+    return myDependencyManager;
   }
 
   @NotNull

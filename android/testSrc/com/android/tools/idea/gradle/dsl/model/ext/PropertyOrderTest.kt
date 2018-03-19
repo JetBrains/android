@@ -823,4 +823,24 @@ class PropertyOrderTest : GradleFileModelTestCase() {
                    }""".trimIndent()
     verifyFileContents(myBuildFile, expected)
   }
+
+  @Test
+  fun testWrongOrderNoDependency() {
+    val text = """
+               ext {
+                 prop1 = prop2
+                 prop2 = "hello"
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    run {
+      val firstModel = buildModel.ext().findProperty("prop1")
+      // TODO: This should have 0 dependencies when resolution respects property order.
+      verifyPropertyModel(firstModel, STRING_TYPE, "prop2", REFERENCE, REGULAR, 1, "prop1")
+      val secondModel = buildModel.ext().findProperty("prop2")
+      verifyPropertyModel(secondModel, STRING_TYPE, "hello", STRING, REGULAR, 0, "prop2")
+    }
+
+  }
 }

@@ -57,6 +57,9 @@ public abstract class GradleDslElement implements AnchorProvider {
 
   @NotNull private PropertyType myElementType;
 
+  @NotNull protected final List<GradleReferenceInjection> myDependencies = new ArrayList<>();
+  @NotNull protected final List<GradleReferenceInjection> myDependents = new ArrayList<>();
+
   /**
    * Creates an in stance of a {@link GradleDslElement}
    *
@@ -110,6 +113,18 @@ public abstract class GradleDslElement implements AnchorProvider {
   public void rename(@NotNull String newName) {
     myName.rename(newName);
     setModified(true);
+
+    // If we are a GradleDslExpression we need to ensure our dependencies are correct.
+    if (!(this instanceof GradleDslExpression)) {
+      return;
+    }
+
+    List<GradleReferenceInjection> dependents = getDependents();
+    unregisterAllDependants();
+    // The property we renamed could have been shadowing another one. Attempt to re-resolve all dependents.
+    dependents.forEach(e -> e.getOriginElement().resolve());
+    // The new name could also create new dependencies, we need to make sure to resolve them.
+    getDslFile().getContext().getDependencyManager().resolveWith(this);
   }
 
   /**
@@ -312,12 +327,92 @@ public abstract class GradleDslElement implements AnchorProvider {
 
   /**
    * Helpers to quick obtain a notification instance for this elements build context.
+   *
    * @param type type reference of the given notification, see {@link NotificationTypeReference} for possible values.
-   * @param <T> type of the notification
+   * @param <T>  type of the notification
    * @return the instance of the notification in the build model.
    */
   @NotNull
   public <T extends BuildModelNotification> T notification(@NotNull NotificationTypeReference<T> type) {
     return getDslFile().getContext().getNotificationForType(type);
+  }
+
+  public void registerDependent(@NotNull GradleReferenceInjection injection) {
+    assert injection.isResolved() && injection.getToBeInjected() == this;
+    myDependents.add(injection);
+  }
+
+  public void unregisterDependent(@NotNull GradleReferenceInjection injection) {
+    assert injection.isResolved() && injection.getToBeInjected() == this;
+    assert myDependents.contains(injection);
+    myDependents.remove(injection);
+  }
+
+  protected void unregisterAllDependants() {
+    // We need to create a new array to avoid concurrent modification exceptions.
+    myDependents.forEach(e -> {
+      // Break the dependency.
+      e.resolveWith(null);
+      // Register with DependencyManager
+      getDslFile().getContext().getDependencyManager().registerUnresolvedReference(e);
+    });
+    myDependents.clear();
+  }
+
+  /**
+   * @return all things that depend on this element.
+   */
+  @NotNull
+  public List<GradleReferenceInjection> getDependents() {
+    return new ArrayList<>(myDependents);
+  }
+
+  /**
+   * @return all resolved and unresolved dependencies.
+   */
+  @NotNull
+  public List<GradleReferenceInjection> getDependencies() {
+    return new ArrayList<>(myDependencies);
+  }
+
+  public void updateDependenciesOnAddElement(@NotNull GradleDslElement newElement) {
+    newElement.resolve();
+    newElement.getDslFile().getContext().getDependencyManager().resolveWith(newElement);
+  }
+
+  public void updateDependenciesOnReplaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    // Switch dependents to point to the new element.
+    List<GradleReferenceInjection> injections = oldElement.getDependents();
+    oldElement.unregisterAllDependants();
+    injections.forEach(e -> e.resolveWith(newElement));
+    // Register all the dependents with this new element.
+    injections.forEach(newElement::registerDependent);
+
+    // Go though our dependencies and unregister us as a dependent.
+    oldElement.getResolvedVariables().forEach(e -> {
+      GradleDslElement toBeInjected = e.getToBeInjected();
+      if (toBeInjected != null) {
+        toBeInjected.unregisterDependent(e);
+      }
+    });
+  }
+
+  public void updateDependenciesOnRemoveElement(@NotNull GradleDslElement oldElement) {
+    List<GradleReferenceInjection> dependents = oldElement.getDependents();
+    oldElement.unregisterAllDependants();
+
+    // The property we remove could have been shadowing another one. Attempt to re-resolve all dependents.
+    dependents.forEach(e -> e.getOriginElement().resolve());
+
+    // Go though our dependencies and unregister us as a dependent.
+    oldElement.getResolvedVariables().forEach(e -> {
+      GradleDslElement toBeInjected = e.getToBeInjected();
+      if (toBeInjected != null) {
+        toBeInjected.unregisterDependent(e);
+      }
+    });
+  }
+
+  protected void resolve() {
   }
 }

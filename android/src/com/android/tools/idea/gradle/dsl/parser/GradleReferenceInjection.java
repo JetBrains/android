@@ -52,6 +52,10 @@ public class GradleReferenceInjection {
     return myToBeInjected != null;
   }
 
+  public void resolveWith(@Nullable GradleDslElement expression) {
+    myToBeInjected = expression;
+  }
+
   @Nullable
   public GradleDslElement getToBeInjected() {
     return myToBeInjected;

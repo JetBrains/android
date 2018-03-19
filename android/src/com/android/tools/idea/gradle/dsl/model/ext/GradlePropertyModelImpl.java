@@ -15,7 +15,6 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
@@ -309,6 +308,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   public void delete() {
+    if (myElement == null) {
+      // Nothing to delete.
+      return;
+    }
+
     removeElement(myElement);
     myElement = null;
   }

@@ -208,6 +208,9 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
       addAppliedModelProperties(dslFile);
     }
+
+    // Make sure any dependencies are correct.
+    getContext().getDependencyManager().resolveAll();
   }
 
   @NotNull

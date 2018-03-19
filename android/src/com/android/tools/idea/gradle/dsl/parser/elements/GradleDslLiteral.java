@@ -88,20 +88,6 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   }
 
   /**
-   * Overwritten to ensure dependencies of set value are correctly computed.
-   */
-  @Override
-  @NotNull
-  public List<GradleReferenceInjection> getResolvedVariables() {
-    PsiElement element = getCurrentElement();
-    if (element == null) {
-      return Collections.emptyList();
-    }
-    return ApplicationManager.getApplication()
-      .runReadAction((Computable<List<GradleReferenceInjection>>)() -> getDslFile().getParser().getResolvedInjections(this, element));
-  }
-
-  /**
    * Returns the value of type {@code clazz} when the literal contains the value of that type,
    * or {@code null} otherwise.
    */

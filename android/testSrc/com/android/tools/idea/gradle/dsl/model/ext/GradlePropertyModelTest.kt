@@ -3234,8 +3234,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       deps[0].dependencies[0].delete()
       // And edit one of the properties
       deps[0].setValue(72)
-
-      buildModel.ext().inScopeProperties
       verifyPropertyModel(propertyModel, STRING_TYPE, "72 : 72 world! : true", STRING, REGULAR, 3)
     }
 
