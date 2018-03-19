@@ -34,6 +34,7 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
     QUERY_SAMPLE,
     INSERT_EVENT,
     QUERY_EVENT,
+    QUERY_EVENT_GROUP,
   }
 
   @Override
@@ -81,6 +82,12 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
                       "SELECT Event, Timestamp" +
                       " FROM Energy_Event " +
                       " WHERE Session = ? AND Timestamp >= ? AND Timestamp < ?" +
+                      "ORDER BY Timestamp;");
+
+      createStatement(EventStatements.QUERY_EVENT_GROUP,
+                      "SELECT Event, Timestamp" +
+                      " FROM Energy_Event " +
+                      " WHERE Session = ? AND Id = ?" +
                       "ORDER BY Timestamp;");
       }
     catch (SQLException ex) {
@@ -141,6 +148,23 @@ public final class EnergyTable extends DataStoreTable<EnergyTable.EventStatement
         request.getStartTimestamp(),
         request.getEndTimestamp());
 
+      return getEventsFromResultSet(results);
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+    return null;
+  }
+
+  /**
+   * Return all events that share the same ID, making them an event group.
+   *
+   * @return The list of matching events given the {@code request} parameter, or {@code null} if there's a SQL-related error.
+   */
+  @Nullable
+  public List<EnergyProfiler.EnergyEvent> findEventGroup(EnergyProfiler.EnergyEventGroupRequest request) {
+    try {
+      ResultSet results = executeQuery(EventStatements.QUERY_EVENT_GROUP, request.getSession().getSessionId(), request.getEventId());
       return getEventsFromResultSet(results);
     }
     catch (SQLException ex) {

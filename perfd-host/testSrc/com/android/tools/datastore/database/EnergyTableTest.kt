@@ -19,6 +19,7 @@ import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -70,9 +71,10 @@ class EnergyTableTest {
       for (i in 0 until numWakeLockGroups) {
         val timeAcquired = (wakeLockPeriod * i).toLong()
         val timeReleased = timeAcquired + wakeLockLength
+        val eventId = i + 1
         table.insertOrReplace(
           session, EnergyProfiler.EnergyEvent.newBuilder()
-            .setEventId(i)
+            .setEventId(eventId)
             .setTimestamp(timeAcquired)
             .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
             .build()
@@ -80,7 +82,7 @@ class EnergyTableTest {
 
         table.insertOrReplace(
           session, EnergyProfiler.EnergyEvent.newBuilder()
-            .setEventId(i)
+            .setEventId(eventId)
             .setTimestamp(timeReleased)
             .setIsTerminal(true)
             .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
@@ -114,6 +116,12 @@ class EnergyTableTest {
     .setStartTimestamp(t0)
     .setEndTimestamp(t1)
     .build()
+
+  private fun newEnergyGroupRequest(eventId: Int, session: Common.Session = MAIN_SESSION) =
+    EnergyProfiler.EnergyEventGroupRequest.newBuilder()
+      .setSession(session)
+      .setEventId(eventId)
+      .build()
 
   @Test
   fun testGetSamples() {
@@ -198,6 +206,23 @@ class EnergyTableTest {
 
     with(table.findEvents(newEnergyRequest(Long.MIN_VALUE, Long.MAX_VALUE, ANOTHER_SESSION))!!) {
       assertThat(this).isEmpty()
+    }
+  }
+
+  @Test
+  fun testGetEventsGroups() {
+    // Events: 0->500, 1000->1500, 2000->2500, ...
+    TablePopulator().setWakeLockEventValues(10, 1000, 500).populate(table, MAIN_SESSION)
+
+    for (id in 1 .. 10) {
+      with(table.findEventGroup(newEnergyGroupRequest(id))!!) {
+        assertWithMessage("Event group with ID ${id} is not empty").that(this).hasSize(2) // 2 events per event group
+        this.forEach { energyEvent -> assertThat(energyEvent.eventId).isEqualTo(id) }
+      }
+
+      with(table.findEventGroup(newEnergyGroupRequest(id, ANOTHER_SESSION))!!) {
+        assertThat(this).isEmpty()
+      }
     }
   }
 
