@@ -180,10 +180,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     captureObjectChanged();
     allocationTrackingChanged();
     buildContextMenu(mySelectionComponent);
-
-    if (getStage().isMemoryCaptureOnly()) {
-      getStage().loadHeapDumpCaptureObject(SwingUtilities::invokeLater);
-    }
   }
 
   @Override
