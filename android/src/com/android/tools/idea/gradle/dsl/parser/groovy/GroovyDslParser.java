@@ -201,7 +201,7 @@ public class GroovyDslParser implements GradleDslParser {
     }
 
     // Otherwise resolve the value and then return the resolved text.
-    Collection<GradleReferenceInjection> injections = getResolvedInjections(context, literal);
+    Collection<GradleReferenceInjection> injections = context.getResolvedVariables();
     return ensureUnquotedText(GradleReferenceInjection.injectAll(literal, injections));
   }
 

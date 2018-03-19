@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GradleNameElement {
   @Nullable
@@ -84,11 +85,8 @@ public class GradleNameElement {
 
   @NotNull
   public String fullName() {
-    String name = findName();
-    if (name == null) {
-      return "";
-    }
-    return name;
+    List<String> qualifyingParts = qualifyingParts();
+    return !qualifyingParts.isEmpty() ? String.join(".", qualifyingParts) + "." + name() : name();
   }
 
   @NotNull
@@ -100,7 +98,7 @@ public class GradleNameElement {
 
     List<String> nameSegments = Splitter.on('.').splitToList(name);
     // Remove the last element, which is not a qualifying part;
-    return nameSegments.subList(0, nameSegments.size() - 1);
+    return nameSegments.subList(0, nameSegments.size() - 1).stream().map(GradleNameElement::convertNameToKey).collect(Collectors.toList());
   }
 
   public boolean isQualified() {

@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,31 +68,9 @@ public final class GradleDslReference extends GradleDslSettableExpression {
     return getReferenceText();
   }
 
-  @Override
-  @NotNull
-  public List<GradleReferenceInjection> getResolvedVariables() {
-    GradleReferenceInjection injection = getReferenceInjection();
-    if (injection == null) {
-      return Collections.emptyList();
-    }
-    return ImmutableList.of(injection);
-  }
-
   @Nullable
   public GradleReferenceInjection getReferenceInjection() {
-    String text = getReferenceText();
-    PsiElement psiElement = getCurrentElement();
-    if (text == null || psiElement == null) {
-      return null;
-    }
-
-    // Resolve our reference
-    GradleDslElement element = resolveReference(text);
-    if (element == null) {
-      return null;
-    }
-
-    return new GradleReferenceInjection(this, element, psiElement, text);
+    return myDependencies.isEmpty() ? null : myDependencies.get(0);
   }
 
   /**
@@ -141,5 +118,28 @@ public final class GradleDslReference extends GradleDslSettableExpression {
   @Override
   protected void delete() {
     getDslFile().getWriter().deleteDslReference(this);
+  }
+
+  @Override
+  @NotNull
+  protected List<GradleReferenceInjection> fetchDependencies(@Nullable PsiElement element) {
+    if (element == null) {
+      return ImmutableList.of();
+    }
+
+    GradleReferenceInjection injection = findInjection(element);
+    return injection == null ? ImmutableList.of() : ImmutableList.of(injection);
+  }
+
+  @Nullable
+  private GradleReferenceInjection findInjection(@NotNull PsiElement currentElement) {
+    String text = currentElement.getText();
+    if (text == null) {
+      return null;
+    }
+
+    // Resolve our reference
+    GradleDslElement element = resolveReference(text);
+    return new GradleReferenceInjection(this, element, currentElement, text);
   }
 }

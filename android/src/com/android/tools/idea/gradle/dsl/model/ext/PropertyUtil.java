@@ -71,29 +71,31 @@ public class PropertyUtil {
       }
     }
     else if (holder instanceof GradleDslExpressionList) {
-      int index = removeElement(oldElement);
-      GradleDslExpressionList list = (GradleDslExpressionList)holder;
-      assert index != -1; // Can't bind with an invalid index.
-      // TODO: Remove this assertion
       assert newElement instanceof GradleDslExpression;
-      list.addNewExpression((GradleDslExpression)newElement, index);
+      GradleDslExpressionList list = (GradleDslExpressionList)holder;
+      if (oldElement != null) {
+        assert oldElement instanceof GradleDslExpression;
+        list.replaceExpression((GradleDslExpression)oldElement, (GradleDslExpression)newElement);
+      }
+      else {
+        list.addNewExpression((GradleDslExpression)newElement, list.getExpressions().size());
+      }
     }
     else if (holder instanceof GradleDslElementList) {
-      removeElement(oldElement);
       GradleDslElementList list = (GradleDslElementList)holder;
-      list.addNewElement(newElement);
+      if (oldElement != null) {
+        list.replaceElement(oldElement, newElement);
+      }
+      else {
+        list.addNewElement(newElement);
+      }
     }
     else {
       throw new IllegalStateException("Property holder has unknown type, " + holder);
     }
   }
 
-  public static int removeElement(@Nullable GradleDslElement element) {
-    int index = -1;
-    if (element == null) {
-      return index;
-    }
-
+  public static void removeElement(@NotNull GradleDslElement element) {
     GradleDslElement holder = element.getParent();
 
     if (holder instanceof GradlePropertiesDslElement) {
@@ -101,15 +103,13 @@ public class PropertyUtil {
     }
     else if (holder instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)holder;
-      index = list.findIndexOf(element);
-      ((GradleDslExpressionList)holder).removeElement(element);
+      list.removeElement(element);
     }
     else {
       assert holder instanceof GradleDslElementList;
       GradleDslElementList elementList = (GradleDslElementList)holder;
       elementList.removeElement(element);
     }
-    return index;
   }
 
   public static final PropertyTransform DEFAULT_TRANSFORM = new DefaultTransform();
