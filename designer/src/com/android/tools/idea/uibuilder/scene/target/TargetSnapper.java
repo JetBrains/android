@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 /**
@@ -70,6 +71,7 @@ public class TargetSnapper {
   @NotNull private ImmutableList<Notch> myNotchesForSnapping = ImmutableList.of();
   @Nullable private Notch myHorizontalNotch = null;
   @Nullable private Notch myVerticalNotch = null;
+  @Nullable private Notch myCircularNotch = null;
   private int myNotchesSourcesMask = ALL;
 
   public void gatherNotches(@NotNull SceneComponent snappable) {
@@ -159,10 +161,29 @@ public class TargetSnapper {
   }
 
   /**
+   * Try to find the closest circle {@link Notch} that can snap the given y coordinate.
+   *
+   * @param x The x coordinate to snap
+   * @param y The y coordinate to snap
+   * @return Snapped {@link Point} if present
+   */
+  @NotNull
+  @AndroidDpCoordinate
+  public Optional<Point> trySnapCircle(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myCircularNotch = findSnappedNotch(Notch.TYPE_CIRCLE, x, y);
+    if (myCircularNotch != null) {
+      Point p = new Point();
+      myCircularNotch.isSnappable(x, y, p);
+      return Optional.of(p);
+    }
+    return Optional.empty();
+  }
+
+  /**
    * Helper function to find the closest snappeble Notch for the given type.
    */
   @Nullable
-  private Notch findSnappedNotch(@MagicConstant(flags = {Notch.TYPE_HORIZONTAL, Notch.TYPE_VERTICAL}) int type,
+  private Notch findSnappedNotch(@MagicConstant(flags = {Notch.TYPE_HORIZONTAL, Notch.TYPE_VERTICAL, Notch.TYPE_CIRCLE}) int type,
                                  @AndroidDpCoordinate int x,
                                  @AndroidDpCoordinate int y) {
     double distance = Double.MAX_VALUE;
@@ -187,6 +208,9 @@ public class TargetSnapper {
     if (myVerticalNotch != null) {
       myVerticalNotch.applyAction(attributes);
     }
+    if (myCircularNotch != null) {
+      myCircularNotch.applyAction(attributes);
+    }
   }
 
   public void renderSnappedNotches(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
@@ -195,6 +219,9 @@ public class TargetSnapper {
     }
     if (myVerticalNotch != null) {
       myVerticalNotch.render(list, sceneContext, component);
+    }
+    if (myCircularNotch != null) {
+      myCircularNotch.render(list, sceneContext, component);
     }
   }
 
@@ -218,6 +245,7 @@ public class TargetSnapper {
     myNotchesForSnapping = ImmutableList.of();
     myHorizontalNotch = null;
     myVerticalNotch = null;
+    myCircularNotch = null;
   }
 
   /**
