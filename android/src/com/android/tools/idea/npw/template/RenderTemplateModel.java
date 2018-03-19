@@ -191,7 +191,7 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   @Override
-  protected void handleFinished() {
+  public void handleFinished() {
     myMultiTemplateRenderer.requestRender(new FreeMarkerTemplateRenderer());
   }
 

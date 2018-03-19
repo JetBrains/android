@@ -21,7 +21,6 @@
             </constraints>
             <properties>
               <font size="24"/>
-              <foreground color="-16777216"/>
               <text value="(Wizard Title)"/>
             </properties>
           </component>

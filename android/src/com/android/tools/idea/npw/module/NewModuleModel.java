@@ -185,7 +185,7 @@ public final class NewModuleModel extends WizardModel {
   }
 
   @Override
-  protected void handleFinished() {
+  public void handleFinished() {
     myMultiTemplateRenderer.requestRender(new ModuleTemplateRenderer());
   }
 
