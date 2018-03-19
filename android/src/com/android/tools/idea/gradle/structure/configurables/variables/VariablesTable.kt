@@ -226,7 +226,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
 
     override fun isCellEditable(node: Any?, column: Int): Boolean {
       return when (column) {
-        NAME -> node is VariableNode || node is MapItemNode || node is EmptyNode
+        NAME -> node is VariableNode || node is MapItemNode || node is EmptyNode || node is EmptyMapItemNode
         UNRESOLVED_VALUE -> {
           if (node is VariableNode) {
             val type = node.variable.valueType
@@ -252,6 +252,17 @@ class VariablesTable(private val project: Project, private val context: PsContex
         treeModel.removeNodeFromParent(node)
         treeModel.insertNodeInto(variableNode, parent, index)
         tableTree!!.expandPath(TreePath(variableNode.path))
+        return
+      }
+
+      if (node is EmptyMapItemNode && column == NAME) {
+        val variableNode = node.createVariableNode(aValue) ?: return
+        val parent = node.parent as VariableNode
+        val index = parent.getIndex(node)
+        val treeModel = tableTree!!.model as DefaultTreeModel
+        treeModel.removeNodeFromParent(node)
+        treeModel.insertNodeInto(variableNode, parent, index)
+        treeModel.insertNodeInto(EmptyMapItemNode(parent.variable), parent, index + 1)
         return
       }
 
@@ -311,6 +322,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       when (variable.valueType) {
         GradlePropertyModel.ValueType.MAP -> {
           variable.getUnresolvedValue(MAP_TYPE)?.forEach { add(MapItemNode(it.key, PsVariable(it.value, variable.module))) }
+          add(EmptyMapItemNode(variable))
         }
         GradlePropertyModel.ValueType.LIST -> {
           val list = variable.getUnresolvedValue(LIST_TYPE)
@@ -412,6 +424,13 @@ class VariablesTable(private val project: Project, private val context: PsContex
     override fun setName(newName: String) {
       setUserObject(newName)
       variable.setName(newName)
+    }
+  }
+
+  class EmptyMapItemNode(private val containingMap: PsVariable) : DefaultMutableTreeNode() {
+    fun createVariableNode(key: String): MapItemNode? {
+      val newVariable = containingMap.addMapValue(key) ?: return null
+      return MapItemNode(key, newVariable)
     }
   }
 }

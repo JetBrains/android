@@ -64,4 +64,16 @@ class PsVariable(private val property: GradlePropertyModel, val module: PsModule
     module.isModified = true
     return PsVariable(listValue, module)
   }
+
+  fun addMapValue(key: String): PsVariable? {
+    if (valueType != GradlePropertyModel.ValueType.MAP) {
+      throw IllegalStateException("addMapValue can only be called for map variables")
+    }
+
+    val mapValue = property.getMapValue(key)
+    if (mapValue.psiElement != null) {
+      return null
+    }
+    return PsVariable(mapValue, module)
+  }
 }
