@@ -340,16 +340,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   /**
-   * Load the heap dump capture object imported from hprof file.
+   * Set the start time for pending capture object imported from hprof file.
    */
-  public void loadHeapDumpCaptureObject(@NotNull Executor loadJoiner) {
-    Range dataRange = new Range(TimeUnit.NANOSECONDS.toMicros(mySessionData.getStartTimestamp()),
-                                TimeUnit.NANOSECONDS.toMicros(mySessionData.getEndTimestamp()));
+  public void setPendingCaptureStartTime(long pendingCaptureStartTime) {
     assert myIsMemoryCaptureOnly;
-    List<SeriesData<CaptureDurationData<CaptureObject>>> series =
-      new ArrayList<>(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(dataRange));
-    assert series.size() == 1;
-    selectCaptureDuration(series.get(0).value, loadJoiner);
+    myPendingCaptureStartTime = pendingCaptureStartTime;
   }
 
   @NotNull

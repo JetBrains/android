@@ -23,10 +23,7 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.TimeRequest;
 import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.ProfilerAspect;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.StudioProfiler;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
@@ -89,7 +86,16 @@ public class MemoryProfiler extends StudioProfiler {
     });
 
     myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
-                                              () -> myProfilers.setStage(new MemoryProfilerStage(myProfilers)));
+                                              () -> {
+                                                MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers);
+                                                myProfilers.setStage(stage);
+                                                stage.setPendingCaptureStartTime(myProfilers.getSession().getStartTimestamp());
+                                                ProfilerTimeline timeline = myProfilers.getTimeline();
+                                                timeline.reset(myProfilers.getSession().getStartTimestamp(),
+                                                               myProfilers.getSession().getEndTimestamp());
+                                                timeline.getViewRange().set(timeline.getDataRange());
+                                                timeline.setIsPaused(true);
+                                              });
   }
 
   @Override
