@@ -36,9 +36,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.ui.EmptyClipboardOwner;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -52,9 +50,6 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
-import javax.swing.text.DefaultEditorKit;
-import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
@@ -247,11 +242,7 @@ public final class TranslationsEditorTest {
     String data = "app_name\tapp_name_zh_rcn\n" +
                   "hello_world\thello_world_zh_rcn\n";
 
-    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(data), EmptyClipboardOwner.INSTANCE);
-
-    KeyStroke keyStroke = getKeyStroke(table.target().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), "paste");
-    table.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
-
+    myGuiTest.robot().pasteText(data);
     assertEquals("app_name", table.valueAt(TableCell.row(0).column(DEFAULT_VALUE_COLUMN)));
     assertEquals("app_name_zh_rcn", table.valueAt(TableCell.row(0).column(CHINESE_IN_CHINA_COLUMN)));
     assertEquals("hello_world", table.valueAt(TableCell.row(1).column(DEFAULT_VALUE_COLUMN)));
@@ -488,12 +479,8 @@ public final class TranslationsEditorTest {
     importSimpleApplication();
 
     myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(HEBREW_COLUMN));
-    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection("יישום פשוט"), EmptyClipboardOwner.INSTANCE);
-
+    myGuiTest.robot().pasteText("יישום פשוט");
     JTextComponentFixture translationTextField = myTranslationsEditor.getTranslationTextField();
-    KeyStroke keyStroke = getKeyStroke(translationTextField.target().getInputMap(), DefaultEditorKit.pasteAction);
-    translationTextField.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
-
     assertEquals(-1, translationTextField.font().target().canDisplayUpTo("יישום פשוט"));
   }
 
