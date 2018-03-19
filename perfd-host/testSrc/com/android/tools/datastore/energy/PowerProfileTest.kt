@@ -22,11 +22,11 @@ import org.junit.Test
 class PowerProfileTest {
   @Test
   fun renormalizeTest() {
-    assertThat(renormalizeFrequency(PowerProfile.CpuCoreUsage(1.0, 1.0, 500, 1000, 500), MAX_BIG_CORE_FREQ_KHZ)).isWithin(0.1).of(
-        MIN_CORE_FREQ_KHZ.toDouble() * 0.001)
-    assertThat(renormalizeFrequency(PowerProfile.CpuCoreUsage(1.0, 1.0, 500, 1000, 1000), MAX_BIG_CORE_FREQ_KHZ)).isWithin(0.1).of(
-        MAX_BIG_CORE_FREQ_KHZ.toDouble() * 0.001)
-    assertThat(renormalizeFrequency(PowerProfile.CpuCoreUsage(1.0, 1.0, 500, 1000, 750), MAX_BIG_CORE_FREQ_KHZ)).isWithin(0.1).of(
-        (MAX_BIG_CORE_FREQ_KHZ + MIN_CORE_FREQ_KHZ).toDouble() * 0.0005)
+    assertThat(renormalizeFrequency(PowerProfile.CpuCoreUsage(0, 1.0, 1.0, 500, 1000, 500, false), MAX_BIG_CORE_FREQ_KHZ))
+      .isWithin(0.1).of(MIN_CORE_FREQ_KHZ.toDouble() * 0.001)
+    assertThat(renormalizeFrequency(PowerProfile.CpuCoreUsage(0, 1.0, 1.0, 500, 1000, 1000, false), MAX_BIG_CORE_FREQ_KHZ))
+      .isWithin(0.1).of(MAX_BIG_CORE_FREQ_KHZ.toDouble() * 0.001)
+    assertThat(renormalizeFrequency(PowerProfile.CpuCoreUsage(0, 1.0, 1.0, 500, 1000, 750, false), MAX_BIG_CORE_FREQ_KHZ))
+      .isWithin(0.1).of((MAX_BIG_CORE_FREQ_KHZ + MIN_CORE_FREQ_KHZ).toDouble() * 0.0005)
   }
 }
