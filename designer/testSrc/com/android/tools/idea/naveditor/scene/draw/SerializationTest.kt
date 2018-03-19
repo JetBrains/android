@@ -136,6 +136,13 @@ class SerializationTest : TestCase() {
     testSerialization("DrawEmptyDesigner,10x20", DrawEmptyDesigner(Point(10, 20)), factory)
   }
 
+  fun testDrawPreviewUnavailable() {
+    val factory = { s: String -> DrawPreviewUnavailable(s) }
+
+    testSerialization("DrawPreviewUnavailable,1x2x3x4", DrawPreviewUnavailable(Rectangle(1, 2, 3, 4)), factory)
+    testSerialization("DrawPreviewUnavailable,5x6x7x8", DrawPreviewUnavailable(Rectangle(5, 6, 7, 8)), factory)
+  }
+
   companion object {
     private fun testSerialization(s: String, drawCommand: DrawCommand, factory: (String) -> DrawCommand) {
       val serialized = drawCommand.serialize()

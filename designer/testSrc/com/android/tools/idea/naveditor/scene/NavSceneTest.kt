@@ -89,8 +89,7 @@ class NavSceneTest : NavTestCase() {
             "\n" +
             "DrawFilledRectangle,1,400x400x76x128,fffafafa,6\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,6\n" +
-            "DrawFilledRectangle,1,404x404x68x111,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,404x404x68x111,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,404x404x68x111\n" +
             "DrawTruncatedText,3,Activity,400x515x76x13,ffa7a7a7,Default:1:9,true\n" +
             "DrawTruncatedText,3,activity,400x390x76x5,ff656565,Default:0:9,false\n" +
             "\n" +
@@ -115,8 +114,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,960,928\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawAction,NORMAL,400x400x76x128,490x400x70x19,NORMAL\n" +
             "DrawArrow,2,RIGHT,480x406x5x6,b2a7a7a7\n" +
             "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
@@ -256,8 +254,7 @@ class NavSceneTest : NavTestCase() {
             "DrawTruncatedText,3,fragment2,408x390x68x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "DrawRectangle,1,580x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,581x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,581x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,581x401x74x126\n" +
             "DrawTruncatedText,3,fragment3,580x390x76x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "UNClip\n", list.serialize()
@@ -364,8 +361,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,56,-72\n" +
             "DrawRectangle,1,-10x-100x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,-9x-99x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,-9x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,-9x-99x74x126\n" +
             "DrawAction,NORMAL,-10x-100x76x128,80x-100x76x128,NORMAL\n" +
             "DrawArrow,2,RIGHT,70x-39x5x6,b2a7a7a7\n" +
             "DrawTruncatedText,3,fragment1,-10x-110x76x5,ff656565,Default:0:9,false\n" +
@@ -393,15 +389,13 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,-246,-254\n" +
             "DrawRectangle,1,-122x-140x15x25,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,-121x-139x13x23,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,-121x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+            "DrawPreviewUnavailable,-121x-139x13x23\n" +
             "DrawAction,NORMAL,-122x-140x15x25,-140x-140x15x25,NORMAL\n" +
             "DrawArrow,2,RIGHT,-142x-128x1x1,b2a7a7a7\n" +
             "DrawTruncatedText,3,fragment3,-122x-142x15x1,ff656565,Default:0:2,false\n" +
             "\n" +
             "DrawRectangle,1,-140x-140x15x25,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,-139x-139x13x23,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,-139x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+            "DrawPreviewUnavailable,-139x-139x13x23\n" +
             "DrawTruncatedText,3,fragment4,-140x-142x15x1,ff656565,Default:0:2,false\n" +
             "DrawLine,2,-125x-128,-124x-128,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,-124x-128x1x1,b2a7a7a7\n" +
@@ -425,8 +419,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,876,928\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "UNClip\n", list.serialize()
@@ -548,10 +541,9 @@ class NavSceneTest : NavTestCase() {
             "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawLine,2,387x464,391x464,ff1886f7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x461x5x6,ff1886f7\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
             "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
             "DrawIcon,400x389x7x7,START_DESTINATION\n" +
             "\n" +
@@ -568,10 +560,9 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,990,928\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
             "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
             "DrawIcon,400x389x7x7,START_DESTINATION\n" +
             "\n" +
@@ -595,11 +586,10 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,990,928\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawRectangle,1,398x398x80x132,ff1886f7,2,2\n" +
             "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
             "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
             "DrawIcon,400x389x7x7,START_DESTINATION\n" +
             "\n" +
@@ -638,13 +628,12 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,990,928\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawRectangle,1,398x398x80x132,ffa7a7a7,2,2\n" +
             "DrawAction,NORMAL,400x400x76x128,520x400x70x19,NORMAL\n" +
             "DrawArrow,2,RIGHT,510x406x5x6,b2a7a7a7\n" +
             "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
             "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
             "DrawFilledCircle,6,478x464,fff5f5f5,0:3:54\n" +
             "DrawCircle,7,478x464,ffa7a7a7,2,0:2:54\n" +
@@ -664,12 +653,11 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,990,928\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawAction,NORMAL,400x400x76x128,520x400x70x19,HOVER\n" +
             "DrawArrow,2,RIGHT,510x406x5x6,ffa7a7a7\n" +
             "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
             "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
             "DrawFilledCircle,6,478x464,fff5f5f5,3:0:54\n" +
             "DrawCircle,7,478x464,ffa7a7a7,2,2:0:54\n" +
@@ -689,12 +677,11 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,990,928\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawAction,NORMAL,400x400x76x128,520x400x70x19,NORMAL\n" +
             "DrawArrow,2,RIGHT,510x406x5x6,b2a7a7a7\n" +
             "DrawLine,2,387x464,391x464,ffa7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x461x5x6,ffa7a7a7\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
             "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "DrawFilledRectangle,1,520x400x70x19,fffafafa,6\n" +
@@ -748,13 +735,12 @@ class NavSceneTest : NavTestCase() {
             "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawRectangle,1,398x398x80x132,ff1886f7,2,2\n" +
             "DrawAction,NORMAL,400x400x76x128,520x400x70x19,NORMAL\n" +
             "DrawArrow,2,RIGHT,510x406x5x6,b2a7a7a7\n" +
             "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
             "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
             "DrawFilledCircle,6,478x464,fff5f5f5,0:3:54\n" +
             "DrawFilledCircle,7,478x464,ff1886f7,2:2:0\n" +
@@ -843,15 +829,13 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,1086,928\n" +
             "DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,491x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,491x401x74x126\n" +
             "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
             "DrawLine,2,477x464,481x464,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,481x461x5x6,b2a7a7a7\n" +
             "\n" +
             "DrawRectangle,1,610x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,611x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,611x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,611x401x74x126\n" +
             "DrawAction,NORMAL,610x400x76x128,400x400x76x128,NORMAL\n" +
             "DrawArrow,2,RIGHT,390x461x5x6,b2a7a7a7\n" +
             "DrawAction,SELF,610x400x76x128,610x400x76x128,NORMAL\n" +
@@ -863,8 +847,7 @@ class NavSceneTest : NavTestCase() {
             "DrawArrow,2,RIGHT,601x461x5x6,b2a7a7a7\n" +
             "\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawTruncatedText,3,fragment3,400x390x76x5,ff656565,Default:0:9,false\n" +
             "DrawLine,2,387x446,391x446,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,391x443x5x6,b2a7a7a7\n" +
@@ -931,15 +914,13 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,-222,-230\n" +
             "DrawRectangle,1,-122x-140x15x25,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,-121x-139x13x23,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,-121x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+            "DrawPreviewUnavailable,-121x-139x13x23\n" +
             "DrawTruncatedText,3,fragment2,-122x-142x15x1,ff656565,Default:0:2,false\n" +
             "DrawLine,2,-107x-128,-106x-128,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,-106x-128x1x1,b2a7a7a7\n" +
             "\n" +
             "DrawRectangle,1,-98x-140x15x25,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,-97x-139x13x23,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,-97x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
+            "DrawPreviewUnavailable,-97x-139x13x23\n" +
             "DrawTruncatedText,3,fragment3,-98x-142x15x1,ff656565,Default:0:2,false\n" +
             "DrawLine,2,-83x-130,-82x-130,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,-82x-130x1x1,b2a7a7a7\n" +
@@ -947,8 +928,7 @@ class NavSceneTest : NavTestCase() {
             "DrawArrow,2,RIGHT,-82x-128x1x1,b2a7a7a7\n" +
             "\n" +
             "DrawRectangle,1,-140x-116x15x25,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,-139x-115x13x23,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,-139x-115x13x23,ffa7a7a7,Default:0:2,true\n" +
+            "DrawPreviewUnavailable,-139x-115x13x23\n" +
             "DrawAction,NORMAL,-140x-116x15x25,-122x-140x15x25,NORMAL\n" +
             "DrawArrow,2,RIGHT,-124x-128x1x1,b2a7a7a7\n" +
             "DrawTruncatedText,3,fragment4,-140x-119x15x1,ff656565,Default:0:2,false\n" +
@@ -960,8 +940,7 @@ class NavSceneTest : NavTestCase() {
             "DrawArrow,2,RIGHT,-124x-102x1x1,b2a7a7a7\n" +
             "\n" +
             "DrawRectangle,1,-140x-116x15x25,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,-139x-115x13x23,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,-139x-115x13x23,ffa7a7a7,Default:0:2,true\n" +
+            "DrawPreviewUnavailable,-139x-115x13x23\n" +
             "DrawTruncatedText,3,fragment4,-140x-119x15x1,ff656565,Default:0:2,false\n" +
             "DrawLine,2,-125x-106,-124x-106,b2a7a7a7,3:0:1\n" +
             "DrawArrow,2,RIGHT,-124x-106x1x1,b2a7a7a7\n" +
@@ -1044,8 +1023,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,1056,928\n" +
             "DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,491x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,491x401x74x126\n" +
             "DrawAction,NORMAL,490x400x76x128,580x400x76x128,NORMAL\n" +
             "DrawArrow,2,RIGHT,570x461x5x6,b2a7a7a7\n" +
             "DrawAction,NORMAL,490x400x76x128,400x430x70x19,NORMAL\n" +
@@ -1053,8 +1031,7 @@ class NavSceneTest : NavTestCase() {
             "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "DrawRectangle,1,580x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,581x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,581x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,581x401x74x126\n" +
             "DrawTruncatedText,3,fragment2,580x390x76x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "DrawFilledRectangle,1,400x430x70x19,fffafafa,6\n" +
@@ -1110,8 +1087,7 @@ class NavSceneTest : NavTestCase() {
     assertEquals(
         "Clip,0,0,876,928\n" +
             "DrawRectangle,1,400x400x76x128,ffa7a7a7,1,0\n" +
-            "DrawFilledRectangle,1,401x401x74x126,fffafafa,0\n" +
-            "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
+            "DrawPreviewUnavailable,401x401x74x126\n" +
             "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
             "\n" +
             "UNClip\n", list.serialize()
