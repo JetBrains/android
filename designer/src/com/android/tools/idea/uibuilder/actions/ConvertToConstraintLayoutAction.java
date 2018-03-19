@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -158,12 +157,10 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     boolean includeIds = dialog.getFlattenReferenced();
     boolean includeCustomViews = dialog.getIncludeCustomViews();
 
-    GoogleMavenArtifactId artifact = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
-                                     GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
-                                     GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
+
     // Step #2: Ensure ConstraintLayout is available in the project
     List<GoogleMavenArtifactId> notAdded = DependencyManagementUtil
-      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(artifact), false);
+      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(GoogleMavenArtifactId.CONSTRAINT_LAYOUT), false);
     if (!notAdded.isEmpty()) {
       return;
     }

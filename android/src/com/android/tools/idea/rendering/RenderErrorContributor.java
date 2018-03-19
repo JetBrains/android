@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -1077,11 +1076,8 @@ public class RenderErrorContributor {
 
       if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
         builder.newline().addNbsps(3);
-        GoogleMavenArtifactId artifact = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
-                                         GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
-                                         GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(artifact));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.CONSTRAINT_LAYOUT));
         builder.add(", ");
       }
       if (CLASS_FLEXBOX_LAYOUT.equals(className)) {

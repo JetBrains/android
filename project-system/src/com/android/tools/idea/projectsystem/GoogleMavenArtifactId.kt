@@ -24,35 +24,21 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
 
   // Platform support libraries
   SUPPORT_ANNOTATIONS("com.android.support", "support-annotations", true),
-  ANDROIDX_SUPPORT_ANNOTATIONS("androidx.annotations", "annotations", true),
   SUPPORT_V4("com.android.support", "support-v4", true),
-  ANDROIDX_SUPPORT_V4("androidx.legacy", "legacy-support-v4", true),
   SUPPORT_V13("com.android.support", "support-v13", true),
-  ANDROIDX_SUPPORT_V13("androidx.legacy", "legacy-support-v13", true),
   APP_COMPAT_V7("com.android.support", "appcompat-v7", true),
-  ANDROIDX_APP_COMPAT_V7("androidx.appcompat", "appcompat", true),
   SUPPORT_VECTOR_DRAWABLE("com.android.support", "support-vector-drawable", true),
-  ANDROIDX_SUPPORT_VECTOR_DRAWABLE("androidx.vectordrawable", "vectordrawable", true),
   DESIGN("com.android.support", "design", true),
-  ANDROIDX_DESIGN("com.google.android.material", "material", true),
   GRID_LAYOUT_V7("com.android.support", "gridlayout-v7", true),
-  ANDROIDX_GRID_LAYOUT_V7("androidx.gridlayout", "gridlayout", true),
   MEDIA_ROUTER_V7("com.android.support", "mediarouter-v7", true),
-  ANDROIDX_MEDIA_ROUTER_V7("androidx.mediarouter", "mediarouter", true),
   CARDVIEW_V7("com.android.support", "cardview-v7", true),
-  ANDROIDX_CARDVIEW_V7("androidx.cardview", "cardview", true),
   PALETTE_V7("com.android.support", "palette-v7", true),
-  ANDROIDX_PALETTE_V7("androidx.palette", "palette", true),
   LEANBACK_V17("com.android.support", "leanback-v17", true),
-  ANDROIDX_LEANBACK_V17("androidx.leanback", "leanback", true),
   RECYCLERVIEW_V7("com.android.support", "recyclerview-v7", true),
-  ANDROIDX_RECYCLERVIEW_V7("androidx.recyclerview", "recyclerview", true),
   EXIF_INTERFACE("com.android.support", "exifinterface", true),
-  ANDROIDX_EXIF_INTERFACE("androidx.exifinterface", "exifinterface", true),
 
   // Misc. layouts
   CONSTRAINT_LAYOUT("com.android.support.constraint", "constraint-layout", false),
-  ANDROIDX_CONSTRAINT_LAYOUT("androidx.constraintlayout", "constraintlayout", false),
   FLEXBOX_LAYOUT("com.google.android", "flexbox", false),
 
   // Navigation
@@ -61,21 +47,14 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
 
   // Testing
   TEST_RUNNER("com.android.support.test", "runner", false),
-  ANDROIDX_TEST_RUNNER("androidx.test.espresso", "test-runner", false),
   ESPRESSO_CORE("com.android.support.test.espresso", "espresso-core", false),
-  ANDROIDX_ESPRESSO_CORE("androidx.test.espresso", "espresso-core", false),
   ESPRESSO_CONTRIB("com.android.support.test.espresso", "espresso-contrib", false),
-  ANDROIDX_ESPRESSO_CONTRIB("androidx.test.espresso", "espresso-contrib", false),
 
   // Data binding
   DATA_BINDING_LIB("com.android.databinding", "library", false),
-  ANDROIDX_DATA_BINDING_LIB("androidx.databinding", "databinding-runtime", false),
   DATA_BINDING_BASELIB("com.android.databinding", "baseLibrary", false),
-  ANDROIDX_DATA_BINDING_BASELIB("androidx.databinding", "databinding-common", false),
   DATA_BINDING_ANNOTATION_PROCESSOR("com.android.databinding", "compiler", false),
-  ANDROIDX_DATA_BINDING_ANNOTATION_PROCESSOR("androidx.databinding", "databinding-compiler", false),
   DATA_BINDING_ADAPTERS("com.android.databinding", "adapters", false),
-  ANDROIDX_DATA_BINDING_ADAPTERS("androidx.databinding", "databinding-adapters", false),
 
   // Google repo
   PLAY_SERVICES("com.google.android.gms", "play-services", false),

@@ -172,8 +172,7 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private String getNamespace() {
-    return editor.getDependencyManager().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, editor.getModel().getFacet()) ||
-           editor.getDependencyManager().isModuleDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, editor.getModel().getFacet())
+    return editor.getDependencyManager().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, editor.getModel().getFacet())
            ? AUTO_URI
            : ANDROID_URI;
   }
