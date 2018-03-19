@@ -18,7 +18,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/uitest-framework[module, test]",
-        "//tools:fest-swing[module, test]",
+        "//tools/swing-testing/fest-swing[module, test]",
         "//tools/idea/platform/external-system-api[module, test]",
         "//tools/idea/java/openapi[module, test]",
         "//tools/idea/platform/platform-impl[module, test]",

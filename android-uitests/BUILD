@@ -53,7 +53,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework[module, test]",
         "//tools/idea:community-main[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools:fest-swing[module, test]",
+        "//tools/swing-testing/fest-swing[module, test]",
         "//tools/idea/java/debugger/openapi:debugger-openapi[module, test]",
         "//tools/idea/platform/analysis-api[module, test]",
         "//tools/idea/platform/platform-api[module, test]",
