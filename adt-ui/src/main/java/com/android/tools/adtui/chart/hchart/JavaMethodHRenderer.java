@@ -49,19 +49,6 @@ public class JavaMethodHRenderer extends DefaultHRenderer<Method> {
     }
   }
 
-  @Override
-  protected Color getBorderColor(@NotNull Method m) {
-    if (isMethodVendor(m)) {
-      return borderVendorColor;
-    }
-    else if (isMethodPlatform(m)) {
-      return borderPlatformColor;
-    }
-    else {
-      return borderAppColor;
-    }
-  }
-
   private static final Pattern dotPattern = Pattern.compile("\\.");
 
   /**

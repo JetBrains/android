@@ -33,7 +33,7 @@ class HTreeChartTest {
   // towards north and south.
   private val myContentHeight = 75
   // The total heigh is the height of the content plus the height of the padding.
-  private val myTotalHeight = myContentHeight + 15
+  private val myTotalHeight = myContentHeight + 10
   private val myViewHeight = 50
   // Y axis' initial position, which is the north/south boundary of a top-down/bottom-up chart.
   private val myInitialYPosition = 0
