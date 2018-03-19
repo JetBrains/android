@@ -94,14 +94,14 @@ android_sdk_repository(
     logger.info("Waiting for sync to start.")
 
     val consoleFixture = BazelConsoleToolWindowFixture(ideFrameFixture.project, ideFrameFixture.robot())
-    Wait.seconds(2).expecting("Bazel sync to start").until(consoleFixture::hasSyncStarted)
+    Wait.seconds(300).expecting("Bazel sync to start").until(consoleFixture::hasSyncStarted)
 
-    logger.info("Sync in progress; waiting for background tasks to finish.")
+    logger.info("Sync in progress; waiting for sync to finish.")
+    Wait.seconds(300).expecting("Bazel sync to finish").until(consoleFixture::hasSyncFinished)
 
-    // For bazel projects all we need to wait for are all background tasks to finish, as the bazel
-    // sync is a part of the background tasks.
-    GuiTests.waitForBackgroundTasks(ideFrameFixture.robot())
-    logger.info("Background tasks finished, assuming sync complete.")
+    logger.info("Sync complete; waiting for background tasks to finish.")
+    GuiTests.waitForProjectIndexingToFinish(ideFrameFixture.project)
+    logger.info("Background tasks have finished.")
   }
 
   override fun validateSetup() {
