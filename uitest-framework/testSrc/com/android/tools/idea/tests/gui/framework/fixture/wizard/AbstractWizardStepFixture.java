@@ -22,6 +22,7 @@ import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,15 +72,7 @@ public abstract class AbstractWizardStepFixture<S, W extends AbstractWizardFixtu
   }
 
   protected void replaceText(@NotNull JTextComponent textField, @NotNull String text) {
-    // TODO: setText() does not use the robot but instead sets the text programmatically, which is not great.
-    // Better use deleteText() here for the same effect, but we need to update FEST
-    // 1 - FEST deleteText() calls scrollToVisible and EditorComponentImpl throws exception when it has only empty text
-    // 2 - FEST assumes that all input components support "delete-previous" -> Throws ActionFailedException
-    // 3 - IJ EditorComponent executes setText() on a transaction Guard, and it will be postponed if the shown textField is on a dialog
-    execute(() -> ((TransactionGuardImpl) TransactionGuard.getInstance()).performUserActivity(
-      () -> textField.setText(text)
-    ));
-    robot().waitForIdle();
+    new JTextComponentFixture(robot(), textField).selectAll().enterText(text);
   }
 
   public String getValidationText() {
