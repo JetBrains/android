@@ -218,12 +218,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> WHATS_NEW_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "whats.new.enabled", "Enable the \"What's New\" assistant",
     "If enabled, user can access the \"What's New\" assistant under \"Help\" and \"What's New in Android Studio\"",
-    false);
+    true);
 
   public static final Flag<Boolean> WHATS_NEW_ASSISTANT_AUTO_SHOW = Flag.create(
     ASSISTANT, "whats.new.auto.show", "Displays the \"What's New\" assistant on first start",
     "If enabled, the \"What's New\" assistant will be displayed the first time user opens a new version of Android Studio.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_TARGET_RELATIVE = Flag.create(
     NELE, "target.relative", "Enable the target architecture in relative layout",
