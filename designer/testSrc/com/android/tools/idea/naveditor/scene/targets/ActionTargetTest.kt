@@ -88,10 +88,9 @@ class ActionTargetTest : NavTestCase() {
     fragment1.buildDisplayList(0, list, context)
 
     assertEquals("DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,1,491x401x74x126,fffafafa,0\n" +
+        "DrawPreviewUnavailable,491x401x74x126\n" +
         "DrawAction,NORMAL,390x390x0x0,390x390x0x0,NORMAL\n" +
         "DrawArrow,2,RIGHT,380x387x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
         "DrawTruncatedText,3,fragment1,398x391x-8x5,ff656565,Default:0:9,false\n" +
         "DrawIcon,390x390x7x7,START_DESTINATION\n" +
         "\n", list.generateSortedDisplayList(context))
@@ -101,10 +100,9 @@ class ActionTargetTest : NavTestCase() {
     fragment1.buildDisplayList(0, list, context)
 
     assertEquals("DrawRectangle,1,490x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,1,491x401x74x126,fffafafa,0\n" +
+        "DrawPreviewUnavailable,491x401x74x126\n" +
         "DrawAction,NORMAL,390x390x0x0,390x390x0x0,HOVER\n" +
         "DrawArrow,2,RIGHT,380x387x5x6,ffa7a7a7\n" +
-        "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
         "DrawTruncatedText,3,fragment1,398x391x-8x5,ff656565,Default:0:9,false\n" +
         "DrawIcon,390x390x7x7,START_DESTINATION\n" +
         "\n", list.generateSortedDisplayList(context))

@@ -23,15 +23,14 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
-import com.android.tools.idea.naveditor.scene.*
+import com.android.tools.idea.naveditor.scene.ThumbnailManager
+import com.android.tools.idea.naveditor.scene.createDrawCommand
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
+import com.android.tools.idea.naveditor.scene.draw.DrawPreviewUnavailable
 import com.android.tools.idea.rendering.ImagePool.Image
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
-import java.awt.Font
 import java.awt.Rectangle
 import java.io.File
 import java.util.concurrent.ExecutionException
@@ -65,14 +64,10 @@ abstract class NavScreenDecorator : SceneDecorator() {
 
   protected fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle) {
     val image = buildImage(sceneContext, component)
-    if (image == null) {
-      list.add(DrawFilledRectangle(DRAW_FRAME_LEVEL, rectangle, sceneContext.colorSet.componentBackground, 0))
-      list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Preview Unavailable", rectangle, sceneContext.colorSet.text,
-          scaledFont(sceneContext, Font.PLAIN), true))
-    }
-    else {
-      list.add(DrawNavScreen(rectangle.x, rectangle.y, rectangle.width, rectangle.height, image))
-    }
+    list.add(
+        if (image == null) DrawPreviewUnavailable(rectangle)
+        else DrawNavScreen(rectangle.x, rectangle.y, rectangle.width, rectangle.height, image)
+    )
   }
 
   private fun buildImage(sceneContext: SceneContext, component: SceneComponent): Image? {
