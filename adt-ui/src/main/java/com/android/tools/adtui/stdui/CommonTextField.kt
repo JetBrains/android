@@ -34,11 +34,8 @@ open class CommonTextField(val model: CommonTextFieldModel) : JTextField() {
     isOpaque = false
     setFromModel()
 
-    model.addListener(object: ValueChangedListener {
-      override fun valueChanged() {
-        updateFromModel()
-      }
-    })
+    model.addListener(ValueChangedListener { updateFromModel() })
+
     @Suppress("LeakingThis")
     UIUtil.addUndoRedoActions(this)
   }

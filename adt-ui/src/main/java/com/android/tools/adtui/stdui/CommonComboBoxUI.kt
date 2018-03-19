@@ -117,7 +117,7 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     val g2 = g.create()
     val model = comboBox.model as? CommonComboBoxModel
     val textEditor = editor as? JTextField
-    val hasErrors = model?.validationError(textEditor?.text ?: "")?.isNotEmpty() == true
+    val hasErrors = model?.validate(textEditor?.text ?: "")?.isNotEmpty() == true
     val hasFocus = if (model?.editable == true) editor?.isFocusOwner == true else comboBox.isFocusOwner
     val hasVisiblePlaceHolder = textEditor?.text?.isEmpty() == true && model?.placeHolderValue?.isNotEmpty() == true
     (comboBox.border as? StandardBorder)?.paintBorder(comboBox, g2, hasErrors, hasFocus, hasVisiblePlaceHolder)

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model.stdui
+package com.android.tools.adtui.model.stdui;
 
-interface ValueChangedListener {
+public interface ValueChangedListener {
   /**
    * The value was changed in the value. The UI should refresh.
    */
-  fun valueChanged()
+  void valueChanged();
 }

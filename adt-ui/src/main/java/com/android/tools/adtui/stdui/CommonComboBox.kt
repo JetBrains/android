@@ -24,11 +24,9 @@ open class CommonComboBox<E>(model: CommonComboBoxModel<E>) : JComboBox<E>(model
   init {
     setFromModel()
 
-    model.addListener(object: ValueChangedListener {
-      override fun valueChanged() {
-        updateFromModel()
-        repaint()
-      }
+    model.addListener(ValueChangedListener {
+      updateFromModel()
+      repaint()
     })
   }
 
