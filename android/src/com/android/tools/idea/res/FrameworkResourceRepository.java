@@ -16,7 +16,6 @@
 package com.android.tools.idea.res;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.*;
@@ -64,7 +63,7 @@ import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
  * freshness of the cache when the Android plugin is updated.
  */
 public final class FrameworkResourceRepository extends FileResourceRepository {
-  private static final ResourceNamespace NAMESPACE = ResourceNamespace.ANDROID;
+  private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
   private static final String CACHE_DIRECTORY = "framework_resource_cache";
   private static final String CACHE_FILE_HEADER = "Framework resource cache";
   private static final String CACHE_FILE_FORMAT_VERSION = "2";
@@ -84,7 +83,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
   private boolean myLoadedFromCache;
 
   private FrameworkResourceRepository(@NotNull File resFolder, boolean withLocaleResources) {
-    super(resFolder, NAMESPACE, null);
+    super(resFolder, ANDROID_NAMESPACE, null);
     myWithLocaleResources = withLocaleResources;
   }
 
@@ -135,8 +134,8 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
   }
 
   @Override
-  @NonNull
-  public Collection<ResourceItem> getPublicResourcesOfType(@NonNull ResourceType type) {
+  @NotNull
+  public Collection<ResourceItem> getPublicResourcesOfType(@NotNull ResourceType type) {
     List<ResourceItem> resourceItems = myPublicResources.get(type);
     return resourceItems == null ? Collections.emptyList() : resourceItems;
   }
@@ -206,7 +205,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
               }
 
               if (type != null) {
-                List<ResourceItem> matchingResources = getResourceItems(ResourceNamespace.ANDROID, type, name);
+                List<ResourceItem> matchingResources = getResourceItems(ANDROID_NAMESPACE, type, name);
                 // Some entries in public.xml point to attributes defined attrs_manifest.xml and therefore
                 // don't match any resources.
                 if (!matchingResources.isEmpty()) {
@@ -251,7 +250,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
   @Override
   @NotNull
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
-    if (!NAMESPACE.equals(namespace)) {
+    if (!ANDROID_NAMESPACE.equals(namespace)) {
       if (create) {
         throw new IllegalArgumentException("Invalid namespace: " + namespace);
       }
@@ -262,14 +261,14 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
   @NotNull
   private ListMultimap<String, ResourceItem> getMap(@NotNull ResourceType type, boolean create) {
-    ListMultimap<String, ResourceItem> map = super.getMap(NAMESPACE, type, create);
+    ListMultimap<String, ResourceItem> map = super.getMap(ANDROID_NAMESPACE, type, create);
     return map == null ? ImmutableListMultimap.of() : map;
   }
 
-  @NonNull
   @Override
-  public ImmutableSet<ResourceType> getAvailableResourceTypes(@NonNull ResourceNamespace namespace) {
-    return namespace == ResourceNamespace.ANDROID ? Sets.immutableEnumSet(getMapByType().keySet()) : ImmutableSet.of();
+  @NotNull
+  public ImmutableSet<ResourceType> getAvailableResourceTypes(@NotNull ResourceNamespace namespace) {
+    return namespace == ANDROID_NAMESPACE ? Sets.immutableEnumSet(getMapByType().keySet()) : ImmutableSet.of();
   }
 
   /**
@@ -339,25 +338,19 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
             ResourceItemType itemType = ResourceItemType.values()[in.readUnsignedByte()];
             ResourceItem item = null;
             switch (itemType) {
-              case REGULAR: {
-                item = new ResourceItem(resourceName, NAMESPACE, resourceType, node, null);
+              case VALUE: {
+                item = new ResourceItem(resourceName, ANDROID_NAMESPACE, resourceType, node, null);
                 int fileIndex = in.readUnsignedShort();
                 ResourceFile resourceFile = resourceFiles[fileIndex];
                 resourceFile.addItem(item);
                 break;
               }
               case FILE: {
-                item = new ResourceItem(resourceName, NAMESPACE, resourceType, node, null);
+                item = new ResourceItem(resourceName, ANDROID_NAMESPACE, resourceType, node, null);
                 int folderConfigurationIndex = in.readUnsignedShort();
                 FolderConfiguration folderConfig = folderConfigurations[folderConfigurationIndex];
                 String path = in.readUTF();
                 new ResourceFile(new File(path), item, folderConfig.getQualifierString(), folderConfig);
-                break;
-              }
-              case MERGED: {
-                int folderConfigurationIndex = in.readUnsignedShort();
-                FolderConfiguration folderConfig = folderConfigurations[folderConfigurationIndex];
-                item = new MergedResourceItem(resourceName, NAMESPACE, resourceType, folderConfig.getQualifierString(), node, null);
                 break;
               }
             }
@@ -457,9 +450,9 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
    *   <li>The XML node entry associated with the resource (see below), or a zero byte if the resource
    *   does not have an associated XML node</li>
    *   <li>The type of the entry represented by the ordinal of {@linkplain ResourceItemType} (unsigned byte)</li>
-   *   <li>If the type of the entry is {@linkplain ResourceItemType#REGULAR}, the index of the corresponding
+   *   <li>If the type of the entry is {@linkplain ResourceItemType#VALUE}, the index of the corresponding
    *       multi-resource file (unsigned short)</li>
-   *   <li>If the type of the entry is not {@linkplain ResourceItemType#REGULAR}, the index of the corresponding
+   *   <li>If the type of the entry is not {@linkplain ResourceItemType#VALUE}, the index of the corresponding
    *       folder configuration (unsigned short)</li>
    *   <li>If the type of the entry is {@linkplain ResourceItemType#FILE}, the path of the file (UTF-8 string)</li>
    * </ol>
@@ -593,25 +586,20 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
             for (ResourceItem resourceItem : resourceItems) {
               out.writeNode(resourceItem.getValue());
               ResourceFile resourceFile = resourceItem.getSource();
+              assert resourceFile != null;
               ResourceItemType itemType;
-              if (resourceItem instanceof MergedResourceItem) {
-                itemType = ResourceItemType.MERGED;
-              } else if (resourceItem.getSourceType() == DataFile.FileType.SINGLE_FILE) {
+              if (resourceItem.getSourceType() == DataFile.FileType.SINGLE_FILE) {
                 itemType = ResourceItemType.FILE;
               } else {
-                itemType = ResourceItemType.REGULAR;
+                itemType = ResourceItemType.VALUE;
               }
               out.writeByte(itemType.ordinal());
-              if (itemType == ResourceItemType.REGULAR) {
-                assert resourceFile != null;
+              if (itemType == ResourceItemType.VALUE) {
                 out.writeShort(multiResourceFileIndexes.get(resourceFile.getFile()));
               } else {
                 int folderConfigurationIndex = folderConfigurationIndexes.get(resourceItem.getConfiguration());
                 out.writeShort(folderConfigurationIndex);
-                if (itemType == ResourceItemType.FILE) {
-                  assert resourceFile != null;
-                  out.writeUTF(resourceFile.getFile().getPath());
-                }
+                out.writeUTF(resourceFile.getFile().getPath());
               }
             }
           }
@@ -663,7 +651,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
   @NotNull
   private Map<ResourceType, ListMultimap<String, ResourceItem>> getMapByType() {
-    return getFullTable().row(NAMESPACE);
+    return getFullTable().row(ANDROID_NAMESPACE);
   }
 
   @NotNull
@@ -833,7 +821,7 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     private final boolean myWithLocaleResources;
 
     FrameworkResourceSet(@NotNull File resourceFolder, boolean withLocaleResources) {
-      super("AndroidFramework", NAMESPACE, null, false);
+      super("AndroidFramework", ANDROID_NAMESPACE, null, false);
       myWithLocaleResources = withLocaleResources;
       addSource(resourceFolder);
       setShouldParseResourceIds(true);
@@ -1479,10 +1467,8 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
 
   private enum ResourceItemType {
     /** Resource associated with a {@linkplain DataFile.FileType#XML_VALUES} file. */
-    REGULAR,
+    VALUE,
     /** Resource associated with a {@linkplain DataFile.FileType#SINGLE_FILE} file. */
-    FILE,
-    /** Merged resource. See {@linkplain MergedResourceItem}. */
-    MERGED
+    FILE
   }
 }
