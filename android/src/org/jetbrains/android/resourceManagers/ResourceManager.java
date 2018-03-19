@@ -18,7 +18,6 @@ package org.jetbrains.android.resourceManagers;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -314,15 +313,6 @@ public abstract class ResourceManager {
       }
     }
     return usages;
-  }
-
-  @NotNull
-  private List<VirtualFile> getResourceSubdirsToSearchIds() {
-    List<VirtualFile> resSubdirs = new ArrayList<>();
-    for (ResourceFolderType type : FolderTypeRelationship.getIdGeneratingFolderTypes()) {
-      resSubdirs.addAll(getResourceSubdirs(type));
-    }
-    return resSubdirs;
   }
 
   public List<ResourceElement> findValueResources(@NotNull ResourceNamespace namespace, @NotNull String resType, @NotNull String resName) {
