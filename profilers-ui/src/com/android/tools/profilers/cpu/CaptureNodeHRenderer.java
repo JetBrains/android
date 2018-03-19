@@ -89,22 +89,6 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     return getFillColor(node);
   }
 
-  private Color getBorderColor(CaptureNode node) {
-    // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
-    CaptureNodeModel nodeModel = node.getData();
-    if (nodeModel instanceof JavaMethodModel) {
-      return JavaMethodHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
-    }
-    else if (nodeModel instanceof NativeNodeModel) {
-      return NativeModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
-    }
-    // AtraceNodeModel is a SingleNameModel and uses the same colors for the border.
-    else if (nodeModel instanceof SingleNameModel) {
-      return SingleNameModelHChartColors.getBorderColor(nodeModel, myType, node.isUnmatched());
-    }
-    throw new IllegalStateException("Node type not supported.");
-  }
-
   /**
    * @return the same color but with 20% opacity that is used to represent an unmatching node.
    */
@@ -145,10 +129,6 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
                                     drawingArea.getWidth() - cpuIdleTimeRatio,
                                     drawingArea.getHeight()));
     }
-
-    // Draw rectangle outline.
-    g.setPaint(getBorderColor(captureNode));
-    g.draw(drawingArea);
 
     // Draw text
     Font font = g.getFont();

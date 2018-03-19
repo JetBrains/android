@@ -23,7 +23,7 @@ import java.awt.*;
 import static com.android.tools.profilers.cpu.CaptureNodeHRenderer.toUnmatchColor;
 
 /**
- *  Defines the colors (fill and border) of the rectangles used to represent {@link JavaMethodModel} nodes in a
+ *  Defines the fill color of the rectangles used to represent {@link JavaMethodModel} nodes in a
  *  {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
 class JavaMethodHChartColors {
@@ -71,35 +71,6 @@ class JavaMethodHChartColors {
       }
       else {
         color = ProfilerColors.CPU_FLAMECHART_APP;
-      }
-    }
-    return isUnmatched ? toUnmatchColor(color) : color;
-  }
-
-  static Color getBorderColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
-    validateModel(model);
-
-    Color color;
-    if (chartType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isMethodVendor(model)) {
-        color = ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
-      }
-      else if (isMethodPlatform(model)) {
-        color = ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER;
-      }
-      else {
-        color = ProfilerColors.CPU_CALLCHART_APP_BORDER;
-      }
-    }
-    else {
-      if (isMethodVendor(model)) {
-        color = ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
-      }
-      else if (isMethodPlatform(model)) {
-        color = ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER;
-      }
-      else {
-        color = ProfilerColors.CPU_FLAMECHART_APP_BORDER;
       }
     }
     return isUnmatched ? toUnmatchColor(color) : color;

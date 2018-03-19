@@ -25,7 +25,7 @@ import java.awt.*;
 import static com.android.tools.profilers.cpu.CaptureNodeHRenderer.toUnmatchColor;
 
 /**
- *  Defines the colors (fill and border) of the rectangles used to represent {@link NativeNodeModel} nodes in a
+ *  Defines the fill color of the rectangles used to represent {@link NativeNodeModel} nodes in a
  *  {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
 public class NativeModelHChartColors {
@@ -76,36 +76,6 @@ public class NativeModelHChartColors {
       }
       else {
         color = ProfilerColors.CPU_FLAMECHART_VENDOR;
-      }
-    }
-    return isUnmatched ? toUnmatchColor(color) : color;
-  }
-
-  static Color getBorderColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
-    validateModel(model);
-
-    // TODO(b/68014311): Define colors for each type of model and differentiate user code properly
-    Color color;
-    if (chartType == CaptureModel.Details.Type.CALL_CHART) {
-      if (isUserFunction(model)) {
-        color = ProfilerColors.CPU_CALLCHART_APP_BORDER;
-      }
-      else if (isPlatformFunction(model)) {
-        color = ProfilerColors.CPU_CALLCHART_PLATFORM_BORDER;
-      }
-      else {
-        color = ProfilerColors.CPU_CALLCHART_VENDOR_BORDER;
-      }
-    }
-    else {
-      if (isUserFunction(model)) {
-        color = ProfilerColors.CPU_FLAMECHART_APP_BORDER;
-      }
-      else if (isPlatformFunction(model)) {
-        color = ProfilerColors.CPU_FLAMECHART_PLATFORM_BORDER;
-      }
-      else {
-        color = ProfilerColors.CPU_FLAMECHART_VENDOR_BORDER;
       }
     }
     return isUnmatched ? toUnmatchColor(color) : color;

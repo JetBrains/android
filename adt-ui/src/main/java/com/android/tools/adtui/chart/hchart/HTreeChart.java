@@ -52,7 +52,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private static final String ACTION_MOVE_LEFT = "move left";
   private static final String ACTION_MOVE_RIGHT = "move right";
   private static final int ACTION_MOVEMENT_FACTOR = 5;
-  private static final int BORDER_PLUS_PADDING = 2;
+  private static final int PADDING = 1;
   private static final int INITIAL_Y_POSITION = 0;
   private static final int HEIGHT_PADDING = 15;
 
@@ -214,7 +214,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       Rectangle2D.Float newRect = new Rectangle2D.Float();
       newRect.x = rect.x * (float)dim.getWidth();
       newRect.y = rect.y;
-      newRect.width = Math.max(0, rect.width * (float)dim.getWidth() - BORDER_PLUS_PADDING);
+      newRect.width = Math.max(0, rect.width * (float)dim.getWidth() - PADDING);
       newRect.height = rect.height;
 
       if (myOrientation == HTreeChart.Orientation.BOTTOM_UP) {
@@ -277,7 +277,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     float right = (float)Math.min(1, (node.getEnd() - myXRange.getMin()) / myXRange.getLength());
     Rectangle2D.Float rect = new Rectangle2D.Float();
     rect.x = left;
-    rect.y = (float)((mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * node.getDepth()
+    rect.y = (float)((mDefaultFontMetrics.getHeight() + PADDING) * node.getDepth()
                      - getYRange().getMin());
     rect.width = right - left;
     rect.height = mDefaultFontMetrics.getHeight();
@@ -436,6 +436,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     addMouseMotionListener(adapter);
   }
 
+  @NotNull
   public Range getYRange() {
     return myYRange;
   }
@@ -467,7 +468,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     // The HEIGHT_PADDING is for the chart's toe (the innermost frame on call stacks).
     // We have this because the padding near the chart's head (the outermost frame on call stacks)
     // is there because the root node of the tree is invisible.
-    return (mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth + HEIGHT_PADDING;
+    return (mDefaultFontMetrics.getHeight() + PADDING) * maxDepth + HEIGHT_PADDING;
   }
 
   public enum Orientation {TOP_DOWN, BOTTOM_UP}

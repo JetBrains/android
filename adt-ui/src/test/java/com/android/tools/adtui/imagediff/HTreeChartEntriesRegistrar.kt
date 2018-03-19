@@ -121,7 +121,6 @@ private class HTreeChartEntriesRegistrar : ImageDiffEntriesRegistrar() {
         // Don't draw any text because it doesn't compare well across platforms
         override fun generateFittingText(nodeData: HTreeModel, rect: Rectangle2D, fontMetrics: FontMetrics) = ""
         override fun getFillColor(nodeData: HTreeModel) = nextFillColor()
-        override fun getBorderColor(nodeData: HTreeModel) = Color.BLACK
       })
       val nodeTree = createNodeTree()
       chart.setRootVisible(true)
