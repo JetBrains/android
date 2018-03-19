@@ -21,6 +21,6 @@ iml_module(
         "//tools/adt/idea/uitest-framework[module, test]",
         "//tools/idea/platform/platform-impl[module, test]",
         "//tools/adt/idea/android[module, test]",
-        "//tools:fest-swing[module, test]",
+        "//tools/swing-testing/fest-swing[module, test]",
     ],
 )

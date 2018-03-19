@@ -23,7 +23,7 @@ iml_module(
         "//tools/adt/idea/android[module]",
         "//tools/idea/platform/platform-api[module, test]",
         "//tools/idea/platform/platform-impl[module, test]",
-        "//tools:fest-swing[module, test]",
+        "//tools/swing-testing/fest-swing[module, test]",
         "//tools/idea/.idea/libraries:jsr305[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/testFramework[module, test]",
