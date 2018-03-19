@@ -53,6 +53,14 @@ public abstract class Notch {
    */
   static final int TYPE_VERTICAL = 1 << 1;
 
+  /**
+   * Indicate that this {@link Notch} is circle and it cares about the value on X-axis and Y-axis.
+   * Component snap to this notch when distance to (x, y) point is smaller than gap.
+   *
+   * @see #setGap(int)
+   */
+  static final int TYPE_CIRCLE = 1 << 2;
+
   public interface Action {
     void apply(@NotNull AttributesTransaction attributes);
   }
@@ -93,7 +101,7 @@ public abstract class Notch {
    * @param action        The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called
    */
   protected Notch(@NotNull SceneComponent owner,
-                  @MagicConstant(flags = {TYPE_HORIZONTAL, TYPE_VERTICAL}) int type,
+                  @MagicConstant(flags = {TYPE_HORIZONTAL, TYPE_VERTICAL, TYPE_CIRCLE}) int type,
                   @Nullable Action action) {
     myOwner = owner;
     myType = type;
@@ -257,6 +265,60 @@ public abstract class Notch {
       if (parent != null) {
         DrawHorizontalNotch.add(list, context, parent.getDrawX(), myDisplayValueY, parent.getDrawX() + parent.getDrawWidth());
       }
+    }
+  }
+
+  public static class Circle extends Notch {
+    @AndroidDpCoordinate private int myValueX;
+    @AndroidDpCoordinate private int myValueY;
+
+    /**
+     * Create a new notch associated with the provided {@link SceneComponent} owner.
+     *
+     * @param owner  The {@link SceneComponent} holding the notch
+     * @param valueX The position where element will be snapped on x-axis
+     * @param valueY The position where element will be snapped on y-axis
+     */
+    public Circle(@NotNull SceneComponent owner,
+                  @AndroidDpCoordinate int valueX,
+                  @AndroidDpCoordinate int valueY) {
+      this(owner, valueX, valueY, null);
+    }
+
+    /**
+     * Create a new notch associated with the provided {@link SceneComponent} owner.
+     *
+     * @param owner  The {@link SceneComponent} holding the notch
+     * @param valueX The position where element will be snapped on x-axis
+     * @param valueY The position where element will be snapped on y-axis
+     * @param action The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
+     */
+    public Circle(@NotNull SceneComponent owner,
+                  @AndroidDpCoordinate int valueX,
+                  @AndroidDpCoordinate int valueY,
+                  @Nullable Action action) {
+      super(owner, TYPE_CIRCLE, action);
+      myValueX = valueX;
+      myValueY = valueY;
+    }
+
+    @Override
+    public boolean isSnappable(@AndroidDpCoordinate int valueX,
+                               @AndroidDpCoordinate int valueY,
+                               @AndroidDpCoordinate @NotNull Point retPoint) {
+      int dx = valueX - myValueX;
+      int dy = valueY - myValueY;
+      if (dx * dx + dy * dy <= myGap * myGap) {
+        retPoint.x = myValueX;
+        retPoint.y = myValueY;
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public void render(@NotNull DisplayList list, @NotNull SceneContext context, @NotNull SceneComponent component) {
+      // Do nothing.
     }
   }
 

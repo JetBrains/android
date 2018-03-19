@@ -21,16 +21,20 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.android.tools.idea.uibuilder.scene.target.Notch;
+import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implements a target anchor for the ConstraintLayout.
  */
-abstract public class AnchorTarget extends BaseTarget {
+abstract public class AnchorTarget extends BaseTarget implements Notch.Provider {
 
   private static final boolean DEBUG_RENDERER = false;
 
@@ -41,6 +45,8 @@ abstract public class AnchorTarget extends BaseTarget {
   @AndroidDpCoordinate protected int myLastX = -1;
   @AndroidDpCoordinate protected int myLastY = -1;
   private boolean myExpandArea = false;
+
+  protected final TargetSnapper mySnapper = new TargetSnapper();
 
   /**
    * Type of possible anchors.
@@ -312,6 +318,8 @@ abstract public class AnchorTarget extends BaseTarget {
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastX = -1;
     myLastY = -1;
+    mySnapper.reset();
+    mySnapper.gatherNotches(myComponent);
   }
 
   /**
@@ -319,8 +327,9 @@ abstract public class AnchorTarget extends BaseTarget {
    */
   @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> ignored) {
-    myLastX = x;
-    myLastY = y;
+    Optional<Point> p = mySnapper.trySnapCircle(x, y);
+    myLastX = p.map(point -> point.x).orElse(x);
+    myLastY = p.map(point -> point.y).orElse(y);
   }
 
   /**
@@ -341,6 +350,47 @@ abstract public class AnchorTarget extends BaseTarget {
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
+
+  @Override
+  public void fill(@NotNull SceneComponent owner,
+                   @NotNull SceneComponent snappableComponent,
+                   @NotNull ImmutableList.Builder<Notch> notchBuilder) {
+    // TODO: Refactor this condition later.
+    if (!myComponent.getScene().allowsTarget(this)) {
+      return;
+    }
+    if (myComponent.isDragging() && !isConnected()) {
+      return;
+    }
+
+    int x, y;
+    switch (getType()) {
+      case LEFT:
+        x = owner.getDrawX();
+        y = owner.getDrawY() + owner.getDrawHeight() / 2;
+        break;
+      case TOP:
+        x = owner.getDrawX() + owner.getDrawWidth() / 2;
+        y = owner.getDrawY();
+        break;
+      case RIGHT:
+        x = owner.getDrawX() + owner.getDrawWidth();
+        y = owner.getDrawY() + owner.getDrawHeight() / 2;
+        break;
+      case BOTTOM:
+        x = owner.getDrawX() + owner.getDrawWidth() / 2;
+        y = owner.getDrawY() + owner.getDrawHeight();
+        break;
+      default:
+        x = -1;
+        y = -1;
+    }
+    Notch notch = new Notch.Circle(owner, x, y, null);
+    // Make it bigger for snapping.
+    notch.setGap(ANCHOR_SIZE * 5);
+    notch.setTarget(this);
+    notchBuilder.add(notch);
+  }
 
   @Nullable
   public static AnchorTarget findAnchorTarget(@NotNull SceneComponent component, @NotNull AnchorTarget.Type type) {
