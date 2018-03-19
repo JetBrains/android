@@ -76,9 +76,9 @@ object CommonControlPortfolio {
     grid.add(makeComboBox("zero", true, false))
     topPanel.add(grid, "ComboBox")
 
-    var menuPanel = JPanel(VerticalFlowLayout())
-    var label = JLabel()
-    var toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+    val menuPanel = JPanel(VerticalFlowLayout())
+    val label = JLabel()
+    val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     toolBarPanel.add(makeDropDownMenu("MenuWithIconArrow", StudioIcons.Common.ADD, true, 2, 2, label))
     toolBarPanel.add(makeDropDownMenu("MenuNoIcon", null, false, 2, 2, label))
     toolBarPanel.add(makeDropDownMenu("", StudioIcons.Common.EXPORT, true, 2, 2, label))
@@ -149,7 +149,7 @@ object CommonControlPortfolio {
       override val placeHolderValue: String
         get() = "@+id/name"
 
-      override fun validationError(editedValue: String): String {
+      override fun validate(editedValue: String): String {
         return if (editedValue == "Error") "Invalid text content" else ""
       }
 
@@ -183,12 +183,12 @@ object CommonControlPortfolio {
   }
 
   private fun makeDropDownMenu(text: String, icon: Icon?, showArrow: Boolean, width: Int, depth: Int, label: JLabel): JComponent {
-    var model = CommonAction(text, icon, null)
+    val model = CommonAction(text, icon, null)
     model.showExpandArrow = showArrow
 
     for (i in 0 until width) {
       if (i % 2 == 0) {
-        var action = CommonAction(text, icon)
+        val action = CommonAction(text, icon)
         action.setAction(
             {
               action.isSelected = !action.isSelected
@@ -197,7 +197,7 @@ object CommonControlPortfolio {
         )
         model.addChildrenActions(action)
       } else {
-        var action = CommonAction(text, icon)
+        val action = CommonAction(text, icon)
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
         model.addChildrenActions(action)
       }
@@ -209,7 +209,7 @@ object CommonControlPortfolio {
   private fun populateCommonActionRecursive(parent: CommonAction, text: String, icon: Icon?, width: Int, depth: Int, label: JLabel) {
     for (i in 0 until width) {
       if (i % 2 == 0 || depth - 1 == 0) {
-        var action = CommonAction(text, icon)
+        val action = CommonAction(text, icon)
         action.setAction(
             {
               action.isSelected = !action.isSelected
@@ -218,7 +218,7 @@ object CommonControlPortfolio {
         )
         parent.addChildrenActions(action)
       } else {
-        var action = CommonAction(text, icon)
+        val action = CommonAction(text, icon)
         populateCommonActionRecursive(action, text, icon, width, depth - 1, label)
         parent.addChildrenActions(action)
       }

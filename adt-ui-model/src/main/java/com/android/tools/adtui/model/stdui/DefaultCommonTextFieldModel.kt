@@ -36,7 +36,7 @@ class DefaultCommonTextFieldModel(initialValue: String) : CommonTextFieldModel {
       fireValueChanged()
     }
 
-  override fun validationError(editedValue: String): String {
+  override fun validate(editedValue: String): String {
     return if (editedValue == "Error") "Error is not a valid value" else ""
   }
 

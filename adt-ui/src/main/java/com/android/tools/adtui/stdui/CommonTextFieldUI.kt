@@ -69,7 +69,7 @@ open class CommonTextFieldUI(private val editor: CommonTextField) : BasicTextFie
   override fun paintSafely(g: Graphics) {
     val g2 = g as Graphics2D
 
-    val hasErrors = !editor.model.validationError(editor.text).isEmpty()
+    val hasErrors = !editor.model.validate(editor.text).isEmpty()
     val hasFocus = editor.isFocusOwner
     val hasVisiblePlaceHolder = editor.text.isEmpty() && editor.model.placeHolderValue.isNotEmpty()
     (editor.border as? StandardBorder)?.paintBorder(editor, g, hasErrors, hasFocus, hasVisiblePlaceHolder)

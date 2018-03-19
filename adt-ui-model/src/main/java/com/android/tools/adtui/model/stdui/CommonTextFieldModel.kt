@@ -31,7 +31,7 @@ interface CommonTextFieldModel {
   val placeHolderValue: String
     get() = ""
 
-  fun validationError(editedValue: String): String = ""
+  fun validate(editedValue: String): String = ""
 
   fun addListener(listener: ValueChangedListener)
 
