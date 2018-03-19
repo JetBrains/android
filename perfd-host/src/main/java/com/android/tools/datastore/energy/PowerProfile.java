@@ -103,28 +103,26 @@ public interface PowerProfile {
 
       // TODO(b/75968214): Support more than 2 CPU frequency bins?
       // We only support up to two frequency bins presently.
-      boolean lowerFrequencyCore; // Defaults single core system to big core.
       boolean lowerClusterActivationAdded = false;
       boolean higherClusterActivationAdded = false;
       boolean cpuActivationAdded = false;
       for (CpuCoreUsage core : usagesList) {
-        lowerFrequencyCore = core.myMaxFrequencyKhz < usagesList.get(usagesList.size() - 1).myMaxFrequencyKhz;
-        double fMhz = renormalizeFrequency(core, lowerFrequencyCore ? MAX_LITTLE_CORE_FREQ_KHZ : MAX_BIG_CORE_FREQ_KHZ);
+        double fMhz = renormalizeFrequency(core, core.myIsLittleCore ? MAX_LITTLE_CORE_FREQ_KHZ : MAX_BIG_CORE_FREQ_KHZ);
         double f2 = fMhz * fMhz;
         double f3 = f2 * fMhz;
 
         // Approximately add CPU active cost and cluster active costs (approximately 6mA per category).
-        if (fMhz > MIN_CORE_FREQ_KHZ) {
+        if (fMhz * 1000 > MIN_CORE_FREQ_KHZ) {
           if (!cpuActivationAdded) {
             cpuActivationAdded = true;
             totalMilliAmps += 17.757;
           }
 
-          if (lowerFrequencyCore && !lowerClusterActivationAdded) {
+          if (core.myIsLittleCore && !lowerClusterActivationAdded) {
             lowerClusterActivationAdded = true;
             totalMilliAmps += 6.478;
           }
-          else if (!lowerFrequencyCore && !higherClusterActivationAdded) {
+          else if (!core.myIsLittleCore && !higherClusterActivationAdded) {
             higherClusterActivationAdded = true;
             totalMilliAmps += 6.141;
           }
@@ -133,7 +131,7 @@ public interface PowerProfile {
         // Add per-cost cost.
         // Based on measurements on a Walleye device at various core frequencies for both the big and little cores.
         // The empirical results are then fitted against a cubic polynomial, resulting in the following equations.
-        if (lowerFrequencyCore) {
+        if (core.myIsLittleCore) {
           totalMilliAmps += (5.79689e-9 * f3 - 8.31587e-6 * f2 + 0.0109841 * fMhz + 0.513398) * core.myAppUsage * core.myCoreUsage;
         }
         else {
@@ -165,7 +163,7 @@ public interface PowerProfile {
       }
       if (networkStats.mySendingBps > 0) {
         usage += networkStats.myNetworkType == NetworkType.WIFI
-                 ? fitBps(1, 249, networkStats.mySendingBps,  500000)
+                 ? fitBps(1, 249, networkStats.mySendingBps, 500000)
                  : fitBps(10, 190, networkStats.mySendingBps, 200000);
       }
       return usage;
@@ -200,23 +198,35 @@ public interface PowerProfile {
   final class CpuCoreUsage {
     public final double myAppUsage;
     public final double myCoreUsage;
-    private final int myMinFrequencyKhz;
-    private final int myMaxFrequencyKhz;
+    public final int myCoreId;
+    public final int myMinFrequencyKhz;
+    public final int myMaxFrequencyKhz;
     public final int myFrequencyKhz;
+    public final boolean myIsLittleCore;
 
     /**
+     * @param coreId          The index/ID of the core.
      * @param appUsage        The total amount of CPU resources of the target app, relative to actual CPU usage (not idle) [0, 1].
      * @param coreUsage       The amount of total usage of the core, relative to the total time elapsed [0, 1].
      * @param minFrequencyKhz The min frequency (in kHz) the core is able to sustain.
      * @param maxFrequencyKhz The max frequency (in kHz) the core is able to lower to.
      * @param frequencyKhz    The frequency (in kHz) the core was last operating at.
+     * @param isLittleCore    Whether or not this is a small core (for ARM big.LITTLE CPU configurations).
      */
-    public CpuCoreUsage(double appUsage, double coreUsage, int minFrequencyKhz, int maxFrequencyKhz, int frequencyKhz) {
+    public CpuCoreUsage(int coreId,
+                        double appUsage,
+                        double coreUsage,
+                        int minFrequencyKhz,
+                        int maxFrequencyKhz,
+                        int frequencyKhz,
+                        boolean isLittleCore) {
+      myCoreId = coreId;
       myAppUsage = appUsage;
       myCoreUsage = coreUsage;
       myMinFrequencyKhz = minFrequencyKhz;
       myMaxFrequencyKhz = maxFrequencyKhz;
       myFrequencyKhz = frequencyKhz;
+      myIsLittleCore = isLittleCore;
     }
   }
 

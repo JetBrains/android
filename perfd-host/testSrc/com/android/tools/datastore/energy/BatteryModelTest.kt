@@ -45,7 +45,7 @@ class BatteryModelTest {
   }
 
   private fun assertLowPowerUsage(sample: EnergyProfiler.EnergySample) {
-    assertThat(sample.cpuUsage).isLessThan(10)
+    assertThat(sample.cpuUsage).isLessThan(50)
     assertThat(sample.networkUsage).isAtMost(1)
   }
 
@@ -96,7 +96,7 @@ class BatteryModelTest {
       batteryModel.handleEvent(
           timeCurrNs,
           BatteryModel.Event.CPU_USAGE,
-          arrayOf(PowerProfile.CpuCoreUsage(1.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY))
+          arrayOf(PowerProfile.CpuCoreUsage(0, 1.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
       )
       val samples = batteryModel.getNSamplesStartingAt(timeCurrNs, 3)
 
@@ -113,7 +113,7 @@ class BatteryModelTest {
       batteryModel.handleEvent(
           timeCurrNs,
           BatteryModel.Event.CPU_USAGE,
-          arrayOf(PowerProfile.CpuCoreUsage(0.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY))
+          arrayOf(PowerProfile.CpuCoreUsage(0, 0.0, 0.5, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
       )
     }
 
@@ -176,7 +176,7 @@ class BatteryModelTest {
     batteryModel.handleEvent(
         timeCurrNs + 3,
         BatteryModel.Event.CPU_USAGE,
-        arrayOf(PowerProfile.CpuCoreUsage(1.0, 1.0, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY))
+        arrayOf(PowerProfile.CpuCoreUsage(0, 1.0, 1.0, MIN_CPU_FREQUENCY, MAX_CPU_FREQUENCY, MAX_CPU_FREQUENCY, false))
     )
 
     val sample = batteryModel.getNSamplesStartingAt(timeCurrNs, 1)[0]

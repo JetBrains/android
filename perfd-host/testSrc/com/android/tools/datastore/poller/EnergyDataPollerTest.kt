@@ -238,6 +238,7 @@ class EnergyDataPollerTest : DataStorePollerTest() {
         // Timestamp rounds from 250ms to nearest bucket, 200ms. CPU at 100%
         CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(ONE_FOURTH_SEC_NS)
           .setElapsedTimeInMillisec(ONE_FOURTH_SEC_MS)
+          .setSystemCpuTimeInMillisec(ONE_FOURTH_SEC_MS)
           .setAppCpuTimeInMillisec(ONE_FOURTH_SEC_MS)
           .addCores(
             CpuProfiler.CpuCoreUsageData.newBuilder()
@@ -248,6 +249,7 @@ class EnergyDataPollerTest : DataStorePollerTest() {
         // (Since previous data, 500ms elapsed but only 250ms app time)
         CpuProfiler.CpuUsageData.newBuilder().setEndTimestamp(THREE_FOURTH_SEC_NS)
           .setElapsedTimeInMillisec(THREE_FOURTH_SEC_MS)
+          .setSystemCpuTimeInMillisec(THREE_FOURTH_SEC_MS)
           .setAppCpuTimeInMillisec(ONE_HALF_SEC_MS)
           .addCores(
             CpuProfiler.CpuCoreUsageData.newBuilder()
