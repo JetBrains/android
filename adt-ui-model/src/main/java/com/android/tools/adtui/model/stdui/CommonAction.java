@@ -118,4 +118,10 @@ public class CommonAction extends AbstractAction {
     myChildrenActions.clear();
     firePropertyChange(CHILDREN_ACTION_CHANGED, oldActions, myChildrenActions);
   }
+
+  static public class Separator extends CommonAction {
+    public Separator() {
+      super("separator", null);
+    }
+  }
 }

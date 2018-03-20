@@ -17,6 +17,7 @@ package com.android.tools.profilers.sessions
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.stdui.CommonAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.android.tools.profiler.proto.Common
@@ -146,15 +147,16 @@ class SessionsViewTest {
 
     myProfilerService.addDevice(device1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
-    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Loading from file..." }
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
+    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.Separator::class.java)
+    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
     assertThat(deviceAction1.isSelected).isFalse()
     assertThat(deviceAction1.isEnabled).isTrue()
     assertThat(deviceAction1.childrenActionCount).isEqualTo(0)
 
     myProfilerService.addDevice(device1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isFalse()
@@ -162,7 +164,7 @@ class SessionsViewTest {
 
     myProfilerService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
@@ -173,7 +175,7 @@ class SessionsViewTest {
 
     myProfilerService.addProcess(device1, process2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(2)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
@@ -186,7 +188,7 @@ class SessionsViewTest {
     myProfilerService.addDevice(device2)
     myProfilerService.addProcess(device2, process3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(4)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
     assertThat(deviceAction1.isEnabled).isTrue()
@@ -290,7 +292,7 @@ class SessionsViewTest {
   fun testSessionItemMouseInteraction() {
     val sessionsList = mySessionsView.sessionsList
     sessionsList.ui = HeadlessListUI()
-    sessionsList.setSize(200,200)
+    sessionsList.setSize(200, 200)
     val ui = FakeUi(sessionsList)
     val sessionArtifacts = sessionsList.model
     assertThat(sessionArtifacts.size).isEqualTo(0)

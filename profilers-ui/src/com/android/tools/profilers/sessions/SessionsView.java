@@ -264,7 +264,7 @@ public class SessionsView extends AspectObserver {
 
     // Add the dropdown action for loading from file
     if (myProfilers.getIdeServices().getFeatureConfig().isSessionImportEnabled()) {
-      CommonAction loadAction = new CommonAction("Loading from file...", null);
+      CommonAction loadAction = new CommonAction("Load from file...", null);
       loadAction.setAction(() -> {
         myIdeProfilerComponents
           .createImportDialog().
@@ -272,6 +272,7 @@ public class SessionsView extends AspectObserver {
                file -> myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath())));
       });
       myProcessSelectionAction.addChildrenActions(loadAction);
+      myProcessSelectionAction.addChildrenActions(new CommonAction.Separator());
     }
 
     Common.Device selectedDevice = myProfilers.getDevice();
