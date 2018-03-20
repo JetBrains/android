@@ -456,8 +456,7 @@ public class Scene implements SelectionListener, Disposable {
       }
       // if the baseline shows, hide all the targets others than ActionTarget, ConstraintDragTarget and ResizeTarget
       if (component.canShowBaseline()) {
-        return (target instanceof ActionTarget) ||
-               (target instanceof ConstraintDragTarget) ||
+        return (target instanceof ConstraintDragTarget) ||
                (target instanceof DragBaseTarget) ||
                (target instanceof ResizeBaseTarget);
       }
@@ -503,9 +502,6 @@ public class Scene implements SelectionListener, Disposable {
     }
     if (target instanceof GuidelineCycleTarget) {
       return true;
-    }
-    if (target instanceof ActionTarget) {
-      return false;
     }
     if (myFilterType == FilterType.ALL) {
       return true;
