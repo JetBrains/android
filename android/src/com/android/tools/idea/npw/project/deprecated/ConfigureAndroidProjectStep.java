@@ -24,7 +24,9 @@ import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
@@ -33,12 +35,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +43,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
+
+import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
@@ -89,12 +88,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
 
     myBindings.bindTwoWay(new SelectedProperty(myKotlinSupportCheck), model.enableKotlinSupport());
 
-    myProjectLocation.addActionListener(event -> {
-      String finalPath = browseForFile(locationText.get());
-      if (finalPath != null) {
-        locationText.set(finalPath);
-      }
-    });
+    myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerValidator(model.applicationName(), value -> {
@@ -160,32 +154,5 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     }
 
     return projectDirectory.getPath();
-  }
-
-  // TODO: Do we really need this method? See SdkComponentsStep on how to use addBrowseFolderListener. If we can't do the same, at least
-  // describe what this method does, and why is needed.
-  // Returns null if no file was selected
-  @Nullable
-  private static String browseForFile(@NotNull String initialPath) {
-    FileChooserDescriptor fileSaverDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-    File currentPath = new File(initialPath);
-    File parentPath = currentPath.getParentFile();
-    if (parentPath == null) {
-      String homePath = System.getProperty("user.home");
-      parentPath = new File(homePath == null ? File.separator : homePath);
-    }
-    VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
-
-    OptionalProperty<String> finalPath = new OptionalValueProperty<>();
-    FileChooser.chooseFiles(fileSaverDescriptor, null, parent, virtualFiles -> {
-      if (virtualFiles.size() == 1) {
-        String result = virtualFiles.iterator().next().getCanonicalPath();
-        if (result != null) {
-          finalPath.setValue(result);
-        }
-      }
-    });
-
-    return finalPath.getValueOrNull();
   }
 }
