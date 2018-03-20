@@ -17,19 +17,26 @@ package com.android.tools.idea.tests.gui.framework.bazel.fixture
 
 import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.google.common.base.Verify
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.impl.EditorComponentImpl
+import com.intellij.openapi.options.ConfigurationException
+import com.intellij.openapi.wm.impl.IdeFrameImpl
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
+import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.finder.WindowFinder.findDialog
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JPanelFixture
 import org.fest.swing.fixture.JRadioButtonFixture
+import org.fest.swing.timing.Wait
+import org.junit.Assert.fail
 import java.io.File
 import javax.swing.JDialog
 import javax.swing.JRadioButton
 import javax.swing.SwingUtilities
+import javax.swing.text.JTextComponent
 
 class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
     AbstractWizardFixture<ImportBazelProjectWizardFixture>(ImportBazelProjectWizardFixture::class.java, robot, target) {
@@ -104,6 +111,30 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
         Verify.verify(editableText.selectedText == toSelect)
         editableText.replaceText(selectionStartIndex, toSelect.length, toPaste)
       }
+    }
+    return this
+  }
+
+  fun waitForProjectValidation(): ImportBazelProjectWizardFixture {
+    Wait.seconds(300).expecting("Project Validation to finish").until {
+      val errorDialog = try {
+        findDialog(
+          Matchers.byTitle(JDialog::class.java, ConfigurationException.DEFAULT_TITLE).andIsShowing()
+        ).withTimeout(1).using(robot())
+      }
+      catch (e: WaitTimedOutError) {
+        null
+      }
+
+      // If an error dialog appears, then we won't be able to import the project since it isn't valid.
+      // In this case, there's no reason to continue the test.
+      if (errorDialog != null) {
+        val errorText = robot().finder().findByType(errorDialog.target(), JTextComponent::class.java).text
+        fail("Project Validation failed:\n$errorText")
+      }
+
+      // Otherwise, keep waiting until the IDE frame is available.
+      robot().finder().findAll(Matchers.byType(IdeFrameImpl::class.java).andIsShowing()).isNotEmpty()
     }
     return this
   }

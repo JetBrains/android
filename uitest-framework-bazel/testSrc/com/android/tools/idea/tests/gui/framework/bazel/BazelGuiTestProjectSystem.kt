@@ -80,6 +80,7 @@ android_sdk_repository(
       .clickNext()
       .uncommentApi27(File(targetTestDirectory, "app/BUILD"))
       .clickFinish()
+      .waitForProjectValidation()
   }
 
   override fun requestProjectSync(ideFrameFixture: IdeFrameFixture): GuiTestProjectSystem {
