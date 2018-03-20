@@ -21,6 +21,7 @@ import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
@@ -74,7 +75,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
         if (project.isDisposed()) {
           return;
         }
-        Map<String, T> modelsByModuleName = indexByModuleName(toImport);
+        Map<String, T> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
         importData(toImport, project, modelsProvider, modelsByModuleName);
       }
     }.execute();
@@ -90,14 +91,26 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                      @NotNull Map<String, T> modelsByModuleName);
 
   @NotNull
-  private Map<String, T> indexByModuleName(@NotNull Collection<DataNode<T>> dataNodes) {
+  private Map<String, T> indexByModuleName(@NotNull Collection<DataNode<T>> dataNodes,
+                                           @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (dataNodes.isEmpty()) {
       return Collections.emptyMap();
     }
     Map<String, T> index = new HashMap<>();
     for (DataNode<T> dataNode : dataNodes) {
       T model = dataNode.getData();
-      index.put(model.getModuleName(), model);
+      String moduleName = model.getModuleName();
+      if (dataNode.getParent() != null) {
+        ModuleData moduleData = (ModuleData)dataNode.getParent().getData();
+        Module module = modelsProvider.findIdeModule(moduleData);
+        if (module != null && !module.getName().equals(moduleName)) {
+          // If the module name in modelsProvider is different from in moduleData, use module name in modelsProvider as key.
+          // This happens when there are multiple *iml files for one module, which can be caused by opening a project created on a different machine,
+          // or opening projects with both Intellij and Studio, or moving existing module to different locations.
+          moduleName = module.getName();
+        }
+      }
+      index.put(moduleName, model);
     }
     return index;
   }
