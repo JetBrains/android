@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
@@ -39,6 +40,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
   @Mock private GradleSyncSummary mySummary;
   @Mock private GradleFiles myGradleFiles;
   @Mock private ProjectStructure myProjectStructure;
+  @Mock private ExternalSystemTaskId myTaskId;
 
   private GradleSyncState mySyncState;
 
@@ -263,4 +265,28 @@ public class GradleSyncStateTest extends IdeaTestCase {
     assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.NO);
   }
 
+  /**
+   * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
+   */
+  public void testExternalSystemTaskIdEnded() {
+    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
+    mySyncState.setExternalSystemTaskId(myTaskId);
+    assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
+    mySyncState.syncEnded();
+    assertNull(mySyncState.getExternalSystemTaskId());
+  }
+
+  /**
+   * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
+   */
+  public void testExternalSystemTaskIdSkipped() {
+    long timestamp = -1231231231299L; // Some random number
+
+    // TODO Add trigger for testing?
+    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
+    mySyncState.setExternalSystemTaskId(myTaskId);
+    assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
+    mySyncState.syncSkipped(timestamp);
+    assertNull(mySyncState.getExternalSystemTaskId());
+  }
 }
