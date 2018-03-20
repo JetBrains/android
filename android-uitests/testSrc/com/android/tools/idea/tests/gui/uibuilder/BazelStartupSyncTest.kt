@@ -17,7 +17,9 @@ package com.android.tools.idea.tests.gui.uibuilder
 
 import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.bazel.fixture.BazelConsoleToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
+import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,7 +41,10 @@ class BazelStartupSyncTest {
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun startupBazelSyncSucceeds() {
-    guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleLocalApplication()
+    val console = BazelConsoleToolWindowFixture(ideFrame.project, ideFrame.robot())
+
+    assertThat(console.hasSyncErrors()).isFalse()
   }
 
 }
