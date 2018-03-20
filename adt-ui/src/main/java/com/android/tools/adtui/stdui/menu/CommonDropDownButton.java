@@ -79,36 +79,46 @@ public class CommonDropDownButton extends CommonToggleButton implements Property
     myPopup.removeAll();
     List<CommonAction> actions = myAction.getChildrenActions();
     for (CommonAction action : actions) {
-      JMenuItem menu;
-      if (action.getChildrenActionCount() == 0) {
-        menu = new CommonMenuItem(action);
+      if (action instanceof CommonAction.Separator) {
+        myPopup.addSeparator();
       }
       else {
-        menu = new CommonMenu(action);
-        populateMenuRecursive(menu, action.getChildrenActions());
+        JMenuItem menu;
+        if (action.getChildrenActionCount() == 0) {
+          menu = new CommonMenuItem(action);
+        }
+        else {
+          menu = new CommonMenu(action);
+          populateMenuRecursive((CommonMenu)menu, action.getChildrenActions());
+        }
+        menu.setFont(getFont());
+        myPopup.add(menu);
       }
-      menu.setFont(getFont());
-      myPopup.add(menu);
     }
 
     myPopup.show(this, 0, this.getHeight());
   }
 
-  private void populateMenuRecursive(JMenuItem parent, List<CommonAction> actions) {
+  private void populateMenuRecursive(CommonMenu parent, List<CommonAction> actions) {
     for (CommonAction action : actions) {
-      JMenuItem menu;
-      if (action.getChildrenActionCount() == 0) {
-        menu = new CommonMenuItem(action);
+      if (action instanceof CommonAction.Separator) {
+        parent.addSeparator();
       }
       else {
-        menu = new CommonMenu(action);
-        populateMenuRecursive(menu, action.getChildrenActions());
-      }
-      menu.setFont(getFont());
-      parent.add(menu);
+        JMenuItem menu;
+        if (action.getChildrenActionCount() == 0) {
+          menu = new CommonMenuItem(action);
+        }
+        else {
+          menu = new CommonMenu(action);
+          populateMenuRecursive((CommonMenu)menu, action.getChildrenActions());
+        }
+        menu.setFont(getFont());
+        parent.add(menu);
 
-      // Close and repopulate the dropdown if any of the descendant actions have changed.
-      action.addPropertyChangeListener(this);
+        // Close and repopulate the dropdown if any of the descendant actions have changed.
+        action.addPropertyChangeListener(this);
+      }
     }
   }
 
