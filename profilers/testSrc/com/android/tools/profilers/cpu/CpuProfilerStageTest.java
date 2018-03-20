@@ -685,6 +685,29 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void exitingAndReEnteringStageAgainShouldPreserveProfilingTime() {
+    // Start capturing
+    startCapturingSuccess();
+
+    // Increment 3 seconds on data range
+    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
+    dataRange.setMax(dataRange.getMax() + TimeUnit.SECONDS.toMicros(3));
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+
+    // Go back to monitor stage and go back to a new Cpu profiler stage
+    myStage.getStudioProfilers().setStage(new StudioMonitorStage(myStage.getStudioProfilers()));
+    CpuProfilerStage stage = new CpuProfilerStage(myStage.getStudioProfilers());
+    myStage.getStudioProfilers().setStage(stage);
+
+    // Make sure we're capturing
+    assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
+
+    // Check that we're capturing for three seconds
+    assertThat(stage.getCaptureElapsedTimeUs()).isEqualTo(TimeUnit.SECONDS.toMicros(3));
+  }
+
+  @Test
   public void editConfigurationsEntryCantBeSetAsProfilingConfiguration() {
     assertThat(myStage.getProfilingConfiguration()).isNotNull();
     // ART Sampled should be the default configuration when starting the stage,

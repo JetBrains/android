@@ -686,13 +686,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
 
     if (response.getBeingProfiled()) {
-      myCaptureStartTimeNs = currentTimeNs() - response.getStartTimestamp();
-      myInProgressTraceSeries.clear();
-      myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
       // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
       // aspect that depends on the former.
       myInProgressTraceInitiationType = response.getInitiationType();
       setCaptureState(CaptureState.CAPTURING);
+      myCaptureStartTimeNs = response.getStartTimestamp();
+      myInProgressTraceSeries.clear();
+      myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
       // We should jump to live data when there is an ongoing recording.
       getStudioProfilers().getTimeline().setStreaming(true);
 
