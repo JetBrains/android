@@ -51,6 +51,12 @@ class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindo
     false
   }
 
+  fun hasSyncErrors() = try {
+    getConsoleText().contains("ERROR:")
+  } catch (e: ComponentLookupException) {
+    false
+  }
+
   fun clearBazelConsole() {
     activateAndWaitUntilIsVisible()
     myRobot.rightClick(content.component)
