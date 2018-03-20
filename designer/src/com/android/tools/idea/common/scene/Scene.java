@@ -115,7 +115,7 @@ public class Scene implements SelectionListener, Disposable {
 
   public enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
-  private FilterType myFilterTarget = FilterType.NONE;
+  private FilterType myFilterType = FilterType.NONE;
 
   public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
@@ -468,28 +468,28 @@ public class Scene implements SelectionListener, Disposable {
     }
     if (target instanceof ConstraintAnchorTarget) {
       ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)target;
-      if (myFilterTarget == FilterType.BASELINE_ANCHOR) {
+      if (myFilterType == FilterType.BASELINE_ANCHOR) {
         return anchor.getType() == AnchorTarget.Type.BASELINE;
       }
-      if (myFilterTarget == FilterType.VERTICAL_ANCHOR
+      if (myFilterType == FilterType.VERTICAL_ANCHOR
           && anchor.isVerticalAnchor()) {
         return true;
       }
-      if (myFilterTarget == FilterType.HORIZONTAL_ANCHOR
+      if (myFilterType == FilterType.HORIZONTAL_ANCHOR
           && anchor.isHorizontalAnchor()) {
         return true;
       }
-      if (myFilterTarget == FilterType.ANCHOR) {
+      if (myFilterType == FilterType.ANCHOR) {
         return true;
       }
     }
     if (target instanceof RelativeAnchorTarget) {
       RelativeAnchorTarget anchor = (RelativeAnchorTarget) target;
-      if (anchor.isConnectible(myFilterTarget)) {
+      if (anchor.isConnectible(myFilterType)) {
         return true;
       }
     }
-    if (myFilterTarget == FilterType.RESIZE && target instanceof ResizeBaseTarget) {
+    if (myFilterType == FilterType.RESIZE && target instanceof ResizeBaseTarget) {
       return true;
     }
     if (target instanceof MultiComponentTarget) {
@@ -507,7 +507,7 @@ public class Scene implements SelectionListener, Disposable {
     if (target instanceof ActionTarget) {
       return false;
     }
-    if (myFilterTarget == FilterType.ALL) {
+    if (myFilterType == FilterType.ALL) {
       return true;
     }
     return false;
@@ -677,7 +677,7 @@ public class Scene implements SelectionListener, Disposable {
     mNeedsLayout = NO_LAYOUT;
     myLastMouseX = x;
     myLastMouseY = y;
-    myFilterTarget = FilterType.NONE;
+    myFilterType = FilterType.NONE;
     if (myRoot == null) {
       return;
     }
@@ -689,18 +689,18 @@ public class Scene implements SelectionListener, Disposable {
       if (myHitTarget instanceof ConstraintAnchorTarget) {
         ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)myHitTarget;
         if (anchor.isHorizontalAnchor()) {
-          myFilterTarget = FilterType.HORIZONTAL_ANCHOR;
+          myFilterType = FilterType.HORIZONTAL_ANCHOR;
         }
         else {
-          myFilterTarget = FilterType.VERTICAL_ANCHOR;
+          myFilterType = FilterType.VERTICAL_ANCHOR;
         }
         if (anchor.getType() == AnchorTarget.Type.BASELINE) {
-          myFilterTarget = FilterType.BASELINE_ANCHOR;
+          myFilterType = FilterType.BASELINE_ANCHOR;
         }
       }
       else if (myHitTarget instanceof RelativeAnchorTarget) {
         RelativeAnchorTarget anchor = (RelativeAnchorTarget)myHitTarget;
-        myFilterTarget = anchor.getPreferredFilterType();
+        myFilterType = anchor.getPreferredFilterType();
       }
       myHitTarget.mouseDown(x, y);
       if (myHitTarget instanceof MultiComponentTarget) {
@@ -793,7 +793,7 @@ public class Scene implements SelectionListener, Disposable {
         delegateMouseReleaseToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
     }
-    myFilterTarget = FilterType.NONE;
+    myFilterType = FilterType.NONE;
     myNewSelectedComponentsOnRelease.clear();
     if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent
         && !myNewSelectedComponentsOnRelease.contains(myHitComponent)) {
@@ -955,7 +955,7 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   public FilterType getFilterType() {
-    return myFilterTarget;
+    return myFilterType;
   }
 
   @Nullable
