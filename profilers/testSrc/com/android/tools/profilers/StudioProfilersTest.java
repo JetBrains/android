@@ -145,37 +145,31 @@ public final class StudioProfilersTest {
 
   @Test
   public void testLateConnectionOfPreferredProcess() throws Exception {
+    final String PREFERRED_PROCESS = "Preferred";
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    profilers.setPreferredProcessName(PREFERRED_PROCESS);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isNull();
     assertThat(profilers.getProcess()).isNull();
 
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
     myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
+    // We are waiting for the preferred process so the process should not be selected.
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
     assertThat(profilers.getProcess()).isNull();
 
-    Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
-    myProfilerService.addProcess(device, process);
-
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
-
-    assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
-    assertThat(profilers.getProcess().getName()).isEqualTo("FakeProcess");
-
-    profilers.setPreferredProcessName("Preferred");
-
-    Common.Process preferred = createProcess(device.getDeviceId(), 20, "Preferred", Common.Process.State.ALIVE);
+    Common.Process preferred = createProcess(device.getDeviceId(), 20, PREFERRED_PROCESS, Common.Process.State.ALIVE);
     myProfilerService.addProcess(device, preferred);
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
-    assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDevice");
-    assertThat(profilers.getProcess().getName()).isEqualTo("Preferred");
-
+    assertThat(profilers.getDevice()).isEqualTo(device);
+    assertThat(profilers.getProcess()).isEqualTo(preferred);
     assertThat(profilers.getProcesses()).hasSize(2);
     assertThat(profilers.getProcesses()).containsAllIn(ImmutableList.of(process, preferred));
   }
@@ -404,7 +398,6 @@ public final class StudioProfilersTest {
 
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
-    profilers.setPreferredProcessName(process.getName());
 
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
@@ -430,7 +423,6 @@ public final class StudioProfilersTest {
 
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
-    profilers.setPreferredProcessName(process.getName());
 
     myProfilerService.addDevice(device);
     myProfilerService.addProcess(device, process);
