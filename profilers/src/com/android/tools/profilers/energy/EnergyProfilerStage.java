@@ -21,6 +21,8 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class EnergyProfilerStage extends Stage {
+public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener {
 
   @NotNull private final DetailedEnergyUsage myDetailedUsage;
   @NotNull private final AxisComponentModel myAxis;
@@ -90,6 +92,8 @@ public class EnergyProfilerStage extends Stage {
     getStudioProfilers().getUpdater().register(myEventModel);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
   }
 
   @Override
@@ -101,6 +105,8 @@ public class EnergyProfilerStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myEventModel);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
   }
 
   @NotNull
@@ -178,6 +184,11 @@ public class EnergyProfilerStage extends Stage {
 
     Profiler.BytesResponse response = getStudioProfilers().getClient().getProfilerClient().getBytes(request);
     return response.getContents();
+  }
+
+  @Override
+  public void onNavigated(@NotNull CodeLocation location) {
+    setProfilerMode(ProfilerMode.NORMAL);
   }
 
   public static class EnergyLegends extends LegendComponentModel {
