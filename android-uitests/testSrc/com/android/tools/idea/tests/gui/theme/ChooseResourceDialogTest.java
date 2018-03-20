@@ -365,7 +365,7 @@ public class ChooseResourceDialogTest {
     dialog.getSearchField().enterText("actionMenuTextColor");
     JListFixture themeAttrList = dialog.getList("Theme attributes", 1);
 
-    assertTrue(listToString(themeAttrList).isEmpty());
+    Wait.seconds(1).expecting("theme attributes to be filtered").until(() -> listToString(themeAttrList).isEmpty());
 
     dialog.clickCancel();
   }
