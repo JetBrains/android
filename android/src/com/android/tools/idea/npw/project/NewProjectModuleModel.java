@@ -16,8 +16,11 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.wizard.model.WizardModel;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +31,7 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @NotNull private final NewModuleModel myNewModuleModel;
   @NotNull private final RenderTemplateModel myNewRenderTemplateModel;
+  @NotNull private final ObjectProperty<FormFactor> myFormFactor = new ObjectValueProperty<>(FormFactor.MOBILE);
 
   public NewProjectModuleModel(@NotNull NewProjectModel projectModel) {
     myNewModuleModel = new NewModuleModel(projectModel, new File(""));
@@ -46,6 +50,11 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull
   public RenderTemplateModel getNewRenderTemplateModel() {
     return myNewRenderTemplateModel;
+  }
+
+  @NotNull
+  public ObjectProperty<FormFactor> formFactor() {
+    return myFormFactor;
   }
 
   @Override
