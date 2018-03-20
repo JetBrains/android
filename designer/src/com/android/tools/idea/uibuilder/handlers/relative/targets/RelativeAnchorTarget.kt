@@ -32,8 +32,6 @@ import com.android.tools.idea.uibuilder.model.TextDirection
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.collect.ImmutableList
 
-private const val DRAGGING_ANCHOR = "dragging_anchor"
-
 /**
  * Target offers the anchors in RelativeLayout.
  */
@@ -99,7 +97,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
    * Returns true if this is not dragging but aligning to the dragging component.
    */
   fun isConnectible(filterType: Scene.FilterType): Boolean {
-    val draggingAnchorTarget = getDraggingAnchor() ?: return false
+    val draggingAnchorTarget = myComponent.scene.interactingTarget as? RelativeAnchorTarget ?: return false
     if (isAlignedTo(draggingAnchorTarget.myComponent)) {
       return false
     }
@@ -122,8 +120,6 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       return
     }
     myComponent.parent?.setExpandTargetArea(true)
-
-    updateDraggingAnchor(this)
 
     isDragging = false
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
@@ -156,7 +152,6 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       }
     }
 
-    updateDraggingAnchor(null)
     isDragging = false
   }
 
@@ -178,14 +173,6 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
     updateAlignedComponentIds()
   }
-
-  private fun updateDraggingAnchor(anchorTarget: RelativeAnchorTarget?) {
-    // Only put the dragging component's information to root component to improve the performance.
-    myComponent.scene.root?.authoritativeNlComponent?.putClientProperty(DRAGGING_ANCHOR, anchorTarget)
-  }
-
-  private fun getDraggingAnchor() =
-    myComponent.scene.root?.authoritativeNlComponent?.getClientProperty(DRAGGING_ANCHOR) as RelativeAnchorTarget?
 
   private fun isAlignedTo(other: SceneComponent) = other.id in alignedComponentIds
 

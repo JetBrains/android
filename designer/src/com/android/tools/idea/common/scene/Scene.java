@@ -104,7 +104,7 @@ public class Scene implements SelectionListener, Disposable {
   @NotNull private final SceneHitListener myHitListener;
   @NotNull private final SceneHitListener myFindListener;
   @NotNull private final SceneHitListener mySnapListener;
-  private Target myHitTarget = null;
+  @Nullable private Target myHitTarget = null;
   private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
   ArrayList<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
@@ -956,6 +956,11 @@ public class Scene implements SelectionListener, Disposable {
 
   public FilterType getFilterType() {
     return myFilterTarget;
+  }
+
+  @Nullable
+  public Target getInteractingTarget() {
+    return myHitTarget;
   }
 
   @Nullable
