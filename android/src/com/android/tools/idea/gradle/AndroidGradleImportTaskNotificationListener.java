@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -28,6 +30,13 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
  * @since 10/17/13
  */
 public class AndroidGradleImportTaskNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
+  @Override
+  public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
+    if (GradleConstants.SYSTEM_ID.getId().equals(id.getProjectSystemId().getId())
+        && id.getType() == ExternalSystemTaskType.RESOLVE_PROJECT) {
+      setExternalSystemTaskId(id);
+    }
+  }
 
   @Override
   public void onSuccess(@NotNull ExternalSystemTaskId id) {
@@ -43,6 +52,15 @@ public class AndroidGradleImportTaskNotificationListener extends ExternalSystemT
         && id.getType() == ExternalSystemTaskType.RESOLVE_PROJECT) {
       // notify project sync failed  if needed
       // e.g. Projects.notifyProjectSyncCompleted(project, false);
+    }
+  }
+
+  private static void setExternalSystemTaskId(@NotNull ExternalSystemTaskId taskId) {
+    // set current ExternalTaskId to GradleSyncState
+    Project project = taskId.findProject();
+    if (project != null) {
+      GradleSyncState syncState = GradleSyncState.getInstance(project);
+      syncState.setExternalSystemTaskId(taskId);
     }
   }
 }
