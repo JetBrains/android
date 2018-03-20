@@ -29,78 +29,90 @@
       <description>
         <![CDATA[
 
-          You're now running Android Studio 3.2. Learn more about new features and behavior changes
-          below. You can also
-          <a href="https://d.android.com/studio/releases/index.html#3-2">read the full release notes</a>
-          in a browser or <a href="https://d.android.com/r/studio-wna/3.2.0/video-overview.html">watch a video overview</a> on YouTube.
+          You're now running Android Studio 3.2. You can learn more about new features and behavior changes
+          below, or read about them
+          <a href="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html">in a browser</a>.
           <br><br>
           To open this panel again later, select <b>Help &gt; What's New in Android Studio</b> from the main menu.
 
         <div style="padding-left: 10px; padding-right: 10px;">
-          <h1>Support for Dynamic Apps</h1>
+          <h1>New code shrinker</h1>
 
-          Dynamic Apps is an easier way to update and deploy your app to an ever-growing ecosystem of
-          diverse Android devices. With Dynamic Apps, you need to build and upload only a single build artifact,
-          the <b>Android App Bundle</b>, to support all target device configurations.
-          <br><br>
-          App stores that support Dynamic Apps—such as the Google Play Store—build, sign, and manage APKs for all
-          versions of your app for you, and push only the code and resources a device requires to run your app.
-          Updates to Android Studio and the <a href="https://d.android.com/studio/releases/gradle-plugin.html">
-          Android Plugin for Gradle</a> allow you to configure your app project to take advantage of Dynamic
-          Apps and build Android App Bundles.
+          R8 is a new tool for code shrinking and obfuscation that replaces ProGuard. You can start using a
+          <em>preview</em> version of R8 by including the following in your project’s
+          <code>gradle.properties</code> file:
 
           <br><br>
-          <div align="center">
-            <img src="https://d.android.com/studio/releases/assistant/3.2.0/studio-build.png">
-          </div>
-
-          <br><br>
-          To learn more about how to configure your project to support Dynamic Apps, read the following
-          documentation in a browser.
-          <br><br>
-          <ul>
-            <li><a href="https://d.android.com">About Dynamic Apps</a></li>
-            <li><a href="https://d.android.com">Modularize Your Project for Split APKs</a></li>
-            <li><a href="https://d.android.com">Control APK Downloads with PlayCore API</a></li>
-            <li><a href="https://d.android.com">Test Dynamic Apps with BundleTool</a></li>
-            <li><a href="https://d.android.com">Build and Upload Android App Bundles</a></li>
-          <ul>
-
-          <h1>Navigation Editor</h1>
-
-          The Navigation Editor lets you visualize and edit navigation behavior between different components
-          and activities in your app, so you can better assess whether navigation flows are correct and easy
-          for users to understand. To learn more, <a href="https://d.android.com">read the documentation</a>
-          in a browser.
-
-          <br><br>
-          <div align="center">
-            <img src="https://d.android.com/studio/releases/assistant/3.2.0/app-navigation.png">
-          </div>
-
-          <br><br>
-          <h1>New Energy Profiler</h1>
-
-          <a href="https://d.android.com/studio/profile/android-profiler.html">The Android Profiler</a>
-          <img src="https://d.android.com/studio/images/buttons/toolbar-android-profiler.png" width="16" height="16">
-          now includes an <a href="https://d.android.com/studio/profile/android-profiler.html">Energy Profiler</a>
-          to help you assess the energy consumption of your app. This profiler visualizes your app's battery usage
-          and allows you to inspect which device components—such as network radios or the CPU—are consuming the
-          most energy.
-
-          <br><br>
-          <div align="center">
-            <img src="https://d.android.com/studio/releases/assistant/3.2.0/studio-profiler.png">
+          <div style="border: solid gray 1px; padding-left: 10px;">
+            <pre>android.enableR8 = true</pre>
           </div>
 
           <br>
-          <h1>New Code Shrinker</h1>
+          <h1>Editor features for CMake scripts</h1>
 
-          R8 is a new tool for code shrinking and obfuscation that replaces ProGuard. You can start using a
-          <b>preview</b> version of R8 by including the following in your project’s
-          <code>gradle.properties</code> file:
+          If you use CMake to
+          <a href="https://d.android.com/studio/projects/add-native-code.html?utm_source=android-studio&utm_medium=studio-assistant">
+          add C and C++ code to your project</a>, Android Studio now includes improved features to help you edit your CMake build scripts.
           <br><br>
-          <pre>  android.enableR8 = true</pre>
+          <div align="center">
+            <img src="https://d.android.com/studio/releases/assistant/3.2.0/cmake-ide-features.gif">
+          </div>
+          <br>
+          Features include the following:
+          <br><br>
+          <ul>
+            <li><b>Syntax highlighting and code-completion:</b> The IDE now highlights and suggests code completion for common CMake
+            commands. Additionally, you can navigate to a file by clicking it while pressing the Control key (or Command on MacOS).
+            </li>
+            <li><b>Code reformatting:</b> You can now use the
+            <a href="https://www.jetbrains.com/help/idea/editor-basics.html#reformat_rearrange_code"><b>Reformat Code</b></a> option
+            to apply code styles to your CMake build scripts.
+            </li>
+            <li><b>Safe refactoring:</b> The IDE’s built-in refactoring tools now also check if you are renaming or deleting files that you
+            reference in your CMake build scripts.
+            </li>
+          </ul>
+
+          <h1>Inspect JNI references</h1>
+
+          If you deploy your app to a device running Android 8.0 (API level 26) or higher,
+          you can now inspect memory allocations for your app’s JNI code using
+          <a href="https://d.android.com/studio/profile/memory-profiler.html?utm_source=android-studio&utm_medium=studio-assistant">
+          the Memory Profiler</a>.
+          <br><br>
+          While your app is
+          running, select a portion of the timeline that you want to inspect and select
+          <b>JNI heap</b> from the drop-down menu above the class list.
+          <br><br>
+          <div align="center">
+            <img src="https://d.android.com/studio/releases/assistant/3.2.0/memory-profiler-jni-heap.png">
+          </div>
+          <br>
+          You can then inspect objects in the heap as you normally would and double-click objects
+          in the <b>Allocation Call Stack</b> tab to see where the JNI references are
+          allocated and released by your code.
+
+          <br><br>
+          <h1>Changed set of default ABIs</h1>
+
+          When <a href="https://d.android.com/studio/build/configure-apk-splits.html?utm_source=android-studio&utm_medium=studio-assistant">
+          building multiple APKs</a> that each target a different ABI, Android plugin for Gradle 3.2.0 no longer generates APKs for the
+          following ABIs by default: <code>mips</code>, <code>mips64</code>, and <code>armeabi</code>.
+
+          <br><br>
+          If you want to build APKs that target these ABIs, you must use
+          <a href="https://d.android.com/ndk/downloads/revision_history.html?utm_source=android-studio&utm_medium=studio-assistant">
+          NDK r16b or lower</a> and specify the ABIs in your <code>build.gradle</code> file, as shown below:
+
+          <br><br>
+          <div style="border: solid gray 1px; padding-left: 10px;">
+          <pre>splits {
+    abi {
+        include 'armeabi', 'mips', 'mips64'
+        ...
+    }
+}</pre>
+          </div>
         </div>
         ]]>
       </description>
