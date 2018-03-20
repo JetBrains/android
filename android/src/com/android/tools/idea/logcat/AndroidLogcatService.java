@@ -18,6 +18,8 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.*;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.run.LoggingReceiver;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.execution.impl.ConsoleBuffer;
 import com.intellij.openapi.Disposable;
@@ -100,7 +102,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private final Map<IDevice, ExecutorService> myExecutors;
 
   @GuardedBy("myLock")
-  private final Map<IDevice, List<LogcatListener>> myListeners;
+  private final Multimap<IDevice, LogcatListener> myDeviceToListenerMultimap;
 
   @NotNull
   public static AndroidLogcatService getInstance() {
@@ -113,7 +115,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     myLogReceivers = new HashMap<>();
     myLogBuffers = new HashMap<>();
     myExecutors = new HashMap<>();
-    myListeners = new HashMap<>();
+    myDeviceToListenerMultimap = ArrayListMultimap.create();
 
     AndroidDebugBridge.addDeviceChangeListener(this);
   }
@@ -139,12 +141,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       @Override
       public void onLogLineReceived(@NotNull LogCatMessage line) {
         synchronized (myLock) {
-          Iterable<LogcatListener> listeners = myListeners.get(device);
-
-          if (listeners != null) {
-            listeners.forEach(listener -> listener.onLogLineReceived(line));
-          }
-
+          myDeviceToListenerMultimap.get(device).forEach(listener -> listener.onLogLineReceived(line));
           LogcatBuffer buffer = myLogBuffers.get(device);
 
           if (buffer != null) {
@@ -259,13 +256,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   private void notifyThatLogcatWasCleared(@NotNull IDevice device) {
     synchronized (myLock) {
-      Iterable<LogcatListener> listeners = myListeners.get(device);
-
-      if (listeners == null) {
-        return;
-      }
-
-      listeners.forEach(LogcatListener::onCleared);
+      myDeviceToListenerMultimap.get(device).forEach(LogcatListener::onCleared);
     }
   }
 
@@ -286,11 +277,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
         }
       }
 
-      if (!myListeners.containsKey(device)) {
-        myListeners.put(device, new ArrayList<>());
-      }
-
-      myListeners.get(device).add(listener);
+      myDeviceToListenerMultimap.put(device, listener);
 
       if (device.isOnline()) {
         startReceiving(device);
@@ -307,12 +294,16 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   public void removeListener(@NotNull IDevice device, @NotNull LogcatListener listener) {
     synchronized (myLock) {
-      if (myListeners.containsKey(device)) {
-        myListeners.get(device).remove(listener);
+      Collection<LogcatListener> listeners = myDeviceToListenerMultimap.get(device);
 
-        if (myListeners.get(device).isEmpty()) {
-          stopReceiving(device);
-        }
+      if (listeners.isEmpty()) {
+        return;
+      }
+
+      listeners.remove(listener);
+
+      if (listeners.isEmpty()) {
+        stopReceiving(device);
       }
     }
   }
