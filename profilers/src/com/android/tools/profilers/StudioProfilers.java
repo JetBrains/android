@@ -480,9 +480,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Chooses a process among all potential candidates starting from the project's app process,
-   * and then the one previously used. If no candidate is available, return the first available
-   * process.
+   * Chooses a process among all potential candidates starting from the project's app process, and then the one previously used. If no
+   * candidate is available and no preferred process has been configured, select the first available process.
    */
   @Nullable
   private Common.Process getPreferredProcess(List<Common.Process> processes) {
@@ -497,6 +496,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         }
       }
     }
+
     // Next, prefer the one previously used, either selected by user or automatically (even if the process has switched states)
     if (myProcess != null) {
       for (Common.Process process : processes) {
@@ -505,8 +505,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         }
       }
     }
-    // No preferred candidate. Choose a new process.
-    return processes.get(0);
+
+    // No preferred candidate. Choose a new process if we are not already waiting for the preferred process.
+    return myPreferredProcessName == null ? processes.get(0) : null;
   }
 
   @NotNull
