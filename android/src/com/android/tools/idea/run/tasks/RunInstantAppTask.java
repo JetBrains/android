@@ -17,7 +17,6 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.instantapp.InstantAppSdks;
-import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -25,6 +24,8 @@ import com.google.android.instantapps.sdk.api.HandlerResult;
 import com.google.android.instantapps.sdk.api.ProgressIndicator;
 import com.google.android.instantapps.sdk.api.ResultStream;
 import com.google.android.instantapps.sdk.api.StatusCode;
+import com.intellij.openapi.diagnostic.Logger;
+import com.google.android.instantapps.sdk.api.Sdk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,7 +92,10 @@ public class RunInstantAppTask implements LaunchTask {
     }
 
     try {
-      StatusCode status = mySdk.loadLibrary().getRunHandler().runInstantApp(
+      Sdk aiaSdk = mySdk.loadLibrary();
+      // If null, this entire task will not be called
+      assert aiaSdk != null;
+      StatusCode status = aiaSdk.getRunHandler().runInstantApp(
         url,
         zipFile,
         device.getSerialNumber(),
@@ -101,6 +105,7 @@ public class RunInstantAppTask implements LaunchTask {
           public void write(HandlerResult result) {
             if (result.isError()) {
               printer.stderr(result.toString());
+              getLogger().error(new RunInstantAppException(result.getMessage()));
             }
             else {
               printer.stdout(result.toString());
@@ -116,7 +121,24 @@ public class RunInstantAppTask implements LaunchTask {
       return status == StatusCode.SUCCESS;
     } catch (Exception e) {
       printer.stderr(e.toString());
+      getLogger().error(new RunInstantAppException(e));
       return false;
     }
+  }
+
+  public static class RunInstantAppException extends Exception {
+
+    private RunInstantAppException(@NotNull String message) {
+      super(message);
+    }
+
+    private RunInstantAppException(@NotNull Throwable t) {
+      super(t);
+    }
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(RunInstantAppTask.class);
   }
 }

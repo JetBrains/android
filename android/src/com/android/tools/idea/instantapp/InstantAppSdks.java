@@ -19,12 +19,16 @@ import com.android.instantapp.sdk.InstantAppSdkException;
 import com.android.instantapp.sdk.Metadata;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.android.instantapps.sdk.api.Sdk;
+import com.google.android.instantapps.sdk.api.TelemetryManager;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -135,16 +139,31 @@ public class InstantAppSdks {
         // IMPORTANT: This class loader must NOT be closed or subsequent attempts to use library classes will fail!
         URLClassLoader childClassLoader = new URLClassLoader(new URL[]{jar.toURI().toURL()}, getClass().getClassLoader());
         cachedSdkLib = ServiceLoader.load(Sdk.class, childClassLoader).iterator().next();
+
+        // Populate version information
+        cachedSdkLib.getTelemetryManager()
+          .setAppProperties(TelemetryManager.HostApplication.ANDROID_STUDIO, ApplicationInfo.getInstance().getFullVersion());
       }
-      catch (IOException e) {
-        getLogger().error(e);
+      catch (Exception e) {
+        getLogger().error(new LoadInstantAppSdkException(e));
       }
     }
+
+    // We want to set this every time the SDK is used to keep it up to date
+    cachedSdkLib.getTelemetryManager().setOptInStatus(UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()
+                                                      ? TelemetryManager.OptInStatus.OPTED_IN
+                                                      : TelemetryManager.OptInStatus.OPTED_OUT);
 
     return cachedSdkLib;
   }
 
   private static Logger getLogger() {
     return Logger.getInstance(InstantApps.class);
+  }
+
+  private static class LoadInstantAppSdkException extends Exception {
+    private LoadInstantAppSdkException(@NotNull Throwable t) {
+      super(t);
+    }
   }
 }

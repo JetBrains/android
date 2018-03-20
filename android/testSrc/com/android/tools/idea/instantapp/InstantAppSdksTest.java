@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.instantapp;
 
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.IdeComponents;
 import com.google.android.instantapps.sdk.api.Sdk;
+import com.google.android.instantapps.sdk.api.TelemetryManager.OptInStatus;
+import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Before;
-import org.junit.Test;
+
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -28,47 +32,80 @@ import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
-public class InstantAppSdksTest {
-  private @Spy InstantAppSdks instantAppSdks;
-  private @Mock Sdk mockLibSdk;
+public class InstantAppSdksTest extends IdeaTestCase {
+  private @Spy InstantAppSdks myInstantAppSdks;
+  private @Mock Sdk myMockLibSdk;
+  private @Mock ApplicationInfo myApplicationInfo;
 
-  @Before
+  private @Mock UsageTracker myUsageTracker;
+  private @Mock AnalyticsSettings myAnalyticsSettings;
+
+  @Override
   public void setUp() throws Exception {
+    super.setUp();
     MockitoAnnotations.initMocks(this);
+    when(myApplicationInfo.getFullVersion()).thenReturn("testVersion");
+    new IdeComponents(getProject()).replaceApplicationService(ApplicationInfo.class, myApplicationInfo);
+    UsageTracker.setInstanceForTest(myUsageTracker);
+    when(myUsageTracker.getAnalyticsSettings()).thenReturn(myAnalyticsSettings);
   }
 
-  @Test
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      UsageTracker.cleanAfterTesting();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testGetSdkLibrary() {
-    // This loads a stub JAR implementing the Sdk SPI
-    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps")).when(instantAppSdks)
-      .getInstantAppSdk(false);
-    Sdk loadedSdk = instantAppSdks.loadLibrary();
+    installFakeLib();
+    Sdk loadedSdk = myInstantAppSdks.loadLibrary();
     assertThat(loadedSdk).isNotNull();
     assertThat(loadedSdk.getLibraryVersion()).isEqualTo("THIS_IS_A_FAKE_LIBRARY");
   }
 
-  @Test
+  public void testGetSdkLibraryPassThroughOptIn() {
+    installFakeLib();
+    when(myAnalyticsSettings.hasOptedIn()).thenReturn(true);
+    Sdk loadedSdk = myInstantAppSdks.loadLibrary();
+    assertThat(loadedSdk.getTelemetryManager().getOptInStatus()).isEqualTo(OptInStatus.OPTED_IN);
+  }
+
+  public void testGetSdkLibraryPassThroughOptOut() {
+    installFakeLib();
+    when(myAnalyticsSettings.hasOptedIn()).thenReturn(false);
+    Sdk loadedSdk = myInstantAppSdks.loadLibrary();
+    assertThat(loadedSdk.getTelemetryManager().getOptInStatus()).isEqualTo(OptInStatus.OPTED_OUT);
+  }
+
   public void testShouldUseSdkLibraryToRunIsFalseIfLibraryNotPresent() {
     StudioFlags.RUNDEBUG_USE_AIA_SDK_LIBRARY.override(true);
-    doReturn(null).when(instantAppSdks).loadLibrary();
+    doReturn(null).when(myInstantAppSdks).loadLibrary();
 
-    assertThat(instantAppSdks.shouldUseSdkLibraryToRun()).isFalse();
+    assertThat(myInstantAppSdks.shouldUseSdkLibraryToRun()).isFalse();
   }
 
-  @Test
   public void testShouldUseSdkLibraryToRunIsFalseIfStudioFlagFalse() {
     StudioFlags.RUNDEBUG_USE_AIA_SDK_LIBRARY.override(false);
-    doReturn(mockLibSdk).when(instantAppSdks).loadLibrary();
+    doReturn(myMockLibSdk).when(myInstantAppSdks).loadLibrary();
 
-    assertThat(instantAppSdks.shouldUseSdkLibraryToRun()).isFalse();
+    assertThat(myInstantAppSdks.shouldUseSdkLibraryToRun()).isFalse();
   }
 
-  @Test
   public void testShouldUseSdkLibraryToRunIsTrueIfLibraryPresentAndFlagTrue() {
     StudioFlags.RUNDEBUG_USE_AIA_SDK_LIBRARY.override(true);
-    doReturn(mockLibSdk).when(instantAppSdks).loadLibrary();
+    doReturn(myMockLibSdk).when(myInstantAppSdks).loadLibrary();
 
-    assertThat(instantAppSdks.shouldUseSdkLibraryToRun()).isTrue();
+    assertThat(myInstantAppSdks.shouldUseSdkLibraryToRun()).isTrue();
+  }
+
+  /** Loads a stub JAR implementing the Sdk SPI. */
+  private void installFakeLib() {
+    doReturn(new File(AndroidTestCase.getTestDataPath() + "/instantapps")).when(myInstantAppSdks).getInstantAppSdk(false);
   }
 }
