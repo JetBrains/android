@@ -39,7 +39,6 @@ import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeAnchor
 import com.android.tools.idea.uibuilder.model.NlSelectionModel;
 import com.android.tools.idea.uibuilder.model.SelectionHandle;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.ImmutableList;
@@ -457,8 +456,7 @@ public class Scene implements SelectionListener, Disposable {
       // if the baseline shows, hide all the targets others than ActionTarget, ConstraintDragTarget and ResizeTarget
       if (component.canShowBaseline()) {
         return (target instanceof ConstraintDragTarget) ||
-               (target instanceof DragBaseTarget) ||
-               (target instanceof ResizeBaseTarget);
+               (target instanceof DragBaseTarget);
       }
       return !component.isDragging();
     }
@@ -487,9 +485,6 @@ public class Scene implements SelectionListener, Disposable {
       if (anchor.isConnectible(myFilterType)) {
         return true;
       }
-    }
-    if (myFilterType == FilterType.RESIZE && target instanceof ResizeBaseTarget) {
-      return true;
     }
     if (target instanceof MultiComponentTarget) {
       return true;
