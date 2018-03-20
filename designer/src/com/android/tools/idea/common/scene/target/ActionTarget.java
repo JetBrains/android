@@ -18,6 +18,7 @@ package com.android.tools.idea.common.scene.target;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawAction;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
@@ -97,7 +98,7 @@ public class ActionTarget extends BaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (!myComponent.getScene().allowsTarget(this)) {
+    if (!isRenderable()) {
       return;
     }
 
@@ -106,6 +107,25 @@ public class ActionTarget extends BaseTarget {
       myComponent.fillRect(src);
       DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, src, myIcon, mIsOver);
     }
+  }
+
+  @Override
+  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+    if (isRenderable()) {
+      picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                     transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+    }
+  }
+
+  private boolean isRenderable() {
+    SceneComponent component = getComponent();
+    if (component.isSelected()) {
+      if (component.canShowBaseline()) {
+        return true;
+      }
+      return !component.isDragging();
+    }
+    return false;
   }
 
   @Override
