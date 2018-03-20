@@ -21,6 +21,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.tests.LeakCheckerRule;
 import com.google.common.collect.Lists;
+import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.testFramework.IdeaTestCase;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,7 @@ public class TestIncludesView extends IdeaTestCase {
     PsiFileNode node = (PsiFileNode)nodes.iterator().next();
     assertThat(node.getVirtualFile().exists()).isTrue();
     assertThat(node.getVirtualFile().getName()).isEqualTo("foo.h");
+    checkPresentationDataHasOsSpecificSlashes(node, "");
   }
 
   public void testSimpleRemoteIncludesView() throws IOException {
@@ -66,6 +69,7 @@ public class TestIncludesView extends IdeaTestCase {
     node = (PsiFileNode)nodes.get(1);
     assertThat(node.getVirtualFile().exists()).isTrue();
     assertThat(node.getVirtualFile().getName()).isEqualTo("foo.h");
+    checkPresentationDataHasOsSpecificSlashes(node, "");
   }
 
   public void testThirdPartyLayout1() throws IOException {
@@ -90,6 +94,7 @@ public class TestIncludesView extends IdeaTestCase {
     assertThat(package1Value.mySimplePackageName).isEqualTo("my-sdk-1");
     List<? extends AbstractTreeNode> grandChildren = Lists.newArrayList(package1.getChildren());
     assertThat(((PsiFileNode)grandChildren.get(0)).getVirtualFile().getName()).isEqualTo("foo.h");
+    checkPresentationDataHasOsSpecificSlashes(package1, "my-sdk-1 (third_party{os-slash}my-sdk-1)");
   }
 
   public void testThirdPartyLayout2() throws IOException {
@@ -108,6 +113,27 @@ public class TestIncludesView extends IdeaTestCase {
     assertThat(nodeValue.toString().startsWith("Third Party Packages")).isTrue();
     Collection<? extends AbstractTreeNode> children = node.getChildren();
     assertThat(children).hasSize(2);
+    checkPresentationDataContainsOsSpecificSlashes(node, "Third Party Packages");
+  }
+
+  public void testUpdateUsesOsSlashes() throws IOException {
+    IncludeLayout layout = new IncludeLayout()
+      .addRemoteHeaders("third_party/my-sdk-1/foo.h")
+      .addRemoteHeaders("third_party/my-sdk-2/bar.h")
+      .addRemoteArtifactIncludePaths("my-artifact", "third_party/my-sdk-1")
+      .addRemoteArtifactIncludePaths("my-artifact", "third_party/my-sdk-2")
+      .addArtifact("my-artifact", "bar.cpp");
+
+    List<? extends AbstractTreeNode> nodes =
+      Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
+    assertThat(nodes).hasSize(1);
+    PackagingFamilyViewNode node = (PackagingFamilyViewNode)nodes.get(0);
+    PackageFamilyValue nodeValue = node.getValue();
+    assertThat(nodeValue.toString().startsWith("Third Party Packages")).isTrue();
+    Collection<? extends AbstractTreeNode> children = node.getChildren();
+    assertThat(children).hasSize(2);
+    SimpleIncludeViewNode package1 = (SimpleIncludeViewNode)children.iterator().next();
+    checkPresentationDataHasOsSpecificSlashes(package1, "my-sdk-1 (third_party{os-slash}my-sdk-1)");
   }
 
   public void testNdkLayout() throws IOException {
@@ -129,6 +155,7 @@ public class TestIncludesView extends IdeaTestCase {
         Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
       assertThat(nodes).hasSize(2);
       PsiFileNode child1 = (PsiFileNode)nodes.get(0);
+      checkPresentationDataHasOsSpecificSlashes(child1, "");
       PackagingFamilyViewNode child2 = (PackagingFamilyViewNode)nodes.get(1);
       List<? extends AbstractTreeNode> child2Children = Lists.newArrayList(child2.getChildren());
       assertThat(child2Children).hasSize(2);
@@ -142,6 +169,7 @@ public class TestIncludesView extends IdeaTestCase {
       PsiFileNode child2child2child1 = (PsiFileNode)child2child2Children.get(0);
       assertThat(child2child1child1.getVirtualFile().getName()).isEqualTo("bar.h");
       assertThat(child2child2child1.getVirtualFile().getName()).isEqualTo("foo.h");
+      checkPresentationDataHasOsSpecificSlashes(child2Child1, "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
     } finally {
       ideComponents.restore();
     }

@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,12 +102,16 @@ public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeValue> {
       presentation.addText(" (", GRAY_ATTRIBUTES);
     }
     if (concrete.getPackageType() == PackageType.IncludeFolder) {
-      presentation.addText(String.format("%s)", getLocationRelativeToUserHome(concrete.myIncludeFolder.getPath())),
-                           GRAY_ATTRIBUTES);
+      String path = getLocationRelativeToUserHome(concrete.myIncludeFolder.getPath());
+      path = LexicalIncludePaths.trimPathSeparators(path);
+      path = FilenameUtils.separatorsToSystem(path);
+      presentation.addText(String.format("%s)", path), GRAY_ATTRIBUTES);
     }
     else {
-      presentation
-        .addText(String.format("%s)", LexicalIncludePaths.trimPathSeparators(concrete.myRelativeIncludeSubFolder)), GRAY_ATTRIBUTES);
+      String path = concrete.myRelativeIncludeSubFolder;
+      path = LexicalIncludePaths.trimPathSeparators(path);
+      path = FilenameUtils.separatorsToSystem(path);
+      presentation.addText(String.format("%s)", path), GRAY_ATTRIBUTES);
     }
   }
 
