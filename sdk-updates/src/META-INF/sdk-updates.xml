@@ -26,10 +26,8 @@
       <add-to-group group-id="AndroidToolsGroup" anchor="after" relative-to-action="Android.RunAndroidAvdManager" />
     </action>
     <group id="Android.MainToolBarSdkGroup">
-      <separator/>
       <reference id="Android.RunAndroidSdkManager" />
-      <separator/>
-      <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
+      <add-to-group group-id="Android.MainToolBarActionGroup" anchor="after" relative-to-action="Android.RunAndroidAvdManager" />
     </group>
   </actions>
   <extensions defaultExtensionNs="com.intellij">
