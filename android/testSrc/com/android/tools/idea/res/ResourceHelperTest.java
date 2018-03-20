@@ -26,6 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -250,7 +251,10 @@ public class ResourceHelperTest extends AndroidTestCase {
   public void testResolve() {
     myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
     ResourceNamespace appNs = ResourceNamespace.fromPackageName("com.example.app");
-    runWriteCommandAction(getProject(), () -> myFacet.getManifest().getPackage().setValue(appNs.getPackageName()));
+    runWriteCommandAction(getProject(), () -> {
+      myFacet.getManifest().getPackage().setValue(appNs.getPackageName());
+      PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    });
 
     PsiFile innerFileLand = myFixture.addFileToProject("res/layout-land/inner.xml", "<LinearLayout/>");
     PsiFile innerFilePort = myFixture.addFileToProject("res/layout-port/inner.xml", "<LinearLayout/>");
