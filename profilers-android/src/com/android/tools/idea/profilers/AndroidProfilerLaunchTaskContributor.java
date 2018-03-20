@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
@@ -32,6 +33,7 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -129,6 +131,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     if (startupConfig == null) {
       return "";
     }
+
+    if (!isAtLeastO(device)) {
+      AndroidNotification.getInstance(module.getProject()).showBalloon("Startup CPU Profiling",
+                                                                       "Starting a method trace recording on startup is only " +
+                                                                       "supported on devices with API levels 26 and higher.",
+                                                                       NotificationType.WARNING);
+      return "";
+    }
+
     CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest
       .newBuilder()
       .setAppPackage(appPackageName)
@@ -152,9 +163,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       argsBuilder.append(" --sampling ").append(startupConfig.getSamplingIntervalUs());
     }
 
-    if (isAtLeastO(device)) {
-      argsBuilder.append(" --streaming");
-    }
+    argsBuilder.append(" --streaming");
     return argsBuilder.toString();
   }
 
