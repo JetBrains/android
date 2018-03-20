@@ -103,7 +103,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
 
     // Do not initialize the monitor UI if it only contains heap dump data.
-    // In this case, mySelectionComponent is null and we will not build the context menu
+    // In this case, mySelectionComponent is null and we will not build the context menu.
     if (!getStage().isMemoryCaptureOnly()) {
       myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     }
@@ -180,6 +180,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     captureObjectChanged();
     allocationTrackingChanged();
     buildContextMenu(mySelectionComponent);
+  }
+
+  @Override
+  public boolean isToolbarVisible() {
+    return !getStage().isMemoryCaptureOnly();
   }
 
   @Override

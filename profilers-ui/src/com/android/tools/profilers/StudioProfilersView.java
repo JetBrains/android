@@ -35,7 +35,6 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
@@ -62,8 +61,6 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 public class StudioProfilersView extends AspectObserver implements Disposable {
   private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
-  private static final String SHORTCUT_MODIFIER_STRING =
-    KeymapUtil.getKeystrokeText(KeyStroke.getKeyStroke(SystemInfo.isMac ? KeyEvent.VK_META : KeyEvent.VK_CONTROL, 0));
 
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
@@ -77,6 +74,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   @NotNull private final ThreeComponentsSplitter mySplitter;
   private final JPanel myStageComponent;
   private SessionsView mySessionsView;
+  private JPanel myToolbar;
   private JPanel myStageToolbar;
   private JPanel myMonitoringToolbar;
   private JPanel myCommonToolbar;
@@ -157,11 +155,11 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   }
 
   private void initializeStageUi() {
-    JPanel toolbar = new JPanel(new BorderLayout());
+    myToolbar = new JPanel(new BorderLayout());
     JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
-    toolbar.setBorder(DEFAULT_BOTTOM_BORDER);
-    toolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
+    myToolbar.setBorder(DEFAULT_BOTTOM_BORDER);
+    myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     JButton button = new CommonButton(StudioIcons.Common.BACK_ARROW);
@@ -214,10 +212,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       leftToolbar.add(myMonitoringToolbar);
     }
     leftToolbar.add(myCommonToolbar);
-    toolbar.add(leftToolbar, BorderLayout.WEST);
+    myToolbar.add(leftToolbar, BorderLayout.WEST);
 
     JPanel rightToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    toolbar.add(rightToolbar, BorderLayout.EAST);
+    myToolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
     if (!myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
@@ -317,9 +315,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     toggleToolButtons.run();
 
     myStageToolbar = new JPanel(new BorderLayout());
-    toolbar.add(myStageToolbar, BorderLayout.CENTER);
+    myToolbar.add(myStageToolbar, BorderLayout.CENTER);
 
-    myStageComponent.add(toolbar, BorderLayout.NORTH);
+    myStageComponent.add(myToolbar, BorderLayout.NORTH);
 
     updateStreaming();
   }
@@ -345,6 +343,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageToolbar.removeAll();
     myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
     myStageToolbar.revalidate();
+    myToolbar.setVisible(myStageView.isToolbarVisible());
 
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
     myMonitoringToolbar.setVisible(topLevel);
