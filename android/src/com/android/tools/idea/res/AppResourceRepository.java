@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
@@ -64,13 +63,6 @@ public class AppResourceRepository extends MultiResourceRepository {
   private List<FileResourceRepository> myLibraries;
   private long myIdsModificationCount;
 
-  /**
-   * List of libraries that contain an R.txt file.
-   *
-   * The order of these libraries may not match the order of {@link #myLibraries}. It's intended to be used
-   * only to get the R.txt files for declare styleables.
-   */
-  private final LinkedList<FileResourceRepository> myAarLibraries = Lists.newLinkedList();
   private Set<String> myIds;
 
   /**
@@ -143,7 +135,7 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
                                                                    List<FileResourceRepository> libraries) {
-    List<LocalResourceRepository> repositories = Lists.newArrayListWithExpectedSize(10);
+    List<LocalResourceRepository> repositories = new ArrayList<>(10);
     LocalResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(facet);
     repositories.addAll(libraries);
     repositories.add(resources);
@@ -167,7 +159,7 @@ public class AppResourceRepository extends MultiResourceRepository {
       return Collections.emptyList();
     }
 
-    List<File> dirs = Lists.newArrayList(aarDirs.keySet());
+    List<File> dirs = new ArrayList<>(aarDirs.keySet());
 
     // Sort alphabetically to ensure that we keep a consistent order of these libraries;
     // otherwise when we jump from libraries initialized from IntelliJ library binary paths
@@ -181,7 +173,7 @@ public class AppResourceRepository extends MultiResourceRepository {
       }
     }
 
-    List<FileResourceRepository> resources = Lists.newArrayListWithExpectedSize(aarDirs.size());
+    List<FileResourceRepository> resources = new ArrayList<>(aarDirs.size());
     for (File root : dirs) {
       resources.add(FileResourceRepository.get(root, aarDirs.get(root)));
     }
@@ -194,7 +186,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // which have been persisted since the most recent sync
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     if (androidModuleModel != null) {
-      List<Library> libraries = Lists.newArrayList();
+      List<Library> libraries = new ArrayList<>();
       addGradleLibraries(libraries, androidModuleModel);
       for (AndroidFacet dependentFacet : dependentFacets) {
         AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
@@ -215,7 +207,7 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @NotNull
   public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<Library> libraries = Lists.newArrayList();
+    List<Library> libraries = new ArrayList<>();
     if (facet.requiresAndroidModel()) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
@@ -257,7 +249,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // Pull out the unique directories, in case multiple modules point to the same .aar folder
     Map<File, String> files = new HashMap<>(libraries.size());
 
-    Set<String> moduleNames = Sets.newHashSet();
+    Set<String> moduleNames = new HashSet<>();
     for (AndroidFacet f : dependentFacets) {
       moduleNames.add(f.getModule().getName());
     }
@@ -298,11 +290,6 @@ public class AppResourceRepository extends MultiResourceRepository {
     super(facet.getModule().getName() + " with modules and libraries", delegates);
     myFacet = facet;
     myLibraries = libraries;
-    for (FileResourceRepository library : libraries) {
-      if (library.getResourceTextFile() != null) {
-        myAarLibraries.add(library);
-      }
-    }
   }
 
   @Override
@@ -374,12 +361,6 @@ public class AppResourceRepository extends MultiResourceRepository {
     }
 
     myLibraries = libraries;
-    myAarLibraries.clear();
-    for (FileResourceRepository library : myLibraries) {
-      if (library.getResourceTextFile() != null) {
-        myAarLibraries.add(library);
-      }
-    }
     setChildren(resources);
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
