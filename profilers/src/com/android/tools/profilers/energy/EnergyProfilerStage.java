@@ -148,7 +148,7 @@ public class EnergyProfilerStage extends Stage {
   }
 
   @NotNull
-  public AspectModel getAspect() {
+  public AspectModel<EnergyProfilerAspect> getAspect() {
     return myAspect;
   }
 
