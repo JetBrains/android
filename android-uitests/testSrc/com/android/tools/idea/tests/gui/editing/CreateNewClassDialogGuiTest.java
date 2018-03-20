@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.ComponentVisibility;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Kind;
-import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Modifier;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.actions.CreateFileFromTemplateDialog.Visibility;
 import com.android.tools.idea.actions.CreateNewClassDialogValidatorExImpl;
@@ -43,14 +42,10 @@ public class CreateNewClassDialogGuiTest {
   private static final String THING_NAME = "TestThing";
   private static final String PACKAGE_NAME_0 = "google.simpleapplication";
   private static final String PACKAGE_NAME_1 = PACKAGE_NAME_0 + ".sub.pkg";
-  private static final String PACKAGE_NAME_2 = PACKAGE_NAME_0 + ".other.pkg";
-  private static final String INVALID_PACKAGE_NAME = PACKAGE_NAME_0 + ".";
   private static final String THING_FILE_PATH_0 = "app/src/main/java/google/simpleapplication/TestThing.java";
   private static final String THING_FILE_PATH_1 = "app/src/main/java/google/simpleapplication/sub/pkg/TestThing.java";
-  private static final String THING_FILE_PATH_2 = "app/src/main/java/google/simpleapplication/other/pkg/TestThing.java";
   private static final String PUBLIC_DECLARATION = "public %s TestThing {";
   private static final String PACKAGE_PRIVATE_DECLARATION = "%s TestThing {";
-  private static final String SUPERCLASS_DECLARATION = "public %s TestThing extends Super0 {";
   private static final String SUPERCLASS_AND_INTERFACE_DECLARATION = "public %s TestThing extends Super0 implements Interface0 {";
   private static final String CLASS_IMPLEMENTING_ONE_INTERFACE_DECLARATION = "public %s TestThing implements Interface0 {";
   private static final String CLASS_IMPLEMENTING_TWO_INTERFACES_DECLARATION = "public %s TestThing implements Interface0, Interface1 {";
@@ -62,14 +57,11 @@ public class CreateNewClassDialogGuiTest {
   private static final String INVALID_NAME = "Invalid-Class Name";
   private static final String INTERFACE_0 = "Interface0";
   private static final String INTERFACE_1 = "Interface1";
-  private static final String INVALID_INTERFACE = "Invalid-Interface-Name";
   private static final String FULLY_QUALIFIED_INTERFACE = "com.example.foo.InterfaceX";
   private static final String INTERFACE_IMPORT = "import " + FULLY_QUALIFIED_INTERFACE + ";";
   private static final String JAVA_UTIL_MAP_ENTRY = "java.util.Map.Entry";
   private static final String JAVA_UTIL_MAP_IMPORT = "import java.util.Map;";
   private static final String JAVA_UTIL_MAP_ENTRY_DECLARATION = "public %s TestThing implements Map.Entry {";
-  private static final String ABSTRACT_DECLARATION = "public abstract %s TestThing {";
-  private static final String FINAL_DECLARATION = "public final %s TestThing {";
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   private EditorFixture myEditor;
@@ -194,46 +186,6 @@ public class CreateNewClassDialogGuiTest {
     assertDeclaration(THING_FILE_PATH_1, PUBLIC_DECLARATION, Kind.CLASS);
   }
 
-  @Test
-  public void createClassInNewParallelPackage() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog1 = invokeNewFileDialog();
-    dialog1.setName(THING_NAME);
-    dialog1.selectKind(Kind.CLASS);
-    dialog1.setPackage(PACKAGE_NAME_1);
-    dialog1.setVisibility(Visibility.PUBLIC);
-    dialog1.clickOk();
-
-    CreateFileFromTemplateDialogFixture dialog2 = invokeNewFileDialog();
-    dialog2.setName(THING_NAME);
-    dialog2.selectKind(Kind.CLASS);
-    dialog2.setPackage(PACKAGE_NAME_2);
-    dialog2.setVisibility(Visibility.PUBLIC);
-    dialog2.clickOk();
-
-    assertPackageName(THING_FILE_PATH_2, PACKAGE_NAME_2);
-    assertDeclaration(THING_FILE_PATH_2, PUBLIC_DECLARATION, Kind.CLASS);
-  }
-
-  @Test
-  public void createInParentPackage() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog1 = invokeNewFileDialog();
-    dialog1.setName(THING_NAME);
-    dialog1.selectKind(Kind.CLASS);
-    dialog1.setPackage(PACKAGE_NAME_1);
-    dialog1.setVisibility(Visibility.PUBLIC);
-    dialog1.clickOk();
-
-    CreateFileFromTemplateDialogFixture dialog0 = invokeNewFileDialog();
-    dialog0.setName(THING_NAME);
-    dialog0.selectKind(Kind.CLASS);
-    dialog0.setPackage(PACKAGE_NAME_0);
-    dialog0.setVisibility(Visibility.PUBLIC);
-    dialog0.clickOk();
-
-    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
-    assertDeclaration(THING_FILE_PATH_0, PUBLIC_DECLARATION, Kind.CLASS);
-  }
-
   // New class file template tests.
   @Test
   public void createClassPackagePrivate() throws IOException {
@@ -241,51 +193,8 @@ public class CreateNewClassDialogGuiTest {
   }
 
   @Test
-  public void createAbstract() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
-    dialog.setName(THING_NAME);
-    dialog.selectKind(Kind.CLASS);
-    dialog.setModifier(Modifier.ABSTRACT);
-    dialog.clickOk();
-
-    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
-    assertDeclaration(THING_FILE_PATH_0, ABSTRACT_DECLARATION, Kind.CLASS);
-  }
-
-  @Test
-  public void createFinal() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
-    dialog.setName(THING_NAME);
-    dialog.selectKind(Kind.CLASS);
-    dialog.setModifier(Modifier.FINAL);
-    dialog.clickOk();
-
-    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
-    assertDeclaration(THING_FILE_PATH_0, FINAL_DECLARATION, Kind.CLASS);
-  }
-
-  @Test
   public void createClassWithOneInterface() throws IOException {
     createWithOneInterface(Kind.CLASS);
-  }
-
-  @Test
-  public void createClassWithTwoInterfaces() throws IOException {
-    createWithTwoInterfaces(Kind.CLASS);
-  }
-
-  @Test
-  public void createClassWithSuperclass() throws IOException {
-    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
-    dialog.setName(THING_NAME);
-    dialog.selectKind(Kind.CLASS);
-    dialog.setSuperclass(SUPERCLASS_0);
-    dialog.setPackage(PACKAGE_NAME_0);
-    dialog.setVisibility(Visibility.PUBLIC);
-    dialog.clickOk();
-
-    assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
-    assertDeclaration(THING_FILE_PATH_0, SUPERCLASS_DECLARATION, Kind.CLASS);
   }
 
   @Test
@@ -301,11 +210,6 @@ public class CreateNewClassDialogGuiTest {
 
     assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
     assertDeclaration(THING_FILE_PATH_0, SUPERCLASS_AND_INTERFACE_DECLARATION, Kind.CLASS);
-  }
-
-  @Test
-  public void createClassWithInterfaceImport() throws IOException {
-    createWithAnImport(Kind.CLASS);
   }
 
   @Test
@@ -325,41 +229,11 @@ public class CreateNewClassDialogGuiTest {
 
   // New enum file template tests.
   @Test
-  public void createEnumPackagePrivate() throws IOException {
-    createPackagePrivate(Kind.ENUM);
-  }
-
-  @Test
-  public void createEnumWithOneInterface() throws IOException {
-    createWithOneInterface(Kind.ENUM);
-  }
-
-  @Test
   public void createEnumWithTwoInterfaces() throws IOException {
     createWithTwoInterfaces(Kind.ENUM);
   }
 
-  @Test
-  public void createEnumWithInterfaceImport() throws IOException {
-    createWithAnImport(Kind.ENUM);
-  }
-
   // New interface file template tests.
-  @Test
-  public void createInterfacePackagePrivate() throws IOException {
-    createPackagePrivate(Kind.INTERFACE);
-  }
-
-  @Test
-  public void createInterfaceWithOneInterface() throws IOException {
-    createWithOneInterface(Kind.INTERFACE);
-  }
-
-  @Test
-  public void createInterfaceWithTwoInterfaces() throws IOException {
-    createWithTwoInterfaces(Kind.INTERFACE);
-  }
-
   @Test
   public void createInterfaceWithInterfaceImport() throws IOException {
     createWithAnImport(Kind.INTERFACE);
@@ -376,44 +250,6 @@ public class CreateNewClassDialogGuiTest {
     dialog.setVisibility(Visibility.PUBLIC);
     dialog.clickOk();
     dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME_FOR_NEW_NAME);
-    dialog.clickCancel();
-  }
-
-  @Test
-  public void invalidSuperclass() throws IOException, InterruptedException {
-    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
-    dialog.setName(THING_NAME);
-    dialog.selectKind(Kind.CLASS);
-    dialog.setSuperclass(INVALID_NAME);
-    dialog.setPackage(PACKAGE_NAME_0);
-    dialog.setVisibility(Visibility.PUBLIC);
-    dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME_FOR_SUPERCLASS);
-    dialog.clickCancel();
-  }
-
-  @Test
-  public void invalidInterfaceName() throws IOException, InterruptedException {
-    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
-    dialog.setName(THING_NAME);
-    dialog.selectKind(Kind.CLASS);
-    dialog.setInterface(INVALID_INTERFACE);
-    dialog.setPackage(PACKAGE_NAME_0);
-    dialog.setVisibility(Visibility.PUBLIC);
-    dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_QUALIFIED_NAME_FOR_INTERFACE);
-    dialog.clickCancel();
-  }
-
-  @Test
-  public void invalidPackage() throws IOException, InterruptedException {
-    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
-    dialog.setName(THING_NAME);
-    dialog.selectKind(Kind.CLASS);
-    dialog.setPackage(INVALID_PACKAGE_NAME);
-    dialog.setVisibility(Visibility.PUBLIC);
-    dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.INVALID_PACKAGE_MESSAGE);
     dialog.clickCancel();
   }
 
@@ -460,15 +296,4 @@ public class CreateNewClassDialogGuiTest {
     dialog.clickCancel();
   }
 
-  @Test
-  public void extendAnInterface() throws IOException {
-    String runnableInterface = "java.lang.Runnable";
-    CreateFileFromTemplateDialogFixture dialog = invokeNewFileDialog();
-    dialog.setName(THING_NAME);
-    dialog.selectKind(Kind.CLASS);
-    dialog.setSuperclass(runnableInterface);
-    dialog.clickOk();
-    dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.NOT_A_VALID_CLASS + runnableInterface);
-    dialog.clickCancel();
-  }
 }
