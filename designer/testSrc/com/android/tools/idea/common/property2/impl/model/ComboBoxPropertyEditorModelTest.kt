@@ -22,7 +22,6 @@ import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 
 class ComboBoxPropertyEditorModelTest {
@@ -44,6 +43,7 @@ class ComboBoxPropertyEditorModelTest {
   @Test
   fun testSelectedItemFromInit() {
     val model = createModel()
+    model.popupMenuWillBecomeVisible()
     assertThat(model.selectedItem.toString()).isEqualTo("visible")
   }
 
@@ -52,7 +52,7 @@ class ComboBoxPropertyEditorModelTest {
     val (model, listener) = createModelWithListener()
     val line = mock(InspectorLineModel::class.java)
     model.line = line
-    model.enter("gone")
+    model.enterKeyPressed("gone")
     assertThat(model.property.value).isEqualTo("gone")
     assertThat(model.isPopupVisible).isFalse()
     verify(listener).valueChanged()
@@ -69,10 +69,42 @@ class ComboBoxPropertyEditorModelTest {
     model.addListener(listener)
 
     // test
-    model.escape()
+    model.escapeKeyPressed()
     assertThat(model.property.value).isEqualTo("visible")
     assertThat(model.isPopupVisible).isFalse()
-    verify(listener!!).valueChanged()
+    verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testEnterInPopup() {
+    // setup
+    val model = createModel()
+    model.isPopupVisible = true
+    model.selectedItem = "gone"
+    val listener = mock(ValueChangedListener::class.java)
+    model.addListener(listener)
+
+    // test
+    model.popupMenuWillBecomeInvisible(false)
+    assertThat(model.property.value).isEqualTo("gone")
+    assertThat(model.isPopupVisible).isFalse()
+    verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testEscapeInPopup() {
+    // setup
+    val model = createModel()
+    model.isPopupVisible = true
+    model.selectedItem = "gone"
+    val listener = mock(ValueChangedListener::class.java)
+    model.addListener(listener)
+
+    // test
+    model.popupMenuWillBecomeInvisible(true)
+    assertThat(model.property.value).isEqualTo("visible")
+    assertThat(model.isPopupVisible).isFalse()
+    verifyZeroInteractions(listener)
   }
 
   @Test

@@ -38,9 +38,11 @@ class ComboBoxPropertyEditorModel(property: PropertyItem,
   private var selectedValue: EnumValue? = null
   private val listListeners = mutableListOf<ListDataListener>()
 
-  var isPopupVisible: Boolean = false
+  private var _popupVisible = false
+  var isPopupVisible: Boolean
+    get() = _popupVisible
     set(value) {
-      field = value
+      _popupVisible = value
       fireValueChanged()
     }
 
@@ -48,15 +50,11 @@ class ComboBoxPropertyEditorModel(property: PropertyItem,
     updateValueFromProperty()
   }
 
-  override fun refresh() {
-    updateValueFromProperty()
-  }
-
   override fun validate(editedValue: String): String {
     return property.validate(editedValue)
   }
 
-  fun enter(editedValue: String) {
+  fun enterKeyPressed(editedValue: String) {
     blockUpdates = true
     value = editedValue
     isPopupVisible = false
@@ -64,11 +62,24 @@ class ComboBoxPropertyEditorModel(property: PropertyItem,
     blockUpdates = false
   }
 
-  fun escape() {
+  fun escapeKeyPressed() {
     blockUpdates = true
     updateValueFromProperty()
     isPopupVisible = false
     blockUpdates = false
+  }
+
+  fun popupMenuWillBecomeVisible() {
+    selectedItem = value
+    _popupVisible = true
+  }
+
+  fun popupMenuWillBecomeInvisible(ignoreChanges: Boolean) {
+    val newValue = selectedValue
+    if (!ignoreChanges && newValue != null) {
+      value = newValue.value
+    }
+    _popupVisible = false
   }
 
   override fun getSize(): Int {
@@ -110,10 +121,5 @@ class ComboBoxPropertyEditorModel(property: PropertyItem,
   private fun fireListDataChanged() {
     val event = ListDataEvent(this, ListDataEvent.CONTENTS_CHANGED, 0, size)
     listListeners.forEach { it.contentsChanged(event) }
-  }
-
-  override fun updateValueFromProperty() {
-    selectedItem = property.value
-    fireValueChanged()
   }
 }
