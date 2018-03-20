@@ -15,7 +15,6 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.platform.annotations.common" />
     <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
@@ -25,5 +24,6 @@
     <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils:26.0.0" level="project" />
   </component>
 </module>

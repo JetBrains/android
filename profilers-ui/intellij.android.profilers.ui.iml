@@ -19,9 +19,9 @@
     <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils:26.0.0" level="project" />
   </component>
 </module>
