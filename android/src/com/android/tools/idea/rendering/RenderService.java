@@ -84,6 +84,7 @@ public class RenderService extends AndroidFacetScopedService {
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
+  private static boolean isFirstCall = true;
 
   static {
     innerInitializeRenderExecutor();
@@ -374,7 +375,14 @@ public class RenderService extends AndroidFacetScopedService {
       if (ourTimeoutExceptionCounter.get() > 3) {
         ourRenderingExecutor.submit(() -> ourTimeoutExceptionCounter.set(0)).get(50, TimeUnit.MILLISECONDS);
       }
-      T result = ourRenderingExecutor.submit(callable).get(ourRenderThreadTimeoutMs, TimeUnit.MILLISECONDS);
+      long timeout = ourRenderThreadTimeoutMs;
+      if (isFirstCall) {
+        // The initial call might be significantly slower since there is a lot of initialization done on the resource management side.
+        // This covers that case.
+        isFirstCall = false;
+        timeout *= 2;
+      }
+      T result = ourRenderingExecutor.submit(callable).get(timeout, TimeUnit.MILLISECONDS);
       // The executor seems to be taking tasks so reset the counter
       ourTimeoutExceptionCounter.set(0);
 
