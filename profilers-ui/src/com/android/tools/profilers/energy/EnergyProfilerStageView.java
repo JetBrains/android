@@ -16,6 +16,8 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
@@ -172,6 +174,10 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       }
     });
 
+    if (!getStage().hasUserUsedEnergySelection()) {
+      installProfilingInstructions(monitorPanel);
+    }
+
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
@@ -193,5 +199,15 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
   private void updateSelectedDurationView() {
     myDetailsView.setDuration(getStage().getSelectedDuration());
+  }
+
+  private void installProfilingInstructions(@NotNull JPanel parent) {
+    assert parent.getLayout().getClass() == TabularLayout.class;
+    InstructionsPanel panel =
+      new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect energy events"))
+        .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionPanel -> parent.remove(instructionPanel))
+        .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
+        .build();
+    parent.add(panel, new TabularLayout.Constraint(0, 0));
   }
 }
