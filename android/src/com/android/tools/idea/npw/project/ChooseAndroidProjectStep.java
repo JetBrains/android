@@ -20,8 +20,8 @@ import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
-import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.WizardGallery;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -30,19 +30,16 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBList;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -103,9 +100,8 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
       ListSelectionListener activitySelectedListener = selectionEvent -> {
         TemplateRenderer selectedTemplate = tabPanel.myGallery.getSelectedElement();
         if (selectedTemplate != null) {
-          TemplateHandle template = selectedTemplate.getTemplate();
-          tabPanel.myTemplateName.setText(template == null ? "" : template.getMetadata().getTitle());
-          tabPanel.myTemplateDesc.setText(template == null ? "" : "<html>" + template.getMetadata().getDescription() + "</html>");
+          tabPanel.myTemplateName.setText(selectedTemplate.getImageLabel());
+          tabPanel.myTemplateDesc.setText("<html>" + selectedTemplate.getTemplateDescription() + "</html>");
         }
       };
 
@@ -121,6 +117,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     FormFactorInfo formFactorInfo = myFormFactors.get(myTabsPanel.getSelectedIndex());
     TemplateRenderer selectedTemplate = formFactorInfo.tabPanel.myGallery.getSelectedElement();
 
+    myNewProjectModuleModel.formFactor().set(formFactorInfo.formFactor);
     myNewProjectModuleModel.getNewRenderTemplateModel().setTemplateHandle(selectedTemplate.myTemplate);
     myNewProjectModuleModel.getNewModuleModel().templateFile().setValue(formFactorInfo.templateFile);
   }
@@ -194,7 +191,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
     TemplateRenderer[] listItems = templateRenderers.toArray(new TemplateRenderer[templateRenderers.size()]);
 
-    ASGallery<TemplateRenderer> gallery = new WizardGallery<>(title, TemplateRenderer::getImage, TemplateRenderer::getLabel);
+    ASGallery<TemplateRenderer> gallery = new WizardGallery<>(title, TemplateRenderer::getImage, TemplateRenderer::getImageLabel);
     gallery.setModel(JBList.createDefaultListModel((Object[])listItems));
     gallery.setSelectedIndex(getDefaultSelectedTemplateIndex(listItems));
 
@@ -203,7 +200,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
   private static int getDefaultSelectedTemplateIndex(@NotNull TemplateRenderer[] templateRenderers) {
     for (int i = 0; i < templateRenderers.length; i++) {
-      if (templateRenderers[i].getLabel().equals("Empty Activity")) {
+      if (templateRenderers[i].getImageLabel().equals("Empty Activity")) {
         return i;
       }
     }
@@ -248,15 +245,19 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     }
 
     @NotNull
-    String getLabel() {
-      String title = myTemplate == null ? message("android.wizard.gallery.item.add.no.activity") : myTemplate.getMetadata().getTitle();
-      return title == null ? "" : title;
+    String getImageLabel() {
+      return ActivityGallery.getTemplateImageLabel(myTemplate);
+    }
+
+    @NotNull
+    String getTemplateDescription() {
+      return ActivityGallery.getTemplateDescription(myTemplate);
     }
 
     @NotNull
     @Override
     public String toString() {
-      return getLabel();
+      return getImageLabel();
     }
 
     /**
@@ -264,17 +265,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
      */
     @Nullable
     Image getImage() {
-      String thumb = myTemplate == null ? null : myTemplate.getMetadata().getThumbnailPath();
-      if (thumb != null && !thumb.isEmpty()) {
-        try {
-          File file = new File(myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
-          return file.isFile() ? ImageIO.read(file) : null;
-        }
-        catch (IOException e) {
-          Logger.getInstance(ChooseActivityTypeStep.class).warn(e);
-        }
-      }
-      return null;
+      return ActivityGallery.getTemplateImage(myTemplate);
     }
   }
 }

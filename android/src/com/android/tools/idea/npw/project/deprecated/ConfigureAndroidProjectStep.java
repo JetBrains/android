@@ -45,6 +45,7 @@ import java.io.File;
 import java.util.Collection;
 
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
@@ -93,10 +94,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerValidator(model.applicationName(), value -> {
       if (value.isEmpty()) {
-        return new Validator.Result(Validator.Severity.ERROR, "Please enter an application name");
+        return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.empty.application.name"));
       }
       else if (!Character.isUpperCase(value.charAt(0))) {
-        return new Validator.Result(Validator.Severity.INFO, "The application name for most apps begins with an uppercase letter");
+        return new Validator.Result(Validator.Severity.INFO, message("android.wizard.validate.lowercase.application.name"));
       }
       return Validator.Result.OK;
     });

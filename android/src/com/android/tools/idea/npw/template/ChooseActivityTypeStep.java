@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
+import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.WizardGallery;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObservableBool;
@@ -35,7 +36,6 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBList;
@@ -43,12 +43,9 @@ import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
@@ -280,7 +277,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
     @NotNull
     String getLabel() {
-      return myTemplate == null ? message("android.wizard.gallery.item.add.no.activity") : myTemplate.getMetadata().getTitle();
+      return ActivityGallery.getTemplateImageLabel(myTemplate);
     }
 
     @Override
@@ -310,17 +307,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
      */
     @Nullable
     Image getImage() {
-      String thumb = myTemplate == null ? null : myTemplate.getMetadata().getThumbnailPath();
-      if (thumb != null && !thumb.isEmpty()) {
-        try {
-          File file = new File(myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
-          return file.isFile() ? ImageIO.read(file) : null;
-        }
-        catch (IOException e) {
-          Logger.getInstance(ChooseActivityTypeStep.class).warn(e);
-        }
-      }
-      return null;
+      return ActivityGallery.getTemplateImage(myTemplate);
     }
   }
 }
