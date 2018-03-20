@@ -20,10 +20,12 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import icons.StudioIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,5 +91,10 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
       return ExecutionUtil.getLiveIndicator(getIcon());
     }
     return getIcon();
+  }
+
+  @Override
+  public boolean isApplicable(@NotNull Project project) {
+    return !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty();
   }
 }
