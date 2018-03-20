@@ -172,7 +172,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       }
       panel.add(textBox)
       panel.background = table.background
-      textBox.text = value as String
+      textBox.setText(value as String)
       return panel
     }
 
@@ -200,7 +200,7 @@ class VariablesTable(private val project: Project, private val context: PsContex
       if (nodeBeingEdited is BaseVariableNode) {
         textBox.setVariants(nodeBeingEdited.variable.module.variables.getModuleVariables().map { it.getName() })
       }
-      textBox.text = value
+      textBox.setText(value)
       return textBox
     }
 

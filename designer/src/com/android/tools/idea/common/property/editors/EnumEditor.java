@@ -461,7 +461,6 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
   private static class CustomDarculaComboBoxUI extends DarculaComboBoxUI {
 
     public CustomDarculaComboBoxUI(@NotNull JComboBox comboBox) {
-      super(comboBox);
     }
 
     @Override

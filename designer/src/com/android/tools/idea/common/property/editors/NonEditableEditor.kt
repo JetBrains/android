@@ -76,7 +76,7 @@ class NonEditableEditor(listener: NlEditingListener, project: Project) : BaseCom
 
   override fun setProperty(property: NlProperty) {
     _property = property
-    textField.text = value
+    textField.setText(value)
   }
 
   override fun getValue(): String? {
