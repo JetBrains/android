@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.checkPresentationDataHasOsSpecificSlashes;
 import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
@@ -60,13 +61,16 @@ public class TestSimpleIncludeViewNode extends IdeaTestCase {
 
       // Check that nodes contains all files in the layout.
       assertContainsAllFilesAsChildren(nodes, layout.headerFilesCreated);
+
+      checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
+      checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
     }
     finally {
       ideComponents.restore();
     }
   }
 
-  public void testNdkLayoutNonheader() throws IOException {
+  public void testNdkLayoutNonHeader() throws IOException {
     IncludeLayout layout = new IncludeLayout()
       .addRemoteExtraFiles("my-ndk-folder/sources/android/native_app_glue/logfile.txt")
       .addRemoteHeaders("my-ndk-folder/sources/android/native_app_glue/foo.h")
@@ -96,6 +100,9 @@ public class TestSimpleIncludeViewNode extends IdeaTestCase {
 
       // Check that nodes don't contain non-header files
       assertDoesNotContainAnyFilesAsChildren(nodes, layout.extraFilesCreated);
+
+      checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
+      checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
     }
     finally {
       ideComponents.restore();
@@ -120,6 +127,8 @@ public class TestSimpleIncludeViewNode extends IdeaTestCase {
       assertThat(nodes).hasSize(2);
       assertThat(nodes.get(0).getValue().myIncludeFolder.getName()).isEqualTo("ndk_helper");
       assertThat(nodes.get(1).getValue().myIncludeFolder.getName()).isEqualTo("native_app_glue");
+      checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
+      checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "Native App Glue (sources{os-slash}android{os-slash}native_app_glue)");
 
       // Check the children of the simple include view nodes
       List<PsiFileNode> children = getChildrenOfType(nodes, PsiFileNode.class);

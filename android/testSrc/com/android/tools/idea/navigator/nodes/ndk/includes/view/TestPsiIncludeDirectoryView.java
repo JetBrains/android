@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTestUtils.checkPresentationDataHasOsSpecificSlashes;
 import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.assertContainsAllFilesAsChildren;
 import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.assertDoesNotContainAnyFilesAsChildren;
 import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeViewTests.getChildNodesForIncludes;
@@ -60,6 +61,10 @@ public class TestPsiIncludeDirectoryView extends IdeaTestCase {
 
       // Check that nodes don't contain non-header files
       assertDoesNotContainAnyFilesAsChildren(nodes, layout.extraFilesCreated);
+
+      // Check the rendering of presentation data in the node
+      checkPresentationDataHasOsSpecificSlashes(nodes.get(0), "");
+      checkPresentationDataHasOsSpecificSlashes(nodes.get(1), "");
     }
     finally {
       ideComponents.restore();
