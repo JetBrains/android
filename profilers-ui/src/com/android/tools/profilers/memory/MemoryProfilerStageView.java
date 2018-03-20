@@ -548,7 +548,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     headingPanel.add(toolbar, BorderLayout.WEST);
 
     JPanel buttonToolbar = new JPanel(createToolbarLayout());
-    buttonToolbar.add(getSelectionTimeLabel());
+    if (!getStage().isMemoryCaptureOnly()) {
+      buttonToolbar.add(getSelectionTimeLabel());
+    }
     if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
       CommonToggleButton button = FilterComponent.createFilterToggleButton();
       buttonToolbar.add(new FlatSeparator());

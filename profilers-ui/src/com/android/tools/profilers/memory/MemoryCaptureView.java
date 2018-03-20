@@ -90,7 +90,7 @@ public final class MemoryCaptureView extends AspectObserver {
     boolean validCapture = captureObject == myCaptureObject && myCaptureObject != null;
 
     if (validCapture) {
-      if (captureObject.isExportable()) {
+      if (captureObject.isExportable() && !myStage.isMemoryCaptureOnly()) {
         myExportButton.setEnabled(captureObject.isExportable());
         myPanel.add(myExportButton, new TabularLayout.Constraint(0, 0));
         myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 1));
