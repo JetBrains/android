@@ -162,10 +162,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       else {
         // The session is finished, reset the timeline to include the entire data range.
         myTimeline.reset(mySelectedSession.getStartTimestamp(), mySelectedSession.getEndTimestamp());
-        // We are not streaming so we don't need the view range to have the extra initial buffer if the session's duration is short.
-        // Just set the view range to be the data range.
-        myTimeline.getViewRange().set(myTimeline.getDataRange());
+        // Disable data range update and stream/snap features.
         myTimeline.setIsPaused(true);
+        myTimeline.setStreaming(false);
+        myTimeline.getViewRange().set(mySessionsManager.getSessionPreferredViewRange(mySelectedSession));
       }
 
       // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the session

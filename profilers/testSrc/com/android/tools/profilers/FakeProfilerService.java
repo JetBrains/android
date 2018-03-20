@@ -104,6 +104,11 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myDevices.put(newDevice.getDeviceId(), newDevice);
   }
 
+  public void addSession(Common.Session session, Common.SessionMetaData metadata) {
+    mySessions.put(session.getSessionId(), session);
+    mySessionMetaDatas.put(session.getSessionId(), metadata);
+  }
+
   public void addFile(String id, ByteString contents) {
     myCache.put(id, contents);
   }

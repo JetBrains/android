@@ -142,8 +142,9 @@ public final class ProfilerScrollbar extends JBScrollBar {
   }
 
   private boolean isScrollable() {
-    BoundedRangeModel model = getModel();
-    return model.getMaximum() > model.getExtent();
+    Range viewRange = myTimeline.getViewRange();
+    Range dataRange = myTimeline.getDataRange();
+    return viewRange.getMin() >= dataRange.getMin() && viewRange.getMax() <= dataRange.getMax();
   }
 
   private boolean isCloseToMax() {
