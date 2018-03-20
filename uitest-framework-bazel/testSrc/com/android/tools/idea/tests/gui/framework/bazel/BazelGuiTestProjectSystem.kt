@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
@@ -61,7 +62,9 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
   }
 
   private fun injectRuntimeVariables(workspaceFileContent: String) =
-    workspaceFileContent.replace("%ANDROID_SDK_PATH%", getSdkPath())
+    workspaceFileContent
+      .replace("%ANDROID_SDK_PATH%", getSdkPath())
+      .replace("%LOCAL_TEST_REPOSITORY%", getPrebuiltsRepoPath())
 
   override fun importProject(targetTestDirectory: File, robot: Robot, buildPath: String?) {
     logger.info("Importing project.")
@@ -137,6 +140,16 @@ the location of the project data directory that is assigned during importProject
   private fun getBazelBinaryPath(): String {
     val platformPath = getPlatformPathName() ?: throw RuntimeException("Running test on unsupported platform for bazel")
     return File(TestUtils.getWorkspaceRoot(), "prebuilts/tools/$platformPath/bazel/bazel-real").path
+  }
+
+  private fun getPrebuiltsRepoPath(): String {
+    val prebuiltsRepo = "prebuilts/tools/common/m2/repository"
+    return if (TestUtils.runningFromBazel()) {
+      // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
+      File(PathManager.getHomePath(), "../../$prebuiltsRepo").absolutePath
+    } else {
+      TestUtils.getWorkspaceFile(prebuiltsRepo).absolutePath
+    }
   }
 
   private fun getJdkPath(): String {

@@ -7,7 +7,7 @@ android_library(
     deps = [
         # (appcompat) Android Support Library has been removed since build tools v24
         "@androidsdk//com.android.support.constraint:constraint-layout-1.0.2",
-        "@com_google_guava//jar",
+        "@com_google_guava//:jar",
     ],
 )
 
@@ -15,7 +15,7 @@ android_library(
     name = "androidTest",
     srcs = glob(["src/androidTest/java/google/simpleapplication/ApplicationTest.java"]),
     custom_package = "google.simpleapplication",
-    deps = ["@junit//jar"],
+    deps = ["@junit//:jar"],
 )
 
 android_binary(
