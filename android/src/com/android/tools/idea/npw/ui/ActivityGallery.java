@@ -17,6 +17,8 @@ package com.android.tools.idea.npw.ui;
 
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.IconUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +37,11 @@ public class ActivityGallery {
    * Return the image associated with the current template, if it specifies one, or null otherwise.
    */
   @Nullable
-  public static Image getTemplateImage(@Nullable TemplateHandle templateHandle) {
+  public static Image getTemplateImage(@Nullable TemplateHandle templateHandle, boolean isCppTemplate) {
+    if (isCppTemplate) {
+      return IconUtil.toImage(AndroidIcons.Wizards.CppConfiguration);
+    }
+
     String thumb = templateHandle == null ? null : templateHandle.getMetadata().getThumbnailPath();
     if (thumb != null && !thumb.isEmpty()) {
       try {
@@ -50,7 +56,11 @@ public class ActivityGallery {
   }
 
   @NotNull
-  public static String getTemplateImageLabel(@Nullable TemplateHandle templateHandle) {
+  public static String getTemplateImageLabel(@Nullable TemplateHandle templateHandle, boolean isCppTemplate) {
+    if (isCppTemplate) {
+      return message("android.wizard.gallery.item.add.cpp");
+    }
+
     if (templateHandle == null) {
       return message("android.wizard.gallery.item.add.no.activity");
     }
@@ -59,7 +69,10 @@ public class ActivityGallery {
   }
 
   @NotNull
-  public static String getTemplateDescription(@Nullable TemplateHandle templateHandle) {
+  public static String getTemplateDescription(@Nullable TemplateHandle templateHandle, boolean isCppTemplate) {
+    if (isCppTemplate) {
+      return message("android.wizard.gallery.item.add.cpp.Desc");
+    }
     if (templateHandle == null) {
       return message("android.wizard.gallery.item.add.no.activity.desc");
     }

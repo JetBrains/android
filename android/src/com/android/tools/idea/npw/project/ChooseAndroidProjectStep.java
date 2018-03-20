@@ -25,7 +25,6 @@ import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.WizardGallery;
-import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -45,6 +44,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -53,7 +53,6 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 /**
  * First page in the New Project wizard that allows user to select the Form Factor (Mobile, Wear, TV, etc) and its
  * Template ("Empty Activity", "Basic", "Nav Drawer", etc)
- * TODO: Add C++ entry
  * TODO: "No Activity" needs a Template Icon place holder
  */
 public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
@@ -104,6 +103,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
         if (selectedTemplate != null) {
           tabPanel.myTemplateName.setText(selectedTemplate.getImageLabel());
           tabPanel.myTemplateDesc.setText("<html>" + selectedTemplate.getTemplateDescription() + "</html>");
+          tabPanel.myDocumentationLink.setVisible(selectedTemplate.isCppTemplate());
         }
       };
 
@@ -119,9 +119,10 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     FormFactorInfo formFactorInfo = myFormFactors.get(myTabsPanel.getSelectedIndex());
     TemplateRenderer selectedTemplate = formFactorInfo.tabPanel.myGallery.getSelectedElement();
 
+    getModel().enableCppSupport().set(selectedTemplate.isCppTemplate());
     myNewProjectModuleModel.formFactor().set(formFactorInfo.formFactor);
-    myNewProjectModuleModel.getNewRenderTemplateModel().setTemplateHandle(selectedTemplate.myTemplate);
-    myNewProjectModuleModel.getNewModuleModel().templateFile().setValue(formFactorInfo.templateFile);
+    myNewProjectModuleModel.moduleTemplateFile().setNullableValue(formFactorInfo.templateFile);
+    myNewProjectModuleModel.renderTemplateHandle().setNullableValue(selectedTemplate.getTemplate());
   }
 
   @NotNull
@@ -139,7 +140,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   private void populateFormFactors() {
     Map<FormFactor, FormFactorInfo> formFactorInfoMap = Maps.newTreeMap();
     TemplateManager manager = TemplateManager.getInstance();
-    List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
+    List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
 
     for (File templateFile : applicationTemplates) {
       TemplateMetadata metadata = manager.getTemplateMetadata(templateFile);
@@ -185,13 +186,17 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   private ASGallery<TemplateRenderer> createGallery(@NotNull String title, @NotNull FormFactor formFactor) {
     List<TemplateHandle> templateHandles = getFilteredTemplateHandles(formFactor);
 
-    List<TemplateRenderer> templateRenderers = Lists.newArrayListWithExpectedSize(templateHandles.size() + 1);
-    templateRenderers.add(new TemplateRenderer(null)); // "Add No Activity" entry
+    List<TemplateRenderer> templateRenderers = Lists.newArrayListWithExpectedSize(templateHandles.size() + 2);
+    templateRenderers.add(new TemplateRenderer(null, false)); // "Add No Activity" entry
     for (TemplateHandle templateHandle : templateHandles) {
-      templateRenderers.add(new TemplateRenderer(templateHandle));
+      templateRenderers.add(new TemplateRenderer(templateHandle, false));
     }
 
-    TemplateRenderer[] listItems = templateRenderers.toArray(new TemplateRenderer[templateRenderers.size()]);
+    if (formFactor == FormFactor.MOBILE) {
+      templateRenderers.add(new TemplateRenderer(null, true)); // "Native C++" entry
+    }
+
+    TemplateRenderer[] listItems = templateRenderers.toArray(new TemplateRenderer[0]);
 
     ASGallery<TemplateRenderer> gallery = new WizardGallery<>(title, TemplateRenderer::getImage, TemplateRenderer::getImageLabel);
     gallery.setModel(JBList.createDefaultListModel((Object[])listItems));
@@ -236,9 +241,11 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
   private static class TemplateRenderer {
     @Nullable private final TemplateHandle myTemplate;
+    private final boolean myIsCppTemplate;
 
-    TemplateRenderer(@Nullable TemplateHandle template) {
+    TemplateRenderer(@Nullable TemplateHandle template, boolean isCppTemplate) {
       this.myTemplate = template;
+      this.myIsCppTemplate = isCppTemplate;
     }
 
     @Nullable
@@ -246,14 +253,18 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
       return myTemplate;
     }
 
+    boolean isCppTemplate() {
+      return myIsCppTemplate;
+    }
+
     @NotNull
     String getImageLabel() {
-      return ActivityGallery.getTemplateImageLabel(myTemplate);
+      return ActivityGallery.getTemplateImageLabel(myTemplate, isCppTemplate());
     }
 
     @NotNull
     String getTemplateDescription() {
-      return ActivityGallery.getTemplateDescription(myTemplate);
+      return ActivityGallery.getTemplateDescription(myTemplate, isCppTemplate());
     }
 
     @NotNull
@@ -267,7 +278,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
      */
     @Nullable
     Image getImage() {
-      return ActivityGallery.getTemplateImage(myTemplate);
+      return ActivityGallery.getTemplateImage(myTemplate, isCppTemplate());
     }
   }
 }

@@ -15,39 +15,68 @@
  */
 package com.android.tools.idea.npw.model;
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
+import com.android.SdkConstants;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.observable.core.ObjectProperty;
-import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.WizardModel;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 public final class NewProjectModuleModel extends WizardModel {
+  public static final String EMPTY_ACTIVITY = "Empty Activity";
+  public static final String ANDROID_MODULE = "Android Module";
 
+  @NotNull private final NewProjectModel myProjectModel;
   @NotNull private final NewModuleModel myNewModuleModel;
-  @NotNull private final RenderTemplateModel myNewRenderTemplateModel;
+  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final ObjectProperty<FormFactor> myFormFactor = new ObjectValueProperty<>(FormFactor.MOBILE);
+  @NotNull private final OptionalProperty<TemplateHandle> myRenderTemplateHandle = new OptionalValueProperty<>();
+
+  @NotNull private final BoolProperty myHasCompanionApp = new BoolValueProperty();
 
   public NewProjectModuleModel(@NotNull NewProjectModel projectModel) {
-    myNewModuleModel = new NewModuleModel(projectModel, new File(""));
-
-    NamedModuleTemplate dummyTemplate = GradleAndroidModuleTemplate.createDummyTemplate();
-    myNewRenderTemplateModel = new RenderTemplateModel(myNewModuleModel, null, dummyTemplate, "");
-
-    myNewModuleModel.getRenderTemplateValues().setValue(myNewRenderTemplateModel.getTemplateValues());
+    myProjectModel = projectModel;
+    myNewModuleModel = new NewModuleModel(myProjectModel, new File(""));
   }
 
   @NotNull
-  public NewModuleModel getNewModuleModel() {
-    return myNewModuleModel;
+  public BoolProperty instantApp() {
+    return myNewModuleModel.instantApp();
   }
 
   @NotNull
-  public RenderTemplateModel getNewRenderTemplateModel() {
-    return myNewRenderTemplateModel;
+  public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
+    return myAndroidSdkInfo;
+  }
+
+  @NotNull
+  public OptionalProperty<File> moduleTemplateFile() {
+    return myNewModuleModel.templateFile();
+  }
+
+  @NotNull
+  public OptionalProperty<TemplateHandle> renderTemplateHandle() {
+    return myRenderTemplateHandle;
+  }
+
+  @NotNull
+  public BoolProperty hasCompanionApp() {
+    return myHasCompanionApp;
   }
 
   @NotNull
@@ -57,7 +86,122 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
+    myProjectModel.getNewModuleModels().clear();
+
+    Project project = myNewModuleModel.getProject().getValueOrNull();
+    String projectLocation = myProjectModel.projectLocation().get();
+    boolean hasCompanionApp = myHasCompanionApp.get();
+
+    myNewModuleModel.moduleName().set(hasCompanionApp ? getModuleName(myFormFactor.get()) : SdkConstants.APP_PREFIX);
+
+    Map<String, Object> projectTemplateValues = myProjectModel.getTemplateValues();
+    addModuleToProject(myNewModuleModel, myFormFactor.get(), myProjectModel, projectTemplateValues);
+
+    int formFactorsCount = 1;
+    if (hasCompanionApp) {
+      formFactorsCount++;
+      NewModuleModel companionModuleModel = createCompanionModuleModel(myProjectModel);
+      RenderTemplateModel companionRenderModel = createCompanionRenderModel(projectLocation, companionModuleModel);
+      addModuleToProject(companionModuleModel, FormFactor.MOBILE, myProjectModel, projectTemplateValues);
+
+      companionRenderModel.androidSdkInfo().setValue(androidSdkInfo().getValue());
+      companionModuleModel.getRenderTemplateValues().setValue(companionRenderModel.getTemplateValues());
+
+      companionModuleModel.handleFinished();
+      companionRenderModel.handleFinished();
+    }
+    projectTemplateValues.put(ATTR_NUM_ENABLED_FORM_FACTORS, formFactorsCount);
+
+    RenderTemplateModel newRenderTemplateModel = createMainRenderModel(projectLocation);
+    myNewModuleModel.getRenderTemplateValues().setValue(newRenderTemplateModel.getTemplateValues());
+
+    boolean noActivitySelected = newRenderTemplateModel.getTemplateHandle() == null;
+    if (noActivitySelected) {
+      myNewModuleModel.setDefaultRenderTemplateValues(newRenderTemplateModel, project);
+    }
+    else {
+      addRenderDefaultTemplateValues(newRenderTemplateModel.getTemplateHandle(), newRenderTemplateModel.getTemplateValues());
+      myNewModuleModel.getRenderTemplateValues().setValue(newRenderTemplateModel.getTemplateValues());
+    }
+
+    new TemplateValueInjector(myNewModuleModel.getTemplateValues())
+      .setProjectDefaults(project, myNewModuleModel.applicationName().get(), myNewModuleModel.instantApp().get());
+
     myNewModuleModel.handleFinished();
-    myNewRenderTemplateModel.handleFinished();
+    if (noActivitySelected) {
+      newRenderTemplateModel.handleSkipped();
+    }
+    else {
+      newRenderTemplateModel.handleFinished();
+    }
+  }
+
+  @NotNull
+  private RenderTemplateModel createMainRenderModel(String projectLocation) {
+    RenderTemplateModel newRenderTemplateModel;
+    if (myProjectModel.enableCppSupport().get()) {
+      newRenderTemplateModel = createCompanionRenderModel(projectLocation, myNewModuleModel);
+    }
+    else {
+      File moduleRoot = new File(projectLocation, myNewModuleModel.moduleName().get());
+      newRenderTemplateModel = new RenderTemplateModel(myNewModuleModel, null, createDefaultTemplateAt(moduleRoot), "");
+      newRenderTemplateModel.setTemplateHandle(renderTemplateHandle().getValueOrNull());
+    }
+    newRenderTemplateModel.androidSdkInfo().setValue(androidSdkInfo().getValue());
+    return newRenderTemplateModel;
+  }
+
+  private static void addModuleToProject(@NotNull NewModuleModel moduleModel, @NotNull FormFactor formFactor,
+                                         @NotNull NewProjectModel projectModel, @NotNull Map<String, Object> projectTemplateValues) {
+    projectTemplateValues.put(formFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
+    projectTemplateValues.put(formFactor.id + ATTR_MODULE_NAME, moduleModel.moduleName().get());
+    projectModel.getNewModuleModels().add(moduleModel);
+  }
+
+  @NotNull
+  private static NewModuleModel createCompanionModuleModel(@NotNull NewProjectModel projectModel) {
+    // Note: The companion Module is always a Mobile app
+    File moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE);
+    NewModuleModel companionModuleModel = new NewModuleModel(projectModel, moduleTemplateFile);
+    companionModuleModel.moduleName().set(getModuleName(FormFactor.MOBILE));
+
+    new TemplateValueInjector(companionModuleModel.getTemplateValues())
+      .setProjectDefaults(projectModel.project().getValueOrNull(), companionModuleModel.applicationName().get(), false);
+
+    return companionModuleModel;
+  }
+
+  @NotNull
+  private static RenderTemplateModel createCompanionRenderModel(@NotNull String projectLocation, @NotNull NewModuleModel moduleModel) {
+    // Note: The companion Render is always a "Empty Activity"
+    File mobileModuleRoot = new File(projectLocation, moduleModel.moduleName().get());
+    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(mobileModuleRoot);
+    File renderTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_ACTIVITY, EMPTY_ACTIVITY);
+    TemplateHandle renderTemplateHandle = new TemplateHandle(renderTemplateFile);
+
+    RenderTemplateModel companionRenderModel = new RenderTemplateModel(moduleModel, renderTemplateHandle, namedModuleTemplate, "");
+    addRenderDefaultTemplateValues(renderTemplateHandle, companionRenderModel.getTemplateValues());
+
+    return companionRenderModel;
+  }
+
+  @NotNull
+  private static String getModuleName(@NotNull FormFactor formFactor) {
+    if (formFactor.baseFormFactor != null) {
+      // Form factors like Android Auto build upon another form factor
+      formFactor = formFactor.baseFormFactor;
+    }
+    return formFactor.id.replaceAll("\\s", "_").toLowerCase(Locale.US);
+  }
+
+  private static void addRenderDefaultTemplateValues(@NotNull TemplateHandle templateHandle, @NotNull Map<String, Object> templateValues) {
+    for (Parameter parameter : templateHandle.getMetadata().getParameters()) {
+      if (parameter.type == Parameter.Type.STRING) {
+        templateValues.put(parameter.id, parameter.initial);
+      }
+      else if (parameter.type == Parameter.Type.BOOLEAN) {
+        templateValues.put(parameter.id, Boolean.valueOf(parameter.initial));
+      }
+    }
   }
 }

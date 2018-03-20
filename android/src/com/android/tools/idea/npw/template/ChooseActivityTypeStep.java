@@ -278,7 +278,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
     @NotNull
     String getLabel() {
-      return ActivityGallery.getTemplateImageLabel(myTemplate);
+      return ActivityGallery.getTemplateImageLabel(myTemplate, false);
     }
 
     @Override
@@ -308,7 +308,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
      */
     @Nullable
     Image getImage() {
-      return ActivityGallery.getTemplateImage(myTemplate);
+      return ActivityGallery.getTemplateImage(myTemplate, false);
     }
   }
 }
