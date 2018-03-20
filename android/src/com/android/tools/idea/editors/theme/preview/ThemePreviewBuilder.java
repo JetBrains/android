@@ -302,7 +302,7 @@ public class ThemePreviewBuilder {
    */
   public static final List<ComponentDefinition> AVAILABLE_BASE_COMPONENTS = ImmutableList.of(
     // Toolbar
-    new ToolbarComponentDefinition(false/*isAppCompat*/),
+    ToolbarComponentDefinition.getFrameworkToolbar(),
 
     // Buttons
     new ComponentDefinition("Normal", ComponentGroup.RAISED_BUTTON, BUTTON),
