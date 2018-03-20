@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener {
+  private static final String HAS_USED_ENERGY_SELECTION = "energy.used.selection";
 
   @NotNull private final DetailedEnergyUsage myDetailedUsage;
   @NotNull private final AxisComponentModel myAxis;
@@ -42,6 +43,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull private final SelectionModel mySelectionModel;
   @NotNull private final EnergyEventsFetcher myFetcher;
   @NotNull private final StateChartModel<EnergyEvent> myEventModel;
+  @NotNull private final EaseOutModel myInstructionsEaseOutModel;
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
@@ -64,6 +66,9 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
       @Override
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
+        profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+        profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_ENERGY_SELECTION, true);
+        myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
 
       @Override
@@ -81,6 +86,8 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myEventModel.addSeries(
       new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.ALARM, EnergyDuration.Kind.JOB)));
     myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.WAKE_LOCK)));
+
+    myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
   }
 
   @Override
@@ -169,6 +176,15 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @Nullable
   public EnergyDuration getSelectedDuration() {
     return mySelectedDuration;
+  }
+
+  @NotNull
+  public EaseOutModel getInstructionsEaseOutModel() {
+    return myInstructionsEaseOutModel;
+  }
+
+  public boolean hasUserUsedEnergySelection() {
+    return getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().getBoolean(HAS_USED_ENERGY_SELECTION, false);
   }
 
   @NotNull
