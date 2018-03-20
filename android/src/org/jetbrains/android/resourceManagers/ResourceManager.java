@@ -25,10 +25,8 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -38,7 +36,6 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.Predicate;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.util.AndroidCommonUtils;
@@ -122,18 +119,8 @@ public abstract class ResourceManager {
     }
   }
 
-  @NotNull
-  public VirtualFile[] getResourceOverlayDirs() {
-    return VirtualFile.EMPTY_ARRAY;
-  }
-
   public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
     return true;
-  }
-
-  @NotNull
-  private List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType) {
-    return AndroidResourceUtil.getResourceSubdirs(resourceType, getAllResourceDirs().values());
   }
 
   @NotNull
@@ -168,32 +155,6 @@ public abstract class ResourceManager {
         }
       });
     return result;
-  }
-
-  @NotNull
-  protected List<Pair<Resources, VirtualFile>> getResourceElements() {
-    List<Pair<Resources, VirtualFile>> result = new ArrayList<>();
-    for (VirtualFile file : getAllValueResourceFiles()) {
-      Resources element = AndroidUtils.loadDomElement(myProject, file, Resources.class);
-      if (element != null) {
-        result.add(Pair.create(element, file));
-      }
-    }
-    return result;
-  }
-
-  @NotNull
-  private Set<VirtualFile> getAllValueResourceFiles() {
-    Set<VirtualFile> files = new HashSet<>();
-
-    for (VirtualFile valueResourceDir : getResourceSubdirs(ResourceFolderType.VALUES)) {
-      for (VirtualFile valueResourceFile : valueResourceDir.getChildren()) {
-        if (!valueResourceFile.isDirectory() && valueResourceFile.getFileType().equals(StdFileTypes.XML)) {
-          files.add(valueResourceFile);
-        }
-      }
-    }
-    return files;
   }
 
   @Nullable
