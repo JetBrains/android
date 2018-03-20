@@ -69,11 +69,17 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   private Navigatable getNavigatable(@NotNull CodeLocation location) {
     if (!Strings.isNullOrEmpty(location.getFileName()) &&
         location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
-      return getExplicitLocationNavigable(location);
+      Navigatable navigatable = getExplicitLocationNavigable(location);
+      if (navigatable != null) {
+        return navigatable;
+      }
     }
 
     if (location.isNativeCode()) {
-      return getNativeNavigatable(location);
+      Navigatable navigatable = getNativeNavigatable(location);
+      if (navigatable != null) {
+        return navigatable;
+      }
     }
 
     PsiClass psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getClassName());
