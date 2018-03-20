@@ -100,6 +100,10 @@ public class CpuDataPoller extends PollRunner {
       myCpuTable.insertActivities(mySession, thread.getTid(), thread.getName(), activities);
     }
 
+    // Poll profiling state.
+    CpuProfiler.ProfilingStateRequest profilingStateRequest = CpuProfiler.ProfilingStateRequest.newBuilder().setSession(mySession).build();
+    myCpuTable.insertProfilingStateData(mySession, myPollingService.checkAppProfilingState(profilingStateRequest));
+
     // Poll trace info.
     CpuProfiler.GetTraceInfoRequest.Builder traceInfoRequest = CpuProfiler.GetTraceInfoRequest.newBuilder()
       .setSession(mySession)
@@ -126,5 +130,18 @@ public class CpuDataPoller extends PollRunner {
     myTraceInfoRequestStartTimestampNs = traceInfoResponse.getResponseTimestamp();
 
     myDataRequestStartTimestampNs = Math.max(Math.max(myDataRequestStartTimestampNs + 1, getDataStartNs), getThreadsStartNs);
+  }
+
+  @Override
+  public void stop() {
+    // Before stopping, we need to handle the case where we were profiling. That's done by inserting a ProfilingStateResponse with
+    // being_profiled = false and max timestamp to the corresponding table. This way, we'll make sure that checkAppProfilingState will
+    // return false next time we check if we're profiling in this session.
+    CpuProfiler.ProfilingStateResponse response = CpuProfiler.ProfilingStateResponse.newBuilder()
+      .setBeingProfiled(false)
+      .setCheckTimestamp(Long.MAX_VALUE)
+      .build();
+    myCpuTable.insertProfilingStateData(mySession, response);
+    super.stop();
   }
 }

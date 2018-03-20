@@ -682,7 +682,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     ProfilingStateRequest request = ProfilingStateRequest.newBuilder()
       .setSession(getStudioProfilers().getSession())
       .build();
-    // TODO: move this call to a separate thread if we identify it's not fast enough.
     ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
 
     if (response.getBeingProfiled()) {

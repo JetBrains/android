@@ -28,8 +28,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class CpuTableTest {
 
@@ -38,9 +37,9 @@ public class CpuTableTest {
   private static final int SESSION_ONE_OFFSET = 100;
   private static final int SESSION_TWO_OFFSET = 1000;
   private static final Common.Session SESSION_HUNDREDS =
-    Common.Session.newBuilder().setSessionId(1L).setDeviceId(100).setPid(PROCESS_ID).build();
+    Common.Session.newBuilder().setSessionId(1L).setDeviceId(100).setEndTimestamp(Long.MAX_VALUE /* alive */).setPid(PROCESS_ID).build();
   private static final Common.Session SESSION_THOUSANDS =
-    Common.Session.newBuilder().setSessionId(2L).setDeviceId(1000).setPid(PROCESS_ID).build();
+    Common.Session.newBuilder().setSessionId(2L).setDeviceId(1000).setEndTimestamp(10 /* ended */).setPid(PROCESS_ID).build();
 
   private File myDbFile;
   private CpuTable myTable;
@@ -251,5 +250,77 @@ public class CpuTableTest {
       .build();
     List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceInfo(request);
     assertEquals(0, traceInfo.size());
+  }
+
+  @Test
+  public void beingProfiledStateIsBasedOnSession() {
+    CpuProfiler.CpuProfilerConfiguration simpleperfConfig = CpuProfiler.CpuProfilerConfiguration.newBuilder()
+      .setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF)
+      .build();
+    CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse.newBuilder()
+      .setBeingProfiled(true)
+      .setConfiguration(simpleperfConfig)
+      .build();
+
+    CpuProfiler.CpuProfilerConfiguration artConfig = CpuProfiler.CpuProfilerConfiguration.newBuilder()
+      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
+      .build();
+    CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse.newBuilder()
+      .setBeingProfiled(true)
+      .setConfiguration(artConfig)
+      .build();
+
+    Common.Session aliveSession = Common.Session.newBuilder().setSessionId(3L).setEndTimestamp(Long.MAX_VALUE /* alive */).build();
+
+    myTable.insertProfilingStateData(SESSION_HUNDREDS, response1);
+    myTable.insertProfilingStateData(aliveSession, response2);
+
+    // The response we return depends on the session we pass to the select query
+    CpuProfiler.ProfilingStateResponse response = myTable.getProfilingStateData(SESSION_HUNDREDS);
+    assertNotNull(response);
+    assertTrue(response.getBeingProfiled());
+    assertEquals(CpuProfiler.CpuProfilerType.SIMPLEPERF, response.getConfiguration().getProfilerType());
+
+    response = myTable.getProfilingStateData(aliveSession);
+    assertNotNull(response);
+    assertTrue(response.getBeingProfiled());
+    assertEquals(CpuProfiler.CpuProfilerType.ART, response.getConfiguration().getProfilerType());
+  }
+
+  @Test
+  public void latestBeingProfiledStateShouldBeReturned() {
+    CpuProfiler.CpuProfilerConfiguration simpleperfConfig = CpuProfiler.CpuProfilerConfiguration.newBuilder()
+      .setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF)
+      .build();
+    CpuProfiler.ProfilingStateResponse response1 = CpuProfiler.ProfilingStateResponse.newBuilder()
+      .setBeingProfiled(true)
+      .setCheckTimestamp(1)
+      .setConfiguration(simpleperfConfig)
+      .build();
+
+    CpuProfiler.CpuProfilerConfiguration artConfig = CpuProfiler.CpuProfilerConfiguration.newBuilder()
+      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
+      .build();
+    CpuProfiler.ProfilingStateResponse response2 = CpuProfiler.ProfilingStateResponse.newBuilder()
+      .setBeingProfiled(true)
+      .setCheckTimestamp(10)
+      .setConfiguration(artConfig)
+      .build();
+
+    CpuProfiler.ProfilingStateResponse response3 = CpuProfiler.ProfilingStateResponse.newBuilder()
+      .setCheckTimestamp(5)
+      .setBeingProfiled(false)
+      .build();
+
+
+    myTable.insertProfilingStateData(SESSION_HUNDREDS, response1);
+    myTable.insertProfilingStateData(SESSION_HUNDREDS, response2);
+    myTable.insertProfilingStateData(SESSION_HUNDREDS, response3);
+
+    // response2 should be returned because it has the higher (most recent) check_timestamp, even if it was not the last to be inserted
+    CpuProfiler.ProfilingStateResponse response = myTable.getProfilingStateData(SESSION_HUNDREDS);
+    assertNotNull(response);
+    assertTrue(response.getBeingProfiled());
+    assertEquals(CpuProfiler.CpuProfilerType.ART, response.getConfiguration().getProfilerType());
   }
 }

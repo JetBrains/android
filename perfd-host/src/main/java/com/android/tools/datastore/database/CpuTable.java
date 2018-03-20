@@ -19,7 +19,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -47,6 +46,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     FIND_TRACE_DATA,
     INSERT_TRACE_DATA,
     INSERT_TRACE_INFO,
+    INSERT_PROFILING_STATE,
+    QUERY_PROFILING_STATE,
   }
 
   @Override
@@ -67,15 +68,19 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   // We need profilerType to choose parser
                   "ProfilerType TEXT",
                   "Data BLOB");
-
       createTable("Cpu_Trace_Info",
                   "Session INTEGER NOT NULL",
                   "StartTime INTEGER",
                   "EndTime INTEGER",
                   "TraceInfo BLOB");
+      createTable("Profiling_State",
+                  "Session INTEGER NOT NULL",
+                  "Timestamp INTEGER NOT NULL",
+                  "Data BLOB");
       createUniqueIndex("Cpu_Data", "Session", "Timestamp");
       createUniqueIndex("Cpu_Trace", "Session", "TraceId");
       createUniqueIndex("Thread_Activities", "Session", "ThreadId", "Timestamp");
+      createUniqueIndex("Profiling_State", "Session", "Timestamp");
     }
     catch (SQLException ex) {
       onError(ex);
@@ -111,6 +116,10 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                       // Then fetch all the activities that happened in the request interval
                       "SELECT ThreadId, Name, State, Timestamp FROM Thread_Activities " +
                       "WHERE Session = ? AND Timestamp > ? AND Timestamp <= ?;");
+      createStatement(CpuTable.CpuStatements.INSERT_PROFILING_STATE,
+                      "INSERT INTO Profiling_State (Session, Timestamp, Data) values (?, ?, ?)");
+      createStatement(CpuTable.CpuStatements.QUERY_PROFILING_STATE,
+                      "SELECT Data from Profiling_State WHERE Session = ? ORDER BY Timestamp DESC LIMIT 1 ");
     }
     catch (SQLException ex) {
       onError(ex);
@@ -249,6 +258,23 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
 
   public void insertTraceInfo(Common.Session session, TraceInfo trace) {
     execute(CpuStatements.INSERT_TRACE_INFO, session.getSessionId(), trace.getFromTimestamp(), trace.getToTimestamp(), trace.toByteArray());
+  }
+
+  public void insertProfilingStateData(Common.Session session, ProfilingStateResponse data) {
+    execute(CpuStatements.INSERT_PROFILING_STATE, session.getSessionId(), data.getCheckTimestamp(), data.toByteArray());
+  }
+
+  public ProfilingStateResponse getProfilingStateData(Common.Session session) {
+    try {
+      ResultSet results = executeQuery(CpuStatements.QUERY_PROFILING_STATE, session.getSessionId());
+      if (results.next()) {
+        return ProfilingStateResponse.parseFrom(results.getBytes(DATA_COLUMN));
+      }
+    }
+    catch (InvalidProtocolBufferException | SQLException ex) {
+      onError(ex);
+    }
+    return null;
   }
 
   private static GetThreadsResponse.Thread.Builder createThreadBuilder(int tid, String name) {
