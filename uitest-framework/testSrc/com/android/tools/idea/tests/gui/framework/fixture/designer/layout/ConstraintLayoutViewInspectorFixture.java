@@ -40,10 +40,10 @@ public final class ConstraintLayoutViewInspectorFixture {
   }
 
   public void selectMarginStart(int margin) {
-    myRobot.moveMouse(myRobot.finder().findByName(myTarget, SingleWidgetView.TOP_MARGIN_WIDGET));
-
-    GenericTypeMatcher<JComboBox> matcher = Matchers.byName(JComboBox.class, SingleWidgetView.TOP_MARGIN_WIDGET + "ComboBox");
-    new JComboBoxFixture(myRobot, GuiTests.waitUntilShowing(myRobot, myTarget, matcher)).selectItem(Integer.toString(margin));
+    MarginWidget marginWidget = findMarginWidget(SingleWidgetView.TOP_MARGIN_WIDGET);
+    myRobot.moveMouse(marginWidget);
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, myRobot.finder().findByType(marginWidget, JComboBox.class));
+    comboBoxFixture.selectItem(Integer.toString(margin));
   }
 
   public ConstraintLayoutViewInspectorFixture setAllMargins(int marginValue) {
@@ -57,9 +57,8 @@ public final class ConstraintLayoutViewInspectorFixture {
 
   private void setMargin(String widgetName, int marginValue) {
     MarginWidget widget = findMarginWidget(widgetName);
-    myRobot.click(widget);
-    myRobot.doubleClick(widget);
-    myRobot.enterText(Integer.toString(marginValue));
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, myRobot.finder().findByType(widget, JComboBox.class));
+    comboBoxFixture.replaceText(Integer.toString(marginValue));
   }
 
   public ConstraintLayoutViewInspectorFixture scrollAllMargins(int scroll) {
@@ -70,9 +69,10 @@ public final class ConstraintLayoutViewInspectorFixture {
     return this;
   }
 
-  private void scrollMargin(String widgetName, int scroll){
+  private void scrollMargin(String widgetName, int scroll) {
     MarginWidget widget = findMarginWidget(widgetName);
-    myRobot.rotateMouseWheel(widget, -scroll);  // Robot.rotateMouseWheel interprets positive numbers as rotation towards user
+    JTextField field = myRobot.finder().findByType(widget, JTextField.class);
+    myRobot.rotateMouseWheel(field, -scroll);  // Robot.rotateMouseWheel interprets positive numbers as rotation towards user
   }
 
   @NotNull
