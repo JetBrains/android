@@ -175,4 +175,42 @@ public class ProfilerScrollbarTest {
     assertEquals(5000, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(6000, myTimeline.getViewRange().getMax(), EPSILON);
   }
+
+  @Test
+  public void testScrollableAtMaxRange() {
+    myTimeline.getDataRange().set(0, 10000);
+    myTimeline.getViewRange().set(0, 10000);
+
+    double delta = myScrollbar.getWheelDelta();
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+
+    // Zoom out should work but does nothing.
+    myUi.mouse.wheel(50, 50, 1);
+    assertEquals(0, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(10000, myTimeline.getViewRange().getMax(), EPSILON);
+
+    // Zoom in should still work
+    myUi.mouse.wheel(50, 50, -1);
+    assertEquals(0 + delta * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(10000 - delta * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
+  }
+
+  @Test
+  public void testNotScrollableIfViewRangeGreaterThatDataRange() {
+    myTimeline.getDataRange().set(0, 100);
+    myTimeline.getViewRange().set(-100, 200);
+
+    double delta = myScrollbar.getWheelDelta();
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+
+    // Zoom out should work but does nothing.
+    myUi.mouse.wheel(50, 50, 1);
+    assertEquals(-100, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(200, myTimeline.getViewRange().getMax(), EPSILON);
+
+    // Zoom in should still work
+    myUi.mouse.wheel(50, 50, -1);
+    assertEquals(-100, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(200, myTimeline.getViewRange().getMax(), EPSILON);
+  }
 }

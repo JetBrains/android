@@ -17,6 +17,7 @@ package com.android.tools.profilers.sessions;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.android.tools.profilers.StudioProfilers.buildSessionName;
@@ -73,6 +75,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull private Common.Session myProfilingSession;
 
   /**
+   * A cache of the view ranges that were used by each session before it was unselected.
+   */
+  private final Map<Long, Range> mySessionViewRangeMap;
+
+  /**
    * A list of handlers that import sessions based on their file types.
    */
   private final Map<String, Consumer<File>> myImportHandlers = new HashMap<>();
@@ -90,6 +97,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
     mySessionItems = new HashMap<>();
     mySessionArtifacts = new ArrayList<>();
+    mySessionViewRangeMap = new HashMap<>();
 
     myArtifactsFetchers = new ArrayList<>();
     myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
@@ -115,6 +123,24 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     return mySelectedSession.getEndTimestamp() == Long.MAX_VALUE;
   }
 
+  @NotNull
+  public Range getSessionPreferredViewRange(@NotNull Common.Session session) {
+    double viewRangeMin = TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp());
+    double viewRangeMax = TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp());
+    // If there is a cached view range, use it instead of showing the full range.
+    if (mySessionViewRangeMap.containsKey(session.getSessionId())) {
+      Range cachedRange = mySessionViewRangeMap.get(session.getSessionId());
+      // The previous view range could contain the initial empty space if the data range is short, just clamp the view range's min to the
+      // data range's min in that case.
+      viewRangeMin = Math.max(viewRangeMin, cachedRange.getMin());
+      // Previous view range's max should never be grater than the data range's max
+      assert viewRangeMax >= cachedRange.getMax();
+      viewRangeMax = cachedRange.getMax();
+    }
+
+    return new Range(viewRangeMin, viewRangeMax);
+  }
+
   /**
    * Perform an update to retrieve all session instances.
    */
@@ -133,6 +159,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     assert Common.Session.getDefaultInstance().equals(session) ||
            (mySessionItems.containsKey(session.getSessionId()) && mySessionItems.get(session.getSessionId()).getSession().equals(session));
+
+    // First cache the view range associated with the previous session.
+    if (!Common.Session.getDefaultInstance().equals(mySelectedSession)) {
+      mySessionViewRangeMap.put(mySelectedSession.getSessionId(), new Range(myProfilers.getTimeline().getViewRange()));
+    }
 
     mySelectedSession = session;
     changed(SessionAspect.SELECTED_SESSION);
