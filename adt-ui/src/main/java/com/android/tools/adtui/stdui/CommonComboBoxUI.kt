@@ -89,27 +89,6 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
         val border = round(OUTER_BORDER_WIDTH)
         return super.computePopupBounds(x + border, y, width - 2 * border, height)
       }
-
-      override fun show() {
-        // Before we show the popup select the current comboBox value if it exist in the list
-        comboBox.selectedItem = comboBox.editor.item
-
-        // And hide the editor caret
-        val editor = comboBox.editor?.editorComponent as? JTextField
-        editor?.caret?.isVisible = false
-
-        super.show()
-      }
-
-      override fun hide() {
-        // Restore the editor caret
-        val editor = comboBox.editor?.editorComponent as? JTextField
-        if (editor?.hasFocus() == true) {
-          editor.caret.isVisible = true
-        }
-
-        super.hide()
-      }
     }
   }
 
