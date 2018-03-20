@@ -385,7 +385,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.text = "newVariable"
+    textBox.setText("newVariable")
     variablesTable.editingStopped(null)
 
     val variableNode =
@@ -413,7 +413,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.LIST)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.text = "newList"
+    textBox.setText("newList")
     variablesTable.editingStopped(null)
 
     val variableNode =
@@ -452,7 +452,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     variablesTable.addVariable(GradlePropertyModel.ValueType.MAP)
     val editorComp = variablesTable.editorComponent as JPanel
     val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
-    textBox.text = "newMap"
+    textBox.setText("newMap")
     variablesTable.editingStopped(null)
 
     val variableNode =

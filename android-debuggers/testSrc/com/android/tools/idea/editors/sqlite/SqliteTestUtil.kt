@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.sqlite
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.io.ByteArraySequence
 import com.intellij.openapi.util.io.ByteSequence
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.fixtures.TempDirTestFixture
@@ -33,7 +34,7 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
       val bytes = ByteArray(size)
       file.inputStream.use { stream ->
         val length = stream.read(bytes)
-        ByteSequence(bytes, 0, length)
+        ByteArraySequence(bytes, 0, length)
       }
     })
   }

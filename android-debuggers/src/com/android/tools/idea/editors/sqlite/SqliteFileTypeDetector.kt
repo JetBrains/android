@@ -30,14 +30,13 @@ class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
       return null
     }
 
-    if (firstBytes.length < SQLITE3_FORMAT_HEADER.size) {
+    if (firstBytes.length() < SQLITE3_FORMAT_HEADER.size) {
       return null
     }
 
-    val j = firstBytes.offset
     @Suppress("LoopToCallChain") // call chain is less readable
     for (i in SQLITE3_FORMAT_HEADER.indices) {
-      if (SQLITE3_FORMAT_HEADER[i] != firstBytes.bytes[i + j]) {
+      if (SQLITE3_FORMAT_HEADER[i] != firstBytes.toBytes()[i]) {
         return null
       }
     }

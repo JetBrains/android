@@ -283,7 +283,6 @@ public class EnumEditorFixture extends EditorFixtureBase {
     private JComboBox myCombo;
 
     public ComboUI(@NotNull JComboBox comboBox) {
-      super(comboBox);
       myCombo = comboBox;
     }
 

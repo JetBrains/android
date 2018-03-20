@@ -41,7 +41,7 @@ class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConf
 
   override fun getState(): QualifierMatcherConfiguration? = configuration
 
-  override fun loadState(state: QualifierMatcherConfiguration?) {
+  override fun loadState(state: QualifierMatcherConfiguration) {
     this.configuration = state ?: defaultConfiguration
   }
 
