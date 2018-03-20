@@ -176,7 +176,6 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
           .setBeingProfiled(true)
           .setConfiguration(record.myStartRequest.getConfiguration())
           .setStartTimestamp(record.myStartRequestTimestamp)
-          .setCheckTimestamp(nowNs)
           .build();
       }
     }
