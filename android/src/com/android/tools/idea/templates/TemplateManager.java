@@ -79,7 +79,7 @@ public class TemplateManager {
   private static final String EXPLODED_AAR_PATH = "build/intermediates/exploded-aar";
 
   public static final String CATEGORY_OTHER = "Other";
-  private static final String CATEGORY_ACTIVITY = "Activity";
+  public static final String CATEGORY_ACTIVITY = "Activity";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();

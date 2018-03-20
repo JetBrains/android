@@ -16,11 +16,14 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.tools.adtui.ASGallery;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * Class holding the UI needed for each tab of {@link ChooseAndroidProjectStep}
@@ -32,9 +35,13 @@ public class ChooseAndroidProjectPanel<T> {
   JBScrollPane myGalleryPanel;
   JBLabel myTemplateName;
   JBLabel myTemplateDesc;
+  HyperlinkLabel myDocumentationLink;
 
   ChooseAndroidProjectPanel(@NotNull ASGallery<T> gallery) {
     myGallery = gallery;
     myGalleryPanel.setViewportView(gallery);
+
+    myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
+    myDocumentationLink.setHyperlinkTarget("https://developer.android.com/ndk/guides/cpp-support.html");
   }
 }
