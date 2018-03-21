@@ -27,6 +27,7 @@ import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
 import com.android.tools.profilers.BorderlessTableCellRenderer;
 import com.android.tools.profilers.HoverRowTable;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
@@ -55,16 +56,22 @@ public final class EnergyEventsView {
    * Columns of event duration data.
    */
   enum Column {
-    EVENT(0.25, String.class) {
+    EVENT(0.18, String.class) {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getName();
       }
     },
-    DESCRIPTION(0.25, String.class) {
+    DESCRIPTION(0.16, String.class) {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
         return data.getDescription();
+      }
+    },
+    CALLED_BY(0.16, String.class) {
+      @Override
+      Object getValueFrom(@NotNull EnergyDuration data) {
+        return data.getEventList().get(0).getTraceId();
       }
     },
     TIMELINE(0.5, Long.class) {
@@ -91,6 +98,9 @@ public final class EnergyEventsView {
     }
 
     public String toDisplayString() {
+      if (this == CALLED_BY) {
+        return "Called By";
+      }
       return StringUtil.capitalize(name().toLowerCase(Locale.getDefault()));
     }
 
@@ -99,7 +109,7 @@ public final class EnergyEventsView {
 
   @NotNull private final EnergyProfilerStage myStage;
   @NotNull private final EventsTableModel myTableModel;
-  @NotNull private final JBTable myEventsTable;
+  @NotNull private final HoverRowTable myEventsTable;
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
@@ -115,8 +125,10 @@ public final class EnergyEventsView {
   private void buildEventsTable() {
     myEventsTable.getColumnModel().getColumn(Column.EVENT.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.DESCRIPTION.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
+    myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer(myStage));
     myEventsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
+    myEventsTable.setTableHeaderBorder(ProfilerLayout.TABLE_COLUMN_HEADER_BORDER);
 
     myEventsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myEventsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
@@ -216,6 +228,27 @@ public final class EnergyEventsView {
     @NotNull
     public EnergyDuration getValue(int rowIndex) {
       return myList.get(rowIndex);
+    }
+  }
+
+  private static final class CalledByRenderer extends BorderlessTableCellRenderer {
+    @NotNull private final EnergyProfilerStage myStage;
+
+    CalledByRenderer(@NotNull EnergyProfilerStage stage) {
+      myStage = stage;
+    }
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      String calledByValue = "";
+      if (value instanceof String) {
+        String stackTrace = myStage.requestBytes((String) value).toStringUtf8();
+        // Get the method name which is before the line metadata in the first line, for example, "AlarmManager.method(Class line: 50)"
+        // results in "AlarmManager.method".
+        int firstLineIndex = stackTrace.indexOf('(');
+        calledByValue = firstLineIndex > 0 ? stackTrace.substring(0, firstLineIndex).trim() : stackTrace.trim();
+      }
+      return super.getTableCellRendererComponent(table, calledByValue, isSelected, hasFocus, row, column);
     }
   }
 
