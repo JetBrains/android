@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +50,16 @@ public class MemoryProfiler extends StudioProfiler {
 
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     sessionsManager.registerImportHandler("hprof", file -> {
+      long startTimestampEpochMs = System.currentTimeMillis();
+      long fileCreationTime = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+      try {
+        BasicFileAttributes attributes = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
+        fileCreationTime = TimeUnit.MILLISECONDS.toNanos(attributes.creationTime().toMillis());
+      }
+      catch (IOException e) {
+        getLogger().info("File creation time not provided, using system time instead...");
+      }
+
       byte[] bytes;
       try {
         bytes = Files.readAllBytes(Paths.get(file.getPath()));
@@ -57,17 +68,16 @@ public class MemoryProfiler extends StudioProfiler {
         getLogger().error("Importing Session Failed: can not read from file location...");
         return;
       }
-      long dumpTimeStamp = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
 
       // Heap dump and session share a time range of [dumpTimeStamp, dumpTimeStamp + 1) which contains dumpTimestamp as its only integer point.
       Common.Session session = sessionsManager
-        .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, dumpTimeStamp, dumpTimeStamp + 1,
-                               TimeUnit.NANOSECONDS.toMillis(dumpTimeStamp));
+        .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, fileCreationTime, fileCreationTime + 1,
+                               startTimestampEpochMs);
       // Bind the imported session with heap dump data through MemoryClient.
       HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
         .setFileName(file.getName())
-        .setStartTime(dumpTimeStamp)
-        .setEndTime(dumpTimeStamp + 1)
+        .setStartTime(fileCreationTime)
+        .setEndTime(fileCreationTime + 1)
         .build();
       ImportHeapDumpRequest heapDumpRequest = ImportHeapDumpRequest.newBuilder()
         .setSession(session)
