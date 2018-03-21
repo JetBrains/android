@@ -215,8 +215,9 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   /**
    * Makes sure the given target {@link Range} fits {@link #myViewRangeUs}. That means the timeline should zoom out until the view range is
    * bigger than (or equals to) the target range and then shift until the it totally fits the view range.
+   * See {@link #adjustRangeCloseToMiddleView(Range)}.
    */
-  public void ensureRangeFitsViewRange(@NotNull Range target) {
+  private void ensureRangeFitsViewRange(@NotNull Range target) {
     setStreaming(false);
     if (myViewRangeUs.contains(target.getMin()) && myViewRangeUs.contains(target.getMax())) {
       // Target already visible. No need to animate to it.
@@ -240,6 +241,24 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
       assert target.getMin() < myViewRangeUs.getMin();
       myTargetRangeMaxUs = target.getMin() + myViewRangeUs.getLength();
     }
+  }
+
+  /**
+   * Adjust the view range to ensure given target is within the {@link #myViewRangeUs}, also try to make the given target is in the middle
+   * of the view range. Due to the data range, when the target cannot be displayed in the middle, the view range either starts from zero or
+   * ends at the data range max.
+   */
+  public void adjustRangeCloseToMiddleView(@NotNull Range target) {
+    ensureRangeFitsViewRange(target);
+    double targetMiddle = (target.getMax() + target.getMin()) / 2;
+    double targetMax = targetMiddle + myViewRangeUs.getLength() / 2;
+    // When the view range is from timestamp zero, i.e the data range's min, get the view range max value. The view range is the larger one
+    // of the previous view length, or the target length if need zooming.
+    double maxFromZero = myDataRangeUs.getMin() + Math.max(target.getLength(), myViewRangeUs.getLength());
+    // We limit the target max to data range's min, as we can't scroll earlier than timestamp zero.
+    targetMax = Math.max(targetMax, maxFromZero);
+    // We limit the target max to data range's max, as we can't scroll further than the data.
+    myTargetRangeMaxUs = Math.min(targetMax, myDataRangeUs.getMax());
   }
 
   public void zoom(double deltaUs, double percent) {
