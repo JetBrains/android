@@ -19,9 +19,9 @@ package com.android.tools.idea.monitor;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
-import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.logcat.AndroidLogcatView;
+import com.android.tools.idea.logcat.LogcatPanel;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -29,8 +29,6 @@ import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.execution.ui.RunnerLayoutUi;
-import com.intellij.execution.ui.layout.PlaceInGrid;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,11 +46,8 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import com.intellij.util.messages.MessageBusConnection;
-import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -61,13 +56,10 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.util.List;
 
 public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, Condition<Project> {
-  private static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
@@ -77,30 +69,22 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     // The object that needs to be created is the content manager of the execution manager for this project.
     ExecutionManager.getInstance(project).getContentManager();
 
-    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create("Android", getToolWindowId(), "Logcat", project);
-
     toolWindow.setAvailable(true, null);
     toolWindow.setToHideOnEmptyContent(true);
 
-    DeviceContext deviceContext = new DeviceContext();
+    LogcatPanel logcatPanel = new LogcatPanel(project);
+    AndroidLogcatView logcatView = logcatPanel.getLogcatView();
 
-    AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId());
-    Content logcatContent = createLogcatContent(layoutUi, project, logcatView);
-    layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
-
-    DevicePanel devicePanel = new DevicePanel(project, deviceContext);
-
-    final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
-    loadingPanel.add(new DeviceAndSearchPanel(devicePanel, logcatView), BorderLayout.NORTH);
-    loadingPanel.add(layoutUi.getComponent(), BorderLayout.CENTER);
+    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new MyToolWindowManagerListener(project, logcatView));
+    project.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
 
     final ContentManager contentManager = toolWindow.getContentManager();
-    Content c = contentManager.getFactory().createContent(loadingPanel, "", true);
+    Content c = contentManager.getFactory().createContent(logcatPanel, "", true);
 
     // Store references to the logcat & device panel views, so that these views can be retrieved directly from
     // the DDMS tool window. (e.g. to clear logcat before a launch, select a particular device, etc)
     c.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
-    c.putUserData(DEVICES_PANEL_KEY, devicePanel);
+    c.putUserData(DEVICES_PANEL_KEY, logcatPanel.getDevicePanel());
 
     contentManager.addContent(c);
 
@@ -120,20 +104,20 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
       return;
     }
 
-    loadingPanel.setLoadingText("Initializing ADB");
-    loadingPanel.startLoading();
+    logcatPanel.setLoadingText("Initializing ADB");
+    logcatPanel.startLoading();
 
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
     Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
         Logger.getInstance(AndroidToolWindowFactory.class).info("Successfully obtained debug bridge");
-        loadingPanel.stopLoading();
+        logcatPanel.stopLoading();
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        loadingPanel.stopLoading();
+        logcatPanel.stopLoading();
 
         Logger.getInstance(AndroidToolWindowFactory.class).info("Unable to obtain debug bridge", t);
         Messages.showErrorDialog(AdbService.getDebugBridgeDiagnosticErrorMessage(t, adb), "ADB Connection Error");
@@ -141,46 +125,51 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     }, EdtExecutor.INSTANCE);
   }
 
-  public static String getToolWindowId() {
-    return "Logcat";
+  private static final class MyToolWindowManagerListener extends ToolWindowManagerAdapter {
+    private final Project myProject;
+    private final AndroidLogcatView myLogcatView;
+
+    private boolean myToolWindowVisible;
+
+    private MyToolWindowManagerListener(@NotNull Project project, @NotNull AndroidLogcatView logcatView) {
+      myProject = project;
+      myLogcatView = logcatView;
+    }
+
+    @Override
+    public void stateChanged() {
+      ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow("Logcat");
+
+      if (window == null) {
+        return;
+      }
+
+      boolean visible = window.isVisible();
+
+      if (myToolWindowVisible == visible) {
+        return;
+      }
+
+      myToolWindowVisible = visible;
+      myLogcatView.activate();
+
+      if (!visible) {
+        return;
+      }
+
+      ConsoleView consoleView = myLogcatView.getLogConsole().getConsole();
+
+      if (consoleView == null) {
+        return;
+      }
+
+      checkFacetAndSdk(myProject, consoleView);
+    }
   }
 
-  private static Content createLogcatContent(RunnerLayoutUi layoutUi, final Project project, AndroidLogcatView logcatView) {
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerAdapter() {
-      boolean myToolWindowVisible;
-
-      @Override
-      public void stateChanged() {
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(getToolWindowId());
-        if (window != null) {
-          boolean visible = window.isVisible();
-          if (visible != myToolWindowVisible) {
-            myToolWindowVisible = visible;
-            logcatView.activate();
-            if (visible) {
-              ConsoleView console = logcatView.getLogConsole().getConsole();
-              if (console != null) {
-                checkFacetAndSdk(project, console);
-              }
-            }
-          }
-        }
-      }
-    });
-
-    final MessageBusConnection connection = project.getMessageBus().connect(project);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
-
-    JPanel logcatContentPanel = logcatView.getContentPanel();
-
-    final Content logcatContent =
-      layoutUi.createContent(ANDROID_LOGCAT_CONTENT_ID, logcatContentPanel, "logcat", StudioIcons.Shell.ToolWindows.LOGCAT, null);
-    logcatContent.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, logcatView);
-    logcatContent.setDisposer(logcatView);
-    logcatContent.setCloseable(false);
-    logcatContent.setPreferredFocusableComponent(logcatContentPanel);
-
-    return logcatContent;
+  @NotNull
+  public static String getToolWindowId() {
+    return "Logcat";
   }
 
   private static void checkFacetAndSdk(Project project, @NotNull final ConsoleView console) {

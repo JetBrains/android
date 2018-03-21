@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor;
+package com.android.tools.idea.logcat;
 
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.logcat.AndroidLogConsole;
-import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
