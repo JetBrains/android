@@ -15,6 +15,7 @@ package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.EnergyAxisFormatter;
+import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
@@ -41,6 +42,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull private final EventMonitor myEventMonitor;
   @NotNull private final EnergyLegends myLegends;
   @NotNull private final EnergyLegends myTooltipLegends;
+  @NotNull private final EnergyEventLegends myEventLegends;
   @NotNull private final SelectionModel mySelectionModel;
   @NotNull private final EnergyEventsFetcher myFetcher;
   @NotNull private final StateChartModel<EnergyEvent> myEventModel;
@@ -59,6 +61,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myEventMonitor = new EventMonitor(profilers);
     myLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getDataRange(), false);
     myTooltipLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange(), true);
+    myEventLegends = new EnergyEventLegends();
     mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     profilers.addDependency(myAspectObserver)
@@ -157,6 +160,11 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
+  public EnergyEventLegends getEventLegends() {
+    return myEventLegends;
+  }
+
+  @NotNull
   public String getName() {
     return "ENERGY";
   }
@@ -236,6 +244,38 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull
     public SeriesLegend getNetworkLegend() {
       return myNetworkLegend;
+    }
+  }
+
+  public static class EnergyEventLegends extends LegendComponentModel {
+    @NotNull private final FixedLegend locationLegend;
+    @NotNull private final FixedLegend wakeLockLegend;
+    @NotNull private final FixedLegend alarmAndJobLegend;
+
+    EnergyEventLegends() {
+      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      locationLegend = new FixedLegend("Location Event");
+      wakeLockLegend = new FixedLegend("Wake Locks");
+      alarmAndJobLegend = new FixedLegend("Alarms & Jobs");
+
+      add(locationLegend);
+      add(wakeLockLegend);
+      add(alarmAndJobLegend);
+    }
+
+    @NotNull
+    public FixedLegend getWakeLockLegend() {
+      return wakeLockLegend;
+    }
+
+    @NotNull
+    public FixedLegend getLocationLegend() {
+      return locationLegend;
+    }
+
+    @NotNull
+    public FixedLegend getAlarmAndJobLegend() {
+      return alarmAndJobLegend;
     }
   }
 }
