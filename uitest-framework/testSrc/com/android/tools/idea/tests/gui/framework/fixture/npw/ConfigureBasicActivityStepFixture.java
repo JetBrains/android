@@ -19,8 +19,10 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -81,8 +83,8 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
   @NotNull
   public ConfigureBasicActivityStepFixture<W> enterTextFieldValue(@NotNull ActivityTextField activityField, @NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
-    replaceText(textField, text);
-
+    robot().click(textField, MouseButton.LEFT_BUTTON, 3); // select all; particularly for pseudo-JTextComponent EditorComponentImpl
+    new JTextComponentFixture(robot(), textField).enterText(text);
     return this;
   }
 
