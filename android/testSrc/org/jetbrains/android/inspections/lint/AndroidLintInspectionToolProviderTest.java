@@ -20,7 +20,6 @@ import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeProject;
 import com.android.tools.idea.lint.LintIdeViewTypeDetector;
 import com.android.tools.lint.checks.GradleDetector;
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
@@ -38,13 +37,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
+import static com.android.tools.lint.checks.PermissionDetector.CHECK_PERMISSION;
+import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
 import static com.android.utils.SdkUtils.escapePropertyValue;
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
-  public static final String ADT_SOURCE_TREE = "ADT_SOURCE_TREE";
+  private static final String ADT_SOURCE_TREE = "ADT_SOURCE_TREE";
 
   public void testAllLintChecksRegistered() throws Exception {
     assertTrue(
@@ -54,7 +56,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
   private static boolean ourDone;
   @SuppressWarnings("deprecation")
-  public static boolean checkAllLintChecksRegistered(Project project) throws Exception {
+  private static boolean checkAllLintChecksRegistered(Project project) throws Exception {
     if (ourDone) {
       return true;
     }
@@ -319,9 +321,9 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       // These two are handled by the ResourceTypeInspection's quickfixes; they're
       // not handled by lint per se, but on the command line (in HTML reports) they're
       // flagged by lint, so include them in the list
-      quickfixes.add(SupportAnnotationDetector.CHECK_PERMISSION);
-      quickfixes.add(SupportAnnotationDetector.MISSING_PERMISSION);
-      quickfixes.add(SupportAnnotationDetector.CHECK_RESULT);
+      quickfixes.add(CHECK_PERMISSION);
+      quickfixes.add(MISSING_PERMISSION);
+      quickfixes.add(CHECK_RESULT);
 
       for (Issue issue : quickfixes) {
         String detectorName = getDetectorClass(issue).getName();

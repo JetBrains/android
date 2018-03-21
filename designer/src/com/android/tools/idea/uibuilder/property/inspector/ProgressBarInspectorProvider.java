@@ -16,12 +16,16 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,8 +36,8 @@ import java.util.Map;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-public class ProgressBarInspectorProvider implements InspectorProvider {
-  private InspectorComponent myComponent;
+public class ProgressBarInspectorProvider implements InspectorProvider<NlPropertiesManager> {
+  private InspectorComponent<NlPropertiesManager> myComponent;
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components,
@@ -44,9 +48,9 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
 
   @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
-                                                  @NotNull Map<String, NlProperty> properties,
-                                                  @NotNull NlPropertiesManager propertiesManager) {
+  public InspectorComponent<NlPropertiesManager> createCustomInspector(@NotNull List<NlComponent> components,
+                                                                       @NotNull Map<String, NlProperty> properties,
+                                                                       @NotNull NlPropertiesManager propertiesManager) {
     if (myComponent == null) {
       myComponent = new ProgressBarInspectorComponent(propertiesManager);
     }
@@ -62,7 +66,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
   /**
    * ProgressBar inspector component. Has a dual view depending on the value of determinate.
    */
-  private static class ProgressBarInspectorComponent implements InspectorComponent {
+  private static class ProgressBarInspectorComponent implements InspectorComponent<NlPropertiesManager> {
     private final InspectorPanel myInspector;
     private final NlEnumEditor myStyleEditor;
     private final NlReferenceEditor myDrawableEditor;
@@ -82,8 +86,8 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     private NlProperty myIndeterminateTint;
     private NlProperty myMax;
     private NlProperty myProgress;
-    private NlProperty myVisibility;
-    private NlProperty myDesignVisibility;
+    @Nullable private NlProperty myVisibility;
+    @Nullable private NlProperty myDesignVisibility;
     private NlProperty myIndeterminate;
 
     public ProgressBarInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
@@ -113,7 +117,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       myMax = properties.get(ATTR_MAXIMUM);
       myProgress = properties.get(ATTR_PROGRESS);
       myVisibility = properties.get(ATTR_VISIBILITY);
-      myDesignVisibility = myVisibility.getDesignTimeProperty();
+      myDesignVisibility = myVisibility != null ? myVisibility.getDesignTimeProperty() : null;
       myIndeterminate = properties.get(ATTR_INDETERMINATE);
     }
 
@@ -128,15 +132,25 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       refresh();
       inspector.addTitle("ProgressBar");
       inspector.addComponent(ATTR_STYLE, myStyle.getTooltipText(), myStyleEditor.getComponent());
-      myDrawableEditor.setLabel(inspector.addComponent(ATTR_PROGRESS_DRAWABLE, myProgressDrawable.getTooltipText(), myDrawableEditor.getComponent()));
-      myIndeterminateDrawableEditor.setLabel(inspector.addComponent(ATTR_INDETERMINATE_DRAWABLE, myIndeterminateDrawable.getTooltipText(), myIndeterminateDrawableEditor.getComponent()));
-      myTintEditor.setLabel(inspector.addComponent(ATTR_PROGRESS_TINT, myProgressTint.getTooltipText(), myTintEditor.getComponent()));
-      myIndeterminateTintEditor.setLabel(inspector.addComponent(ATTR_INDETERMINATE_TINT, myIndeterminateTint.getTooltipText(), myIndeterminateTintEditor.getComponent()));
+      myDrawableEditor
+        .setLabel(inspector.addComponent(ATTR_PROGRESS_DRAWABLE, myProgressDrawable.getTooltipText(), myDrawableEditor.getComponent()));
+      myIndeterminateDrawableEditor.setLabel(inspector.addComponent(ATTR_INDETERMINATE_DRAWABLE, myIndeterminateDrawable.getTooltipText(),
+                                                                    myIndeterminateDrawableEditor.getComponent()));
+      myTintEditor.setLabel(inspector.addComponent(ATTR_PROGRESS_TINT,
+                                                   myProgressTint != null ? myProgressTint.getTooltipText() : null,
+                                                   myTintEditor.getComponent()));
+      myIndeterminateTintEditor.setLabel(inspector.addComponent(ATTR_INDETERMINATE_TINT,
+                                                                myIndeterminateTint != null ? myIndeterminateTint.getTooltipText() : null,
+                                                                myIndeterminateTintEditor.getComponent()));
       myMaxEditor.setLabel(inspector.addComponent(ATTR_MAXIMUM, myMax.getTooltipText(), myMaxEditor.getComponent()));
       myProgressEditor.setLabel(inspector.addComponent(ATTR_PROGRESS, myProgress.getTooltipText(), myProgressEditor.getComponent()));
-      inspector.addComponent(ATTR_VISIBILITY, myVisibility.getTooltipText(), myVisibilityEditor.getComponent());
-      JLabel designVisibility = inspector.addComponent(ATTR_VISIBILITY, myDesignVisibility.getTooltipText(), myDesignVisibilityEditor.getComponent());
-      designVisibility.setIcon(AndroidIcons.NeleIcons.DesignProperty);
+      inspector.addComponent(ATTR_VISIBILITY,
+                             myVisibility != null ? myVisibility.getTooltipText() : null,
+                             myVisibilityEditor.getComponent());
+      JLabel designVisibility = inspector.addComponent(ATTR_VISIBILITY,
+                                                       myDesignVisibility != null ? myDesignVisibility.getTooltipText() : null,
+                                                       myDesignVisibilityEditor.getComponent());
+      designVisibility.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
       inspector.addComponent(ATTR_INDETERMINATE, myIndeterminate.getTooltipText(), myIndeterminateEditor.getComponent());
     }
 
@@ -145,12 +159,20 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       myStyleEditor.setProperty(myStyle);
       myDrawableEditor.setProperty(myProgressDrawable);
       myIndeterminateDrawableEditor.setProperty(myIndeterminateDrawable);
-      myTintEditor.setProperty(myProgressTint);
-      myIndeterminateTintEditor.setProperty(myIndeterminateTint);
+      if (myProgressTint != null) {
+        myTintEditor.setProperty(myProgressTint);
+      }
+      if (myIndeterminateTint != null) {
+        myIndeterminateTintEditor.setProperty(myIndeterminateTint);
+      }
       myMaxEditor.setProperty(myMax);
       myProgressEditor.setProperty(myProgress);
-      myVisibilityEditor.setProperty(myVisibility);
-      myDesignVisibilityEditor.setProperty(myDesignVisibility);
+      if (myVisibility != null) {
+        myVisibilityEditor.setProperty(myVisibility);
+      }
+      if (myDesignVisibility != null) {
+        myDesignVisibilityEditor.setProperty(myDesignVisibility);
+      }
       myIndeterminateEditor.setProperty(myIndeterminate);
       updateVisibility();
     }
@@ -178,8 +200,8 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       }
       boolean indeterminate = VALUE_TRUE.equalsIgnoreCase(myIndeterminate.getResolvedValue());
       myDrawableEditor.setVisible(!indeterminate);
-      myTintEditor.setVisible(!indeterminate);
-      myIndeterminateDrawableEditor.setVisible(indeterminate);
+      myTintEditor.setVisible(myProgressTint != null && !indeterminate);
+      myIndeterminateDrawableEditor.setVisible(myIndeterminateTint != null && indeterminate);
       myIndeterminateTintEditor.setVisible(indeterminate);
       myMaxEditor.setVisible(!indeterminate);
       myProgressEditor.setVisible(!indeterminate);

@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.AndroidThemePreviewPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
@@ -44,7 +45,18 @@ public class ThemeConfigurationTest {
    */
   @Test
   public void testThemesWithConfiguration() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .getEditor()
+      .open("app/build.gradle")
+      .select("minSdkVersion (21)") // so we see errors when defining a theme based on Material (added in 21)
+      .enterText("19")
+      .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish();
+
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
 
     JComboBoxFixture themesComboBox = themeEditor.getThemesComboBox();

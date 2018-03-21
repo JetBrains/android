@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -61,6 +62,19 @@ public class AppBarConfigurationDialogFixture extends DialogFixture {
                        return component.getIcon() != null;
                      }
                    }));
+    return this;
+  }
+
+  public AppBarConfigurationDialogFixture waitForSyncFailedPreviewMessage() {
+    waitForBackgroundTasks(robot());
+    waitUntilShowing(robot(),
+                     Matchers.byText(JBLabel.class, "Preview is unavailable until after a successful build")
+                       .and(new GenericTypeMatcher<JBLabel>(JBLabel.class) {
+                         @Override
+                         protected boolean isMatching(@Nonnull JBLabel component) {
+                           return component.getIcon() == AllIcons.General.Warning;
+                         }
+                       }));
     return this;
   }
 }

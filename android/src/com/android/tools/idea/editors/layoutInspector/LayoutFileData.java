@@ -28,8 +28,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 public class LayoutFileData {
-  @Nullable public final BufferedImage myBufferedImage;
-  @Nullable public final ViewNode myNode;
+  @Nullable private final BufferedImage myBufferedImage;
+  @Nullable private final ViewNode myNode;
 
   public LayoutFileData(@NotNull VirtualFile file) throws IOException {
     byte[] previewBytes;
@@ -45,7 +45,7 @@ public class LayoutFileData {
       byte[] nodeBytes = new byte[input.readInt()];
       input.readFully(nodeBytes);
       myNode = ViewNode.parseFlatString(nodeBytes);
-      if (myNode == null) {
+      if (getNode() == null) {
         throw new IOException("Error parsing view node");
       }
 
@@ -58,5 +58,15 @@ public class LayoutFileData {
     }
 
     myBufferedImage = ImageIO.read(new ByteArrayInputStream(previewBytes));
+  }
+
+  @Nullable
+  public BufferedImage getBufferedImage() {
+    return myBufferedImage;
+  }
+
+  @Nullable
+  public ViewNode getNode() {
+    return myNode;
   }
 }

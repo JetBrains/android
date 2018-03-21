@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.*;
 import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapViewHandler;
 import com.android.tools.idea.uibuilder.handlers.grid.GridLayoutHandler;
@@ -35,6 +36,7 @@ import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandlerKt;
+import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
 import com.android.tools.idea.uibuilder.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
@@ -213,7 +215,7 @@ public class ViewHandlerManager implements ProjectComponent {
     return null;
   }
 
-  private ViewHandler createHandler(@NotNull String viewTag) {
+  public ViewHandler createBuiltInHandler(@NotNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
     switch (viewTag) {
       case ABSOLUTE_LAYOUT:
@@ -236,6 +238,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new AppBarLayoutHandler();
       case AUTO_COMPLETE_TEXT_VIEW:
         return new AutoCompleteTextViewHandler();
+      case BOTTOM_NAVIGATION_VIEW:
+        return new BottomNavigationViewHandler();
       case BROWSE_FRAGMENT:
         return new BrowseFragmentHandler();
       case BUTTON:
@@ -257,10 +261,14 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ConstraintHelperHandler();
       case CLASS_CONSTRAINT_LAYOUT_LAYER:
         return new ConstraintLayoutLayerHandler();
+      case CONSTRAINT_LAYOUT_GUIDELINE:
+        return new ConstraintLayoutGuidelineHandler();
       case COLLAPSING_TOOLBAR_LAYOUT:
         return new CollapsingToolbarLayoutHandler();
       case CONSTRAINT_LAYOUT:
         return new ConstraintLayoutHandler();
+      case TRANSITION_LAYOUT:
+        return new TransitionLayoutHandler();
       case COORDINATOR_LAYOUT:
         return new CoordinatorLayoutHandler();
       case DETAILS_FRAGMENT:
@@ -404,6 +412,15 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ViewTagHandler();
       case ZOOM_BUTTON:
         return new ZoomButtonHandler();
+    }
+    return null;
+  }
+
+  private ViewHandler createHandler(@NotNull String viewTag) {
+
+    ViewHandler builtInHandler = createBuiltInHandler(viewTag);
+    if (builtInHandler != null) {
+      return builtInHandler;
     }
 
     // Look for other handlers via reflection; first built into the IDE:

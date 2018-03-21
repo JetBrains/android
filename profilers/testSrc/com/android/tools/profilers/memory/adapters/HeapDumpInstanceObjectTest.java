@@ -18,9 +18,13 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeFeatureTracker;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -266,7 +270,7 @@ public class HeapDumpInstanceObjectTest {
     private Map<Instance, HeapDumpInstanceObject> myInstanceObjectMap = new HashMap<>();
 
     public FakeHeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client) {
-      super(client, null, 0, HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null, new RelativeTimeConverter(0),
+      super(client, Common.Session.getDefaultInstance(), HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null,
             new FakeFeatureTracker());
     }
 

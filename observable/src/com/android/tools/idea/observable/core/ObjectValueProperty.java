@@ -19,10 +19,9 @@ import com.android.tools.idea.observable.AbstractProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An {@link AbstractProperty} which is backed by a non-null object instance.
+ * An {@link AbstractProperty} that wraps a non-null object.
  */
 public final class ObjectValueProperty<T> extends ObjectProperty<T> {
-
   @NotNull private T myValue;
 
   public ObjectValueProperty(@NotNull T value) {

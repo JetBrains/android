@@ -63,16 +63,6 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
   }
 
   @Override
-  public void setStatus(@Nullable String status) {
-    myProgress.setSecondaryText(status);
-  }
-
-  @Override
-  public void showError(@Nullable Throwable e) {
-    myProgress.logWarning("", e);
-  }
-
-  @Override
   public void checkCancelled() throws OperationCancelledException {
     super.checkCancelled();
     if (myProgress.isCanceled()) {
@@ -85,13 +75,6 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
     myProgress.setText("Patching " + oldBuildDesc + " to " + newBuildDesc);
   }
 
-  @Override
-  public boolean showWarning(@NonNull String message) {
-    myProgress.logWarning(message);
-    return false;
-  }
-
-  @Override
   protected Component getParentComponent() {
     return myParentComponent;
   }
@@ -99,11 +82,6 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
   @Override
   protected void notifyCancelled() {
     // nothing
-  }
-
-  @Override
-  public void exit() {
-    // nothing?
   }
 
   /**

@@ -80,6 +80,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
+    AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false);
     myFixture.allowTreeAccessForAllFiles();
   }
 
@@ -894,14 +895,14 @@ public class AndroidLintTest extends AndroidTestCase {
 
     VirtualFile file = myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    Map<RefEntity, CommonProblemDescriptor[]> map = doGlobalInspectionTest(new AndroidLintUnusedResourcesInspection());
+    SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> map = doGlobalInspectionTest(new AndroidLintUnusedResourcesInspection());
 
     CommonProblemDescriptor targetDescriptor = null;
     QuickFix<CommonProblemDescriptor> targetFix = null;
 
     // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
-    for (Map.Entry<RefEntity, CommonProblemDescriptor[]> entry : map.entrySet()) {
-      for (CommonProblemDescriptor descriptor : entry.getValue()) {
+    for (RefEntity refEntity : map.keys()) {
+      for (CommonProblemDescriptor descriptor : map.get(refEntity)) {
         Set<String> familyNames = Sets.newHashSet();
         QuickFix[] fixes = descriptor.getFixes();
         if (fixes != null) {
@@ -1132,17 +1133,17 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/res/layout/layout.xml", "xml");
   }
 
-  private Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
+  private SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     myFixture.enableInspections(inspection);
     return doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
 
   private void doGlobalInspectionWithFix(@NotNull AndroidLintInspectionBase inspection, @NotNull String actionLabel) {
-    Map<RefEntity, CommonProblemDescriptor[]> map = doGlobalInspectionTest(inspection);
+    SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> map = doGlobalInspectionTest(inspection);
 
     // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
-    for (Map.Entry<RefEntity, CommonProblemDescriptor[]> entry : map.entrySet()) {
-      for (CommonProblemDescriptor descriptor : entry.getValue()) {
+    for (RefEntity refEntity : map.keys()) {
+      for (CommonProblemDescriptor descriptor : map.get(refEntity)) {
         QuickFix[] fixes = descriptor.getFixes();
         if (fixes != null) {
           //noinspection unchecked

@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
@@ -36,19 +35,16 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
   @Nullable private MemoryProfilerStage myStage;
 
   public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                                   @Nullable Common.Session session,
-                                   int processId,
-                                   @NotNull RelativeTimeConverter converter,
+                                   @NotNull Common.Session session,
                                    @NotNull FeatureTracker featureTracker,
                                    @Nullable MemoryProfilerStage stage) {
-    super(client, session, processId, converter, featureTracker);
+    super(client, session, featureTracker);
     myStage = stage;
   }
 
   @NotNull
   private List<MemoryProfiler.AllocationsInfo> getDataForXRange(long rangeMinNs, long rangeMaxNs) {
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTime(rangeMinNs)
       .setEndTime(rangeMaxNs);
@@ -76,10 +72,10 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
             info,
             () -> {
               if (info.getLegacy()) {
-                return new LegacyAllocationCaptureObject(myClient, mySession, myProcessId, info, myConverter, myFeatureTracker);
+                return new LegacyAllocationCaptureObject(myClient, mySession, info, myFeatureTracker);
               }
               else {
-                return new LiveAllocationCaptureObject(myClient, mySession, myProcessId, startTimeNs, null, myStage);
+                return new LiveAllocationCaptureObject(myClient, mySession, startTimeNs, null, myStage);
               }
             }))));
     }

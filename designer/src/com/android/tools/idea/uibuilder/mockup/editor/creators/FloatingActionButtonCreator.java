@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
@@ -47,7 +48,7 @@ public class FloatingActionButtonCreator extends AutoCompleteViewCreator {
    */
   public FloatingActionButtonCreator(@NotNull Mockup mockup,
                                      @NotNull NlModel model,
-                                     @NotNull ScreenView screenView,
+                                     @NotNull SceneView screenView,
                                      @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
   }

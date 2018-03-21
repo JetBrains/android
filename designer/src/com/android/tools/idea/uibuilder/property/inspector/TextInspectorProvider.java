@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
+import com.android.tools.idea.common.property.inspector.InspectorComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
+import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
-import com.google.common.base.Objects;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,19 +44,17 @@ import java.util.Map;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-public class TextInspectorProvider implements InspectorProvider {
+public class TextInspectorProvider implements InspectorProvider<NlPropertiesManager> {
   @VisibleForTesting
-  static final List<String> TEXT_PROPERTIES = ImmutableList.of(
+  static final List<String> REQUIRED_TEXT_PROPERTIES = ImmutableList.of(
     ATTR_TEXT,
     ATTR_CONTENT_DESCRIPTION,
     ATTR_TEXT_APPEARANCE,
-    ATTR_FONT_FAMILY,
     ATTR_TYPEFACE,
     ATTR_TEXT_SIZE,
     ATTR_LINE_SPACING_EXTRA,
     ATTR_TEXT_STYLE,
     ATTR_TEXT_ALL_CAPS,
-    ATTR_TEXT_ALIGNMENT,
     ATTR_TEXT_COLOR);
 
   private TextInspectorComponent myComponent;
@@ -60,7 +63,7 @@ public class TextInspectorProvider implements InspectorProvider {
   public boolean isApplicable(@NotNull List<NlComponent> components,
                               @NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
-    if (!properties.keySet().containsAll(TEXT_PROPERTIES)) {
+    if (!properties.keySet().containsAll(REQUIRED_TEXT_PROPERTIES)) {
       return false;
     }
     for (NlComponent component : components) {
@@ -92,7 +95,7 @@ public class TextInspectorProvider implements InspectorProvider {
   /**
    * Text font inspector component for setting font family, size, decorations, color.
    */
-  static class TextInspectorComponent implements InspectorComponent {
+  static class TextInspectorComponent implements InspectorComponent<NlPropertiesManager> {
     private final NlReferenceEditor myTextEditor;
     private final NlReferenceEditor myDesignTextEditor;
     private final NlReferenceEditor myDescriptionEditor;
@@ -147,13 +150,13 @@ public class TextInspectorProvider implements InspectorProvider {
       myEndEditor = new NlBooleanIconEditor(StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_LAYOUT_RIGHT, "Align End of View", TextAlignment.VIEW_END);
       myColorEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
 
-      myTextStylePanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+      myTextStylePanel = new AdtSecondaryPanel(new FlowLayout(FlowLayout.LEADING));
       myTextStylePanel.setFocusable(false);
       myTextStylePanel.add(myBoldEditor.getComponent());
       myTextStylePanel.add(myItalicsEditor.getComponent());
       myTextStylePanel.add(myAllCapsEditor.getComponent());
 
-      myAlignmentPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+      myAlignmentPanel = new AdtSecondaryPanel(new FlowLayout(FlowLayout.LEADING));
       myAlignmentPanel.setFocusable(false);
       myAlignmentPanel.add(myStartEditor.getComponent());
       myAlignmentPanel.add(myLeftEditor.getComponent());
@@ -170,13 +173,13 @@ public class TextInspectorProvider implements InspectorProvider {
       myDesignText = myText.getDesignTimeProperty();
       myDescription = properties.get(ATTR_CONTENT_DESCRIPTION);
       myStyle = properties.get(ATTR_TEXT_APPEARANCE);
-      myFontFamily = properties.get(ATTR_FONT_FAMILY);
+      myFontFamily = properties.getOrDefault(ATTR_FONT_FAMILY, EmptyProperty.INSTANCE);
       myTypeface = properties.get(ATTR_TYPEFACE);
       myFontSize = properties.get(ATTR_TEXT_SIZE);
       mySpacing = properties.get(ATTR_LINE_SPACING_EXTRA);
       myTextStyle = (NlFlagPropertyItem)properties.get(ATTR_TEXT_STYLE);
       myTextAllCaps = properties.get(ATTR_TEXT_ALL_CAPS);
-      myAlignment = properties.get(ATTR_TEXT_ALIGNMENT);
+      myAlignment = properties.getOrDefault(ATTR_TEXT_ALIGNMENT, EmptyProperty.INSTANCE);
       myColor = properties.get(ATTR_TEXT_COLOR);
     }
 
@@ -191,17 +194,22 @@ public class TextInspectorProvider implements InspectorProvider {
       inspector.addTitle("TextView");
       inspector.addComponent(ATTR_TEXT, myText.getTooltipText(), myTextEditor.getComponent());
       JLabel designText = inspector.addComponent(ATTR_TEXT, myDesignText.getTooltipText(), myDesignTextEditor.getComponent());
-      designText.setIcon(AndroidIcons.NeleIcons.DesignProperty);
+      designText.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
       inspector.addComponent(ATTR_CONTENT_DESCRIPTION, myDescription.getTooltipText(), myDescriptionEditor.getComponent());
 
-      inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent(), myStyleEditor.getKeySource());
-      inspector.addComponent(ATTR_FONT_FAMILY, myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
+      inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent(),
+                                       myStyleEditor.getKeySource());
+      if (myFontFamily != EmptyProperty.INSTANCE) {
+        inspector.addComponent(ATTR_FONT_FAMILY, myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
+      }
       inspector.addComponent(ATTR_TYPEFACE, myTypeface.getTooltipText(), myTypefaceEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_SIZE, myFontSize.getTooltipText(), myFontSizeEditor.getComponent());
       inspector.addComponent(ATTR_LINE_SPACING_EXTRA, mySpacing.getTooltipText(), mySpacingEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_COLOR, myColor.getTooltipText(), myColorEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_STYLE, myTextStyle.getTooltipText(), myTextStylePanel);
-      inspector.addComponent(ATTR_TEXT_ALIGNMENT, myAlignment.getTooltipText(), myAlignmentPanel);
+      if (myAlignment != EmptyProperty.INSTANCE) {
+        inspector.addComponent(ATTR_TEXT_ALIGNMENT, myAlignment.getTooltipText(), myAlignmentPanel);
+      }
     }
 
     @Override

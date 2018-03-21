@@ -29,9 +29,11 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="layoutlib" level="project" />
     <orderEntry type="library" name="analytics-protos" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.0.0" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:tracker:26.1.2" level="project" />
     <orderEntry type="library" name="sherpa-solver" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.0.0" level="project" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:shared:26.1.2" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.android.project-system" />
+    <orderEntry type="module" module-name="intellij.android.common" />
   </component>
 </module>

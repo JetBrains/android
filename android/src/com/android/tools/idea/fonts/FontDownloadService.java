@@ -78,7 +78,7 @@ public class FontDownloadService {
       notify(myFailure);
       return;
     }
-    FileDownloader downloader = DownloadableFileService.getInstance().createDownloader(files, "Download Fonts");
+    FileDownloader downloader = new FontFileDownloader(files, null, null, "Download Fonts");
     try {
       downloader.download(myFontPath);
       notify(mySuccess);
@@ -104,7 +104,7 @@ public class FontDownloadService {
   private static boolean performSingleFileDownloads(@NotNull File fontPath, @NotNull List<DownloadableFileDescription> files) {
     boolean success = true;
     for (DownloadableFileDescription file : files) {
-      FileDownloader downloader = DownloadableFileService.getInstance().createDownloader(Collections.singletonList(file), "Download Fonts");
+      FileDownloader downloader = new FontFileDownloader(Collections.singletonList(file), null, null, "Download Fonts");
       try {
         downloader.download(fontPath);
       }

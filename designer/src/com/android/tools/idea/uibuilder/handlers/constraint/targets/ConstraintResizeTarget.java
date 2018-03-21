@@ -138,6 +138,11 @@ public class ConstraintResizeTarget extends ResizeBaseTarget {
     super.render(list, sceneContext);
   }
 
+  @Override
+  public boolean canChangeSelection() {
+    return false;
+  }
+
   private static void updateWidth(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int w) {
     if (w < 0) {
       w = 0;

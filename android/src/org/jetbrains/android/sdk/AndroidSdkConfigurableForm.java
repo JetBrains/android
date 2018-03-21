@@ -38,7 +38,7 @@ import java.awt.event.ItemEvent;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 /**
  * @author Eugene.Kudelevsky

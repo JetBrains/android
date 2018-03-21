@@ -9,20 +9,19 @@ import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.application.UtilKt;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.codeInspection.reference.RefEntity;
-import com.intellij.facet.Facet;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
+import com.intellij.facet.*;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
@@ -48,8 +47,8 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
-import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +58,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends AndroidTestBase {
@@ -149,6 +147,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
+
+    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
 
   @Override
@@ -190,10 +190,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    */
   public void makeSureThatProjectVirtualFileIsNotNull() {
     if (getProject().getProjectFile() == null) {
-      UtilKt.runInAllowSaveMode(() -> {
-        getProject().save();
-        return Unit.INSTANCE;
-      });
+      ApplicationManagerEx.getApplicationEx().setSaveAllowed(false);
+      getProject().save();
       assert getProject().getProjectFile() != null;
     }
   }
@@ -286,17 +284,30 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     return addAndroidFacet(module, true);
   }
 
-  private static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-
-    Sdk sdk = attachSdk ? addLatestAndroidSdk(module) : null;
-    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-    facetModel.addFacet(facet);
-    ApplicationManager.getApplication().runWriteAction(facetModel::commit);
+  public static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
+    Sdk sdk;
+    if (attachSdk) {
+      sdk = addLatestAndroidSdk(module);
+    }
+    else {
+      sdk = null;
+    }
+    AndroidFacetType type = AndroidFacet.getFacetType();
+    String facetName = "Android";
+    AndroidFacet facet = addFacet(module, type, facetName);
     if (sdk != null) {
       Disposer.register(facet, ()-> WriteAction.run(()->ProjectJdkTable.getInstance().removeJdk(sdk)));
     }
+    return facet;
+  }
+
+  @NotNull
+  public static <T extends Facet> T addFacet(Module module, FacetType<T, ? extends FacetConfiguration> type, String facetName) {
+    FacetManager facetManager = FacetManager.getInstance(module);
+    T facet = facetManager.createFacet(type, facetName, null);
+    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
+    facetModel.addFacet(facet);
+    ApplicationManager.getApplication().runWriteAction(facetModel::commit);
     return facet;
   }
 
@@ -359,7 +370,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  protected final Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(
+  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
     @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     return doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
   }
@@ -369,7 +380,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    * inspection on the current test project and verify that its output matches that of the
    * expected file.
    */
-  protected final Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(
+  protected final SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(
     @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     myFixture.enableInspections(wrapper.getTool());
 
@@ -382,11 +393,15 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     InspectionTestUtil.runTool(wrapper, scope, globalContext);
     InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
 
-    return globalContext.getPresentation(wrapper).getProblemElements().getMap();
+    return globalContext.getPresentation(wrapper).getProblemElements();
   }
 
   public <T> void registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) {
     myApplicationComponentStack.registerComponentInstance(key, instance);
+  }
+
+  public <T> void registerApplicationComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
+    myApplicationComponentStack.registerComponentImplementation(key, instance);
   }
 
   public <T> void registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
@@ -397,7 +412,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myProjectComponentStack.registerComponentImplementation(key, instance);
   }
 
-  protected static class MyAdditionalModuleData {
+  protected final static class MyAdditionalModuleData {
     final AndroidModuleFixtureBuilder myModuleFixtureBuilder;
     final String myDirName;
     final int myProjectType;
@@ -412,13 +427,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  interface AndroidModuleFixtureBuilder<T extends ModuleFixture> extends JavaModuleFixtureBuilder<T> {
+  public interface AndroidModuleFixtureBuilder<T extends ModuleFixture> extends JavaModuleFixtureBuilder<T> {
     void setModuleRoot(@NotNull String moduleRoot);
 
     void setModuleName(@NotNull String moduleName);
   }
 
-  private static class AndroidModuleFixtureBuilderImpl extends JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>
+  public static class AndroidModuleFixtureBuilderImpl extends JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>
     implements AndroidModuleFixtureBuilder<ModuleFixtureImpl> {
 
     private File myModuleRoot;
@@ -470,6 +485,5 @@ public abstract class AndroidTestCase extends AndroidTestBase {
         model.commit();
       }
     }));
-
   }
 }

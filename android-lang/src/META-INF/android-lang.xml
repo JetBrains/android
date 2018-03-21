@@ -1,0 +1,87 @@
+<!--
+  ~ Copyright (C) 2017 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+
+  <depends>org.intellij.intelliLang</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Android IDL support -->
+    <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="AIDL"
+                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
+    <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
+    <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
+
+    <!-- Proguard support -->
+    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory"/>
+    <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="PROGUARD"
+                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
+    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
+    <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor"/>
+
+    <!-- Renderscript -->
+    <lang.parserDefinition language="Renderscript"
+                           implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="Renderscript"
+                                   implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
+
+    <!-- Room SQL support -->
+    <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory"/>
+    <lang.parserDefinition language="RoomSql"
+                           implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="RoomSql"
+                                   implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory"/>
+    <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomDefinedTableNameImpl"
+                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomSelectedTableNameImpl"
+                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomColumnNameImpl"
+                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomBindParameterImpl"
+                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomBindParameterManipulator"/>
+    <lang.findUsagesProvider language="RoomSql"
+                             implementationClass="com.android.tools.idea.lang.roomSql.refactoring.RoomFindUsagesProvider"/>
+    <referencesSearch implementation="com.android.tools.idea.lang.roomSql.refactoring.RoomReferenceSearchExecutor"/>
+    <usageTypeProvider implementation="com.android.tools.idea.lang.roomSql.refactoring.RoomUsageTypeProvider"/>
+
+    <localInspection groupPath="Android"
+                     groupName="Room"
+                     language="RoomSql"
+                     shortName="AndroidUnresolvedRoomSqlReference"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.android.tools.idea.lang.roomSql.RoomUnresolvedReferenceInspection"
+                     displayName="Unresolved reference in Room SQL"/>
+
+    <localInspection groupPath="Android"
+                     groupName="Room"
+                     language="RoomSql"
+                     shortName="AndroidRoomQuestionMarkBindParameter"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     implementationClass="com.android.tools.idea.lang.roomSql.RoomBindParameterSyntaxInspection"
+                     displayName="'?' used as parameter in a Room query."/>
+
+    <lang.braceMatcher language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher"/>
+    <lang.quoteHandler language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomQuoteHandler"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.intellij.intelliLang">
+    <injectionConfig config="injections/roomSqlInjections.xml"/>
+  </extensions>
+</idea-plugin>

@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredListCellRenderer;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -106,6 +105,11 @@ public class FontEnumSupportTest extends AndroidTestCase {
       .isEqualTo(new ValueWithDisplayString("customfont", "@font/customfont"));
   }
 
+  public void testCreateNonSystemValueWithoutPrefix() {
+    assertThat(mySupport.createValue("customfont"))
+      .isEqualTo(new ValueWithDisplayString("customfont", "@font/customfont"));
+  }
+
   public void testCreateValueWithoutPrefix() {
     assertThat(mySupport.createValue("serif"))
       .isEqualTo(new ValueWithDisplayString("serif", "serif"));
@@ -114,13 +118,13 @@ public class FontEnumSupportTest extends AndroidTestCase {
   public void testCustomizeCellRendererWithSystemFont() {
     ColoredListCellRenderer<ValueWithDisplayString> renderer = new MyRenderer();
     mySupport.customizeCellRenderer(renderer, new ValueWithDisplayString("casual", "casual"), false);
-    assertThat(renderer.getIcon()).isSameAs(AndroidIcons.Android);
+    assertThat(renderer.getIcon()).isSameAs(StudioIcons.Shell.Filetree.ANDROID_PROJECT);
   }
 
   public void testCustomizeCellRendererWithEmbeddedFont() {
     ColoredListCellRenderer<ValueWithDisplayString> renderer = new MyRenderer();
     mySupport.customizeCellRenderer(renderer, new ValueWithDisplayString("customfont", "@font/customfont"), false);
-    assertThat(renderer.getIcon()).isSameAs(AndroidIcons.FontFile);
+    assertThat(renderer.getIcon()).isSameAs(StudioIcons.Shell.Filetree.FONT_FILE);
   }
 
   public void testCustomizeCellRendererWithDownloadableFont() {

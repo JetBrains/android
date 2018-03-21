@@ -55,7 +55,7 @@ public class LintIdeUtils {
   }
 
   /**
-   * Gets the location of the given element
+   * Returns the location of the given element.
    *
    * @param file the file containing the location
    * @param element the element to look up the location for
@@ -83,7 +83,7 @@ public class LintIdeUtils {
   }
 
   /**
-   * Returns the {@link PsiFile} associated with a given lint {@link Context}
+   * Returns the {@link PsiFile} associated with a given lint {@link Context}.
    *
    * @param context the context to look up the file for
    * @return the corresponding {@link PsiFile}, or null
@@ -104,15 +104,13 @@ public class LintIdeUtils {
     return AndroidPsiUtils.getPsiFileSafely(project, file);
   }
 
-  /** Returns the internal method name */
+  /** Returns the internal method name. */
   @NonNull
   public static String getInternalMethodName(@NonNull PsiMethod method) {
     if (method.isConstructor()) {
       return SdkConstants.CONSTRUCTOR_NAME;
     }
-    else {
-      return method.getName();
-    }
+    return method.getName();
   }
 
   /**

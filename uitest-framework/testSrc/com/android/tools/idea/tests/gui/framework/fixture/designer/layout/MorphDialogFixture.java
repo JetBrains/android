@@ -17,17 +17,18 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
-import com.android.tools.idea.uibuilder.actions.MorphDialog;
+import com.android.tools.idea.uibuilder.actions.MorphPanel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class MorphDialogFixture extends ComponentFixture<MorphDialogFixture, MorphDialog> {
+public class MorphDialogFixture extends ComponentFixture<MorphDialogFixture, MorphPanel> {
 
   public MorphDialogFixture(@NotNull Robot robot) {
-    super(MorphDialogFixture.class, robot, MorphDialog.MORPH_DIALOG_NAME, MorphDialog.class);
+    super(MorphDialogFixture.class, robot, MorphPanel.MORPH_DIALOG_NAME, MorphPanel.class);
   }
 
   @NotNull
@@ -40,5 +41,9 @@ public class MorphDialogFixture extends ComponentFixture<MorphDialogFixture, Mor
       target(),
       c -> c instanceof JButton
            && "Apply".equals(((JButton)c).getText())));
+  }
+
+  public JListFixture getSuggestionList() {
+    return new JListFixture(robot(), robot().finder().findByName(target(), "suggestionList", JList.class));
   }
 }

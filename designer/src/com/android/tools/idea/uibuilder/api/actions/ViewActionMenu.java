@@ -28,8 +28,8 @@ import java.util.List;
 /**
  * A sub menu for a group of actions
  */
-public final class ViewActionMenu extends ViewAction {
-  private final List<ViewAction> myActions;
+public class ViewActionMenu extends ViewAction {
+  protected final List<ViewAction> myActions;
 
   /**
    * Creates a new view action.

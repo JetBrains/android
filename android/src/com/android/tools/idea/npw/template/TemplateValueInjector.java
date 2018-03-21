@@ -24,7 +24,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -34,12 +33,12 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -70,13 +69,12 @@ import static com.android.tools.idea.npw.template.JavaToKotlinHandler.getJavaToK
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
 /**
  * Utility class that sets common Template values used by a project Module.
  */
 public final class TemplateValueInjector {
-  private static final String PROJECT_LOCATION_ID = "projectLocation";
-
   private final Map<String, Object> myTemplateValues;
 
   /**
@@ -126,16 +124,7 @@ public final class TemplateValueInjector {
     addKotlinVersion();
 
     if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
-      setInstantAppSupport();
-
-      Module baseFeature = InstantApps.findBaseFeature(project);
-      AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
-      assert moduleModel != null;
-      Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
-      assert !resDirectories.isEmpty();
-      File baseModuleResourceRoot = resDirectories.iterator().next();
-
-      myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
+      setInstantAppSupport(true, project, facet.getModule().getName());
     }
 
     return this;
@@ -146,7 +135,7 @@ public final class TemplateValueInjector {
    * not created yet.
    *
    * @param buildVersion Build version information for the new Module being created.
-   * @param project Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
+   * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
    */
   public TemplateValueInjector setBuildVersion(@NotNull AndroidVersionsInfo.VersionItem buildVersion, @Nullable Project project) {
     addDebugKeyStore(myTemplateValues, null);
@@ -154,8 +143,8 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, true); // Android Modules are called Gradle Projects
     myTemplateValues.put(ATTR_THEME_EXISTS, true); // New modules always have a theme (unless its a library, but it will have no activity)
 
-    myTemplateValues.put(ATTR_MIN_API_LEVEL, buildVersion.getApiLevel());
-    myTemplateValues.put(ATTR_MIN_API, buildVersion.getApiLevelStr());
+    myTemplateValues.put(ATTR_MIN_API_LEVEL, buildVersion.getMinApiLevel());
+    myTemplateValues.put(ATTR_MIN_API, buildVersion.getMinApiLevelStr());
     myTemplateValues.put(ATTR_BUILD_API, buildVersion.getBuildApiLevel());
     myTemplateValues.put(ATTR_BUILD_API_STRING, buildVersion.getBuildApiLevelStr());
     myTemplateValues.put(ATTR_TARGET_API, buildVersion.getTargetApiLevel());
@@ -209,7 +198,7 @@ public final class TemplateValueInjector {
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
-  public TemplateValueInjector setModuleRoots(@NotNull AndroidProjectPaths paths, @NotNull String packageName) {
+  public TemplateValueInjector setModuleRoots(@NotNull AndroidModuleTemplate paths, @NotNull String packageName) {
     File moduleRoot = paths.getModuleRoot();
 
     assert moduleRoot != null;
@@ -247,7 +236,7 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
 
-    myTemplateValues.put(PROJECT_LOCATION_ID, moduleRoot.getParent());
+    myTemplateValues.put(ATTR_PROJECT_LOCATION, moduleRoot.getParent());
 
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
@@ -296,8 +285,8 @@ public final class TemplateValueInjector {
     if (sdkLocation != null) {
       myTemplateValues.put(ATTR_SDK_DIR, sdkLocation.getPath());
 
-      String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
-                                                                             SupportLibrary.ESPRESSO_CORE.getArtifactId(),
+      String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(GoogleMavenArtifactId.ESPRESSO_CORE.getMavenGroupId(),
+                                                                             GoogleMavenArtifactId.ESPRESSO_CORE.getMavenArtifactId(),
                                                                              null, false, sdkLocation, FileOpUtils.create());
       if (espressoVersion != null) {
         myTemplateValues.put(ATTR_ESPRESSO_VERSION, espressoVersion);
@@ -307,9 +296,43 @@ public final class TemplateValueInjector {
     return this;
   }
 
-  public TemplateValueInjector setInstantAppSupport() {
+  public TemplateValueInjector setInstantAppSupport(boolean isExistingProject, @NotNull Project project, @NotNull String moduleName) {
     myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
     myTemplateValues.put(ATTR_INSTANT_APP_API_MIN_VERSION, InstantApps.getCompatApiMinVersion());
+
+    myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
+
+    String projectPath = project.getBasePath();
+    assert projectPath != null;
+    String defaultResourceSuffix = join("src", "main", "res");
+    File projectRoot = new File(projectPath);
+    File baseModuleRoot = new File(projectRoot, "base");
+    File baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+    if (isExistingProject) {
+      Module baseFeature = InstantApps.findBaseFeature(project);
+      if (baseFeature == null) {
+        baseModuleRoot = new File(projectRoot, moduleName);
+        baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+        myTemplateValues.put(ATTR_IS_BASE_FEATURE, true);
+        String monolithicModuleName = InstantApps.findMonolithicModuleName(project);
+        if (monolithicModuleName != null) {
+          myTemplateValues.put(ATTR_MONOLITHIC_MODULE_NAME, monolithicModuleName);
+        }
+      }
+      else {
+        AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
+        assert moduleModel != null;
+        baseModuleRoot = moduleModel.getRootDirPath();
+        Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
+        assert !resDirectories.isEmpty();
+        baseModuleResourceRoot = resDirectories.iterator().next();
+      }
+    }
+
+    myTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
+    myTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
+    myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
+
     return this;
   }
 
@@ -319,11 +342,9 @@ public final class TemplateValueInjector {
   }
 
   private void addKotlinVersion() {
-    if (StudioFlags.NPW_KOTLIN.get()) {
-      // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
-      final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
-      myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
-    }
+    // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
+    final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
+    myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
   }
 
   private static void addDebugKeyStore(@NotNull Map<String, Object> templateValues, @Nullable AndroidFacet facet) {

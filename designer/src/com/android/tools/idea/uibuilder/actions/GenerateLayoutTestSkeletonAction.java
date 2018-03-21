@@ -16,16 +16,16 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.common.editor.NlEditor;
-import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.rendering.AttributeSnapshot;
+import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -39,7 +39,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtilBase;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +75,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
       "Generate LayoutTest Skeleton",
       new String[]{"Copy to Clipboard", "Cancel"},
       0,
-      AndroidIcons.AndroidTestRoot);
+      StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT);
 
     if (option == 0) {
       CopyPasteManager.getInstance().setContents(new StringSelection(generateModelFixture(model)));

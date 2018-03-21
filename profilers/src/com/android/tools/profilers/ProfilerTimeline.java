@@ -40,7 +40,6 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   @NotNull private final Range myViewRangeUs;
   @NotNull private final Range mySelectionRangeUs;
   @NotNull private final Range myTooltipRangeUs;
-  @NotNull private RelativeTimeConverter myRelativeTimeConverter;
 
   private boolean myStreaming;
 
@@ -48,16 +47,16 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   private double myZoomLeft;
 
   private boolean myCanStream = true;
-  private long myLengthNs;
+  private long myDataStartTimeNs;
+  private long myDataLengthNs;
   private boolean myIsPaused = false;
   private long myPausedTime;
 
-  public ProfilerTimeline(@NotNull RelativeTimeConverter converter) {
+  public ProfilerTimeline() {
     myDataRangeUs = new Range(0, 0);
     myViewRangeUs = new Range(0, 0);
     mySelectionRangeUs = new Range(); // Empty range
     myTooltipRangeUs = new Range(); // Empty range
-    myRelativeTimeConverter = converter;
   }
 
   /**
@@ -112,7 +111,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   public void setIsPaused(boolean paused) {
     myIsPaused = paused;
     if (myIsPaused) {
-      myPausedTime = myLengthNs;
+      myPausedTime = myDataLengthNs;
     }
   }
 
@@ -136,13 +135,13 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
 
   @Override
   public void update(long elapsedNs) {
-    myLengthNs += elapsedNs;
-    long maxTimelineTime = myLengthNs;
+    myDataLengthNs += elapsedNs;
+    long maxTimelineTimeNs = myDataLengthNs;
     if (myIsPaused) {
-      maxTimelineTime = myPausedTime;
+      maxTimelineTimeNs = myPausedTime;
     }
 
-    long deviceNowNs = myRelativeTimeConverter.convertToAbsoluteTime(maxTimelineTime);
+    long deviceNowNs = myDataStartTimeNs + maxTimelineTimeNs;
     long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
     myDataRangeUs.setMax(deviceNowUs);
     double viewUs = myViewRangeUs.getLength();
@@ -204,7 +203,8 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     }
     if (myViewRangeUs.getMin() + deltaUs < myDataRangeUs.getMin()) {
       deltaUs = myDataRangeUs.getMin() - myViewRangeUs.getMin();
-    } else if (myViewRangeUs.getMax() + deltaUs > myDataRangeUs.getMax()) {
+    }
+    else if (myViewRangeUs.getMax() + deltaUs > myDataRangeUs.getMax()) {
       deltaUs = myDataRangeUs.getMax() - myViewRangeUs.getMax();
     }
     myViewRangeUs.shift(deltaUs);
@@ -212,19 +212,32 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
 
   /**
    * This function resets the internal state to the timeline.
-   * @param converter to set as a baseline for the timeline. The converter is used to 0 the timeline.
-   * @param lengthNs The initial length of the timeline. This allows us to start the timeline with length other than 0.
-   *                 This is required if we are switching between processes that have been running for a while.
+   *
+   * @param startTimeNs the time which should be the 0 value on the timeline.
+   * @param lengthNs    the initial length of the timeline. This accounts for the time delay between when a session starts and the device's
+   *                    current time when the timeline is reset.
    */
-  public void reset(@NotNull RelativeTimeConverter converter, long lengthNs) {
-    myRelativeTimeConverter = converter;
-    myLengthNs = lengthNs;
+  public void reset(long startTimeNs, long lengthNs) {
+    myDataStartTimeNs = startTimeNs;
+    myDataLengthNs = lengthNs;
     myIsPaused = false;
-    double us = TimeUnit.NANOSECONDS.toMicros(converter.getDeviceStartTimeNs());
-    long deviceNowNs = myRelativeTimeConverter.convertToAbsoluteTime(myLengthNs);
+    double startTimeUs = TimeUnit.NANOSECONDS.toMicros(myDataStartTimeNs);
+    long deviceNowNs = myDataStartTimeNs + myDataLengthNs;
     long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
-    myDataRangeUs.set(us, deviceNowUs);
+    myDataRangeUs.set(startTimeUs, deviceNowUs);
     myViewRangeUs.set(deviceNowUs - DEFAULT_VIEW_LENGTH_US, deviceNowUs);
     setStreaming(true);
+  }
+
+  public long getDataStartTimeNs() {
+    return myDataStartTimeNs;
+  }
+
+  /**
+   * @param absoluteTimeNs the device time in nanoseconds.
+   * @return time relative to the data start time (e.g. zero on the timeline), in microseconds.
+   */
+  public long convertToRelativeTimeUs(long absoluteTimeNs) {
+    return TimeUnit.NANOSECONDS.toMicros(absoluteTimeNs - myDataStartTimeNs);
   }
 }

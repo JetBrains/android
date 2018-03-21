@@ -44,16 +44,18 @@ public final class DragMenuItemsFromPaletteToComponentTreeTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
     layoutEditor.waitForRenderToFinish();
 
-    JListFixture paletteItemList = layoutEditor.getPaletteItemList(0);
+    JListFixture list = layoutEditor.getPalette().getItemList("");
+    list.replaceCellReader(new ItemTitleListCellReader());
+
     JTreeFixture componentTree = layoutEditor.getComponentTree();
 
-    paletteItemList.drag("Group");
+    list.drag("Group");
     componentTree.drop("menu");
 
-    paletteItemList.drag("Menu Item");
+    list.drag("Menu Item");
     componentTree.drop("menu/group");
 
-    paletteItemList.drag("Menu");
+    list.drag("Menu");
     componentTree.drop("menu/group/item");
 
     assertPathExists(componentTree, "menu/group/item/menu");

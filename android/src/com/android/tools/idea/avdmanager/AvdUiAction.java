@@ -41,6 +41,7 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
     @Nullable
     AvdInfo getAvdInfo();
     void refreshAvds();
+    void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect);
 
     @Nullable
     Project getProject();
@@ -114,6 +115,10 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
 
   protected void refreshAvds() {
     myAvdInfoProvider.refreshAvds();
+  }
+
+  protected void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect) {
+    myAvdInfoProvider.refreshAvdsAndSelect(avdToSelect);
   }
 
   @Override

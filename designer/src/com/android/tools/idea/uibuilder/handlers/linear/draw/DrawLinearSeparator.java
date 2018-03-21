@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
 import java.awt.*;
 
@@ -73,9 +73,9 @@ public class DrawLinearSeparator extends DrawRegion {
     float length = layoutVertical ? right - left : bottom - top;
     DrawLinearSeparator separator =
       new DrawLinearSeparator(layoutVertical,
-                              context.getSwingX(left),
-                              context.getSwingY(top),
-                              context.getSwingDimension(length));
+                              context.getSwingXDip(left),
+                              context.getSwingYDip(top),
+                              context.getSwingDimensionDip(length));
     list.add(separator);
   }
 }

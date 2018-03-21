@@ -183,9 +183,9 @@ enum ConstraintType {
           return LAYOUT_CENTER_VERTICAL;
         case CENTER_VERTICAL:
           return LAYOUT_CENTER_HORIZONTAL;
+        default:
+          return null;
       }
-
-      return null;
     }
 
     // Attached to some other node.
@@ -198,8 +198,9 @@ enum ConstraintType {
             return LAYOUT_BELOW;
           case BASELINE:
             return ALIGN_BASELINE;
+          default:
+            return null;
         }
-        break;
       case BOTTOM:
         switch (to) {
           case TOP:
@@ -208,24 +209,27 @@ enum ConstraintType {
             return ALIGN_BOTTOM;
           case BASELINE:
             return ALIGN_BASELINE;
+          default:
+            return null;
         }
-        break;
       case LEFT:
         switch (to) {
           case LEFT:
             return ALIGN_LEFT;
           case RIGHT:
             return LAYOUT_RIGHT_OF;
+          default:
+            return null;
         }
-        break;
       case RIGHT:
         switch (to) {
           case LEFT:
             return LAYOUT_LEFT_OF;
           case RIGHT:
             return ALIGN_RIGHT;
+          default:
+            return null;
         }
-        break;
       case BASELINE:
         return ALIGN_BASELINE;
       case START:
@@ -234,6 +238,8 @@ enum ConstraintType {
             return LAYOUT_ALIGN_START;
           case END:
             return LAYOUT_ALIGN_END_OF;
+          default:
+            return null;
         }
       case END:
         switch (to) {
@@ -241,9 +247,11 @@ enum ConstraintType {
             return LAYOUT_ALIGN_START_OF;
           case END:
             return LAYOUT_ALIGN_END;
+          default:
+            return null;
         }
+      default:
+        return null;
     }
-
-    return null;
   }
 }

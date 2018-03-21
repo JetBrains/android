@@ -23,49 +23,41 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
-import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.util.PositionInFile;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.util.Function;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.ide.common.repository.SdkMavenRepository.*;
-import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.hasGoogleMavenRepository;
+import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
+import static com.android.ide.common.repository.SdkMavenRepository.findBestPackageMatching;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
 import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
+import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.Projects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
-import static com.intellij.openapi.util.text.StringUtil.unquoteString;
-import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mSTRING_LITERAL;
 
 public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
   private static final String OPEN_FILE_HYPERLINK_TEXT = "Open File";
+
+  private DependencyPositionFinder myDependencyPositionFinder = new DependencyPositionFinder();
 
   @NotNull
   public static UnresolvedDependenciesReporter getInstance() {
@@ -138,7 +130,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
 
     SyncMessage message;
     if (buildFile != null) {
-      PositionInFile position = findDependencyPosition(dependency, buildFile);
+      PositionInFile position = myDependencyPositionFinder.findDependencyPosition(dependency, buildFile);
       message = new SyncMessage(module.getProject(), group, ERROR, position, text);
       String hyperlinkText = position.line > -1 ? "Show in File" : OPEN_FILE_HYPERLINK_TEXT;
       quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), hyperlinkText, position.line, position.column));
@@ -153,28 +145,12 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
       }
     }
 
+    // Offer to turn on embedded offline repo if the missing dependency can be found there.
+    if (shouldEnableEmbeddedRepo(dependency)) {
+      quickFixes.add(new EnableEmbeddedRepoHyperlink());
+    }
     message.add(quickFixes);
     getSyncMessages(module).report(message);
-  }
-
-  @NotNull
-  private static PositionInFile findDependencyPosition(@NotNull String dependency, @NotNull VirtualFile buildFile) {
-    int line = -1;
-    int column = -1;
-
-    Document document = FileDocumentManager.getInstance().getDocument(buildFile);
-    if (document != null) {
-      TextRange textRange = findDependency(dependency, document);
-      if (textRange != null) {
-        line = document.getLineNumber(textRange.getStartOffset());
-        if (line > -1) {
-          int lineStartOffset = document.getLineStartOffset(line);
-          column = textRange.getStartOffset() - lineStartOffset;
-        }
-      }
-    }
-
-    return new PositionInFile(buildFile, line, column);
   }
 
   @NotNull
@@ -182,27 +158,6 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     RepositoryPackages packages = sdkHandler.getSdkManager(indicator).getPackages();
     return packages.getRemotePackages().values();
-  }
-
-  @Nullable
-  private static TextRange findDependency(@NotNull String dependency, @NotNull Document buildFile) {
-    Function<Pair<String, GroovyLexer>, TextRange> consumer = pair -> {
-      GroovyLexer lexer = pair.getSecond();
-      return TextRange.create(lexer.getTokenStart() + 1, lexer.getTokenEnd() - 1);
-    };
-    GroovyLexer lexer = new GroovyLexer();
-    lexer.start(buildFile.getText());
-    while (lexer.getTokenType() != null) {
-      IElementType type = lexer.getTokenType();
-      if (type == mSTRING_LITERAL) {
-        String text = unquoteString(lexer.getTokenText());
-        if (text.startsWith(dependency)) {
-          return consumer.fun(Pair.create(text, lexer));
-        }
-      }
-      lexer.advance();
-    }
-    return null;
   }
 
   private void reportWithoutDependencyInfo(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
@@ -231,7 +186,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
         extraInfo.addAll(multiLineMessage);
       }
     }
-    catch (UnsupportedMethodException ex) {
+    catch (UnsupportedOperationException ex) {
       // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
     }
 
@@ -256,17 +211,23 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     Project project = module.getProject();
     if (buildFile != null) {
       GradleBuildModel moduleBuildModel = GradleBuildModel.parseBuildFile(buildFile, project, module.getName());
-      if (!hasGoogleMavenRepository(moduleBuildModel.repositories())) {
-        fixes.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
+      if (moduleBuildModel.repositories().hasGoogleMavenRepository()) {
+        // Module already has Google repository, no need to add it
+        return;
       }
     }
+    GradleBuildModel projectBuildModel = GradleBuildModel.get(project);
+    if (projectBuildModel != null) {
+      if (projectBuildModel.repositories().hasGoogleMavenRepository()) {
+        // Project already has Google repository, no need to to add it
+        return;
+      }
+      fixes.add(new AddGoogleMavenRepositoryHyperlink(projectBuildModel.getVirtualFile()));
+    }
     else {
-      GradleBuildModel projectBuildModel = GradleBuildModel.get(project);
-      if (projectBuildModel != null) {
-        RepositoriesModel repositories = projectBuildModel.repositories();
-        if (!hasGoogleMavenRepository(repositories)) {
-          fixes.add(new AddGoogleMavenRepositoryHyperlink(projectBuildModel.getVirtualFile()));
-        }
+      // Cannot tell if project has Google repository, add to module build file if available
+      if (buildFile != null) {
+        fixes.add(new AddGoogleMavenRepositoryHyperlink(buildFile));
       }
     }
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.common.property.PropertiesManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -23,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 public class ToggleXmlPropertyEditor extends AnAction {
   static final String NL_XML_PROPERTY_EDITOR = "NlXmlPropertyEditor";
 
-  private final NlPropertiesManager myPropertiesManager;
+  private final PropertiesManager myPropertiesManager;
 
-  public ToggleXmlPropertyEditor(@NotNull NlPropertiesManager propertiesManager) {
+  public ToggleXmlPropertyEditor(@NotNull PropertiesManager propertiesManager) {
     myPropertiesManager = propertiesManager;
   }
 

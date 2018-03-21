@@ -17,16 +17,20 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.util.GuiTestFileUtils;
+import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
+import org.fest.swing.fixture.JListFixture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +43,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
+@Ignore("b/66680171")
 @RunWith(GuiTestRunner.class)
 public final class MenuTest {
   @Language("XML")
@@ -77,6 +82,7 @@ public final class MenuTest {
     myEditor = myGuiTest.ideFrame().getEditor();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66470893
   @Test
   public void dragCastButtonIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
@@ -132,6 +138,7 @@ public final class MenuTest {
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66829932
   @Test
   public void dragSearchItemIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
@@ -168,9 +175,12 @@ public final class MenuTest {
 
   private void dragAndDrop(@NotNull String item, @NotNull Point point) {
     NlEditorFixture editor = myEditor.getLayoutEditor(false);
-
     editor.waitForRenderToFinish();
-    editor.getPaletteItemList(0).drag(item);
+
+    JListFixture list = editor.getPalette().getItemList("");
+    list.replaceCellReader(new ItemTitleListCellReader());
+    list.drag(item);
+
     editor.getSurface().drop(point);
   }
 }

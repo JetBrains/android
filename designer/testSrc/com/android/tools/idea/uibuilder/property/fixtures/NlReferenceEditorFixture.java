@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.fixtures;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.fixtures.EditorFixtureBase;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor.SliderWithTimeDelay;
@@ -38,10 +39,11 @@ import java.time.temporal.ChronoUnit;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.ComponentEvent.COMPONENT_RESIZED;
 
-public class NlReferenceEditorFixture extends NlEditorFixtureBase {
+public class NlReferenceEditorFixture extends EditorFixtureBase {
   private final NlReferenceEditor myComponentEditor;
   private final TextFieldWithCompletion myEditor;
   private final SliderWithTimeDelay mySlider;
+  private final JLabel myIconLabel;
   private final Instant myStartTime;
 
   private NlReferenceEditorFixture(@NotNull NlReferenceEditor editor) {
@@ -49,6 +51,7 @@ public class NlReferenceEditorFixture extends NlEditorFixtureBase {
     myStartTime = Instant.now();
     myComponentEditor = editor;
     myEditor = findSubComponent(myComponentEditor.getComponent(), TextFieldWithCompletion.class);
+    myIconLabel = findSubComponent(myComponentEditor.getComponent(), JLabel.class);
     mySlider = findSubComponent(myComponentEditor.getComponent(), SliderWithTimeDelay.class);
     mySlider.setUI(new MySliderUI(mySlider));
     mySlider.setClock(Clock.fixed(myStartTime, ZoneId.systemDefault()));
@@ -111,6 +114,12 @@ public class NlReferenceEditorFixture extends NlEditorFixtureBase {
   public NlReferenceEditorFixture expectSliderVisible(boolean expected) {
     boolean sliderVisible = mySlider.getParent() != null && mySlider.isVisible();
     assertThat(sliderVisible).isEqualTo(expected);
+    return this;
+  }
+
+  public NlReferenceEditorFixture expectIconVisible(boolean expected) {
+    boolean iconVisible = myIconLabel.getParent() != null && myIconLabel.isVisible();
+    assertThat(iconVisible).isEqualTo(expected);
     return this;
   }
 

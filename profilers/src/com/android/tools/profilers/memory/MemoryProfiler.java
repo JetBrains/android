@@ -17,7 +17,11 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.Profiler.TimeRequest;
+import com.android.tools.profiler.proto.Profiler.TimeResponse;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
@@ -25,8 +29,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.profiler.proto.MemoryProfiler.*;
 
 public class MemoryProfiler extends StudioProfiler {
 
@@ -47,30 +49,22 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session, Profiler.Process process) {
+  public void startProfiling(Common.Session session, Common.Process process) {
     myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder()
-                                                                   .setProcessId(process.getPid())
                                                                    .setSession(session).build());
-
-    try {
-      if (myProfilers.isLiveAllocationEnabled()) {
-        myProfilers.getClient().getMemoryClient().resumeTrackAllocations(ResumeTrackAllocationsRequest.newBuilder()
-                                                                           .setProcessId(process.getPid())
-                                                                           .setSession(session).build());
-      }
-    }
-    catch (StatusRuntimeException e) {
-      getLogger().info(e);
-    }
   }
 
   @Override
-  public void stopProfiling(Common.Session session, Profiler.Process process) {
+  public void stopProfiling(Common.Session session, Common.Process process) {
     try {
       if (myProfilers.isLiveAllocationEnabled()) {
-        myProfilers.getClient().getMemoryClient().suspendTrackAllocations(SuspendTrackAllocationsRequest.newBuilder()
-                                                                            .setProcessId(process.getPid())
-                                                                            .setSession(session).build());
+        AllocationInfosDataSeries allocationSeries = new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session,
+                                                                                   myProfilers.getIdeServices().getFeatureTracker(), null);
+        // Only stops live tracking if one is available.
+        if (!allocationSeries.getDataForXRange(myProfilers.getTimeline().getDataRange()).isEmpty()) {
+          myProfilers.getClient().getMemoryClient()
+            .trackAllocations(TrackAllocationsRequest.newBuilder().setSession(session).setEnabled(false).build());
+        }
       }
     }
     catch (StatusRuntimeException e) {
@@ -78,7 +72,6 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder()
-                                                                  .setProcessId(process.getPid())
                                                                   .setSession(session).build());
   }
 
@@ -91,32 +84,29 @@ public class MemoryProfiler extends StudioProfiler {
     }
 
     Common.Session session = myProfilers.getSession();
-    Profiler.Process process = myProfilers.getProcess();
-    if (session == null || process == null) {
+    Common.Device device = myProfilers.getDevice();
+    if (session == null) {
       // Early return if no profiling is in session.
       return;
     }
 
-    AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session, process.getPid(),
-                                    myProfilers.getRelativeTimeConverter(), myProfilers.getIdeServices().getFeatureTracker(), null);
+    AllocationInfosDataSeries allocationSeries = new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session,
+                                                                               myProfilers.getIdeServices().getFeatureTracker(), null);
     // Only starts live tracking if an existing one is not available.
     if (!allocationSeries.getDataForXRange(myProfilers.getTimeline().getDataRange()).isEmpty()) {
       return;
     }
 
-    Profiler.TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
-      .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build());
+    TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
+      .getCurrentTime(TimeRequest.newBuilder().setDeviceId(device.getDeviceId()).build());
     long timeNs = timeResponse.getTimestampNs();
     try {
       // Attempts to stop an existing tracking session first.
       // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
       myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                                                                   .setSession(session).setProcessId(process.getPid())
-                                                                   .setEnabled(false).build());
+                                                                   .setSession(session).setEnabled(false).build());
       myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                                                                   .setSession(session).setProcessId(process.getPid())
-                                                                   .setEnabled(true).build());
+                                                                   .setSession(session).setEnabled(true).build());
     }
     catch (StatusRuntimeException e) {
       getLogger().info(e);

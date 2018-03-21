@@ -158,7 +158,6 @@ public class AndroidIcons {
     public static final Icon StartMethodProfiling = load("/icons/ddms/start_method_profiling.png"); // 16x16
     public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16
     public static final Icon SysInfo = load("/icons/ddms/sysinfo.png"); // 16x16 - this is a copy of AllIcons.Actions.Preview
-    public static final Icon LayoutInspector = load("/icons/ddms/layout-inspector.png"); // 16x16
     public static final Icon ScreenRecorder = load("/icons/ddms/screen_recorder.png"); // 16x16
   }
 
@@ -192,11 +191,6 @@ public class AndroidIcons {
     public static final Icon DesignPropertyEnabled = load("/icons/nele/design-property-enabled.png");  // 12x12
   }
 
-  public static class NavEditorIcons {
-    public static final Icon Destination = load("/icons/naveditor/destination.png");
-    public static final Icon DestinationGroup = load("/icons/naveditor/destination-group.png");
-  }
-
   public static final class MenuIcons {
     public static final Icon item = load("/icons/nele/item.png");
     public static final Icon menu = load("/icons/nele/menu.png");
@@ -227,8 +221,6 @@ public class AndroidIcons {
     public static final Icon BarrierVertical = load("/icons/sherpa/barrier_vertical.png");
     public static final Icon BarrierHorizontal = load("/icons/sherpa/barrier_horizontal.png");
     public static final Icon Layer = load("/icons/sherpa/switch_blueprint_off.png");
-    public static final Icon Checked = load("/actions/checked.png");
-    public static final Icon Unchecked = load("/icons/sherpa/unchecked.png");
 
     public static final Icon HorizontalCenterB = load("/icons/sherpa/center-constraint-horizontally.png");
     public static final Icon HorizontalCenterParentB = load("/icons/sherpa/center-horizontally-in-parent.png");
@@ -513,7 +505,6 @@ public class AndroidIcons {
   }
 
   public static class Assistant {
-    public static final Icon Assistant = load("/icons/assistant/assistant.png"); // 13x13
     public static final Icon TutorialIndicator = load("/icons/assistant/tutorialIndicator.png"); // 16x16
   }
 

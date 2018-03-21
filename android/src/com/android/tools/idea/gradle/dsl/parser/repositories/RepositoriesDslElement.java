@@ -20,12 +20,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class RepositoriesDslElement extends GradleDslBlockElement {
   @NonNls public static final String REPOSITORIES_BLOCK_NAME = "repositories";
 
-  public RepositoriesDslElement(@Nullable GradleDslElement parent) {
+  public RepositoriesDslElement(@NotNull GradleDslElement parent) {
     super(parent, REPOSITORIES_BLOCK_NAME);
   }
 

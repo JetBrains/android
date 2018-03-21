@@ -154,7 +154,7 @@ public class ViewHandler extends StructurePaneComponentHandler {
   /**
    * Handles a double click on the component in the component tree
    */
-  public void onActivateInComponentTree(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+  public void onActivateInComponentTree(@NotNull NlComponent component) {
     // Do nothing
   }
 
@@ -164,8 +164,7 @@ public class ViewHandler extends StructurePaneComponentHandler {
    * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
    * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
    */
-  public void onActivateInDesignSurface(@NotNull ViewEditor editor,
-                                        @NotNull NlComponent component,
+  public void onActivateInDesignSurface(@NotNull NlComponent component,
                                         @AndroidCoordinate int x,
                                         @AndroidCoordinate int y) {
   }

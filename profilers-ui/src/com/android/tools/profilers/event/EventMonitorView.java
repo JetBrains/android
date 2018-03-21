@@ -17,13 +17,18 @@ package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.event.SimpleEventType;
+import com.android.tools.profilers.ProfilerMonitorTooltip;
 import com.android.tools.profilers.ProfilerMonitorView;
+import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilersView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
@@ -36,8 +41,24 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
     RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
+  private SimpleEventComponent<SimpleEventType> myEventComponent;
+  private StackedEventComponent myActivityComponent;
+
   public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
     super(monitor);
+    initializeComponents();
+  }
+
+  private void initializeComponents() {
+    // Initialization order can change depending on how test are setup as such we may initialize components
+    // in the super class, or we may initialize them via a call from the stage. Doing a check so we don't
+    // create more objects than needed in production code.
+    if (myActivityComponent == null) {
+      myActivityComponent = new StackedEventComponent(getMonitor().getActivityEvents());
+    }
+    if (myEventComponent == null) {
+      myEventComponent = new SimpleEventComponent<>(getMonitor().getSimpleEvents(), RENDERERS);
+    }
   }
 
   @Override
@@ -47,12 +68,40 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
   }
 
   @Override
-  protected void populateUi(JPanel container) {
-    container.setLayout(new TabularLayout("*", "*,*"));
-    SimpleEventComponent<SimpleEventType> events = new SimpleEventComponent<>(getMonitor().getSimpleEvents(), RENDERERS);
-    container.add(events, new TabularLayout.Constraint(0, 0));
+  public void registerTooltip(@NotNull RangeTooltipComponent tooltip, Stage stage) {
+    registerComponent(myEventComponent, () -> new EventSimpleEventTooltip(getMonitor()), tooltip, stage);
+    registerComponent(myActivityComponent, () -> new EventActivityTooltip(getMonitor()), tooltip, stage);
+  }
 
-    StackedEventComponent component = new StackedEventComponent(getMonitor().getActivityEvents());
-    container.add(component, new TabularLayout.Constraint(1, 0));
+  private void registerComponent(JComponent component,
+                                 Supplier<ProfilerMonitorTooltip<EventMonitor>> tooltip,
+                                 RangeTooltipComponent tooltipComponent,
+                                 Stage stage) {
+    tooltipComponent.registerListenersOn(component);
+    component.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        if (getMonitor().isEnabled()) {
+          getMonitor().setTooltipBuilder(tooltip);
+          stage.setTooltip(getMonitor().buildTooltip());
+        }
+        else {
+          stage.setTooltip(null);
+        }
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        stage.setTooltip(null);
+      }
+    });
+  }
+
+  @Override
+  protected void populateUi(JPanel container) {
+    initializeComponents();
+    container.setLayout(new TabularLayout("*", "*,*"));
+    container.add(myEventComponent, new TabularLayout.Constraint(0, 0));
+    container.add(myActivityComponent, new TabularLayout.Constraint(1, 0));
   }
 }

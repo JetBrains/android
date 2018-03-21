@@ -16,14 +16,19 @@
 package com.android.tools.idea.observable.expressions.bool;
 
 import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Supplier;
 
 /**
  * Base class for boolean expressions, providing a default implementation for the {@link ObservableBool} interface.
  */
 public abstract class BooleanExpression extends Expression<Boolean> implements ObservableBool {
+  public static final ObservableBool ALWAYS_TRUE = new ConstantBool(true);
+  public static final ObservableBool ALWAYS_FALSE = new ConstantBool(false);
 
   protected BooleanExpression(ObservableValue... values) {
     super(values);
@@ -45,5 +50,38 @@ public abstract class BooleanExpression extends Expression<Boolean> implements O
   @Override
   public final ObservableBool and(@NotNull ObservableValue<Boolean> other) {
     return new AndExpression(this, other);
+  }
+
+  /**
+   * Allows boolean expressions to be created using lambda syntax.
+   */
+  @NotNull
+  public static BooleanExpression create(Supplier<Boolean> valueSupplier, ObservableValue... values) {
+    return new BooleanExpression(values) {
+      @Override
+      @NotNull
+      public Boolean get() {
+        return valueSupplier.get();
+      }
+    };
+  }
+
+  private static class ConstantBool extends BoolProperty {
+    private final Boolean myValue;
+
+    private ConstantBool(Boolean value) {
+      myValue = value;
+    }
+
+    @NotNull
+    @Override
+    public Boolean get() {
+      return myValue;
+    }
+
+    @Override
+    protected void setDirectly(@NotNull Boolean value) {
+      throw new UnsupportedOperationException();
+    }
   }
 }

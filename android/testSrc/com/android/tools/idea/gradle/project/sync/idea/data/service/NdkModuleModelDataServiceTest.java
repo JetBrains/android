@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.android.tools.idea.testing.IdeComponents;
@@ -41,6 +42,8 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
   @Mock private NdkModuleSetup myModuleSetup;
   @Mock private NdkModuleCleanupStep myCleanupStep;
   @Mock private GradleSyncState mySyncState;
+  @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
+  @Mock private ModuleSetupContext myModuleSetupContext;
 
   private IdeModifiableModelsProvider myModelsProvider;
   private NdkModuleModelDataService myService;
@@ -52,7 +55,7 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
 
     IdeComponents.replaceService(getProject(), GradleSyncState.class, mySyncState);
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myService = new NdkModuleModelDataService(myModuleSetup, myCleanupStep);
+    myService = new NdkModuleModelDataService(myModuleSetupContextFactory, myModuleSetup, myCleanupStep);
   }
 
   public void testGetTargetDataKey() {
@@ -69,10 +72,11 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
     DataNode<NdkModuleModel> dataNode = new DataNode<>(NDK_MODEL, model, null);
     Collection<DataNode<NdkModuleModel>> dataNodes = Collections.singleton(dataNode);
 
+    when(myModuleSetupContextFactory.create(appModule, myModelsProvider)).thenReturn(myModuleSetupContext);
     myService.importData(dataNodes, null, getProject(), myModelsProvider);
 
     verify(mySyncState).isSyncSkipped();
-    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null, false);
+    verify(myModuleSetup).setUpModule(myModuleSetupContext, model, false);
   }
 
   public void testOnModelsNotFound() {

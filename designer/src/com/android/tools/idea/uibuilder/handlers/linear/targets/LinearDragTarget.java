@@ -68,7 +68,7 @@ public class LinearDragTarget extends DragBaseTarget {
     // Need to call this to update the targetsProvider when moving from one layout to another during a drag
     // but we should have a better scenario to recreate the targets
     ((LayoutlibSceneManager)parent.getScene().getSceneManager()).addTargets(myComponent);
-    parent.updateTargets(true);
+    parent.updateTargets();
     myDragHandled = false;
     super.mouseDown(x, y);
     myComponent.setModelUpdateAuthorized(false);
@@ -132,10 +132,10 @@ public class LinearDragTarget extends DragBaseTarget {
     myHandler.setDragging(myComponent, false);
     SceneComponent parent = myComponent.getParent();
     assert parent != null;
-    parent.updateTargets(true);
+    parent.updateTargets();
     if (myClosest != null) {
       myClosest.setHighlight(false);
-      if (!LinearLayoutHandler.insertComponentAtTarget(myComponent, myClosest, myIsDragFromPalette)) {
+      if (!LinearLayoutHandler.insertComponentAtTarget(myComponent, myClosest)) {
         myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
         return;
       }
@@ -150,10 +150,17 @@ public class LinearDragTarget extends DragBaseTarget {
     return myDragHandled;
   }
 
+  @Override
   public void cancel() {
+    super.cancel();
     myHandler.setDragging(myComponent, false);
     if (myClosest != null) {
       myClosest.setHighlight(false);
     }
+  }
+
+  @Nullable
+  public LinearSeparatorTarget getClosest() {
+    return myClosest;
   }
 }

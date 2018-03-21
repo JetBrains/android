@@ -93,7 +93,7 @@ class Match {
           // See if it's been set by a different constraint we've already applied
           // to this same node
           if (edge.component != null) {
-            id = NlComponentHelperKt.ensureId(edge.component);
+            id = edge.component.ensureId();
           }
         }
       }

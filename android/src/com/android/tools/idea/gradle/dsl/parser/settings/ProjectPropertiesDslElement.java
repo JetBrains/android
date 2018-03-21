@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings;
 
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNewExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;

@@ -17,11 +17,15 @@ package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.ui.FixedSizeButton;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.fixture.JSliderFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
@@ -33,9 +37,11 @@ import java.util.Collection;
 import static com.google.common.truth.Truth.assertThat;
 
 public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioWizardFixture> {
+  private final IdeFrameFixture myIdeFrame;
 
   private AssetStudioWizardFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog target) {
     super(AssetStudioWizardFixture.class, ideFrameFixture.robot(), target);
+    this.myIdeFrame = ideFrameFixture;
   }
 
   @NotNull
@@ -44,9 +50,9 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
     return new AssetStudioWizardFixture(ideFrameFixture, dialog);
   }
 
-  public NewImageAssetStepFixture getImageAssetStep() {
+  public NewImageAssetStepFixture<AssetStudioWizardFixture> getImageAssetStep() {
     JRootPane rootPane = findStepWithTitle("Configure Image Asset");
-    return new NewImageAssetStepFixture(robot(), rootPane);
+    return new NewImageAssetStepFixture<>(this, rootPane);
   }
 
   public IconPickerDialogFixture chooseIcon(@NotNull IdeFrameFixture ideFrameFixture) {
@@ -88,5 +94,41 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
     JSlider slider = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(JSlider.class));
     new JSliderFixture(robot(), slider).slideTo(ratio);
     return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture switchToLocalFile() {
+    JRadioButton radioButton =
+      GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JRadioButton.class, "Local file (SVG, PSD)"));
+    JRadioButtonFixture fixture = new JRadioButtonFixture(robot(), radioButton);
+    if (!radioButton.isSelected())
+      fixture.select();
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture useLocalFile(@NotNull VirtualFile file) {
+    switchToLocalFile();
+
+    FixedSizeButton browseButton = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(FixedSizeButton.class));
+    robot().click(browseButton);
+
+    FileChooserDialogFixture.findDialog(robot(), "Select Path")
+      .select(file)
+      .clickOk();
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture setName(@NotNull String name) {
+    JTextField field =  robot().finder().findByLabel(target(), "Name:", JTextField.class);
+    new JTextComponentFixture(robot(), field).setText(name);
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture clickFinish() {
+    super.clickFinish(Wait.seconds(10));
+    return myIdeFrame;
   }
 }

@@ -17,11 +17,13 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import android.view.View;
 import android.view.ViewGroup;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ScrollHandler;
+import com.android.tools.idea.uibuilder.api.ScrollViewScrollHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,15 +65,6 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
     }
 
     return true;
-  }
-
-  @Nullable
-  @Override
-  public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull SceneComponent layout,
-                                       @NotNull List<NlComponent> components,
-                                       @NotNull DragType type) {
-    return new OneChildDragHandler(editor, this, layout, components, type);
   }
 
   @Nullable

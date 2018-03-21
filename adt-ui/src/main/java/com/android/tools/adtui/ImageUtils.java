@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.UIUtil;
@@ -104,7 +105,11 @@ public class ImageUtils {
   }
 
   public static boolean isRetinaImage(@Nullable BufferedImage image) {
-    return image instanceof JBHiDPIScaledImage;
+    if (image == null) {
+      return false;
+    }
+    return image instanceof JBHiDPIScaledImage ||
+           SystemInfo.isAppleJvm && UIUtil.isAppleRetina() && BufferedImage.class != image.getClass();
   }
 
   public static BufferedImage createDipImage(int width, int height, int type) {

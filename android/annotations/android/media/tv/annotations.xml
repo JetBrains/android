@@ -14,6 +14,21 @@
   <item name="android.media.tv.TvContract android.net.Uri buildChannelsUriForInput(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.media.tv.TvContract boolean isChannelUri(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvContract boolean isChannelUriForPassthroughInput(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvContract boolean isChannelUriForTunerInput(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvContract boolean isProgramUri(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.tv.TvContract boolean isRecordedProgramUri(android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.tv.TvContract.Channels CONTENT_URI">
     <annotation name="android.support.annotation.RequiresPermission.Read">
       <val name="value" val="&quot;com.android.providers.tv.permission.READ_EPG_DATA&quot;" />

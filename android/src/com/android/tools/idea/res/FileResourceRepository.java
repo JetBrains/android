@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
-import com.android.tools.log.LogWrapper;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -59,7 +59,7 @@ public class FileResourceRepository extends LocalResourceRepository {
    * from the R.txt file, if present. And hence, this collection includes all id names from the R.txt file, but doesn't
    * have the associated {@link ResourceItem} with it.
    */
-  @Nullable protected Collection<String> myAarDeclaredIds;
+  @Nullable protected Map<String, Integer> myAarDeclaredIds;
 
   @NotNull private final File myFile;
   @Nullable private final String myNamespace;
@@ -112,7 +112,7 @@ public class FileResourceRepository extends LocalResourceRepository {
     File rDotTxt = new File(file.getParentFile(), FN_RESOURCE_TEXT);
     if (rDotTxt.exists()) {
       repository.myResourceTextFile = rDotTxt;
-      repository.myAarDeclaredIds = RDotTxtParser.getIdNames(rDotTxt);
+      repository.myAarDeclaredIds = RDotTxtParser.getIds(rDotTxt);
     }
 
     return repository;
@@ -190,7 +190,7 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   /** @see #myAarDeclaredIds */
   @Nullable
-  protected Collection<String> getAllDeclaredIds() {
+  public Map<String, Integer> getAllDeclaredIds() {
     return myAarDeclaredIds;
   }
 

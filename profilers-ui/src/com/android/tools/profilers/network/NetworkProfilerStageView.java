@@ -18,12 +18,18 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.instructions.NewRowInstruction;
+import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.adtui.instructions.UrlInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.network.details.ConnectionDetailsView;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -49,7 +55,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private final ThreadsView myThreadsView;
   private final ConnectionDetailsView myConnectionDetails;
   private final JPanel myConnectionsPanel;
-  private final NetworkStageTooltipView myTooltipView;
 
   public NetworkProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull NetworkProfilerStage stage) {
     super(profilersView, stage);
@@ -57,16 +62,20 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     getStage().getAspect().addDependency(this)
       .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateConnectionDetailsView);
 
+    getTooltipBinder().bind(NetworkRadioTooltip.class, NetworkRadioTooltipView::new);
+    getTooltipBinder().bind(NetworkTrafficTooltip.class, NetworkTrafficTooltipView::new);
+
     myConnectionDetails = new ConnectionDetailsView(this);
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this);
-    myTooltipView = new NetworkStageTooltipView(stage);
     myThreadsView = new ThreadsView(this);
 
     JBSplitter leftSplitter = new JBSplitter(true);
     leftSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
     leftSplitter.setFirstComponent(buildMonitorUi());
-    myConnectionsPanel = new JPanel(new CardLayout());
+
+    myConnectionsPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    JPanel connectionsPanel = new JPanel(new CardLayout());
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
       JTabbedPane connectionsTab = new FlatTabbedPane();
       JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
@@ -75,30 +84,52 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       threadsViewScrollPane.setBorder(DEFAULT_TOP_BORDER);
       connectionsTab.addTab("Connection View", connectionScrollPane);
       connectionsTab.addTab("Thread View", threadsViewScrollPane);
-      myConnectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
+      // The toolbar overlays the tab panel so we have to make sure we repaint the parent panel when switching tabs.
+      connectionsTab.addChangeListener((evt) -> {
+        myConnectionsPanel.repaint();
+        int selectedIndex = connectionsTab.getSelectedIndex();
+        if (selectedIndex == 0) {
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkConnectionsView();
+        } else if (selectedIndex == 1) {
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkThreadsView();
+        } else {
+          throw new IllegalStateException("Missing tracking for tab " + connectionsTab.getTitleAt(selectedIndex));
+        }
+      });
+      connectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
     }
     else {
       JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
       connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
-      myConnectionsPanel.add(connectionScrollPane, CARD_CONNECTIONS);
+      connectionsPanel.add(connectionScrollPane, CARD_CONNECTIONS);
     }
 
-    // TODO: Add this help link in as soon as we are notified that it is hooked up
-    InfoMessagePanel.UrlData learnMoreData =
-      new InfoMessagePanel.UrlData("Learn More",
-                                   "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html");
-    JPanel infoPanel =
-      new InfoMessagePanel("Network Profiling Data Unavailable", "There is no information for the network traffic you've selected.",
-                           learnMoreData);
+    JPanel infoPanel = new JPanel(new BorderLayout());
+    InstructionsPanel infoMessage = new InstructionsPanel.Builder(
+      new TextInstruction(INFO_MESSAGE_HEADER_FONT, "Network profiling data unavailable"),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "There is no information for the network traffic you've selected."),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new UrlInstruction(INFO_MESSAGE_DESCRIPTION_FONT, "Learn More",
+                         "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"))
+      .setColors(JBColor.foreground(), null)
+      .build();
+    infoPanel.add(infoMessage, BorderLayout.CENTER);
     infoPanel.setName(CARD_INFO);
-    myConnectionsPanel.add(infoPanel, CARD_INFO);
+    connectionsPanel.add(infoPanel, CARD_INFO);
 
+    JPanel toolbar = new JPanel(createToolbarLayout());
+    toolbar.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+    toolbar.add(getSelectionTimeLabel());
+
+    myConnectionsPanel.add(toolbar, new TabularLayout.Constraint(0, 1));
+    myConnectionsPanel.add(connectionsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
     myConnectionsPanel.setVisible(false);
     leftSplitter.setSecondComponent(myConnectionsPanel);
 
     getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
-      CardLayout cardLayout = (CardLayout)myConnectionsPanel.getLayout();
-      cardLayout.show(myConnectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
+      CardLayout cardLayout = (CardLayout)connectionsPanel.getLayout();
+      cardLayout.show(connectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
     });
 
     JBSplitter splitter = new JBSplitter(false, 0.6f);
@@ -138,7 +169,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     JComponent eventsComponent = eventsView.getComponent();
     panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 
-    panel.add(new NetworkRadioView(this).getComponent(), new TabularLayout.Constraint(1, 0));
+    NetworkRadioView radioView = new NetworkRadioView(this);
+    JComponent radioComponent = radioView.getComponent();
+    panel.add(radioComponent, new TabularLayout.Constraint(1, 0));
 
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
@@ -184,7 +217,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     NetworkProfilerStage.NetworkStageLegends legends = getStage().getLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING).build();
+    LegendComponent legend = new LegendComponent.Builder(legends).setRightPadding(PROFILER_LEGEND_RIGHT_PADDING).build();
     legend.configure(legends.getRxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getRxSeries())));
     legend.configure(legends.getTxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getTxSeries())));
     legend.configure(legends.getConnectionLegend(), new LegendConfig(lineChart.getLineConfig(usage.getConnectionSeries())));
@@ -194,7 +227,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
+    selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     getStage().getSelectionModel().addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
@@ -208,11 +242,22 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       }
     });
 
+    radioComponent.addMouseListener(
+      new ProfilerTooltipMouseAdapter(getStage(), () -> new NetworkRadioTooltip(getStage())
+      ));
+
+    selection.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new NetworkTrafficTooltip(getStage())));
+
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
                                                               timeline.getDataRange(),
-                                                              myTooltipView.createComponent());
+                                                              getTooltipPanel(),
+                                                              ProfilerLayeredPane.class);
     tooltip.registerListenersOn(selection);
+    tooltip.registerListenersOn(radioComponent);
 
+    if (!getStage().hasUserUsedNetworkSelection()) {
+      installProfilingInstructions(monitorPanel);
+    }
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
@@ -223,6 +268,16 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     panel.add(monitorPanel, new TabularLayout.Constraint(2, 0));
 
     return panel;
+  }
+
+  private void installProfilingInstructions(@NotNull JPanel parent) {
+    assert parent.getLayout().getClass() == TabularLayout.class;
+    InstructionsPanel panel =
+      new InstructionsPanel.Builder(new TextInstruction(PROFILING_INSTRUCTIONS_FONT, "Select a range to inspect network traffic"))
+        .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
+        .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
+        .build();
+    parent.add(panel, new TabularLayout.Constraint(0, 0));
   }
 
   private void updateConnectionDetailsView() {

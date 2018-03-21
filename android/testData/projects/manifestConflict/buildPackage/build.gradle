@@ -11,7 +11,7 @@ buildscript {
 apply plugin: 'com.android.application'
 
 dependencies {
-  compile fileTree(dir: 'libs', include: '*.jar')
+  api fileTree(dir: 'libs', include: '*.jar')
 }
 
 android {

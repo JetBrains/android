@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.pom.java.LanguageLevel;
@@ -27,7 +28,7 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
 
 /**
- * Tests for {@link JavaModel}
+ * Tests for {@link JavaModelImpl}
  */
 public class JavaModelTest extends GradleFileModelTestCase {
   public void testReadJavaVersionsAsNumbers() throws IOException {
@@ -151,9 +152,9 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
     JavaVersionDslElement targetVersionElement =
-      java.getGradleDslElement().getPropertyElement(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
+      ((JavaModelImpl)java).getGradleDslElement().getPropertyElement(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     JavaVersionDslElement sourceVersionElement =
-      java.getGradleDslElement().getPropertyElement(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
+      ((JavaModelImpl)java).getGradleDslElement().getPropertyElement(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     assertNotNull(targetVersionElement);
     assertNotNull(sourceVersionElement);
 

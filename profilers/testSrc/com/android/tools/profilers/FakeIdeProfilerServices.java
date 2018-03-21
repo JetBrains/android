@@ -15,10 +15,12 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
-import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,11 +33,7 @@ import java.util.function.Consumer;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
-  private final CodeNavigator myFakeNavigationService = new CodeNavigator(myFakeFeatureTracker) {
-    @Override
-    protected void handleNavigate(@NotNull CodeLocation location) {
-    }
-  };
+  private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
 
   /**
    * Callback to be run after the executor calls its execute() method.
@@ -51,24 +49,67 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   Runnable myPrePoolExecute;
 
   /**
-   * Toggle for faking jvmti agent support in tests.
+   * Can toggle for tests via {@link #enableAtrace(boolean)}, but each test starts with this defaulted to false.
    */
-  private boolean isJvmtiAgentEnabled = false;
+  private boolean myAtraceEnabled = false;
 
   /**
-   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
+   * Toggle for including an energy profiler in our profiler view.
    */
-  private boolean isSimplePerfEnabled = false;
+  private boolean myEnergyProfilerEnabled = false;
+
+  /**
+   * Toggle for faking jvmti agent support in tests.
+   */
+  private boolean myJvmtiAgentEnabled = false;
+
+  /**
+   * JNI references alloc/dealloc events are tracked and shown.
+   */
+  private boolean myIsJniReferenceTrackingEnabled = false;
 
   /**
    * Toggle for faking live allocation tracking support in tests.
    */
-  private boolean isLiveTrackingEnabled = false;
+  private boolean myLiveTrackingEnabled = false;
+
+  /**
+   * Toggle for faking memory snapshot support in tests.
+   */
+  private boolean myMemorySnapshotEnabled = true;
+
+  /**
+   * Whether a native CPU profiling configuration is preferred over a Java one.
+   */
+  private boolean myNativeProfilingConfigurationPreferred = false;
+
+  /**
+   * Whether network request payload is tracked and shown.
+   */
+  private boolean myRequestPayloadEnabled = false;
 
   /**
    * Whether long trace files should be parsed.
    */
   private boolean myShouldParseLongTraces = false;
+
+  /**
+   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean mySimplePerfEnabled = false;
+
+  /**
+   * List of custom CPU profiling configurations.
+   */
+  private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
+
+  @NotNull private final ProfilerPreferences myPersistentPreferences;
+  @NotNull private final ProfilerPreferences myTemporaryPreferences;
+
+  public FakeIdeProfilerServices() {
+    myPersistentPreferences = new FakeProfilerPreferences();
+    myTemporaryPreferences = new FakeProfilerPreferences();
+  }
 
   @NotNull
   @Override
@@ -118,8 +159,46 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
+      public boolean isAtraceEnabled() {
+        return myAtraceEnabled;
+      }
+
+      @Override
+      public boolean isCpuCaptureFilterEnabled() {
+        return false;
+      }
+
+      @Override
+      public boolean isEnergyProfilerEnabled() {
+        return myEnergyProfilerEnabled;
+      }
+
+      @Override
+      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
+
+      @Override
       public boolean isJvmtiAgentEnabled() {
-        return isJvmtiAgentEnabled;
+        return myJvmtiAgentEnabled;
+      }
+
+      @Override
+      public boolean isLiveAllocationsEnabled() {
+        return myLiveTrackingEnabled;
+      }
+
+      @Override
+      public boolean isMemoryCaptureFilterEnabled() {
+        return false;
+      }
+
+      @Override
+      public boolean isMemorySnapshotEnabled() {
+        return myMemorySnapshotEnabled;
+      }
+
+      @Override
+      public boolean isNetworkRequestPayloadEnabled() {
+        return myRequestPayloadEnabled;
       }
 
       @Override
@@ -129,18 +208,25 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isSimplePerfEnabled() {
-        return isSimplePerfEnabled;
-      }
-
-      @Override
-      public boolean isLiveAllocationsEnabled() {
-        return isLiveTrackingEnabled;
+        return mySimplePerfEnabled;
       }
     };
   }
 
+  @NotNull
   @Override
-  public void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
+  public ProfilerPreferences getTemporaryProfilerPreferences() {
+    return myTemporaryPreferences;
+  }
+
+  @NotNull
+  @Override
+  public ProfilerPreferences getPersistentProfilerPreferences() {
+    return myPersistentPreferences;
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
                                                    Consumer<ProfilingConfiguration> callbackDialog) {
     // No-op.
   }
@@ -159,9 +245,32 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldParseLongTraces = shouldParseLongTraces;
   }
 
+  public void addCustomProfilingConfiguration(String name, CpuProfiler.CpuProfilerType type) {
+    ProfilingConfiguration config =
+      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilingAppStartRequest.Mode.UNSTATED);
+    myCustomProfilingConfigurations.add(config);
+  }
+
   @Override
   public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
-    return new ArrayList<>();
+    return myCustomProfilingConfigurations;
+  }
+
+  @Override
+  public boolean isNativeProfilingConfigurationPreferred() {
+    return myNativeProfilingConfigurationPreferred;
+  }
+
+  @Override
+  public void showErrorBalloon(@NotNull String title, @NotNull String text) {}
+
+  @Override
+  public void reportNoPiiException(@NotNull Throwable t) {
+    t.printStackTrace();
+  }
+
+  public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
+    myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
   }
 
   public void setOnExecute(@Nullable Runnable onExecute) {
@@ -172,15 +281,33 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myPrePoolExecute = prePoolExecute;
   }
 
+  public void enableAtrace(boolean enabled) {
+    myAtraceEnabled = enabled;
+  }
+
+  public void enableEnergyProfiler(boolean enabled) {
+    myEnergyProfilerEnabled = enabled;
+  }
+
   public void enableJvmtiAgent(boolean enabled) {
-    isJvmtiAgentEnabled = enabled;
+    myJvmtiAgentEnabled = enabled;
+  }
+
+  public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
+
+  public void enableLiveAllocationTracking(boolean enabled) {
+    myLiveTrackingEnabled = enabled;
+  }
+
+  public void enableMemorySnapshot(boolean enabled) {
+    myMemorySnapshotEnabled = enabled;
+  }
+
+  public void enableRequestPayload(boolean enabled) {
+    myRequestPayloadEnabled = enabled;
   }
 
   public void enableSimplePerf(boolean enabled) {
-    isSimplePerfEnabled = enabled;
-  }
-
-  public void enableLiveAllocationTracking(boolean enabled) {
-    isLiveTrackingEnabled = enabled;
+    mySimplePerfEnabled = enabled;
   }
 }

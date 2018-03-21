@@ -43,6 +43,6 @@ public class SyncProjectWithExtraCommandLineOptionsHyperlink extends Notificatio
   protected void execute(@NotNull Project project) {
     // This is the only way that we can pass extra command line options to the Gradle sync process.
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, myExtraOptions);
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST);
   }
 }

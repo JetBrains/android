@@ -44,12 +44,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class LocalResourceManager extends ResourceManager {
   private AttributeDefinitions myAttrDefs;
-  protected final AndroidFacet myFacet;
+  private final AndroidFacet myFacet;
+
+  @Nullable
+  public static LocalResourceManager getInstance(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? ModuleResourceManagers.getInstance(facet).getLocalResourceManager() : null;
+  }
+
+  @Nullable
+  public static LocalResourceManager getInstance(@NotNull PsiElement element) {
+    AndroidFacet facet = AndroidFacet.getInstance(element);
+    return facet != null ? ModuleResourceManagers.getInstance(facet).getLocalResourceManager() : null;
+  }
 
   public LocalResourceManager(@NotNull AndroidFacet facet) {
     super(facet.getModule().getProject());
@@ -58,12 +67,6 @@ public class LocalResourceManager extends ResourceManager {
 
   public AndroidFacet getFacet() {
     return myFacet;
-  }
-
-  @NotNull
-  @Override
-  public Multimap<String, VirtualFile> getAllResourceDirs() {
-    return AppResourceRepository.getOrCreateInstance(myFacet).getAllResourceDirs();
   }
 
   @Override
@@ -88,8 +91,10 @@ public class LocalResourceManager extends ResourceManager {
     return myFacet.getAllResourceDirectories();
   }
 
-  public List<Pair<Resources, VirtualFile>> getResourceElements() {
-    return getResourceElements(null);
+  @NotNull
+  @Override
+  public Multimap<String, VirtualFile> getAllResourceDirs() {
+    return AppResourceRepository.getOrCreateInstance(myFacet).getAllResourceDirs();
   }
 
   @NotNull
@@ -100,19 +105,7 @@ public class LocalResourceManager extends ResourceManager {
 
   @NotNull
   public List<ResourceElement> getValueResources(@NotNull ResourceType resourceType) {
-    return getValueResources(resourceType, null);
-  }
-
-  @Nullable
-  public static LocalResourceManager getInstance(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? ModuleResourceManagers.getInstance(facet).getLocalResourceManager() : null;
-  }
-
-  @Nullable
-  public static LocalResourceManager getInstance(@NotNull PsiElement element) {
-    AndroidFacet facet = AndroidFacet.getInstance(element);
-    return facet != null ? ModuleResourceManagers.getInstance(facet).getLocalResourceManager() : null;
+    return getPublicValueResources(resourceType);
   }
 
   @Override
@@ -124,7 +117,7 @@ public class LocalResourceManager extends ResourceManager {
           systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
       ApplicationManager.getApplication().runReadAction(() -> {
         myAttrDefs = new AttributeDefinitionsImpl(systemAttributeDefinitions,
-                                                  findResourceFilesByLibraryName(ResourceFolderType.VALUES, XmlFile.class));
+                                                  findResourceFilesByLibraryName(ResourceFolderType.VALUES));
       });
     }
     return myAttrDefs;
@@ -231,9 +224,7 @@ public class LocalResourceManager extends ResourceManager {
     }
     ResourceFolderType folderType = ResourceFolderType.getTypeByName(resClassName);
     if (folderType != null) {
-      for (PsiFile file : findResourceFiles(folderType, fieldName, false)) {
-        targets.add(file);
-      }
+      targets.addAll(findResourceFiles(folderType, fieldName, false, true));
     }
     for (ResourceElement element : findValueResources(resClassName, fieldName, false)) {
       targets.add(element.getName().getXmlAttributeValue());

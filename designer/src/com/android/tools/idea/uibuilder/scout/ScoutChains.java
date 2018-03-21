@@ -370,12 +370,14 @@ public class ScoutChains {
         int gap = margins[i];
         if (gap > 0) {
           attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_START, Integer.toString(gap) + "dp"});
+          attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, Integer.toString(gap) + "dp"});
         }
       }
 
       int gap = margins[i + 1];
       if (gap > 0) {
         attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_END, Integer.toString(gap) + "dp"});
+        attrList.add(new String[]{ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, Integer.toString(gap) + "dp"});
       }
 
       scoutChainConnect(widget.mNlComponent, Direction.RIGHT, rightConnect.mNlComponent, rdir, attrList);

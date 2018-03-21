@@ -28,4 +28,6 @@ public enum ProfilerAspect {
   MODE,
   // The agent attach state has changed
   AGENT,
+  // The active tooltip has changed
+  TOOLTIP,
 }

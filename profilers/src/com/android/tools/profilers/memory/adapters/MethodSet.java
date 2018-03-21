@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -77,34 +76,55 @@ public class MethodSet extends ClassifierSet {
       myDepth = depth;
     }
 
-    @NotNull
+    @Nullable
     @Override
-    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
-      AllocationStack stack = instance.getCallStack();
+    public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
+      AllocationStack stack = instance.getAllocationCallStack();
       int stackDepth = instance.getCallStackDepth();
       if (stack != null && stackDepth > 0 && myDepth < stackDepth) {
+        MethodSetInfo methodInfo;
         switch (stack.getFrameCase()) {
           case FULL_STACK:
             AllocationStack.StackFrameWrapper fullStack = stack.getFullStack();
             AllocationStack.StackFrame stackFrame = fullStack.getFrames(fullStack.getFramesCount() - myDepth - 1);
-            MethodSetInfo fullMethodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
-            return myStackLineMap.computeIfAbsent(fullMethodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
+            methodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
+            break;
           case SMALL_STACK:
             AllocationStack.SmallFrameWrapper smallStack = stack.getSmallStack();
             AllocationStack.SmallFrame smallFrame = smallStack.getFrames(smallStack.getFramesCount() - myDepth - 1);
-            MethodSetInfo lazyMethodInfo = new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
-            return myStackLineMap.computeIfAbsent(lazyMethodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
-          default:
+            methodInfo = new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
             break;
+          default:
+            throw new UnsupportedOperationException();
         }
+        MethodSet methodSet = myStackLineMap.get(methodInfo);
+        if (methodSet == null && createIfAbsent) {
+          methodSet = new MethodSet(myCaptureObject, methodInfo, myDepth + 1);
+          myStackLineMap.put(methodInfo, methodSet);
+        }
+        return methodSet;
       }
-      return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
+
+      ClassDb.ClassEntry classEntry = instance.getClassEntry();
+      ClassSet classSet = myClassMap.get(classEntry);
+      if (classSet == null && createIfAbsent) {
+        classSet = new ClassSet(classEntry);
+        myClassMap.put(classEntry, classSet);
+      }
+      return classSet;
     }
 
     @NotNull
     @Override
-    public List<ClassifierSet> getClassifierSets() {
-      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).filter(child -> !child.isEmpty())
+    public List<ClassifierSet> getFilteredClassifierSets() {
+      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).filter(child -> !child.getIsFiltered())
+        .collect(Collectors.toList());
+    }
+
+    @NotNull
+    @Override
+    protected List<ClassifierSet> getAllClassifierSets() {
+      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream())
         .collect(Collectors.toList());
     }
   }
@@ -190,11 +210,8 @@ public class MethodSet extends ClassifierSet {
       }
 
       assert myMethodId != INVALID_METHOD_ID;
-      StackFrameInfoResponse frameInfo = myCaptureObject.getClient().getStackFrameInfo(
-        StackFrameInfoRequest.newBuilder().setProcessId(myCaptureObject.getProcessId()).setSession(myCaptureObject.getSession())
-          .setMethodId(myMethodId).build()
-      );
-
+      StackFrameInfoResponse frameInfo = myCaptureObject.getStackFrameInfoResponse(myMethodId);
+      assert frameInfo != null;
       myClassName = frameInfo.getClassName();
       myMethodName = frameInfo.getMethodName();
       myResolvedNames = true;

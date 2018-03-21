@@ -19,7 +19,7 @@ import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryNode;
-import com.android.tools.idea.navigator.nodes.apk.ndk.SourceFolderNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.NdkSourceNode;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
@@ -42,10 +42,8 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.util.ui.AsyncProcessIcon;
+import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -55,11 +53,9 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
-import java.awt.Component;
-import java.awt.Container;
+import javax.swing.*;
+import javax.swing.tree.TreeModel;
+import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -105,7 +101,6 @@ public class ProjectViewFixture extends ToolWindowFixture {
   }
 
   private void changePane(@NotNull String paneName) {
-    waitForTreeToFinishLoading(myRobot, myToolWindow.getComponent());
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
 
     myRobot.click(projectDropDown.getParent());
@@ -114,16 +109,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
     myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
 
-    GuiTests.clickPopupMenuItem(paneName, projectDropDown, myRobot);
-  }
-
-  private static void waitForTreeToFinishLoading(@NotNull Robot robot, @NotNull Container root) {
-    GuiTests.waitUntilShowing(robot, root, new GenericTypeMatcher<AsyncProcessIcon>(AsyncProcessIcon.class) {
-      @Override
-      protected boolean isMatching(@Nonnull AsyncProcessIcon component) {
-        return !component.isRunning();
-      }
-    });
+    GuiTests.clickPopupMenuItem("Content name=" + paneName, projectDropDown, myRobot);
   }
 
   @NotNull
@@ -139,7 +125,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
       changePane(name);
     }
 
-    return new PaneFixture(ideFrameFixture, projectView.getCurrentProjectViewPane(), myRobot);
+    return new PaneFixture(ideFrameFixture, projectView.getCurrentProjectViewPane(), myRobot).waitForTreeToFinishLoading();
   }
 
   public static class PaneFixture {
@@ -156,8 +142,18 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     @NotNull
+    private PaneFixture waitForTreeToFinishLoading() {
+      TreeModel model = myTree.target().getModel();
+      if (model instanceof AsyncTreeModel) { // otherwise there's nothing to wait for, as the tree loading should be synchronous
+        Wait.seconds(5).expecting("tree to load").until(() -> !(((AsyncTreeModel) model).isProcessing()));
+      }
+      return this;
+    }
+
+    @NotNull
     public PaneFixture expand() {
       GuiTask.execute(() -> TreeUtil.expandAll(myPane.getTree()));
+      waitForTreeToFinishLoading();
       return this;
     }
 
@@ -240,7 +236,6 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     public IdeFrameFixture clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
-      waitForTreeToFinishLoading(myRobot, myTree.target());
       StringBuilder totalPath = new StringBuilder(paths[0]);
       for (int i = 1; i < paths.length; i++) {
         myTree.expandPath(totalPath.toString());
@@ -286,20 +281,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     public boolean isSourceFolder() {
-      return myNode instanceof SourceFolderNode;
-    }
-
-    @NotNull
-    public String getSourceFolderName() {
-      if(!isSourceFolder()) {
-        throw new IllegalStateException("The node in this NodeFixture is not a SourceFolderNode");
-      }
-
-      PsiDirectory folder = ((SourceFolderNode) myNode).getValue();
-      if(folder == null) {
-        return "";
-      }
-      return folder.getName();
+      return myNode instanceof PsiDirectoryNode || myNode instanceof NdkSourceNode;
     }
 
     @NotNull

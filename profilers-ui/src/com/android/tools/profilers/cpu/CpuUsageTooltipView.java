@@ -21,18 +21,19 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.swing.*;
 
 class CpuUsageTooltipView extends ProfilerTooltipView {
-  @NotNull private final CpuProfilerStage.UsageTooltip myTooltip;
+  @NotNull private final CpuUsageTooltip myTooltip;
 
-  CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.UsageTooltip tooltip) {
+  CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuUsageTooltip tooltip) {
     super(view.getTimeline(), "CPU");
     myTooltip = tooltip;
   }
 
+  @NotNull
   @Override
-  protected Component createTooltip() {
+  protected JComponent createTooltip() {
     CpuProfilerStage.CpuStageLegends legends = myTooltip.getLegends();
 
     LegendComponent legend =

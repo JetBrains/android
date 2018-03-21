@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.values;
 
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel.BuildConfigField;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.AbstractFlavorTypeModel;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +29,7 @@ import java.util.Map;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link GradleValue}.
+ * Tests for {@link GradleValueImpl}.
  */
 public class GradleValueTest extends GradleFileModelTestCase {
   public void testGradleValuesOfLiteralElementsInApplicationStatements() throws Exception {
@@ -222,14 +224,14 @@ public class GradleValueTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ProductFlavorModel defaultConfig = android.defaultConfig();
-    List<GradleNotNullValue<AbstractFlavorTypeModel.ResValue>> resValues = defaultConfig.resValues();
+    List<GradleNotNullValue<FlavorTypeModelImpl.ResValue>> resValues = defaultConfig.resValues();
     assertNotNull(resValues);
     assertThat(resValues).hasSize(1);
     verifyGradleValue(resValues.get(0), "android.defaultConfig.resValue", "\"abcd\", \"efgh\", \"ijkl\"");
 
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(1);
-    List<GradleNotNullValue<BuildTypeModel.BuildConfigField>> buildConfigFields = buildTypes.get(0).buildConfigFields();
+    List<GradleNotNullValue<BuildConfigField>> buildConfigFields = buildTypes.get(0).buildConfigFields();
     assertNotNull(buildConfigFields);
     assertThat(buildConfigFields).hasSize(1);
     verifyGradleValue(buildConfigFields.get(0), "android.buildTypes.xyz.buildConfigField", "\"mnop\", \"qrst\", \"uvwx\"");

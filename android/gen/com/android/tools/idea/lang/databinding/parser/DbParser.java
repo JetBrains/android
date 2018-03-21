@@ -644,9 +644,9 @@ public class DbParser implements PsiParser, LightPsiParser {
   // 14: PREFIX(signChangeExpr)
   // 15: PREFIX(castExpr)
   // 16: POSTFIX(callExpr)
-  // 17: POSTFIX(qualRefExpr)
-  // 18: ATOM(simpleRefExpr)
-  // 19: BINARY(bracketExpr)
+  // 17: BINARY(bracketExpr)
+  // 18: POSTFIX(qualRefExpr)
+  // 19: ATOM(simpleRefExpr)
   // 20: POSTFIX(functionRefExpr)
   // 21: ATOM(resourcesExpr)
   // 22: ATOM(classExtractionExpr)
@@ -735,14 +735,14 @@ public class DbParser implements PsiParser, LightPsiParser {
         r = true;
         exit_section_(b, l, m, CALL_EXPR, r, true, null);
       }
-      else if (g < 17 && qualRefExpr_0(b, l + 1)) {
-        r = true;
-        exit_section_(b, l, m, REF_EXPR, r, true, null);
-      }
-      else if (g < 19 && consumeTokenSmart(b, LBRACKET)) {
-        r = report_error_(b, expr(b, l, 19));
+      else if (g < 17 && consumeTokenSmart(b, LBRACKET)) {
+        r = report_error_(b, expr(b, l, 17));
         r = consumeToken(b, RBRACKET) && r;
         exit_section_(b, l, m, BRACKET_EXPR, r, true, null);
+      }
+      else if (g < 18 && qualRefExpr_0(b, l + 1)) {
+        r = true;
+        exit_section_(b, l, m, REF_EXPR, r, true, null);
       }
       else if (g < 20 && functionRefExpr_0(b, l + 1)) {
         r = true;

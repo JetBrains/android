@@ -21,9 +21,15 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureFormFactorStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.openapi.module.Module;
@@ -31,8 +37,10 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +55,6 @@ import java.io.IOException;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
@@ -55,6 +62,7 @@ import static org.junit.Assert.assertTrue;
 public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest movie = new ScreenshotsDuringTest();
 
   /**
    * Verify able to create a new project with name containing a space.
@@ -74,7 +82,7 @@ public class NewProjectTest {
    *   Successfully created new project with name containing a space.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/68723053
   @Test
   public void createNewProjectNameWithSpace() {
     EditorFixture editor = newProject("Test Application").withMinSdk("23").create(guiTest)
@@ -101,7 +109,7 @@ public class NewProjectTest {
    *   2. Check that MainActivity is in AndroidManifest.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void testCreateNewMobileProject() {
     IdeFrameFixture ideFrame = newProject("Test Application").create(guiTest);
@@ -136,12 +144,17 @@ public class NewProjectTest {
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void changeLibraryModuleSettings() throws Exception {
-    String gradleFileContents = newProject("MyTestApp").withMinSdk("24").create(guiTest)
+    newProject("MyTestApp").withMinSdk("24").create(guiTest)
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
       .setModuleName("library-module")
       .clickFinish()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(30));
+
+    guiTest.waitForBackgroundTasks();
+
+    String gradleFileContents = guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, "MyTestApp", "library-module")
@@ -164,6 +177,7 @@ public class NewProjectTest {
       "compileOptions {\n        sourceCompatibility JavaVersion.VERSION_1_7\n        targetCompatibility JavaVersion.VERSION_1_7\n    }");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66249968
   @Test
   public void testNoWarningsInNewProjects() throws IOException {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
@@ -251,7 +265,6 @@ public class NewProjectTest {
     AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
     ApiVersion version = appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assert version != null;
 
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
@@ -271,30 +284,6 @@ public class NewProjectTest {
 
     File gradleFile = new File(guiTest.getProjectPath(), SdkConstants.FN_GRADLE_WRAPPER_UNIX);
     assertTrue(gradleFile.canExecute());
-  }
-
-  @Test
-  public void testStillBuildingMessage() throws Exception {
-    // Create a new project and open a layout file.
-    // If the first build is still going on when the rendering happens, simply show a message that a build is going on,
-    // and check that the message disappears at the end of the build.
-    newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create(guiTest);
-    final EditorFixture editor = guiTest.ideFrame().getEditor();
-
-    Wait.seconds(5).expecting("file to open").until(() -> "A.java".equals(editor.getCurrentFileName()));
-
-    editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
-
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    layoutEditor.waitForRenderToFinish();
-
-    if (layoutEditor.hasRenderErrors()) {
-      layoutEditor.waitForErrorPanelToContain("still building");
-      assertFalse(layoutEditor.getIssuePanel().containsText("Missing styles"));
-      guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-      layoutEditor.waitForRenderToFinish();
-      assertThat(layoutEditor.hasRenderErrors()).isFalse();
-    }
   }
 
   @RunIn(TestGroup.UNRELIABLE)
@@ -323,6 +312,40 @@ public class NewProjectTest {
       .open("app/src/main/java/com/test/project/MainActivity.java");
   }
 
+  /**
+   * Verifies studio adds latest support library while DND layouts (RecyclerView)
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: c4fafea8-9560-4c40-92c1-58b72b2caaa0
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Create a new project with empty activity with min SDK 26
+   *   2. Drag and Drop RecyclerView (Verify)
+   *   Verify:
+   *   Dependency should be added to build.gradle with latest version from maven
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void latestSupportLibraryWhileDndLayouts() throws Exception {
+    IdeFrameFixture ideFrameFixture = newProject("Test Application").withMinSdk("26").create(guiTest);
+
+    ideFrameFixture.getEditor()
+      .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true)
+      .dragComponentToSurface("Containers", "RecyclerView");
+
+    MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
+
+    String contents = ideFrameFixture.getEditor()
+      .open("app/build.gradle")
+      .getCurrentFileContents();
+
+    assertThat(contents).contains("implementation \'com.android.support:recyclerview-v7:");
+  }
+
   @Test
   public void androidXmlFormatting() {
     String actualXml = newProject("P").create(guiTest)
@@ -338,7 +361,7 @@ public class NewProjectTest {
       "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
       "    android:layout_width=\"match_parent\"\n" +
       "    android:layout_height=\"match_parent\"\n" +
-      "    tools:context=\"com.android.test.app.MainActivity\">\n" +
+      "    tools:context=\".MainActivity\">\n" +
       "\n" +
       "    <TextView\n" +
       "        android:layout_width=\"wrap_content\"\n" +
@@ -349,7 +372,7 @@ public class NewProjectTest {
       "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
       "\n" +
-      "</android.support.constraint.ConstraintLayout>\n";
+      "</android.support.constraint.ConstraintLayout>";
 
     assertThat(actualXml).isEqualTo(expectedXml);
   }
@@ -442,9 +465,19 @@ public class NewProjectTest {
         .enterApplicationName(myName)
         .enterCompanyDomain(myDomain)
         .enterPackageName(myPkg);
-      newProjectWizard.clickNext();
 
-      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
+      Ref<ConfigureFormFactorStepFixture> configureFormFactorStepRef = new Ref<>();
+      Wait.seconds(15).expecting("Wait for 'Target Android Devices' dialog appear").until(() -> {
+        newProjectWizard.clickNext();
+        try {
+          configureFormFactorStepRef.set(newProjectWizard.getConfigureFormFactorStep());
+          return true;
+        } catch (WaitTimedOutError e) {
+          return false;
+        }
+      });
+
+      configureFormFactorStepRef.get().selectMinimumSdkApi(MOBILE, myMinSdk);
       newProjectWizard.clickNext();
 
       // Skip "Add Activity" step

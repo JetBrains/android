@@ -17,13 +17,13 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import android.widget.ListView;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
+import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -39,7 +39,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   SceneComponent myGroup;
   @AndroidDpCoordinate
   Map<SceneComponent, Rectangle> myPreferenceToBoundsMap;
-  SceneComponent myActivePreference;
+  private SceneComponent myActivePreference;
 
   @AndroidDpCoordinate
   private int myDividerHeight;
@@ -154,7 +154,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
     List<SceneComponent> preferences = myGroup.getChildren();
 
     if (preferences.isEmpty()) {
-      insertComponents(-1, type);
+      editor.insertChildren(layout.getNlComponent(), components, -1, type);
       return;
     }
 
@@ -164,7 +164,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
       i++;
     }
 
-    insertComponents(i == preferences.size() ? -1 : i, type);
+    editor.insertChildren(layout.getNlComponent(), components, i == preferences.size() ? -1 : i, type);
   }
 
   @AndroidDpCoordinate
@@ -173,7 +173,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   }
 
   @AndroidDpCoordinate
-  static int getMidpointY(@NotNull Rectangle bounds) {
+  private static int getMidpointY(@NotNull Rectangle bounds) {
     return bounds.y + bounds.height / 2;
   }
 }

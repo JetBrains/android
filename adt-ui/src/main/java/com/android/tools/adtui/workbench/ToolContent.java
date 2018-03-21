@@ -72,7 +72,7 @@ public interface ToolContent<T> extends Disposable {
 
   /**
    * The tool window system will register a callback for restoring a hidden tool window.
-   * TODO: Replace this callback with a callback for all 3 actions: restore, autoHide, startFiltering
+   * TODO: Replace this callback with a callback for all 3 actions: restore, autoHide, startFiltering, stopFiltering
    */
   default void setRestoreToolWindow(@NotNull Runnable runnable) {}
 
@@ -107,4 +107,9 @@ public interface ToolContent<T> extends Disposable {
    * The search control will take focus and start filtering with the specified character.
    */
   default void setStartFiltering(@NotNull StartFilteringListener listener) {}
+
+  /**
+   * The tool window system will register a callback for stopping filtering.
+   */
+  default void setStopFiltering(@NotNull Runnable runnable) {}
 }

@@ -24,7 +24,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.ListenerCollection;
-import com.android.tools.pixelprobe.Guide;
+import com.android.tools.pixelprobe.*;
 import com.android.tools.pixelprobe.Image;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -44,7 +44,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.*;
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_CROP_CHANGED;
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_FILE_CHANGED;
+import static com.android.tools.idea.uibuilder.mockup.Mockup.MockupModelListener.FLAG_OPACITY_CHANGED;
 
 /**
  * <p>
@@ -533,10 +535,6 @@ public class Mockup implements ModelListener {
   @Override
   public void modelDerivedDataChanged(@NotNull NlModel model) {
     parseComponent(myComponent);
-  }
-
-  @Override
-  public void modelRendered(@NotNull NlModel model) {
   }
 
   @Override

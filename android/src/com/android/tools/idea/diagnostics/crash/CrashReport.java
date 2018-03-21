@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.crash;
 
+import com.android.tools.idea.diagnostics.exception.NoPiiException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
@@ -38,7 +39,8 @@ public abstract class CrashReport {
     ArrayIndexOutOfBoundsException.class,
     ClassCastException.class,
     ClassNotFoundException.class,
-    IndexOutOfBoundsException.class
+    IndexOutOfBoundsException.class,
+    NoPiiException.class
   );
 
   public enum Type {

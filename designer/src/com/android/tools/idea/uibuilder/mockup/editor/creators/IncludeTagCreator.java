@@ -21,11 +21,13 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
-import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlFile;
@@ -60,7 +62,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
    */
   public IncludeTagCreator(@NotNull Mockup mockup,
                            @NotNull NlModel model,
-                           @NotNull ScreenView screenView, @NotNull Rectangle selection) {
+                           @NotNull SceneView screenView, @NotNull Rectangle selection) {
     super(mockup, model, screenView, selection);
   }
 
@@ -130,29 +132,27 @@ public class IncludeTagCreator extends SimpleViewCreator {
     if (rootTag == null) {
       return null;
     }
-    NlModel nlModel = NlModel.create(getScreenView().getSurface(), newFile.getProject(), facet, newFile);
-    ModelListener listener = new ModelListener() {
+    SceneManager manager = getScreenView().getSurface().getSceneManager();
 
-      @Override
-      public void modelRendered(@NotNull NlModel model) {
-        model.removeListener(this);
-        if (model.getComponents().isEmpty()) {
-          return;
+    if (manager != null) {
+      NlModel model = NlModel.create(newFile.getProject(), facet, newFile.getVirtualFile());
+      manager.addRenderListener(new RenderListener() {
+        @Override
+        public void onRenderCompleted() {
+          manager.removeRenderListener(this);
+          if (model.getComponents().isEmpty()) {
+            return;
+          }
+          NlComponent component = model.getComponents().get(0);
+          final AttributesTransaction transaction = component.startAttributeTransaction();
+          addShowInAttribute(transaction);
+          addSizeAttributes(transaction, getAndroidBounds());
+          addMockupAttributes(transaction, getSelectionBounds());
+          NlWriteCommandAction.run(component, "", transaction::commit);
         }
-        NlComponent component = model.getComponents().get(0);
-        final AttributesTransaction transaction = component.startAttributeTransaction();
-        addShowInAttribute(transaction);
-        addSizeAttributes(transaction, getAndroidBounds());
-        addMockupAttributes(transaction, getSelectionBounds());
-        NlWriteCommandAction.run(component, "", transaction::commit);
-      }
+      });
+    }
 
-      @Override
-      public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-        // Do nothing
-      }
-    };
-    nlModel.addListener(listener);
     return getResourceName(newFile);
   }
 

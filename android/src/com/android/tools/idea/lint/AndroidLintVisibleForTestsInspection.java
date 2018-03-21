@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
+import static com.android.tools.lint.checks.RestrictToDetector.TEST_VISIBILITY;
+
 public class AndroidLintVisibleForTestsInspection extends AndroidLintInspectionBase {
   public AndroidLintVisibleForTestsInspection() {
-    super(AndroidBundle.message("android.lint.inspections.visible.for.tests"), SupportAnnotationDetector.TEST_VISIBILITY);
+    super(AndroidBundle.message("android.lint.inspections.visible.for.tests"), TEST_VISIBILITY);
   }
 }

@@ -23,18 +23,18 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.accessibility.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 
 /**
  * Renderer and behaviors for a single feature in the {@code TutorialChooser}.
  */
-public class FeatureEntryPoint extends JPanel {
+public class FeatureEntryPoint extends JPanel implements Accessible {
   private boolean myExpanded = false;
   private JPanel myTutorialsList;
   private ActionListener myListener;
@@ -66,9 +66,10 @@ public class FeatureEntryPoint extends JPanel {
     add(myTargetPane);
 
     SummaryHandler summaryMouseHandler = new SummaryHandler();
+    KeyboardHandler keyboardhandler = new KeyboardHandler();
 
     myArrow = new JLabel();
-    myArrow.addMouseListener(summaryMouseHandler);
+    addHandlers(myArrow, summaryMouseHandler, keyboardhandler);
     myArrow.setIcon(AllIcons.Nodes.TreeRightArrow);
     myArrow.setFocusable(true);
     myArrow.setBorder(BorderFactory.createEmptyBorder(9, 5, 0, 10));
@@ -85,7 +86,7 @@ public class FeatureEntryPoint extends JPanel {
     int innerContentsOffset = 0;
 
     JBLabel featureLabel = new JBLabel();
-    featureLabel.addMouseListener(summaryMouseHandler);
+    addHandlers(featureLabel, summaryMouseHandler, keyboardhandler);
     featureLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 5));
     featureLabel.setFont(featureLabel.getFont().deriveFont(Font.BOLD));
     featureLabel.setText(label);
@@ -99,7 +100,7 @@ public class FeatureEntryPoint extends JPanel {
 
     JTextPane descriptionPane = new JTextPane();
     descriptionPane.setOpaque(false);
-    descriptionPane.addMouseListener(summaryMouseHandler);
+    addHandlers(descriptionPane, summaryMouseHandler, keyboardhandler);
     UIUtils.setHtml(descriptionPane, description, "body {color: " + UIUtils.getCssColor(UIUtils.getSecondaryColor()) + "}");
     descriptionPane.setBorder(BorderFactory.createEmptyBorder(0, innerContentsOffset, 5, 10));
     summary.add(descriptionPane);
@@ -113,6 +114,11 @@ public class FeatureEntryPoint extends JPanel {
       addTutorial(tutorial.getLabel(), tutorial.getKey());
     }
     add(myTutorialsList);
+  }
+
+  private void addHandlers(JComponent component, SummaryHandler summaryMouseHandler, KeyboardHandler keyboardHandler) {
+    component.addMouseListener(summaryMouseHandler);
+    component.registerKeyboardAction(keyboardHandler, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), JComponent.WHEN_FOCUSED);
   }
 
   private static Logger getLog() {
@@ -141,6 +147,15 @@ public class FeatureEntryPoint extends JPanel {
     myTutorialsList.setVisible(myExpanded);
   }
 
+  @Override
+  public AccessibleContext getAccessibleContext() {
+    if (this.accessibleContext == null) {
+      this.accessibleContext = new AccessibleFeatureEntryPoint();
+    }
+
+    return this.accessibleContext;
+  }
+
   private class SummaryHandler extends MouseAdapter {
 
     @Override
@@ -160,6 +175,80 @@ public class FeatureEntryPoint extends JPanel {
     public void mouseExited(MouseEvent e) {
       myTargetPane.setOpaque(false);
       myTargetPane.setBackground(null);
+    }
+  }
+
+  private class KeyboardHandler implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      toggleTutorials();
+    }
+  }
+
+  /**
+   * Accessible class for {@link FeatureEntryPoint} treats it as an expandable (toggle) button.
+   */
+  private class AccessibleFeatureEntryPoint extends JComponent.AccessibleJComponent implements AccessibleAction {
+    @Override
+    public AccessibleRole getAccessibleRole() {
+      return AccessibleRole.TOGGLE_BUTTON;
+    }
+
+    @Override
+    public String getAccessibleName() {
+      return myFeature.getName();
+    }
+
+    @Override
+    public String getAccessibleDescription() {
+      return AccessibleContextUtil.getUniqueDescription(this, myFeature.getDescription());
+    }
+
+    @Override
+    public AccessibleIcon[] getAccessibleIcon() {
+      Icon icon = AllIcons.Nodes.TreeRightArrow;
+      if (icon instanceof Accessible) {
+        AccessibleContext context = ((Accessible)icon).getAccessibleContext();
+        if (context != null && context instanceof AccessibleIcon) {
+          return new AccessibleIcon[]{(AccessibleIcon)context};
+        }
+      }
+
+      return null;
+    }
+
+    @Override
+    public AccessibleStateSet getAccessibleStateSet() {
+      AccessibleStateSet stateSet = super.getAccessibleStateSet();
+      stateSet.add(myExpanded ? AccessibleState.EXPANDED : AccessibleState.EXPANDABLE);
+      if (FeatureEntryPoint.this.isFocusOwner()) {
+        stateSet.add(AccessibleState.FOCUSED);
+      }
+      return stateSet;
+    }
+
+    @Override
+    public AccessibleAction getAccessibleAction() {
+      return this;
+    }
+
+    @Override
+    public int getAccessibleActionCount() {
+      return 1;
+    }
+
+    @Override
+    public String getAccessibleActionDescription(int index) {
+      return index == 0 ? UIManager.getString("AbstractButton.clickText") : null;
+    }
+
+    @Override
+    public boolean doAccessibleAction(int index) {
+      if (index == 0) {
+        toggleTutorials();
+        return true;
+      }
+      return false;
     }
   }
 }

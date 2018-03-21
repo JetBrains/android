@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -40,7 +41,7 @@ public class SelectParentAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     boolean enabled;
-    ScreenView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       List<NlComponent> selection = screenView.getSelectionModel().getSelection();
       enabled = selection.size() == 1 && !selection.get(0).isRoot();
@@ -53,7 +54,7 @@ public class SelectParentAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       SelectionModel selectionModel = screenView.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.resources.Density;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -36,50 +34,48 @@ public class SelectionHandlesTest extends TestCase {
     NlComponentHelperKt.setY(component, 110);
     NlComponentHelperKt.setW(component, 500);
     NlComponentHelperKt.setH(component, 400);
-    Configuration configuration = mock(Configuration.class);
-    when(configuration.getDensity()).thenReturn(Density.MEDIUM);
-    NlModel model = mock(NlModel.class);
-    when(model.getConfiguration()).thenReturn(configuration);
-    when(component.getModel()).thenReturn(model);
+
+    DesignSurface surface = mock(DesignSurface.class);
+    when(surface.getSceneScalingFactor()).thenReturn(1f);
 
     SelectionHandles handles = new SelectionHandles(component);
     List<SelectionHandle> handleList = Lists.newArrayList();
     Iterators.addAll(handleList, handles.iterator());
     assertEquals(8, handleList.size());
 
-    SelectionHandle handle = handles.findHandle(100, 110, 2);
+    SelectionHandle handle = handles.findHandle(100, 110, 2, surface);
     assertNotNull(handle);
     assertEquals(SelectionHandle.Position.TOP_LEFT, handle.getPosition());
 
-    handle = handles.findHandle(100 + 500 / 2, 110, 2);
+    handle = handles.findHandle(100 + 500 / 2, 110, 2, surface);
     assertNotNull(handle);
     assertEquals(SelectionHandle.Position.TOP_MIDDLE, handle.getPosition());
 
-    handle = handles.findHandle(100 + 500, 110, 2);
+    handle = handles.findHandle(100 + 500, 110, 2, surface);
     assertNotNull(handle);
     assertEquals(SelectionHandle.Position.TOP_RIGHT, handle.getPosition());
 
-    handle = handles.findHandle(100 + 500, 110 + 400 / 2, 2);
+    handle = handles.findHandle(100 + 500, 110 + 400 / 2, 2, surface);
     assertNotNull(handle);
     assertEquals(SelectionHandle.Position.RIGHT_MIDDLE, handle.getPosition());
 
-    handle = handles.findHandle(100 + 500, 110 + 400, 2);
+    handle = handles.findHandle(100 + 500, 110 + 400, 2, surface);
     assertNotNull(handle);
     assertEquals(SelectionHandle.Position.BOTTOM_RIGHT, handle.getPosition());
 
-    handle = handles.findHandle(100 + 500 / 2, 110 + 400, 2);
+    handle = handles.findHandle(100 + 500 / 2, 110 + 400, 2, surface);
     assertNotNull(handle);
     assertEquals(SelectionHandle.Position.BOTTOM_MIDDLE, handle.getPosition());
 
-    handle = handles.findHandle(100, 110 + 400, 2);
+    handle = handles.findHandle(100, 110 + 400, 2, surface);
     assertNotNull(handle);
     assertEquals(SelectionHandle.Position.BOTTOM_LEFT, handle.getPosition());
 
-    handle = handles.findHandle(100, 110 + 400 / 2, 2);
+    handle = handles.findHandle(100, 110 + 400 / 2, 2, surface);
     assertNotNull(handle);
     assertEquals(SelectionHandle.Position.LEFT_MIDDLE, handle.getPosition());
 
-    handle = handles.findHandle(300, 300, 2);
+    handle = handles.findHandle(300, 300, 2, surface);
     assertNull(handle);
   }
 }

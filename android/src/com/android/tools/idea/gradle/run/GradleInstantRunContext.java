@@ -16,9 +16,12 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BuildSelection;
@@ -176,6 +179,8 @@ public class GradleInstantRunContext implements InstantRunContext {
             else {
               hasher.putString(text, UTF_8);
             }
+          } else if (resourceValue.getResourceType() == ResourceType.STYLE){
+            ((StyleResourceValue) resourceValue).getValues().stream().forEach(value -> hasher.putString(value.getValue(), UTF_8));
           }
         }
       }

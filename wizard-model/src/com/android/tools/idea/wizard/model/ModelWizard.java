@@ -19,8 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.*;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
@@ -31,10 +29,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 /**
  * A wizard that owns a series of {@link ModelWizardStep}s. When finished, it iterates through its
@@ -48,7 +45,6 @@ import java.util.Set;
  * done for you by a wrapping class, such as a model wizard dialog).
  */
 public final class ModelWizard implements Disposable {
-
   private final List<ModelWizardStep> mySteps;
 
   /**
@@ -56,7 +52,7 @@ public final class ModelWizard implements Disposable {
    * all of those should be shown as well. In this way, skipping a parent step automatically will
    * skip any child steps as well (recursively).
    */
-  private final Map<ModelWizardStep, ModelWizardStep> myStepOwners = Maps.newHashMap();
+  private final Map<ModelWizardStep, ModelWizardStep> myStepOwners = new HashMap<>();
 
   private final BindingsManager myBindings = new BindingsManager();
   private final BoolProperty myCanGoBack = new BoolValueProperty();
@@ -69,8 +65,10 @@ public final class ModelWizard implements Disposable {
   private final TitleHeader myTitleHeader = new TitleHeader();
   private final JPanel myContentPanel = new JPanel(new CardLayout());
 
-  private final List<WizardListener> myWizardListeners = Lists.newArrayListWithExpectedSize(1);
+  private final List<WizardListener> myWizardListeners = new ArrayList<>(1);
 
+  @NotNull
+  private BooleanSupplier myCancelInterceptor = () -> false; // By default don't intercept cancel
   private int myCurrIndex = -1;
 
   /**
@@ -90,7 +88,7 @@ public final class ModelWizard implements Disposable {
    * @throws IllegalArgumentException if {@code steps} is empty or none of the steps are visible.
    */
   private ModelWizard(@NotNull Collection<ModelWizardStep> steps) {
-    mySteps = Lists.newArrayListWithExpectedSize(steps.size());
+    mySteps = new ArrayList<>(steps.size());
     for (ModelWizardStep step : steps) {
       addStep(step);
     }
@@ -108,16 +106,14 @@ public final class ModelWizard implements Disposable {
       }
     });
 
-    Set<WizardModel> seenModels = Sets.newHashSet();
+    Set<WizardModel> seenModels = new HashSet<>();
     for (ModelWizardStep step : mySteps) {
       Disposer.register(this, step);
 
       WizardModel model = step.getModel();
-      if (seenModels.contains(model)) {
-        continue;
+      if (seenModels.add(model)) {
+        Disposer.register(this, model);
       }
-      Disposer.register(this, model);
-      seenModels.add(model);
     }
 
     // At this point, we're ready to go! Try to start the wizard, proceeding into the first step
@@ -195,6 +191,15 @@ public final class ModelWizard implements Disposable {
   }
 
   /**
+   * Set a Cancel interceptor. The interceptor will be query when the wizard is about to be cancelled. If the
+   * callback returns {@code true}, we prevent the cancelling from happening, leaving the wizard open. Otherwise,
+   * we cancel the wizard as normal.
+   */
+  public void setCancelInterceptor(@NotNull BooleanSupplier cancelInterceptor) {
+    myCancelInterceptor = cancelInterceptor;
+  }
+
+  /**
    * Returns the component on the current step which wants to have initial focus, if any, or
    * {@code null} otherwise.
    * <p/>
@@ -256,15 +261,17 @@ public final class ModelWizard implements Disposable {
    * finishes the wizard.
    * <p/>
    * It is an error to call this on a wizard that has already finished.
+   *
+   * @return {@code true} if the wizard moved forward, {@code false} if progress was blocked
    */
-  public void goForward() {
+  public boolean goForward() {
     ensureWizardIsRunning();
 
     ModelWizardStep prevStep = null;
     if (myCurrIndex >= 0) {
       ModelWizardStep currStep = mySteps.get(myCurrIndex);
-      if (!currStep.canGoForward().get()) {
-        throw new IllegalStateException("Can't call goForward on wizard when the step prevents it");
+      if (!myCanGoForward.get()) {
+        return false;
       }
       prevStep = currStep;
 
@@ -323,6 +330,8 @@ public final class ModelWizard implements Disposable {
     else {
       handleFinished(WizardResult.FINISHED);
     }
+
+    return true;
   }
 
   /**
@@ -330,22 +339,25 @@ public final class ModelWizard implements Disposable {
    * <p/>
    * It is an error to call this if there are no previous pages to return to or on a wizard that's
    * already finished.
+   *
+   * @return {@code true} if the wizard moved forward, {@code false} if progress was blocked
    */
-  public void goBack() {
+  public boolean goBack() {
     ensureWizardIsRunning();
 
     if (myPrevSteps.empty()) {
       throw new IllegalStateException("Calling back on wizard without any previous pages");
     }
 
-    ModelWizardStep currStep = mySteps.get(myCurrIndex);
-    if (!currStep.canGoBack()) {
-      throw new IllegalStateException("Can't call goBack on wizard when the step prevents it");
+    if (!myCanGoBack.get()) {
+      return false;
     }
 
     myCurrIndex = mySteps.indexOf(myPrevSteps.pop());
     updateNavigationProperties();
     showCurrentStep();
+
+    return true;
   }
 
   /**
@@ -355,8 +367,9 @@ public final class ModelWizard implements Disposable {
    */
   public void cancel() {
     ensureWizardIsRunning();
-
-    handleFinished(WizardResult.CANCELLED);
+    if (!myCancelInterceptor.getAsBoolean()) {
+      handleFinished(WizardResult.CANCELLED);
+    }
   }
 
   /**
@@ -383,22 +396,19 @@ public final class ModelWizard implements Disposable {
   private void handleFinished(@NotNull WizardResult result) {
     try {
       if (result == WizardResult.FINISHED) {
-        Set<WizardModel> seenModels = Sets.newHashSet();
+        Set<WizardModel> seenModels = new HashSet<>();
         for (ModelWizardStep step : myPrevSteps) {
           WizardModel model = step.getModel();
-          if (seenModels.contains(model)) {
-            continue;
+          if (seenModels.add(model)) {
+            model.handleFinished();
           }
-          seenModels.add(model);
-          model.handleFinished();
         }
         for (ModelWizardStep step : mySteps) {
           WizardModel model = step.getModel();
-          if (seenModels.contains(model)) {
-            continue;
+          if (seenModels.add(model)) {
+            model.handleSkipped();
           }
-          seenModels.add(model);
-          model.handleSkipped();
+          step.onWizardFinished();
         }
       }
     }
@@ -444,8 +454,9 @@ public final class ModelWizard implements Disposable {
   private void updateNavigationProperties() {
     myOnLastStep.set(isOnLastVisibleStep());
     ModelWizardStep step = mySteps.get(myCurrIndex);
-    myBindings.bind(myCanGoForward, step.canGoForward());
     myCanGoBack.set(!myPrevSteps.empty() && step.canGoBack());
+    myCanGoForward.set(false); // Prevent going forward until the next step finishes binding
+    myBindings.bind(myCanGoForward, step.canGoForward());
   }
 
   private boolean shouldShowStep(ModelWizardStep step) {
@@ -485,7 +496,7 @@ public final class ModelWizard implements Disposable {
   private Iterable<WizardListener> getListeners() {
     // Make a copy of the event list, as a listener may attempt to remove their listener when this
     // is fired.
-    return Lists.newArrayList(myWizardListeners);
+    return new ArrayList<>(myWizardListeners);
   }
 
   public enum WizardResult {
@@ -602,13 +613,7 @@ public final class ModelWizard implements Disposable {
         throw new IllegalStateException("Attempting to goForward before the wizard has even started");
       }
 
-      if (canGoForward().get()) {
-        ModelWizard.this.goForward();
-        return true;
-      }
-      else {
-        return false;
-      }
+      return ModelWizard.this.goForward();
     }
 
     /**

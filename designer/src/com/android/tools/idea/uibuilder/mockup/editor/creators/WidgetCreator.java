@@ -16,17 +16,17 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.viewgroupattributes.ViewGroupAttributesManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
@@ -84,7 +84,7 @@ public abstract class WidgetCreator {
 
   private static final String COLORS_XML = "colors.xml";
   private final NlModel myModel;
-  private final ScreenView myScreenView;
+  private final SceneView myScreenView;
   @NotNull private Mockup myMockup;
   @Nullable private NlComponent myComponent;
   @Nullable private ViewGroupAttributesManager myViewGroupAttributesManager;
@@ -97,7 +97,7 @@ public abstract class WidgetCreator {
    * @param screenView The currentScreen view displayed in the {@link NlDesignSurface}.
    *                   Used to convert the size of component from the mockup to the Android coordinates
    */
-  protected WidgetCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull ScreenView screenView) {
+  protected WidgetCreator(@NotNull Mockup mockup, @NotNull NlModel model, @NotNull SceneView screenView) {
     myMockup = mockup;
     myModel = model;
     myScreenView = screenView;
@@ -167,7 +167,7 @@ public abstract class WidgetCreator {
    * @return the screen view associated with the {@link com.android.tools.idea.uibuilder.mockup.editor.MockupEditor}
    */
   @NotNull
-  public ScreenView getScreenView() {
+  public SceneView getScreenView() {
     return myScreenView;
   }
 
@@ -194,7 +194,8 @@ public abstract class WidgetCreator {
       myViewGroupAttributesManager.addLayoutAttributes(transaction);
     }
     transaction.commit();
-    myModel.addComponents(Collections.singletonList(myComponent), myMockup.getComponent(), null, InsertType.CREATE_PREVIEW);
+    myModel.addComponents(Collections.singletonList(myComponent), myMockup.getComponent(), null, InsertType.CREATE_PREVIEW,
+                          ViewEditorImpl.getOrCreate(myScreenView));
     return myComponent;
   }
 
@@ -230,9 +231,9 @@ public abstract class WidgetCreator {
    */
   protected void addSizeAttributes(@NotNull AttributesTransaction transaction, @AndroidCoordinate @NotNull Rectangle bounds) {
     transaction.setAttribute(null, ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH,
-                             String.format("%ddp", pxToDp(myModel, bounds.width)));
+                             String.format("%ddp", Coordinates.pxToDp(myModel, bounds.width)));
     transaction.setAttribute(null, ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT,
-                             String.format("%ddp", pxToDp(myModel, bounds.height)));
+                             String.format("%ddp", Coordinates.pxToDp(myModel, bounds.height)));
   }
 
   /**
@@ -244,9 +245,9 @@ public abstract class WidgetCreator {
   protected void addLayoutEditorPositionAttribute(@NotNull AttributesTransaction transaction,
                                                   @AndroidDpCoordinate @NotNull Rectangle bounds) {
     transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-                             String.format("%ddp", pxToDp(myModel, bounds.x)));
+                             String.format("%ddp", Coordinates.pxToDp(myModel, bounds.x)));
     transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-                             String.format("%ddp", pxToDp(myModel, bounds.y)));
+                             String.format("%ddp", Coordinates.pxToDp(myModel, bounds.y)));
   }
 
   /**
@@ -296,20 +297,6 @@ public abstract class WidgetCreator {
       mockup.getComponent().getModel().getProject(),
       mockup.getFilePath());
     return xmlFilePath != null ? xmlFilePath.toString() : "";
-  }
-
-  /**
-   * Helper method to convert pixel to Android dp using the current configuration
-   * of the provided model
-   *
-   * @param model model to find the device configuration
-   * @param px    Android Coordinates in pixel
-   * @return Android Coordinates in dip
-   */
-  @AndroidDpCoordinate
-  protected static int pxToDp(@NotNull NlModel model, @AndroidCoordinate int px) {
-    final float dpiValue = model.getConfiguration().getDensity().getDpiValue();
-    return Math.round(px * (Density.DEFAULT_DENSITY / dpiValue));
   }
 
   /**

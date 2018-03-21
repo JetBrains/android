@@ -18,19 +18,20 @@ package com.android.tools.idea.uibuilder.handlers.common;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
+import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.model.Insets;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -113,10 +114,10 @@ public class GenericLinearDragHandler extends DragHandler {
     boolean lastDragged = false;
     mySelfPos = -1;
     if (myVertical) {
-      layout.getChildren().sort((c1, c2) -> c1.getDrawY() - c2.getDrawY());
+      layout.getChildren().sort(Comparator.comparingInt(SceneComponent::getDrawY));
     }
     else {
-      layout.getChildren().sort((c1, c2) -> c1.getDrawX() - c2.getDrawX());
+      layout.getChildren().sort(Comparator.comparingInt(SceneComponent::getDrawX));
     }
     for (SceneComponent it : layout.getChildren()) {
       if (it.getDrawWidth() > 0 && it.getDrawHeight() > 0) {
@@ -351,7 +352,10 @@ public class GenericLinearDragHandler extends DragHandler {
    * @param offsetY   a vertical delta to add to the current bounds of the element when
    *                  drawing it
    */
-  public void drawElement(NlGraphics gc, SceneComponent component, @AndroidCoordinate int offsetX, @AndroidCoordinate int offsetY) {
+  private void drawElement(@NotNull NlGraphics gc,
+                           @NotNull SceneComponent component,
+                           @AndroidCoordinate int offsetX,
+                           @AndroidCoordinate int offsetY) {
     int w = editor.dpToPx(component.getDrawWidth());
     int h = editor.dpToPx(component.getDrawHeight());
     if (w > 0 && h > 0) {
@@ -366,14 +370,14 @@ public class GenericLinearDragHandler extends DragHandler {
 
   @Override
   public void cancel() {
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    Scene scene = editor.getScene();
     scene.removeComponent(myComponent);
   }
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    insertComponents(myInsertPos, insertType);
-    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    editor.insertChildren(layout.getNlComponent(), components, myInsertPos, insertType);
+    Scene scene = editor.getScene();
     scene.removeComponent(myComponent);
   }
 }

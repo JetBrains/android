@@ -65,7 +65,7 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
             String name = LintIdeUtils.getInternalMethodName(method);
             String desc = LintIdeUtils.getInternalDescription(method, false, false);
             if (desc != null) {
-              return apiLookup.getCallDeprecatedIn(owner, name, desc);
+              return apiLookup.getMethodDeprecatedIn(owner, name, desc);
             }
           }
         }
@@ -95,7 +95,7 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
    * @param referenceElement  the reference to that deprecated element
    * @param symbolName        the user visible symbol name
    * @param defaultMessage    the default message to be shown for this deprecation
-   * @return
+   * @return the deprecation message to display
    */
   @NotNull
   @Override

@@ -30,7 +30,7 @@ public final class SetZoomActionGroups extends ToolbarActionGroups {
 
   @NotNull
   @Override
-  protected ActionGroup getEastGroup() {
+  protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new SetZoomAction(mySurface, ZoomType.OUT));

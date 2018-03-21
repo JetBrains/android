@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;

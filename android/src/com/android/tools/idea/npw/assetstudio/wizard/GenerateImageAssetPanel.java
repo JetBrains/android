@@ -13,37 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.resources.Density;
-import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.*;
-import com.android.tools.idea.npw.assetstudio.icon.*;
-import com.android.tools.idea.npw.assetstudio.ui.*;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
+import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconView;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureLauncherIconPanel;
+import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.adapters.OptionalToValuePropertyAdapter;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
-import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.Ints;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.ui.LoadingDecorator;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.GuiUtils;
@@ -68,9 +72,11 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
+
 /**
  * A panel which presents a UI for selecting some source asset and converting it to a target set of
- * Android Icons. See {@link AndroidAdaptiveIconType} for the types of icons this can generate.
+ * Android Icons. See {@link AndroidIconType} for the types of icons this can generate.
  *
  * Before generating icons, you should first check {@link #hasErrors()} to make sure there won't be
  * any errors in the generation process.
@@ -79,21 +85,23 @@ import java.util.stream.Collectors;
  * <a href="https://romannurik.github.io/AndroidAssetStudio/index.html">Asset Studio</a>
  * web application.
  */
-public final class GenerateImageAssetPanel extends JPanel implements Disposable {
-  @NotNull private final AndroidProjectPaths myDefaultPaths;
+public final class GenerateImageAssetPanel extends JPanel implements Disposable, PersistentStateComponent<PersistentState> {
+  private static final String OUTPUT_ICON_TYPE_PROPERTY = "outputIconType";
+
+  @NotNull private final AndroidModuleTemplate myDefaultPaths;
   private final ValidatorPanel myValidatorPanel;
 
   @NotNull private final BindingsManager myBindings = new BindingsManager();
   @NotNull private final ListenerManager myListeners = new ListenerManager();
 
-  private final Map<AndroidAdaptiveIconType, PreviewIconsPanel> myOutputPreviewPanels;
-  private final ObservableValue<AndroidAdaptiveIconType> myOutputIconType;
+  private final Map<AndroidIconType, PreviewIconsPanel> myOutputPreviewPanels;
+  private final ObjectProperty<AndroidIconType> myOutputIconType;
   private final StringProperty myOutputName = new StringValueProperty();
 
   private JPanel myRootPanel;
-  private JComboBox<AndroidAdaptiveIconType> myIconTypeCombo;
+  private JComboBox<AndroidIconType> myIconTypeCombo;
   private JPanel myConfigureIconPanels;
-  private List<ConfigureIconView> myConfigureIconViews = new ArrayList<>();
+  private Map<AndroidIconType, ConfigureIconView> myConfigureIconViews = new TreeMap<>();
   private CheckeredBackgroundPanel myOutputPreviewPanel;
   private TitledSeparator myOutputPreviewLabel;
   private JBScrollPane myOutputPreviewScrollPane;
@@ -116,20 +124,16 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   private AbstractProperty<Density> myPreviewDensityProperty;
   private JBLoadingPanel myLoadingPanel;
 
-  @NotNull private AndroidProjectPaths myPaths;
-  @NotNull private final BackgroundIconGenerator myBackgroundIconGenerator = new BackgroundIconGenerator();
+  @NotNull private AndroidModuleTemplate myPaths;
+  @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
    * presented to the user in a dropdown menu (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public GenerateImageAssetPanel(@NotNull AndroidFacet facet,
-                                 @NotNull Disposable disposableParent,
-                                 @NotNull AndroidProjectPaths defaultPaths,
-                                 @NotNull AndroidVersion minSdkVersion,
-                                 @NotNull AndroidVersion targetSdkVersion,
-                                 @NotNull AndroidAdaptiveIconType... supportedTypes) {
+  public GenerateImageAssetPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet,
+                                 @NotNull AndroidModuleTemplate defaultPaths, @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
@@ -153,13 +157,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myPaths = myDefaultPaths;
 
     if (supportedTypes.length == 0) {
-      supportedTypes = AndroidAdaptiveIconType.values();
+      supportedTypes = AndroidIconType.values();
     }
 
-    DefaultComboBoxModel<AndroidAdaptiveIconType> supportedTypesModel = new DefaultComboBoxModel<>(supportedTypes);
+    DefaultComboBoxModel<AndroidIconType> supportedTypesModel = new DefaultComboBoxModel<>(supportedTypes);
     myIconTypeCombo.setModel(supportedTypesModel);
     myIconTypeCombo.setVisible(supportedTypes.length > 1);
-    myOutputIconType = new AsValueExpression<>(new SelectedItemProperty<>(myIconTypeCombo));
+    myOutputIconType = ObjectProperty.wrap(new SelectedItemProperty<>(myIconTypeCombo));
     myOutputPreviewPanel.setName("PreviewIconsPanel"); // for UI Tests
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
@@ -179,44 +183,41 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     densitiesModel.addElement(Density.XXHIGH);
     densitiesModel.addElement(Density.XXXHIGH);
     myPreviewResolutionComboBox.setModel(densitiesModel);
-    myPreviewDensityProperty = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myPreviewResolutionComboBox));
+    myPreviewDensityProperty = ObjectProperty.wrap(new SelectedItemProperty<>(myPreviewResolutionComboBox));
 
     myShowGridProperty = new SelectedProperty(myShowGrid);
     myShowSafeZoneProperty = new SelectedProperty(myShowSafeZone);
 
-    // Create a card and a view for each icon type
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
+    int minSdkVersion = androidModuleInfo.getMinSdkVersion().getApiLevel();
+
+    // Create a card and a view for each icon type.
     assert myConfigureIconPanels.getLayout() instanceof CardLayout;
-    for (AndroidAdaptiveIconType iconType : supportedTypes) {
+    for (AndroidIconType iconType : supportedTypes) {
       ConfigureIconView view;
       switch (iconType) {
-        case ADAPTIVE:
-          view = new ConfigureAdaptiveIconPanel(facet, this, minSdkVersion, targetSdkVersion,
-                                                myShowGridProperty, myShowSafeZoneProperty,
+        case LAUNCHER:
+          view = new ConfigureLauncherIconPanel(this, facet, myShowGridProperty, myShowSafeZoneProperty,
                                                 myPreviewDensityProperty, myValidatorPanel);
           break;
         case LAUNCHER_LEGACY:
-          view = new ConfigureIconPanel(this, AndroidIconType.LAUNCHER, minSdkVersion.getApiLevel());
-          break;
         case ACTIONBAR:
-          view = new ConfigureIconPanel(this, AndroidIconType.ACTIONBAR, minSdkVersion.getApiLevel());
-          break;
         case NOTIFICATION:
-          view = new ConfigureIconPanel(this, AndroidIconType.NOTIFICATION, minSdkVersion.getApiLevel());
+          view = new ConfigureIconPanel(this, iconType, minSdkVersion);
           break;
         default:
           throw new IllegalArgumentException("Invalid icon type");
       }
-      myConfigureIconViews.add(view);
+      myConfigureIconViews.put(iconType, view);
       myConfigureIconPanels.add(view.getRootComponent(), iconType.toString());
     }
 
-
     // Create an output preview panel for each icon type
-    ImmutableMap.Builder<AndroidAdaptiveIconType, PreviewIconsPanel> previewPanelBuilder = ImmutableMap.builder();
-    previewPanelBuilder.put(AndroidAdaptiveIconType.ACTIONBAR, new ActionBarIconsPreviewPanel());
-    previewPanelBuilder.put(AndroidAdaptiveIconType.LAUNCHER_LEGACY, new LegacyLauncherIconsPreviewPanel());
-    previewPanelBuilder.put(AndroidAdaptiveIconType.ADAPTIVE, new AdaptiveIconsPreviewPanel());
-    previewPanelBuilder.put(AndroidAdaptiveIconType.NOTIFICATION, new NotificationIconsPreviewPanel());
+    ImmutableMap.Builder<AndroidIconType, PreviewIconsPanel> previewPanelBuilder = ImmutableMap.builder();
+    previewPanelBuilder.put(AndroidIconType.LAUNCHER, new LauncherIconsPreviewPanel());
+    previewPanelBuilder.put(AndroidIconType.LAUNCHER_LEGACY, new LauncherLegacyIconsPreviewPanel());
+    previewPanelBuilder.put(AndroidIconType.ACTIONBAR, new ActionBarIconsPreviewPanel());
+    previewPanelBuilder.put(AndroidIconType.NOTIFICATION, new NotificationIconsPreviewPanel());
     myOutputPreviewPanels = previewPanelBuilder.build();
 
     WrappedFlowLayout previewLayout = new WrappedFlowLayout(FlowLayout.LEADING);
@@ -249,15 +250,15 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   private void initializeListenersAndBindings() {
     // Add listener to re-generate asset when options change in configuration panels
     ActionListener onAssetModified = actionEvent -> renderIconPreviews();
-    for (ConfigureIconView view : myConfigureIconViews) {
+    for (ConfigureIconView view : myConfigureIconViews.values()) {
       view.addAssetListener(onAssetModified);
     }
 
-    // Re-generate preview when icon type, "Show Grid" or "Show Safe Zone" change
+    // Re-generate preview when icon type, "Show Grid" or "Show Safe Zone" change.
     Runnable updatePreview = () -> {
       ConfigureIconView iconView = getActiveIconView();
       myBindings.bind(myOutputName, iconView.outputName());
-      if (myOutputIconType.get() == AndroidAdaptiveIconType.NOTIFICATION) {
+      if (myOutputIconType.get() == AndroidIconType.NOTIFICATION) {
         myOutputPreviewLabel.setText("Preview (API 11+)");
       }
       else {
@@ -273,14 +274,9 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myListeners.receiveAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
     myListeners.receiveAndFire(myPreviewDensityProperty, value -> updatePreview.run());
 
-    // Show interactive preview components only if creating adaptive icons
-    BooleanExpression isAdaptiveIconOutput = new BooleanExpression(myOutputIconType) {
-      @NotNull
-      @Override
-      public Boolean get() {
-        return myOutputIconType.get() == AndroidAdaptiveIconType.ADAPTIVE;
-      }
-    };
+    // Show interactive preview components only if creating adaptive icons.
+    BooleanExpression isAdaptiveIconOutput = BooleanExpression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER,
+                                                                      myOutputIconType);
     myBindings.bind(new VisibleProperty(myShowGrid), isAdaptiveIconOutput);
     myBindings.bind(new VisibleProperty(myShowSafeZone), isAdaptiveIconOutput);
     myBindings.bind(new VisibleProperty(myPreviewResolutionComboBox), isAdaptiveIconOutput);
@@ -300,7 +296,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       previewPanel.setImage(previewInfo.getImage());
       previewPanel.setImageBackground(previewInfo.getImageBackground());
       previewPanel.setImageOpaque(previewInfo.isImageOpaque());
-      if (myOutputIconType.get() != AndroidAdaptiveIconType.ADAPTIVE) {
+      if (myOutputIconType.get() != AndroidIconType.LAUNCHER) {
         previewPanel.setImageBorder(previewInfo.getImageBorder());
       }
 
@@ -312,7 +308,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
 
   @NotNull
   private ConfigureIconView getActiveIconView() {
-    for (ConfigureIconView view : myConfigureIconViews) {
+    for (ConfigureIconView view : myConfigureIconViews.values()) {
       if (view.getRootComponent().isVisible()) {
         return view;
       }
@@ -341,8 +337,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
    * this panel will attempt to use reasonable defaults for the project.
    */
   @SuppressWarnings("unused") // Will be used when template wizard is updated to use this new class
-  public void setProjectPaths(@Nullable AndroidProjectPaths projectPaths) {
-    myPaths = (projectPaths != null) ? projectPaths : myDefaultPaths;
+  public void setProjectPaths(@Nullable AndroidModuleTemplate projectPaths) {
+    myPaths = projectPaths != null ? projectPaths : myDefaultPaths;
   }
 
   /**
@@ -355,10 +351,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   }
 
   /**
-   * Return an icon generator which will create Android icons using the panel's current settings.
+   * Returns an icon generator which will create Android icons using the panel's current settings.
    */
   @NotNull
-  public AndroidIconGenerator getIconGenerator() {
+  public IconGenerator getIconGenerator() {
     return getActiveIconView().getIconGenerator();
   }
 
@@ -385,9 +381,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
 
   private void renderIconPreviews() {
     // This method is often called as the result of a UI property changing which may also cause
-    // some other properties to change. Invoke its logic later just to make sure everything gets a
-    // chance to settle first.
-    ApplicationManager.getApplication().invokeLater(this::enqueueGenerateNotificationIcons, ModalityState.any());
+    // some other properties to change. Due to asynchronous nature of some property changes, it
+    // is necessary to use two invokeLater calls to make sure that everything settles before
+    // icons generation is attempted.
+    invokeVeryLate(this::enqueueGenerateNotificationIcons, ModalityState.any(), o -> Disposer.isDisposed(this));
   }
 
   /**
@@ -399,11 +396,11 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
   private void enqueueGenerateNotificationIcons() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
-    AndroidAdaptiveIconType iconType = myOutputIconType.get();
-    AndroidIconGenerator iconGenerator = getActiveIconView().getIconGenerator();
+    AndroidIconType iconType = myOutputIconType.get();
+    IconGenerator iconGenerator = getActiveIconView().getIconGenerator();
 
-    myBackgroundIconGenerator.enqueue(iconType, iconGenerator, iconGeneratorResult -> {
-      // There is no map if there was no source asset
+    myIconGenerationProcessor.enqueue(iconType, iconGenerator, iconGeneratorResult -> {
+      // There is no map if there was no source asset.
       if (iconGeneratorResult == null) {
         return;
       }
@@ -413,11 +410,19 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       myOutputPreviewPanels.get(iconType).showPreviewImages(iconGeneratorResult);
 
       // Update the current preview panel only if the icon type has not changed since the
-      // request was enqueued
+      // request was enqueued.
       if (Objects.equals(iconType, myOutputIconType.get())) {
         updateOutputPreviewPanel();
       }
     });
+  }
+
+  /**
+   * Executes the given runnable after a double 'invokeLater' delay.
+   */
+  private static void invokeVeryLate(@NotNull Runnable runnable, @NotNull ModalityState state, @NotNull Condition expired) {
+    Application application = ApplicationManager.getApplication();
+    application.invokeLater(() -> application.invokeLater(runnable, state, expired), state, expired);
   }
 
   @Override
@@ -426,24 +431,47 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myListeners.releaseAll();
   }
 
-  private static class AdaptiveIconsPreviewPanel extends PreviewIconsPanel {
+  @Override
+  @NotNull
+  public PersistentState getState() {
+    PersistentState state = new PersistentState();
+    state.set(OUTPUT_ICON_TYPE_PROPERTY, myOutputIconType.get(), AndroidIconType.LAUNCHER);
+    for (Map.Entry<AndroidIconType, ConfigureIconView> entry: myConfigureIconViews.entrySet()) {
+      state.setChild(toLowerCamelCase(entry.getKey()), entry.getValue().getState());
+    }
+    return state;
+  }
 
-    public AdaptiveIconsPreviewPanel() {
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    myOutputIconType.set(state.get(OUTPUT_ICON_TYPE_PROPERTY, AndroidIconType.LAUNCHER));
+    // Load persistent state of individual panels after dust settles.
+    ApplicationManager.getApplication().invokeLater(
+        () -> {
+          for (Map.Entry<AndroidIconType, ConfigureIconView> entry: myConfigureIconViews.entrySet()) {
+            PersistentStateUtil.load(entry.getValue(), state.getChild(toLowerCamelCase(entry.getKey())));
+          }
+        },
+        ModalityState.any());
+  }
+
+  private static class LauncherIconsPreviewPanel extends PreviewIconsPanel {
+    public LauncherIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
     /**
-     * Override the default implementation to show only preview images, sorted by
+     * Overrides the default implementation to show only preview images, sorted by
      * a predefined preview name/category order.
      */
     @Override
     public void showPreviewImages(@NotNull IconGeneratorResult result) {
       // Default
-      GeneratedIcons generatedIcons = result.getIcons();
-      List<Pair<String, BufferedImage>> list = generatedIcons.getList().stream()
+      Collection<GeneratedIcon> generatedIcons = result.getIcons();
+      List<Pair<String, BufferedImage>> list = generatedIcons.stream()
         .filter(icon -> icon instanceof GeneratedImageIcon)
         .map(icon -> (GeneratedImageIcon)icon)
-        .filter(icon -> filterPreviewIcon(icon, ((AdaptiveIconGenerator.AdaptiveIconOptions)result.getOptions()).previewDensity))
+        .filter(icon -> filterPreviewIcon(icon, ((LauncherIconGenerator.LauncherIconOptions)result.getOptions()).previewDensity))
         .map(pair -> Pair.of(getPreviewShapeFromId(pair.getName()), pair.getImage()))
         .sorted((pair1, pair2) -> comparePreviewShapes(pair1.getFirst(), pair2.getFirst()))
         .map(pair -> Pair.of(pair.getFirst().displayName, pair.getSecond()))
@@ -457,11 +485,11 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
         Objects.equals(icon.getDensity(), density);
     }
 
-    private static int comparePreviewShapes(@NotNull AdaptiveIconGenerator.PreviewShape x, @NotNull AdaptiveIconGenerator.PreviewShape y) {
-      return Ints.compare(getPreviewShapeDisplayOrder(x), getPreviewShapeDisplayOrder(y));
+    private static int comparePreviewShapes(@NotNull LauncherIconGenerator.PreviewShape x, @NotNull LauncherIconGenerator.PreviewShape y) {
+      return Integer.compare(getPreviewShapeDisplayOrder(x), getPreviewShapeDisplayOrder(y));
     }
 
-    private static int getPreviewShapeDisplayOrder(@NotNull AdaptiveIconGenerator.PreviewShape previewShape) {
+    private static int getPreviewShapeDisplayOrder(@NotNull LauncherIconGenerator.PreviewShape previewShape) {
       switch (previewShape) {
         case CIRCLE:
           return 1;
@@ -486,18 +514,18 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     }
 
     @NotNull
-    private static AdaptiveIconGenerator.PreviewShape getPreviewShapeFromId(@NotNull String previewShapeId) {
-      for (AdaptiveIconGenerator.PreviewShape shape : AdaptiveIconGenerator.PreviewShape.values()) {
+    private static LauncherIconGenerator.PreviewShape getPreviewShapeFromId(@NotNull String previewShapeId) {
+      for (LauncherIconGenerator.PreviewShape shape : LauncherIconGenerator.PreviewShape.values()) {
         if (Objects.equals(shape.id, previewShapeId)) {
           return shape;
         }
       }
-      return AdaptiveIconGenerator.PreviewShape.SQUARE;
+      return LauncherIconGenerator.PreviewShape.SQUARE;
     }
   }
 
-  private static class LegacyLauncherIconsPreviewPanel extends PreviewIconsPanel {
-    public LegacyLauncherIconsPreviewPanel() {
+  private static class LauncherLegacyIconsPreviewPanel extends PreviewIconsPanel {
+    public LauncherLegacyIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
@@ -507,8 +535,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
      */
     @Override
     public void showPreviewImages(@NotNull IconGeneratorResult iconGeneratorResult) {
-      GeneratedIcons generatedIcons = iconGeneratorResult.getIcons();
-      List<Pair<Density, BufferedImage>> list = generatedIcons.getList().stream()
+      Collection<GeneratedIcon> generatedIcons = iconGeneratorResult.getIcons();
+      List<Pair<Density, BufferedImage>> list = generatedIcons.stream()
         .filter(icon -> icon instanceof GeneratedImageIcon)
         .map(icon -> (GeneratedImageIcon)icon)
         .filter(icon -> icon.getDensity() != Density.NODPI) // Skip Web image
@@ -537,13 +565,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     @Override
     public void showPreviewImages(@NotNull IconGeneratorResult iconGeneratorResult) {
       // Default
-      GeneratedIcons generatedIcons = iconGeneratorResult.getIcons();
-      List<Pair<Density, BufferedImage>> list = generatedIcons.getList().stream()
-        .filter(x -> x instanceof GeneratedImageIcon)
-        .map(x -> (GeneratedImageIcon)x)
-        .filter(x -> x.getCategory() == IconCategory.NOTIFICATION_V11 || x.getCategory() == IconCategory.NONE)
-        .map(x -> Pair.of(x.getDensity(), x.getImage()))
-        .collect(Collectors.toList());
+      Collection<GeneratedIcon> generatedIcons = iconGeneratorResult.getIcons();
+      List<Pair<Density, BufferedImage>> list = generatedIcons.stream()
+          .filter(x -> x instanceof GeneratedImageIcon)
+          .map(x -> (GeneratedImageIcon)x)
+          .filter(x -> x.getCategory() == IconCategory.NOTIFICATION_V11 || x.getCategory() == IconCategory.NONE)
+          .map(x -> Pair.of(x.getDensity(), x.getImage()))
+          .collect(Collectors.toList());
       showPreviewImagesWithDensity(list.stream().collect(Collectors.toMap(Pair::getFirst, Pair::getSecond)));
     }
   }

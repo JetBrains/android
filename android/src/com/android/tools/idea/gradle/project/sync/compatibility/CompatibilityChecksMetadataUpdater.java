@@ -38,28 +38,27 @@ import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * Checks if there are component version metadata updates from a remote server. The check is perform on IDE startup, once, every day.
+ * Checks if there are component version metadata updates from a remote server.
  */
-public class CompatibilityChecksMetadataUpdater extends ApplicationComponent.Adapter {
-  private static final Logger LOG = Logger.getInstance(CompatibilityChecksMetadataUpdater.class);
-
+public class CompatibilityChecksMetadataUpdater {
   private static final String LAST_CHECK_TIMESTAMP_PROPERTY_NAME = "android-component-compatibility-check";
+
+  private final CheckInterval myCheckInterval;
 
   public CompatibilityChecksMetadataUpdater() {
     String checkIntervalProperty = System.getProperty("android.version.compatibility.check.interval");
-    final CheckInterval checkInterval = CheckInterval.find(checkIntervalProperty);
+    myCheckInterval = CheckInterval.find(checkIntervalProperty);
+  }
 
-    if (checkInterval != CheckInterval.NONE) {
-      Application app = ApplicationManager.getApplication();
-      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-        @Override
-        public void appFrameCreated(String[] commandLineArgs, @NotNull Ref<Boolean> willOpenProject) {
-          long lastUpdateCheck = PropertiesComponent.getInstance().getOrInitLong(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, -1);
-          if (checkInterval.needsUpdate(lastUpdateCheck)) {
-            fetchVersionMetadataUpdate(false);
-          }
-        }
-      });
+  /**
+   * Initiates fetching of meta data from server on a background thread if the meta data check interval has expired.
+   */
+  void initiateUpdateIfNecessary() {
+    if (myCheckInterval != CheckInterval.NONE) {
+      long lastUpdateCheck = PropertiesComponent.getInstance().getOrInitLong(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, -1);
+      if (myCheckInterval.needsUpdate(lastUpdateCheck)) {
+        fetchVersionMetadataUpdate(false);
+      }
     }
   }
 
@@ -84,17 +83,13 @@ public class CompatibilityChecksMetadataUpdater extends ApplicationComponent.Ada
           try {
             return JDOMUtil.loadDocument(request.getInputStream());
           }
-          catch (JDOMException e) {
-            LOG.info("Failed to parse XML metadata", e);
-            return null;
-          }
           catch (Throwable e) {
             // Some other unexpected error related to JRE setup, e.g.
             // java.lang.NoClassDefFoundError: Could not initialize class javax.crypto.SunJCE_b
             //     at javax.crypto.KeyGenerator.a(DashoA13*..)
             //     ....
             // See http://b.android.com/149270 for more.
-            LOG.info("Failed to parse XML metadata", e);
+            getLogger().info("Failed to parse XML metadata", e);
             return null;
           }
         });
@@ -104,11 +99,16 @@ public class CompatibilityChecksMetadataUpdater extends ApplicationComponent.Ada
         }
       }
       catch (IOException e) {
-        LOG.info(String.format("Failed to connect to '%1$s'", url), e);
+        getLogger().info(String.format("Failed to connect to '%1$s'", url), e);
       }
       callback.setRejected();
     });
     return callback;
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(CompatibilityChecksMetadataUpdater.class);
   }
 
   @VisibleForTesting

@@ -25,11 +25,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.refactoring.rename.RenameProcessor;
+import com.intellij.refactoring.rename.RenameViewDescriptor;
+import com.intellij.usageView.UsageInfo;
+import com.intellij.usageView.UsageViewDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +61,22 @@ public class StringResourceData {
     assert name != null;
     XmlAttributeValue nameValue = name.getValueElement();
     assert nameValue != null;
-    BaseRefactoringProcessor rename = new RenameProcessor(myFacet.getModule().getProject(), nameValue, newName, false, false);
+
+    Runnable rename = new RenameProcessor(myFacet.getModule().getProject(), nameValue, newName, false, false) {
+      @NotNull
+      @Override
+      protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
+        LinkedHashMap<PsiElement, String> map = new LinkedHashMap<>();
+
+        // Generated R.java files are read-only. Filter out PsiFields.
+        myAllRenames.keySet().stream()
+          .filter(element -> !(element instanceof PsiField))
+          .forEach(element -> map.put(element, myAllRenames.get(element)));
+
+        return new RenameViewDescriptor(map);
+      }
+    };
+
     ApplicationManager.getApplication().invokeLater(rename);
   }
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -32,24 +31,29 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link ModuleModelDataService}.
  */
 public class ModuleModelDataServiceTest extends IdeaTestCase {
+  private IdeModifiableModelsProviderImpl myModelsProvider;
+  private MyModuleModelDataService myDataService;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myDataService = new MyModuleModelDataService();
+  }
+
   public void testImportDataWithEmptyDataNodeCollection() {
     Collection<DataNode<NdkModuleModel>> toImport = new ArrayList<>();
     Project project = getProject();
-    IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    MyModuleModelDataService dataService = new MyModuleModelDataService();
-    ProjectData projectDataMock = mock(ProjectData.class);
-    when(projectDataMock.getOwner()).thenReturn(GradleUtil.GRADLE_SYSTEM_ID);
-    dataService.importData(toImport, projectDataMock, project, modelsProvider);
+    myDataService.importData(toImport, mock(ProjectData.class), project, myModelsProvider);
 
-    assertTrue(dataService.onModelsNotFoundInvoked);
-    assertFalse(dataService.importDataInvoked);
+    assertTrue(myDataService.onModelsNotFoundInvoked);
+    assertFalse(myDataService.importDataInvoked);
   }
 
   private static class MyModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
@@ -66,7 +70,7 @@ public class ModuleModelDataServiceTest extends IdeaTestCase {
     protected void importData(@NotNull Collection<DataNode<NdkModuleModel>> toImport,
                               @NotNull Project project,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @NotNull Map<String, NdkModuleModel> modelsByName) {
+                              @NotNull Map<String, NdkModuleModel> modelsByModuleName) {
       importDataInvoked = true;
     }
 

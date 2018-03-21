@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallSdkPackageHyperlink;
-import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,7 +34,7 @@ public class MissingSdkPackageSyncIssuesReporter extends BaseSyncIssuesReporter 
 
   @Override
   void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
-    SyncMessage message = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, syncIssue.getMessage());
+    SyncMessage message = generateSyncMessage(syncIssue, module, buildFile);
     if (syncIssue.getData() != null) {
       message.add(new InstallSdkPackageHyperlink(syncIssue.getData()));
     }

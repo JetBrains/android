@@ -33,7 +33,8 @@ public class PsIssueTest {
   @Test
   public void equalsAndHashCode() {
     EqualsVerifier.forClass(PsIssue.class)
-      .withIgnoredFields("myExtraPath", "myQuickFixPath")
+      .withIgnoredFields("myQuickFixPath")
+      .withPrefabValues(PsPath.class, new TestPath("a"), new TestPath("b"))
       .verify();
   }
 }

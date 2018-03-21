@@ -106,7 +106,7 @@ final class LegacyAllocationsInstanceObject implements InstanceObject {
 
   @NotNull
   @Override
-  public AllocationStack getCallStack() {
+  public AllocationStack getAllocationCallStack() {
     return myCallStack;
   }
 

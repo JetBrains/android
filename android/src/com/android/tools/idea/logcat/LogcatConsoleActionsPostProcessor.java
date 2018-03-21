@@ -46,11 +46,11 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     }
 
     ConsoleViewImpl consoleImpl = (ConsoleViewImpl)console;
-    if (!(consoleImpl.getParent() instanceof AndroidLogcatView.AndroidLogConsole)) {
+    if (!(consoleImpl.getParent() instanceof AndroidLogConsole)) {
       return actions;
     }
 
-    return processActions((AndroidLogcatView.AndroidLogConsole) consoleImpl.getParent(), actions);
+    return processActions((AndroidLogConsole)consoleImpl.getParent(), actions);
   }
 
   @NotNull
@@ -61,11 +61,11 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     }
 
     ConsoleViewImpl consoleImpl = (ConsoleViewImpl)console;
-    if (!(consoleImpl.getParent() instanceof AndroidLogcatView.AndroidLogConsole)) {
+    if (!(consoleImpl.getParent() instanceof AndroidLogConsole)) {
       return actions;
     }
 
-    return processPopupActions((AndroidLogcatView.AndroidLogConsole) consoleImpl.getParent(), actions);
+    return processPopupActions((AndroidLogConsole)consoleImpl.getParent(), actions);
   }
 
   /**
@@ -73,8 +73,9 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
    *
    * @see <a href="http://b.android.com/66626">Bug 66626</a>.
    */
-  private AnAction[] processActions(AndroidLogcatView.AndroidLogConsole console, AnAction[] actions) {
-    List<AnAction> actionList = new ArrayList<AnAction>(actions.length);
+  @NotNull
+  private static AnAction[] processActions(@NotNull AndroidLogConsole console, @NotNull AnAction[] actions) {
+    List<AnAction> actionList = new ArrayList<>(actions.length);
 
     AnAction scrollToEndAction = null;
 
@@ -110,12 +111,14 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
   /**
    * Replaces standard "Clear All" action to "Clear Logcat" action
    */
-  private AnAction[] processPopupActions(AndroidLogcatView.AndroidLogConsole console, AnAction[] actions) {
+  @NotNull
+  private static AnAction[] processPopupActions(@NotNull AndroidLogConsole console, @NotNull AnAction[] actions) {
     AnAction[] resultActions = new AnAction[actions.length];
     for (int i = 0; i < actions.length; ++i) {
       if (actions[i] instanceof ConsoleViewImpl.ClearAllAction) {
         resultActions[i] = new ClearLogCatAction(console);
-      } else {
+      }
+      else {
         resultActions[i] = actions[i];
       }
     }
@@ -123,9 +126,9 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
   }
 
   private static final class ClearLogCatAction extends DumbAwareAction {
-    private final AndroidLogcatView.AndroidLogConsole myConsole;
+    private final AndroidLogConsole myConsole;
 
-    public ClearLogCatAction(AndroidLogcatView.AndroidLogConsole console) {
+    private ClearLogCatAction(@NotNull AndroidLogConsole console) {
       super(AndroidBundle.message("android.logcat.clear.log.action.title"),
             AndroidBundle.message("android.logcat.clear.log.action.tooltip"),
             AllIcons.Actions.GC);

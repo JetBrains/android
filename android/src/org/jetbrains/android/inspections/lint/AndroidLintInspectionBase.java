@@ -58,6 +58,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @GuardedBy("ISSUE_MAP_LOCK")
   private static volatile List<Tools> ourDynamicTools;
 
+  private static boolean ourRegisterDynamicToolsFromTests;
+
   protected final Issue myIssue;
   private String[] myGroupPath;
   private final String myDisplayName;
@@ -124,7 +126,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
           Collections.addAll(result, fixes);
         }
 
-        if (!result.isEmpty()) {
+        if (!result.isEmpty() &&
+            (fixData == null || result.size() != 1 ||
+             !result.get(0).getName().startsWith("Suppress: "))) {
           // If one or more fixes were registered by quickfix providers, and this is a Kotlin file,
           // it's likely that the Kotlin plugin provided an alternative quickfix for this problem,
           // and we don't want to include the Java-centric quickfixes from the Android plugin
@@ -319,11 +323,17 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @TestOnly
+  @SuppressWarnings("GuardedBy")
   public static void invalidateInspectionShortName2IssueMap() {
     //noinspection FieldAccessNotGuarded  // TestOnly method
     ourIssue2InspectionShortName = null;
     //noinspection FieldAccessNotGuarded  // TestOnly method
     ourDynamicTools = null;
+  }
+
+  @TestOnly
+  public static void setRegisterDynamicToolsFromTests(boolean registerDynamicToolsFromTests) {
+    ourRegisterDynamicToolsFromTests = registerDynamicToolsFromTests;
   }
 
   @Nullable
@@ -333,11 +343,44 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
   }
 
-  @Nullable
   public static void resetDynamicTools() {
     synchronized (ISSUE_MAP_LOCK) {
       ourDynamicTools = null;
     }
+  }
+
+  @Nullable
+  public static Issue findIssueByShortName(@Nullable Project project, @NotNull String name) {
+    // Look up issue by inspections (for third-party issues)
+    String inspectionName = name.startsWith(LINT_INSPECTION_PREFIX) ? name : LINT_INSPECTION_PREFIX + name;
+
+    Issue issue = null;
+    List<Tools> tools = getDynamicTools();
+    if (tools != null) {
+      for (Tools tool : tools) {
+        if (inspectionName.equals(tool.getShortName())) {
+          InspectionProfileEntry e = tool.getTool().getTool();
+          if (e instanceof AndroidLintInspectionBase) {
+            issue = ((AndroidLintInspectionBase)e).getIssue();
+            break;
+          }
+        }
+      }
+    }
+
+    if (issue == null && project != null) {
+      InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
+      for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
+        if (inspectionName.equals(e.getShortName())) {
+          InspectionProfileEntry entry = e.getTool();
+          if (entry instanceof AndroidLintInspectionBase) {
+            issue = ((AndroidLintInspectionBase)entry).getIssue();
+          }
+        }
+      }
+    }
+
+    return issue;
   }
 
   public static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
@@ -365,7 +408,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       // inspection profiles containing only the to-be-tested inspections
       // and we don't want random other inspections to show up)
       String name = ourIssue2InspectionShortName.get(issue);
-      if (name == null && !ApplicationManager.getApplication().isUnitTestMode()) {
+      if (name == null &&
+          (!ApplicationManager.getApplication().isUnitTestMode() || ourRegisterDynamicToolsFromTests)) {
         AndroidLintInspectionBase tool = createInspection(issue);
         LintInspectionFactory factory = new LintInspectionFactory(tool);
         // We have to add the tool both to the current and the base profile; otherwise, bringing up
@@ -567,7 +611,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   /** Wraps quickfixes from {@link LintFix} with default implementations */
-  static AndroidLintQuickFix[] createFixes(@Nullable PsiFile file, @Nullable LintFix lintFix) {
+  public static AndroidLintQuickFix[] createFixes(@Nullable PsiFile file, @Nullable LintFix lintFix) {
     if (lintFix instanceof ReplaceString) {
       ReplaceString data = (ReplaceString)lintFix;
       String regexp;

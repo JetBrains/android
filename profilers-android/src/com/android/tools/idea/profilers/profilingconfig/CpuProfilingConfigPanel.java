@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -103,8 +104,8 @@ public class CpuProfilingConfigPanel {
    */
   private boolean myIsDeviceAtLeastO;
 
-  CpuProfilingConfigPanel(boolean isDeviceAtLeastO) {
-    myIsDeviceAtLeastO = isDeviceAtLeastO;
+  CpuProfilingConfigPanel(int deviceApiLevel) {
+    myIsDeviceAtLeastO = deviceApiLevel >= AndroidVersion.VersionCodes.O;
     // TODO: calculate this value based on device available space
     myMaxFileSizeLimitMb = 4096;
     createUiComponents();
@@ -193,7 +194,7 @@ public class CpuProfilingConfigPanel {
         getLogger().warn("Invalid trace technology detected.");
       }
     }
-    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
+    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
       assert configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
       mySimpleperfButton.setSelected(true);
       setEnabledSamplingIntervalPanel(true);
@@ -269,16 +270,16 @@ public class CpuProfilingConfigPanel {
     myArtSampledButton = new JRadioButton(ProfilingConfiguration.ART_SAMPLED);
     createRadioButtonUi(myArtSampledButton, "Samples Java code using Android Runtime.", TraceTechnology.ART_SAMPLED, profilersType);
 
-    mySimpleperfButton = new JRadioButton(ProfilingConfiguration.SIMPLEPERF);
-    if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
-      createRadioButtonUi(mySimpleperfButton, "<html>Samples Java and native code using simpleperf. " +
-                                              "Available for Android O and greater.</html>",
-                          TraceTechnology.SIMPLEPERF, profilersType);
-    }
-
     myArtInstrumentedButton = new JRadioButton(ProfilingConfiguration.ART_INSTRUMENTED);
     createRadioButtonUi(myArtInstrumentedButton, "Instruments Java code using Android Runtime.",
                         TraceTechnology.ART_INSTRUMENTED, profilersType);
+
+    mySimpleperfButton = new JRadioButton(ProfilingConfiguration.SIMPLEPERF);
+    if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
+      createRadioButtonUi(mySimpleperfButton, "<html>Samples native code using simpleperf. " +
+                                              "Available for Android 8.0 (API level 26) and higher.</html>",
+                          TraceTechnology.SIMPLEPERF, profilersType);
+    }
   }
 
   private void updateConfigurationProfilerAndMode(TraceTechnology technology) {
@@ -294,7 +295,7 @@ public class CpuProfilingConfigPanel {
         setEnabledSamplingIntervalPanel(false);
         break;
       case SIMPLEPERF:
-        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
         myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
     }
@@ -366,7 +367,7 @@ public class CpuProfilingConfigPanel {
     fileSizeLimitPanel.add(myFileSizeLimitUnit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(fileSizeLimitPanel);
 
-    JLabel description = new JLabel("<html>Maximum size of the output file from recording. On Android O or greater, " +
+    JLabel description = new JLabel("<html>Maximum size of the output file from recording. On Android 8.0 (API level 26) and higher, " +
                                     "there is no limit on the file size and the value is ignored.</html>");
     description.setFont(description.getFont().deriveFont(12f));
     myConfigPanel.add(description);

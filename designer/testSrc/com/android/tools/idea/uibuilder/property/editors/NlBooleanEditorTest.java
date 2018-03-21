@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.fixtures.NlBooleanEditorFixture;
-import com.intellij.testFramework.LeakHunter;
 
 import static com.android.SdkConstants.ATTR_CHECKED;
 
@@ -44,11 +43,15 @@ public class NlBooleanEditorTest extends PropertyTestCase {
     myEditor
       .setProperty(getProperty(myCheckBox1, ATTR_CHECKED))
       .expectValue(null)
+      .expectCheckboxTipText(NlBooleanEditor.TIP_TEXT_DONT_CARE)
       .click()
       .expectValue(Boolean.TRUE)
+      .expectCheckboxTipText(NlBooleanEditor.TIP_TEXT_SELECTED)
       .click()
       .expectValue(Boolean.FALSE)
+      .expectCheckboxTipText(NlBooleanEditor.TIP_TEXT_NOT_SELECTED)
       .click()
-      .expectValue(null);
+      .expectValue(null)
+      .expectCheckboxTipText(NlBooleanEditor.TIP_TEXT_DONT_CARE);
   }
 }

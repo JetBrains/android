@@ -70,6 +70,11 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
     myAvdDisplayList.refreshAvds();
   }
 
+  @Override
+  public void refreshAvdsAndSelect(@Nullable AvdInfo avdToSelect) {
+    myAvdDisplayList.refreshAvdsAndSelect(avdToSelect);
+  }
+
   @Nullable
   @Override
   public Project getProject() {

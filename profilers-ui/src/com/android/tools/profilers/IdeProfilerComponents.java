@@ -15,21 +15,29 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.stacktrace.*;
+import com.android.tools.profilers.stacktrace.DataViewer;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceView;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.Collection;
 
+/**
+ * Abstractions for various, custom UI components that are useful to use throughout the profilers,
+ * which should be implemented by any system wishing to display our profilers.
+ *
+ * Note: Expectations are that methods in here should alwayws return a created component. In other
+ * words, this shouldn't become a home for 'void' utility methods. If such methods are needed,
+ * create a helper interface with those void methods, and return that instead.
+ */
 public interface IdeProfilerComponents {
 
   /**
-   * @param delayMs Amount of delay when the loading panel should show up. value <= 0 indicates no delay.
+   * @param delayMs amount of delay when the loading panel should show up. value <= 0 indicates no delay.
    */
   @NotNull
   LoadingPanel createLoadingPanel(int delayMs);
@@ -37,39 +45,20 @@ public interface IdeProfilerComponents {
   @NotNull
   StackTraceView createStackView(@NotNull StackTraceModel model);
 
-  /**
-   * Installs an IntelliJ context menu on a {@link JComponent} which, when clicked, will navigate
-   * to a code location provided by the {@code codeLocationSupplier}.
-   *
-   * @param component            The target {@link JComponent} that the context menu is to be installed on.
-   * @param navigator            A {@link CodeNavigator} that should ultimately handle the navigation, allowing the profiler to respond to
-   * @param codeLocationSupplier A {@link Supplier} of the desired code to navigate to. When the supplier is resolved, the system is not
-   *                             necessarily ready to conduct the navigation (i.e. displaying the menu popup, awaiting user input).
-   */
-  void installNavigationContextMenu(@NotNull JComponent component,
-                                    @NotNull CodeNavigator navigator,
-                                    @NotNull Supplier<CodeLocation> codeLocationSupplier);
+  @NotNull
+  ContextMenuInstaller createContextMenuInstaller();
 
-  /**
-   * Installs a generic IntelliJ context menu on a {@code component} from the specified {@code contextMenu}.
-   * TODO - handles shortcut
-   */
-  void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem);
-
-  /**
-   * Opens an export dialog
-   *
-   * @param dialogTitleSupplier Title supplier for the title of the file chooser popup when the user clicks on the button.
-   * @param extensionSupplier   Extension supplier for the extension of the target file.
-   * @param saveToFile          File consumer for the file to save to (usually method to write to the file).
-   */
-  void openExportDialog(@NotNull Supplier<String> dialogTitleSupplier,
-                        @NotNull Supplier<String> extensionSupplier,
-                        @NotNull Consumer<File> saveToFile);
+  @NotNull
+  ExportDialog createExportDialog();
 
   @NotNull
   DataViewer createFileViewer(@NotNull File file);
 
   @NotNull
   JComponent createResizableImageComponent(@NotNull BufferedImage image);
+
+  @NotNull
+  AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeHolder,
+                                                    @NotNull String value,
+                                                    @NotNull Collection<String> variants);
 }

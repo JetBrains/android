@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.adtui.font.FontUtil;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Caret;

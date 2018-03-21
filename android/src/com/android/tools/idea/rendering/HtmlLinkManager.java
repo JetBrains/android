@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.projectsystem.*;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -63,6 +65,7 @@ import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -197,10 +200,11 @@ public class HtmlLinkManager {
         linkRunnable.run();
       }
     }
-    else if (url.startsWith(URL_ADD_DEPENDENCY)) {
-      if (module != null) {
-        handleAddDependency(url, module);
-      }
+    else if (url.startsWith(URL_ADD_DEPENDENCY) && module != null) {
+      assert module.getModuleFile() != null;
+      handleAddDependency(url, ProjectSystemUtil.getModuleSystem(module));
+      ProjectSystemUtil.getSyncManager(module.getProject())
+        .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
     }
     else if (url.startsWith(URL_COMMAND)) {
       WriteCommandAction command = getLinkCommand(url);
@@ -349,10 +353,7 @@ public class HtmlLinkManager {
 
   private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_BUILD) : url;
-    BuildSystemService service = BuildSystemService.getInstance(project);
-    if (service != null) {
-      service.buildProject(project);
-    }
+    ProjectSystemUtil.getProjectSystem(project).buildProject();
   }
 
   public String createSyncProjectUrl() {
@@ -361,10 +362,9 @@ public class HtmlLinkManager {
 
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_SYNC) : url;
-    BuildSystemService service = BuildSystemService.getInstance(project);
-    if (service != null) {
-      service.syncProject(project);
-    }
+
+    ProjectSystemSyncManager.SyncReason reason = project.isInitialized() ? ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED : ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason, true);
   }
 
   public String createEditClassPathUrl() {
@@ -666,7 +666,8 @@ public class HtmlLinkManager {
   private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
-    final String className = ChooseClassDialog.openDialog(module, "Fragments", true, null, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
+    Predicate<PsiClass> psiFilter = ChooseClassDialog.getUserDefinedPublicAndUnrestrictedFilter();
+    String className = ChooseClassDialog.openDialog(module, "Fragments", null, psiFilter, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
     if (className == null) {
       return;
     }
@@ -909,7 +910,7 @@ public class HtmlLinkManager {
       if (renderTask != null) {
         EditorDesignSurface surface = renderTask.getDesignSurface();
         if (surface != null) {
-          RefreshRenderAction.clearCache(surface);
+          RefreshRenderAction.clearCache(surface.getConfiguration());
         }
       }
     }
@@ -927,16 +928,31 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createAddDependencyUrl(String artifact) {
-    return URL_ADD_DEPENDENCY + artifact;
+  public String createAddDependencyUrl(GoogleMavenArtifactId artifactId) {
+    return URL_ADD_DEPENDENCY + artifactId;
   }
 
-  private static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
+  @VisibleForTesting
+  static void handleAddDependency(@NotNull String url, @NotNull final AndroidModuleSystem moduleSystem) {
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
-    BuildSystemService service = BuildSystemService.getInstance(module.getProject());
-    if (service != null) {
-      String dependency = url.substring(URL_ADD_DEPENDENCY.length());
-      service.addDependency(module, dependency);
+    String coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateStr + ":+");
+    if (coordinate == null) {
+      Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
+      return;
+    }
+
+    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.forCoordinate(coordinate);
+    if (artifactId == null) {
+      Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinate);
+      return;
+    }
+
+    try {
+      moduleSystem.addDependencyWithoutSync(artifactId, null, false);
+    }
+    catch (DependencyManagementException e) {
+      Logger.getInstance(HtmlLinkManager.class).warn(e.getMessage());
     }
   }
 }

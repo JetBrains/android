@@ -28,7 +28,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
 import com.intellij.ide.ui.UISettings;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.fixture.JPopupMenuFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,8 +43,8 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(GuiTestRunner.class)
 public class NlEditorTest {
@@ -49,7 +53,7 @@ public class NlEditorTest {
 
   @Test
   public void testSelectComponent() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -80,15 +84,15 @@ public class NlEditorTest {
    *   1. The added component shows up in the xml
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void basicLayoutEdit() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
       .dragComponentToSurface("Text", "TextView")
-      .dragComponentToSurface("Widgets", "Button");
+      .dragComponentToSurface("Buttons", "Button");
     String layoutFileContents = guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
@@ -99,13 +103,13 @@ public class NlEditorTest {
 
   @Test
   public void testCopyAndPaste() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true)
-      .dragComponentToSurface("Widgets", "Button")
-      .dragComponentToSurface("Widgets", "CheckBox")
+      .dragComponentToSurface("Buttons", "Button")
+      .dragComponentToSurface("Buttons", "CheckBox")
       .waitForRenderToFinish();
 
     // Find and click the first text view
@@ -130,7 +134,7 @@ public class NlEditorTest {
 
   @Test
   public void testZoomAndPanWithMouseShortcut() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
@@ -163,13 +167,15 @@ public class NlEditorTest {
 
   @Test
   public void testAddDesignLibrary() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest.importSimpleLocalApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
-      .dragComponentToSurface("Design", "android.support.design.widget.TextInputLayout");
+      .dragComponentToSurface("Text", "TextInputLayout");
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
-    guiTest.ideFrame()
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    ideFrame
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("app/build.gradle")
@@ -177,8 +183,10 @@ public class NlEditorTest {
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
       .invokeAction(EditorFixture.EditorAction.SAVE)
       .awaitNotification(
-        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-      .performAction("Sync Now")
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+
+    ideFrame
+      .requestProjectSync()
       .waitForGradleProjectSyncToFinish();
   }
 
@@ -188,24 +196,133 @@ public class NlEditorTest {
 
     try {
       StudioFlags.NELE_CONVERT_VIEW.override(true);
-
-      guiTest.importSimpleApplication();
+      guiTest.importSimpleLocalApplication();
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
       NlEditorFixture layout = editor.getLayoutEditor(true)
-        .dragComponentToSurface("Widgets", "Button")
+        .dragComponentToSurface("Buttons", "Button")
         .waitForRenderToFinish();
 
+      // Test enter text manually
       NlComponentFixture button = layout.findView("Button", 0);
-      MorphDialogFixture fixture = layout.openMorphDialogForComponent(button);
+      button.rightClick();
+      layout.invokeContextMenuAction("Convert view...");
+      MorphDialogFixture fixture = layout.findMorphDialog();
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
       ideFrame.robot().enterText("TextView");
       ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
       assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
       fixture.getOkButton().click();
+      assertNotNull(layout.findView("TextView", 1));
       assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
+
+      // Test click on a suggestion
+      NlComponentFixture textView = layout.findView("TextView", 0);
+      textView.rightClick();
+      textView.invokeContextMenuAction("Convert view...");
+      fixture = layout.findMorphDialog();
+      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+
+      fixture.getSuggestionList().clickItem("Button");
+      assertThat(fixture.getTextField().target().getText()).isEqualTo("Button");
+      fixture.getOkButton().click();
+      layout.waitForRenderToFinish();
+      assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
+    }
+    finally {
+      StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
+    }
+  }
+
+  @Test
+  public void morphViewGroup() throws IOException {
+    boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
+
+    try {
+      StudioFlags.NELE_CONVERT_VIEW.override(true);
+      guiTest.importSimpleLocalApplication();
+      IdeFrameFixture ideFrame = guiTest.ideFrame();
+      EditorFixture editor = ideFrame.getEditor()
+        .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
+      NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
+
+      // Right click on AbsoluteLayout in the component tree
+      NlComponentFixture root = layout.findView("AbsoluteLayout", 0);
+      JPopupMenuFixture popupMenu = layout.getTreePopupMenuItemForComponent(root.getComponent());
+
+      // Open the convert view dialog
+      popupMenu.menuItemWithPath("Convert view...").click();
+      MorphDialogFixture fixture = layout.findMorphDialog();
+
+      // Click the LinearLayout button
+      fixture.getSuggestionList().clickItem("LinearLayout");
+
+      // Apply change
+      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+
+      // Check if change is correctly applied:
+      //    - Root name change from AbsoluteLayout to LinearLayout
+      //    - Attributes specific to AbsoluteLayout are removed
+      assertThat(root.getComponent().getTag().getName()).isEqualTo("LinearLayout");
+      String expected = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                        "    android:layout_width=\"match_parent\"\n" +
+                        "    android:layout_height=\"match_parent\"\n" +
+                        "    android:paddingBottom=\"16dp\"\n" +
+                        "    android:paddingLeft=\"16dp\"\n" +
+                        "    android:paddingRight=\"16dp\"\n" +
+                        "    android:paddingTop=\"16dp\">\n" +
+                        "\n" +
+                        "    <Button\n" +
+                        "        android:id=\"@+id/button\"\n" +
+                        "        android:layout_width=\"wrap_content\"\n" +
+                        "        android:layout_height=\"wrap_content\"\n" +
+                        "        android:text=\"Button\" />\n" +
+                        "\n" +
+                        "    <Button\n" +
+                        "        android:id=\"@+id/button2\"\n" +
+                        "        android:layout_width=\"wrap_content\"\n" +
+                        "        android:layout_height=\"wrap_content\"\n" +
+                        "        android:text=\"Button\" />\n" +
+                        "\n" +
+                        "    <EditText\n" +
+                        "        android:id=\"@+id/editText\"\n" +
+                        "        android:layout_width=\"wrap_content\"\n" +
+                        "        android:layout_height=\"wrap_content\"\n" +
+                        "        android:ems=\"10\"\n" +
+                        "        android:inputType=\"textPersonName\"\n" +
+                        "        android:text=\"Name\" />\n" +
+                        "\n" +
+                        "    <LinearLayout\n" +
+                        "        android:layout_width=\"359dp\"\n" +
+                        "        android:layout_height=\"89dp\">\n" +
+                        "\n" +
+                        "        <Button\n" +
+                        "            android:id=\"@+id/button3\"\n" +
+                        "            android:layout_width=\"wrap_content\"\n" +
+                        "            android:layout_height=\"wrap_content\"\n" +
+                        "            android:layout_weight=\"1\"\n" +
+                        "            android:text=\"Button\" />\n" +
+                        "\n" +
+                        "        <Button\n" +
+                        "            android:id=\"@+id/button5\"\n" +
+                        "            android:layout_width=\"wrap_content\"\n" +
+                        "            android:layout_height=\"wrap_content\"\n" +
+                        "            android:layout_weight=\"1\"\n" +
+                        "            android:text=\"Button\" />\n" +
+                        "\n" +
+                        "        <Button\n" +
+                        "            android:id=\"@+id/button6\"\n" +
+                        "            android:layout_width=\"wrap_content\"\n" +
+                        "            android:layout_height=\"wrap_content\"\n" +
+                        "            android:layout_weight=\"1\"\n" +
+                        "            android:text=\"Button\" />\n" +
+                        "    </LinearLayout>\n" +
+                        "</LinearLayout>";
+      String text = ApplicationManager.getApplication()
+        .runReadAction((Computable<String>)() -> root.getComponent().getTag().getText());
+      assertThat(text).isEqualTo(expected);
     }
     finally {
       StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
@@ -226,7 +343,7 @@ public class NlEditorTest {
       settings.setEditorTabPlacement(UISettings.TABS_NONE);
 
       // Open up 2 layout files in design and switch them both to text editor mode.
-      guiTest.importSimpleApplication();
+      guiTest.importSimpleLocalApplication();
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor().open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
       editor.getLayoutEditor(true).waitForRenderToFinish();
@@ -251,8 +368,21 @@ public class NlEditorTest {
   }
 
   @Test
+  public void gotoAction() throws IOException {
+    guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor(true);
+    nlEditorFixture.rightClick();
+    nlEditorFixture.invokeContextMenuAction("Go to XML");
+    assertThat(editor.getSelectedTab()).isEqualTo("Text");
+  }
+
+  @Test
   public void scrollWhileZoomed() throws Exception {
-    NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
+    NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
       .getEditor()
       .open("app/src/main/res/layout/scroll.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true);
@@ -261,7 +391,7 @@ public class NlEditorTest {
       .waitForRenderToFinish()
       .mouseWheelZoomIn(-10)
       .getScrollPosition();
-    View  view = (View)layoutEditor.findView("android.support.v4.widget.NestedScrollView", 0).getViewObject();
+    View view = (View)layoutEditor.findView("android.support.v4.widget.NestedScrollView", 0).getViewObject();
     assertThat(view.getScrollY()).isEqualTo(0);
 
     // Scroll a little bit: the ScrollView moves, the Surface stays.

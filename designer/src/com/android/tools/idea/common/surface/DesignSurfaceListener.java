@@ -29,9 +29,6 @@ public interface DesignSurfaceListener {
   /** The set of currently selected components in the given surface changed */
   default void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {}
 
-  /** The current screen, if any, changed */
-  default void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {}
-
   /** The current model changed */
   default void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {}
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -64,14 +65,15 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ConnectTop, list, false);
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectTop, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
                  "        android:layout_marginTop=\"525dp\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\" />");
   }
 
   public void testConnectBottom() {
@@ -82,15 +84,15 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     System.out.println("list size" + list.size());
-    Scout.arrangeWidgets(Scout.Arrange.ConnectBottom, list, false);
-
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectBottom, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
                  "        android:layout_marginBottom=\"460dp\"\n" +
-                 "        app:layout_constraintBottom_toBottomOf=\"parent\" />");
+                 "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\" />");
   }
 
   public void testConnectStart() {
@@ -100,15 +102,16 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ConnectStart, list, false);
-
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectStart, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
+                 "        android:layout_marginLeft=\"200dp\"\n" +
                  "        android:layout_marginStart=\"200dp\"\n" +
-                 "        app:layout_constraintStart_toStartOf=\"parent\" />");
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 
   public void testConnectEnd() {
@@ -118,15 +121,16 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, list, false);
-
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectEnd, list, false);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
                  "        android:layout_marginEnd=\"75dp\"\n" +
-                 "        app:layout_constraintEnd_toStartOf=\"@+id/textview3\" />");
+                 "        android:layout_marginRight=\"75dp\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/textview3\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 
   public void testConnectEndGap() {
@@ -136,12 +140,13 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, list, true);
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ConnectEnd, list, true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
-                 "        app:layout_constraintEnd_toStartOf=\"@+id/textview3\" />");
+                 "        app:layout_constraintEnd_toStartOf=\"@+id/textview3\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 }

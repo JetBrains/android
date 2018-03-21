@@ -22,12 +22,14 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -53,27 +56,43 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     myFixture.setTestDataPath(getTestDataPath());
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderTestUtil.afterRenderTestCase();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
   public static String getTestDataPath() {
     return getDesignerPluginHome() + "/testData";
   }
 
   public static String getDesignerPluginHome() {
-    return AndroidTestBase.getAndroidModulePath("designer");
+    // Now that the Android plugin is kept in a separate place, we need to look in
+    // a relative position instead
+    String adtPath = PathManager.getHomePath() + "/../adt/idea/designer";
+    if (new File(adtPath).exists()) {
+      return adtPath;
+    }
+    return AndroidTestBase.getAndroidPluginHome();
   }
 
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
     return new ModelBuilder(myFacet, myFixture, name, root,
                             model -> {
-                              SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
                               LayoutlibSceneManager.updateHierarchy(buildViewInfos(model, root), model);
+                              SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
                               return manager;
                             },
                             (model, newModel) ->
                               LayoutlibSceneManager
                                 .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
                                                  model),
-                            "layout", NlDesignSurface.class, NlDesignSurface::createComponent);
+                            "layout", NlDesignSurface.class);
   }
 
   private static List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {

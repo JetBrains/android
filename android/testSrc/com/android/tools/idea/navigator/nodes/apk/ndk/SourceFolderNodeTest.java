@@ -26,7 +26,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;

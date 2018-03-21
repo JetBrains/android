@@ -19,12 +19,11 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.fonts.MoreFontsDialog;
 import com.android.tools.idea.fonts.ProjectFonts;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString.ValueSelector;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -34,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.FONT_PREFIX;
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
@@ -51,7 +51,7 @@ public class FontEnumSupport extends EnumSupport {
     List<ValueWithDisplayString> values = new ArrayList<>();
     List<FontFamily> fonts = myProjectFonts.getFonts();
     for (FontFamily font : fonts) {
-      values.add(new ValueWithDisplayString(font.getName(), "@font/" + font.getName()));
+      values.add(new ValueWithDisplayString(font.getName(), FONT_PREFIX + font.getName()));
     }
     if (!values.isEmpty()) {
       values.add(ValueWithDisplayString.SEPARATOR);
@@ -83,11 +83,11 @@ public class FontEnumSupport extends EnumSupport {
     FontFamily fontFamily = myProjectFonts.getFont(fontValue);
     switch (fontFamily.getFontSource()) {
       case SYSTEM:
-        renderer.setIcon(AndroidIcons.Android);
+        renderer.setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT);
         break;
       case PROJECT:
         if (fontFamily.getMenu().startsWith(FILE_PROTOCOL_START)) {
-          renderer.setIcon(AndroidIcons.FontFile);
+          renderer.setIcon(StudioIcons.Shell.Filetree.FONT_FILE);
         }
         else if (fontFamily.getMenu().startsWith(HTTPS_PROTOCOL_START)) {
           renderer.setIcon(StudioIcons.Common.LINK);
@@ -105,6 +105,9 @@ public class FontEnumSupport extends EnumSupport {
   @NotNull
   @Override
   protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
+    if (value != null && !value.startsWith(FONT_PREFIX) && !AndroidDomUtil.AVAILABLE_FAMILIES.contains(value)) {
+      value = FONT_PREFIX + value;
+    }
     return new ValueWithDisplayString(resolvedValue, value);
   }
 
@@ -126,7 +129,7 @@ public class FontEnumSupport extends EnumSupport {
       if (font == null) {
         return null;
       }
-      return new ValueWithDisplayString(StringUtil.trimStart(font, "@font/"), font);
+      return new ValueWithDisplayString(StringUtil.trimStart(font, FONT_PREFIX), font);
     }
   }
 }

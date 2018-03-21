@@ -87,7 +87,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myPanel.getComponent();
+    return myPanel.getLoadingPanel();
   }
 
   @Nullable

@@ -68,11 +68,6 @@ public abstract class IdeaSourceProvider {
   }
 
   @NotNull
-  public static IdeaSourceProvider create(@NotNull NdkFacet facet) {
-    return new Native(facet);
-  }
-
-  @NotNull
   public static IdeaSourceProvider create(@NotNull AndroidFacet facet) {
     return new Legacy(facet);
   }
@@ -234,111 +229,6 @@ public abstract class IdeaSourceProvider {
     @Override
     public int hashCode() {
       return myProvider.getManifestFile().getPath().hashCode();
-    }
-  }
-
-  /** {@linkplain IdeaSourceProvider} for a Native Android Gradle project */
-  private static class Native extends IdeaSourceProvider {
-    @NotNull private final NdkFacet myFacet;
-
-    private Native(@NotNull NdkFacet facet) {
-      myFacet = facet;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return "";
-    }
-
-    @Nullable
-    @Override
-    public VirtualFile getManifestFile() {
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getJavaDirectories() {
-      return Collections.emptySet();
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getResourcesDirectories() {
-      return Collections.emptySet();
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getAidlDirectories() {
-      return Collections.emptySet();
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getRenderscriptDirectories() {
-      return Collections.emptySet();
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getJniDirectories() {
-      NdkModuleModel ndkModuleModel = myFacet.getNdkModuleModel();
-      if (ndkModuleModel == null) {
-        return Collections.emptyList();
-      }
-
-      Collection<File> sourceFolders = ndkModuleModel.getSelectedVariant().getSourceFolders();
-
-      Collection<VirtualFile> result = Sets.newLinkedHashSetWithExpectedSize(sourceFolders.size());
-      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-      for (File file : sourceFolders) {
-        VirtualFile virtualFile = fileSystem.findFileByIoFile(file);
-        if (virtualFile != null) {
-          result.add(virtualFile);
-        }
-      }
-
-      return result;
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getJniLibsDirectories() {
-      return Collections.emptySet();
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getResDirectories() {
-      return Collections.emptySet();
-    }
-
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getAssetsDirectories() {
-      return Collections.emptySet();
-    }
-
-    @Override
-    @NotNull
-    public Collection<VirtualFile> getShadersDirectories() {
-      return Collections.emptySet();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      Native that = (Native)o;
-      return myFacet.equals(that.myFacet);
-    }
-
-    @Override
-    public int hashCode() {
-      return myFacet.hashCode();
     }
   }
 

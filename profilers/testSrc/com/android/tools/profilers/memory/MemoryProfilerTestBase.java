@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
@@ -48,10 +47,10 @@ public abstract class MemoryProfilerTestBase {
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
     myAspectObserver = new MemoryAspectObserver(myStage.getAspect());
     onProfilersCreated(myProfilers);
-    myProfilers.setStage(myStage);
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myProfilers.setStage(myStage);
   }
 
   /**

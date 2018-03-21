@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.base.Joiner;
@@ -56,7 +56,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
-import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
+import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -194,7 +194,17 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             return;
           }
 
+          // Changing and applying the Gradle models MUST be done before attempting to change the module roots. If not
+          // the view provider used to construct the psi tree will be marked as invalid and any attempted change will
+          // cause a PsiInvalidAccessException.
           settingsModel.replaceModulePath(oldModuleGradlePath, getNewPath(oldModuleGradlePath, inputString));
+
+          // Rename all references in build.gradle
+          for (GradleBuildModel buildModel : modifiedBuildModels) {
+            buildModel.applyChanges();
+          }
+          settingsModel.applyChanges();
+
           // Rename the directory
           try {
             moduleRoot.rename(this, inputString);
@@ -208,12 +218,6 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
           }
 
           modifiableModel.commit();
-
-          // Rename all references in build.gradle
-          for (GradleBuildModel buildModel : modifiedBuildModels) {
-            buildModel.applyChanges();
-          }
-          settingsModel.applyChanges();
 
           UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
             @Override
@@ -239,7 +243,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
   }
 
   private static String getNewPath(@NotNull String oldPath, @NotNull String newName) {

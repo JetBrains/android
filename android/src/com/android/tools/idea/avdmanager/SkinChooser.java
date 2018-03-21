@@ -108,7 +108,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
     Set<File> result = Sets.newTreeSet();
     for (Device device : devices) {
-      File skinFile = AvdWizardUtils.resolveSkinPath(device.getDefaultHardware().getSkinFile(), null, FileOpUtils.create());
+      File skinFile = AvdWizardUtils.pathToUpdatedSkins(device.getDefaultHardware().getSkinFile(), null, FileOpUtils.create());
       if (skinFile != null && skinFile.exists()) {
         result.add(skinFile);
       }
@@ -161,7 +161,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
       return null;
     }
     if (myResolveSystemImageSkins) {
-      return AvdWizardUtils.resolveSkinPath(skinFile, null, FileOpUtils.create());
+      return AvdWizardUtils.pathToUpdatedSkins(skinFile, null, FileOpUtils.create());
     }
     else {
       return new File(skinFile.getName());

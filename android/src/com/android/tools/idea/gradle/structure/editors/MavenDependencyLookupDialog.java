@@ -18,10 +18,12 @@ package com.android.tools.idea.gradle.structure.editors;
 import com.android.SdkConstants;
 import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.eclipse.ImportModule;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -58,6 +60,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Predicate;
 
 import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
 
@@ -65,7 +68,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private static final String AAR_PACKAGING = "@" + SdkConstants.EXT_AAR;
   private static final String JAR_PACKAGING = "@" + SdkConstants.EXT_JAR;
   private static final int RESULT_LIMIT = 50;
-  private static final String MAVEN_CENTRAL_SEARCH_URL = "https://search.maven.org/solrsearch/select?rows=%d&wt=xml&q=\"%s\"";
+  private static final String MAVEN_CENTRAL_SEARCH_URL = "https://search.maven.org/solrsearch/select?rows=%d&wt=xml&q=%%22%s%%22";
   private static final Logger LOG = Logger.getInstance(MavenDependencyLookupDialog.class);
 
   /**
@@ -127,8 +130,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
 
     @Nullable
-    public static Artifact fromCoordinate(@NotNull String libraryCoordinate) {
-      GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+    public static Artifact fromCoordinate(@NotNull String artifactCoordinate) {
+      GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(artifactCoordinate);
       if (gradleCoordinate == null) {
         return null;
       }
@@ -237,12 +240,15 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
 
     RepositoryUrlManager manager = RepositoryUrlManager.get();
-    for (SupportLibrary library : SupportLibrary.values()) {
-      String libraryCoordinate = manager.getLibraryStringCoordinate(library, true);
-      if (libraryCoordinate != null) {
-        Artifact artifact = Artifact.fromCoordinate(libraryCoordinate);
+    Predicate<GradleVersion> supportLibraryFilter = manager.findExistingSupportVersionFilter(module);
+    for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
+      // Note: Only the old style support library have version dependencies, so explicitly check the group ID:
+      Predicate<GradleVersion> filter = id.getMavenGroupId().equals(ImportModule.SUPPORT_GROUP_ID) ? supportLibraryFilter : null;
+      String artifactCoordinate = manager.getArtifactStringCoordinate(id, filter, true);
+      if (artifactCoordinate != null) {
+        Artifact artifact = Artifact.fromCoordinate(artifactCoordinate);
         if (artifact != null) {
-          myAndroidSdkLibraries.add(libraryCoordinate);
+          myAndroidSdkLibraries.add(artifactCoordinate);
           myShownItems.add(artifact);
         }
       }
@@ -271,8 +277,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       @Override
       protected void doAction(ActionEvent e) {
         String text = mySearchField.getText();
-        if (text != null && !hasVersion(text) && isKnownLocalLibrary(text)) {
-          // If it's a known library that doesn't exist in the local repository, we don't display the version for it. Add it back so that
+        if (text != null && !hasVersion(text) && isKnownLocalArtifact(text)) {
+          // If it's a known artifact that doesn't exist in the local repository, we don't display the version for it. Add it back so that
           // final string is a valid gradle coordinate.
           mySearchField.setText(text + ':' + REVISION_ANY);
         }
@@ -282,7 +288,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     init();
   }
 
-  private static boolean isKnownLocalLibrary(@NotNull String text) {
+  private static boolean isKnownLocalArtifact(@NotNull String text) {
     String group = getGroup(text);
     String artifact = getArtifact(text);
 
@@ -290,8 +296,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       return false;
     }
 
-    SupportLibrary library = SupportLibrary.find(group, artifact);
-    return library != null;
+    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.Companion.find(group, artifact);
+    return artifactId != null;
   }
 
   @Nullable

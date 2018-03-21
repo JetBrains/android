@@ -16,12 +16,13 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +95,7 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
     return origin;
   }
 
-  private int getLeftTargetOrigin(SceneComponent target) {
+  protected int getLeftTargetOrigin(SceneComponent target) {
     int origin = target.getDrawX();
     NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF) != null) {
@@ -112,7 +113,7 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
     return origin;
   }
 
-  private int getTopTargetOrigin(SceneComponent target) {
+  protected int getTopTargetOrigin(SceneComponent target) {
     int origin = target.getDrawY();
     NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF) != null) {
@@ -285,12 +286,12 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
       String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
     }
-    ConstraintComponentUtilities.cleanup(attributes, myComponent);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
   }
 
   private void applyMargin(AttributesTransaction attributes, String attribute, @AndroidDpCoordinate int currentValue) {
     currentValue = Math.max(0, currentValue);
-    currentValue = ((int) (currentValue / ourSnapMarginDistance)) * ourSnapMarginDistance; // snap
+    currentValue = currentValue / ourSnapMarginDistance * ourSnapMarginDistance; // snap
     String marginString = myComponent.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
@@ -298,10 +299,22 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
     }
     if (marginValue != -1 && marginValue == currentValue) {
       attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginString);
+      if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginString);
+      }
+      else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attribute)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, marginString);
+      }
     }
     else {
       String marginY = String.format(SdkConstants.VALUE_N_DP, currentValue);
       attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginY);
+      if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginY);
+      }
+      else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attribute)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, marginY);
+      }
     }
   }
 

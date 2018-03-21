@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.device.fs.DeviceFileId;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
@@ -125,8 +127,8 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
 
   @Override
   @NotNull
-  public ListenableFuture<Void> openFileInEditor(@NotNull Path localPath, boolean focusEditor) {
-    return openFileInEditorWorker(localPath, focusEditor);
+  public ListenableFuture<Void> openFileInEditor(@NotNull DeviceFileEntry entry, @NotNull Path localPath, boolean focusEditor) {
+    return openFileInEditorWorker(entry, localPath, focusEditor);
   }
 
   @NotNull
@@ -178,7 +180,9 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return path.get();
   }
 
-  private ListenableFuture<Void> openFileInEditorWorker(@NotNull Path localPath, boolean focusEditor) {
+  private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry,
+                                                        @NotNull Path localPath,
+                                                        boolean focusEditor) {
     // Note: We run this operation inside a transaction because we need to refresh a VirtualFile instance.
     //       See https://github.com/JetBrains/intellij-community/commit/10c0c11281b875e64c31186eac20fc28ba3fc37a
     SettableFuture<VirtualFile> futureFile = SettableFuture.create();
@@ -193,6 +197,11 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     });
 
     return myEdtExecutor.transform(futureFile, file -> {
+      // Set the device/path information on the virtual file so custom editors
+      // (e.g. database viewer) know which device this file is coming from.
+      DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
+      file.putUserData(DeviceFileId.KEY, fileInfo);
+
       FileType type = FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject);
       if (type == null) {
         throw new CancellationException("Operation cancelled by user");
@@ -207,7 +216,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     });
   }
 
-  public void deleteTemporaryFile(@NotNull Path localPath) {
+  private static void deleteTemporaryFile(@NotNull Path localPath) {
     try {
       Files.deleteIfExists(localPath);
     }

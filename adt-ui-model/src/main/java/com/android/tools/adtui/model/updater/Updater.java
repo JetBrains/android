@@ -51,7 +51,6 @@ public class Updater implements StopwatchTimer.TickHandler {
     mTimer.start();
   }
 
-
   @VisibleForTesting
   public StopwatchTimer getTimer() {
     return mTimer;
@@ -60,7 +59,8 @@ public class Updater implements StopwatchTimer.TickHandler {
   public void register(Updatable updatable) {
     if (mUpdating) {
       mToRegister.add(updatable);
-    } else {
+    }
+    else {
       mComponents.add(updatable);
     }
   }
@@ -74,7 +74,8 @@ public class Updater implements StopwatchTimer.TickHandler {
   public void unregister(@NotNull Updatable updatable) {
     if (mUpdating) {
       mToUnregister.add(updatable);
-    } else {
+    }
+    else {
       mComponents.remove(updatable);
     }
   }
@@ -117,11 +118,11 @@ public class Updater implements StopwatchTimer.TickHandler {
    * value {@code from} moves towards the value {@code to} at a rate of {@code fraction} per
    * second. The actual interpolated amount depends on the current frame length.
    *
-   * @param from        the value to interpolate from.
-   * @param to          the target value.
-   * @param fraction    the interpolation fraction.
+   * @param from          the value to interpolate from.
+   * @param to            the target value.
+   * @param fraction      the interpolation fraction.
    * @param frameLengthNs the frame length in nanoseconds.
-   * @param threshold   the difference threshold that will cause the method to jump to the target value without lerp.
+   * @param threshold     the difference threshold that will cause the method to jump to the target value without lerp.
    * @return the interpolated value.
    */
   public static float lerp(float from, float to, float fraction, long frameLengthNs, float threshold) {

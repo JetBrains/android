@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
 
@@ -124,7 +126,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     compileOptions = android.compileOptions();
-    assertFalse(compileOptions.hasValidPsiElement());
+    checkForInValidPsiElement(compileOptions, CompileOptionsModelImpl.class);
     assertNull(compileOptions.sourceCompatibility());
     assertNull(compileOptions.targetCompatibility());
     assertNull(compileOptions.encoding());

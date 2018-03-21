@@ -15,35 +15,80 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.wizard.model.WizardModel;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A base-class {@link WizardModel} which generates Android icons into the user's project.
- * This parent class is responsible for collecting all the source information needed for previewing
- * icons, and child classes must implement the final logic which generates the final Android icon
- * assets to disk.
- *
- * A wizard that owns this model is expected to call
- * {@link #setIconGenerator(AndroidIconGenerator)} at some point before finishing.
+ * The model used to generate Android icons.
+ * <p>
+ * A wizard that owns this model is expected to call {@link #setIconGenerator(IconGenerator)}
+ * at some point before finishing.
  */
-public abstract class GenerateIconsModel extends WizardModel {
-  @Nullable private AndroidIconGenerator myIconGenerator;
+public final class GenerateIconsModel extends WizardModel {
+  @Nullable private IconGenerator myIconGenerator;
+  @NotNull private AndroidModuleTemplate myPaths;
+  @NotNull private final StateStorage myStateStorage;
+  @NotNull private final String myWizardId;
 
-  @NotNull private AndroidProjectPaths myPaths;
-
-  public GenerateIconsModel(@NotNull AndroidFacet facet) {
-    this(AndroidSourceSet.getSourceSets(facet, null).get(0).getPaths());
+  /**
+   * Initializes the model.
+   *
+   * @param androidFacet the Android facet
+   * @param wizardId the id of the wizard owning the model. Used as a key for storing wizard state.
+   */
+  public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId) {
+    myPaths = AndroidPackageUtils.getModuleTemplates(androidFacet, null).get(0).getPaths();
+    Project project = androidFacet.getModule().getProject();
+    myStateStorage = ServiceManager.getService(project, StateStorage.class);
+    assert myStateStorage != null;
+    myWizardId = wizardId;
   }
 
-  public GenerateIconsModel(@NotNull AndroidProjectPaths paths) {
+  public void setIconGenerator(@NotNull IconGenerator iconGenerator) {
+    myIconGenerator = iconGenerator;
+  }
+
+  @Nullable
+  public IconGenerator getIconGenerator() {
+    return myIconGenerator;
+  }
+
+  public void setPaths(@NotNull AndroidModuleTemplate paths) {
     myPaths = paths;
+  }
+
+  @NotNull
+  public AndroidModuleTemplate getPaths() {
+    return myPaths;
+  }
+
+  @Override
+  protected void handleFinished() {
+    if (myIconGenerator == null) {
+      getLog().error("GenerateIconsModel did not collect expected information and will not complete. Please report this error.");
+      return;
+    }
+
+    myIconGenerator.generateIconsToDisk(myPaths);
+  }
+
+  /**
+   * Returns the persistent state associated with the wizard.
+   */
+  @NotNull
+  public PersistentState getPersistentState() {
+    return myStateStorage.getState().getOrCreateChild(myWizardId);
   }
 
   @NotNull
@@ -51,36 +96,27 @@ public abstract class GenerateIconsModel extends WizardModel {
     return Logger.getInstance(GenerateIconsModel.class);
   }
 
-  public final void setPaths(@NotNull AndroidProjectPaths paths) {
-    myPaths = paths;
-  }
+  @State(name = "WizardSettings", storages = @Storage(file = "assetWizardSettings.xml"))
+  public static class StateStorage implements PersistentStateComponent<PersistentState> {
+    private PersistentState myState;
 
-  @NotNull
-  public AndroidProjectPaths getPaths() {
-    return myPaths;
-  }
-
-  @Nullable
-  public final AndroidIconGenerator getIconGenerator() {
-    return myIconGenerator;
-  }
-
-  public final void setIconGenerator(@NotNull AndroidIconGenerator iconGenerator) {
-    myIconGenerator = iconGenerator;
-  }
-
-  @Override
-  protected final void handleFinished() {
-    if (myIconGenerator == null) {
-      getLog().error("GenerateIconsModel did not collect expected information and will not complete. Please report this error.");
-      return;
+    @Override
+    @NotNull
+    public PersistentState getState() {
+      if (myState == null) {
+        myState = new PersistentState();
+      }
+      return myState;
     }
 
-    generateIntoPath(myPaths, myIconGenerator);
-  }
+    @Override
+    public void loadState(@NotNull PersistentState state) {
+      myState = state;
+    }
 
-  /**
-   * Serialize the icons into files on disk. This method will be called within a WriteAction.
-   */
-  protected abstract void generateIntoPath(@NotNull AndroidProjectPaths paths, @NotNull AndroidIconGenerator iconGenerator);
+    @NotNull
+    public static StateStorage getInstance(@NotNull Project project) {
+      return ServiceManager.getService(project, StateStorage.class);
+    }
+  }
 }

@@ -38,7 +38,7 @@ public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
     Ref<BuildStatus> statusRef = new Ref<>();
 
     Project project = getProject();
-    GradleBuildState.subscribe(project, new GradleBuildListener() {
+    GradleBuildState.subscribe(project, new GradleBuildListener.Adapter() {
       @Override
       public void buildStarted(@NotNull BuildContext context) {
         contexts[0] = context;
@@ -62,7 +62,7 @@ public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
 
     assertSame(SOURCE_GEN, context1.getBuildMode());
     assertSame(project, context1.getProject());
-    assertThat(context1.getGradleTasks()).containsAllOf(":app:generateDebugSources", ":app:generateDebugAndroidTestSources");
+    assertThat(context1.getGradleTasks()).contains(":app:generateDebugSources");
 
     assertSame(context1, contexts[1]); // initial context and final context should be the same,
 

@@ -1108,11 +1108,9 @@ public class BuildOutputParserTest {
                  "\t" + source.getPath() + ":5:28\n" +
                  "8: Simple::BlankProject1:processDebugResources FAILED\n" +
                  "9: Error:Error while executing aapt command\n" +
-                 "10: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
-                 "\t" + source.getPath() + ":5:28\n" +
-                 "11: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "12: Info:BUILD FAILED\n" +
-                 "13: Info:Total time: 5.435 secs\n",
+                 "10: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+                 "11: Info:BUILD FAILED\n" +
+                 "12: Info:Total time: 5.435 secs\n",
                  toString(parser.parseGradleOutput(output)));
 
     sourceFile.delete();
@@ -1197,11 +1195,9 @@ public class BuildOutputParserTest {
                  "\t" + source.getPath() + ":5:28\n" +
                  "8: Simple::BlankProject1:processDebugResources FAILED\n" +
                  "9: Error:Error while executing aapt command\n" +
-                 "10: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
-                 "\t" + source.getPath() + ":5:28\n" +
-                 "11: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "12: Info:BUILD FAILED\n" +
-                 "13: Info:Total time: 5.435 secs\n",
+                 "10: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+                 "11: Info:BUILD FAILED\n" +
+                 "12: Info:Total time: 5.435 secs\n",
                  toString(parser.parseGradleOutput(output)));
 
     sourceFile.delete();
@@ -1309,10 +1305,8 @@ public class BuildOutputParserTest {
                  "\t" + source.getPath() + ":12:-1\n" +
                  "13: Simple::BlankProject1:processDebugResources FAILED\n" +
                  "14: Error:Error while executing aapt command\n" +
-                 "15: Error:No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
-                 "\t" + source.getPath() + ":12:-1\n" +
-                 "16: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "17: Info:BUILD FAILED\n",
+                 "15: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
+                 "16: Info:BUILD FAILED\n",
                  toString(parser.parseGradleOutput(output)));
 
     sourceFile.delete();
@@ -1426,11 +1420,9 @@ public class BuildOutputParserTest {
                  "\t" + sourceFilePath + ":101:-1\n" +
                  "9: Simple::AudioPlayer:processDebugResources FAILED\n" +
                  "10: Error:Error while executing aapt command\n" +
-                 "11: Error:Error parsing XML: mismatched tag\n" +
-                 "\t" + sourceFilePath + ":101:-1\n" +
-                 "12: Error:Execution failed for task ':AudioPlayer:processDebugResources'.\n" +
-                 "13: Info:BUILD FAILED\n" +
-                 "14: Info:Total time: 3.836 secs\n",
+                 "11: Error:Execution failed for task ':AudioPlayer:processDebugResources'.\n" +
+                 "12: Info:BUILD FAILED\n" +
+                 "13: Info:Total time: 3.836 secs\n",
                  toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
@@ -1555,8 +1547,6 @@ public class BuildOutputParserTest {
                  "1: Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
                  "\t" + sourceFilePath + ":42:-1\n" +
                  "2: Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
-                 "\t" + sourceFilePath + ":-1:-1\n" +
-                 "3: Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
                  "\t" + sourceFilePath + ":-1:-1\n",
                  toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
@@ -1679,13 +1669,12 @@ public class BuildOutputParserTest {
                  "17: Simple:^\n" +
                  "18: Error:';' expected\n" +
                  "\t" + sourceFilePath + ":12:-1\n" +
-                 "19: Simple:x        super.onCreate(savedInstanceState);\n" +
-                 "20: Simple: ^\n" +
-                 "21: Simple::MyApplication:compileDebug FAILED\n" +
-                 "22: Error:Execution failed for task ':MyApplication:compileDebug'.\n" +
+                 "19: Simple: ^\n" +
+                 "20: Simple::MyApplication:compileDebug FAILED\n" +
+                 "21: Error:Execution failed for task ':MyApplication:compileDebug'.\n" +
                  "> Compilation failed; see the compiler error output for details.\n" +
-                 "23: Info:BUILD FAILED\n" +
-                 "24: Info:Total time: 6.177 secs\n",
+                 "22: Info:BUILD FAILED\n" +
+                 "23: Info:Total time: 6.177 secs\n",
                  toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
@@ -1958,37 +1947,29 @@ public class BuildOutputParserTest {
                  "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
                  "6: Warning:warning: ignoring old commands for target `dump'\n" +
                  "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
-                 "7: Warning:warning: overriding commands for target `dump'\n" +
-                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
-                 "8: Warning:warning: ignoring old commands for target `dump'\n" +
-                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
-                 "9: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
+                 "7: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
-                 "10: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
+                 "8: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
-                 "11: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_9.o'\n" +
+                 "9: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_9.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
-                 "12: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_9.o'\n" +
+                 "10: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_9.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
-                 "13: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_b_18.o'\n" +
+                 "11: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_b_18.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
-                 "14: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_b_18.o'\n" +
+                 "12: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_b_18.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
-                 "15: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
+                 "13: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
-                 "16: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
+                 "14: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
                  "\t" + sourceFilePath + ":393:-1\n" +
-                 "17: Warning:warning: overriding commands for target `dump'\n" +
-                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
-                 "18: Warning:warning: ignoring old commands for target `dump'\n" +
-                 "\t" + CWD_PATH + "/jni/Android.mk:24:-1\n" +
-                 "19: Simple:[armeabi-v7a] Install        : libaacdecoder.so => libs/armeabi-v7a/libaacdecoder.so\n" +
-                 "20: Simple:[armeabi] Install        : libaacdecoder.so => libs/armeabi/libaacdecoder.so\n" +
-                 "21: Simple:[x86] Install        : libaacdecoder.so => libs/x86/libaacdecoder.so\n" +
-                 "22: Simple:[mips] Install        : libaacdecoder.so => libs/mips/libaacdecoder.so\n" +
-                 "23: Simple::foolib:copyNativeLibs UP-TO-DATE:app:assembleDebug UP-TO-DATE\n" +
-                 "24: Info:BUILD SUCCESSFUL\n" +
-                 "25: Info:Total time: 11.965 secs\n",
+                 "15: Simple:[armeabi-v7a] Install        : libaacdecoder.so => libs/armeabi-v7a/libaacdecoder.so\n" +
+                 "16: Simple:[armeabi] Install        : libaacdecoder.so => libs/armeabi/libaacdecoder.so\n" +
+                 "17: Simple:[x86] Install        : libaacdecoder.so => libs/x86/libaacdecoder.so\n" +
+                 "18: Simple:[mips] Install        : libaacdecoder.so => libs/mips/libaacdecoder.so\n" +
+                 "19: Simple::foolib:copyNativeLibs UP-TO-DATE:app:assembleDebug UP-TO-DATE\n" +
+                 "20: Info:BUILD SUCCESSFUL\n" +
+                 "21: Info:Total time: 11.965 secs\n",
                  toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
@@ -2024,15 +2005,14 @@ public class BuildOutputParserTest {
                  "2: Simple:" + sourceFilePath + ": In function 'void foo_bar(STRUCT_FOO_BAR*)':\n" +
                  "3: Error:error: 'xyz' was not declared in this scope\n" +
                  "\t" + sourceFilePath + ":182:1\n" +
-                 "4: Simple:" + sourceFilePath + ": In function 'void foo_bar(STRUCT_FOO_BAR*)':\n" +
-                 "5: Warning:warning: some random warning here\n" +
+                 "4: Warning:warning: some random warning here\n" +
                  "\t" + sourceFilePath + ":190:1\n" +
-                 "6: Simple:make: *** [obj/local/armeabi-v7a/objs/foo/src/bar.o] Error 1\n" +
-                 "7: Simple::foolib:buildNative FAILED\n" +
-                 "8: Error:Execution failed for task ':foolib:buildNative'.\n" +
+                 "5: Simple:make: *** [obj/local/armeabi-v7a/objs/foo/src/bar.o] Error 1\n" +
+                 "6: Simple::foolib:buildNative FAILED\n" +
+                 "7: Error:Execution failed for task ':foolib:buildNative'.\n" +
                  "> Process 'command '/Users/tnorbye/dev/android-ndk-r9d/ndk-build'' finished with non-zero exit value 2\n" +
-                 "9: Info:BUILD FAILED\n" +
-                 "10: Info:Total time: 7.994 secs\n",
+                 "8: Info:BUILD FAILED\n" +
+                 "9: Info:Total time: 7.994 secs\n",
                  toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
@@ -2565,6 +2545,123 @@ public class BuildOutputParserTest {
     String output = " **--- HELLO WORLD ---**";
     List<Message> Messages = parser.parseGradleOutput(output, true);
     assertEquals(0, Messages.size());
+  }
+
+  /**
+   * Verify that when two parsers generate the same error message, only the first one is generated by parseGradleOutput
+   */
+  @Test
+  public void duplicateMessages() {
+
+    // Do not run test on Windows (see b/69619617)
+    assumeFalse(SystemInfo.isWindows);
+
+    String output =
+      ":app:externalNativeBuildDebug\n" +
+      "  building /foo/bar/libtest.so\n" +
+      "/foo/bar/test.cpp:8:8: error: expected '(' after 'for'\n" +
+      "    foo;\n" +
+      "       ^\n" +
+      ":app:externalNativeBuildDebug FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':app:externalNativeBuildDebug'.\n" +
+      "> Build command failed.\n" +
+      "  Error while executing '/foo/bar/cmake' with arguments {--build /foo/bar --target test}\n" +
+      "  [1/2] Building CXX object test.cpp.o\n" +
+      "  FAILED: /foo/bar/clang++ /foo/bar/test.cpp\n" +
+      "  /foo/bar/test.cpp:8:5: error: use of undeclared identifier 'foo'; did you mean 'for'?\n" +
+      "      foo;\n" +
+      "      ^~~\n" +
+      "      for\n" +
+      "  /foo/bar/test.cpp:8:8: error: expected '(' after 'for'\n" +
+      "      foo;\n" +
+      "         ^\n" +
+      "  /foo/bar/test.cpp:9:15: error: expected expression\n" +
+      "      int bar = ;\n" +
+      "                ^\n" +
+      "  /foo/bar/test.cpp:10:5: error: use of undeclared identifier 'baz'; did you mean 'bar'?\n" +
+      "      baz\n" +
+      "      ^~~\n" +
+      "      bar\n" +
+      "  /foo/bar/test.cpp:9:9: note: 'bar' declared here\n" +
+      "      int bar = ;\n" +
+      "          ^\n" +
+      "  /foo/bar/test.cpp:10:8: error: expected ';' after expression\n" +
+      "      baz\n" +
+      "         ^\n" +
+      "         ;\n" +
+      "  /foo/bar/test.cpp:7:5: warning: expression result unused [-Wunused-value]\n" +
+      "      0;\n" +
+      "      ^\n" +
+      "  /foo/bar/test.cpp:10:5: warning: expression result unused [-Wunused-value]\n" +
+      "      baz\n" +
+      "      ^~~\n" +
+      "  2 warnings and 5 errors generated.\n" +
+      "  ninja: build stopped: subcommand failed.\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 0.504 secs\n";
+    assertEquals("0: Error:error: expected '(' after 'for'\n" +
+                 "\t/foo/bar/test.cpp:8:8\n" +
+                 "1: Error:error: use of undeclared identifier 'foo'; did you mean 'for'?\n" +
+                 "\t/foo/bar/test.cpp:8:5\n" +
+                 "2: Error:error: expected expression\n" +
+                 "\t/foo/bar/test.cpp:9:15\n" +
+                 "3: Error:error: use of undeclared identifier 'baz'; did you mean 'bar'?\n" +
+                 "\t/foo/bar/test.cpp:10:5\n" +
+                 "4: Info:note: 'bar' declared here\n" +
+                 "\t/foo/bar/test.cpp:9:9\n" +
+                 "5: Error:error: expected ';' after expression\n" +
+                 "\t/foo/bar/test.cpp:10:8\n" +
+                 "6: Warning:warning: expression result unused [-Wunused-value]\n" +
+                 "\t/foo/bar/test.cpp:7:5\n" +
+                 "7: Warning:warning: expression result unused [-Wunused-value]\n" +
+                 "\t/foo/bar/test.cpp:10:5\n" +
+                 "8: Info:BUILD FAILED\n" +
+                 "9: Info:Total time: 0.504 secs\n",
+                 toString(parser.parseGradleOutput(output, true)));
+    output =
+      ":app:externalNativeBuildDebug\n" +
+      "  building C:\\foo\\bar\\libtest.so\n" +
+      ":app:externalNativeBuildDebug FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':app:externalNativeBuildDebug'.\n" +
+      "> Build command failed.\n" +
+      "  Error while executing 'C:\\foo\\bar\\cmake.exe' with arguments {--build C:\\foo\\bar --target test}\n" +
+      "  [1/2] Building CXX object test.cpp.o\n" +
+      "  FAILED: C:\\foo\\bar\\clang++.exe C:\\foo\\bar\\test.cpp\n" +
+      "  C:\\foo\\bar\\test.cpp:2:10: fatal error: 'garbage' file not found\n" +
+      "  #include \"garbage\"\n" +
+      "           ^\n" +
+      "  1 error generated.\n" +
+      "  ninja: build stopped: subcommand failed.\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 6.675 secs\n";
+    assertEquals("0: Simple::app:externalNativeBuildDebug\n" +
+                 "1: Simple:  building C:\\foo\\bar\\libtest.so\n" +
+                 "2: Simple::app:externalNativeBuildDebug FAILED\n" +
+                 "3: Error:fatal error: 'garbage' file not found\n" +
+                 "\tC:\\foo\\bar\\test.cpp:2:10\n" +
+                 "4: Info:BUILD FAILED\n" +
+                 "5: Info:Total time: 6.675 secs\n",
+                 toString(parser.parseGradleOutput(output)));
   }
 
   private static final String WINDOWS_PATH_DRIVE_LETTER = "C:";

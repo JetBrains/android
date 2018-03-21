@@ -46,7 +46,7 @@ public class PsiModelClass extends ModelClass {
 
   @Override
   public String toJavaCode() {
-    throw new UnsupportedOperationException("why generate");
+    return myType.getCanonicalText();
   }
 
   @Override

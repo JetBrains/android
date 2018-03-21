@@ -29,19 +29,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public final class AllocStatsDataSeries implements DataSeries<Long> {
-  @NotNull
-  private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
-
-  private final int myProcessId;
-  private final Common.Session mySession;
+  @NotNull private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
+  @NotNull private final Common.Session mySession;
 
   @NotNull
   private Function<MemoryProfiler.MemoryData.AllocStatsSample, Long> myFilter;
 
-  public AllocStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, Common.Session session,
+  public AllocStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+                              @NotNull Common.Session session,
                               @NotNull Function<MemoryProfiler.MemoryData.AllocStatsSample, Long> filter) {
     myClient = client;
-    myProcessId = id;
     mySession = session;
     myFilter = filter;
   }
@@ -51,7 +48,6 @@ public final class AllocStatsDataSeries implements DataSeries<Long> {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setProcessId(myProcessId)
       .setSession(mySession)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

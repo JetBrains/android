@@ -18,22 +18,21 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTooltipView;
+import com.android.tools.profilers.ProfilerMonitorTooltipView;
 import com.android.tools.profilers.StudioMonitorStageView;
+import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import javax.swing.*;
 
-public class CpuMonitorTooltipView extends ProfilerTooltipView {
-  private final CpuMonitor myMonitor;
-
-  public CpuMonitorTooltipView(StudioMonitorStageView parent, CpuMonitor monitor) {
-    super(monitor.getTimeline(), monitor.getName());
-    myMonitor = monitor;
+public class CpuMonitorTooltipView extends ProfilerMonitorTooltipView<CpuMonitor> {
+  public CpuMonitorTooltipView(StudioMonitorStageView parent, @NotNull CpuMonitorTooltip tooltip) {
+    super(tooltip.getMonitor());
   }
 
+  @NotNull
   @Override
-  public Component createTooltip() {
-    CpuMonitor.Legends legends = myMonitor.getTooltipLegends();
+  public JComponent createTooltip() {
+    CpuMonitor.Legends legends = getMonitor().getTooltipLegends();
 
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();

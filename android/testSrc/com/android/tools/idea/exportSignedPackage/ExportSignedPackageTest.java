@@ -56,4 +56,9 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     assertTrue(assembleTasks.contains(":assembleProX86Release"));
     assertTrue(assembleTasks.contains(":assembleFreeArmRelease"));
   }
+
+  public void testApkLocationCorrect() {
+    // This test guarantees user is taken to the folder with the selected build type outputs
+    assertEquals("path/to/folder/release", ExportSignedPackageWizard.getApkLocation("path/to/folder", "release").toString());
+  }
 }

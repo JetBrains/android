@@ -252,6 +252,12 @@ class Lambdas {
     }
     r.run()
   }
+
+  fun j() {
+    val captured = { f(null) }
+    val r = { captured() }
+    r()
+  }
 }
 
 
@@ -306,6 +312,13 @@ class Contextual {
   fun c() {
     run5({ f() })
   }
+
+  // Test lambda captures.
+  fun runWrapped(captured: () -> Unit) { run({ captured() }) }
+  fun d() { runWrapped({ f() }) }
+  fun runWrappedMulti(it: MultiArg, r: () -> Unit) { run({ it.run(r) }) }
+  fun e() { runWrappedMulti(MultiArgA(), this::f) }
+  fun h() { runWrappedMulti(MultiArgB(), this::g) }
 }
 
 fun topLevelA() { topLevelB() }

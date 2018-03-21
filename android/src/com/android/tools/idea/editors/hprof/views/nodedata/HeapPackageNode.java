@@ -29,7 +29,9 @@ public class HeapPackageNode implements HeapNode {
   @NotNull private HashMap<String, HeapPackageNode> mySubPackages = new HashMap<String, HeapPackageNode>();
   @NotNull private Set<HeapClassObjNode> myClasses = new HashSet<HeapClassObjNode>();
 
-  @SuppressWarnings("NullableProblems") @NotNull private String myFullPackageName;
+  @SuppressWarnings("NullableProblems")
+  @NotNull
+  private String myFullPackageName;
   @NotNull private String myPackageName;
 
   private int myTotalCount;
@@ -63,7 +65,8 @@ public class HeapPackageNode implements HeapNode {
 
   public void classifyClassObj(@NotNull HeapClassObjNode heapClassObjNode) {
     String className = heapClassObjNode.getClassObj().getClassName();
-    assert className.startsWith(myFullPackageName) && className.length() > myFullPackageName.length() + 1; // Mind the dot.
+    assert className.startsWith(myFullPackageName) &&
+           className.length() > myFullPackageName.length() + (myFullPackageName.isEmpty() ? 0 : 1); // Mind the dot.
     String remainder = myFullPackageName.isEmpty() ? className : className.substring(myFullPackageName.length() + 1);
 
     int dotIndex = remainder.indexOf('.');

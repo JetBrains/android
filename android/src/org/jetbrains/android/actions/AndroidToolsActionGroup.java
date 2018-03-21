@@ -19,13 +19,14 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidToolsActionGroup extends DefaultActionGroup {
+public class AndroidToolsActionGroup extends DefaultActionGroup implements DumbAware {
   @Override
   public void update(AnActionEvent e) {
     final Project project = e.getData(CommonDataKeys.PROJECT);

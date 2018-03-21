@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.run;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,7 +39,8 @@ public interface GradleTaskRunner {
   boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
     throws InvocationTargetException, InterruptedException;
 
-  @NotNull static DefaultGradleTaskRunner newRunner(@NotNull Project project) {
+  @NotNull
+  static DefaultGradleTaskRunner newRunner(@NotNull Project project) {
     return new DefaultGradleTaskRunner(project);
   }
 
@@ -47,7 +49,8 @@ public interface GradleTaskRunner {
     return new DefaultGradleTaskRunner(project, buildAction);
   }
 
-  class DefaultGradleTaskRunner implements GradleTaskRunner {@NotNull final Project myProject;
+  class DefaultGradleTaskRunner implements GradleTaskRunner {
+    @NotNull final Project myProject;
     @NotNull final AtomicReference<Object> model = new AtomicReference<>();
 
     @Nullable final BuildAction myBuildAction;
@@ -60,10 +63,11 @@ public interface GradleTaskRunner {
       myProject = project;
       myBuildAction = buildAction;
     }
-      @Override
-      public boolean run(@NotNull ListMultimap<Path,String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
-         {
-        assert !ApplicationManager.getApplication().isDispatchThread();
+
+    @Override
+    public boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
+      throws InvocationTargetException, InterruptedException {
+      assert !ApplicationManager.getApplication().isDispatchThread();
 
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
 

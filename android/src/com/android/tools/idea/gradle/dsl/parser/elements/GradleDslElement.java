@@ -15,35 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.GradleResolvedVariable;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.PsiElementBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterList;
 
 import java.util.Collection;
-import java.util.List;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 
 /**
- * Provide Gradle specific abstraction over a {@link GroovyPsiElement}.
+ * Provide Gradle specific abstraction over a {@link PsiElement}.
  */
 public abstract class GradleDslElement {
   @NotNull protected final String myName;
@@ -53,21 +40,28 @@ public abstract class GradleDslElement {
   @NotNull private final String myQualifiedName;
   @NotNull private final GradleDslFile myDslFile;
 
-  @Nullable private GroovyPsiElement myPsiElement;
+  @Nullable private PsiElement myPsiElement;
 
   @Nullable private GradleDslClosure myClosureElement;
 
   private volatile boolean myModified;
+
+  // Whether or not that DslElement should be represented with the assignment syntax i.e "name = 'value'" or
+  // the method call syntax i.e "name 'value'". This is needed since on some element types as we do not carry
+  // the information to make this distinction. GradleDslElement will set this to a default of false.
+  protected boolean myUseAssignment;
+
+  @NotNull private PropertyType myElementType;
 
   /**
    * Creates an in stance of a {@link GradleDslElement}
    *
    * @param parent     the parent {@link GradleDslElement} of this element. The parent element should always be a not-null value except if
    *                   this element is the root element, i.e a {@link GradleDslFile}.
-   * @param psiElement the {@link GroovyPsiElement} of this dsl element.
+   * @param psiElement the {@link PsiElement} of this dsl element.
    * @param name       the name of this element.
    */
-  protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable GroovyPsiElement psiElement, @NotNull String name) {
+  protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull String name) {
     assert parent != null || this instanceof GradleDslFile;
 
     myParent = parent;
@@ -87,6 +81,10 @@ public abstract class GradleDslElement {
     else {
       myDslFile = parent.myDslFile;
     }
+
+    myUseAssignment = false;
+    // Default to DERIVED, this is overwritten in the parser if required for the given element type.
+    myElementType = DERIVED;
   }
 
   public void setParsedClosureElement(@NotNull GradleDslClosure closureElement) {
@@ -109,12 +107,29 @@ public abstract class GradleDslElement {
   }
 
   @Nullable
-  public GroovyPsiElement getPsiElement() {
+  public PsiElement getPsiElement() {
     return myPsiElement;
   }
 
-  public void setPsiElement(@Nullable GroovyPsiElement psiElement) {
+  public void setPsiElement(@Nullable PsiElement psiElement) {
     myPsiElement = psiElement;
+  }
+
+  public boolean shouldUseAssignment() {
+    return myUseAssignment;
+  }
+
+  public void setUseAssignment(boolean useAssignment) {
+    myUseAssignment = useAssignment;
+  }
+
+  @NotNull
+  public PropertyType getElementType() {
+    return myElementType;
+  }
+
+  public void setElementType(@NotNull PropertyType propertyType) {
+    myElementType = propertyType;
   }
 
   @NotNull
@@ -128,8 +143,8 @@ public abstract class GradleDslElement {
   }
 
   @NotNull
-  public List<GradleResolvedVariable> getResolvedVariables() {
-    ImmutableList.Builder<GradleResolvedVariable> resultBuilder = ImmutableList.builder();
+  public Collection<GradleReferenceInjection> getResolvedVariables() {
+    ImmutableList.Builder<GradleReferenceInjection> resultBuilder = ImmutableList.builder();
     for (GradleDslElement child : getChildren()) {
       resultBuilder.addAll(child.getResolvedVariables());
     }
@@ -137,86 +152,16 @@ public abstract class GradleDslElement {
   }
 
   /**
-   * Creates the {@link GroovyPsiElement} by adding this element to the .gradle file.
+   * Creates the {@link PsiElement} by adding this element to the .gradle file.
    *
-   * <p>It creates a new {@link GroovyPsiElement} only when {@link #getPsiElement()} return {@code null}.
+   * <p>It creates a new {@link PsiElement} only when {@link #getPsiElement()} return {@code null}.
    *
-   * <p>Returns the final {@link GroovyPsiElement} corresponds to this element or {@code null} when failed to create the
-   * {@link GroovyPsiElement}.
+   * <p>Returns the final {@link PsiElement} corresponds to this element or {@code null} when failed to create the
+   * {@link PsiElement}.
    */
   @Nullable
-  public GroovyPsiElement create() {
-    GroovyPsiElement psiElement = getPsiElement();
-    if (psiElement != null) {
-      return psiElement;
-    }
-
-    if (myParent == null) {
-      return null;
-    }
-
-    GroovyPsiElement parentPsiElement = myParent.create();
-    if (parentPsiElement == null) {
-      return null;
-    }
-    Project project = parentPsiElement.getProject();
-    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
-
-    if (isNewEmptyBlockElement()) {
-      return null; // Avoid creation of an empty block statement.
-    }
-
-    String statementText = myName + (isBlockElement() ? " {\n}\n" : " \"abc\", \"xyz\"");
-    GrStatement statement = factory.createStatementFromText(statementText);
-    if (statement instanceof GrApplicationStatement) {
-      // Workaround to create an application statement.
-      ((GrApplicationStatement)statement).getArgumentList().delete();
-    }
-    PsiElement lineTerminator = factory.createLineTerminator(1);
-    PsiElement addedElement;
-    if (parentPsiElement instanceof GroovyFile) {
-      addedElement = parentPsiElement.addAfter(statement, parentPsiElement.getLastChild());
-      parentPsiElement.addBefore(lineTerminator, addedElement);
-    }
-    else {
-      addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
-      parentPsiElement.addAfter(lineTerminator, addedElement);
-    }
-    if (isBlockElement()) {
-      GrClosableBlock closableBlock = getClosableBlock(addedElement);
-      if (closableBlock != null) {
-        setPsiElement(closableBlock);
-      }
-    }
-    else {
-      if (addedElement instanceof GrApplicationStatement) {
-        setPsiElement((GrApplicationStatement)addedElement);
-      }
-    }
-    return getPsiElement();
-  }
-
-  private boolean isNewEmptyBlockElement() {
-    if (getPsiElement() != null) {
-      return false;
-    }
-
-    if (!isBlockElement()) {
-      return false;
-    }
-
-    Collection<GradleDslElement> children = getChildren();
-    if (children.isEmpty()) {
-      return true;
-    }
-
-    for (GradleDslElement child : children) {
-      if (!child.isNewEmptyBlockElement()) {
-        return false;
-      }
-    }
-
-    return true;
+  public PsiElement create() {
+    return myDslFile.getWriter().createDslElement(this);
   }
 
   /**
@@ -227,22 +172,10 @@ public abstract class GradleDslElement {
       element.delete();
     }
 
-    GroovyPsiElement psiElement = getPsiElement();
-    if (psiElement == null || !psiElement.isValid()) {
-      return;
-    }
-
-    PsiElement parent = psiElement.getParent();
-    psiElement.delete();
-
-    if (parent != null) {
-      deleteIfEmpty(parent);
-    }
-
-    setPsiElement(null);
+    this.getDslFile().getWriter().deleteDslElement(this);
   }
 
-  protected void setModified(boolean modified) {
+  public void setModified(boolean modified) {
     myModified = modified;
     if (myParent != null && modified) {
       myParent.setModified(true);
@@ -254,15 +187,22 @@ public abstract class GradleDslElement {
   }
 
   /**
-   * Returns {@code true} if this element represents a {@link GrClosableBlock} element (Ex. android, productFlavors, dependencies etc.),
+   * Returns {@code true} if this element represents a Block element (Ex. android, productFlavors, dependencies etc.),
    * {@code false} otherwise.
    */
-  protected boolean isBlockElement() {
+  public boolean isBlockElement() {
     return false;
   }
 
+  /**
+   * Returns {@code true} if this element represents an element which is insignificant if empty.
+   */
+  public boolean isInsignificantIfEmpty() {
+    return true;
+  }
+
   @NotNull
-  protected abstract Collection<GradleDslElement> getChildren();
+  public abstract Collection<GradleDslElement> getChildren();
 
   public final void applyChanges() {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
@@ -278,91 +218,4 @@ public abstract class GradleDslElement {
   }
 
   protected abstract void reset();
-
-  @Nullable
-  private static GrClosableBlock getClosableBlock(PsiElement element) {
-    if (!(element instanceof GrMethodCallExpression)) {
-      return null;
-    }
-
-    GrClosableBlock[] closureArguments = ((GrMethodCallExpression)element).getClosureArguments();
-    if (closureArguments.length > 0) {
-      return closureArguments[0];
-    }
-
-    return null;
-  }
-
-  protected static void deleteIfEmpty(@Nullable PsiElement element) {
-    if (element == null || !element.isValid()) {
-      return;
-    }
-
-    PsiElement parent = element.getParent();
-
-    if (element instanceof GrAssignmentExpression) {
-      if (((GrAssignmentExpression)element).getRValue() == null) {
-        element.delete();
-      }
-    }
-    else if (element instanceof GrApplicationStatement) {
-      if (((GrApplicationStatement)element).getArgumentList() == null) {
-        element.delete();
-      }
-    }
-    else if (element instanceof GrClosableBlock) {
-      final Boolean[] isEmpty = new Boolean[]{true};
-      ((GrClosableBlock)element).acceptChildren(new GroovyElementVisitor() {
-        @Override
-        public void visitElement(GroovyPsiElement child) {
-          if (child instanceof GrParameterList) {
-            if (((GrParameterList)child).getParameters().length == 0) {
-              return; // Ignore the empty parameter list.
-            }
-          }
-          isEmpty[0] = false;
-        }
-      });
-      if (isEmpty[0]) {
-        element.delete();
-      }
-    }
-    else if (element instanceof GrMethodCallExpression) {
-      GrMethodCallExpression call = ((GrMethodCallExpression)element);
-      GrArgumentList argumentList = null;
-      try {
-        for (PsiElement curr = call.getFirstChild(); curr != null; curr = curr.getNextSibling()) {
-          if (curr instanceof GrArgumentList) {
-            argumentList = (GrArgumentList)curr;
-            break;
-          }
-        }
-      } catch (AssertionError e) {
-        // We will get this exception if the argument list is already deleted.
-        argumentList = null;
-      }
-      GrClosableBlock[] closureArguments = call.getClosureArguments();
-      if ((argumentList == null || argumentList.getAllArguments().length == 0)
-          && closureArguments.length == 0) {
-        element.delete();
-      }
-    }
-    else if (element instanceof GrCommandArgumentList) {
-      GrCommandArgumentList commandArgumentList = (GrCommandArgumentList)element;
-      if (commandArgumentList.getAllArguments().length == 0) {
-        commandArgumentList.delete();
-      }
-    }
-    else if (element instanceof GrListOrMap) {
-      GrListOrMap listOrMap = (GrListOrMap)element;
-      if ((listOrMap.isMap() && listOrMap.getNamedArguments().length == 0)
-          || (!listOrMap.isMap() && listOrMap.getInitializers().length == 0)) {
-        listOrMap.delete();
-      }
-    }
-
-    if (!element.isValid()) { // If this element is deleted, also delete the parent if it is empty.
-      deleteIfEmpty(parent);
-    }
-  }
 }

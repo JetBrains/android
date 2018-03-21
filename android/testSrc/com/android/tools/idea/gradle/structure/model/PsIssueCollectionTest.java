@@ -30,7 +30,6 @@ import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.ERR
 import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING;
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE;
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
-import static com.android.tools.idea.gradle.structure.model.PsPath.EMPTY_PATH;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -79,7 +78,7 @@ public class PsIssueCollectionTest {
   @Test
   public void getTooltipText_multipleIssuesWithPath() {
     for (int i = 1; i < 4; i++) {
-      myIssueCollection.add(new PsIssue(String.format("Empty Issue %02d", i), EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+      myIssueCollection.add(new PsIssue(String.format("Empty Issue %02d", i), TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
       myIssueCollection.add(new PsIssue(String.format("Test Issue %02d", i), myTestPath, PROJECT_ANALYSIS, WARNING));
     }
     List<PsIssue> issues = myIssueCollection.getValues();
@@ -97,7 +96,7 @@ public class PsIssueCollectionTest {
   @Test
   public void getTooltipText_multipleIssuesWithoutPath() {
     for (int i = 1; i < 4; i++) {
-      myIssueCollection.add(new PsIssue(String.format("Empty Issue %02d", i), EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+      myIssueCollection.add(new PsIssue(String.format("Empty Issue %02d", i), TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
       myIssueCollection.add(new PsIssue(String.format("Test Issue %02d", i), myTestPath, PROJECT_ANALYSIS, WARNING));
     }
     List<PsIssue> issues = myIssueCollection.getValues();
@@ -115,7 +114,7 @@ public class PsIssueCollectionTest {
   @Test
   public void getTooltipText_manyIssuesWithPath() {
     for (int i = 1; i < 9; i++) {
-      myIssueCollection.add(new PsIssue(String.format("Empty Issue %02d", i), EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+      myIssueCollection.add(new PsIssue(String.format("Empty Issue %02d", i), TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
       myIssueCollection.add(new PsIssue(String.format("Test Issue %02d", i), myTestPath, PROJECT_ANALYSIS, WARNING));
     }
     List<PsIssue> issues = myIssueCollection.getValues();
@@ -138,7 +137,7 @@ public class PsIssueCollectionTest {
   @Test
   public void getTooltipText_manyIssuesWithoutPath() {
     for (int i = 1; i < 9; i++) {
-      myIssueCollection.add(new PsIssue(String.format("Empty Issue %02d", i), EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+      myIssueCollection.add(new PsIssue(String.format("Empty Issue %02d", i), TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
       myIssueCollection.add(new PsIssue(String.format("Test Issue %02d", i), myTestPath, PROJECT_ANALYSIS, WARNING));
     }
     List<PsIssue> issues = myIssueCollection.getValues();
@@ -163,15 +162,15 @@ public class PsIssueCollectionTest {
     PsModule mockModule = mock(PsModule.class);
     PsIssue issueA = new PsIssue("a", new PsModulePath(mockModule), PROJECT_ANALYSIS, WARNING);
     myIssueCollection.add(issueA);
-    myIssueCollection.add(new PsIssue("b", EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+    myIssueCollection.add(new PsIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     List<PsIssue> issues = myIssueCollection.findIssues(mockModule, null);
     assertThat(issues).containsExactly(issueA);
   }
 
   @Test
   public void findIssues_withUnknownType() {
-    myIssueCollection.add(new PsIssue("a", EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
-    myIssueCollection.add(new PsIssue("b", EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+    myIssueCollection.add(new PsIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+    myIssueCollection.add(new PsIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     List<PsIssue> issues = myIssueCollection.findIssues(new PsModel(null) {
       @NotNull
       @Override
@@ -195,44 +194,43 @@ public class PsIssueCollectionTest {
 
   @Test
   public void findIssues_withComparator() {
-    PsIssue issueA = new PsIssue("a", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
-    PsIssue issueB = new PsIssue("b", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
-    PsIssue issueC = new PsIssue("c", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
-    PsIssue issueD = new PsIssue("d", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue issueA = new PsIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue issueB = new PsIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue issueC = new PsIssue("c", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue issueD = new PsIssue("d", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
 
     myIssueCollection.add(issueB);
     myIssueCollection.add(issueD);
     myIssueCollection.add(issueC);
     myIssueCollection.add(issueA);
-    List<PsIssue> issues = myIssueCollection.findIssues(EMPTY_PATH, Comparator.comparing(PsIssue::getText));
+    List<PsIssue> issues = myIssueCollection.findIssues(TestPath.EMPTY_PATH, Comparator.comparing(PsIssue::getText));
     assertThat(issues).containsExactly(issueA, issueB, issueC, issueD).inOrder();
   }
 
   @Test
   public void findIssues_nomatch() {
-    myIssueCollection.add(new PsIssue("", EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+    myIssueCollection.add(new PsIssue("", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     assertThat(myIssueCollection.findIssues(myTestPath, null)).isEmpty();
   }
 
   @Test
   public void add() {
-    PsIssue testIssue = new PsIssue("", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue testIssue = new PsIssue("", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
     myIssueCollection.add(testIssue);
     assertThat(myIssueCollection.getValues()).containsExactly(testIssue);
   }
 
   @Test
-  public void add_withExtraPath() {
-    PsIssue testIssue = new PsIssue("", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
-    testIssue.setExtraPath(myTestPath);
+  public void add_withParentPath() {
+    PsIssue testIssue = new PsIssue("", new TestPath("a", TestPath.EMPTY_PATH), PROJECT_ANALYSIS, WARNING);
     myIssueCollection.add(testIssue);
     assertThat(myIssueCollection.getValues()).containsExactly(testIssue, testIssue);
   }
 
   @Test
   public void remove() {
-    PsIssue issueA = new PsIssue("a", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
-    PsIssue issueB = new PsIssue("b", EMPTY_PATH, LIBRARY_UPDATES_AVAILABLE, WARNING);
+    PsIssue issueA = new PsIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue issueB = new PsIssue("b", TestPath.EMPTY_PATH, LIBRARY_UPDATES_AVAILABLE, WARNING);
     myIssueCollection.add(issueA);
     myIssueCollection.add(issueB);
     assertThat(myIssueCollection.getValues()).containsExactly(issueA, issueB);
@@ -244,14 +242,14 @@ public class PsIssueCollectionTest {
   public void isEmpty() {
     assertThat(myIssueCollection.getValues()).isEmpty();
     assertTrue(myIssueCollection.isEmpty());
-    myIssueCollection.add(new PsIssue("", EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
+    myIssueCollection.add(new PsIssue("", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     assertThat(myIssueCollection.getValues()).isNotEmpty();
     assertFalse(myIssueCollection.isEmpty());
   }
 
   @Test
   public void getValues() {
-    PsIssue issueA = new PsIssue("a", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue issueA = new PsIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
     PsIssue issueB = new PsIssue("b", myTestPath, LIBRARY_UPDATES_AVAILABLE, WARNING);
     myIssueCollection.add(issueA);
     myIssueCollection.add(issueB);
@@ -260,13 +258,25 @@ public class PsIssueCollectionTest {
 
   @Test
   public void getValues_byType() {
-    PsIssue issueA = new PsIssue("a", EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue issueA = new PsIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
     PsIssue issueB = new PsIssue("b", myTestPath, LIBRARY_UPDATES_AVAILABLE, ERROR);
     PsIssue issueC = new PsIssue("c", myTestPath, LIBRARY_UPDATES_AVAILABLE, ERROR);
     myIssueCollection.add(issueA);
     myIssueCollection.add(issueB);
     myIssueCollection.add(issueC);
-    assertThat(myIssueCollection.getValues(EMPTY_PATH.getClass())).containsExactly(issueA);
+    assertThat(myIssueCollection.getValues(TestPath.EMPTY_PATH.getClass())).containsExactly(issueA);
+    assertThat(myIssueCollection.getValues(myTestPath.getClass())).containsExactly(issueB, issueC);
+  }
+
+  @Test
+  public void getValues_byParentType() {
+    PsIssue issueA = new PsIssue("a", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING);
+    PsIssue issueB = new PsIssue("b", myTestPath, LIBRARY_UPDATES_AVAILABLE, ERROR);
+    PsIssue issueC = new PsIssue("c", new TestPath("something", myTestPath), LIBRARY_UPDATES_AVAILABLE, ERROR);
+    myIssueCollection.add(issueA);
+    myIssueCollection.add(issueB);
+    myIssueCollection.add(issueC);
+    assertThat(myIssueCollection.getValues(TestPath.EMPTY_PATH.getClass())).containsExactly(issueA);
     assertThat(myIssueCollection.getValues(myTestPath.getClass())).containsExactly(issueB, issueC);
   }
 }

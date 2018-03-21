@@ -41,7 +41,7 @@ public class ContentCreatorTest extends IdeaTestCase {
   }
 
   public void testCreateLocalMavenRepoInitScriptContent() {
-    List<File> repoPaths = Arrays.asList(new File("path1"), new File("path2"), new File("path3"));
+    List<String> repoPaths = Arrays.asList("path1", "path2", "path3");
     String expected = "allprojects {\n" +
                       "  buildscript {\n" +
                       "    repositories {\n" +
@@ -62,12 +62,29 @@ public class ContentCreatorTest extends IdeaTestCase {
   }
 
   public void testCreateApplyJavaLibraryPluginInitScriptContent() {
-    List<String> jarPaths = Arrays.asList("path1", "path2");
+    List<String> jarPaths = Arrays.asList("/path/to/jar1", "/path/to/jar2");
     when(myJavaLibraryPluginJars.getJarPaths()).thenReturn(jarPaths);
 
     String expected = "initscript {\n" +
                       "    dependencies {\n" +
-                      "        classpath files(['path1', 'path2'])\n" +
+                      "        classpath files(['/path/to/jar1', '/path/to/jar2'])\n" +
+                      "    }\n" +
+                      "}\n" +
+                      "allprojects {\n" +
+                      "    apply plugin: com.android.java.model.builder.JavaLibraryPlugin\n" +
+                      "}\n";
+
+    String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
+    assertEquals(expected, content);
+  }
+
+  public void testCreateApplyJavaLibraryPluginInitScriptContentWithBackSlash() {
+    List<String> jarPaths = Arrays.asList("c:\\path\\to\\jar1", "c:\\path\\to\\jar2");
+    when(myJavaLibraryPluginJars.getJarPaths()).thenReturn(jarPaths);
+
+    String expected = "initscript {\n" +
+                      "    dependencies {\n" +
+                      "        classpath files(['c:\\\\path\\\\to\\\\jar1', 'c:\\\\path\\\\to\\\\jar2'])\n" +
                       "    }\n" +
                       "}\n" +
                       "allprojects {\n" +

@@ -53,12 +53,13 @@ public final class ImageDiffUtil {
    * When a generator is implemented, its entries should be included in this list.
    */
   public static final List<ImageDiffEntry> IMAGE_DIFF_ENTRIES = Collections.unmodifiableList(new ArrayList<ImageDiffEntry>() {{
-    addAll(new LineChartEntriesRegistrar().getImageDiffEntries());
-    addAll(new StateChartEntriesRegistrar().getImageDiffEntries());
-    addAll(new EventEntriesRegistrar().getImageDiffEntries());
     addAll(new AccordionEntriesRegistrar().getImageDiffEntries());
-    addAll(new RangeEntriesRegistrar().getImageDiffEntries());
+    addAll(new EventEntriesRegistrar().getImageDiffEntries());
+    addAll(new HTreeChartEntriesRegistrar().getImageDiffEntries());
     addAll(new LegendComponentRegistrar().getImageDiffEntries());
+    addAll(new LineChartEntriesRegistrar().getImageDiffEntries());
+    addAll(new RangeEntriesRegistrar().getImageDiffEntries());
+    addAll(new StateChartEntriesRegistrar().getImageDiffEntries());
   }});
 
   static {

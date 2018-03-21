@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

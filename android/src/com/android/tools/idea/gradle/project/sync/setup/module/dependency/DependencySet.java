@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.Dependency.SUPPORTED_SCOPES;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 
 /**
  * Collection of an IDEA module's dependencies.
@@ -97,7 +96,7 @@ public class DependencySet {
   }
 
   private static boolean areSameArtifact(@NotNull LibraryDependency d1, @NotNull LibraryDependency d2) {
-    return Arrays.equals(d1.getPaths(BINARY), d2.getPaths(BINARY));
+    return Arrays.equals(d1.getBinaryPaths(), d2.getBinaryPaths());
   }
 
   /**

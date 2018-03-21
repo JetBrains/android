@@ -32,7 +32,7 @@ abstract class ImageDiffEntriesRegistrar {
   /**
    * Registers an {@link ImageDiffEntry} by adding it to the list of entries of this class.
    */
-  protected void register(ImageDiffEntry imageDiffEntry) {
+  protected final void register(ImageDiffEntry imageDiffEntry) {
     myImageDiffEntries.add(imageDiffEntry);
   }
 

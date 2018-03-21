@@ -19,13 +19,16 @@ import com.android.SdkConstants;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
+import com.android.tools.idea.fd.actions.HotswapAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.npw.WizardUtils.ValidationResult;
-import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
+import com.android.tools.idea.gradle.actions.RefreshProjectAction;
+import com.android.tools.idea.npw.PathValidationResult;
+import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -50,7 +53,6 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.messages.MessageBusConnection;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -68,11 +70,11 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Properties;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
-import static com.android.tools.idea.npw.WizardUtils.validateLocation;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -95,10 +97,12 @@ public class GradleSpecificInitializer implements Runnable {
   @Override
   public void run() {
     setUpNewProjectActions();
+    setUpInstantRunActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
     replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
+    setUpGradleViewToolbarActions();
     checkInstallPath();
 
     ActionManager actionManager = ActionManager.getInstance();
@@ -119,16 +123,15 @@ public class GradleSpecificInitializer implements Runnable {
       checkAndSetAndroidSdkSources();
     }
 
-    registerAppClosing();
+    // The Gradle plugin takes care of shutting down daemons in GradleCleanupService
+    //registerAppClosing();
 
     // Always reset the Default scheme to match Android standards
     // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
     CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
     if (scheme != null) {
       CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      if (settings != null) {
-        AndroidCodeStyleSettingsModifier.modify(settings);
-      }
+      AndroidCodeStyleSettingsModifier.modify(settings);
     }
   }
 
@@ -154,6 +157,11 @@ public class GradleSpecificInitializer implements Runnable {
     }
   }
 
+  private static void setUpGradleViewToolbarActions() {
+    replaceAction("ExternalSystem.RefreshAllProjects", new RefreshProjectAction());
+    hideAction("ExternalSystem.SelectProjectDataToImport");
+  }
+
   private static void setUpNewProjectActions() {
     // Unregister IntelliJ's version of the project actions and manually register our own.
     replaceAction("OpenFile", new AndroidOpenFileAction());
@@ -168,6 +176,16 @@ public class GradleSpecificInitializer implements Runnable {
     hideAction("AddFrameworkSupport");
     hideAction("BuildArtifact");
     hideAction("RunTargetAction");
+  }
+
+  private static void setUpInstantRunActions() {
+    // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
+    // in code as well (instead of xml).
+    ActionManager actionManager = ActionManager.getInstance();
+    AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
+    if (runnerActions instanceof DefaultActionGroup) {
+      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+    }
   }
 
   private static void setUpWelcomeScreenActions() {
@@ -275,7 +293,7 @@ public class GradleSpecificInitializer implements Runnable {
 
     if (androidHome != null) {
       String androidHomePath = androidHome.getAbsolutePath();
-      ValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
+      PathValidationResult result = validateLocation(androidHomePath, "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
       if (result.isError()) {
         notifyInvalidSdk();
       }
@@ -285,7 +303,10 @@ public class GradleSpecificInitializer implements Runnable {
     }
 
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
-    if (AndroidPlugin.isGuiTestingMode()) {
+    // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initialisers
+    // might lead to unexpected SDK leaks because having not set up the SDKs, the test will consequently not release them either.
+    if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()
+        || ApplicationManager.getApplication().isHeadlessEnvironment()) {
       // This is good enough. Later on in the GUI test we'll validate the given SDK path.
       return;
     }

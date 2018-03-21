@@ -19,8 +19,10 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.StringResourceKey;
+import com.android.tools.idea.editors.strings.StringResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,20 +37,30 @@ public class StringResourceTableModel extends AbstractTableModel {
   public static final int DEFAULT_VALUE_COLUMN = 3;
   public static final int FIXED_COLUMN_COUNT = 4;
 
+  private final StringResourceRepository myRepository;
   private final StringResourceData myData;
   private final List<StringResourceKey> myKeys;
   private final List<Locale> myLocales;
 
   StringResourceTableModel() {
+    myRepository = StringResourceRepository.create();
     myData = null;
     myKeys = Collections.emptyList();
     myLocales = Collections.emptyList();
   }
 
-  public StringResourceTableModel(@NotNull StringResourceData data) {
+  public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull AndroidFacet facet) {
+    myRepository = repository;
+
+    StringResourceData data = repository.getData(facet);
     myData = data;
     myKeys = data.getKeys();
     myLocales = data.getLocaleList();
+  }
+
+  @NotNull
+  public StringResourceRepository getRepository() {
+    return myRepository;
   }
 
   @Nullable

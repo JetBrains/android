@@ -71,13 +71,13 @@ public abstract class BaseAxisFormatter {
     int index = getMultiplierIndex(globalRange, 1);
     // If value is an integer number, don't include the floating point/decimal places in the formatted string.
     // Otherwise, add up to two decimal places of value.
-    DecimalFormat decimalFormat = new DecimalFormat("#.##");
+    DecimalFormat decimalFormat = new DecimalFormat("#.#");
     String formattedValue = decimalFormat.format((float)(value) / mMultiplier);
     if (!includeUnit) {
       return formattedValue;
     }
     String pattern = mHasSeparator ? "%s %s" : "%s%s";
-    return String.format(pattern, formattedValue, getUnit(index));
+    return String.format(pattern, formattedValue, getUnit(index)).trim();
   }
 
   /**

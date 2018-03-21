@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -51,6 +50,25 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
   }
 
   @NotNull
+  public static ActionButtonFixture findByActionId(@NotNull final String actionId,
+                                                   @NotNull final Robot robot,
+                                                   @NotNull final Container container,
+                                                   long secondsToWait) {
+    ActionButton button = GuiTests.waitUntilShowingAndEnabled(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        AnAction action = component.getAction();
+        if (action != null) {
+          String id = ActionManager.getInstance().getId(action);
+          return actionId.equals(id);
+        }
+        return false;
+      }
+    }, secondsToWait);
+    return new ActionButtonFixture(robot, button);
+  }
+
+  @NotNull
   public ActionButtonFixture waitUntilEnabledAndShowing() {
     // move mouse over the target button due to Intellij bug that can cause buttons state to not be updated correctly
     // see: http://b.android.com/231853
@@ -69,13 +87,13 @@ public class ActionButtonFixture extends JComponentFixture<ActionButtonFixture, 
 
   @NotNull
   public static ActionButtonFixture findByIcon(@NotNull final Icon icon, @NotNull Robot robot, @NotNull Container container) {
-    ActionButton button = robot.finder().find(container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    ActionButton button = GuiTests.waitUntilShowing(robot, container, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         try {
           Field field = ActionButton.class.getDeclaredField("myIcon");
           field.setAccessible(true);
-          JBUI.JBIcon fieldIcon = (JBUI.JBIcon)field.get(component);
+          Icon fieldIcon = (Icon)field.get(component);
           return icon.equals(fieldIcon);
         }
         catch (NoSuchFieldException | IllegalAccessException e) {

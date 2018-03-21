@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.*;
+import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.CMakeModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModel;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl;
 import com.google.common.collect.ImmutableList;
 
 import java.io.File;
@@ -26,7 +29,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link AndroidModel}.
+ * Tests for {@link AndroidModelImpl}.
  */
 public class AndroidModelTest extends GradleFileModelTestCase {
   public void testAndroidBlockWithApplicationStatements() throws Exception {
@@ -231,9 +234,9 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
-    assertTrue(externalNativeBuild.hasValidPsiElement());
+    checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     CMakeModel cmake = externalNativeBuild.cmake();
-    assertTrue(cmake.hasValidPsiElement());
+    checkForValidPsiElement(cmake, CMakeModelImpl.class);
     assertEquals("path", new File("foo/bar"), cmake.path());
   }
 
@@ -513,15 +516,15 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
-    assertFalse(android.defaultConfig().hasValidPsiElement());
-    assertNull(android.defaultConfig().applicationId());
+    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
+    assertMissingProperty(android.defaultConfig().applicationId());
 
-    android.defaultConfig().setApplicationId("foo.bar");
+    android.defaultConfig().applicationId().setValue("foo.bar");
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId());
 
     buildModel.resetState();
-    assertFalse(android.defaultConfig().hasValidPsiElement());
-    assertNull(android.defaultConfig().applicationId());
+    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
+    assertMissingProperty(android.defaultConfig().applicationId());
   }
 
   public void testAddAndResetBuildTypeBlock() throws Exception {
@@ -681,10 +684,10 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
-    assertFalse(android.hasValidPsiElement());
+    checkForInValidPsiElement(android, AndroidModelImpl.class);
   }
 
-  public void testAddAndApplyEmptyBuildTypeBlock() throws Exception {
+  public void testAddAndRemoveBuildTypeBlock() throws Exception {
     String text = "android { \n" +
                   "}";
     writeToBuildFile(text);
@@ -696,18 +699,22 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     android.addBuildType("type");
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(1);
+    buildTypes.get(0).applicationIdSuffix().setValue("suffix");
     assertEquals("buildTypes", "type", buildTypes.get(0).name());
 
-    applyChanges(buildModel);
-    assertThat(android.buildTypes()).isEmpty(); // Empty blocks are not saved to the file.
+    applyChangesAndReparse(buildModel);
+    assertThat(loadBuildFile()).contains("buildTypes");
 
-    buildModel.reparse();
     android = buildModel.android();
-    assertNotNull(android);
-    assertThat(android.buildTypes()).isEmpty(); // Empty blocks are not saved to the file.
+    assertThat(android.buildTypes()).hasSize(1);
+    android.removeBuildType("type");
+    assertThat(android.buildTypes()).isEmpty();
+
+    applyChangesAndReparse(buildModel);
+    assertThat(loadBuildFile()).doesNotContain("buildTypes");
   }
 
-  public void testAddAndApplyEmptyProductFlavorBlock() throws Exception {
+  public void testAddAndRemoveProductFlavorBlock() throws Exception {
     String text = "android { \n" +
                   "}";
     writeToBuildFile(text);
@@ -718,16 +725,20 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     android.addProductFlavor("flavor");
     List<ProductFlavorModel> productFlavors = android.productFlavors();
+    productFlavors.get(0).applicationId().setValue("appId");
     assertThat(productFlavors).hasSize(1);
     assertEquals("productFlavors", "flavor", productFlavors.get(0).name());
 
-    applyChanges(buildModel);
-    assertThat(android.productFlavors()).isEmpty(); // Empty blocks are not saved to the file.
+    applyChangesAndReparse(buildModel);
+    assertThat(loadBuildFile()).contains("productFlavors");
 
-    buildModel.reparse();
     android = buildModel.android();
-    assertNotNull(android);
-    assertThat(android.productFlavors()).isEmpty(); // Empty blocks are not saved to the file.
+    assertThat(android.productFlavors()).hasSize(1);
+    android.removeProductFlavor("flavor");
+    assertThat(android.productFlavors()).isEmpty();
+
+    applyChangesAndReparse(buildModel);
+    assertThat(loadBuildFile()).doesNotContain("productFlavors");
   }
 
   public void testAddAndApplyEmptySigningConfigBlock() throws Exception {
@@ -785,7 +796,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
-    android.defaultConfig().setApplicationId("foo.bar");
+    android.defaultConfig().applicationId().setValue("foo.bar");
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId());
 
     applyChanges(buildModel);
@@ -810,7 +821,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     List<BuildTypeModel> buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(1);
     BuildTypeModel buildType = buildTypes.get(0);
-    buildType.setApplicationIdSuffix("mySuffix");
+    buildType.applicationIdSuffix().setValue("mySuffix");
 
     buildTypes = android.buildTypes();
     assertThat(buildTypes).hasSize(1);
@@ -849,7 +860,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     List<ProductFlavorModel> productFlavors = android.productFlavors();
     assertThat(productFlavors).hasSize(1);
     ProductFlavorModel productFlavor = productFlavors.get(0);
-    productFlavor.setApplicationId("abc.xyz");
+    productFlavor.applicationId().setValue("abc.xyz");
 
     productFlavors = android.productFlavors();
     assertThat(productFlavors).hasSize(1);
@@ -966,22 +977,22 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId());
-    assertTrue(android.defaultConfig().hasValidPsiElement());
+    checkForValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
 
-    android.defaultConfig().removeApplicationId();
-    assertNull(android.defaultConfig().applicationId());
-    assertTrue(android.defaultConfig().hasValidPsiElement());
+    android.defaultConfig().applicationId().delete();
+    assertMissingProperty(android.defaultConfig().applicationId());
+    checkForValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
 
     applyChanges(buildModel);
-    assertNull(android.defaultConfig().applicationId());
-    assertFalse(android.defaultConfig().hasValidPsiElement());
+    assertMissingProperty(android.defaultConfig().applicationId());
+    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
 
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
 
-    assertNull(android.defaultConfig().applicationId());
-    assertFalse(android.defaultConfig().hasValidPsiElement());
+    assertMissingProperty(android.defaultConfig().applicationId());
+    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl.class);
   }
 
   public void testRemoveAndApplyBuildTypeBlock() throws Exception {
@@ -1154,7 +1165,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
 
-    defaultConfig.removeApplicationId();
+    defaultConfig.applicationId().delete();
     defaultConfig.removeAllProguardFiles();
 
     applyChangesAndReparse(buildModel);
@@ -1162,7 +1173,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     defaultConfig = android.defaultConfig();
-    assertNull(defaultConfig.applicationId());
+    assertMissingProperty(defaultConfig.applicationId());
     assertNull(defaultConfig.proguardFiles());
   }
 
@@ -1180,7 +1191,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
 
-    defaultConfig.setDimension("abcd");
+    defaultConfig.dimension().setValue("abcd");
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("dimension", "abcd", defaultConfig.dimension());

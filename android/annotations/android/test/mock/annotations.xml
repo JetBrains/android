@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.test.mock.MockPackageManager java.util.List&lt;android.content.pm.SharedLibraryInfo&gt; getSharedLibraries(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.test.mock.MockPackageManager void updateInstantAppCookie(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

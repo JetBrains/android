@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -37,6 +37,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -64,10 +65,8 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.io.BufferedOutputStream;
@@ -81,30 +80,31 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
+import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static junit.framework.Assert.assertTrue;
-import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.*;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
 public class GradleSyncTest {
+  @Nullable private File myBackupProperties;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -115,6 +115,23 @@ public class GradleSyncTest {
   @Before
   public void skipSourceGenerationOnSync() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
+
+  /**
+   * Generate a backup copy of user gradle.properties since some tests in this class make changes to the proxy that could
+   * cause other tests to use an incorrect configuration.
+   */
+  @Before
+  public void backupPropertiesFile() {
+    myBackupProperties = backupGlobalGradlePropertiesFile();
+  }
+
+  /**
+   * Restore user gradle.properties file content to what it had before running the tests, or delete if it did not exist.
+   */
+  @After
+  public void restorePropertiesFile() {
+    restoreGlobalGradlePropertiesFile(myBackupProperties);
   }
 
   @Test
@@ -147,9 +164,10 @@ public class GradleSyncTest {
     fail("No dependency for library3 found");
   }
 
+  @Ignore("b/70699846")
   @Test
   public void jdkNodeModificationInProjectView() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Project project = guiTest.ideFrame().getProject();
     AndroidTreeStructureProvider treeStructureProvider = null;
@@ -208,7 +226,7 @@ public class GradleSyncTest {
     File unsupportedGradleHome = getUnsupportedGradleHomeOrSkipTest();
     File gradleHomePath = getGradleHomePathOrSkipTest();
 
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     File wrapperDirPath = new File(ideFrame.getProjectPath(), SdkConstants.FD_GRADLE);
@@ -252,26 +270,6 @@ public class GradleSyncTest {
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
-  @Ignore("Importing a project which opens on the ModulesToImportDialog is causing problem. Ignore for now.")
-  @Test
-  public void moduleSelectionOnImport() throws IOException {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = true;
-    guiTest.importProject("Flavoredlib");
-
-    ModulesToImportDialogFixture projectSubsetDialog = ModulesToImportDialogFixture.find(guiTest.robot());
-    projectSubsetDialog.setSelected("lib", false).clickOk();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    // Verify that "lib" (which was unchecked in the "Select Modules to Include" dialog) is not a module.
-    assertThat(ideFrame.getModuleNames()).containsExactly("Flavoredlib", "app");
-
-    // subsequent project syncs should respect module selection
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-    assertThat(ideFrame.getModuleNames()).containsExactly("Flavoredlib", "app");
-  }
-
   // See https://code.google.com/p/android/issues/detail?id=165576
   @Test
   public void javaModelSerialization() throws IOException {
@@ -308,6 +306,7 @@ public class GradleSyncTest {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=73087
+  @RunIn(TestGroup.UNRELIABLE)  // b/37109081
   @Test
   public void withUserDefinedLibraryAttachments() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
@@ -343,7 +342,7 @@ public class GradleSyncTest {
   // JVM settings for Gradle should be cleared before any invocation to Gradle.
   @Test
   public void shouldClearJvmArgsOnSyncAndBuild() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     Project project = ideFrame.getProject();
@@ -380,11 +379,11 @@ public class GradleSyncTest {
   public void withIdeProxySettings() throws IOException {
     System.getProperties().setProperty("show.do.not.copy.http.proxy.settings.to.gradle", "true");
 
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    File gradlePropertiesPath = new File(ideFrame.getProjectPath(), "gradle.properties");
-    createIfNotExists(gradlePropertiesPath);
+    File gradlePropertiesFile = getUserGradlePropertiesFile();
+    createIfNotExists(gradlePropertiesFile);
 
     String host = "myproxy.test.com";
     int port = 443;
@@ -404,9 +403,10 @@ public class GradleSyncTest {
     ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish(Wait.seconds(20));
 
     // Verify gradle.properties has proxy settings.
-    assertAbout(file()).that(gradlePropertiesPath).isFile();
+    gradlePropertiesFile = getUserGradlePropertiesFile();
+    assertAbout(file()).that(gradlePropertiesFile).isFile();
 
-    Properties gradleProperties = getProperties(gradlePropertiesPath);
+    Properties gradleProperties = getProperties(gradlePropertiesFile);
     assertEquals(host, gradleProperties.getProperty("systemProp.http.proxyHost"));
     assertEquals(String.valueOf(port), gradleProperties.getProperty("systemProp.http.proxyPort"));
 
@@ -419,12 +419,12 @@ public class GradleSyncTest {
   public void sdkSwitch() throws IOException {
     File secondSdkPath = getFilePathPropertyOrSkipTest("second.android.sdk.path", "the path of a secondary Android SDK", true);
 
-    getGuiTestSuiteState().setSkipSdkMerge(true);
+    GuiTestingService.getInstance().getGuiTestSuiteState().setSkipSdkMerge(true);
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     File originalSdkPath = ideSdks.getAndroidSdkPath();
 
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     // Change the SDK in the project. We expect the IDE to have the same SDK as the project.
@@ -462,7 +462,7 @@ public class GradleSyncTest {
   // See https://code.google.com/p/android/issues/detail?id=171370
   @Test
   public void editorNotificationsWhenSyncNeededAfterProjectImport() throws IOException {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
     // @formatter:off
     ideFrame.getEditor()
             .open("app/build.gradle")
@@ -486,12 +486,12 @@ public class GradleSyncTest {
     assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));
   }
 
+  @Ignore("fails; replace with headless integration test; see b/37730035")
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/64229547
   public void syncDuringOfflineMode() throws IOException {
     String hyperlinkText = "Disable offline mode and sync project";
 
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     File buildFile = new File(ideFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
@@ -531,14 +531,15 @@ public class GradleSyncTest {
 
   @Test
   public void shouldUseLibrary() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     Project project = ideFrame.getProject();
 
     // Make sure the library was added.
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    String libraryName = "org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
+    // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
+    String libraryName = GradleConstants.SYSTEM_ID.getReadableName() + ": org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
     Library library = libraryTable.getLibraryByName(libraryName);
 
     // Verify that the library has the right j
@@ -569,39 +570,10 @@ public class GradleSyncTest {
     assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
   }
 
-  @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/64229547
-  public void aarSourceAttachments() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    Project project = ideFrame.getProject();
-
-    Module appModule = ideFrame.getModule("app");
-
-    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
-      project, () -> {
-        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-
-        String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
-        buildModel.dependencies().addArtifact(COMPILE, newDependency);
-        buildModel.applyChanges();
-      }));
-
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    // Verify that the library has sources.
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    String libraryName = "mapbox-android-sdk-0.7.4";
-    Library library = libraryTable.getLibraryByName(libraryName);
-    VirtualFile[] files = library.getFiles(SOURCES);
-    assertThat(files).asList().hasSize(1);
-  }
-
   // https://code.google.com/p/android/issues/detail?id=185313
   @Test
   public void sdkCreationForAddons() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     Project project = ideFrame.getProject();
@@ -630,7 +602,7 @@ public class GradleSyncTest {
 
   @Test
   public void gradleModelCache() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     File projectPath = ideFrameFixture.getProjectPath();
@@ -663,8 +635,9 @@ public class GradleSyncTest {
   /**
    * Verify that the project syncs and gradle file updates after changing the minSdkVersion in the build.gradle file.
    * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * TT ID: 01d7a0e9-a947-4cd1-a842-17c0b006d3f1
    * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
    * <pre>
    *   Steps:
    *   1. Import a project.
@@ -672,19 +645,19 @@ public class GradleSyncTest {
    *   3. Sync the project.
    *   Verify:
    *   Project syncs and minSdk version is updated.
-   *   </pre>
+   * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void modifyMinSdkAndSync() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
     // @formatter:off
     ideFrame.getEditor()
             .open("app/build.gradle")
             .select("minSdkVersion (19)")
             .enterText("23")
             .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-            .performAction("Sync Now")
+            .performActionWithoutWaitingForDisappearance("Sync Now")
             .waitForGradleProjectSyncToFinish();
     // @formatter:on
   }

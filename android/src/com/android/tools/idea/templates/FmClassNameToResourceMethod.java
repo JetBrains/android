@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.tools.idea.templates.AssetNameConverter.Type;
 import freemarker.template.*;
 
 import java.util.List;
-
-import static com.android.tools.idea.templates.FmUtil.stripSuffix;
-import static com.android.tools.idea.wizard.template.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
 
 /**
  * Similar to {@link FmCamelCaseToUnderscoreMethod}, but strips off common class
@@ -39,12 +37,6 @@ public class FmClassNameToResourceMethod implements TemplateMethodModelEx {
             return new SimpleScalar("");
         }
 
-        // Use recursive stripping
-        name = stripSuffix(name, ACTIVITY_NAME_SUFFIX, true);
-        name = stripSuffix(name, "Fragment", true);              //$NON-NLS-1$
-        name = stripSuffix(name, "Service", true);               //$NON-NLS-1$
-        name = stripSuffix(name, "Provider", true);              //$NON-NLS-1$
-
-        return new SimpleScalar(TemplateUtils.camelCaseToUnderlines(name));
+        return new SimpleScalar(new AssetNameConverter(Type.CLASS_NAME, name).getValue(Type.RESOURCE));
     }
 }

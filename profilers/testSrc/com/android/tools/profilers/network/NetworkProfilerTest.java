@@ -15,30 +15,30 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.*;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.StudioProfilers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static com.android.tools.profilers.ProfilersTestData.SESSION_DATA;
+import static org.junit.Assert.*;
 
 public class NetworkProfilerTest {
   private static final int FAKE_PID = 111;
-  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private final FakeNetworkService myService = FakeNetworkService.newBuilder().build();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerTest", myService);
 
-  private Profiler.Process FAKE_PROCESS = Profiler.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
+  private Common.Process FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
   private NetworkProfiler myProfiler;
 
   @Before
   public void setUp() {
-    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer()));
+    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
   }
 
   @Test
@@ -50,13 +50,13 @@ public class NetworkProfilerTest {
 
   @Test
   public void startMonitoring() {
-    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getProcessId());
+    myProfiler.startProfiling(SESSION_DATA, FAKE_PROCESS);
+    assertEquals(SESSION_DATA, myService.getSession());
   }
 
   @Test
   public void stopMonitoring() {
-    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getProcessId());
+    myProfiler.stopProfiling(SESSION_DATA, FAKE_PROCESS);
+    assertEquals(SESSION_DATA, myService.getSession());
   }
 }

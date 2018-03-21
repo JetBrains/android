@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.model.android.SourceSetModel;
+import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
+import com.android.tools.idea.gradle.dsl.model.android.SourceSetModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public final class SourceSetsDslElement extends GradleDslElementMap {
@@ -33,7 +33,7 @@ public final class SourceSetsDslElement extends GradleDslElementMap {
   }
 
   @Override
-  protected boolean isBlockElement() {
+  public boolean isBlockElement() {
     return true;
   }
 
@@ -41,7 +41,7 @@ public final class SourceSetsDslElement extends GradleDslElementMap {
   public List<SourceSetModel> get() {
     List<SourceSetModel> result = new ArrayList<>();
     for (SourceSetDslElement dslElement : getValues(SourceSetDslElement.class)) {
-      result.add(new SourceSetModel(dslElement));
+      result.add(new SourceSetModelImpl(dslElement));
     }
     return result;
   }

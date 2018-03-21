@@ -17,39 +17,36 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
+import com.android.tools.profilers.ProfilerLayeredPane;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerColors.*;
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.TABLE_COLUMN_HEADER_BORDER;
+import static com.android.tools.profilers.ProfilerColors.DEFAULT_HOVER_COLOR;
+import static com.android.tools.profilers.ProfilerLayout.*;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -70,21 +67,20 @@ final class ConnectionsView {
     SIZE(0.25 / 4, Integer.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
-        return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
+        return data.getResponsePayloadSize();
       }
     },
     TYPE(0.25 / 4, String.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        HttpData.ContentType type = data.getContentType();
-        return type == null ? "" : type.getMimeType();
+        HttpData.ContentType type = data.getResponseHeader().getContentType();
+        return type.getMimeType();
       }
     },
     STATUS(0.25 / 4, Integer.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        return data.getStatusCode();
+        return data.getResponseHeader().getStatusCode();
       }
     },
     TIME(0.25 / 4, Long.class) {
@@ -130,7 +126,7 @@ final class ConnectionsView {
   private final ConnectionsTableModel myTableModel;
 
   @NotNull
-  private final JTable myConnectionsTable;
+  private final HoverRowTable myConnectionsTable;
 
   @NotNull
   private final AspectObserver myAspectObserver;
@@ -142,6 +138,7 @@ final class ConnectionsView {
 
     myConnectionsTable = new HoverRowTable(myTableModel, DEFAULT_HOVER_COLOR);
     customizeConnectionsTable();
+    createTooltip();
 
     myAspectObserver = new AspectObserver();
     myStage.getAspect().addDependency(myAspectObserver).onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateTableSelection);
@@ -150,37 +147,6 @@ final class ConnectionsView {
   @NotNull
   public JComponent getComponent() {
     return myConnectionsTable;
-  }
-
-  /**
-   * This method sets a {@ocde table}'s column headers to use the target {@code border}.
-   *
-   * This should only be called after a table's columns are initialized.
-   */
-  // TODO: Move this to adtui, and share this code with ColumnTreeBuilder.
-  private static void setTableHeaderBorder(@NotNull JTable table, @NotNull Border border) {
-    TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
-    for (int i = 0; i < table.getColumnModel().getColumnCount(); i++) {
-      TableColumn column = table.getColumnModel().getColumn(i);
-      column.setHeaderRenderer(new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(JTable table,
-                                                       Object value,
-                                                       boolean isSelected,
-                                                       boolean hasFocus,
-                                                       int row,
-                                                       int column) {
-          Component c = headerRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-          if (c instanceof JLabel) {
-            ((JLabel)c).setHorizontalAlignment(SwingConstants.LEFT);
-          }
-          if (c instanceof JComponent) {
-            ((JComponent)c).setBorder(border);
-          }
-          return c;
-        }
-      });
-    }
   }
 
   private void customizeConnectionsTable() {
@@ -192,8 +158,7 @@ final class ConnectionsView {
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
-
-    setTableHeaderBorder(myConnectionsTable, TABLE_COLUMN_HEADER_BORDER);
+    myConnectionsTable.setTableHeaderBorder(TABLE_COLUMN_HEADER_BORDER);
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
@@ -232,6 +197,30 @@ final class ConnectionsView {
       // flickering that otherwise occurs in our table.
 
       updateTableSelection();
+    });
+  }
+
+  private void createTooltip() {
+    JTextPane textPane = new JTextPane();
+    textPane.setEditable(false);
+    textPane.setBorder(TOOLTIP_BORDER);
+    textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    textPane.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    textPane.setFont(myConnectionsTable.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+    TooltipComponent tooltip = new TooltipComponent(textPane, myConnectionsTable, ProfilerLayeredPane.class);
+    tooltip.registerListenersOn(myConnectionsTable);
+    myConnectionsTable.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        int row = myConnectionsTable.rowAtPoint(e.getPoint());
+        if (row >= 0) {
+          tooltip.setVisible(true);
+          String url = myTableModel.getHttpData(myConnectionsTable.convertRowIndexToModel(row)).getUrl();
+          textPane.setText(url);
+        } else {
+          tooltip.setVisible(false);
+        }
+      }
     });
   }
 
@@ -290,13 +279,6 @@ final class ConnectionsView {
     @NotNull
     public HttpData getHttpData(int rowIndex) {
       return myDataList.get(rowIndex);
-    }
-  }
-
-  private static class BorderlessTableCellRenderer extends DefaultTableCellRenderer {
-    @Override
-    public void setBorder(Border border) {
-      super.setBorder(new EmptyBorder(ProfilerLayout.TABLE_COLUMN_CELL_INSETS));
     }
   }
 

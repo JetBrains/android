@@ -63,7 +63,7 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
     int index = getItemCount() > 0 ? 0 : -1;
     for (int i = 0; i < getItemCount(); i++) {
       AndroidVersionsInfo.VersionItem item = getItemAt(i);
-      if (Objects.equal(item.getApiLevelStr(), savedApiLevel)) {
+      if (Objects.equal(item.getMinApiLevelStr(), savedApiLevel)) {
         index = i;
         break;
       }
@@ -75,7 +75,7 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
   private void saveSelectedApi(ItemEvent e) {
     if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() != null) {
       AndroidVersionsInfo.VersionItem item = (AndroidVersionsInfo.VersionItem)e.getItem();
-      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), item.getApiLevelStr());
+      PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), item.getMinApiLevelStr());
     }
   }
 

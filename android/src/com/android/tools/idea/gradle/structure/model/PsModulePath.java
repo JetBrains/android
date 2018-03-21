@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class PsModulePath extends PsPath {
   @NotNull private final String myModuleName;
 
   public PsModulePath(@NotNull PsModule module) {
+    super(null);
     myModuleName = module.getName();
   }
 
@@ -42,20 +45,29 @@ public final class PsModulePath extends PsPath {
     }
   }
 
+  @Nullable
+  @Override
+  public String getHyperlinkDestination(@NotNull PsContext context) {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public String getHtml(@NotNull PsContext context) {
+    return "";
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PsModulePath that = (PsModulePath)o;
-    return Objects.equal(myModuleName, that.myModuleName);
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    PsModulePath path = (PsModulePath)o;
+    return Objects.equal(myModuleName, path.myModuleName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myModuleName);
+    return Objects.hashCode(super.hashCode(), myModuleName);
   }
 }

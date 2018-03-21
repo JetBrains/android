@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator;
 
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -35,6 +36,10 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS;
@@ -83,20 +88,22 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "   raw.asset.txt (main)\n" +
                       "  res\n" +
                       "   drawable\n" +
-                      "    ic_launcher.png (2)\n" +
+                      "    ic_launcher (2)\n" +
                       "     ic_launcher.png (hdpi, debug)\n" +
                       "     ic_launcher.png (mdpi)\n" +
-                      "    j.png (mdpi)\n" +
+                      "    j (2)\n" +
+                      "     j.png (mdpi)\n" +
+                      "     j.xml (xxdpi)\n" +
                       "   layout\n" +
                       "    activity_main.xml\n" +
                       "   menu\n" +
                       "    main.xml\n" +
                       "   values\n" +
-                      "    dimens.xml (3)\n" +
+                      "    dimens (3)\n" +
                       "     dimens.xml\n" +
                       "     dimens.xml (debug)\n" +
                       "     dimens.xml (w820dp)\n" +
-                      "    strings.xml (2)\n" +
+                      "    strings (2)\n" +
                       "     strings.xml\n" +
                       "     strings.xml (debug)\n" +
                       "    styles.xml\n" +
@@ -126,7 +133,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "   values\n" +
                       "    strings.xml\n" +
                       " Gradle Scripts\n" +
-                      "  build.gradle (Project: " + rootModuleName + ")\n" +
+                      "  build.gradle (Project: testProjectView)\n" +
                       "  build.gradle (Module: app)\n" +
                       "  sonar.gradle (Module: app)\n" +
                       "  build.gradle (Module: empty)\n" +
@@ -149,7 +156,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
     // Select the node app/res/values/dimens.xml, which groups together 3 dimens.xml files
-    Object element = findElementForPath(structure, "app (Android)", "res", "values", "dimens.xml (3)");
+    Object element = findElementForPath(structure, "app (Android)", "res", "values", "dimens (3)");
     assertNotNull(element);
     myPane.getTreeBuilder().select(element);
 
@@ -169,7 +176,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
     // Select the node app/res/drawable/is_launcher.png, which groups together 2 ic_launcher.png files.
-    Object element = findElementForPath(structure, "app (Android)", "res", "drawable", "ic_launcher.png (2)");
+    Object element = findElementForPath(structure, "app (Android)", "res", "drawable", "ic_launcher (2)");
     assertNotNull(element);
     myPane.getTreeBuilder().select(element);
 
@@ -234,6 +241,25 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "   sample_resource.txt\n";
     int numLines = expected.split("\n").length;
     assertStructureEqual(structure, expected, numLines, createComparator(printInfo), structure.getRootElement(), printInfo);
+  }
+
+  public void testResourceGroupWithDifferentExtension() throws Exception {
+    loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+
+    // Select the node app/res/drawable/is_launcher.png, which groups together 2 ic_launcher.png files.
+    Object element = findElementForPath(structure, "app (Android)", "res", "drawable", "j (2)");
+    assertNotNull(element);
+    myPane.getTreeBuilder().select(element);
+
+    // Now make sure the virtualFileArray for this node actually contains the 2 files.
+    VirtualFile[] files = ((VirtualFile[])myPane.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY.getName()));
+    assertNotNull(files);
+    assertThat(files).hasLength(2);
+    List<String> fileNames = Arrays.stream(files).map(VirtualFile::getName).collect(Collectors.toList());
+    assertSameElements(fileNames, ImmutableList.of("j.png", "j.xml"));
   }
 
   @Nullable

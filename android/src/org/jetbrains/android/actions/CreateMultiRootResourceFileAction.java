@@ -19,9 +19,9 @@ package org.jetbrains.android.actions;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.projectView.ProjectView;
@@ -100,7 +100,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
     assert myResourceFolderType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
 
-    if (dependsOn(facet, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT)) {
+    if (DependencyManagementUtil.dependsOn(facet.getModule(), GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
       myDefaultRootTag = SdkConstants.CONSTRAINT_LAYOUT;
     }
 
@@ -108,14 +108,6 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
     assert roots.contains(myDefaultRootTag);
 
     return roots;
-  }
-
-  @VisibleForTesting
-  boolean dependsOn(@NotNull AndroidFacet facet, @NotNull String artifact) {
-    AndroidModuleModel model = AndroidModuleModel.get(facet);
-    assert model != null;
-
-    return GradleUtil.dependsOn(model, artifact);
   }
 
   @VisibleForTesting

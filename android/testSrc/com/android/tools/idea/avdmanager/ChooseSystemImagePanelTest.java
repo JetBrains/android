@@ -167,6 +167,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, TV_TAG));
     assertEquals(X86, getClassificationFromParts(Abi.X86, 25, DEFAULT_TAG));
     assertEquals(OTHER, getClassificationFromParts(Abi.ARM64_V8A, 25, DEFAULT_TAG));
+    assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 25, CHROMEOS_TAG));
   }
 
   public void testClassificationForDevice() throws Exception {

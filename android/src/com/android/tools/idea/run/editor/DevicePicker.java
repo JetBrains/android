@@ -20,18 +20,13 @@ import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.android.tools.idea.avdmanager.*;
-import com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.AdbAssistantStats;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,6 +52,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.*;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener, Disposable,
                                      ActionListener, ListSelectionListener {
@@ -73,6 +69,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   private JBList<DevicePickerEntry> myDevicesList;
   private final AndroidDeviceRenderer myDeviceRenderer;
   private int myErrorGen;
+  @NotNull
+  private HelpHandler myHelpHandler;
 
   @NotNull private final AndroidFacet myFacet;
   private final int myRunContextId;
@@ -86,12 +84,14 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
                       int runContextId,
                       @NotNull final AndroidFacet facet,
                       @NotNull DeviceCount deviceCount,
-                      @NotNull LaunchCompatibilityChecker compatibilityChecker) {
+                      @NotNull LaunchCompatibilityChecker compatibilityChecker,
+                      @NotNull HelpHandler helpHandler) {
     myRunContextId = runContextId;
     myFacet = facet;
 
-    myHelpHyperlink.addHyperlinkListener(e -> launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE));
+    myHelpHyperlink.addHyperlinkListener(e -> helpHandler.launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE));
     myCompatibilityChecker = compatibilityChecker;
+    myHelpHandler = helpHandler;
 
     ListSpeedSearch speedSearch = new DeviceListSpeedSearch(myDevicesList);
     myDeviceRenderer = new AndroidDeviceRenderer(myCompatibilityChecker, speedSearch);
@@ -194,12 +194,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
         }
 
         myAvdInfos = avdInfos;
-        updateModel();
+        updateModelAndSelectAvd(avdToSelect);
         myDevicesList.setPaintBusy(false);
-
-        if (avdToSelect != null) {
-          selectAvd(avdToSelect);
-        }
       });
     });
   }
@@ -210,7 +206,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     if (myModel.getNumberOfConnectedDevices() == 0) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("No USB devices or running emulators detected");
-      panel.createActionLabel("Troubleshoot", () -> launchDiagnostics(AdbAssistantStats.Trigger.NO_RUNNING_DEVICE));
+      panel.createActionLabel("Troubleshoot", () -> myHelpHandler.launchDiagnostics(AdbAssistantStats.Trigger.NO_RUNNING_DEVICE));
 
       myNotificationPanel.add(panel);
     }
@@ -283,13 +279,17 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   private void updateModel() {
+    updateModelAndSelectAvd(null);
+  }
+
+  private void updateModelAndSelectAvd(@Nullable AvdInfo avdToSelect) {
     AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
     if (bridge == null || !bridge.isConnected()) {
       return;
     }
 
     if (!ApplicationManager.getApplication().isDispatchThread()) {
-      invokeLater(this::updateModel);
+      invokeLater(() -> updateModelAndSelectAvd(avdToSelect));
       return;
     }
 
@@ -309,8 +309,12 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
           return;
         }
         setModel(model);
-        int[] selectedIndices = getIndices(myModel.getItems(), selectedSerials.isEmpty() ? getDefaultSelection() : selectedSerials);
-        myDevicesList.setSelectedIndices(selectedIndices);
+        if (avdToSelect != null) {
+          selectAvd(avdToSelect);
+        } else {
+          int[] selectedIndices = getIndices(myModel.getItems(), selectedSerials.isEmpty() ? getDefaultSelection() : selectedSerials);
+          myDevicesList.setSelectedIndices(selectedIndices);
+        }
 
         // The help hyper link is shown only when there is no inline troubleshoot link.
         myHelpHyperlink.setVisible(myModel.getNumberOfConnectedDevices() == 0);
@@ -436,20 +440,6 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     return devices;
   }
 
-  public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
-    UsageTracker.getInstance().log(
-        AndroidStudioEvent.newBuilder()
-            .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
-            .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));
-    if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
-      OpenAssistSidePanelAction action = new OpenAssistSidePanelAction();
-      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, myFacet.getModule().getProject());
-    }
-    else {
-      BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
-    }
-  }
-
   public void installDoubleClickListener(@NotNull DoubleClickListener listener) {
     // wrap the incoming listener in a new listener so that we can remove the reference to the incoming object when we are disposed
     new MyDoubleClickListener(listener, this).installOn(myDevicesList);
@@ -480,8 +470,13 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
         return;
       }
 
-      JList list = (JList)e.getSource();
-      int startIndex = list.getSelectedIndex();
+      @SuppressWarnings("unchecked")
+      JList<DevicePickerEntry> list = (JList<DevicePickerEntry>)e.getSource();
+      if (allListElementsMatch(list, x -> x.isMarker())) {
+        // If all elements are markers (e.g. when list is not populated yet, see bug 72018351),
+        // we don't want to process up/down keys, as there is no appropriate entry to select.
+        return;
+      }
 
       int keyCode = e.getKeyCode();
       switch (keyCode) {
@@ -502,19 +497,28 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
           return;
       }
 
-      // move up or down if the current selection is a marker
-      DevicePickerEntry entry = (DevicePickerEntry)list.getSelectedValue();
-      while (entry.isMarker() && list.getSelectedIndex() != startIndex) {
+      // move up or down further as long as the current selection is a marker
+      for (DevicePickerEntry entry = list.getSelectedValue(); entry.isMarker(); entry = list.getSelectedValue()) {
         if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_PAGE_UP) {
           ScrollingUtil.moveUp(list, e.getModifiersEx());
         }
         else {
           ScrollingUtil.moveDown(list, e.getModifiersEx());
         }
-        entry = (DevicePickerEntry)list.getSelectedValue();
       }
 
       e.consume();
+    }
+
+    private static <E> boolean allListElementsMatch(@NotNull JList<E> list, @NotNull Predicate<E> predicate) {
+      for (int i = 0; i < list.getModel().getSize(); i++){
+        if (!predicate.test(list.getModel().getElementAt(i))) {
+          return false;
+        }
+      }
+
+      // See https://stackoverflow.com/a/30223378
+      return true;
     }
   }
 

@@ -16,31 +16,31 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleSetup {
   @NotNull private final NdkModuleSetupStep[] mySetupSteps;
 
-  public NdkModuleSetup(@NotNull NdkModuleSetupStep... extensions) {
-    mySetupSteps = extensions;
+  public NdkModuleSetup() {
+    this(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep());
   }
 
-  public void setUpModule(@NotNull Module module,
-                          @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                          @Nullable NdkModuleModel ndkModuleModel,
-                          @Nullable SyncAction.ModuleModels models,
-                          @Nullable ProgressIndicator indicator,
-                          boolean syncSkipped) {
+  @VisibleForTesting
+  NdkModuleSetup(@NotNull NdkModuleSetupStep... setupSteps) {
+    mySetupSteps = setupSteps;
+  }
+
+  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable NdkModuleModel ndkModuleModel, boolean syncSkipped) {
     for (NdkModuleSetupStep step : mySetupSteps) {
       if (syncSkipped && !step.invokeOnSkippedSync()) {
         continue;
       }
-      step.setUpModule(module, ideModelsProvider, ndkModuleModel, models, indicator);
+      step.setUpModule(context, ndkModuleModel);
     }
   }
 }

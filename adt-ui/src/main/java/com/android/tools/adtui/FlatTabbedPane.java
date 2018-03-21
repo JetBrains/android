@@ -24,7 +24,10 @@ import sun.swing.SwingUtilities2;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 /**
  * A simple tabbed pane that mimics the laf of IntelliJ's flat toolbar tabs. Supports hover states over tab.
@@ -51,7 +54,8 @@ public class FlatTabbedPane extends JTabbedPane {
       int tabCount = getTabCount();
       if (myDirection == ActionDirection.RIGHT) {
         setSelectedIndex((getSelectedIndex() + 1) % tabCount);
-      } else {
+      }
+      else {
         setSelectedIndex((getSelectedIndex() - 1 + tabCount) % tabCount);
       }
     }
@@ -135,8 +139,9 @@ public class FlatTabbedPane extends JTabbedPane {
     private static final Color DEFAULT_INACTIVE_COLOR = new JBColor(new Color(212, 212, 212), new Color(60, 62, 63));
     private static final Color DEFAULT_HOVER_COLOR = new JBColor(new Color(230, 230, 230), new Color(70, 74, 75));
     private static final Color DEFAULT_BORDER_COLOR = new JBColor(Gray._201, Gray._40);
-    private static final Insets DEFAULT_TAB_INSETS = new Insets(5, 12, 5, 12);
-    private static final Insets DEFAULT_TAB_AREA_INSETS = new Insets(3, 0, -1, 0);
+    private static final Insets DEFAULT_TAB_INSETS = new Insets(8, 12, 7, 12);
+    // By default, make the tab area flushed against the top and bottom without borders (hence the -1s).
+    private static final Insets DEFAULT_TAB_AREA_INSETS = new Insets(-1, 0, -1, 0);
     private static final Insets DEFAULT_CONTENT_BORDER_INSETS = new Insets(4, 0, 0, 0);
 
     private int myHoveredTabIndex = -1;
@@ -161,26 +166,37 @@ public class FlatTabbedPane extends JTabbedPane {
     @Override
     public void installUI(JComponent c) {
       super.installUI(c);
+      // super.installUI would reset to the defaults so we have to set them to our custom values after.
+      overwriteBaseSettings();
+    }
+
+    private void setTabAreaInsets(@NotNull Insets insets) {
+      myTabAreaInsets = insets;
+      overwriteBaseSettingsAndRevalidate();
+    }
+
+    private void setTabInsets(@NotNull Insets insets) {
+      tabInsets = myTabInsets = insets;
+      overwriteBaseSettingsAndRevalidate();
+    }
+
+    private void setContentBorderInsets(@NotNull Insets insets) {
+      contentBorderInsets = myContentBorderInsets = insets;
+      overwriteBaseSettingsAndRevalidate();
+    }
+
+    /**
+     * Update the base class properties with our custom values, as the former values are what actually used for rendering.
+     */
+    private void overwriteBaseSettings() {
       tabInsets = myTabInsets;
       tabAreaInsets = myTabAreaInsets;
       contentBorderInsets = myContentBorderInsets;
     }
 
-    private void setTabAreaInsets(@NotNull Insets insets) {
-      myTabAreaInsets = insets;
-      tabPane.invalidate();
-      tabPane.repaint();
-    }
-
-    private void setTabInsets(@NotNull Insets insets) {
-      myTabInsets = insets;
-      tabPane.invalidate();
-      tabPane.repaint();
-    }
-
-    private void setContentBorderInsets(@NotNull Insets insets) {
-      myContentBorderInsets = insets;
-      tabPane.invalidate();
+    private void overwriteBaseSettingsAndRevalidate() {
+      overwriteBaseSettings();
+      tabPane.revalidate();
       tabPane.repaint();
     }
 

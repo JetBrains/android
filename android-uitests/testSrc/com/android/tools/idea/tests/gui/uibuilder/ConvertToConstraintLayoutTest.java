@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.junit.Assert.assertEquals;
 
-@RunIn(TestGroup.UNRELIABLE)  // b/63164506
+@RunIn(TestGroup.UNRELIABLE)  // b/70566335
 @RunWith(GuiTestRunner.class)
 public class ConvertToConstraintLayoutTest {
   private static final Pattern TOOLS_DIMENSION = Pattern.compile("tools:(.*)=\"(.*)dp\"");
@@ -75,6 +75,7 @@ public class ConvertToConstraintLayoutTest {
     waitForScout();
 
     @Language("XML")
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
@@ -87,6 +88,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:id=\"@+id/button\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginLeft=\"<test>\"\n" +
                  "        android:layout_marginStart=\"<test>\"\n" +
                  "        android:layout_marginTop=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
@@ -97,6 +99,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:id=\"@+id/button2\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:layout_marginLeft=\"<test>\"\n" +
                  "        android:layout_marginStart=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/button\"\n" +
@@ -107,6 +110,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginEnd=\"<test>\"\n" +
+                 "        android:layout_marginRight=\"<test>\"\n" +
                  "        android:ems=\"10\"\n" +
                  "        android:inputType=\"textPersonName\"\n" +
                  "        android:text=\"Name\"\n" +
@@ -120,6 +124,8 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"<test>\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginEnd=\"<test>\"\n" +
+                 "        android:layout_marginLeft=\"<test>\"\n" +
+                 "        android:layout_marginRight=\"<test>\"\n" +
                  "        android:layout_marginStart=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
                  "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button5\"\n" +
@@ -132,6 +138,7 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginBottom=\"<test>\"\n" +
                  "        android:layout_marginEnd=\"<test>\"\n" +
+                 "        android:layout_marginRight=\"<test>\"\n" +
                  "        android:text=\"Button\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
@@ -155,7 +162,10 @@ public class ConvertToConstraintLayoutTest {
   private static String wipeDimensions(@Language("XML") String xml) {
     // Remove specific pixel sizes from an XML layout before pretty printing it; they may very from machine
     // to machine. It's the constraints that matter.
+
+    // noinspection AssignmentToMethodParameter
     xml = TOOLS_DIMENSION.matcher(xml).replaceAll("tools:$1=\"<test>\"");
+    // noinspection AssignmentToMethodParameter
     xml = ANDROID_DIMENSION.matcher(xml).replaceAll("android:$1=\"<test>\"");
 
     return xml;

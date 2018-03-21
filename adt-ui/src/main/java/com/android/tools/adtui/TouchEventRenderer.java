@@ -34,6 +34,8 @@ public class TouchEventRenderer<E> implements SimpleEventRenderer<E> {
   // TODO: make this accessible for on mouse over to adjust height.
   private int myLineWidth = 12;
 
+  private static final int BORDER_MARGIN = 2;
+
   @Override
   public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> notUsedData) {
     Color currentColor = g2d.getColor();
@@ -41,6 +43,13 @@ public class TouchEventRenderer<E> implements SimpleEventRenderer<E> {
     double xPosition = transform.getTranslateX() - myLineWidth / 2.0;
     double yPosition = transform.getTranslateY() + myLineWidth / 2.0;
 
+    g2d.setColor(parent.getBackground());
+    Ellipse2D.Double ellipse = new Ellipse2D.Double(xPosition - BORDER_MARGIN, yPosition - BORDER_MARGIN, myLineWidth + BORDER_MARGIN * 2,
+                                                    myLineWidth + BORDER_MARGIN * 2);
+    g2d.fill(ellipse);
+    g2d.setColor(TOUCH_COLOR);
+    ellipse = new Ellipse2D.Double(xPosition, yPosition, myLineWidth, myLineWidth);
+    g2d.fill(ellipse);
     // If the duration of mouse down was significant we draw a trailing line for it.
     if (length >= MIN_LENGTH) {
       BasicStroke str = new BasicStroke(myLineWidth);
@@ -50,9 +59,6 @@ public class TouchEventRenderer<E> implements SimpleEventRenderer<E> {
       g2d.fill(rect);
       g2d.setStroke(currentStroke);
     }
-    g2d.setColor(TOUCH_COLOR);
-    Ellipse2D.Double ellipse = new Ellipse2D.Double(xPosition, yPosition, myLineWidth, myLineWidth);
-    g2d.fill(ellipse);
     g2d.setColor(currentColor);
   }
 }

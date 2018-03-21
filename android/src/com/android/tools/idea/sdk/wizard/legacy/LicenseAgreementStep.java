@@ -261,7 +261,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         RemotePackage p = remotePackages.get(path);
         License license = p.getLicense();
         if (license == null) {
-            license = AndroidSdkLicenseTemporaryData.getLicense(
+            license = AndroidSdkLicenseTemporaryData.INSTANCE.getLicense(
               p.getTypeDetails() instanceof DetailsTypes.ApiDetailsType &&
               ((DetailsTypes.ApiDetailsType)p.getTypeDetails()).getAndroidVersion().isPreview());
         }

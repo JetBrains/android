@@ -112,7 +112,7 @@ public final class CreateClassAction extends AnAction {
       }
     }
     catch (CreateFileFromTemplateDialog.FailedToCreateFileException exception) {
-      Logger.getInstance(CreateClassAction.class).warn(exception);
+      // do nothing; this is triggered, for example, by the user entering invalid values for class names and such, handled elsewhere
     }
   }
 

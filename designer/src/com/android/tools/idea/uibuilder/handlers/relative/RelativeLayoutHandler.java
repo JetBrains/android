@@ -38,18 +38,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Handler for the {@code <RelativeLayout>} layout
+ * Legacy Handler for the {@code <RelativeLayout>} layout
  */
 public class RelativeLayoutHandler extends ViewGroupHandler {
-  @Override
-  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
-    NlGraphics g = new NlGraphics(graphics, screenView);
-    Iterable<NlComponent> iterable = component.getChildren();
-    List<NlComponent> children = Lists.newArrayList(iterable);
-    ConstraintPainter.paintSelectionFeedback(g, component, children, true, TextDirection.LEFT_TO_RIGHT);
-    return false;
-  }
-
   @Override
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
@@ -94,7 +85,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
         for (NlComponent component : components) {
           NlComponent finalPrevious = previous;
 
-          NlWriteCommandAction.run(component, type.getDescription(), () -> {
+          NlWriteCommandAction.run(component, "Apply Constraints", () -> {
             if (finalPrevious == null) {
               moveHandler.applyConstraints(component);
             }
@@ -124,7 +115,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
           .stream()
           .filter(component -> component.getParent() != layout.getNlComponent())
           .collect(Collectors.toList());
-        editor.getModel().addComponents(added, layout.getNlComponent(), null, insertType);
+        editor.getModel().addComponents(added, layout.getNlComponent(), null, insertType, editor);
       }
     };
   }

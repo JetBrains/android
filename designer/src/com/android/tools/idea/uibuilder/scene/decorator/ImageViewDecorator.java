@@ -21,8 +21,8 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
-import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.decorator.ColorTheme;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.ColorTheme;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -151,10 +151,10 @@ public class ImageViewDecorator extends SceneDecorator {
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    int l = sceneContext.getSwingXDip(rect.x);
+    int t = sceneContext.getSwingYDip(rect.y);
+    int w = sceneContext.getSwingDimensionDip(rect.width);
+    int h = sceneContext.getSwingDimensionDip(rect.height);
     list.add(new DrawImageView(l, t, w, h));
   }
 }

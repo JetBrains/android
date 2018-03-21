@@ -15,31 +15,28 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.*;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
-import com.android.tools.idea.ui.FileTreeCellRenderer;
-import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.value.AsValueExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.ui.FileTreeCellRenderer;
+import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.utils.XmlUtils;
-import com.google.common.primitives.Ints;
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -67,21 +64,28 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
  * are about to be created.
  */
-public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel> {
-  private static final DefaultTreeModel EMPTY_MODEL = new DefaultTreeModel(null);
+public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIconsModel>
+    implements PersistentStateComponent<PersistentState> {
+  private static final String CONFIRMATION_STEP_PROPERTY = "confirmationStep";
+  private static final String RESOURCE_DIRECTORY_PROPERTY = "resourceDirectory";
 
+  private final List<NamedModuleTemplate> myTemplates;
   private final ValidatorPanel myValidatorPanel;
   private final ListenerManager myListeners = new ListenerManager();
   private final JBLabel myPreviewIcon;
 
   private JPanel myRootPanel;
-  private JComboBox<AndroidSourceSet> myPathsComboBox;
+  private JComboBox<NamedModuleTemplate> myPathsComboBox;
   private Tree myOutputPreviewTree;
   private CheckeredBackgroundPanel myPreviewPanel;
   private JTextField mySizeDpTextField;
@@ -118,26 +122,29 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private EditorFactory myEditorFactory;
   private Document myXmlPreviewDocument;
 
-  private ObservableValue<AndroidSourceSet> mySelectedSourceSet;
+  private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
   private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
-  public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<AndroidSourceSet> sourceSets) {
+  public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
+    Preconditions.checkArgument(!templates.isEmpty());
+    myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
-    DefaultComboBoxModel<AndroidSourceSet> sourceSetsModel = new DefaultComboBoxModel<>();
-    for (AndroidSourceSet sourceSet : sourceSets) {
-      sourceSetsModel.addElement(sourceSet);
+    DefaultComboBoxModel<NamedModuleTemplate> moduleTemplatesModel = new DefaultComboBoxModel<>();
+    for (NamedModuleTemplate template : templates) {
+      moduleTemplatesModel.addElement(template);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<AndroidSourceSet>() {
+    myPathsComboBox.setRenderer(new ListCellRendererWrapper<NamedModuleTemplate>() {
       @Override
-      public void customize(JList list, AndroidSourceSet sourceSet, int index, boolean selected, boolean hasFocus) {
-        setText(sourceSet.getName());
+      public void customize(JList list, NamedModuleTemplate template, int index, boolean selected, boolean hasFocus) {
+        setText(template.getName());
       }
     });
-    myPathsComboBox.setModel(sourceSetsModel);
+    myPathsComboBox.setModel(moduleTemplatesModel);
 
-    myOutputPreviewTree.setModel(EMPTY_MODEL);
+    DefaultTreeModel emptyModel = new DefaultTreeModel(null);
+    myOutputPreviewTree.setModel(emptyModel);
     myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
     myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(UIUtil.getBoundsColor()));
     // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.
@@ -149,10 +156,9 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     });
 
     String alreadyExistsError = WizardUtils.toHtmlString(
-      "Some existing files will be overwritten by this operation.<br>" +
-      "Files which replace existing files are marked red in the preview above.");
+        "Some existing files will be overwritten by this operation.<br>" +
+        "Files which replace existing files are marked red in the preview above.");
     myValidatorPanel.registerValidator(myFilesAlreadyExist, new FalseValidator(Validator.Severity.WARNING, alreadyExistsError));
-
 
     myPreviewIcon = new JBLabel();
     myPreviewIcon.setVisible(false);
@@ -196,7 +202,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         Density density = generatedImageIcon.getDensity();
         myDensityTextField.setText(density.getResourceValue());
 
-        float scaleFactor = GraphicGenerator.getMdpiScaleFactor(density);
+        float scaleFactor = getMdpiScaleFactor(density);
         mySizeDpTextField.setText(
             String.format("%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
 
@@ -220,7 +226,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
               myXmlPreviewDocument = myEditorFactory.createDocument("");
             }
             myXmlPreviewDocument.setReadOnly(false);
-            myXmlPreviewDocument.setText(xmlText);
+            myXmlPreviewDocument.setText(StringUtil.convertLineSeparators(xmlText));
             myXmlPreviewDocument.setReadOnly(true);
 
             if (myFilePreviewEditor == null) {
@@ -262,7 +268,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       }
     }
 
-    // Reset properties of both preview panels
+    // Reset properties of both preview panels.
     myPreviewIcon.setVisible(false);
     myPreviewIcon.setIcon(null);
     myFileTypeTextField.setText("");
@@ -298,7 +304,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private static Dimension getDpSize(@NotNull GeneratedXmlResource xml) {
     IconCategory xmlCategory = xml.getCategory();
     if (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER) {
-      return AdaptiveIconGenerator.SIZE_FULL_BLEED_DP;
+      return SIZE_FULL_BLEED_DP;
     }
     return null;
   }
@@ -306,14 +312,13 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @Nullable
   private BufferedImage getPreviewImage(@NotNull GeneratedXmlResource xml) {
     String xmlText = xml.getXmlText();
-    AndroidIconGenerator generator = getModel().getIconGenerator();
+    IconGenerator generator = getModel().getIconGenerator();
     IconCategory xmlCategory = xml.getCategory();
     if (generator != null
         && (xmlCategory == IconCategory.ADAPTIVE_BACKGROUND_LAYER || xmlCategory == IconCategory.ADAPTIVE_FOREGROUND_LAYER)) {
       GraphicGeneratorContext generatorContext = generator.getGraphicGeneratorContext();
-      // Use the same scale as a full bleed preview at xhdpi (see AdaptiveIconGenerator.generatePreviewImage).
-      Rectangle rectangle =
-          AssetUtil.scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, GraphicGenerator.getMdpiScaleFactor(Density.XHIGH) * 0.8f);
+      // Use the same scale as a full bleed preview at xhdpi (see LauncherIconGenerator.generatePreviewImage).
+      Rectangle rectangle = scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(Density.XHIGH) * 0.8f);
       ListenableFuture<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());
       try {
         return imageFuture.get();
@@ -325,43 +330,72 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     return null;
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected JComponent getComponent() {
     return myValidatorPanel;
   }
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedSourceSet = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
+    mySelectedTemplate = ObjectProperty.wrap(new SelectedItemProperty<>(myPathsComboBox));
+
+    PersistentStateUtil.load(this, getModel().getPersistentState().getChild(CONFIRMATION_STEP_PROPERTY));
   }
 
-  @NotNull
   @Override
+  public void onWizardFinished() {
+    getModel().getPersistentState().setChild(CONFIRMATION_STEP_PROPERTY, getState());
+  }
+
+  @Override
+  @NotNull
+  public PersistentState getState() {
+    PersistentState state = new PersistentState();
+    NamedModuleTemplate moduleTemplate = mySelectedTemplate.get();
+    state.set(RESOURCE_DIRECTORY_PROPERTY, moduleTemplate.getName(), myTemplates.get(0).getName());
+    return state;
+  }
+
+  @Override
+  public void loadState(@NotNull PersistentState state) {
+    String templateName = state.get(RESOURCE_DIRECTORY_PROPERTY);
+    if (templateName != null) {
+      for (NamedModuleTemplate template : myTemplates) {
+        if (template.getName().equals(templateName)) {
+          mySelectedTemplate.set(template);
+          break;
+        }
+      }
+    }
+  }
+
+  @Override
+  @NotNull
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
   }
 
   @Override
   protected void onProceeding() {
-    getModel().setPaths(mySelectedSourceSet.get().getPaths());
+    getModel().setPaths(mySelectedTemplate.get().getPaths());
   }
 
   @Override
   protected void onEntering() {
-    myListeners.release(mySelectedSourceSet); // Just in case we're entering this step a second time
-    myListeners.receiveAndFire(mySelectedSourceSet, (AndroidSourceSet sourceSet) -> {
-      AndroidIconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = sourceSet.getPaths().getResDirectory();
+    myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
+    myListeners.receiveAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
+      IconGenerator iconGenerator = getModel().getIconGenerator();
+      File resDir = template.getPaths().getResDirectory();
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
       }
 
       myNodeToPreviewImage.clear();
-      Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(sourceSet.getPaths());
+      Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(template.getPaths());
       myFilesAlreadyExist.set(false);
 
-      // Create a FileTreeModel containing all generated files
+      // Create a FileTreeModel containing all generated files.
       FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
       for (Map.Entry<File, GeneratedIcon> entry : pathIconMap.entrySet()) {
         File path = entry.getKey();
@@ -393,7 +427,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         .distinct()
         .collect(Collectors.toSet());
 
-      // Sort the FileTreeModel so that the preview tree entries are sorted
+      // Sort the FileTreeModel so that the preview tree entries are sorted.
       treeModel.sort(getFileComparator(outputDirectories));
 
       myOutputPreviewTree.setModel(treeModel);
@@ -406,7 +440,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         myOutputPreviewTree.expandRow(i);
       }
 
-      // Select first file entry by default so that the preview panel shows something
+      // Select first file entry by default so that the preview panel shows something.
       for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {
         TreePath rowPath = myOutputPreviewTree.getPathForRow(i);
         if (rowPath != null) {
@@ -422,18 +456,18 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @NotNull
   private static Comparator<File> getFileComparator(Set<File> outputDirectories) {
     return (file1, file2) -> {
-      // Sort by "directory vs file" first, then by density, then by name
+      // Sort by "directory vs file" first, then by density, then by name.
       boolean isDirectory1 = outputDirectories.contains(file1);
       boolean isDirectory2 = outputDirectories.contains(file2);
       if (isDirectory1 == isDirectory2) {
         String path1 = file1.getAbsolutePath();
         String path2 = file2.getAbsolutePath();
-        Density density1 = CategoryIconMap.pathToDensity(path1 + File.separator);
-        Density density2 = CategoryIconMap.pathToDensity(path2 + File.separator);
+        Density density1 = pathToDensity(path1 + File.separator);
+        Density density2 = pathToDensity(path2 + File.separator);
 
         if (density1 != null && density2 != null && density1 != density2) {
-          // Sort least dense to most dense
-          return Ints.compare(density2.ordinal(), density1.ordinal());
+          // Sort least dense to most dense.
+          return Integer.compare(density2.ordinal(), density1.ordinal());
         }
         else {
           return path1.compareTo(path2);

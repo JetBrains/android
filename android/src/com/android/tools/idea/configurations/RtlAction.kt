@@ -18,58 +18,24 @@ package com.android.tools.idea.configurations
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
 import com.android.resources.LayoutDirection
 import com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
-import icons.AndroidIcons
+import com.intellij.openapi.actionSystem.ToggleAction
+
+private const val TEXT = "Preview Right to Left"
+private const val DESCRIPTION = "Text direction setting in the editor"
 
 /**
  * Action that sets the layout direction in the layout editor
  */
-class RtlAction(private val holder: ConfigurationHolder) : AnAction() {
-
-  init {
-    val presentation = templatePresentation
-    with(presentation) {
-      description = "Text direction setting in the editor"
-      icon = AndroidIcons.Configs.LayoutDirection
-    }
-    updatePresentation(presentation)
-  }
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    updatePresentation(e.presentation)
-  }
+class RtlAction(private val holder: ConfigurationHolder) : ToggleAction(TEXT, DESCRIPTION, null) {
 
   override fun displayTextInToolbar(): Boolean = true
 
-  private fun updatePresentation(presentation: Presentation) {
-    val configuration = holder.configuration
-    presentation.isEnabledAndVisible = configuration != null
-    if (!presentation.isEnabledAndVisible) {
-      return
-    }
+  override fun isSelected(e: AnActionEvent) = holder.configuration?.fullConfig?.layoutDirectionQualifier?.value == LayoutDirection.RTL
 
-    val qualifier = configuration!!.fullConfig.layoutDirectionQualifier
-    val brief = "Preview as ${getOppositeDirection(qualifier).longDisplayValue}"
-    presentation.setText(brief, false)
-  }
-
-  /**
-   * Returns the opposite direction to the one passed or LTR if none is passed
-   */
-  private fun getOppositeDirection(direction: LayoutDirectionQualifier?): LayoutDirection {
-    return when (direction?.value) {
-      LayoutDirection.LTR -> LayoutDirection.RTL
-      else -> LayoutDirection.LTR
-    }
-  }
-
-  override fun actionPerformed(e: AnActionEvent) {
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
     val configuration = holder.configuration ?: return
-    configuration.editedConfig.layoutDirectionQualifier = LayoutDirectionQualifier(getOppositeDirection(configuration.fullConfig.layoutDirectionQualifier))
-
+    configuration.editedConfig.layoutDirectionQualifier = LayoutDirectionQualifier(if (state) LayoutDirection.RTL else LayoutDirection.LTR)
     // Notify the change and update so the surface is updated
     configuration.updated(CFG_LOCALE)
   }

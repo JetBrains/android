@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidLibrary;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeJavaLibrary;
+import com.android.ide.common.gradle.model.IdeAndroidLibrary;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeJavaLibrary;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,6 +64,12 @@ public class DependenciesStub implements IdeDependencies {
   @NotNull
   public List<String> getProjects() {
     return myProjects;
+  }
+
+  @NonNull
+  @Override
+  public Collection<ProjectIdentifier> getJavaModules() {
+    return Collections.emptyList();
   }
 
   @Override

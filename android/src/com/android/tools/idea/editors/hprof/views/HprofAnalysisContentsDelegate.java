@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.hprof.HprofEditor;
 import com.android.tools.idea.editors.hprof.HprofView;
 import com.android.tools.idea.profiling.view.AnalysisContentsDelegate;
 import com.android.tools.perflib.analyzer.AnalysisResultEntry;
+import com.android.tools.perflib.analyzer.Offender;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.memoryanalyzer.MemoryAnalysisResultEntry;
 import com.intellij.icons.AllIcons;
@@ -184,6 +185,11 @@ public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
       myIndex = index;
       myInstance = instance;
     }
+
+    @Override
+    public String toString() {
+      return myInstance.toString();
+    }
   }
 
   private static class EntryListItem {
@@ -193,6 +199,11 @@ public class HprofAnalysisContentsDelegate extends AnalysisContentsDelegate {
     public EntryListItem(int index, @NotNull AnalysisResultEntry entry) {
       myIndex = index;
       myEntry = entry;
+    }
+
+    @Override
+    public String toString() {
+      return myEntry.getOffender().getOffendingDescription();
     }
   }
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SystemInfoStatsMonitor;
 import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,12 +41,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 public class AndroidSdkInitializer implements Runnable {
@@ -65,7 +65,10 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
-    if (isGuiTestingMode()) {
+    // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initialisers
+    // might lead to unexpected SDK leaks because having not set up the SDKs, the test will consequently not release them either.
+    if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()
+       || ApplicationManager.getApplication().isHeadlessEnvironment()) {
       // This is good enough. Later on in the GUI test we'll validate the given SDK path.
       return;
     }

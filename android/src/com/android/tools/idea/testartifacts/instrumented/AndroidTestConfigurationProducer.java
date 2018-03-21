@@ -26,10 +26,7 @@ import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
-import com.intellij.execution.junit.JUnitConfigurationProducer;
-import com.intellij.execution.junit.JUnitUtil;
-import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
-import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
+import com.intellij.execution.junit.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
@@ -81,7 +78,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       if (JUnitUtil.isTestClass(elementClass)) {
         setupConfiguration(configuration, elementClass, context, sourceElement);
         configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_CLASS;
-        configuration.CLASS_NAME = elementClass.getQualifiedName();
+        configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(elementClass);
         configuration.setGeneratedName();
         return true;
       }
@@ -102,7 +99,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
         setupConfiguration(configuration, elementMethod, context, sourceElement);
         assert c != null;
         configuration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD;
-        configuration.CLASS_NAME = c.getQualifiedName();
+        configuration.CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName(c);
         configuration.METHOD_NAME = elementMethod.getName();
         configuration.setGeneratedName();
         return true;
@@ -271,7 +268,8 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
       return false;
     }
     // If we decided the context is for an instrumentation test (see {@link #setupConfigurationFromContext}), it should replace
-    // other test configurations, as they won't work anyway.
-    return other.isProducedBy(JUnitConfigurationProducer.class);
+    // other test configurations, as they won't work anyway. These are either JUnitConfiguration or AndroidJUnit configuration,
+    // both produced by JUnitConfigurationType (AndroidJUnitConfigurationType is a child of JUnitConfigurationType)
+    return other.getConfigurationType() instanceof JUnitConfigurationType;
   }
 }

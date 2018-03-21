@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.lint.detector.api.TextFormat;
-import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.refactoring.ui.ConflictsDialog;
 import com.intellij.ui.EditorTextField;
@@ -32,6 +31,11 @@ import java.io.File;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 
 public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDialog> {
+  @NotNull
+  public static RenameRefactoringDialogFixture find(@NotNull Robot robot) {
+    return new RenameRefactoringDialogFixture(robot, find(robot, RenameDialog.class));
+  }
+
   private RenameRefactoringDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<RenameDialog> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
   }
@@ -49,14 +53,14 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
     return this;
   }
 
-  @NotNull
-  public static RenameRefactoringDialogFixture find(@NotNull Robot robot) {
-    return new RenameRefactoringDialogFixture(robot, find(robot, RenameDialog.class));
-  }
-
   public static class ConflictsDialogFixture extends IdeaDialogFixture<ConflictsDialog> {
     protected ConflictsDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<ConflictsDialog> dialogAndWrapper) {
       super(robot, dialogAndWrapper);
+    }
+
+    @NotNull
+    public static ConflictsDialogFixture find(@NotNull Robot robot) {
+      return new ConflictsDialogFixture(robot, find(robot, ConflictsDialog.class));
     }
 
     @NotNull
@@ -76,11 +80,6 @@ public class RenameRefactoringDialogFixture extends IdeaDialogFixture<RenameDial
       String html = getHtml();
       String text = TextFormat.HTML.convertTo(html, TextFormat.TEXT).trim();
       return text.replace(File.separatorChar, '/');
-    }
-
-    @NotNull
-    public static ConflictsDialogFixture find(@NotNull Robot robot) {
-      return new ConflictsDialogFixture(robot, find(robot, ConflictsDialog.class));
     }
   }
 }

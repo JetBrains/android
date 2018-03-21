@@ -48,9 +48,9 @@ public class ActivityEventDataSeriesTest {
   @Before
   public void setUp() {
     myActivitySeries =
-      new ActivityEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID, ProfilersTestData.SESSION_DATA, false);
+      new ActivityEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA, false);
     myFragmentSeries =
-      new ActivityEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID, ProfilersTestData.SESSION_DATA, true);
+      new ActivityEventDataSeries(myGrpcChannel.getClient(), ProfilersTestData.SESSION_DATA, true);
   }
 
   @Test
@@ -257,7 +257,7 @@ public class ActivityEventDataSeriesTest {
 
   private EventProfiler.ActivityData buildActivityEvent(String name, ActivityStateData[] states, long contextHash) {
     EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
-    builder.setProcessId(FakeEventService.FAKE_APP_ID)
+    builder.setPid(ProfilersTestData.SESSION_DATA.getPid())
       .setName(name)
       .setHash(name.hashCode())
       .setFragmentData(EventProfiler.FragmentData.newBuilder().setActivityContextHash(contextHash));

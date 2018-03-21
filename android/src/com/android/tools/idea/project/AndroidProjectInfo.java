@@ -21,12 +21,15 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.tools.idea.apk.debugging.ApkDebugging.isMarkedAsApkDebuggingProject;
+import static com.android.tools.idea.apk.debugging.ApkDebugging.markAsApkDebuggingProject;
 import static com.intellij.util.containers.ContainerUtil.exists;
 import static com.intellij.util.containers.ContainerUtil.filter;
 
@@ -67,8 +70,23 @@ public class AndroidProjectInfo {
   }
 
   public boolean isApkProject() {
+    if (isMarkedAsApkDebuggingProject(myProject)) {
+      // When re-opening an 'APK Debugging' project, this method is checked before modules are loaded, making 'isApkProject' return false.
+      // We need to mark the project as 'APK Debugging' project.
+      // See http://b/64766060
+      return true;
+    }
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     // TODO revisit the self-imposed limitation of having only one module in a APK project.
-    return ProjectFacetManager.getInstance(myProject).hasFacets(ApkFacet.getFacetTypeId());
+    for (Module module : moduleManager.getModules()) {
+      if (ApkFacet.getInstance(module) != null) {
+        // If we got here is because this "APK Debugging" project was opened with an older preview of Android Studio, and the project has
+        // been marked yet.
+        markAsApkDebuggingProject(myProject);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

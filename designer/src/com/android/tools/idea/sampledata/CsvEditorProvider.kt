@@ -38,9 +38,9 @@ class CsvEditorProvider : FileEditorProvider, DumbAware {
     if (!StudioFlags.NELE_SAMPLE_DATA.get()) return false
 
     val psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile)
-    if (psiFile is PsiPlainTextFile) {
+    if (psiFile is PsiPlainTextFile && "csv" == virtualFile.extension?.toLowerCase()) {
       val sampleDataDirectory = AndroidFacet.getInstance(psiFile)?.let { SampleDataResourceRepository.getSampleDataDir(it, false) }
-      return sampleDataDirectory?.let { VfsUtilCore.isAncestor(sampleDataDirectory, virtualFile, true) } ?: false
+      return sampleDataDirectory?.let { VfsUtilCore.isAncestor(sampleDataDirectory, virtualFile, true) } == true
     }
 
     return false

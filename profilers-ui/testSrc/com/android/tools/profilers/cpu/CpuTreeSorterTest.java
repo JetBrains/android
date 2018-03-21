@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class CpuTreeSorterTest {
     assertTrue(o2.getUserObject() instanceof TopDownNode);
     TopDownNode topDown1 = (TopDownNode)o1.getUserObject();
     TopDownNode topDown2 = (TopDownNode)o2.getUserObject();
-    return topDown1.getMethodName().compareTo(topDown2.getMethodName());
+    return topDown1.getMethodModel().getName().compareTo(topDown2.getMethodModel().getName());
   };
 
   @Before
@@ -66,6 +67,25 @@ public class CpuTreeSorterTest {
 
     // It's expected that the root children remains ordered lexicographically
     compareTreeModel(model, "A", "B", "C");
+  }
+
+  @Test
+  public void unmatchedNodesAlwaysComesAfterOthers() {
+    CaptureNode root = newNode("Root", 0, 0);
+    root.addChild(newNode("A1", 0, 0));
+    root.addChild(newNode("C1", 0, 0));
+    root.addChild(newNode("B1", 0, 0));
+    root.addChild(newNode("C2", 0, 0, CaptureNode.FilterType.UNMATCH));
+    root.addChild(newNode("A2", 0, 0, CaptureNode.FilterType.UNMATCH));
+    root.addChild(newNode("B2", 0, 0, CaptureNode.FilterType.UNMATCH));
+
+    CpuTreeModel model = createTreeModel(root);
+    myTreeSorter.setModel(model, myComparator);
+
+    compareTreeModel(model, "Root", "A1", "B1", "C1", "A2", "B2", "C2");
+
+    myTreeSorter.setModel(model, myComparator.reversed());
+    compareTreeModel(model, "Root", "C1", "B1", "A1", "C2", "B2", "A2");
   }
 
   @Test
@@ -143,20 +163,23 @@ public class CpuTreeSorterTest {
   }
 
   private static void preOrderTraversal(TreeNode node, List<String> nodes) {
-    String methodName = ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getMethodName();
+    String methodName = ((TopDownNode)(((DefaultMutableTreeNode)node).getUserObject())).getMethodModel().getName();
     nodes.add(methodName);
     for (int i = 0; i < node.getChildCount(); i++) {
       preOrderTraversal(node.getChildAt(i), nodes);
     }
   }
 
-  @NotNull
   private static CaptureNode newNode(String method, long start, long end) {
-    CaptureNode node = new CaptureNode();
-    node.setMethodModel(new MethodModel(method));
+    return newNode(method, start, end, CaptureNode.FilterType.MATCH);
+  }
+
+  @NotNull
+  private static CaptureNode newNode(String method, long start, long end, CaptureNode.FilterType filterType) {
+    CaptureNode node = new CaptureNode(new SingleNameModel(method));
     node.setStartGlobal(start);
     node.setEndGlobal(start);
-
+    node.setFilterType(filterType);
     node.setStartThread(start);
     node.setEndThread(end);
     return node;

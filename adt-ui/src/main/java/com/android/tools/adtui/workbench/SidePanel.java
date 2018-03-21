@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.openapi.ui.Divider;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.IdeBorderFactory;
@@ -49,7 +50,7 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
     myEmpty = new JPanel();
     myLayout = new JBCardLayout();
     myCards = new JPanel(myLayout);
-    setBorder(IdeBorderFactory.createBorder(side.isLeft() ? SideBorder.RIGHT : SideBorder.LEFT));
+    setBorder(new SideBorder(StudioColorsKt.getBorder(), side.isLeft() ? SideBorder.RIGHT : SideBorder.LEFT));
     add(myCards, BorderLayout.CENTER);
     model.addListener(this);
   }
@@ -70,6 +71,12 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
     mySplitter.setSecondComponent(null);
     setVisible(!tools.isEmpty());
 
+    // When not used mark the splitter as disabled,
+    // otherwise this splitter may be identified as the component under the mouse
+    // causing the cursor to be selected based on this splitter.
+    // See b/37137139
+    mySplitter.setEnabled(false);
+
     if (tools.isEmpty()) {
       myLayout.show(myCards, EMPTY);
     }
@@ -85,6 +92,7 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
       tool2.getComponent().setVisible(true);
       mySplitter.setFirstComponent(tool1.getComponent());
       mySplitter.setSecondComponent(tool2.getComponent());
+      mySplitter.setEnabled(true);
       myLayout.show(myCards, SPLITTER);
     }
   }

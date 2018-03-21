@@ -17,11 +17,14 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
-import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
@@ -30,6 +33,7 @@ import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.lookup.LookupAdapter;
 import com.intellij.codeInsight.lookup.LookupEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
@@ -54,13 +58,15 @@ import java.util.Objects;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
 
-public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
+public class NlReferenceEditor extends BaseComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
+  private static final int ICON_SIZE = 16;
   private static final int HORIZONTAL_SPACE_AFTER_LABEL = 4;
 
   private final JPanel myPanel;
   private final JLabel myIconLabel;
   private final JSlider mySlider;
+  private final ComponentManager myProject;
   private final TextEditorWithAutoCompletion myTextEditorWithAutoCompletion;
   private final BrowsePanel myBrowsePanel;
   private final boolean myHasSliderSupport;
@@ -107,7 +113,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
                               boolean isInspector,
                               int verticalSpacing) {
     super(listener);
-    myPanel = new JPanel(new BorderLayout());
+    myPanel = new AdtSecondaryPanel(new BorderLayout());
 
     myIconLabel = new JBLabel();
     myPanel.add(myIconLabel, BorderLayout.LINE_START);
@@ -120,15 +126,20 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     });
     myIconLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
 
+    Font font = UIUtil.getLabelFont();
+    FontMetrics metrics = myPanel.getFontMetrics(font);
+    int sliderHeight = metrics.getHeight() + 2 * verticalSpacing;
     mySlider = new SliderWithTimeDelay();
     myPanel.add(mySlider, BorderLayout.LINE_START);
     mySlider.addChangeListener(event -> sliderChange());
     Dimension size = mySlider.getMinimumSize();
-    size.setSize(size.width * 2, size.height);
+    size.setSize(size.width * 2, sliderHeight);
+    mySlider.setMinimumSize(size);
     mySlider.setPreferredSize(size);
     mySlider.setVisible(includeSliderSupport);
 
-    //noinspection UseDPIAwareInsets
+    myProject = project;
+
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(verticalSpacing,
                                                                                               HORIZONTAL_PADDING,
                                                                                               verticalSpacing,
@@ -154,7 +165,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
-        updateSliderVisibility();
+        updateSliderAndIconVisibility();
       }
     });
     myTextEditorWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
@@ -244,6 +255,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   @Override
   public void setEnabled(boolean enabled) {
+    if (myProject.isDisposed()) {
+      return;
+    }
+
     myTextEditorWithAutoCompletion.setEnabled(enabled);
     if (myBrowsePanel != null) {
       myBrowsePanel.setVisible(enabled);
@@ -278,16 +293,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       if (myPropertyHasSlider) {
         myPanel.remove(myIconLabel);
         myPanel.add(mySlider, BorderLayout.LINE_START);
-        updateSliderVisibility();
       }
       else {
         myPanel.remove(mySlider);
         myPanel.add(myIconLabel, BorderLayout.LINE_START);
-        int iconSize = myTextEditorWithAutoCompletion.getHeight() - 4 * JBUI.scale(VERTICAL_SPACING);
-        Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
-        myIconLabel.setIcon(icon);
-        myIconLabel.setVisible(icon != null);
-        myIconLabel.setToolTipText("Pick a Resource");
       }
 
       String propValue = StringUtil.notNullize(myProperty.getValue());
@@ -298,17 +307,26 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       }
       Color color = myProperty.isDefaultValue(myLastReadValue) ? DEFAULT_VALUE_TEXT_COLOR : CHANGED_VALUE_TEXT_COLOR;
       myTextEditorWithAutoCompletion.setTextColor(color);
+
+      updateSliderAndIconVisibility();
     }
     finally {
       myUpdatingProperty = false;
     }
   }
 
-  private void updateSliderVisibility() {
+  private void updateSliderAndIconVisibility() {
     if (myPropertyHasSlider) {
       int widthBrowsePanel = myBrowsePanel != null ? myBrowsePanel.getPreferredSize().width : 0;
       int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - widthBrowsePanel;
       mySlider.setVisible(widthForEditor >= JBUI.scale(MIN_TEXT_WIDTH));
+    }
+    else {
+      int iconSize = JBUI.scale(ICON_SIZE);
+      Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
+      myIconLabel.setIcon(icon);
+      myIconLabel.setVisible(icon != null);
+      myIconLabel.setToolTipText("Pick a Resource");
     }
   }
 
@@ -351,7 +369,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     return true;
   }
 
-  private int getValueInDp(int defaultValue) {
+  @AndroidDpCoordinate
+  private int getValueInDp(@AndroidDpCoordinate int defaultValue) {
     String valueAsString = myProperty.getValue();
     if (valueAsString == null) {
       return defaultValue;
@@ -366,7 +385,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       return defaultValue;
     }
 
-    return value * Density.DEFAULT_DENSITY / configuration.getDensity().getDpiValue();
+    return Coordinates.pxToDp(myProperty.getModel(), value);
   }
 
   private double getValueAsFloat(double defaultValue) {
@@ -413,7 +432,11 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   @Override
   public void requestFocus() {
-    myTextEditorWithAutoCompletion.requestFocus();
+    if (myTextEditorWithAutoCompletion.getEditor() != null) {
+      // When running in unit test, the Editor is not created and requesting the focus will result in an
+      // endless loop
+      myTextEditorWithAutoCompletion.requestFocus();
+    }
     myTextEditorWithAutoCompletion.selectAll();
     myTextEditorWithAutoCompletion.scrollRectToVisible(myTextEditorWithAutoCompletion.getBounds());
   }

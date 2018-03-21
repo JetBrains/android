@@ -158,7 +158,7 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentStringValue);
     }
-    ConstraintComponentUtilities.cleanup(attributes, myComponent);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
   }
 
   private static void setBegin(AttributesTransaction transaction, @AndroidDpCoordinate int value) {

@@ -16,7 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.intellij.icons.AllIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.ActionEvent;
@@ -26,7 +26,7 @@ import java.awt.event.ActionEvent;
  */
 public class RunAvdAction extends AvdUiAction {
   public RunAvdAction(@NotNull AvdInfoProvider provider) {
-    super(provider, "Run", "Launch this AVD in the emulator", AllIcons.Actions.Execute);
+    super(provider, "Run", "Launch this AVD in the emulator", StudioIcons.Avd.RUN);
   }
 
   @Override

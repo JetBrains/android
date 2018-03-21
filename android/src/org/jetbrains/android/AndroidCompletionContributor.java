@@ -64,6 +64,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
@@ -84,7 +85,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (LayoutDomFileDescription.isLayoutFile(xmlFile)) {
-      final Map<String,PsiClass> classMap = ClassMaps.getInstance(facet).getClassMap(AndroidUtils.VIEW_CLASS_NAME);
+      final Map<String,PsiClass> classMap = AttributeProcessingUtil.getViewClassMap(facet);
 
       for (String rootTag : AndroidLayoutUtil.getPossibleRoots(facet)) {
         final PsiClass aClass = classMap.get(rootTag);
@@ -208,7 +209,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       if (SdkConstants.TOOLS_URI.equals(namespace)) {
         addDesignTimeAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
       }
-      addDataBindingAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
+      addDataBindingAttributes(attribute.getNamespacePrefix(), position, facet, attribute, parameters, resultSet);
       customizeAddedAttributes(facet, parameters, attribute, resultSet);
     }
     else if (originalParent instanceof XmlAttributeValue) {
@@ -241,11 +242,9 @@ public class AndroidCompletionContributor extends CompletionContributor {
 
           // Lookup string is something that would be inserted when attribute is completed, so we want to use
           // local name as an argument of .create(), otherwise we'll end up with getting completions like
-          // "tools:tools:src". However, we want to show "tools:" prefix in the completion list, and for that
-          // .withPresentableText is used
+          // "tools:tools:src".
           final LookupElementBuilder lookupElement =
-            LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE)
-              .withPresentableText(namespacePrefix + ":" + localName);
+            LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE);
           resultSet.addElement(lookupElement);
         }
         return null;
@@ -402,6 +401,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
                                                @NotNull PsiElement position,
                                                @NotNull AndroidFacet facet,
                                                @NotNull XmlAttribute attribute,
+                                               @NotNull CompletionParameters parameters,
                                                @NotNull CompletionResultSet resultSet) {
     PsiFile containingFile = attribute.getContainingFile();
     if (!(containingFile instanceof XmlFile) || !DataBindingDomFileDescription.hasDataBindingRootTag((XmlFile)containingFile)) {
@@ -415,12 +415,23 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return;
     }
 
+    /*
+     * Avoid offering completion for already existing attributes. We only want to add those attributes that are only added via
+     * @BindingAdapter.
+     */
+    Set<String> alreadyDeclared = resultSet.runRemainingContributors(parameters, true).stream()
+      .map(CompletionResult::getLookupElement)
+      .map(LookupElement::getLookupString)
+      .collect(Collectors.toSet());
+
     dataBindingComponent.getBindingAdapterAttributes(module).forEach((dataBindingAttribute) -> {
       if (!prefix.isEmpty()) {
         dataBindingAttribute = StringUtil.trimStart(dataBindingAttribute, prefix + ":");
       }
-      resultSet.addElement(LookupElementBuilder.create(position, dataBindingAttribute)
-                             .withInsertHandler(XmlAttributeInsertHandler.INSTANCE));
+      if (!alreadyDeclared.contains(dataBindingAttribute)) {
+        resultSet.addElement(LookupElementBuilder.create(position, dataBindingAttribute)
+                               .withInsertHandler(XmlAttributeInsertHandler.INSTANCE));
+      }
     });
   }
 

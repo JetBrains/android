@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -37,8 +38,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PROPERTY_MODE;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -58,8 +59,8 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     myModel = new PTableModel();
     myTable = new MyTable(myModel);
-    myInspector = spy(new InspectorPanel(myPropertiesManager, getTestRootDisposable(), new JPanel()));
-    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
+    myInspector = spy(new NlInspectorPanel(getTestRootDisposable(), new JPanel()));
+    myPanel = new NlPropertiesPanel(myPropertiesManager, myTable, myInspector);
   }
 
   @Override
@@ -83,24 +84,24 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     List<NlComponent> components = Collections.singletonList(myButton);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     NlProperty elevation = properties.get(ANDROID_URI, ATTR_ELEVATION);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
     int row = findRowOf(ANDROID_URI, ATTR_ELEVATION);
     myTable.setRowSelectionInterval(row, row);
 
-    myPanel.setItems(components, getPropertyTable(components), myPropertiesManager);
+    myPanel.setItems(components, getPropertyTable(components));
     assertThat(myTable.getSelectedItem()).isEqualTo(elevation);
   }
 
   public void testSelectionIsRestoredAfterSelectionChange() {
     List<NlComponent> initialComponents = Collections.singletonList(myButton);
-    myPanel.setItems(initialComponents, getPropertyTable(initialComponents), myPropertiesManager);
+    myPanel.setItems(initialComponents, getPropertyTable(initialComponents));
     int row = findRowOf(ANDROID_URI, ATTR_ELEVATION);
     myTable.setRowSelectionInterval(row, row);
 
     List<NlComponent> newComponents = Collections.singletonList(myCheckBox1);
     Table<String, String, NlPropertyItem> newProperties = getPropertyTable(newComponents);
     NlProperty elevation = newProperties.get(ANDROID_URI, ATTR_ELEVATION);
-    myPanel.setItems(newComponents, newProperties, myPropertiesManager);
+    myPanel.setItems(newComponents, newProperties);
     assertThat(myTable.getSelectedItem()).isSameAs(elevation);
   }
 
@@ -108,7 +109,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     List<NlComponent> components = Collections.singletonList(myButton);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     NlProperty elevation = properties.get(ANDROID_URI, ATTR_ELEVATION);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
     int row = findRowOf(ANDROID_URI, ATTR_ELEVATION);
     myTable.setRowSelectionInterval(row, row);
 
@@ -126,7 +127,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     List<NlComponent> components = Collections.singletonList(myButton);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     myPanel.setAllPropertiesPanelVisible(true);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
     KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
     myPanel.getFilterKeyListener().keyPressed(event);
 
@@ -138,7 +139,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     List<NlComponent> components = Collections.singletonList(myButton);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     myPanel.setAllPropertiesPanelVisible(true);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
     myPanel.setFilter("el");
     KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
     myPanel.getFilterKeyListener().keyPressed(event);
@@ -153,7 +154,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     NlProperty elevation = properties.get(ANDROID_URI, ATTR_ELEVATION);
     myPanel.setAllPropertiesPanelVisible(true);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
     myPanel.setFilter("eleva");
     KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
     myPanel.getFilterKeyListener().keyPressed(event);
@@ -169,7 +170,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     NlProperty textStyle = properties.get(ANDROID_URI, ATTR_TEXT_STYLE);
     myPanel.setAllPropertiesPanelVisible(true);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
     myTable.resetRequestFocusCount();
 
     myPanel.setFilter("textSt");
@@ -189,7 +190,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     NlProperty textStyle = properties.get(ANDROID_URI, ATTR_TEXT_STYLE);
     myPanel.setAllPropertiesPanelVisible(true);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
     int textStyleRow = findRowOf(ANDROID_URI, ATTR_TEXT_STYLE);
     myModel.expand(textStyleRow);
     myTable.resetRequestFocusCount();
@@ -209,7 +210,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   public void testEnterCausesStartEditingInInspector() {
     List<NlComponent> components = Collections.singletonList(myButton);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
     myPanel.setFilter("eleva");
     KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
     myPanel.getFilterKeyListener().keyPressed(event);
@@ -300,14 +301,14 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   public void testInitialModeIsReadFromOptions() {
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, PropertiesViewMode.TABLE.name());
     Disposer.dispose(myPanel);
-    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
+    myPanel = new NlPropertiesPanel(myPropertiesManager, myTable, myInspector);
     assertThat(myPanel.isAllPropertiesPanelVisible()).isTrue();
   }
 
   public void testInitialModeFromMalformedOptionValueIsIgnored() {
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, "malformed");
     Disposer.dispose(myPanel);
-    myPanel = new NlPropertiesPanel(myPropertiesManager, getTestRootDisposable(), myTable, myInspector);
+    myPanel = new NlPropertiesPanel(myPropertiesManager, myTable, myInspector);
     assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
   }
 
@@ -323,7 +324,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     myPanel.setAllPropertiesPanelVisible(true);
     myPanel.setRestoreToolWindow(() -> called[0] = true);
-    myPanel.setItems(components, properties, myPropertiesManager);
+    myPanel.setItems(components, properties);
 
     myPanel.activatePreferredEditor(ATTR_TEXT, false);
     assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();

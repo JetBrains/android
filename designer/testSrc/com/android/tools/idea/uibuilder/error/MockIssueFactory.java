@@ -38,14 +38,25 @@ public class MockIssueFactory {
   }
 
   public static void addLintIssue(LintAnnotationsModel model, HighlightDisplayLevel level) {
+    addLintIssue(model, level, Mockito.mock(NlComponent.class));
+  }
+
+  public static void addLintIssue(LintAnnotationsModel model, HighlightDisplayLevel level, NlComponent source) {
+    addLintIssue(model, level, Mockito.mock(NlComponent.class), Mockito.mock(PsiElement.class), Mockito.mock(PsiElement.class));
+  }
+
+  public static void addLintIssue(LintAnnotationsModel model,
+                                  HighlightDisplayLevel level,
+                                  NlComponent sourceElement,
+                                  PsiElement startElement,
+                                  PsiElement endElement) {
     Issue issue = createIssue();
     AndroidLintInspectionBase inspection = new AndroidLintInspectionBase("Mock Issue", issue) {
     };
 
-    NlComponent nlComponent = Mockito.mock(NlComponent.class);
-    Mockito.when(nlComponent.getTagName()).thenReturn("MockTag");
-    model.addIssue(nlComponent, issue, "",
-                   inspection, level, Mockito.mock(PsiElement.class), Mockito.mock(PsiElement.class),
+    Mockito.when(sourceElement.getTagName()).thenReturn("MockTag");
+    model.addIssue(sourceElement, issue, "",
+                   inspection, level, startElement, endElement,
                    null);
   }
 

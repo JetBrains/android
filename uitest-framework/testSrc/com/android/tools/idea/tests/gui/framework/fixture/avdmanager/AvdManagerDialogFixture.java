@@ -26,6 +26,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.data.TableCell;
+import org.fest.swing.driver.JTableLocation;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
@@ -34,8 +35,9 @@ import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 import java.awt.event.WindowEvent;
 
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
@@ -72,20 +74,44 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     return AvdEditWizardFixture.find(robot());
   }
 
+  @NotNull
   public AvdEditWizardFixture editAvdWithName(@NotNull String name) {
-    final TableView tableView = robot().finder().findByType(target(), TableView.class, true);
+    JPanel actionPanel = getAvdActionCell(name);
+    HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, Matchers.byTooltip(HyperlinkLabel.class, "Edit this AVD"));
+    robot().click(editButtonLabel);
+    return AvdEditWizardFixture.find(robot());
+  }
+
+  @NotNull
+  public AvdManagerDialogFixture startAvdWithName(@NotNull String name) {
+    JPanel actionPanel = getAvdActionCell(name);
+    HyperlinkLabel startButtonLabel = robot().finder().find(actionPanel, Matchers.byTooltip(HyperlinkLabel.class, "Launch this AVD in the emulator"));
+    robot().click(startButtonLabel);
+    return this;
+  }
+
+  @NotNull
+  private JPanel getAvdActionCell(@NotNull String name) {
+    TableView tableView = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture tableFixture = new JTableFixture(robot(), tableView);
     JTableCellFixture cell = tableFixture.cell(name);
-    final TableCell actionCell = TableCell.row(cell.row()).column(8);
+    TableCell actionCell = TableCell.row(cell.row()).column(8);
 
     JTableCellFixture actionCellFixture = tableFixture.cell(actionCell);
 
     GuiTask.execute(() -> tableView.editCellAt(actionCell.row, actionCell.column));
 
-    JPanel actionPanel = (JPanel)actionCellFixture.editor();
-    HyperlinkLabel editButtonLabel = robot().finder().find(actionPanel, Matchers.byTooltip(HyperlinkLabel.class, "Edit this AVD"));
-    robot().click(editButtonLabel);
-    return AvdEditWizardFixture.find(robot());
+    // Hack: sometimes the action hyperlinks in the action cell do not return true
+    // when isShowing() is called, even when the action links are clearly visible.
+    // This rare bug prevents the Robot from finding and clicking on the element.
+    // A weird quirk is that the action cell's items will begin returning true for
+    // isShowing() when the mouse cursor is moved over the action cell.
+    // See b/63768559 for a similar bug
+    robot().moveMouse(
+      tableView,
+      new JTableLocation().pointAt(tableView, actionCell.row, actionCell.column));
+
+    return (JPanel)actionCellFixture.editor();
   }
 
   @NotNull
@@ -93,6 +119,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     return robot().finder().find(target(), JButtonMatcher.withText(text).andShowing());
   }
 
+  @NotNull
   public AvdManagerDialogFixture selectAvd(@NotNull String name) {
     TableView tableView = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture tableFixture = new JTableFixture(robot(), tableView);
@@ -101,7 +128,8 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     return this;
   }
 
-  public AvdManagerDialogFixture deleteAvd(String name) {
+  @NotNull
+  public AvdManagerDialogFixture deleteAvd(@NotNull String name) {
     TableView tableView = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture tableFixture = new JTableFixture(robot(), tableView);
 

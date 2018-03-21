@@ -26,9 +26,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -61,7 +59,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
     myAction.doPerform(myEvent, project);
 
     assertTrue(myPresentation.isEnabled());
-    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null);
+    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST);
     verify(buildVariantView).projectImportStarted();
   }
 

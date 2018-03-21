@@ -21,7 +21,7 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.EventData;
 import com.android.tools.adtui.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;

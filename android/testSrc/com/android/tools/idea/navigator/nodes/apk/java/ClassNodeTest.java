@@ -33,7 +33,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.*;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

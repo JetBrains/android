@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 
 import java.io.IOException;
@@ -24,7 +26,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link DependenciesModel} and {@link FileDependencyModel}.
+ * Tests for {@link DependenciesModelImpl} and {@link FileDependencyModelImpl}.
  */
 public class FileDependencyTest extends GradleFileModelTestCase {
   public void testParseSingleFileDependency() throws IOException {

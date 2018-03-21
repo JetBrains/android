@@ -20,12 +20,14 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
@@ -52,7 +54,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,8 +80,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
-import static org.jetbrains.android.AndroidPlugin.setGuiTestingMode;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -93,15 +92,15 @@ public final class GuiTests {
   /**
    * Environment variable set by users to point to sources
    */
-  public static final String AOSP_SOURCE_PATH = "AOSP_SOURCE_PATH";
+  private static final String AOSP_SOURCE_PATH = "AOSP_SOURCE_PATH";
   /**
    * Older environment variable pointing to the sdk dir inside AOSP; checked for compatibility
    */
-  public static final String ADT_SDK_SOURCE_PATH = "ADT_SDK_SOURCE_PATH";
+  private static final String ADT_SDK_SOURCE_PATH = "ADT_SDK_SOURCE_PATH";
   /**
    * AOSP-relative path to directory containing GUI test data
    */
-  public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android-uitests/testData".replace('/', File.separatorChar);
+  private static final String RELATIVE_DATA_PATH = "tools/adt/idea/android-uitests/testData".replace('/', File.separatorChar);
 
   private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
 
@@ -124,7 +123,6 @@ public final class GuiTests {
   }
 
   static void setIdeSettings() {
-    GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT = false;
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
 
     // Clear HTTP proxy settings, in case a test changed them.
@@ -133,8 +131,12 @@ public final class GuiTests {
     ideSettings.PROXY_HOST = "";
     ideSettings.PROXY_PORT = 80;
 
-    AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
+    GuiTestingService.GuiTestSuiteState state = GuiTestingService.getInstance().getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
+
+    // Clear saved Wizard settings to its initial defaults
+    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", false); // New Project "Include Kotlin Support"
+    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", "Java"); // New Activity "Source Language"
 
     FrequentEventDetector.disableUntil(() -> {/* pigs fly */});
 
@@ -144,8 +146,7 @@ public final class GuiTests {
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("unused")
   public static void setUpDefaultGeneralSettings() {
-    setGuiTestingMode(true);
-
+    GuiTestingService.getInstance().setGuiTestingMode(true);
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
   }
 
@@ -245,10 +246,11 @@ public final class GuiTests {
     throw new AssumptionViolatedException(message);
   }
 
-  public static void setUpDefaultProjectCreationLocationPath() {
-    FileUtilRt.delete(getProjectCreationDirPath());
+  public static void setUpDefaultProjectCreationLocationPath(@Nullable String testDirectory) {
+    FileUtilRt.delete(getProjectCreationDirPath(null));
     refreshFiles();
-    RecentProjectsManager.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
+    String lastProjectLocation = getProjectCreationDirPath(testDirectory).getPath();
+    RecentProjectsManager.getInstance().setLastProjectCreationLocation(lastProjectLocation);
   }
 
   // Called by IdeTestApplication via reflection.
@@ -321,8 +323,8 @@ public final class GuiTests {
   }
 
   @NotNull
-  public static File getProjectCreationDirPath() {
-    return TMP_PROJECT_ROOT;
+  public static File getProjectCreationDirPath(@Nullable String testDirectory) {
+    return testDirectory != null ? new File(TMP_PROJECT_ROOT, testDirectory) : TMP_PROJECT_ROOT;
   }
 
   @NotNull
@@ -333,9 +335,7 @@ public final class GuiTests {
       return createTempDir().getCanonicalFile();
     }
     catch (IOException ex) {
-      // For now, keep the original behavior and point inside the source tree.
-      ex.printStackTrace();
-      return new File(getTestProjectsRootDirPath(), "newProjects");
+      throw new IllegalStateException(ex);
     }
   }
 
@@ -536,12 +536,33 @@ public final class GuiTests {
   }
 
   /**
+   * Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher} under {@code root}
+   * up to {@code secondsToWait} seconds.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilShowing(@NotNull Robot robot,
+                                                         @Nullable Container root,
+                                                         @NotNull GenericTypeMatcher<T> matcher,
+                                                         long secondsToWait) {
+    return waitUntilFound(robot, root, FluentMatcher.wrap(matcher).andIsShowing(), secondsToWait);
+}
+
+  /**
    * Waits for a single AWT or Swing {@link Component} showing, enabled and matched by {@code matcher} under {@code root}.
    */
   @NotNull
   public static <T extends Component> T waitUntilShowingAndEnabled(
     @NotNull Robot robot, @Nullable Container root, @NotNull GenericTypeMatcher<T> matcher) {
     return waitUntilShowing(robot, root, FluentMatcher.wrap(matcher).andIsEnabled());
+  }
+
+  /**
+   * Waits for a single AWT or Swing {@link Component} showing, enabled and matched by {@code matcher} under {@code root}.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilShowingAndEnabled(
+    @NotNull Robot robot, @Nullable Container root, @NotNull GenericTypeMatcher<T> matcher, long secondsToWait) {
+    return waitUntilShowing(robot, root, FluentMatcher.wrap(matcher).andIsEnabled(), secondsToWait);
   }
 
   /**
@@ -559,9 +580,20 @@ public final class GuiTests {
   public static <T extends Component> T waitUntilFound(@NotNull Robot robot,
                                                        @Nullable Container root,
                                                        @NotNull GenericTypeMatcher<T> matcher) {
+    return waitUntilFound(robot, root, matcher, 10);
+  }
+
+  /**
+   * Waits for a single AWT or Swing {@link Component} matched by {@code matcher} under {@code root}.
+   */
+  @NotNull
+  public static <T extends Component> T waitUntilFound(@NotNull Robot robot,
+                                                       @Nullable Container root,
+                                                       @NotNull GenericTypeMatcher<T> matcher,
+                                                       long secondsToWait) {
     AtomicReference<T> reference = new AtomicReference<>();
     String typeName = matcher.supportedType().getSimpleName();
-    Wait.seconds(10).expecting("matching " + typeName)
+    Wait.seconds(secondsToWait).expecting("matching " + typeName)
       .until(() -> {
         ComponentFinder finder = robot.finder();
         Collection<T> allFound = root != null ? finder.findAll(root, matcher) : finder.findAll(matcher);

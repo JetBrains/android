@@ -16,37 +16,60 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.util.Key;
+import com.intellij.ProjectTopics;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleServiceManager;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
-public class ModuleResourceManagers extends AndroidFacetScopedService {
-  @VisibleForTesting
-  public static final Key<ModuleResourceManagers> KEY = Key.create(ModuleResourceManagers.class.getName());
+public class ModuleResourceManagers {
+  private final Module myModule;
 
   private SystemResourceManager myPublicSystemResourceManager;
   private SystemResourceManager myFullSystemResourceManager;
+
   private LocalResourceManager myLocalResourceManager;
 
   @NotNull
   public static ModuleResourceManagers getInstance(@NotNull AndroidFacet facet) {
-    ModuleResourceManagers resourceManagers = facet.getUserData(KEY);
-    if (resourceManagers == null) {
-      resourceManagers = new ModuleResourceManagers(facet);
-      facet.putUserData(KEY, resourceManagers);
-    }
-    return resourceManagers;
+    //noinspection ConstantConditions (registered in android-plugin.xml, so won't be null
+    return ModuleServiceManager.getService(facet.getModule(), ModuleResourceManagers.class);
   }
 
-  private ModuleResourceManagers(@NotNull AndroidFacet facet) {
-    super(facet);
+  private ModuleResourceManagers(@NotNull Module module) {
+    myModule = module;
+
+    MessageBusConnection connection = module.getMessageBus().connect(module);
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+      private Sdk myPrevSdk = null;
+
+      @Override
+      public void rootsChanged(ModuleRootEvent event) {
+        myLocalResourceManager = null;
+
+        // The system resource managers cache data only from the platform, so they only need to be cleared if the platform changes
+        Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();
+        if (myPublicSystemResourceManager != null || myFullSystemResourceManager != null) {
+          if (!Objects.equals(myPrevSdk, newSdk)) {
+            myPublicSystemResourceManager = null;
+            myFullSystemResourceManager = null;
+          }
+        }
+        myPrevSdk = newSdk;
+      }
+    });
   }
 
   @Nullable
@@ -73,6 +96,13 @@ public class ModuleResourceManagers extends AndroidFacetScopedService {
     return myLocalResourceManager;
   }
 
+  @NotNull
+  private AndroidFacet getFacet() {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assert facet != null; // see factory method
+    return facet;
+  }
+
   @Nullable
   public SystemResourceManager getSystemResourceManager() {
     return getSystemResourceManager(true);
@@ -84,7 +114,7 @@ public class ModuleResourceManagers extends AndroidFacetScopedService {
       if (myPublicSystemResourceManager == null) {
         AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
         if (platform != null) {
-          myPublicSystemResourceManager = new SystemResourceManager(getModule().getProject(), platform, true);
+          myPublicSystemResourceManager = new SystemResourceManager(myModule.getProject(), platform, true);
         }
       }
       return myPublicSystemResourceManager;
@@ -93,19 +123,9 @@ public class ModuleResourceManagers extends AndroidFacetScopedService {
     if (myFullSystemResourceManager == null) {
       AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
       if (platform != null) {
-        myFullSystemResourceManager = new SystemResourceManager(getModule().getProject(), platform, false);
+        myFullSystemResourceManager = new SystemResourceManager(myModule.getProject(), platform, false);
       }
     }
     return myFullSystemResourceManager;
-  }
-
-  public void clear() {
-    myLocalResourceManager = null;
-    myPublicSystemResourceManager = null;
-  }
-
-  @Override
-  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    facet.putUserData(KEY, null);
   }
 }

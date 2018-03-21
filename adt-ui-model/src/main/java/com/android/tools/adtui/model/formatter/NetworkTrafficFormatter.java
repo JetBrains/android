@@ -22,7 +22,7 @@ public final class NetworkTrafficFormatter extends BaseAxisFormatter {
   private static final int MULTIPLIER = 1024;
   private static final int BASE = 2;
   private static final int[] MIN_INTERVALS = new int[]{4, 1, 1};    // 4 B/S, 1 KB/S, 1 MB/S
-  private static String[] UNITS = new String[]{"B/S", "KB/S", "MB/S"};
+  private static String[] UNITS = new String[]{"B/s", "KB/s", "MB/s"};
   private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{2, 1});
 
   public static final NetworkTrafficFormatter DEFAULT = new NetworkTrafficFormatter(4, 10, 2);

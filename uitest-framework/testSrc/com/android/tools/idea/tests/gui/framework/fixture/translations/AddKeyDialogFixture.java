@@ -52,7 +52,7 @@ public final class AddKeyDialogFixture {
   }
 
   public void waitUntilErrorLabelFound(@NotNull String text) {
-    text = "<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'><left>" + text + "</left></b></font></html>";
+    text = "<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'><left>" + text + "</left><br/></font></html>";
     GuiTests.waitUntilFound(myRobot, myTarget, JLabelMatcher.withText(text));
   }
 

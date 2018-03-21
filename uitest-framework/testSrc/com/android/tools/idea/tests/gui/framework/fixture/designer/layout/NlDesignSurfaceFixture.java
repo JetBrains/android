@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.Lists;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
@@ -45,11 +46,8 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     super.waitForRenderToFinish();
 
     Wait.seconds(10).expecting("render to finish").until(() -> {
-      ScreenView screenView = target().getCurrentSceneView();
-      if (screenView == null) {
-        return false;
-      }
-      RenderResult result = screenView.getResult();
+      LayoutlibSceneManager sceneManager = target().getSceneManager();
+      RenderResult result = sceneManager != null ? sceneManager.getRenderResult() : null;
       if (result == null) {
         return false;
       }
@@ -74,10 +72,7 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
   public NlComponentFixture findView(@NotNull final String tag, int occurrence) {
     waitForRenderToFinish();
 
-    ScreenView view = target().getCurrentSceneView();
-    assert view != null;
-
-    final NlModel model = view.getModel();
+    final NlModel model = target().getModel();
     final java.util.List<NlComponent> components = Lists.newArrayList();
 
     model.getComponents().forEach(component -> addComponents(tag, component, components));
@@ -111,7 +106,7 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     }
   }
 
-  public boolean isInScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
-    return target().getScreenMode() == mode;
+  public boolean isInScreenMode(@NotNull SceneMode mode) {
+    return target().getSceneMode() == mode;
   }
 }

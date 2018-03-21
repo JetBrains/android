@@ -36,7 +36,8 @@ import java.awt.*;
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
 
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
-  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(900, 650);
+  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(400, 350);
+  private static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 650);
 
   private final BindingsManager myBindings = new BindingsManager();
 
@@ -66,7 +67,7 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
 
   @Override
   public Dimension getDefaultPreferredSize() {
-    return DEFAULT_MIN_SIZE;
+    return DEFAULT_PREFERRED_SIZE;
   }
 
   @Override

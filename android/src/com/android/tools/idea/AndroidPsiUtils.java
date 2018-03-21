@@ -192,10 +192,18 @@ public class AndroidPsiUtils {
     if (parentElement != null) {
       return parentElement;
     }
-    UElement uElement =
-      ServiceManager.getService(element.getProject(), UastContext.class).convertElementWithParent(element, UElement.class);
-    if (uElement != null) {
-      return getPsiParentOfType(uElement, parentClass, strict);
+
+    // UElement heritage tree is not necessarily a subset of the corresponding PsiElement tree
+    // e.g. if PsiIdentifier has PsiMethod as parent, converting it to UElement gives us a UIdentifier with null parent
+    for (PsiElement psiElement = element; psiElement != null; psiElement = psiElement.getParent()) {
+      UElement uElement =
+        ServiceManager.getService(element.getProject(), UastContext.class).convertElementWithParent(psiElement, UElement.class);
+      if (uElement != null) {
+        T parentPsiElement = getPsiParentOfType(uElement, parentClass, strict && (psiElement == element));
+        if (parentPsiElement != null) {
+          return parentPsiElement;
+        }
+      }
     }
     return null;
   }

@@ -22,11 +22,13 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupAdapter;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.LightweightWindowEvent;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
 import java.awt.*;
 
 /**
@@ -71,7 +73,19 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
 
   private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull DropDownActionButton button) {
     ActionManagerImpl am = (ActionManagerImpl)ActionManager.getInstance();
-    am.createActionPopupMenu(eve.getPlace(), this).getComponent().show(button, 0, button.getHeight());
+    JPopupMenu component = am.createActionPopupMenu(eve.getPlace(), this).getComponent();
+    component.addPopupMenuListener(new PopupMenuListenerAdapter() {
+      @Override
+      public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+        button.setSelected(true);
+      }
+
+      @Override
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+        button.setSelected(false);
+      }
+    });
+    component.show(button, 0, button.getHeight());
   }
 
   private void showJBPopup(@NotNull AnActionEvent eve, @NotNull DropDownActionButton button, @NotNull JPanel componentPopup) {
@@ -80,7 +94,6 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     Point location = owner.getLocationOnScreen();
     location.translate(0, owner.getHeight());
     popup.showInScreenCoordinates(owner, location);
-    button.setSelected(true);
     ((DropDownAction)button.getAction()).myCurrentPopup = popup;
   }
 
@@ -103,12 +116,17 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     popupMenu = popupFactory.createComponentPopupBuilder(content, content).createPopup();
     popupMenu.addListener(new JBPopupAdapter() {
       @Override
+      public void beforeShown(LightweightWindowEvent event) {
+        super.beforeShown(event);
+        DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
+        button.setSelected(true);
+      }
+
+      @Override
       public void onClosed(LightweightWindowEvent event) {
         super.onClosed(event);
         DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
         button.setSelected(false);
-        button.revalidate();
-        button.repaint();
         event.asPopup().removeListener(this);
         ((DropDownAction)button.getAction()).myCurrentPopup = null;
       }

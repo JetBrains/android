@@ -21,8 +21,8 @@ import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -190,15 +190,24 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           throw new TimeoutException("Timed out waiting for device to be ready.");
         }
 
+        // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
+        // in AndroidStudioProperties.groovy to package in release.
         String deviceDir = "/data/local/tmp/perfd/";
         copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir,
                          true);
-        if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
-          copyFileToDevice("perfa.jar", "plugins/android/resources", "../../bazel-genfiles/tools/base/profiler/app", deviceDir, false);
-          pushJvmtiAgentNativeLibraries(deviceDir);
+        if (isAtLeastO(myDevice)) {
+          if (StudioFlags.PROFILER_USE_JVMTI.get()) {
+            String productionRoot = "plugins/android/resources";
+            String devRoot = "../../bazel-genfiles/tools/base/profiler/app";
+            copyFileToDevice("perfa.jar", productionRoot, devRoot, deviceDir, false);
+            copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, deviceDir, false);
+            pushJvmtiAgentNativeLibraries(deviceDir);
+          }
+          if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
+            // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
+            pushSimpleperfIfSupported(deviceDir);
+          }
         }
-        // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
-        pushSimpleperfIfSupported(deviceDir);
         pushAgentConfig(AGENT_CONFIG_FILE, deviceDir);
 
         myDevice.executeShellCommand(deviceDir + "perfd -config_file=" + deviceDir + AGENT_CONFIG_FILE, new IShellOutputReceiver() {
@@ -207,10 +216,21 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
             String s = new String(data, offset, length, Charsets.UTF_8);
             getLogger().info("[perfd]: " + s);
             if (myDeviceProxies.containsKey(myDevice)) {
-              // PerfdProxy for the current device was already created.
+              getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
               return;
             }
+
+            // On supported API levels (Lollipop+), we should only start the proxy once perfd has successfully launched the grpc server.
+            // This is indicated by a "Server listening on ADDRESS" printout from perfd (ADDRESS can vary depending on pre-O vs JVMTI).
+            // The reason for this check is because we get linker warnings when starting perfd on pre-M devices (an issue which would not
+            // be fixed by now), and we need to avoid starting the proxy in those cases.
+            if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP
+              && !s.startsWith("Server listening on")) {
+              return;
+            }
+
             createPerfdProxy();
+            getLogger().info(String.format("PerfdProxy successfully created for device: %s", myDevice));
           }
 
           @Override
@@ -277,12 +297,15 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       try {
         // TODO: Handle the case where we don't have file for this platform.
         // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
-        assert file != null;
+        if (file == null) {
+          throw new RuntimeException(String.format("File %s could not be found for device: %s", fileName, myDevice));
+        }
         // TODO: Add debug support for development
         /*
          * If copying the agent fails, we will attach the previous version of the agent
          * Hence we first delete old agent before copying new one
          */
+        getLogger().info(String.format("Pushing %s to %s...", fileName, deviceDir));
         myDevice.executeShellCommand("rm -f " + deviceDir + fileName, new NullOutputReceiver());
         myDevice.executeShellCommand("mkdir -p " + deviceDir, new NullOutputReceiver());
         myDevice.pushFile(file.getAbsolutePath(), deviceDir + fileName);
@@ -298,6 +321,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
             myDevice.executeShellCommand("chmod 777 " + deviceDir + fileName, new NullOutputReceiver());
           }
         }
+        getLogger().info(String.format("Successfully pushed %s to %s.", fileName, deviceDir));
       }
       catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
         throw new RuntimeException(e);
@@ -305,22 +329,47 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     }
 
     /**
-     * Push Jvmti agent binary to device. The native library is to be attached to app's thread. It needs to be consistent with app's abi.
-     * Push one binary for each supported abi cpu arch, i.e. cpu family. Abi of same cpu family can share, like "armeabi" and "armeabi-v7a".
+     * Push JVMTI agent binary to device. The native library is to be attached to app's thread. It needs to be consistent with app's abi,
+     * so we use {@link #pushAbiDependentBinaryFiles}.
      */
     private void pushJvmtiAgentNativeLibraries(String devicePath) throws AdbCommandRejectedException, IOException {
-      File dir = new File(PathManager.getHomePath(), "plugins/android/resources/perfa");
+      String jvmtiResourcesReleasePath = "plugins/android/resources/perfa";
+      String jvmtiResourcesDevPath = "../../bazel-bin/tools/base/profiler/native/perfa/android";
+      String libperfaFilename = "libperfa.so";
+      String libperfaDeviceFilenameFormat = "libperfa_%s.so"; // e.g. libperfa_arm64.so
+
+      pushAbiDependentBinaryFiles(devicePath, jvmtiResourcesReleasePath, jvmtiResourcesDevPath, libperfaFilename, libperfaDeviceFilenameFormat);
+    }
+
+    /**
+     * Push one binary for each supported ABI CPU architecture, i.e. CPU family. ABI of same CPU family can share the same binary,
+     * like "armeabi" and "armeabi-v7a", which share the "arm".
+     * @param devicePath            Device path where the binaries should be pushed to.
+     * @param hostReleaseDir        Host release path containing the binaries to be pushed to device.
+     * @param hostDevDir            Host development path containing the binaries to be pushed to device.
+     * @param hostFilename          Filename of the original binaries on the host.
+     * @param deviceFilenameFormat  Format of the binaries filename on device. The binaries have the same name in the host because they're
+     *                              usually placed on different folders. On the device, however, the binaries are all placed inside
+     *                              {@code devicePath}, so they need different names, each one identifying the ABI corresponding to the
+     *                              binary. For instance, the format "libperfa_%s.so" can generate binaries named "libperfa_arm.so",
+     *                              "libperfa_x86_64.so", etc.
+     * @throws AdbCommandRejectedException
+     * @throws IOException
+     */
+    private void pushAbiDependentBinaryFiles(String devicePath, String hostReleaseDir, String hostDevDir, String hostFilename,
+                                             String deviceFilenameFormat) throws AdbCommandRejectedException, IOException {
+      File dir = new File(PathManager.getHomePath(), hostReleaseDir);
       if (!dir.exists()) {
-        dir = new File(PathManager.getHomePath(), "../../bazel-bin/tools/base/profiler/native/perfa/android");
+        dir = new File(PathManager.getHomePath(), hostDevDir);
       }
       // Multiple abis of same cpu arch need only one binary to push, for example, "armeabi" and "armeabi-v7a" abis' cpu arch is "arm".
       Set<String> cpuArchSet = new HashSet<>();
       for (String abi : myDevice.getAbis()) {
-        File candidate = new File(dir, abi + "/" + "libperfa.so");
+        File candidate = new File(dir, abi + "/" + hostFilename);
         if (candidate.exists()) {
           String abiCpuArch = Abi.getEnum(abi).getCpuArch();
           if (!cpuArchSet.contains(abiCpuArch)) {
-            pushFileToDevice(candidate, String.format("libperfa_%s.so", abiCpuArch), devicePath, true);
+            pushFileToDevice(candidate, String.format(deviceFilenameFormat, abiCpuArch), devicePath, true);
             cpuArchSet.add(abiCpuArch);
           }
         }
@@ -328,14 +377,16 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     }
 
     /**
-     * Pushes simpleperf binary to device if it is supported (i.e. it's running O or newer APIs and has a supported architecture).
+     * Pushes simpleperf binaries to device. It needs to be consistent with app's abi, so we use {@link #pushAbiDependentBinaryFiles}.
      */
     private void pushSimpleperfIfSupported(String devicePath) throws AdbCommandRejectedException, IOException {
-      // Simpleperf tracing is not supported in devices older than O.
-      if (!(isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_SIMPLEPERF.get())) {
-        return;
-      }
-      copyFileToDevice("simpleperf", "plugins/android/resources/simpleperf", "../../prebuilts/tools/common/simpleperf", devicePath, true);
+      String simpleperfBinariesReleasePath = "plugins/android/resources/simpleperf";
+      String simpleperfBinariesDevPath = "../../prebuilts/tools/common/simpleperf";
+      String simpleperfFilename = "simpleperf";
+      String simpleperfDeviceFilenameFormat = "simpleperf_%s"; // e.g. simpleperf_arm64
+
+      pushAbiDependentBinaryFiles(devicePath, simpleperfBinariesReleasePath, simpleperfBinariesDevPath, simpleperfFilename,
+                                  simpleperfDeviceFilenameFormat);
     }
 
     /**
@@ -351,7 +402,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         .setMemConfig(Agent.AgentConfig.MemoryConfig.newBuilder()
                         .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
                         .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
+                        .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
                         .build())
+        .setProfilerNetworkRequestPayload(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get())
         .setSocketType(socketType)
         .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
         // Using "@" to indicate an abstract socket in unix.
@@ -367,6 +420,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private void createPerfdProxy() {
       try {
         myLocalPort = NetUtils.findAvailableSocketPort();
+        if (myLocalPort < 0) {
+          throw new RuntimeException("Unable to find available socket port");
+        }
+
         if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
           myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME,
                                  IDevice.DeviceUnixSocketNamespace.ABSTRACT);
@@ -374,9 +431,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         else {
           myDevice.createForward(myLocalPort, DEVICE_PORT);
         }
-        if (myLocalPort < 0) {
-          return;
-        }
+        getLogger().info(String.format("Port forwarding created for port: %d", myLocalPort));
+
         /*
           Creates the channel that is used to connect to the device perfd.
 

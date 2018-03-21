@@ -85,12 +85,12 @@ public class FormFactorApiComboBoxTest {
 
     apiComboBox.setSelectedIndex(2);
     String savedApi = PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none");
-    assertEquals(items.get(2).getApiLevelStr(), savedApi);
+    assertEquals(items.get(2).getMinApiLevelStr(), savedApi);
   }
 
   private static AndroidVersionsInfo.VersionItem createMockVersionItem(String apiLevelStr) {
     AndroidVersionsInfo.VersionItem item = Mockito.mock(AndroidVersionsInfo.VersionItem.class);
-    Mockito.when(item.getApiLevelStr()).thenReturn(apiLevelStr);
+    Mockito.when(item.getMinApiLevelStr()).thenReturn(apiLevelStr);
 
     return item;
   }

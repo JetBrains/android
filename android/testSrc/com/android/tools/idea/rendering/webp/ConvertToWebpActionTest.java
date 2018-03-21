@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.webp;
 
+import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 

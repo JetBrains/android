@@ -20,8 +20,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
+import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -73,8 +72,8 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.npw.WizardUtils.validateLocation;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -96,6 +95,7 @@ import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
  */
 public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @NonNls private static final String SDKS_PLACE = "sdks.place";
+  @NonNls public static final String IDE_SDKS_LOCATION_VIEW = "IdeSdksView";
 
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
@@ -134,6 +134,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     myHost = host;
     myProject = project;
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
+    myWholePanel.setName(IDE_SDKS_LOCATION_VIEW);
 
     myDetailsComponent = new DetailsComponent();
     myDetailsComponent.setContent(myWholePanel);
@@ -621,8 +622,9 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @Nullable
   private String validateAndroidSdkPath() {
     //noinspection deprecation
-    WizardUtils.ValidationResult wizardValidationResult =
-      validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
+    PathValidationResult wizardValidationResult =
+      validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false,
+                       PathValidationResult.WritableCheckMode.DO_NOT_CHECK);
     if (!wizardValidationResult.isOk()) {
       return wizardValidationResult.getFormattedMessage();
     }

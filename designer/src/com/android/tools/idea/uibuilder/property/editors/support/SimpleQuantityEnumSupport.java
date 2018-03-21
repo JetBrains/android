@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

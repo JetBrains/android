@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
@@ -27,7 +28,7 @@ import java.util.List;
 /**
  * Represents a repository defined with flatDir {dirs "..."} or flatDir dirs : ["..."].
  */
-public class FlatDirRepositoryModel extends RepositoryModel {
+public class FlatDirRepositoryModel extends RepositoryModelImpl {
   @NonNls public static final String FLAT_DIR_ATTRIBUTE_NAME = "flatDir";
 
   @NonNls private static final String DIRS = "dirs";
@@ -47,10 +48,37 @@ public class FlatDirRepositoryModel extends RepositoryModel {
 
     GradleNullableValue<String> dir = myDslElement.getLiteralProperty(DIRS, String.class);
     if (dir.value() != null) {
-      assert dir instanceof GradleNotNullValue;
-      return ImmutableList.of((GradleNotNullValue<String>)dir);
+      assert dir instanceof GradleNotNullValueImpl;
+      return ImmutableList.of((GradleNotNullValueImpl<String>)dir);
     }
 
     return ImmutableList.of();
+  }
+
+  public void addDir(@NotNull String dir) {
+    assert myDslElement != null;
+
+    // Check if what we are trying to add exists
+    List<GradleNotNullValue<String>> oldDirs = myDslElement.getListProperty(DIRS, String.class);
+    if (oldDirs != null) {
+      for (GradleNotNullValue<String> item : oldDirs) {
+        if (item.value().equals(dir)) {
+          return;
+        }
+      }
+    }
+
+    GradleNullableValue<String> oldDir = myDslElement.getLiteralProperty(DIRS, String.class);
+    if (oldDir.value() != null && oldDir.value().equals(dir)) {
+      return;
+    }
+
+    myDslElement.addToNewLiteralList(DIRS, dir);
+  }
+
+  @NotNull
+  @Override
+  public RepositoryType getType() {
+    return RepositoryType.FLAT_DIR;
   }
 }

@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleTasksExecutorFactory {
   @NotNull
   public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request, @NotNull BuildStopper buildStopper) {
-    return new GradleTasksExecutorImpl(request, buildStopper);
+    GradleTasksExecutor executor = new GradleTasksExecutorImpl(request, buildStopper);
+    GradleBuildState.getInstance(request.getProject()).buildExecutorCreated(request);
+    return executor;
   }
 }

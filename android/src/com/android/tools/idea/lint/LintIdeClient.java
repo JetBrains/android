@@ -36,7 +36,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.templates.GoogleMavenVersionLookup;
+import com.android.tools.idea.templates.IdeGoogleMavenRepository;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
@@ -81,6 +81,8 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.uast.UCallExpression;
+import org.jetbrains.uast.UExpression;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -187,6 +189,8 @@ public class LintIdeClient extends LintClient implements Disposable {
                       return Severity.WARNING;
                     case LintOptions.SEVERITY_INFORMATIONAL:
                       return Severity.INFORMATIONAL;
+                    case LintOptions.SEVERITY_DEFAULT_ENABLED:
+                      return issue.getDefaultSeverity();
                     case LintOptions.SEVERITY_IGNORE:
                     default:
                       return Severity.IGNORE;
@@ -301,18 +305,22 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
   }
 
+  @NotNull
   @Override
   public XmlParser getXmlParser() {
     return new DomPsiParser(this);
   }
 
-  @Nullable
-  @Override
-  public JavaParser getJavaParser(@Nullable com.android.tools.lint.detector.api.Project project) {
-    return new LintIdeJavaParser(this, myProject, project);
-  }
+  /**
+   * Whether we should skip attempting to use reflection in
+   * {@link JavaEvaluator#computeArgumentMapping(UCallExpression, PsiMethod)}.
+   *
+   * We need a separate flag rather than just checking for {@link #mappingMethod} != null since
+   * the method may not be available (for example if the Kotlin plugin is disabled.
+   */
+  private static boolean skipMappingReflection = false;
 
-  @Nullable
+  @NotNull
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
     return new DefaultUastParser(project, myProject) {
@@ -333,6 +341,26 @@ public class LintIdeClient extends LintClient implements Disposable {
               }
             }
             return null;
+          }
+
+          @NotNull
+          @Override
+          public Map<UExpression, PsiParameter> computeArgumentMapping(@NotNull UCallExpression call, @NotNull PsiMethod method) {
+            // Call into lint-kotlin to look up the argument mapping if this call is a Kotlin method.
+            if (!skipMappingReflection) {
+              try {
+                Map<UExpression, PsiParameter> map = LintKotlinReflectionUtilsKt.computeKotlinArgumentMapping(call, method);
+                if (map != null) {
+                  return map;
+                }
+              }
+              catch (Throwable ignore) {
+                //noinspection AssignmentToStaticFieldFromInstanceMethod
+                skipMappingReflection = true;
+              }
+            }
+
+            return super.computeArgumentMapping(call, method);
           }
         };
       }
@@ -394,7 +422,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public File getSdkHome() {
     Module module = getModule();
-    if (module != null && !module.isDisposed()) {
+    if (module != null) {
       Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
       if (moduleSdk != null && moduleSdk.getSdkType() instanceof AndroidSdkType) {
         String path = moduleSdk.getHomePath();
@@ -412,17 +440,15 @@ public class LintIdeClient extends LintClient implements Disposable {
       return sdkHome;
     }
 
-    if (!myProject.isDisposed()) {
-      for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-        Sdk moduleSdk = ModuleRootManager.getInstance(m).getSdk();
-        if (moduleSdk != null) {
-          if (moduleSdk.getSdkType() instanceof AndroidSdkType) {
-            String path = moduleSdk.getHomePath();
-            if (path != null) {
-              File home = new File(path);
-              if (home.exists()) {
-                return home;
-              }
+    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
+      Sdk moduleSdk = ModuleRootManager.getInstance(m).getSdk();
+      if (moduleSdk != null) {
+        if (moduleSdk.getSdkType() instanceof AndroidSdkType) {
+          String path = moduleSdk.getHomePath();
+          if (path != null) {
+            File home = new File(path);
+            if (home.exists()) {
+              return home;
             }
           }
         }
@@ -442,7 +468,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       AndroidSdkHandler localSdk = getLocalSdk(module);
       if (localSdk != null) {
         sdk = localSdk;
-      } else if (!myProject.isDisposed()) {
+      } else {
         for (Module m : ModuleManager.getInstance(myProject).getModules()) {
           localSdk = getLocalSdk(m);
           if (localSdk != null) {
@@ -462,7 +488,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable
   private static AndroidSdkHandler getLocalSdk(@Nullable Module module) {
-    if (module != null && !module.isDisposed()) {
+    if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         AndroidSdkData sdkData = AndroidSdkData.getSdkData(facet);
@@ -480,7 +506,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   public BuildToolInfo getBuildTools(@NonNull com.android.tools.lint.detector.api.Project project) {
     if (project.isGradleProject()) {
       Module module = getModule();
-      if (module != null && !module.isDisposed()) {
+      if (module != null) {
         AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
           GradleVersion version = model.getModelVersion();
@@ -515,7 +541,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public boolean isGradleProject(com.android.tools.lint.detector.api.Project project) {
     Module module = getModule();
-    if (module != null && !module.isDisposed()) {
+    if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       return facet != null && facet.requiresAndroidModel();
     }
@@ -529,7 +555,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   public File getCacheDir(@Nullable String name, boolean create) {
     if (MAVEN_GOOGLE_CACHE_DIR_KEY.equals(name)) {
       // Share network cache with existing implementation
-      return GoogleMavenVersionLookup.INSTANCE.getCacheDir();
+      return IdeGoogleMavenRepository.INSTANCE.getCacheDir();
     }
 
     final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
@@ -577,9 +603,9 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Override
   @Nullable
-  public Pair<File, Node> findManifestSourceNode(@NonNull Node mergedNode) {
-    Map<Node, Pair<File, Node>> sourceNodeCache = getSourceNodeCache();
-    Pair<File,Node> source = sourceNodeCache.get(mergedNode);
+  public Pair<File, ? extends Node> findManifestSourceNode(@NonNull Node mergedNode) {
+    Map<Node, Pair<File, ? extends Node>> sourceNodeCache = getSourceNodeCache();
+    Pair<File, ? extends Node> source = sourceNodeCache.get(mergedNode);
     if (source != null) {
       if (source == NOT_FOUND) {
         return null;
@@ -704,14 +730,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
       return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
         final Module module = myState.getModule();
-        if (module.isDisposed()) {
-          return null;
-        }
         final Project project = module.getProject();
-        if (project.isDisposed()) {
-          return null;
-        }
-
         final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
 
         if (psiFile == null) {
@@ -721,10 +740,6 @@ public class LintIdeClient extends LintClient implements Disposable {
 
         if (document != null) {
           final DocumentListener listener = new DocumentListener() {
-            @Override
-            public void beforeDocumentChange(DocumentEvent event) {
-            }
-
             @Override
             public void documentChanged(DocumentEvent event) {
               myState.markDirty();
@@ -740,9 +755,6 @@ public class LintIdeClient extends LintClient implements Disposable {
     @Override
     public List<File> getJavaSourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
       Module module = myState.getModule();
-      if (module.isDisposed()) {
-        return super.getJavaSourceFolders(project);
-      }
       final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(false);
       final List<File> result = new ArrayList<>(sourceRoots.length);
 
@@ -756,11 +768,9 @@ public class LintIdeClient extends LintClient implements Disposable {
     @Override
     public List<File> getResourceFolders(@NonNull com.android.tools.lint.detector.api.Project project) {
       Module module = myState.getModule();
-      if (!module.isDisposed()) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          return LintIdeUtils.getResourceDirectories(facet);
-        }
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        return LintIdeUtils.getResourceDirectories(facet);
       }
       return super.getResourceFolders(project);
     }
@@ -978,7 +988,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     Module module = getModule();
-    if (module != null && !module.isDisposed()) {
+    if (module != null) {
       AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
       if (appResources != null) {
         ResourceVisibilityLookup.Provider provider = appResources.getResourceVisibilityProvider();

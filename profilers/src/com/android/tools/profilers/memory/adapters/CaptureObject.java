@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,11 +44,12 @@ public interface CaptureObject extends MemoryObject {
    */
   enum ClassifierAttribute {
     LABEL(0, ASCENDING),
-    ALLOC_COUNT(2, DESCENDING),
-    DEALLOC_COUNT(1, DESCENDING),
-    NATIVE_SIZE(3, DESCENDING),
-    SHALLOW_SIZE(4, DESCENDING),
-    RETAINED_SIZE(5, DESCENDING);
+    ALLOCATIONS(2, DESCENDING),
+    DEALLOCATIONS(1, DESCENDING),
+    TOTAL_COUNT(3, DESCENDING),
+    NATIVE_SIZE(4, DESCENDING),
+    SHALLOW_SIZE(5, DESCENDING),
+    RETAINED_SIZE(6, DESCENDING);
 
     private final int myWeight;
 
@@ -74,8 +76,8 @@ public interface CaptureObject extends MemoryObject {
    */
   enum InstanceAttribute {
     LABEL(1, ASCENDING),
-    ALLOCATION_TIME(2, DESCENDING),
-    DEALLOCATION_TIME(3, DESCENDING),
+    ALLOCATION_TIME(3, DESCENDING),
+    DEALLOCATION_TIME(2, DESCENDING),
     DEPTH(0, ASCENDING),
     NATIVE_SIZE(4, DESCENDING),
     SHALLOW_SIZE(5, DESCENDING),
@@ -105,10 +107,6 @@ public interface CaptureObject extends MemoryObject {
     return null;
   }
 
-  default int getProcessId() {
-    return -1;
-  }
-
   @Nullable
   default MemoryServiceGrpc.MemoryServiceBlockingStub getClient() {
     return null;
@@ -122,6 +120,11 @@ public interface CaptureObject extends MemoryObject {
   String getExportableExtension();
 
   void saveToFile(@NotNull OutputStream outputStream) throws IOException;
+
+  @Nullable
+  default MemoryProfiler.StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
+    return null;
+  }
 
   @NotNull
   List<ClassifierAttribute> getClassifierAttributes();

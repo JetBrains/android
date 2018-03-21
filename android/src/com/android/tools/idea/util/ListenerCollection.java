@@ -92,6 +92,7 @@ public class ListenerCollection<T> {
    * Iterates over all the listeners in the given {@link Executor}. This method returns a {@link ListenableFuture} to know when
    * the processing has finished.
    */
+  @NotNull
   public ListenableFuture<Void> forEach(@NotNull Consumer<T> runOnListener) {
     SettableFuture<Void> future = SettableFuture.create();
     ImmutableSet<T> listeners;

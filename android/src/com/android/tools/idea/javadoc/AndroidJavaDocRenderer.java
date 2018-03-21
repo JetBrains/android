@@ -38,6 +38,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.*;
 import com.android.utils.HtmlBuilder;
@@ -46,6 +47,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.intellij.openapi.editor.colors.EditorColorsUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -78,8 +80,8 @@ import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.android.utils.SdkUtils.hasImageExtension;
+import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
 
 public class AndroidJavaDocRenderer {
 
@@ -131,7 +133,7 @@ public class AndroidJavaDocRenderer {
     builder.add(name);
     builder.endBold();
     int api = ResolutionUtils.getOriginalApiLevel(name, module.getProject());
-    if (api >= 0) {
+    if (api > 1) {
       builder.add(" (Added in API level ");
       builder.add(String.valueOf(api));
       builder.add(")");
@@ -847,9 +849,9 @@ public class AndroidJavaDocRenderer {
                 builder.add(" => ");
 
                 // AAR Library? Strip off prefix
-                int index = value.indexOf(EXPLODED_AAR);
+                int index = value.indexOf(FilenameConstants.EXPLODED_AAR);
                 if (index != -1) {
-                  value = value.substring(index + EXPLODED_AAR.length() + 1);
+                  value = value.substring(index + FilenameConstants.EXPLODED_AAR.length() + 1);
                 }
 
                 builder.add(value);
@@ -1276,12 +1278,29 @@ public class AndroidJavaDocRenderer {
     }
 
     public void renderColorToHtml(@NotNull HtmlBuilder builder, @NotNull Color color) {
+      Color displayColor = color;
+
       int width = 200;
       int height = 100;
       if (mySmall) {
         int divisor = 3;
         width /= divisor;
         height /= divisor;
+      }
+
+      if (color.getAlpha() != 255) {
+        // HTMLEditorKit does not support alpha in colors. When we have alpha, we manually do the blending to remove
+        // the alpha from the color.
+        float alpha = color.getAlpha() / 255f;
+        Color backgroundColor = EditorColorsUtil.getGlobalOrDefaultColor(COLOR_KEY);
+        if (backgroundColor != null) {
+          //noinspection UseJBColor,AssignmentToMethodParameter
+          color = new Color(
+            (int)(backgroundColor.getRed() * (1f - alpha) + alpha * color.getRed()),
+            (int)(backgroundColor.getGreen() * (1f - alpha) + alpha * color.getGreen()),
+            (int)(backgroundColor.getBlue() * (1f - alpha) + alpha * color.getBlue())
+          );
+        }
       }
 
       String colorString = String.format(Locale.US, "rgb(%d,%d,%d)", color.getRed(), color.getGreen(), color.getBlue());
@@ -1292,7 +1311,7 @@ public class AndroidJavaDocRenderer {
       // vertical-align:middle on divs)
       builder.addHtml("<table style=\"" + css + "\" border=\"0\"><tr height=\"" + height + "\">");
       builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"" + height + "\" style=\"color:" + foregroundColor + "\">");
-      builder.addHtml(ResourceHelper.colorToString(color));
+      builder.addHtml(ResourceHelper.colorToString(displayColor));
       builder.addHtml("</td></tr></table>");
     }
   }

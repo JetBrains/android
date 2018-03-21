@@ -40,7 +40,7 @@ public class BrClassFinder extends PsiElementFinder {
       () -> {
         Map<String, PsiClass> classes = new HashMap<>();
         for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
-          if (ModuleDataBinding.isEnabled(facet)) {
+          if (ModuleDataBinding.getInstance(facet).isEnabled()) {
             classes.put(DataBindingUtil.getBrQualifiedName(facet), DataBindingUtil.getOrCreateBrClassFor(facet));
           }
         }

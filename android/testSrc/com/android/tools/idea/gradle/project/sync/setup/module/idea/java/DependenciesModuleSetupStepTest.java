@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -76,7 +77,8 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     createGradleFacetWithModuleModel();
 
     Module mainModule = getModule();
-    mySetupStep.setUpModule(mainModule, myModelsProvider, myJavaModuleModel, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(mainModule, myModelsProvider);
+    mySetupStep.setUpModule(context, myJavaModuleModel);
 
     // needed to check if the module dependency was added.
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());

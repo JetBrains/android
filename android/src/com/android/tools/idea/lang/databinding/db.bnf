@@ -132,9 +132,9 @@ expr
   |   signChangeExpr
   |   castExpr
   |   callExpr
+  |   bracketExpr          //  array op - []
   |   qualRefExpr          //  field access
   |   simpleRefExpr
-  |   bracketExpr          //  array op - []
   |   functionRefExpr      //  method reference using '::'
   |   resourcesExpr
   |   classExtractionExpr

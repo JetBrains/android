@@ -19,10 +19,11 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
@@ -32,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.ContentEntry;
@@ -43,7 +43,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Arrays;
@@ -51,11 +50,10 @@ import java.util.Collection;
 import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.DOCUMENTATION;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -70,23 +68,30 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @VisibleForTesting
-  DependenciesAndroidModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor, @NotNull AndroidModuleDependenciesSetup dependenciesSetup) {
+  DependenciesAndroidModuleSetupStep(@NotNull DependenciesExtractor dependenciesExtractor,
+                                     @NotNull AndroidModuleDependenciesSetup dependenciesSetup) {
     myDependenciesExtractor = dependenciesExtractor;
     myDependenciesSetup = dependenciesSetup;
   }
 
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull AndroidModuleModel androidModel,
-                               @Nullable SyncAction.ModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
-    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant());
+  protected void doSetUpModule(@NotNull ModuleSetupContext context, @NotNull AndroidModuleModel androidModel) {
+    ModuleFinder moduleFinder = context.getModuleFinder();
+    assert moduleFinder != null;
+
+    Module module = context.getModule();
+    IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
+    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant(), moduleFinder);
+
     for (LibraryDependency dependency : dependencies.onLibraries()) {
       updateLibraryDependency(module, ideModelsProvider, dependency, androidModel);
     }
     for (ModuleDependency dependency : dependencies.onModules()) {
-      updateModuleDependency(module, ideModelsProvider, dependency, androidModel);
+      // Skip if dependency is in test scope and it is the current module.
+      // See https://issuetracker.google.com/issues/68016998.
+      if (!isSelfDependencyByTest(module, dependency)) {
+        updateModuleDependency(module, ideModelsProvider, dependency, androidModel);
+      }
     }
 
     addExtraSdkLibrariesAsDependencies(module, ideModelsProvider, androidModel);
@@ -102,6 +107,14 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     }
   }
 
+  /**
+   * @return true if the module dependency is in test scope, and it is the current module.
+   */
+  @VisibleForTesting
+  static boolean isSelfDependencyByTest(@NotNull Module module, @NotNull ModuleDependency dependency) {
+    return dependency.getScope().equals(TEST) && module.equals(dependency.getModule());
+  }
+
   private static boolean getExported(@NotNull AndroidModuleModel androidModuleModel) {
     return androidModuleModel.getFeatures().shouldExportDependencies();
   }
@@ -111,7 +124,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull ModuleDependency dependency,
                               @NotNull AndroidModuleModel moduleModel) {
-    Module moduleDependency = dependency.getModule(modelsProvider);
+    Module moduleDependency = dependency.getModule();
     LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {
@@ -138,7 +151,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     String name = dependency.getName();
     DependencyScope scope = dependency.getScope();
     myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, dependency.getArtifactPath(),
-                                               dependency.getPaths(BINARY), dependency.getPaths(DOCUMENTATION), getExported(moduleModel));
+                                               dependency.getBinaryPaths(), getExported(moduleModel));
 
     File buildFolder = moduleModel.getAndroidProject().getBuildFolder();
 
@@ -146,7 +159,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     // see https://code.google.com/p/android/issues/detail?id=123788
     ContentEntry[] contentEntries = modelsProvider.getModifiableRootModel(module).getContentEntries();
     if (contentEntries.length > 0) {
-      for (File binaryPath : dependency.getPaths(BINARY)) {
+      for (File binaryPath : dependency.getBinaryPaths()) {
         File parent = binaryPath.getParentFile();
         if (parent != null && FD_JARS.equals(parent.getName()) && isAncestor(buildFolder, parent, true)) {
           ContentEntry parentContentEntry = findParentContentEntry(parent, Arrays.stream(contentEntries));

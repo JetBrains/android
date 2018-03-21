@@ -27,10 +27,13 @@ import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.HtmlLinkManager;
+import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
 import com.google.common.collect.Sets;
@@ -38,6 +41,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -90,9 +94,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 // TODO for permission if not from main file
 // TODO then have option to tools:node="remove" tools:selector="com.example.lib1"
@@ -107,6 +109,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static final String SUGGESTION_MARKER = "Suggestion: ";
   private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at [^:]+:(\\d+):(\\d+)-[\\d:]+ to override\\.", Pattern.DOTALL);
+  private static final Pattern NAV_FILE_PATTERN = Pattern.compile(".*/navigation(-[^/]*)?/[^/]*$");
 
   /**
    * We don't have an exact position for values coming from the
@@ -316,8 +319,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private static final Comparator<File> MANIFEST_SORTER = (o1, o2) -> {
     String p1 = o1.getPath();
     String p2 = o2.getPath();
-    boolean lib1 = p1.contains(EXPLODED_AAR);
-    boolean lib2 = p2.contains(EXPLODED_AAR);
+    boolean lib1 = p1.contains(FilenameConstants.EXPLODED_AAR);
+    boolean lib2 = p2.contains(FilenameConstants.EXPLODED_AAR);
     if (lib1 != lib2) {
       return lib1 ? 1 : -1;
     }
@@ -492,8 +495,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   @NotNull
-  private Color getNodeColor(@NotNull Node item) {
-    List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, item);
+  private Color getNodeColor(@NotNull Node node) {
+    List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
     if (!records.isEmpty()) {
       Actions.Record record = records.get(0);
       File file;
@@ -766,8 +769,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
-              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(),
-                                                                                    TRIGGER_PROJECT_MODIFIED, null);
+              requestSync(facet.getModule().getProject());
             }
           }.execute();
         }
@@ -789,8 +791,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
 
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), TRIGGER_PROJECT_MODIFIED,
-                                                                                  null);
+            requestSync(facet.getModule().getProject());
           }
         }.execute();
       }
@@ -804,6 +805,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       sb.add(message);
     }
     return sb.getHtml();
+  }
+
+  private static void requestSync(Project project) {
+    assert ApplicationManager.getApplication().isDispatchThread();
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
   }
 
   private static void removePackageAttribute(XmlFile manifestFile) {
@@ -874,6 +880,42 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       return;
     }
 
+    if (file != null && NAV_FILE_PATTERN.matcher(FileUtils.toSystemIndependentPath(file.toString())).matches()) {
+      String source = "";
+
+      File resDir = file.getParentFile() == null ? null : file.getParentFile().getParentFile();
+      VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
+      if (vResDir != null) {
+        for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
+          if (provider.getResDirectories().contains(vResDir)) {
+            source += provider.getName() + " ";
+            break;
+          }
+        }
+      }
+      source += file.getName();
+
+      sb.addHtml("<a href=\"");
+      sb.add(file.toURI().toString());
+      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+        sb.add(":");
+        sb.add(String.valueOf(sourcePosition.getStartLine()));
+        sb.add(":");
+        sb.add(String.valueOf(sourcePosition.getStartColumn()));
+      }
+      sb.addHtml("\">");
+
+      sb.add(source);
+      sb.addHtml("</a>");
+      sb.add(" navigation file");
+
+      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+        sb.add(", line ");
+        sb.add(Integer.toString(sourcePosition.getStartLine()));
+      }
+      return;
+    }
+
     if (file != null) {
       String source = null;
 
@@ -889,7 +931,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           }
 
           // AAR library in the project build directory?
-          if (path.contains(EXPLODED_AAR)) {
+          if (path.contains(FilenameConstants.EXPLODED_AAR)) {
             source = findSourceForFileInExplodedAar(file, facet, module);
           }
         }

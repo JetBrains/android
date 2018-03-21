@@ -296,7 +296,7 @@ public class FormScalingUtil {
   private Insets scale(Insets insets, String propertyName){
     if (DEBUG) myStack.push(propertyName);
     try {
-      return new Insets(scale(insets.top, "top"), scale(insets.left, "left"), scale(insets.right, "right"), scale(insets.bottom, "bottom"));
+      return new Insets(scale(insets.top, "top"), scale(insets.left, "left"), scale(insets.bottom, "bottom"), scale(insets.right, "right"));
     }
     finally {
       if (DEBUG) myStack.pop();

@@ -56,6 +56,7 @@ public class SidePanel extends JPanel {
   @NotNull private final Map<Place, Presentation> myPresentationByPlace = Maps.newHashMap();
 
   @NotNull private final History myHistory;
+  @NotNull private final ListItemDescriptor<Place> myDescriptor;
 
   public SidePanel(@NotNull Navigator navigator, @NotNull History history) {
     super(new BorderLayout());
@@ -67,7 +68,7 @@ public class SidePanel extends JPanel {
     myList.setBackground(SIDE_PANEL_BACKGROUND);
     myList.setBorder(new EmptyBorder(5, 0, 0, 0));
 
-    ListItemDescriptor<Place> descriptor = new ListItemDescriptor<Place>() {
+    myDescriptor = new ListItemDescriptor<Place>() {
       @Override
       public String getTextFor(Place place) {
         return myPresentationByPlace.get(place).getText();
@@ -94,7 +95,7 @@ public class SidePanel extends JPanel {
       }
     };
 
-    myList.setCellRenderer(new GroupedItemsListRenderer(descriptor) {
+    myList.setCellRenderer(new GroupedItemsListRenderer(myDescriptor) {
       JPanel myExtraPanel;
       SidePanelCountLabel myCountLabel;
       CellRendererPane myValidationParent = new CellRendererPane();
@@ -207,5 +208,10 @@ public class SidePanel extends JPanel {
 
   public void select(@NotNull Place place) {
     myList.setSelectedValue(place, true);
+  }
+
+  @NotNull
+  public ListItemDescriptor<Place> getDescriptor() {
+    return myDescriptor;
   }
 }

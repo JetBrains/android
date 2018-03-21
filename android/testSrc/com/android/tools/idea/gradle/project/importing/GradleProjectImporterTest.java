@@ -34,7 +34,6 @@ import org.mockito.verification.VerificationMode;
 import java.io.File;
 import java.io.IOException;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -98,7 +97,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     verifyGradleVmOptionsCleanup(times(1));
 
     verify(myProjectSetup, times(1)).openProject(myProjectFolderPath.getPath());
-    verifyProjectWasMarkedAsNewOrImported();
+    verifyProjectWasMarkedAsImported();
   }
 
   public void testImportProjectWithDefaultSettings() throws Exception {
@@ -120,7 +119,8 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   public void testImportProjectWithNullProject() throws Exception {
     GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request();
-    importSettings.setProject(null).setLanguageLevel(JDK_1_8);
+    importSettings.project = null;
+    importSettings.javaLanguageLevel = JDK_1_8;
 
     Project newProject = getProject();
     when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(newProject);
@@ -140,7 +140,8 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   public void testImportProjectWithNonNullProject() throws Exception {
     GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request();
-    importSettings.setProject(getProject()).setLanguageLevel(JDK_1_8);
+    importSettings.project = getProject();
+    importSettings.javaLanguageLevel = JDK_1_8;
 
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
     myProjectImporter.importProject(myProjectName, myProjectFolderPath, importSettings, syncListener);
@@ -174,20 +175,16 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   private void verifyGradleSyncInvocation(@NotNull GradleProjectImporter.Request importSettings,
                                           @Nullable GradleSyncListener syncListener) {
-    GradleSyncInvoker.Request syncRequest = new GradleSyncInvoker.Request();
+    GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.projectLoaded();
 
-    // @formatter:off
-    syncRequest.setGenerateSourcesOnSuccess(importSettings.isGenerateSourcesOnSuccess())
-               .setNewOrImportedProject()
-               .setRunInBackground(false)
-               .setTrigger(TRIGGER_PROJECT_LOADED);
-    // @formatter:on
+    syncRequest.generateSourcesOnSuccess = importSettings.generateSourcesOnSuccess;
+    syncRequest.runInBackground = false;
 
     verify(mySyncInvoker, times(1)).requestProjectSync(getProject(), syncRequest, syncListener);
-    verifyProjectWasMarkedAsNewOrImported();
+    verifyProjectWasMarkedAsImported();
   }
 
-  private void verifyProjectWasMarkedAsNewOrImported() {
-    verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(true);
+  private void verifyProjectWasMarkedAsImported() {
+    verify(myGradleProjectInfo, times(1)).setImportedProject(true);
   }
 }

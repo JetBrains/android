@@ -19,7 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.avdmanager.ModuleAvds;
+import com.android.tools.idea.avdmanager.AvdManagerUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.AvdComboBox;
 import com.android.tools.idea.run.LaunchCompatibility;
@@ -161,7 +161,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
         return null;
       }
 
-      final AvdManager avdManager = ModuleAvds.getInstance(facet).getAvdManagerSilently();
+      final AvdManager avdManager = AvdManagerUtils.getAvdManagerSilently(facet);
       if (avdManager == null) {
         return null;
       }

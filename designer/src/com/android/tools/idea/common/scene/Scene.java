@@ -19,6 +19,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.target.ActionTarget;
@@ -28,6 +30,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
+import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -40,6 +43,8 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -98,14 +103,15 @@ public class Scene implements SelectionListener, Disposable {
   private int myLastMouseX;
   private int myLastMouseY;
 
-  private HitListener myHoverListener = new HitListener();
-  private HitListener myHitListener = new HitListener();
-  private HitListener myFindListener = new HitListener();
-  private HitListener mySnapListener = new HitListener();
+  @NotNull private final SceneHitListener myHoverListener;
+  @NotNull private final SceneHitListener myHitListener;
+  @NotNull private final SceneHitListener myFindListener;
+  @NotNull private final SceneHitListener mySnapListener;
   private Target myHitTarget = null;
   private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
-  ArrayList<SceneComponent> myNewSelectedComponents = new ArrayList<>();
+  ArrayList<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
+  ArrayList<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
@@ -115,12 +121,18 @@ public class Scene implements SelectionListener, Disposable {
 
   private FilterType myFilterTarget = FilterType.NONE;
 
-  public Scene(@NotNull Disposable parentDisposable, @NotNull DesignSurface surface) {
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
     myDesignSurface = surface;
-    mySceneManager = myDesignSurface.getSceneManager();
-    myDesignSurface.getSelectionModel().addListener(this);
+    mySceneManager = sceneManager;
 
-    Disposer.register(parentDisposable, this);
+    SelectionModel selectionModel = myDesignSurface.getSelectionModel();
+    myHoverListener = new SceneHitListener(selectionModel);
+    myHitListener = new SceneHitListener(selectionModel);
+    myFindListener = new SceneHitListener(selectionModel);
+    mySnapListener = new SceneHitListener(selectionModel);
+    selectionModel.addListener(this);
+
+    Disposer.register(sceneManager, this);
   }
 
   @Override
@@ -147,6 +159,17 @@ public class Scene implements SelectionListener, Disposable {
       return false;
     }
     return qualifier.getValue() == LayoutDirection.RTL;
+  }
+
+  public int getRenderedApiLevel() {
+    Configuration configuration = myDesignSurface.getConfiguration();
+    if (configuration != null) {
+      IAndroidTarget target = configuration.getTarget();
+      if (target != null) {
+        return target.getVersion().getApiLevel();
+      }
+    }
+    return AndroidVersion.VersionCodes.BASE;
   }
 
   //region Accessors
@@ -182,6 +205,11 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
     return mySceneComponents.get(component);
+  }
+
+  @NotNull
+  public DesignSurface getDesignSurface() {
+    return myDesignSurface;
   }
 
   /**
@@ -307,10 +335,20 @@ public class Scene implements SelectionListener, Disposable {
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
     if (myRoot != null) {
-      myRoot.markSelection(selection);
+      markSelection(myRoot, model);
     }
   }
 
+  /**
+   * Given a {@link SelectionModel}, marks the corresponding SceneComponent as selected.
+   */
+  private static void markSelection(SceneComponent component, SelectionModel model) {
+    component.setSelected(model.isSelected(component.getNlComponent()));
+
+    for (SceneComponent child : component.getChildren()) {
+      markSelection(child, model);
+    }
+  }
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
@@ -491,179 +529,6 @@ public class Scene implements SelectionListener, Disposable {
   /////////////////////////////////////////////////////////////////////////////
 
   /**
-   * Hit listener implementation (used for hover / click detection)
-   */
-  class HitListener implements ScenePicker.HitElementListener {
-    private ScenePicker myPicker = new ScenePicker();
-    double myClosestComponentDistance = Double.MAX_VALUE;
-    double myClosestTargetDistance = Double.MAX_VALUE;
-    ArrayList<SceneComponent> myHitComponents = new ArrayList<>();
-    ArrayList<Target> myHitTargets = new ArrayList<>();
-    Target mySkipTarget = null;
-
-    public HitListener() {
-      myPicker.setSelectListener(this);
-    }
-
-    public void skipTarget(Target target) {
-      mySkipTarget = target;
-    }
-
-    public void find(@NotNull SceneContext transform,
-                     @NotNull SceneComponent root,
-                     @AndroidDpCoordinate int x,
-                     @AndroidDpCoordinate int y) {
-      myHitComponents.clear();
-      myHitTargets.clear();
-      myClosestComponentDistance = Double.MAX_VALUE;
-      myClosestTargetDistance = Double.MAX_VALUE;
-      myPicker.reset();
-      root.addHit(transform, myPicker);
-      myPicker.find(transform.getSwingX(x), transform.getSwingY(y));
-    }
-
-    @Override
-    public void over(Object over, double dist) {
-      if (over instanceof Target) {
-        if (mySkipTarget == over) {
-          return;
-        }
-        Target target = (Target)over;
-        if (dist < myClosestTargetDistance) {
-          myHitTargets.clear();
-          myHitTargets.add(target);
-          myClosestTargetDistance = dist;
-        }
-        else if (dist == myClosestTargetDistance) {
-          myHitTargets.add(target);
-        }
-      }
-      else if (over instanceof SceneComponent) {
-        SceneComponent component = (SceneComponent)over;
-        if (dist < myClosestComponentDistance) {
-          myHitComponents.clear();
-          myHitComponents.add(component);
-          myClosestComponentDistance = dist;
-        }
-        else if (dist == myClosestComponentDistance) {
-          myHitComponents.add(component);
-        }
-      }
-    }
-
-    /**
-     * Return the "best" target among the list of targets found by the hit detector.
-     * If more than one target have been found, we pick the top-level target preferably,
-     * unless there's a component selected (in that case, we pick the best top-level target belonging
-     * to a component in the selection)
-     *
-     * @return preferred target
-     */
-    public Target getClosestTarget() {
-      int count = myHitTargets.size();
-      if (count == 0) {
-        return null;
-      }
-      if (count == 1) {
-        return myHitTargets.get(0);
-      }
-      List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
-      if (selection.isEmpty()) {
-        Target candidate = myHitTargets.get(count - 1);
-        for (int i = count - 2; i >= 0; i--) {
-          Target target = myHitTargets.get(i);
-          if (target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
-            candidate = target;
-          }
-        }
-        return candidate;
-      }
-      Target candidate = myHitTargets.get(count - 1);
-      boolean inSelection = selection.contains(candidate.getComponent().getNlComponent());
-
-      for (int i = count - 2; i >= 0; i--) {
-        Target target = myHitTargets.get(i);
-        if (!selection.contains(target.getComponent().getNlComponent())) {
-          continue;
-        }
-        if (!inSelection || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
-          candidate = target;
-          inSelection = true;
-        }
-      }
-      return candidate;
-    }
-
-    /**
-     * Return a target out of the list of hit targets that doesn't
-     * include filteredTarget -- unless that's the only choice. The idea is that when dealing with targets,
-     * if there's overlap, you don't want to pick on mouseRelease the same one you already clicked on in mouseDown.
-     *
-     * @param filteredTarget
-     * @return the preferred target out of the list
-     */
-    public Target getFilteredTarget(Target filteredTarget) {
-      Target hit = null;
-      boolean found = false;
-      for (Target target : myHitTargets) {
-        if (target == filteredTarget) {
-          found = true;
-          continue;
-        }
-        if (filteredTarget.getClass().isAssignableFrom(target.getClass())) {
-          hit = target;
-        }
-      }
-      if (hit == null && found) {
-        hit = filteredTarget;
-      }
-      return hit;
-    }
-
-    /**
-     * We want to get the best component, defined as the top-level one (in the draw order) and
-     * a preference to the selected one (in case multiple components overlap)
-     *
-     * @return the best component to pick
-     */
-    public SceneComponent getClosestComponent() {
-      int count = myHitComponents.size();
-      if (count == 0) {
-        return null;
-      }
-      if (count == 1) {
-        return myHitComponents.get(0);
-      }
-      List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
-      if (selection.isEmpty()) {
-        return myHitComponents.get(count - 1);
-      }
-      SceneComponent candidate = myHitComponents.get(count - 1);
-      boolean inSelection = selection.contains(candidate.getNlComponent());
-      if (inSelection) {
-        return candidate;
-      }
-
-      for (int i = count - 2; i >= 0; i--) {
-        SceneComponent target = myHitComponents.get(i);
-        if (selection.contains(target.getNlComponent())) {
-          candidate = target;
-          break;
-        }
-      }
-      // We now have the first element in the selection. Let's try again this time...
-      for (int i = count - 1; i >= 0; i--) {
-        SceneComponent target = myHitComponents.get(i);
-        if (target.hasAncestor(candidate)) {
-          candidate = target;
-          break;
-        }
-      }
-      return candidate;
-    }
-  }
-
-  /**
    * Supports hover
    *
    * @param x
@@ -680,12 +545,12 @@ public class Scene implements SelectionListener, Disposable {
     Target closestTarget = myHoverListener.getClosestTarget();
     if (myOverTarget != closestTarget) {
       if (myOverTarget != null) {
-        myOverTarget.setOver(false);
+        myOverTarget.setMouseHovered(false);
         myOverTarget = null;
         needsRebuildList();
       }
       if (closestTarget != null) {
-        closestTarget.setOver(true);
+        closestTarget.setMouseHovered(true);
         transform.setToolTip(closestTarget.getToolTipText());
         myOverTarget = closestTarget;
         needsRebuildList();
@@ -695,12 +560,12 @@ public class Scene implements SelectionListener, Disposable {
       Target snapTarget = myHoverListener.getFilteredTarget(closestTarget);
       if (snapTarget != mySnapTarget) {
         if (mySnapTarget != null) {
-          mySnapTarget.setOver(false);
+          mySnapTarget.setMouseHovered(false);
           mySnapTarget = null;
           needsRebuildList();
         }
         if (snapTarget != null) {
-          snapTarget.setOver(true);
+          snapTarget.setMouseHovered(true);
           transform.setToolTip(closestTarget.getToolTipText());
           mySnapTarget = closestTarget;
           needsRebuildList();
@@ -717,6 +582,7 @@ public class Scene implements SelectionListener, Disposable {
         closestComponent.setDrawState(SceneComponent.DrawState.HOVER);
         myCurrentComponent = closestComponent;
       }
+      needsRebuildList();
     }
 
     setCursor(transform, x, y);
@@ -737,7 +603,7 @@ public class Scene implements SelectionListener, Disposable {
 
     if (!selectionModel.isEmpty()) {
       int max = Coordinates.getAndroidDimensionDip(myDesignSurface, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(x, y, max);
+      SelectionHandle handle = selectionModel.findHandle(x, y, max, getDesignSurface());
       if (handle != null) {
         myMouseCursor = handle.getCursor();
         return;
@@ -824,6 +690,7 @@ public class Scene implements SelectionListener, Disposable {
     if (myRoot == null) {
       return;
     }
+    myNewSelectedComponentsOnDown.clear();
     myHitListener.find(transform, myRoot, x, y);
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
@@ -844,6 +711,9 @@ public class Scene implements SelectionListener, Disposable {
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
       }
+    } else if (myHitComponent != null && !inCurrentSelection(myHitComponent)) {
+      myNewSelectedComponentsOnDown.add(myHitComponent);
+      select(myNewSelectedComponentsOnDown);
     }
   }
 
@@ -875,18 +745,31 @@ public class Scene implements SelectionListener, Disposable {
   }
 
   private static boolean isWithinThreshold(@AndroidDpCoordinate int pos1, @AndroidDpCoordinate int pos2, SceneContext transform) {
-    @SwingCoordinate int pos3 = transform.getSwingDimension(pos1);
-    @SwingCoordinate int pos4 = transform.getSwingDimension(pos2);
+    @SwingCoordinate int pos3 = transform.getSwingDimensionDip(pos1);
+    @SwingCoordinate int pos4 = transform.getSwingDimensionDip(pos2);
     return Math.abs(pos3 - pos4) < DRAG_THRESHOLD;
   }
 
   public void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
       SceneManager manager = myDesignSurface.getSceneManager();
-      if (StudioFlags.NELE_LIVE_RENDER.get() && manager instanceof LayoutlibSceneManager) {
+      if (manager == null) {
+        return;
+      }
+
+      /*
+       * When asking for the layout status, we need to render under the following conditions:
+       *  - live render is enabled, and
+       *  - we are displaying the design surface
+       */
+      boolean renderOnLayout = StudioFlags.NELE_LIVE_RENDER.get();
+      renderOnLayout &= (myDesignSurface instanceof NlDesignSurface) &&
+                        ((NlDesignSurface)myDesignSurface).getSceneMode() != SceneMode.BLUEPRINT_ONLY;
+
+      if (renderOnLayout && manager instanceof LayoutlibSceneManager) {
         ((LayoutlibSceneManager)manager).requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }
-      else if (manager != null) {
+      else {
         manager.layout(mNeedsLayout == ANIMATED_LAYOUT);
       }
     }
@@ -905,33 +788,36 @@ public class Scene implements SelectionListener, Disposable {
       }
     }
     myFilterTarget = FilterType.NONE;
-    myNewSelectedComponents.clear();
-    if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent) {
-      myNewSelectedComponents.add(myHitComponent);
+    myNewSelectedComponentsOnRelease.clear();
+    if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent
+        && !myNewSelectedComponentsOnRelease.contains(myHitComponent)) {
+      myNewSelectedComponentsOnRelease.add(myHitComponent);
     }
+    // TODO: Refactor this to use an override method instead of type checks
     if (myHitTarget instanceof ActionTarget
         || myHitTarget instanceof GuidelineTarget
-        || myHitTarget instanceof BarrierTarget) {
+        || myHitTarget instanceof BarrierTarget
+        || myHitTarget instanceof ScreenHeaderTarget) {
       // it will be outside the bounds of the component, so will likely have
       // selected a different one...
-      myNewSelectedComponents.clear();
-      myNewSelectedComponents.add(myHitTarget.getComponent());
+      myNewSelectedComponentsOnRelease.clear();
+      myNewSelectedComponentsOnRelease.add(myHitTarget.getComponent());
     }
     if (myHitTarget instanceof DragBaseTarget) {
       DragBaseTarget dragTarget = (DragBaseTarget)myHitTarget;
       if (dragTarget.hasChangedComponent()) {
-        myNewSelectedComponents.clear();
-        myNewSelectedComponents.add(dragTarget.getComponent());
+        myNewSelectedComponentsOnRelease.clear();
+        myNewSelectedComponentsOnRelease.add(dragTarget.getComponent());
       }
     }
     if (myHitTarget instanceof LassoTarget) {
       LassoTarget lassoTarget = (LassoTarget)myHitTarget;
-      lassoTarget.fillSelectedComponents(myNewSelectedComponents);
+      lassoTarget.fillSelectedComponents(myNewSelectedComponentsOnRelease);
     }
     if (myHitTarget instanceof ActionHandleTarget) {
       // TODO: Refactor this so explicit cast not required
       SceneComponent closestComponent = myHitListener.getClosestComponent();
-      if (closestComponent != null) {
+      if (closestComponent != null && closestComponent != myRoot) {
         ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
         actionHandleTarget.createAction(closestComponent);
       }
@@ -941,19 +827,30 @@ public class Scene implements SelectionListener, Disposable {
       canChangeSelection = myHitTarget.canChangeSelection();
     }
     if (canChangeSelection && !sameSelection()) {
-      select(myNewSelectedComponents);
+      select(myNewSelectedComponentsOnRelease);
     }
     checkRequestLayoutStatus();
   }
 
-  private boolean sameSelection() {
+  private boolean inCurrentSelection(@NotNull SceneComponent component) {
     List<NlComponent> currentSelection = myDesignSurface.getSelectionModel().getSelection();
-    if (myNewSelectedComponents.size() == currentSelection.size()) {
+    return currentSelection.contains(component.getNlComponent());
+  }
+
+  private boolean sameSelection() {
+    if (!myNewSelectedComponentsOnRelease.isEmpty()
+        && myNewSelectedComponentsOnRelease.size() == myNewSelectedComponentsOnDown.size()
+        && myNewSelectedComponentsOnRelease.containsAll(myNewSelectedComponentsOnDown)) {
+      // we already applied the selection on mouseDown
+      return true;
+    }
+    List<NlComponent> currentSelection = myDesignSurface.getSelectionModel().getSelection();
+    if (myNewSelectedComponentsOnRelease.size() == currentSelection.size()) {
       int count = currentSelection.size();
       for (int i = 0; i < count; i++) {
         NlComponent component = currentSelection.get(i);
         SceneComponent sceneComponent = getSceneComponent(component);
-        if (!myNewSelectedComponents.contains(sceneComponent)) {
+        if (!myNewSelectedComponentsOnRelease.contains(sceneComponent)) {
           return false;
         }
       }
@@ -999,7 +896,9 @@ public class Scene implements SelectionListener, Disposable {
                                          @AndroidDpCoordinate int width,
                                          @AndroidDpCoordinate int height) {
     List<SceneComponent> within = Lists.newArrayList();
-    addWithin(within, getRoot(), x, y, width, height);
+    if (getRoot() != null) {
+      addWithin(within, getRoot(), x, y, width, height);
+    }
     return within;
   }
 
@@ -1082,7 +981,7 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
     viewInfo = RenderService.getSafeBounds(viewInfo);
-    return new Dimension(Coordinates.pxToDp(myDesignSurface.getModel(), viewInfo.getRight() - viewInfo.getLeft()),
-                         Coordinates.pxToDp(myDesignSurface.getModel(), viewInfo.getBottom() - viewInfo.getTop()));
+    return new Dimension(Coordinates.pxToDp(getDesignSurface(), viewInfo.getRight() - viewInfo.getLeft()),
+                         Coordinates.pxToDp(getDesignSurface(), viewInfo.getBottom() - viewInfo.getTop()));
   }
 }

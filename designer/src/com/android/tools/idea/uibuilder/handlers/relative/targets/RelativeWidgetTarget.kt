@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
-import com.android.SdkConstants
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -99,7 +99,6 @@ class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
   override fun fill(owner: SceneComponent, snappableComponent: SceneComponent,
                     horizontalNotches: ArrayList<Notch>, verticalNotches: ArrayList<Notch>) {
     // TODO: if the owner doesn't have ID, added it.
-    // FIXME: if owner already align to the edges of parent, snappableComponent cannot "insert" into owner and the edge of parent.
 
     if (hasDependency(owner, snappableComponent)) {
       // avoid cycling depedency
@@ -110,45 +109,72 @@ class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
       Type.LEFT -> {
         val value = myComponent.drawX
         val shift = snappableComponent.drawWidth
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value, value, SdkConstants.ATTR_LAYOUT_ALIGN_START))
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_TO_START_OF))
+        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value, value, ATTR_LAYOUT_ALIGN_START))
+        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value - shift, value, ATTR_LAYOUT_TO_START_OF))
       }
       Type.TOP -> {
         val value = myComponent.drawY
         val shift = snappableComponent.drawHeight
-        verticalNotches.add(createNotch(Notch::Vertical, owner, value, value, SdkConstants.ATTR_LAYOUT_ALIGN_TOP))
-        verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_ABOVE))
+        verticalNotches.add(createNotch(Notch::Vertical, owner, value, value, ATTR_LAYOUT_ALIGN_TOP))
+        verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ABOVE))
       }
       Type.RIGHT -> {
         val value = myComponent.drawX + myComponent.drawWidth
         val shift = snappableComponent.drawWidth
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value, value, SdkConstants.ATTR_LAYOUT_TO_END_OF))
-        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_ALIGN_END))
+        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value, value, ATTR_LAYOUT_TO_END_OF))
+        horizontalNotches.add(createNotch(Notch::Horizontal, owner, value - shift, value, ATTR_LAYOUT_ALIGN_END))
       }
       Type.BOTTOM -> {
         val value = myComponent.drawY + myComponent.drawHeight
         val shift = snappableComponent.drawHeight
-        verticalNotches.add(createNotch(Notch::Vertical, owner, value, value, SdkConstants.ATTR_LAYOUT_BELOW))
-        verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM))
+        verticalNotches.add(createNotch(Notch::Vertical, owner, value, value, ATTR_LAYOUT_BELOW))
+        verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ALIGN_BOTTOM))
       }
       Type.BASELINE -> {
         if (snappableComponent.nlComponent.getBaseline() != -1) {
           val value = owner.drawY + owner.baseline
           val shift = snappableComponent.baseline
-          verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE))
+          verticalNotches.add(createNotch(Notch::Vertical, owner, value - shift, value, ATTR_LAYOUT_ALIGN_BASELINE))
         }
       }
     }
   }
 
   private fun createNotch(notchConstructor: (SceneComponent, Int, Int, Notch.Action) -> Notch,
-                          component: SceneComponent, value: Int, display: Int, alignAttributeName: String): Notch {
-    return notchConstructor(component, value, display, Notch.Action {
-      it.setAndroidAttribute(alignAttributeName, SdkConstants.NEW_ID_PREFIX + component.nlComponent.id)
-    }).apply {
-      this.setGap(NOTCH_GAP_SIZE)
-      this.target = this@RelativeWidgetTarget
+                          alignedComponent: SceneComponent, value: Int, display: Int, alignAttributeName: String): Notch {
+    val alignedNlComponent = alignedComponent.nlComponent
+    val (shiftAttribute, shiftValue) = getMarginShift(alignedNlComponent, alignAttributeName)
+
+    val notch = notchConstructor(alignedComponent, value, display, Notch.Action {
+      it.setAndroidAttribute(alignAttributeName, NEW_ID_PREFIX + alignedNlComponent.id)
+      if (shiftAttribute != null) {
+        it.setAndroidAttribute(shiftAttribute, shiftValue)
+      }
+    })
+    notch.setGap(NOTCH_GAP_SIZE)
+    notch.target = this@RelativeWidgetTarget
+    return notch
+  }
+
+  /**
+   * Used to calculate the shift of margin attribute.<br>
+   * The actual aligning position is "Widget position + margin value". To make the result same as snappble one, we need to add margin
+   * value to shift the position of dragged component. The value is calculated by the aligned component.
+   *
+   * @return If need shift, return [Pair] continas attribute to value. Return null to null [Pair] otherwise.
+   */
+  private fun getMarginShift(alignedNlComponent: NlComponent, alignedAttributeName: String): Pair<String?, String?> {
+    // Get the attribute should be retrieved from aligned component.
+    val rule = SHIFT_MAP[alignedAttributeName]
+    if (rule != null) {
+      // android:layout_margin has higher priority than other margin.
+      val alignedMargin = alignedNlComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN) ?:
+          alignedNlComponent.getLiveAttribute(ANDROID_URI, rule.alignedAttribute)
+      if (alignedMargin != null) {
+        return rule.shiftAttribute to rule.shiftValueCalculator(alignedMargin)
+      }
     }
+    return (null to null)
   }
 
   /**
@@ -163,17 +189,33 @@ class RelativeWidgetTarget(val type: Type) : BaseRelativeTarget() {
 }
 
 private val DEPENDENT_ATTRIBUTES = arrayOf(
-    SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE,
-    SdkConstants.ATTR_LAYOUT_ALIGN_LEFT,
-    SdkConstants.ATTR_LAYOUT_ALIGN_START,
-    SdkConstants.ATTR_LAYOUT_ALIGN_TOP,
-    SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT,
-    SdkConstants.ATTR_LAYOUT_ALIGN_END,
-    SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM,
-    SdkConstants.ATTR_LAYOUT_TO_LEFT_OF,
-    SdkConstants.ATTR_LAYOUT_TO_START_OF,
-    SdkConstants.ATTR_LAYOUT_ABOVE,
-    SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF,
-    SdkConstants.ATTR_LAYOUT_TO_END_OF,
-    SdkConstants.ATTR_LAYOUT_BELOW
+    ATTR_LAYOUT_ALIGN_BASELINE,
+    ATTR_LAYOUT_ALIGN_LEFT,
+    ATTR_LAYOUT_ALIGN_START,
+    ATTR_LAYOUT_ALIGN_TOP,
+    ATTR_LAYOUT_ALIGN_RIGHT,
+    ATTR_LAYOUT_ALIGN_END,
+    ATTR_LAYOUT_ALIGN_BOTTOM,
+    ATTR_LAYOUT_TO_LEFT_OF,
+    ATTR_LAYOUT_TO_START_OF,
+    ATTR_LAYOUT_ABOVE,
+    ATTR_LAYOUT_TO_RIGHT_OF,
+    ATTR_LAYOUT_TO_END_OF,
+    ATTR_LAYOUT_BELOW
+)
+
+/**
+ * Rule to shift the margin.
+ */
+private class ShiftRule(val alignedAttribute: String,
+                        val shiftAttribute: String,
+                        val shiftValueCalculator: (alignedValue: String) -> String)
+
+private val SHIFT_MAP = mapOf(
+    ATTR_LAYOUT_TO_LEFT_OF to ShiftRule(ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_RIGHT, { dp -> "-$dp" }),
+    ATTR_LAYOUT_TO_START_OF to ShiftRule(ATTR_LAYOUT_MARGIN_START, ATTR_LAYOUT_MARGIN_END, { dp -> "-$dp" }),
+    ATTR_LAYOUT_ABOVE to ShiftRule(ATTR_LAYOUT_MARGIN_TOP, ATTR_LAYOUT_MARGIN_BOTTOM, { dp -> "-$dp" }),
+    ATTR_LAYOUT_TO_RIGHT_OF to ShiftRule(ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_LEFT, { dp -> "-$dp" }),
+    ATTR_LAYOUT_TO_END_OF to ShiftRule(ATTR_LAYOUT_MARGIN_END, ATTR_LAYOUT_MARGIN_START, { dp -> "-$dp" }),
+    ATTR_LAYOUT_BELOW to ShiftRule(ATTR_LAYOUT_MARGIN_BOTTOM, ATTR_LAYOUT_MARGIN_TOP, { dp -> "-$dp" })
 )

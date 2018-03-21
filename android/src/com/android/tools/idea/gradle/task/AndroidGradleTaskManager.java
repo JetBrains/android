@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.task;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
@@ -108,7 +108,8 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
     if (project != null && GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       for (Module module : moduleManager.getModules()) {
-        if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && Projects.isIdeaAndroidModule(module)) {
+
+        if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && GradleProjects.isIdeaAndroidModule(module)) {
           return GradleBuildInvoker.getInstance(project);
         }
       }

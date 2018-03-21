@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
+import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 

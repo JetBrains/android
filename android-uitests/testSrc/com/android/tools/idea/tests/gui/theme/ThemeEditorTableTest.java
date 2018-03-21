@@ -308,23 +308,23 @@ public class ThemeEditorTableTest {
 
     String expected = "<html>\n" +
                       "  <head>\n" +
-                      "    <font size=\"3\">\n" +
-                      "</font>  </head>\n" +
+                      "    \n" +
+                      "  </head>\n" +
                       "  <body>\n" +
-                      "    <b><font size=\"3\">android:colorPrimary</font></b><font size=\"3\"> (Added in \n" +
-                      "    API level 21)<br>The primary branding color for the app. By default, this \n" +
-                      "    is the color applied to the action bar background.<br><hr>\n" +
-                      "</font>\n" +
+                      "    <b>android:colorPrimary</b> (Added in API level 21)<br>The primary \n" +
+                      "    branding color for the app. By default, this is the color applied to the \n" +
+                      "    action bar background.<br><hr>\n" +
+                      "\n" +
                       "    <table border=\"0\" align=\"center\" style=\"background-color: rgb(230,230,230); width: 200px\">\n" +
                       "      <tr height=\"100\">\n" +
                       "        <td align=\"center\" valign=\"middle\" height=\"100\">\n" +
-                      "          <font size=\"3\">#e6e6e6\n" +
-                      "</font>        </td>\n" +
+                      "          #e6e6e6\n" +
+                      "        </td>\n" +
                       "      </tr>\n" +
                       "    </table>\n" +
-                      "    <font size=\"3\"><br>\n" +
                       "    <br>\n" +
-                      "    ?android:attr/colorPrimary =&gt; @color/holo_light_primary =&gt; #ffe6e6e6<br><br></font>\n" +
+                      "    <br>\n" +
+                      "    ?android:attr/colorPrimary =&gt; @color/holo_light_primary =&gt; #ffe6e6e6<br><br>\n" +
                       "  </body>\n" +
                       "</html>\n";
 

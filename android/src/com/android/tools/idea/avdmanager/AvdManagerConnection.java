@@ -38,7 +38,7 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.log.LogWrapper;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -82,6 +82,7 @@ import java.util.function.Function;
 
 import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 
@@ -182,6 +183,16 @@ public class AvdManagerConnection {
       }
     }
     return true;
+  }
+
+  public String getSdCardSizeFromHardwareProperties() {
+    assert mySdkHandler != null;
+    return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.SD_CARD_STORAGE_KEY, mySdkHandler);
+  }
+
+  public String getInternalStorageSizeFromHardwareProperties() {
+    assert mySdkHandler != null;
+    return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.INTERNAL_STORAGE_KEY, mySdkHandler);
   }
 
   private File getBinaryLocation(String filename) {
@@ -357,6 +368,11 @@ public class AvdManagerConnection {
 
     final String avdName = info.getName();
 
+    File skinFile = new File(info.getProperties().get(AVD_INI_SKIN_PATH));
+    File baseSkinFile = new File(skinFile.getName());
+    // Ensure the skin files are up-to-date
+    AvdWizardUtils.pathToUpdatedSkins(baseSkinFile, null, myFileOp);
+
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
     // this error. Either the emulator provides a command to do that, or we learn about its internals (qemu/android/utils/filelock.c) and
@@ -386,8 +402,7 @@ public class AvdManagerConnection {
     addParameters(info, commandLine);
 
     EmulatorRunner runner = new EmulatorRunner(commandLine, info);
-    EmulatorRunner.ProcessOutputCollector collector = new EmulatorRunner.ProcessOutputCollector();
-    runner.addProcessListener(collector);
+    addListeners(runner);
 
     final ProcessHandler processHandler;
     try {
@@ -427,28 +442,16 @@ public class AvdManagerConnection {
         p.stop();
         p.processFinish();
       }
-
-      processHandler.removeProcessListener(collector);
-      String message = limitErrorMessage(collector.getText());
-
-      if (message.toLowerCase(Locale.ROOT).contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
-        ApplicationManager.getApplication().invokeLater(
-          () -> Messages.showErrorDialog(project, "Cannot launch AVD in emulator.\nOutput:\n" + message, avdName));
-      }
     });
 
     return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
   }
 
   /**
-   * Limit the error message retrieved from the emulator to the smaller of 1K characters or 30 lines.
+   * Allow subclasses to add listeners before starting the emulator.
    */
-  private static String limitErrorMessage(@NotNull String message) {
-    int offset = StringUtil.lineColToOffset(message, 30, 0);
-    if (offset < 0) {
-      offset = message.length();
-    }
-    return message.substring(0, Math.min(offset, 1024));
+  protected void addListeners(EmulatorRunner runner) {
+
   }
 
   /**
@@ -467,7 +470,9 @@ public class AvdManagerConnection {
     }
 
     // Control fast boot
-    if (AvdWizardUtils.emulatorSupportsFastBoot(mySdkHandler)) {
+    if (EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler,
+                                                     new StudioLoggerProgressIndicator(AvdManagerConnection.class),
+                                                     new LogWrapper(Logger.getInstance(AvdManagerConnection.class)))) {
       if ("yes".equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
         // Do not fast boot and do not store a snapshot on exit
         commandLine.addParameter("-no-snapstorage");
@@ -835,6 +840,10 @@ public class AvdManagerConnection {
         return false;
       }
     }
+    // Delete the snapshots directory
+    File snapshotDirectory = new File(avdInfo.getDataFolderPath(), AvdManager.SNAPSHOTS_DIRECTORY);
+    myFileOp.deleteFileOrFolder(snapshotDirectory);
+
     return true;
   }
 

@@ -72,8 +72,9 @@ public class FileFixture {
 
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
-    waitUntilErrorAnalysisFinishes();
-    assertThat(getHighlightInfos(severity)).hasSize(expected);
+    Wait.seconds(5)
+      .expecting("number of highlight items to be " + expected)
+      .until(() -> getHighlightInfos(severity).size() == expected);
     return this;
   }
 }
