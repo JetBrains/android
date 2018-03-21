@@ -57,6 +57,7 @@ public class TutorialCard extends CardViewPanel {
    */
   @NotNull
   private final String myTutorialsTitle;
+  private final boolean myHideStepIndex;
 
   private int myStepIndex;
 
@@ -66,7 +67,8 @@ public class TutorialCard extends CardViewPanel {
                @NotNull String tutorialsTitle,
                @NotNull Project project,
                boolean hideChooserAndNavigationalBar,
-               boolean isStepByStep) {
+               boolean isStepByStep,
+               boolean hideStepIndex) {
     super(listener);
     myContentsScroller = new JBScrollPane();
     myTutorialsTitle = tutorialsTitle;
@@ -75,6 +77,7 @@ public class TutorialCard extends CardViewPanel {
     myProject = project;
     myHideChooserAndNavigationBar = hideChooserAndNavigationalBar;
     myIsStepByStep = isStepByStep;
+    myHideStepIndex = hideStepIndex;
     myStepIndex = 0;
 
     if (!myHideChooserAndNavigationBar) {
@@ -143,7 +146,7 @@ public class TutorialCard extends CardViewPanel {
     c.insets = JBUI.insets(0, 5, 5, 5);
 
     if (myIsStepByStep) {
-      contents.add(new TutorialStep(myTutorial.getSteps().get(myStepIndex), myStepIndex, myListener, myProject), c);
+      contents.add(new TutorialStep(myTutorial.getSteps().get(myStepIndex), myStepIndex, myListener, myProject, myHideStepIndex), c);
       c.gridy++;
     }
     else {
@@ -151,7 +154,7 @@ public class TutorialCard extends CardViewPanel {
       int numericLabel = 0;
 
       for (StepData step : myTutorial.getSteps()) {
-        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener, myProject);
+        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener, myProject, myHideStepIndex);
         contents.add(stepDisplay, c);
         c.gridy++;
         numericLabel++;

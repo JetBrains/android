@@ -75,7 +75,7 @@ public class TutorialStep extends JPanel {
     return Logger.getInstance(TutorialStep.class);
   }
 
-  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project) {
+  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project, boolean hideStepIndex) {
     super(new GridBagLayout());
     myIndex = index;
     myStep = step;
@@ -84,7 +84,9 @@ public class TutorialStep extends JPanel {
     setOpaque(false);
 
     // TODO: Consider the setup being in the ctors of customer inner classes.
-    initStepNumber();
+    if (!hideStepIndex) {
+      initStepNumber();
+    }
     initLabel();
     initStepContentsContainer();
 
@@ -163,7 +165,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = JBUI.insets(7, 0, 10, 5);
+    c.insets = JBUI.insets(7, 5, 10, 5);
 
     add(label, c);
   }
@@ -179,7 +181,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = JBUI.insetsRight(5);
+    c.insets = JBUI.insets(5);
 
     add(myContents, c);
   }
@@ -217,7 +219,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 0;
     c.fill = GridBagConstraints.NONE;
     c.anchor = GridBagConstraints.CENTER;
-    c.insets = JBUI.insets(5);
+    c.insets = JBUI.insets(5, 5, 5, 0);
 
     add(stepNumber, c);
   }
