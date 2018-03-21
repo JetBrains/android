@@ -35,7 +35,10 @@ import java.util.Set;
  * @param T is the value type used to be associated with stored rectangles.
  */
 public abstract class MouseAdapterComponent<T> extends AnimatedComponent implements MouseListener, MouseMotionListener {
-  private double myNormalizedMouseX;
+
+  // Initializing the normalized mouse x position to be -1. This is the clear value because we are checking
+  // valid rectangles from 0 to 1, as such using a negative number as a clear value will never result in a false overlap.
+  private double myNormalizedMouseX = -1;
   private double myHeightFactor = 1;
   private final HashMap<Rectangle2D.Float, T> myRectangles;
 
@@ -120,7 +123,7 @@ public abstract class MouseAdapterComponent<T> extends AnimatedComponent impleme
   @Override
   public void mouseExited(MouseEvent e) {
     // Clear mouse position
-    setMousePointAndForwardEvent(0, e);
+    setMousePointAndForwardEvent(-1, e);
   }
 
   @Override

@@ -79,7 +79,7 @@ public abstract class CpuCellRenderer<T, K> implements ListCellRenderer<T> {
         // Pass the mouse moved event onto the child statecharts.
         // First we pass a mouse exited to reset positioning.
         if (oldHoveredIndex != myHoveredIndex && list.getModel().getSize() > oldHoveredIndex && oldHoveredIndex >= 0) {
-          StateChart<K> chart = getChartForModel(list.getModel().getElementAt(myHoveredIndex));
+          StateChart<K> chart = getChartForModel(list.getModel().getElementAt(oldHoveredIndex));
           chart.mouseExited(e);
         }
         // Second we pass the updated position of the mouse.
