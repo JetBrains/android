@@ -31,37 +31,28 @@ public class NullMonitorStageTest {
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NullMonitorStageTest", myRpcService);
 
   @Test
-  public void testModelMessageAndTitle() {
+  public void testModelType() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
     NullMonitorStage stage = new NullMonitorStage(profilers);
-    // No device was added, check for the appropriate message and title
-    assertEquals(stage.getMessage(), NullMonitorStage.NO_DEVICE_MESSAGE);
-    assertEquals(stage.getTitle(), NullMonitorStage.ANDROID_PROFILER_TITLE);
+    assertEquals(stage.getType(), NullMonitorStage.Type.NO_DEVICE);
 
     // Add a device
     Common.Device device = Common.Device.getDefaultInstance();
     myRpcService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    // Device has no valid API. Check the message and the title have changed to the appropriate ones.
-    assertEquals(stage.getMessage(), NullMonitorStage.DEVICE_NOT_SUPPORTED_MESSAGE);
-    assertEquals(stage.getTitle(), NullMonitorStage.DEVICE_NOT_SUPPORTED_TITLE);
+    assertEquals(stage.getType(), NullMonitorStage.Type.UNSUPPORTED_DEVICE);
 
     // Update the device to an API < 21
     Common.Device oldApiDevice = Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.KITKAT_WATCH).build();
     myRpcService.updateDevice(device, oldApiDevice);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    // Check the message and the title have not changed.
-    assertEquals(stage.getMessage(), NullMonitorStage.DEVICE_NOT_SUPPORTED_MESSAGE);
-    assertEquals(stage.getTitle(), NullMonitorStage.DEVICE_NOT_SUPPORTED_TITLE);
+    assertEquals(stage.getType(), NullMonitorStage.Type.UNSUPPORTED_DEVICE);
 
     // Update the device to an API >= 21 and tick the timer to let it to be updated.
     Common.Device newApiDevice = Common.Device.newBuilder().setFeatureLevel(AndroidVersion.VersionCodes.LOLLIPOP).build();
     myRpcService.updateDevice(oldApiDevice, newApiDevice);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    // Device has valid API, but no debuggable processes.
-    // Check the message and the title have changed to the appropriate ones.
-    assertEquals(stage.getMessage(), NullMonitorStage.NO_DEBUGGABLE_PROCESS_MESSAGE);
-    assertEquals(stage.getTitle(), NullMonitorStage.ANDROID_PROFILER_TITLE);
+    assertEquals(stage.getType(), NullMonitorStage.Type.NO_DEBUGGABLE_PROCESS);
   }
 }

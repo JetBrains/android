@@ -40,6 +40,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
@@ -56,6 +57,14 @@ public class SessionsView extends AspectObserver {
    * Preference string for the last known width (int) of the sessions UI when it was expanded.
    */
   public static final String SESSION_EXPANDED_WIDTH = "SESSION_EXPANDED_WIDTH";
+  /**
+   * String to display in the dropdown when no devices are detected.
+   */
+  @VisibleForTesting static final String NO_SUPPORTED_DEVICES = "No supported devices";
+  /**
+   * String to display in the dropdown when no debuggable processes are detected.
+   */
+  @VisibleForTesting static final String NO_DEBUGGABLE_PROCESSES = "No debuggable processes";
 
   // Collapsed width should essentially look like a toolbar.
   private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUI.scale(32);
@@ -135,7 +144,6 @@ public class SessionsView extends AspectObserver {
     myProfilers.addDependency(this)
       .onChange(ProfilerAspect.DEVICES, this::refreshProcessDropdown)
       .onChange(ProfilerAspect.PROCESSES, this::refreshProcessDropdown);
-    addImportAction();
 
     mySessionsListModel = new DefaultListModel<>();
     mySessionsList = new SessionsList(mySessionsListModel);
@@ -153,6 +161,7 @@ public class SessionsView extends AspectObserver {
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
     initializeUI();
+    refreshProcessDropdown();
   }
 
   @NotNull
@@ -296,37 +305,47 @@ public class SessionsView extends AspectObserver {
                 .displayErrorMessage(myComponent, "File Open Error", String.format("Unknown file type: %s", file.getPath()));
             }
           }));
-      myProcessSelectionAction.addChildrenActions(loadAction);
+      myProcessSelectionAction.addChildrenActions(loadAction, new CommonAction.Separator());
     }
   }
 
   private void refreshProcessDropdown() {
     Map<Common.Device, java.util.List<Common.Process>> processMap = myProfilers.getDeviceProcessMap();
     myProcessSelectionAction.clear();
-
     addImportAction();
-
-    if (!processMap.isEmpty()) {
-      myProcessSelectionAction.addChildrenActions(new CommonAction.Separator());
-    }
 
     Common.Device selectedDevice = myProfilers.getDevice();
     Common.Process selectedProcess = myProfilers.getProcess();
     // Rebuild the action tree.
-    for (Common.Device device : processMap.keySet()) {
-      CommonAction deviceAction = new CommonAction(buildDeviceName(device), null);
-      for (Common.Process process : processMap.get(device)) {
-        CommonAction processAction = new CommonAction(process.getName(), null);
-        processAction.setAction(() -> {
-          myProfilers.setDevice(device);
-          myProfilers.setProcess(process);
-        });
-        processAction.setSelected(process.equals(selectedProcess));
-        deviceAction.addChildrenActions(processAction);
+    Set<Common.Device> devices = processMap.keySet();
+    if (devices.isEmpty()) {
+      CommonAction noDeviceAction = new CommonAction(NO_SUPPORTED_DEVICES, null);
+      noDeviceAction.setEnabled(false);
+      myProcessSelectionAction.addChildrenActions(noDeviceAction);
+    }
+    else {
+      for (Common.Device device : processMap.keySet()) {
+        CommonAction deviceAction = new CommonAction(buildDeviceName(device), null);
+        java.util.List<Common.Process> processes = processMap.get(device);
+        if (processes.isEmpty()) {
+          CommonAction noProcessAction = new CommonAction(NO_DEBUGGABLE_PROCESSES, null);
+          noProcessAction.setEnabled(false);
+          deviceAction.addChildrenActions(noProcessAction);
+        }
+        else {
+          for (Common.Process process : processMap.get(device)) {
+            CommonAction processAction = new CommonAction(process.getName(), null);
+            processAction.setAction(() -> {
+              myProfilers.setDevice(device);
+              myProfilers.setProcess(process);
+            });
+            processAction.setSelected(process.equals(selectedProcess));
+            deviceAction.addChildrenActions(processAction);
+          }
+        }
+        deviceAction.setSelected(device.equals(selectedDevice));
+        myProcessSelectionAction.addChildrenActions(deviceAction);
       }
-      deviceAction.setEnabled(deviceAction.getChildrenActionCount() > 0);
-      deviceAction.setSelected(device.equals(selectedDevice));
-      myProcessSelectionAction.addChildrenActions(deviceAction);
     }
   }
 }
