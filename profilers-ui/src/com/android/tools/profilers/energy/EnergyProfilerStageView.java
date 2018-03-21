@@ -124,16 +124,6 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
-    RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(timeline.getTooltipRange(),
-                                timeline.getViewRange(),
-                                timeline.getDataRange(),
-                                getTooltipPanel(),
-                                ProfilerLayeredPane.class);
-
-    tooltip.registerListenersOn(lineChart);
-    eventsView.registerTooltip(tooltip, getStage());
-
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
     final AxisComponent leftAxis = new AxisComponent(getStage().getAxis(), AxisComponent.AxisOrientation.RIGHT);
@@ -173,6 +163,17 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
         myEventsPanel.setVisible(false);
       }
     });
+
+    selection.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyUsageTooltip(getStage())));
+    RangeTooltipComponent tooltip =
+      new RangeTooltipComponent(timeline.getTooltipRange(),
+                                timeline.getViewRange(),
+                                timeline.getDataRange(),
+                                getTooltipPanel(),
+                                ProfilerLayeredPane.class);
+
+    tooltip.registerListenersOn(selection);
+    eventsView.registerTooltip(tooltip, getStage());
 
     if (!getStage().hasUserUsedEnergySelection()) {
       installProfilingInstructions(monitorPanel);

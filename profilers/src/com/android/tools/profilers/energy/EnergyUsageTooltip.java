@@ -27,6 +27,6 @@ final class EnergyUsageTooltip implements ProfilerTooltip {
 
   @NotNull
   EnergyProfilerStage.EnergyLegends getLegends() {
-    return myStage.getLegends();
+    return myStage.getTooltipLegends();
   }
 }
