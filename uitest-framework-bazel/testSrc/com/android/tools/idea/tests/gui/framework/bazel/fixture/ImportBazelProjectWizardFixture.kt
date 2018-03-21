@@ -101,7 +101,7 @@ class ImportBazelProjectWizardFixture(robot: Robot, target: JDialog) :
       SwingUtilities.invokeAndWait {
         val editableText = editor.accessibleContext.accessibleEditableText
         editableText.selectText(selectionStartIndex, selectionEndIndex)
-        assert(editableText.selectedText == toSelect)
+        Verify.verify(editableText.selectedText == toSelect)
         editableText.replaceText(selectionStartIndex, toSelect.length, toPaste)
       }
     }
