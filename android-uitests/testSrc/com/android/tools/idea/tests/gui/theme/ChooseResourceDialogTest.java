@@ -336,6 +336,7 @@ public class ChooseResourceDialogTest {
    * Checks that, when assigning the src for an ImageView we do not allow color state lists (since they crash at runtime).
    * http://b/70650615
    */
+  @RunIn(TestGroup.UNRELIABLE)  // b/76011132
   @Test
   public void testDrawableDoesNotAllowColorStateLists() throws IOException {
     guiTest.importSimpleLocalApplication();
