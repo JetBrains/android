@@ -189,6 +189,17 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
+  @NotNull
+  @Override
+  public UiMessageHandler createUiMessageHandler() {
+    return new UiMessageHandler() {
+      @Override
+      public void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message) {
+        parent.add(new JLabel(message));
+      }
+    };
+  }
+
   public static final class StackTraceViewStub implements StackTraceView {
     private StackTraceModel myModel;
 

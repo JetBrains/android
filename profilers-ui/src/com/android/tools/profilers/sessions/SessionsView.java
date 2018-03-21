@@ -37,7 +37,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
@@ -124,6 +126,7 @@ public class SessionsView extends AspectObserver {
     myProfilers.addDependency(this)
       .onChange(ProfilerAspect.DEVICES, this::refreshProcessDropdown)
       .onChange(ProfilerAspect.PROCESSES, this::refreshProcessDropdown);
+    addImportAction();
 
     mySessionsListModel = new DefaultListModel<>();
     mySessionsList = new SessionsList(mySessionsListModel);
@@ -245,7 +248,7 @@ public class SessionsView extends AspectObserver {
   }
 
   private void refreshSessions() {
-    java.util.List<SessionArtifact> sessionItems = mySessionsManager.getSessionArtifacts();
+    List<SessionArtifact> sessionItems = mySessionsManager.getSessionArtifacts();
     mySessionsListModel.clear();
     for (int i = 0; i < sessionItems.size(); i++) {
       SessionArtifact item = sessionItems.get(i);
@@ -253,25 +256,31 @@ public class SessionsView extends AspectObserver {
     }
   }
 
-  private void refreshProcessDropdown() {
-    java.util.Map<Common.Device, java.util.List<Common.Process>> processMap = myProfilers.getDeviceProcessMap();
-    if (processMap.isEmpty()) {
-      myProcessSelectionAction.setEnabled(false);
-      myProcessSelectionAction.clear();
-      return;
-    }
-    myProcessSelectionAction.clear();
-
+  private void addImportAction() {
     // Add the dropdown action for loading from file
     if (myProfilers.getIdeServices().getFeatureConfig().isSessionImportEnabled()) {
       CommonAction loadAction = new CommonAction("Load from file...", null);
-      loadAction.setAction(() -> {
-        myIdeProfilerComponents
-          .createImportDialog().
-          open(() -> "Open", Arrays.asList("hprof"),
-               file -> myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath())));
-      });
+      loadAction.setAction(
+        () -> myIdeProfilerComponents.createImportDialog().open(
+          () -> "Open",
+          Collections.singletonList("hprof"),
+          file -> {
+            if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
+              myIdeProfilerComponents.createUiMessageHandler()
+                .displayErrorMessage(myComponent, "File Open Error", String.format("Unknown file type: %s", file.getPath()));
+            }
+          }));
       myProcessSelectionAction.addChildrenActions(loadAction);
+    }
+  }
+
+  private void refreshProcessDropdown() {
+    Map<Common.Device, java.util.List<Common.Process>> processMap = myProfilers.getDeviceProcessMap();
+    myProcessSelectionAction.clear();
+
+    addImportAction();
+
+    if (!processMap.isEmpty()) {
       myProcessSelectionAction.addChildrenActions(new CommonAction.Separator());
     }
 

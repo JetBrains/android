@@ -251,7 +251,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     printWriter.close();
 
     // Import heap dump from file
-    sessionsManager.importSessionFromFile(file);
+    assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
     Common.Session session = sessionsManager.getSelectedSession();
     long dumpTime = session.getStartTimestamp();
     DumpDataRequest request = DumpDataRequest.newBuilder()

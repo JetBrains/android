@@ -64,4 +64,7 @@ public interface IdeProfilerComponents {
   AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeHolder,
                                                     @NotNull String value,
                                                     @NotNull Collection<String> variants);
+
+  @NotNull
+  UiMessageHandler createUiMessageHandler();
 }

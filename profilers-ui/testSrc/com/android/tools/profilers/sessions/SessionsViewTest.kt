@@ -143,7 +143,7 @@ class SessionsViewTest {
       .setPid(10).setDeviceId(2).setName("Process3").setState(Common.Process.State.ALIVE).build()
 
     var selectionAction = mySessionsView.processSelectionAction
-    assertThat(selectionAction.childrenActionCount).isEqualTo(0)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(1)
 
     myProfilerService.addDevice(device1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)

@@ -287,15 +287,19 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * Import session from file base on its extension
    *
    * @param file where the session is imported from
+   * @return true if import was successful, or false otherwise.
    */
-  public void importSessionFromFile(@NotNull File file) {
+  public boolean importSessionFromFile(@NotNull File file) {
     int indexOfDot = file.getName().indexOf('.');
     if (indexOfDot == -1) {
-      return;
+      return false;
     }
-    String extension = file.getName().substring(indexOfDot + 1).toLowerCase();
-    assert myImportHandlers.get(extension) != null;
+    String extension = file.getName().substring(indexOfDot + 1).toLowerCase(Locale.US);
+    if (myImportHandlers.get(extension) == null) {
+      return false;
+    }
     myImportHandlers.get(extension).accept(file);
+    return true;
   }
 
   /**
