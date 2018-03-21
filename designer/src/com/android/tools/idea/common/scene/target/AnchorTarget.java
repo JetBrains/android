@@ -18,6 +18,7 @@ package com.android.tools.idea.common.scene.target;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
@@ -270,7 +271,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     // TODO: Refactor this condition later.
-    if (!myComponent.getScene().allowsTarget(this)) {
+    if (!isEnabled()) {
       return;
     }
     if (myComponent.isDragging() && !isConnected()) {
@@ -291,6 +292,17 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
       DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, type, drawAsConnected, mode);
     }
   }
+
+  @Override
+  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+    if (!isEnabled()) {
+      return;
+    }
+    picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                   transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+  }
+
+  abstract protected boolean isEnabled();
 
   @NotNull
   protected abstract DrawAnchor.Mode getDrawMode();
@@ -356,7 +368,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
                    @NotNull SceneComponent snappableComponent,
                    @NotNull ImmutableList.Builder<Notch> notchBuilder) {
     // TODO: Refactor this condition later.
-    if (!myComponent.getScene().allowsTarget(this)) {
+    if (!isEnabled()) {
       return;
     }
     if (myComponent.isDragging() && !isConnected()) {

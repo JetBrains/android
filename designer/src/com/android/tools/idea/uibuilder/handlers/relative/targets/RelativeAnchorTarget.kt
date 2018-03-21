@@ -79,6 +79,18 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     }
   }
 
+  override fun isEnabled(): Boolean {
+    if (myComponent.isSelected) {
+      return !myComponent.isDragging
+    }
+
+    val filterType = myComponent.scene.filterType
+    if (isConnectible(filterType) || filterType == Scene.FilterType.ALL) {
+      return true
+    }
+    return false
+  }
+
   override fun getDrawMode(): DrawAnchor.Mode {
     return if (!myComponent.isSelected) {
       val canConnectToMe = isConnectible(myComponent.scene.filterType)
@@ -96,7 +108,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
    * If this target can become the destination of current dragging anchor.
    * Returns true if this is not dragging but aligning to the dragging component.
    */
-  fun isConnectible(filterType: Scene.FilterType): Boolean {
+  private fun isConnectible(filterType: Scene.FilterType): Boolean {
     val draggingAnchorTarget = myComponent.scene.interactingTarget as? RelativeAnchorTarget ?: return false
     if (isAlignedTo(draggingAnchorTarget.myComponent)) {
       return false

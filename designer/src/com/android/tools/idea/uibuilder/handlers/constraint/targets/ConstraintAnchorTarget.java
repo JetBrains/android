@@ -75,6 +75,10 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     return myType == Type.TOP || myType == Type.BOTTOM;
   }
 
+  public boolean isBaselineAnchor() {
+    return myType == Type.BASELINE;
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Display
@@ -154,6 +158,40 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         }
       }
     }
+  }
+
+  @Override
+  protected boolean isEnabled() {
+    if (myComponent.isSelected()) {
+      boolean hasBaselineConnection = isBaselineConnected();
+      if (getType() == AnchorTarget.Type.BASELINE) {
+        // only show baseline anchor as needed
+        return myComponent.canShowBaseline() || hasBaselineConnection;
+      }
+      else {
+        // if the baseline is showing, hide the rest of the anchors
+        return (!hasBaselineConnection && !myComponent.canShowBaseline()) || (hasBaselineConnection && isHorizontalAnchor());
+      }
+    }
+
+    Scene.FilterType filerType = myComponent.getScene().getFilterType();
+    switch (filerType) {
+      case BASELINE_ANCHOR:
+        return isBaselineAnchor();
+      case VERTICAL_ANCHOR:
+        return isVerticalAnchor();
+      case HORIZONTAL_ANCHOR:
+        return isHorizontalAnchor();
+      case ANCHOR:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private boolean isBaselineConnected() {
+    return myComponent.getAuthoritativeNlComponent()
+             .getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
   }
 
   @NotNull
