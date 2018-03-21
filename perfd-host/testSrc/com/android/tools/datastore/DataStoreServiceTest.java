@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runners.model.MultipleFailureException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -135,13 +134,15 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   public void testSQLFailureCallsbackToExceptionHandler() throws Exception {
     // Teardown datastore created in startup to unregister callbacks.
     myDataStore.shutdown();
-    FakeDataStoreService dataStoreService = new FakeDataStoreService("testSQLFailureCallsbackToExceptionHandler", SERVICE_PATH, getPollTicker()::run);
+    FakeDataStoreService dataStoreService =
+      new FakeDataStoreService("testSQLFailureCallsbackToExceptionHandler", SERVICE_PATH, getPollTicker()::run);
 
     // Use an array making this object mutable by the lambda.
     final Throwable[] expectedException = new Throwable[1];
-    dataStoreService.setNoPiiExceptionHanlder((t) -> expectedException[0] = t );
+    dataStoreService.setNoPiiExceptionHanlder((t) -> expectedException[0] = t);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub =
-      ProfilerServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName("testSQLFailureCallsbackToExceptionHandler").usePlaintext(true).build());
+      ProfilerServiceGrpc
+        .newBlockingStub(InProcessChannelBuilder.forName("testSQLFailureCallsbackToExceptionHandler").usePlaintext(true).build());
 
     // Test that a normal RPC call does not trigger an exception
     stub.getAgentStatus(AgentStatusRequest.getDefaultInstance());
@@ -179,6 +180,12 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     }
 
     @Override
+    public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
+      responseObserver.onNext(TimeResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    }
+
+    @Override
     public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> responseObserver) {
       responseObserver.onNext(GetDevicesResponse.newBuilder().addDevice(DEVICE).build());
       responseObserver.onCompleted();
@@ -212,7 +219,9 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
     @NotNull
     @Override
-    DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic, @NotNull Consumer<Throwable> noPiiExceptionHandler) {
+    DataStoreDatabase createDatabase(@NotNull String dbPath,
+                                     @NotNull DataStoreDatabase.Characteristic characteristic,
+                                     @NotNull Consumer<Throwable> noPiiExceptionHandler) {
       if (myCreatedDbPaths == null) {
         // This method is being called from the parent class's constructor, so we need to lazily create it.
         // Also, calling an overridden method in the parent constructor is super bad form. But we're lucky we can get away with it here.
@@ -277,10 +286,11 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       responseObserver.onCompleted();
     }
 
-    public void dropProfilerTable(){
+    public void dropProfilerTable() {
       try (Statement stmt = myConnection.createStatement()) {
         stmt.execute("DROP TABLE Profiler_Processes");
-      } catch (SQLException ex) {
+      }
+      catch (SQLException ex) {
       }
     }
 

@@ -211,6 +211,39 @@ class SessionsViewTest {
   }
 
   @Test
+  fun testProcessDropdownHideDeadDevicesAndProcesses() {
+    val deadDevice = Common.Device.newBuilder()
+      .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.DISCONNECTED).build()
+    val onlineDevice = Common.Device.newBuilder()
+      .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
+    val deadProcess1 = Common.Process.newBuilder()
+      .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.DEAD).build()
+    val aliveProcess1 = Common.Process.newBuilder()
+      .setPid(20).setDeviceId(1).setName("Process2").setState(Common.Process.State.ALIVE).build()
+    val deadProcess2 = Common.Process.newBuilder()
+      .setPid(30).setDeviceId(2).setName("Process3").setState(Common.Process.State.DEAD).build()
+    val aliveProcess2 = Common.Process.newBuilder()
+      .setPid(40).setDeviceId(2).setName("Process4").setState(Common.Process.State.ALIVE).build()
+
+    myProfilerService.addDevice(deadDevice)
+    myProfilerService.addDevice(onlineDevice)
+    myProfilerService.addProcess(deadDevice, deadProcess1)
+    myProfilerService.addProcess(deadDevice, aliveProcess1)
+    myProfilerService.addProcess(onlineDevice, deadProcess2)
+    myProfilerService.addProcess(onlineDevice, aliveProcess2)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    var selectionAction = mySessionsView.processSelectionAction
+    assertThat(selectionAction.childrenActions.any { c -> c.text == "Manufacturer1 Model1" }).isFalse()
+    val aliveDeviceAction = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
+    assertThat(aliveDeviceAction.isSelected).isTrue()
+    assertThat(aliveDeviceAction.childrenActionCount).isEqualTo(1)
+    var processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4" }
+    assertThat(processAction1.isSelected).isTrue()
+    assertThat(processAction1.childrenActionCount).isEqualTo(0)
+  }
+
+  @Test
   fun testDropdownActionsTriggerProcessChange() {
     val device1 = Common.Device.newBuilder()
       .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()

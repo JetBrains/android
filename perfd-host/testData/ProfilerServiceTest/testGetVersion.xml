@@ -23,6 +23,18 @@
 }
 </message>
     </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
+        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <message></message>
+    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetProcesses" Class="class com.android.tools.profiler.proto.Profiler$GetProcessesRequest">
         <Message>device_id: 1234
 </Message>

@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
@@ -317,23 +318,25 @@ public class SessionsView extends AspectObserver {
     Common.Device selectedDevice = myProfilers.getDevice();
     Common.Process selectedProcess = myProfilers.getProcess();
     // Rebuild the action tree.
-    Set<Common.Device> devices = processMap.keySet();
+    Set<Common.Device> devices = processMap.keySet().stream()
+      .filter(device -> device.getState() == Common.Device.State.ONLINE).collect(Collectors.toSet());
     if (devices.isEmpty()) {
       CommonAction noDeviceAction = new CommonAction(NO_SUPPORTED_DEVICES, null);
       noDeviceAction.setEnabled(false);
       myProcessSelectionAction.addChildrenActions(noDeviceAction);
     }
     else {
-      for (Common.Device device : processMap.keySet()) {
+      for (Common.Device device : devices) {
         CommonAction deviceAction = new CommonAction(buildDeviceName(device), null);
-        java.util.List<Common.Process> processes = processMap.get(device);
+        java.util.List<Common.Process> processes = processMap.get(device).stream()
+          .filter(process -> process.getState() == Common.Process.State.ALIVE).collect(Collectors.toList());
         if (processes.isEmpty()) {
           CommonAction noProcessAction = new CommonAction(NO_DEBUGGABLE_PROCESSES, null);
           noProcessAction.setEnabled(false);
           deviceAction.addChildrenActions(noProcessAction);
         }
         else {
-          for (Common.Process process : processMap.get(device)) {
+          for (Common.Process process : processes) {
             CommonAction processAction = new CommonAction(process.getName(), null);
             processAction.setAction(() -> {
               myProfilers.setDevice(device);

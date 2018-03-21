@@ -33,6 +33,7 @@ import java.sql.SQLException;
 public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatements> {
   public enum ProfilerStatements {
     INSERT_DEVICE,
+    UPDATE_DEVICE_LAST_KNOWN_TIME,
     INSERT_PROCESS,
     UPDATE_PROCESS,
     INSERT_SESSION,
@@ -40,6 +41,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     SELECT_PROCESSES,
     SELECT_PROCESS_BY_ID,
     SELECT_DEVICE,
+    SELECT_DEVICE_LAST_KNOWN_TIME,
     SELECT_SESSIONS,
     SELECT_SESSION_BY_ID,
     FIND_AGENT_STATUS,
@@ -58,7 +60,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     super.initialize(connection);
     try {
       createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session INTEGER", "Data BLOB");
-      createTable("Profiler_Devices", "DeviceId INTEGER", "Data BLOB");
+      createTable("Profiler_Devices", "DeviceId INTEGER", "LastKnownTime INTEGER", "Data BLOB");
       createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER", "EndTime INTEGER",
                   "HasAgent INTEGER", "LastKnownAttachedTime INTEGER", "Data BLOB");
       createTable("Profiler_Sessions", "SessionId INTEGER", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER",
@@ -88,6 +90,8 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     try {
       createStatement(ProfilerStatements.INSERT_DEVICE,
                       "INSERT OR REPLACE INTO Profiler_Devices (DeviceId, Data) values (?, ?)");
+      createStatement(ProfilerStatements.UPDATE_DEVICE_LAST_KNOWN_TIME,
+                      "UPDATE Profiler_Devices Set LastKnownTime = ? WHERE DeviceId = ?");
       createStatement(ProfilerStatements.INSERT_PROCESS,
                       "INSERT OR REPLACE INTO Profiler_Processes (DeviceId, ProcessId, StartTime, EndTime, Data) values (?, ?, ?, ?, ?)");
       createStatement(ProfilerStatements.UPDATE_PROCESS,
@@ -104,6 +108,8 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
                       "SELECT Data from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.SELECT_DEVICE,
                       "SELECT Data from Profiler_Devices");
+      createStatement(ProfilerStatements.SELECT_DEVICE_LAST_KNOWN_TIME,
+                      "SELECT LastKnownTime FROM Profiler_Devices WHERE DeviceId = ?");
       createStatement(ProfilerStatements.SELECT_SESSIONS,
                       "SELECT * from Profiler_Sessions ORDER BY SessionId ASC");
       createStatement(ProfilerStatements.SELECT_SESSION_BY_ID,
@@ -141,6 +147,26 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     }
   }
 
+  public long getDeviceLastKnownTime(@NotNull DeviceId deviceId) {
+    if (isClosed()) {
+      return Long.MIN_VALUE;
+    }
+
+    synchronized (myLock) {
+      try {
+        ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE_LAST_KNOWN_TIME, deviceId.get());
+        if (results.next()) {
+          return results.getLong(1);
+        }
+      }
+      catch (SQLException ex) {
+        onError(ex);
+      }
+    }
+
+    return Long.MIN_VALUE;
+  }
+
   @NotNull
   public GetProcessesResponse getProcesses(@NotNull GetProcessesRequest request) {
     if (isClosed()) {
@@ -161,6 +187,30 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       }
       return responseBuilder.build();
     }
+  }
+
+  @NotNull
+  public Common.Session getSessionById(long sessionId) {
+    if (isClosed()) {
+      return Common.Session.getDefaultInstance();
+    }
+
+    Common.Session.Builder builder = Common.Session.newBuilder();
+    try {
+      ResultSet results = executeQuery(ProfilerStatements.SELECT_SESSION_BY_ID, sessionId);
+      if (results.next()) {
+        builder.setSessionId(results.getLong(1))
+          .setDeviceId(results.getLong(2))
+          .setPid(results.getInt(3))
+          .setStartTimestamp(results.getLong(4))
+          .setEndTimestamp((results.getLong(5)));
+      }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+
+    return builder.build();
   }
 
   @NotNull
@@ -225,6 +275,12 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       //TODO: Update start/end times with times polled from device.
       //End time always equals now, start time comes from device. This way if we get disconnected we still have an accurate end time.
       execute(ProfilerStatements.INSERT_DEVICE, device.getDeviceId(), device.toByteArray());
+    }
+  }
+
+  public void updateDeviceLastKnownTime(@NotNull Common.Device device, long lastKnownTimeNs) {
+    synchronized (myLock) {
+      execute(ProfilerStatements.UPDATE_DEVICE_LAST_KNOWN_TIME, lastKnownTimeNs, device.getDeviceId());
     }
   }
 

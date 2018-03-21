@@ -136,9 +136,14 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
+    DeviceId deviceId = DeviceId.of(request.getDeviceId());
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(deviceId);
     if (client == null) {
-      responseObserver.onNext(EndSessionResponse.getDefaultInstance());
+      // In case the device is no longer connected, update the session's end time with the device's last known time.
+      long timeNs = myTable.getDeviceLastKnownTime(deviceId);
+      myTable.updateSessionEndTime(request.getSessionId(), timeNs);
+      Common.Session session = myTable.getSessionById(request.getSessionId());
+      responseObserver.onNext(EndSessionResponse.newBuilder().setSession(session).build());
     }
     else {
       EndSessionResponse response = client.endSession(request);

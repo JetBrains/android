@@ -75,6 +75,10 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
         DeviceData deviceData = myDevices.computeIfAbsent(deviceId, s -> new DeviceData(device));
 
         myService.setConnectedClients(deviceId, myPollingService.getChannel());
+
+        TimeResponse timeResponse = myPollingService.getCurrentTime(TimeRequest.getDefaultInstance());
+        myTable.updateDeviceLastKnownTime(device, timeResponse.getTimestampNs());
+
         GetProcessesRequest processesRequest = GetProcessesRequest.newBuilder().setDeviceId(deviceId.get()).build();
         GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
 
