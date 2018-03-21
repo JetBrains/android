@@ -48,6 +48,15 @@ import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
  * A collapsible panel which lets users see the list of and interact with their profiling sessions.
  */
 public class SessionsView extends AspectObserver {
+  /**
+   * Preference string for whether the sessions UI is collapsed (bool).
+   */
+  public static final String SESSION_IS_COLLAPSED = "SESSION_IS_COLLAPSED";
+  /**
+   * Preference string for the last known width (int) of the sessions UI when it was expanded.
+   */
+  public static final String SESSION_EXPANDED_WIDTH = "SESSION_EXPANDED_WIDTH";
+
   // Collapsed width should essentially look like a toolbar.
   private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUI.scale(32);
   private static final int SESSIONS_EXPANDED_MIN_WIDTH = JBUI.scale(200);
@@ -67,15 +76,13 @@ public class SessionsView extends AspectObserver {
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
 
-  private boolean myIsExpanded;
+  private boolean myIsCollapsed;
 
   public SessionsView(@NotNull StudioProfilers profilers, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myProfilers = profilers;
     myIdeProfilerComponents = ideProfilerComponents;
     mySessionsManager = myProfilers.getSessionsManager();
-    // Starts out with a collapsed sessions panel.
-    // TODO b\73159126 make this configurable. e.g. save user's previous settings.
-    myIsExpanded = false;
+    myIsCollapsed = myProfilers.getIdeServices().getPersistentProfilerPreferences().getBoolean(SESSION_IS_COLLAPSED, false);
     myComponent = new JPanel(new BorderLayout());
     myComponent.setBorder(AdtUiUtils.DEFAULT_RIGHT_BORDER);
     myExpandButton = new CommonButton(StudioIcons.Profiler.Toolbar.EXPAND_SESSION);
@@ -86,8 +93,9 @@ public class SessionsView extends AspectObserver {
     myExpandButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        myIsExpanded = true;
+        myIsCollapsed = false;
         initializeUI();
+        myProfilers.getIdeServices().getPersistentProfilerPreferences().setBoolean(SESSION_IS_COLLAPSED, myIsCollapsed);
       }
     });
     myCollapseButton = new CommonButton(StudioIcons.Profiler.Toolbar.COLLAPSE_SESSION);
@@ -98,8 +106,9 @@ public class SessionsView extends AspectObserver {
     myCollapseButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        myIsExpanded = false;
+        myIsCollapsed = true;
         initializeUI();
+        myProfilers.getIdeServices().getPersistentProfilerPreferences().setBoolean(SESSION_IS_COLLAPSED, myIsCollapsed);
       }
     });
 
@@ -157,6 +166,11 @@ public class SessionsView extends AspectObserver {
   }
 
   @VisibleForTesting
+  public boolean getCollapsed() {
+    return myIsCollapsed;
+  }
+
+  @VisibleForTesting
   @NotNull
   JList<SessionArtifact> getSessionsList() {
     return mySessionsList;
@@ -172,6 +186,18 @@ public class SessionsView extends AspectObserver {
   @NotNull
   JButton getStopProfilingButton() {
     return myStopProfilingButton;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JButton getExpandButton() {
+    return myExpandButton;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JButton getCollapseButton() {
+    return myCollapseButton;
   }
 
   /**
@@ -190,13 +216,13 @@ public class SessionsView extends AspectObserver {
 
   private void initializeUI() {
     myComponent.removeAll();
-    if (myIsExpanded) {
-      myComponent.add(createToolbar(), BorderLayout.NORTH);
-      myComponent.add(myScrollPane, BorderLayout.CENTER);
-    }
-    else {
+    if (myIsCollapsed) {
       // We only need the toolbar when collapsed
       myComponent.add(createToolbar(), BorderLayout.CENTER);
+    }
+    else {
+      myComponent.add(createToolbar(), BorderLayout.NORTH);
+      myComponent.add(myScrollPane, BorderLayout.CENTER);
     }
     myComponent.revalidate();
     myComponent.repaint();
@@ -205,7 +231,22 @@ public class SessionsView extends AspectObserver {
   @NotNull
   private JComponent createToolbar() {
     JPanel toolbar;
-    if (myIsExpanded) {
+    if (myIsCollapsed) {
+      toolbar = new JPanel();
+      toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
+      toolbar.setMinimumSize(new Dimension(SESSIONS_COLLAPSED_MIN_WIDTH, 0));
+
+      toolbar.add(myExpandButton);
+      myExpandButton.setVisible(true);
+      // Note - if we simply remove the collapse button after it is clicked, next time we add it back it will
+      // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
+      // render and update its state even though it is hidden.
+      toolbar.add(myCollapseButton, new TabularLayout.Constraint(1, 0, 1, 3));
+      myCollapseButton.setVisible(false);
+      toolbar.add(myStopProfilingButton);
+      toolbar.add(myProcessSelectionDropDown);
+    }
+    else {
       toolbar = new JPanel();
       toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.X_AXIS));
       toolbar.setBorder(AdtUiUtils.DEFAULT_BOTTOM_BORDER);
@@ -227,21 +268,6 @@ public class SessionsView extends AspectObserver {
       // render and update its state even though it is hidden.
       toolbar.add(myExpandButton);
       myExpandButton.setVisible(false);
-    }
-    else {
-      toolbar = new JPanel();
-      toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-      toolbar.setMinimumSize(new Dimension(SESSIONS_COLLAPSED_MIN_WIDTH, 0));
-
-      toolbar.add(myExpandButton);
-      myExpandButton.setVisible(true);
-      // Note - if we simply remove the collapse button after it is clicked, next time we add it back it will
-      // maintain its hovered/clicked state until it is hovered again. Adding it here so it has a chance to
-      // render and update its state even though it is hidden.
-      toolbar.add(myCollapseButton, new TabularLayout.Constraint(1, 0, 1, 3));
-      myCollapseButton.setVisible(false);
-      toolbar.add(myStopProfilingButton);
-      toolbar.add(myProcessSelectionDropDown);
     }
 
     return toolbar;
