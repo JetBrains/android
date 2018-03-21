@@ -60,9 +60,9 @@ public interface StepElementData {
   ActionData getAction();
 
   /**
-   * Returns Image defination
+   * Returns Image definition
    */
-  @NotNull
+  @Nullable
   DefaultTutorialBundle.Image getImage();
 
 }

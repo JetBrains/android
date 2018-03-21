@@ -79,6 +79,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @XmlAttribute(name = "stepByStep")
   private boolean myStepByStep;
 
+  @XmlAttribute(name = "hideStepIndex")
+  private boolean myHideStepIndex;
+
   private Icon myIcon;
 
   private Icon myLogo;
@@ -145,9 +148,13 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   }
 
   @Override
-  @Nullable
   public boolean isStepByStep() {
     return myStepByStep;
+  }
+
+  @Override
+  public boolean hideStepIndex() {
+    return myHideStepIndex;
   }
 
   @Nullable

@@ -72,6 +72,10 @@ public interface TutorialBundleData {
    * next/prev button to navigate between steps, Otherwise, all steps for a
    * tutorial will be displayed on a single page flowing vertically.
    */
-  @Nullable
   boolean isStepByStep();
+
+  /**
+   * False by default. If true will hide the step counter on each step of a tutorial.
+   */
+  boolean hideStepIndex();
 }
