@@ -32,6 +32,8 @@ public final class EnergyEventMinibar {
 
   public EnergyEventMinibar(@NotNull EnergyProfilerStageView stageView) {
     StateChart<EnergyProfiler.EnergyEvent> chart = EnergyEventStateChart.create(stageView.getStage().getEventModel());
+    // The event minibar does not react to mouse input so we detach its mouse handler.
+    chart.detach();
     myComponent = createUi(chart);
   }
 
