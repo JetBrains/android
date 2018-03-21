@@ -175,10 +175,17 @@ public final class BatteryModel {
     }
 
     EnergyProfiler.EnergySample newSample = produceNewSample.apply(prevSample.toBuilder().setTimestamp(timestampNs)).build();
-    if (!prevSample.equals(newSample)) {
-      if (prevSample.getTimestamp() == timestampNs) {
-        // This means we had multiple events at the same time. Accumulate them into a single
-        // sample (by replacing the last sample)
+
+    // We want to compare samples to see if their usage amounts are the same even if they are at
+    // different timestamps. The easiest way to do this is to make a copy of the two samples
+    // with their timestamps stubbed out.
+    EnergyProfiler.EnergySample prevSampleNoTime = prevSample.toBuilder().setTimestamp(0).build();
+    EnergyProfiler.EnergySample newSampleNoTime = newSample.toBuilder().setTimestamp(0).build();
+
+    if (!prevSampleNoTime.equals(newSampleNoTime)) {
+      if (prevSample.getTimestamp() == newSample.getTimestamp()) {
+        // This means we had multiple events occur at the same time. Replace with the latest sample
+        // in that case.
         mySparseSamples.remove(prevSampleIndex);
         mySparseSamples.add(prevSampleIndex, newSample);
       }
