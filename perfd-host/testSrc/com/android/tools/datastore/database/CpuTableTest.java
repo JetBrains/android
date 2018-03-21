@@ -56,7 +56,7 @@ public class CpuTableTest {
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     myDatabase.disconnect();
     FileUtil.delete(myDbFile);
   }
@@ -113,7 +113,7 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetData() throws Exception {
+  public void testGetData() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
       .setSession(SESSION_HUNDREDS)
       .setStartTimestamp(SESSION_ONE_OFFSET)
@@ -135,7 +135,7 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetDataInvalidSession() throws Exception {
+  public void testGetDataInvalidSession() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
       .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(SESSION_ONE_OFFSET)
@@ -147,7 +147,7 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetDataInvalidTimeRange() throws Exception {
+  public void testGetDataInvalidTimeRange() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
       .setSession(SESSION_HUNDREDS)
       .setStartTimestamp(0)
@@ -159,7 +159,7 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetThreadsDataByRequest() throws Exception {
+  public void testGetThreadsDataByRequest() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setSession(SESSION_HUNDREDS)
       .setStartTimestamp(SESSION_ONE_OFFSET)
@@ -178,7 +178,7 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetThreadsDataByRequestInvalidSession() throws Exception {
+  public void testGetThreadsDataByRequestInvalidSession() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(SESSION_ONE_OFFSET)
@@ -190,7 +190,7 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetThreadsDataByRequestInvalidTiming() throws Exception {
+  public void testGetThreadsDataByRequestInvalidTiming() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setSession(SESSION_HUNDREDS)
       .setStartTimestamp(0)
@@ -202,7 +202,7 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetThreadsDataByRequestSessionSpecific() throws Exception {
+  public void testGetThreadsDataByRequestSessionSpecific() {
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setSession(SESSION_HUNDREDS)
       .setStartTimestamp(0)
@@ -221,7 +221,7 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetTraceInfo() throws Exception {
+  public void testGetTraceInfo() {
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
       .setSession(SESSION_HUNDREDS)
       .setFromTimestamp(0)
@@ -237,13 +237,13 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetInvalidTraceByRequest() throws Exception {
+  public void testGetInvalidTraceByRequest() {
     CpuTable.TraceData traceData = myTable.getTraceData(SESSION_HUNDREDS, -1);
     assertNull(traceData);
   }
 
   @Test
-  public void testGetTraceByRequestInvalidSession() throws Exception {
+  public void testGetTraceByRequestInvalidSession() {
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
       .setSession(SESSION_THOUSANDS)
       .setFromTimestamp(0)
