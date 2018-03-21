@@ -43,6 +43,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     super(profilersView, energyProfilerStage);
 
     getTooltipBinder().bind(EnergyUsageTooltip.class, EnergyStageTooltipView::new);
+    getTooltipBinder().bind(EnergyEventTooltip.class, EnergyEventTooltipView::new);
     getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
     getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
 
@@ -163,7 +164,10 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       }
     });
 
+    JComponent minibar = new EnergyEventMinibar(this).getComponent();
+
     selection.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyUsageTooltip(getStage())));
+    minibar.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyEventTooltip(getStage())));
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(),
                                 timeline.getViewRange(),
@@ -172,6 +176,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
                                 ProfilerLayeredPane.class);
 
     tooltip.registerListenersOn(selection);
+    tooltip.registerListenersOn(minibar);
     eventsView.registerTooltip(tooltip, getStage());
 
     if (!getStage().hasUserUsedEnergySelection()) {
@@ -187,7 +192,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     panel.add(monitorPanel, new TabularLayout.Constraint(1, 0));
 
     layout.setRowSizing(2, "50px");
-    panel.add(new EnergyEventMinibar(this).getComponent(), new TabularLayout.Constraint(2, 0));
+    panel.add(minibar, new TabularLayout.Constraint(2, 0));
 
     return panel;
   }
