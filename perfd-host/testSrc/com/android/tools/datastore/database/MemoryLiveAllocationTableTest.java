@@ -364,6 +364,45 @@ public class MemoryLiveAllocationTableTest {
     Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc2);
     Truth.assertThat(queryBatch.getTimestamp()).isEqualTo(alloc2.getTimestamp());
   }
+
+  @Test
+  public void testJniRefEventsWithEmptyBacktrace() throws Exception {
+    JNIGlobalReferenceEvent alloc1 = JNIGlobalReferenceEvent.newBuilder()
+      .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+      .setObjectTag(KLASS1_INSTANCE1_TAG)
+      .setRefValue(JNI_REF_VALUE1)
+      .setThreadId(THREAD1)
+      .setTimestamp(1).build();
+
+    JNIGlobalReferenceEvent alloc2 = JNIGlobalReferenceEvent.newBuilder()
+      .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+      .setObjectTag(KLASS1_INSTANCE2_TAG)
+      .setRefValue(JNI_REF_VALUE2)
+      .setThreadId(THREAD2)
+      .setBacktrace(createBacktrace(NATIVE_ADDRESS2, NATIVE_ADDRESS1))
+      .setTimestamp(5).build();
+
+    JNIGlobalReferenceEvent alloc3 = JNIGlobalReferenceEvent.newBuilder()
+      .setEventType(JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF)
+      .setObjectTag(KLASS1_INSTANCE1_TAG)
+      .setRefValue(JNI_REF_VALUE3)
+      .setThreadId(THREAD3)
+      .setTimestamp(10).build();
+
+    BatchJNIGlobalRefEvent.Builder insertBatch = BatchJNIGlobalRefEvent.newBuilder();
+    insertBatch.setMemoryMap(createMemoryMap());
+    insertBatch.addEvents(alloc1).addEvents(alloc2).addEvents(alloc3);
+    myAllocationTable.insertJniReferenceData(VALID_SESSION, insertBatch.build());
+
+    // Query all events
+    BatchJNIGlobalRefEvent queryBatch = myAllocationTable.getJniReferencesEventsFromRange(VALID_SESSION, 0, Long.MAX_VALUE);
+    Truth.assertThat(queryBatch.getEventsCount()).isEqualTo(3);
+    Truth.assertThat(queryBatch.getEvents(0)).isEqualTo(alloc1);
+    Truth.assertThat(queryBatch.getEvents(1)).isEqualTo(alloc2);
+    Truth.assertThat(queryBatch.getEvents(2)).isEqualTo(alloc3);
+  }
+
+
   @Test
   public void testInsertAndQueryAllocationData() throws Exception {
     // A klass1 instance allocation event (t = 0)
