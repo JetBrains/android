@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.bazel.fixture
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.google.common.base.Verify
 import com.intellij.openapi.editor.impl.EditorComponentImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -29,7 +30,7 @@ import javax.swing.JMenuItem
 
 class BazelConsoleToolWindowFixture(project: Project, robot: Robot) :  ToolWindowFixture("Blaze Console", project, robot) {
   val content: Content = UIUtil.invokeAndWaitIfNeeded(Computable<Content> {
-    assert(!contents.isEmpty())
+    Verify.verify(!contents.isEmpty())
     contents[0]
   })
 
