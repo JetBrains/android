@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.monitor;
 
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
-import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * A deprecated mode for this tool window including all the monitors.
@@ -28,6 +26,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 public class AndroidMonitorCondition implements Condition<Project> {
   @Override
   public boolean value(Project project) {
-    return AndroidToolWindowFactory.showMonitors();
+    return false;
   }
 }
