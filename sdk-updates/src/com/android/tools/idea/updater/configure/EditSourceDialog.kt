@@ -60,7 +60,7 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
   init {
     isModal = true
 
-    urlField.addActionListener { e ->
+    urlField.addActionListener {
       myUrlSet = true
       validateUrl(urlField.text)
     }
@@ -80,7 +80,7 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
       }
     })
 
-    val toggleAuthEnabled: (ActionEvent?) -> Unit = { authPanel.components.forEach { it.setEnabled(useAuthentication.isSelected) } }
+    val toggleAuthEnabled: (ActionEvent?) -> Unit = { authPanel.components.forEach { it.isEnabled = useAuthentication.isSelected } }
     toggleAuthEnabled(null)
     useAuthentication.addActionListener(toggleAuthEnabled)
 
@@ -138,11 +138,11 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
       noteRow("Please enter the Name and URL of the addon.xml for the update site")
       row("Name:") { nameField() }
       row("URL:") { urlField() }
-      row() { useAuthentication() }
-      row() {
+      row { useAuthentication() }
+      row {
         authPanel(CCFlags.growX)
       }
-      row() { errorLabel() }
+      row { errorLabel() }
     }
   }
 
