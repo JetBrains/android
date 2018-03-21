@@ -16,7 +16,6 @@
 package com.android.tools.profilers.sessions;
 
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -32,17 +31,17 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 
-import static com.android.tools.profilers.ProfilerColors.ACTIVE_SESSION_COLOR;
-import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
+import static com.android.tools.profilers.ProfilerColors.*;
 
 /**
  * A {@link SessionArtifactView} that represents a {@link com.android.tools.profiler.proto.Common.Session}
  */
 public final class SessionItemView extends SessionArtifactView<SessionItem> {
 
+  private static final Border DIVIDER_BORDER = JBUI.Borders.customLine(SESSION_DIVIDER_COLOR, 1, 0, 0, 0);
   private static final Border COMPONENT_PADDING = JBUI.Borders.empty(4, 0);
   private static final Font SESSION_TIME_FONT =
-    TITLE_FONT.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_SEMIBOLD));
+    TITLE_FONT.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD));
 
   @NotNull private final JComponent myComponent;
   @Nullable private JButton myExpandCollapseButton;
@@ -60,8 +59,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
                              JBUI.Borders.merge(SELECTED_BORDER, COMPONENT_PADDING, false) :
                              JBUI.Borders.merge(UNSELECTED_BORDER, COMPONENT_PADDING, false);
     // Skip the top border for the first entry as that would duplicate with the toolbar's border
-    myComponent
-      .setBorder(getIndex() == 0 ? selectionBorder : JBUI.Borders.merge(AdtUiUtils.DEFAULT_TOP_BORDER, selectionBorder, false));
+    myComponent.setBorder(getIndex() == 0 ? selectionBorder : JBUI.Borders.merge(DIVIDER_BORDER, selectionBorder, false));
 
     myExpandCollapseButton = new CommonButton(getArtifact().isExpanded() ? COLLAPSE_ICON : EXPAND_ICON);
     myExpandCollapseButton.setBorder(EXPAND_ICON_BORDER);
@@ -85,7 +83,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
 
     JLabel sessionName = new JLabel(getArtifact().getName());
     sessionName.setBorder(LABEL_PADDING);
-    sessionName.setFont(TITLE_FONT);
+    sessionName.setFont(STATUS_FONT);
     myComponent.add(sessionName, new TabularLayout.Constraint(1, 1, 1, 3));
   }
 

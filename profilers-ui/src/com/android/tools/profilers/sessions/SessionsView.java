@@ -237,8 +237,8 @@ public class SessionsView extends AspectObserver {
       // render and update its state even though it is hidden.
       toolbar.add(myCollapseButton, new TabularLayout.Constraint(1, 0, 1, 3));
       myCollapseButton.setVisible(false);
-      toolbar.add(myProcessSelectionDropDown);
       toolbar.add(myStopProfilingButton);
+      toolbar.add(myProcessSelectionDropDown);
     }
 
     return toolbar;
