@@ -126,6 +126,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   // 5M ought to be enough for anybody (~300MB of data)
   // Note - Google Search app can easily allocate 100k+ temporary objects in an relatively short amount of time (e.g. one search query)
   private int myAllocationCountLimit = 5000000;
+  private final static byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
   private static Logger getLogger() {
     return Logger.getInstance(MemoryLiveAllocationTable.class);
@@ -341,7 +342,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     event.setRefValue(refValue);
     event.setTimestamp(timestamp);
     event.setThreadId(threadId);
-    if (backtrace != null) {
+    if (backtrace != null && backtrace.length != 0) {
       try {
         event.setBacktrace(NativeBacktrace.parseFrom(backtrace));
       }
@@ -452,7 +453,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         int objectTag = event.getObjectTag();
         long timestamp = event.getTimestamp();
         int threadId = event.getThreadId();
-        byte[] backtrace = null;
+        byte[] backtrace = EMPTY_BYTE_ARRAY;
 
         if (event.hasBacktrace()) {
           backtrace = event.getBacktrace().toByteArray();
