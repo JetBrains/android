@@ -30,8 +30,8 @@ public class JniReferenceInstanceObject implements InstanceObject {
   private long myDeallocTime = Long.MAX_VALUE;
   private final long myRefValue;
   private final long myObjectTag;
-  @NotNull private final ThreadId myAllocThreadId;
-  @NotNull private final ThreadId myDeallocThreadId;
+  @NotNull private ThreadId myAllocThreadId = ThreadId.INVALID_THREAD_ID;
+  @NotNull private ThreadId myDeallocThreadId = ThreadId.INVALID_THREAD_ID;
   @Nullable private MemoryProfiler.NativeBacktrace myAllocationBacktrace;
   @Nullable private MemoryProfiler.NativeBacktrace myDeallocationBacktrace;
   @Nullable private List<CodeLocation> myAllocationLocations;
@@ -47,21 +47,17 @@ public class JniReferenceInstanceObject implements InstanceObject {
    *
    * @param captureObject    capture object to talk to the datastore
    * @param referencedObject instance object for a java object this JNI reference points to
-   * @param allocThreadId    thread where this JNI reference was allocated
    * @param objectTag        JVM TI tag for the java object this JNI reference points to
    * @param refValue         value of the global JNI references (jobject, jstring, jclass)
    */
   public JniReferenceInstanceObject(@NotNull LiveAllocationCaptureObject captureObject,
                                     @NotNull LiveAllocationInstanceObject referencedObject,
-                                    @Nullable ThreadId allocThreadId,
                                     long objectTag,
                                     long refValue) {
     myCaptureObject = captureObject;
     myReferencedObject = referencedObject;
     myRefValue = refValue;
     myObjectTag = objectTag;
-    myAllocThreadId = allocThreadId == null ? ThreadId.INVALID_THREAD_ID : allocThreadId;
-    myDeallocThreadId = ThreadId.INVALID_THREAD_ID;
   }
 
   // Set allocTime as Long.MIN_VALUE when no allocation event can be found
@@ -161,6 +157,14 @@ public class JniReferenceInstanceObject implements InstanceObject {
   private static boolean isHiddenFrame(@NotNull MemoryProfiler.NativeCallStack.NativeFrame frame) {
     String module = frame.getModuleName();
     return module == null || !module.startsWith(APP_DIR_PATH_PREFIX);
+  }
+
+  public void setAllocThreadId(@NotNull ThreadId allocThreadId) {
+    myAllocThreadId = allocThreadId;
+  }
+
+  public void setDeallocThreadId(@NotNull ThreadId deallocThreadId) {
+    myDeallocThreadId = deallocThreadId;
   }
 
   public void setAllocationBacktrace(@NotNull  MemoryProfiler.NativeBacktrace backtrace) {

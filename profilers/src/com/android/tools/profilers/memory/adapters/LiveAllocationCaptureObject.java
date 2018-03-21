@@ -432,21 +432,15 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   }
 
   @Nullable
-  private JniReferenceInstanceObject getOrCreateJniRefObject(int tag, long refValue, int threadId) {
+  private JniReferenceInstanceObject getOrCreateJniRefObject(int tag, long refValue) {
     LiveAllocationInstanceObject referencedObject = myInstanceMap.get(tag);
     if (referencedObject == null) {
       // If a Java object can't be found by a given tag, nothing is known about the JNI reference and we can't track it.
       return null;
     }
-    ThreadId thread = null;
-    if (threadId != 0) {
-      assert myThreadIdMap.containsKey(threadId);
-      thread = myThreadIdMap.get(threadId);
-    }
-
     JniReferenceInstanceObject result = referencedObject.getJniRefByValue(refValue);
     if (result == null) {
-      result = new JniReferenceInstanceObject(this, referencedObject, thread, tag, refValue);
+      result = new JniReferenceInstanceObject(this, referencedObject, tag, refValue);
       referencedObject.addJniRef(result);
     }
     return result;
@@ -487,7 +481,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       if (event.getEventType() != JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF) {
         continue;
       }
-      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue());
       if (refObject == null) {
         // JNI reference object can't be constructed, most likely allocation for underlying java object was not
         // reported. We don't have anything to show and ignore this reference.
@@ -496,6 +490,13 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       if (event.hasBacktrace()) {
         refObject.setAllocationBacktrace(event.getBacktrace());
       }
+      int threadId = event.getThreadId();
+      ThreadId thread = ThreadId.INVALID_THREAD_ID;
+      if (threadId != 0) {
+        assert myThreadIdMap.containsKey(threadId);
+        thread = myThreadIdMap.get(threadId);
+      }
+      refObject.setAllocThreadId(thread);
       refObject.setAllocationTime(event.getTimestamp());
       setAllocationList.add(refObject);
     }
@@ -559,12 +560,19 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
 
     for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
-      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue());
       if (refObject == null) {
         // JNI reference object can't be constructed, most likely allocation for underlying java object was not
         // reported. We don't have anything to show and ignore this reference.
         continue;
       }
+      int threadId = event.getThreadId();
+      ThreadId thread = ThreadId.INVALID_THREAD_ID;
+      if (threadId != 0) {
+        assert myThreadIdMap.containsKey(threadId);
+        thread = myThreadIdMap.get(threadId);
+      }
+
       switch (event.getEventType()) {
         case CREATE_GLOBAL_REF:
           if (resetInstance) {
@@ -574,6 +582,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             if (event.hasBacktrace()) {
               refObject.setAllocationBacktrace(event.getBacktrace());
             }
+            refObject.setAllocThreadId(thread);
           }
           allocationList.add(refObject);
           break;
@@ -585,6 +594,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             if (event.hasBacktrace()) {
               refObject.setDeallocationBacktrace(event.getBacktrace());
             }
+            refObject.setDeallocThreadId(thread);
           }
           deallocatoinList.add(refObject);
           break;
