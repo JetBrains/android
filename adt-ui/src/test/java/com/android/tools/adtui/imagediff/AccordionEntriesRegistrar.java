@@ -36,7 +36,7 @@ class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerVerticalAccordion() {
-    register(new AccordionImageDiffEntry("vertical_accordion_baseline.png") {
+    register(new AccordionImageDiffEntry("accordion_vertical_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a vertical accordion
@@ -50,7 +50,7 @@ class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerHorizontalAccordion() {
-    register(new AccordionImageDiffEntry("horizontal_accordion_baseline.png") {
+    register(new AccordionImageDiffEntry("accordion_horizontal_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a horizontal accordion
@@ -64,7 +64,7 @@ class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerVerticalAccordionExpand() {
-    register(new AccordionImageDiffEntry("vertical_accordion_expand_baseline.png") {
+    register(new AccordionImageDiffEntry("accordion_vertical_expand_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a vertical accordion
@@ -83,7 +83,7 @@ class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerVerticalAccordionCollapse() {
-    register(new AccordionImageDiffEntry("vertical_accordion_collapse_baseline.png") {
+    register(new AccordionImageDiffEntry("accordion_vertical_collapse_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a vertical accordion
@@ -105,7 +105,7 @@ class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerVerticalAccordionMinimize() {
-    register(new AccordionImageDiffEntry("vertical_accordion_minimize_baseline.png") {
+    register(new AccordionImageDiffEntry("accordion_vertical_minimize_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a vertical accordion
@@ -124,7 +124,7 @@ class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerHorizontalAccordionExpand() {
-    register(new AccordionImageDiffEntry("horizontal_accordion_expand_baseline.png") {
+    register(new AccordionImageDiffEntry("accordion_horizontal_expand_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a horizontal accordion
@@ -143,7 +143,7 @@ class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerHorizontalAccordionCollapse() {
-    register(new AccordionImageDiffEntry("horizontal_accordion_collapse_baseline.png") {
+    register(new AccordionImageDiffEntry("accordion_horizontal_collapse_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a horizontal accordion
@@ -165,7 +165,7 @@ class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerHorizontalAccordionMinimize() {
-    register(new AccordionImageDiffEntry("horizontal_accordion_minimize_baseline.png") {
+    register(new AccordionImageDiffEntry("accordion_horizontal_minimize_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a horizontal accordion

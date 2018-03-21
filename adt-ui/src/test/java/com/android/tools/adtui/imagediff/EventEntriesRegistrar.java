@@ -42,7 +42,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   private void registerAddActivityEvent() {
     // 1% should be a high enough similarity threshold to take into account the difference across OS/JDK when rendering activity name text.
     float similarityThreshold = 1f;
-    register(new ActivityEventImageDiffEntry("add_activity_event_baseline.png", similarityThreshold) {
+    register(new ActivityEventImageDiffEntry("event_activity_add_baseline.png", similarityThreshold) {
       @Override
       protected void generateComponent() {
         // Set the height to a low value to reduce the amount of unused space of the component.
@@ -62,7 +62,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   private void registerAddRunningActivityEvent() {
     // 1% should be a high enough similarity threshold to take into account the difference across OS/JDK when rendering activity name text.
     float similarityThreshold = 1f;
-    register(new ActivityEventImageDiffEntry("add_running_activity_event_baseline.png", similarityThreshold) {
+    register(new ActivityEventImageDiffEntry("event_activity_add_running_baseline.png", similarityThreshold) {
       @Override
       protected void generateComponent() {
         // Set the height to a low value to reduce the amount of unused space of the component.
@@ -82,7 +82,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   private void registerAddActivityBeforeStartEvent() {
     // 1% should be a high enough similarity threshold to take into account the difference across OS/JDK when rendering activity name text.
     float similarityThreshold = 1f;
-    register(new ActivityEventImageDiffEntry("add_activity_before_start_event_baseline.png", similarityThreshold) {
+    register(new ActivityEventImageDiffEntry("event_activity_add_before_start_baseline.png", similarityThreshold) {
       @Override
       protected void generateComponent() {
         // Set the height to a low value to reduce the amount of unused space of the component.
@@ -104,7 +104,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     // 1.5% should be a high enough similarity threshold to take into account the difference across OS/JDK when rendering activity name text.
     // This threshold is slightly higher than the others on this class because two activity names are rendered.
     float similarityThreshold = 1.5f;
-    register(new ActivityEventImageDiffEntry("add_multiple_inline_activities_event_baseline.png", similarityThreshold) {
+    register(new ActivityEventImageDiffEntry("event_activity_add_multiple_inline_baseline.png", similarityThreshold) {
       @Override
       protected void generateComponent() {
         // Set the height to a low value to reduce the amount of unused space of the component.
@@ -126,7 +126,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleTapEvent() {
-    register(new SimpleEventImageDiffEntry("simple_tap_event_baseline.png") {
+    register(new SimpleEventImageDiffEntry("event_simple_tap_baseline.png") {
 
       @Override
       protected void generateTestData() {
@@ -137,7 +137,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleTapAndHoldEvent() {
-    register(new SimpleEventImageDiffEntry("simple_tap_and_hold_event_baseline.png") {
+    register(new SimpleEventImageDiffEntry("event_simple_tap_and_hold_baseline.png") {
 
       @Override
       protected void generateTestData() {
@@ -148,7 +148,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerMultipleTapEvents() {
-    register(new SimpleEventImageDiffEntry("multiple_tap_events_baseline.png") {
+    register(new SimpleEventImageDiffEntry("event_simple_multiple_tap_baseline.png") {
 
       @Override
       protected void generateTestData() {
@@ -161,7 +161,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleEventExpandingComponent() {
-    register(new SimpleEventImageDiffEntry("simple_event_expanding_event.png") {
+    register(new SimpleEventImageDiffEntry("event_simple_expanding_event.png") {
 
       @Override
       protected void generateTestData() {
