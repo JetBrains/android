@@ -55,6 +55,23 @@ public class ProfilerTableTest {
   }
 
   @Test
+  public void testInsertAndGetDeviceKnownTime() {
+    Common.Device device = Common.Device.newBuilder().setDeviceId(1).build();
+    long knownTimestamp = 100L;
+    long knownTimestamp2 = 200L;
+    myTable.insertOrUpdateDevice(device);
+    myTable.updateDeviceLastKnownTime(device, knownTimestamp);
+    assertThat(myTable.getDeviceLastKnownTime(DeviceId.of(device.getDeviceId()))).isEqualTo(knownTimestamp);
+
+    // Test that subsequent call returns the most recent value.
+    myTable.updateDeviceLastKnownTime(device, knownTimestamp2);
+    assertThat(myTable.getDeviceLastKnownTime(DeviceId.of(device.getDeviceId()))).isEqualTo(knownTimestamp2);
+
+    // Test that invalid device's id return Long.MIN_VALUE;
+    assertThat(myTable.getDeviceLastKnownTime(DeviceId.of(-1))).isEqualTo(Long.MIN_VALUE);
+  }
+
+  @Test
   public void testInsertAndGetSessions() throws Exception {
     List<Common.Session> sessions = new ArrayList<>();
     for (int i = 0; i < 10; i++) {
@@ -89,6 +106,32 @@ public class ProfilerTableTest {
     for (int i = 0; i < 10; i++) {
       assertThat(response.getSessions(i)).isEqualTo(sessions.get(i));
     }
+  }
+
+  @Test
+  public void testGetSessionById() {
+    List<Common.Session> sessions = new ArrayList<>();
+    for (int i = 0; i < 2; i++) {
+      long startTime = 40 + i;
+      String sessionName = Integer.toString(60 + i);
+      Common.Session session = Common.Session.newBuilder()
+        .setSessionId(10 + i)
+        .setDeviceId(20 + i)
+        .setPid(30 + i)
+        .setStartTimestamp(startTime)
+        .setEndTimestamp(Long.MAX_VALUE)
+        .build();
+
+      myTable.insertOrUpdateSession(session, sessionName, startTime, true, false, Common.SessionMetaData.SessionType.FULL);
+      sessions.add(session);
+    }
+
+    for (int i = 0; i < 2; i++) {
+      assertThat(myTable.getSessionById(sessions.get(i).getSessionId())).isEqualTo(sessions.get(i));
+    }
+
+    // Test the invalid case.
+    assertThat(myTable.getSessionById(-1)).isEqualTo(Common.Session.getDefaultInstance());
   }
 
   @Test
