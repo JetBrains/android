@@ -49,7 +49,7 @@ import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
 
 const val NAV_ARGUMENTS_COMPONENT_NAME = "NavArgumentsPropertyInspector"
-const val NAV_ARGUMENTS_ROW_HEIGHT = 22
+val NAV_ARGUMENTS_ROW_HEIGHT = JBUI.scale(22)
 
 class NavDestinationArgumentsInspectorProvider : InspectorProvider<NavPropertiesManager> {
 

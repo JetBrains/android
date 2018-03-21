@@ -43,6 +43,7 @@ import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
@@ -59,27 +60,27 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationT
  * {@link SceneManager} for the navigation editor.
  */
 public class NavSceneManager extends SceneManager {
-  @NavCoordinate private static final int SCREEN_LONG = 256;
+  @NavCoordinate private static final int SCREEN_LONG = JBUI.scale(256);
 
-  @NavCoordinate private static final int SUBNAV_WIDTH = 140;
-  @NavCoordinate private static final int SUBNAV_HEIGHT = 38;
+  @NavCoordinate private static final int SUBNAV_WIDTH = JBUI.scale(140);
+  @NavCoordinate private static final int SUBNAV_HEIGHT = JBUI.scale(38);
 
-  @SwingCoordinate private static final int PAN_LIMIT = 150;
-  @NavCoordinate private static final int BOUNDING_BOX_PADDING = 100;
+  @SwingCoordinate private static final int PAN_LIMIT = JBUI.scale(150);
+  @NavCoordinate private static final int BOUNDING_BOX_PADDING = JBUI.scale(100);
 
-  @NavCoordinate public static final int ACTION_ARROW_PARALLEL = 10;
-  @NavCoordinate public static final int ACTION_ARROW_PERPENDICULAR = 12;
+  @NavCoordinate public static final int ACTION_ARROW_PARALLEL = JBUI.scale(10);
+  @NavCoordinate public static final int ACTION_ARROW_PERPENDICULAR = JBUI.scale(12);
 
   @NavCoordinate private static final int ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR;
-  @NavCoordinate private static final int ACTION_VERTICAL_PADDING = 6;
+  @NavCoordinate private static final int ACTION_VERTICAL_PADDING = JBUI.scale(6);
 
-  @NavCoordinate private static final int GLOBAL_ACTION_LINE_LENGTH = 8;
+  @NavCoordinate private static final int GLOBAL_ACTION_LINE_LENGTH = JBUI.scale(8);
   @NavCoordinate private static final int GLOBAL_ACTION_WIDTH = ACTION_ARROW_PARALLEL + GLOBAL_ACTION_LINE_LENGTH;
-  @NavCoordinate private static final int GLOBAL_ACTION_HORIZONTAL_PADDING = 8;
+  @NavCoordinate private static final int GLOBAL_ACTION_HORIZONTAL_PADDING = JBUI.scale(8);
 
-  @NavCoordinate private static final int EXIT_ACTION_LINE_LENGTH = 14;
+  @NavCoordinate private static final int EXIT_ACTION_LINE_LENGTH = JBUI.scale(14);
   @NavCoordinate private static final int EXIT_ACTION_WIDTH = ACTION_ARROW_PARALLEL + EXIT_ACTION_LINE_LENGTH;
-  @NavCoordinate private static final int EXIT_ACTION_HORIZONTAL_PADDING = 2;
+  @NavCoordinate private static final int EXIT_ACTION_HORIZONTAL_PADDING = JBUI.scale(2);
 
   private final NavScreenTargetProvider myScreenTargetProvider;
   private final NavigationTargetProvider myNavigationTargetProvider;

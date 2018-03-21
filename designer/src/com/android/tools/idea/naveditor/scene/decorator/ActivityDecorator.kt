@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.*
+import com.intellij.util.ui.JBUI
 import java.awt.Font
 import java.awt.Rectangle
 
@@ -34,9 +35,9 @@ import java.awt.Rectangle
  */
 
 // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
-@NavCoordinate private val ACTIVITY_ARC_SIZE = 12
-@NavCoordinate private val ACTIVITY_PADDING = 8
-@NavCoordinate private val ACTIVITY_TEXT_HEIGHT = 26
+@NavCoordinate private val ACTIVITY_ARC_SIZE = JBUI.scale(12)
+@NavCoordinate private val ACTIVITY_PADDING = JBUI.scale(8)
+@NavCoordinate private val ACTIVITY_TEXT_HEIGHT = JBUI.scale(26)
 
 class ActivityDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {

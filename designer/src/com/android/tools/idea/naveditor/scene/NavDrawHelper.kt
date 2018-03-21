@@ -22,12 +22,13 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
 import com.google.common.collect.ImmutableMap
+import com.intellij.util.ui.JBUI
 import java.awt.*
 import java.awt.BasicStroke.CAP_BUTT
 import java.awt.BasicStroke.JOIN_ROUND
 
 private const val DEFAULT_FONT_NAME = "Default"
-private const val DEFAULT_FONT_SIZE = 12
+private val DEFAULT_FONT_SIZE = JBUI.scale(12)
 
 const val DRAW_BACKGROUND_LEVEL = 0
 const val DRAW_FRAME_LEVEL = DRAW_BACKGROUND_LEVEL + 1

@@ -24,6 +24,7 @@ import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -42,7 +43,7 @@ public class DrawAction extends NavBaseDrawCommand {
   private final ActionTarget.ConnectionType myConnectionType;
   @SwingCoordinate private final Rectangle mySource = new Rectangle();
   @SwingCoordinate private final Rectangle myDest = new Rectangle();
-  private static final int ARCH_LEN = 10;
+  private static final int ARCH_LEN = JBUI.scale(10);
 
   private final DrawMode myMode;
 

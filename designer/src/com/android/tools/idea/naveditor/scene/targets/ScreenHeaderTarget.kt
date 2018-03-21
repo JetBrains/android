@@ -29,6 +29,7 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 import com.android.tools.idea.naveditor.scene.scaledFont
+import com.intellij.util.ui.JBUI
 import java.awt.Font
 import java.awt.Rectangle
 
@@ -37,12 +38,12 @@ import java.awt.Rectangle
  * It consists of an optional start destination icon, followed by
  * the label, followed by an optional deep link icon.
  */
-@NavCoordinate private const val ICON_SIZE = 14
-@NavCoordinate private const val TEXT_PADDING = 2
-@NavCoordinate private const val HEADER_PADDING = 8
+@NavCoordinate private val ICON_SIZE = JBUI.scale(14)
+@NavCoordinate private val TEXT_PADDING = JBUI.scale(2)
+@NavCoordinate private val HEADER_PADDING = JBUI.scale(8)
 
-@NavCoordinate private const val HEADER_HEIGHT = ICON_SIZE + HEADER_PADDING
-@NavCoordinate private const val TEXT_HEIGHT = ICON_SIZE - 2 * TEXT_PADDING
+@NavCoordinate private val HEADER_HEIGHT = ICON_SIZE + HEADER_PADDING
+@NavCoordinate private val TEXT_HEIGHT = ICON_SIZE - 2 * TEXT_PADDING
 
 class ScreenHeaderTarget(component: SceneComponent) : NavBaseTarget(component) {
 

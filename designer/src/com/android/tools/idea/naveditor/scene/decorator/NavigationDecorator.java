@@ -27,6 +27,7 @@ import com.android.tools.idea.common.scene.draw.DrawTruncatedText;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -39,7 +40,7 @@ import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.*;
  */
 public class NavigationDecorator extends SceneDecorator {
   // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
-  @NavCoordinate private static final int NAVIGATION_ARC_SIZE = 12;
+  @NavCoordinate private static final int NAVIGATION_ARC_SIZE = JBUI.scale(12);
 
   @Override
   protected void addBackground(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {

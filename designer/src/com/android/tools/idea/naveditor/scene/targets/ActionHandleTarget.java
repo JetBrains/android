@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,11 +48,11 @@ import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION
  * It appears as a circular grab handle on the right side of the navigation screen.
  */
 public class ActionHandleTarget extends NavBaseTarget {
-  @NavCoordinate private static final int INNER_RADIUS_SMALL = 5;
-  @NavCoordinate private static final int INNER_RADIUS_LARGE = 8;
-  @NavCoordinate private static final int OUTER_RADIUS_SMALL = 7;
-  @NavCoordinate private static final int OUTER_RADIUS_LARGE = 11;
-  @NavCoordinate private static final int HORIZONTAL_OFFSET = 3;
+  @NavCoordinate private static final int INNER_RADIUS_SMALL = JBUI.scale(5);
+  @NavCoordinate private static final int INNER_RADIUS_LARGE = JBUI.scale(8);
+  @NavCoordinate private static final int OUTER_RADIUS_SMALL = JBUI.scale(7);
+  @NavCoordinate private static final int OUTER_RADIUS_LARGE = JBUI.scale(11);
+  @NavCoordinate private static final int HORIZONTAL_OFFSET = JBUI.scale(3);
   private static final int DURATION = 200;
   @SwingCoordinate private static final int STROKE_WIDTH = 2;
   private static String DRAG_CREATE_IN_PROGRESS = "DRAG_CREATE_IN_PROGRESS";
