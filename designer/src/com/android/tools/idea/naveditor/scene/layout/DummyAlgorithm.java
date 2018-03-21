@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,9 +32,9 @@ import java.util.stream.Collectors;
  * TODO: implement a better way
  */
 public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
-  @NavCoordinate private static final int WIDTH = 600;
-  @NavCoordinate private static final int INITIAL_OFFSET = 20;
-  @NavCoordinate private static final int INTERVAL = 60;
+  @NavCoordinate private static final int WIDTH = JBUI.scale(600);
+  @NavCoordinate private static final int INITIAL_OFFSET = JBUI.scale(20);
+  @NavCoordinate private static final int INTERVAL = JBUI.scale(60);
 
   private final NavigationSchema mySchema;
 

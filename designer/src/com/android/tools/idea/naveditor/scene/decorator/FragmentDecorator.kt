@@ -24,13 +24,14 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.*
+import com.intellij.util.ui.JBUI
 import java.awt.Rectangle
 
 /**
  * [SceneDecorator] responsible for creating draw commands for one fragment in the navigation editor.
  */
 
-@NavCoordinate private val FRAGMENT_BORDER_SPACING = 2
+@NavCoordinate private val FRAGMENT_BORDER_SPACING = JBUI.scale(2)
 
 class FragmentDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {

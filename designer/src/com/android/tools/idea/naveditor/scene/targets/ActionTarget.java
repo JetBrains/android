@@ -34,6 +34,7 @@ import com.android.tools.idea.naveditor.scene.NavDrawHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.draw.DrawAction;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -52,13 +53,13 @@ public class ActionTarget extends BaseTarget {
   private final SceneComponent myDestination;
   private boolean myHighlighted = false;
 
-  @NavCoordinate private static final int SELF_ACTION_LENGTH_1 = 28;
-  @NavCoordinate private static final int SELF_ACTION_LENGTH_2 = 26;
-  @NavCoordinate private static final int SELF_ACTION_LENGTH_3 = 60;
-  @NavCoordinate private static final int SELF_ACTION_LENGTH_4 = 8;
+  @NavCoordinate private static final int SELF_ACTION_LENGTH_1 = JBUI.scale(28);
+  @NavCoordinate private static final int SELF_ACTION_LENGTH_2 = JBUI.scale(26);
+  @NavCoordinate private static final int SELF_ACTION_LENGTH_3 = JBUI.scale(60);
+  @NavCoordinate private static final int SELF_ACTION_LENGTH_4 = JBUI.scale(8);
 
-  @NavCoordinate private static final int ACTION_HORIZONTAL_PADDING = 8;
-  @NavCoordinate private static final int ACTION_VERTICAL_PADDING = 8;
+  @NavCoordinate private static final int ACTION_HORIZONTAL_PADDING = JBUI.scale(8);
+  @NavCoordinate private static final int ACTION_VERTICAL_PADDING = JBUI.scale(8);
 
   public static class CurvePoints {
     @SwingCoordinate public Point p1;

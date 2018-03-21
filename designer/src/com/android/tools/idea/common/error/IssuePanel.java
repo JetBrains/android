@@ -541,7 +541,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
       mySourceLabel.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(0, 1, 0, 0, JBColor.border()),
-        BorderFactory.createEmptyBorder(0, 6, 0, 0)));
+        BorderFactory.createEmptyBorder(0, JBUI.scale(6), 0, 0)));
       add(myMessageLabel);
       add(mySourceLabel);
     }
@@ -549,7 +549,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     @NotNull
     private static JLabel createLabel(@Nullable String message) {
       JLabel label = new JLabel(message);
-      label.setFont(label.getFont().deriveFont(11f));
+      label.setFont(label.getFont().deriveFont(JBUI.scale(11f)));
       return label;
     }
 
