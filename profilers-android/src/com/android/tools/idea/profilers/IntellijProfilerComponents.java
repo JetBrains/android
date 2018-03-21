@@ -175,4 +175,10 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
                                                            @NotNull Collection<String> variants) {
     return new IntellijAutoCompleteTextField(myProject, placeholder, value, variants);
   }
+
+  @NotNull
+  @Override
+  public UiMessageHandler createUiMessageHandler() {
+    return new IntellijUiMessageHandler();
+  }
 }
