@@ -97,7 +97,7 @@ public final class HprofSessionArtifact implements SessionArtifact {
     long startTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getStartTime());
     long endTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getEndTime());
     Range captureRange = new Range(startTimestamp, endTimestamp);
-    myProfilers.getTimeline().ensureRangeFitsViewRange(captureRange);
+    myProfilers.getTimeline().adjustRangeCloseToMiddleView(captureRange);
 
     // Finally, we set and select the capture in the MemoryProfilerStage, which should be the current stage of StudioProfilers.
     ((MemoryProfilerStage)myProfilers.getStage()).getSelectionModel().set(captureRange.getMin(), captureRange.getMax());

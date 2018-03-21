@@ -285,8 +285,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Give a padding to the capture. 5% of the view range on each side.
     ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
     double padding = timeline.getViewRange().getLength() * 0.05;
-    // Now makes sure the capture range + padding is within view range.
-    timeline.ensureRangeFitsViewRange(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
+    // Now makes sure the capture range + padding is within view range and in the middle if possible.
+    timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
   }
 
   /**
