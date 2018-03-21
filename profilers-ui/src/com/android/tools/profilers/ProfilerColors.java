@@ -35,6 +35,8 @@ public class ProfilerColors {
 
   public static final Color HOVERED_SESSION_COLOR = new JBColor(0xD6D6D6, 0x313435);
 
+  public static final Color SESSION_DIVIDER_COLOR = new JBColor(0xD8D6D6, 0x2F3031);
+
   public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x387362);
 
   public static final Color CPU_USAGE_CAPTURED = new JBColor(0x0EA18D, 0x43CAA2);

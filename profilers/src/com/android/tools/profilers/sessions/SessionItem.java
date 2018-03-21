@@ -61,7 +61,22 @@ public class SessionItem implements SessionArtifact {
   @Override
   @NotNull
   public String getName() {
-    return mySessionMetaData.getSessionName();
+    String name = mySessionMetaData.getSessionName();
+    if (mySessionMetaData.getType() != Common.SessionMetaData.SessionType.FULL) {
+      return name;
+    }
+
+    // Everything before the first space is the app's name (the format is {APP_NAME (DEVICE_NAME)})
+    int firstSpace = name.indexOf(' ');
+    // We always expect the device name to exist
+    assert firstSpace != -1;
+    String appName = name.substring(0, firstSpace);
+    int lastDot = appName.lastIndexOf('.');
+    if (lastDot != -1) {
+      // Strips the packages from the application name
+      appName = appName.substring(lastDot + 1);
+    }
+    return appName + name.substring(firstSpace);
   }
 
   @Override
