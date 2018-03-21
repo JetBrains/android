@@ -42,7 +42,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
     // 2% is a reasonable value because make the test not to fail because of different text rendering on different JDKs,
     // but also make it fail when something odd happens with the legend (e.g. when one of the icons doesn't render).
     float similarityThreshold = 2;
-    register(new LegendComponentImageDiffEntry("simple_legend_component_baseline.png", similarityThreshold) {
+    register(new LegendComponentImageDiffEntry("legend_component_baseline.png", similarityThreshold) {
       @Override
       protected void generateComponent() {
         // Create a simple legend component with different icon types.
