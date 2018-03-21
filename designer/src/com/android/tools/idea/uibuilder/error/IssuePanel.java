@@ -16,27 +16,33 @@
 package com.android.tools.idea.uibuilder.error;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -44,7 +50,7 @@ import java.util.regex.Pattern;
 /**
  * Panel that displays a list of {@link NlIssue}.
  */
-public class IssuePanel extends JPanel implements Disposable {
+public class IssuePanel extends JPanel implements Disposable, PropertyChangeListener {
   private static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
   private static final String TITLE_NO_ISSUES = "No issues";
   private static final String TITLE_NO_IMPORTANT_ISSUE = "Issues";
@@ -54,7 +60,6 @@ public class IssuePanel extends JPanel implements Disposable {
   private static final String ACTION_NEXT = "next";
   private static final String ACTION_EXPAND = "expand";
   private static final String ACTION_COLLAPSE = "collapse";
-  private static final String SHOW_ISSUES_CHECKBOX_TEXT = "Show issues on the preview";
   private static final Pattern MULTIPLE_SPACES = Pattern.compile("\\s+");
 
   private final HashBiMap<NlIssue, IssueView> myDisplayedError = HashBiMap.create();
@@ -64,6 +69,7 @@ public class IssuePanel extends JPanel implements Disposable {
   private final IssueModel.IssueModelListener myIssueModelListener;
   private final JBScrollPane myScrollPane;
   private final DesignSurface mySurface;
+  private final ColumnHeaderPanel myColumnHeaderView;
   @Nullable private MinimizeListener myMinimizeListener;
   @Nullable private IssueView mySelectedIssueView;
 
@@ -85,6 +91,8 @@ public class IssuePanel extends JPanel implements Disposable {
 
     myErrorListPanel = createErrorListPanel();
     myScrollPane = createListScrollPane(myErrorListPanel);
+    myColumnHeaderView = new ColumnHeaderPanel();
+    myScrollPane.setColumnHeaderView(myColumnHeaderView);
     add(myScrollPane, BorderLayout.CENTER);
     updateTitlebarStyle();
 
@@ -97,6 +105,7 @@ public class IssuePanel extends JPanel implements Disposable {
     registerKeyboardActions();
     addFocusListener(createFocusListener());
     setMinimized(true);
+    UIManager.addPropertyChangeListener(this);
   }
 
   @NotNull
@@ -192,17 +201,9 @@ public class IssuePanel extends JPanel implements Disposable {
 
   @NotNull
   private JComponent createTitlePanel(@NotNull JBLabel titleLabel) {
-    JBCheckBox checkBox = new JBCheckBox(SHOW_ISSUES_CHECKBOX_TEXT,
-                                         AndroidEditorSettings.getInstance().getGlobalState().isShowLint());
-    checkBox.addItemListener(e -> {
-      AndroidEditorSettings.getInstance().getGlobalState()
-        .setShowLint(e.getStateChange() == ItemEvent.SELECTED);
-      mySurface.repaint();
-    });
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.add(titleLabel, BorderLayout.WEST);
     JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-    rightPanel.add(checkBox);
     rightPanel.add(createToolbar().getComponent());
     titlePanel.add(rightPanel, BorderLayout.EAST);
     titlePanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
@@ -214,13 +215,13 @@ public class IssuePanel extends JPanel implements Disposable {
     JBScrollPane pane = new JBScrollPane(content);
     pane.setBorder(null);
     pane.setAlignmentX(CENTER_ALIGNMENT);
+    pane.getViewport().setBackground(content.getBackground());
     return pane;
   }
 
   @NotNull
   private static JPanel createErrorListPanel() {
-    JPanel panel = new JPanel(null, true);
-    panel.setBackground(UIUtil.getEditorPaneBackground());
+    JPanel panel = new AdtSecondaryPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     return panel;
   }
@@ -295,12 +296,12 @@ public class IssuePanel extends JPanel implements Disposable {
     return needsRevalidate;
   }
 
-  private void removeOldIssues(@NotNull List<NlIssue> nlIssues) {
+  private void removeOldIssues(@NotNull List<NlIssue> newIssues) {
     Iterator<Map.Entry<NlIssue, IssueView>> iterator = myDisplayedError.entrySet().iterator();
     while (iterator.hasNext()) {
       Map.Entry<NlIssue, IssueView> entry = iterator.next();
       NlIssue nlIssue = entry.getKey();
-      if (!nlIssues.contains(nlIssue)) {
+      if (!newIssues.contains(nlIssue)) {
         IssueView issueView = entry.getValue();
         myErrorListPanel.remove(issueView);
         iterator.remove();
@@ -340,19 +341,20 @@ public class IssuePanel extends JPanel implements Disposable {
 
   @Override
   public void doLayout() {
-    // Compute the Category and source column size so they take the minimum space
-    int categoryColumnSize = 0;
     int sourceColumnSize = 0;
-    Collection<IssueView> values = myDisplayedError.values();
-    for (IssueView view : values) {
-      categoryColumnSize = Math.max(categoryColumnSize, view.getCategoryLabelWidth());
+    Collection<IssueView> issueViews = myDisplayedError.values();
+    IssueView lastView = null;
+    for (IssueView view : issueViews) {
       sourceColumnSize = Math.max(sourceColumnSize, view.getSourceLabelWidth());
     }
-    for (IssueView view : values) {
-      view.setCategoryLabelSize(categoryColumnSize);
+    for (IssueView view : issueViews) {
       view.setSourceLabelSize(sourceColumnSize);
+      lastView = view;
     }
     super.doLayout();
+    if (lastView != null) {
+      myColumnHeaderView.setColumnsX(lastView.getColumsX());
+    }
   }
 
   public void setMinimized(boolean minimized) {
@@ -385,6 +387,7 @@ public class IssuePanel extends JPanel implements Disposable {
   public void dispose() {
     myMinimizeListener = null;
     myIssueModel.removeErrorModelListener(myIssueModelListener);
+    UIManager.removePropertyChangeListener(this);
   }
 
   public boolean isMinimized() {
@@ -406,7 +409,7 @@ public class IssuePanel extends JPanel implements Disposable {
         }
         NlComponent source = issue.getSource();
         if (source != null) {
-          source.getModel().getSelectionModel().setSelection(Collections.singletonList(source));
+          mySurface.getSelectionModel().setSelection(Collections.singletonList(source));
         }
       }
     }
@@ -476,6 +479,27 @@ public class IssuePanel extends JPanel implements Disposable {
     return Math.max(getHeight(), suggestedHeight);
   }
 
+  @NotNull
+  @VisibleForTesting
+  ImmutableList<IssueView> getIssueViews() {
+    ImmutableList.Builder<IssueView> builder = ImmutableList.builder();
+    for (Component component : myErrorListPanel.getComponents()) {
+      if (component instanceof IssueView) {
+        builder.add(((IssueView)component));
+      }
+    }
+    return builder.build();
+  }
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    if ("lookAndFeel".equals(evt.getPropertyName())) {
+      myErrorListPanel.removeAll();
+      myDisplayedError.clear();
+      updateErrorList();
+    }
+  }
+
   public interface MinimizeListener {
     void onMinimizeChanged(boolean isMinimized);
   }
@@ -493,6 +517,78 @@ public class IssuePanel extends JPanel implements Disposable {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       setMinimized(true);
+    }
+  }
+
+  private static class ColumnHeaderPanel extends JPanel {
+
+    private static final int HEIGHT = 15;
+    private static final GradientPaint backgroundPaint =
+      new GradientPaint(0, 0, new JBColor(0xfbfbfb, 0x53575a),
+                        0, HEIGHT, new JBColor(0xe2e2e2, 0x393b3d));
+    public static final int COLUMN_COUNT = 2;
+    private final JLabel myMessageLabel = createLabel("Message");
+    private final JLabel mySourceLabel = createLabel("Source");
+    private int[] myColumnsX;
+
+    public ColumnHeaderPanel() {
+      setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
+      mySourceLabel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createMatteBorder(0, 1, 0, 0, JBColor.border()),
+        BorderFactory.createEmptyBorder(0, 6, 0, 0)));
+      add(myMessageLabel);
+      add(mySourceLabel);
+    }
+
+    @NotNull
+    private static JLabel createLabel(@Nullable String message) {
+      JLabel label = new JLabel(message);
+      label.setFont(label.getFont().deriveFont(11f));
+      return label;
+    }
+
+    @Override
+    public void doLayout() {
+      super.doLayout();
+      if (myColumnsX != null && myColumnsX.length == COLUMN_COUNT) {
+        myMessageLabel.setLocation(myColumnsX[0], 0);
+
+        // Ensure that the source column always occupied at least 10% of the width if
+        // no row has a source label
+        int sourceLabelX = (int)Math.min(getWidth() * 0.9, myColumnsX[1] - mySourceLabel.getInsets().left);
+        mySourceLabel.setLocation(sourceLabelX, 0);
+      }
+      else {
+        myMessageLabel.setLocation(5, 0);
+        mySourceLabel.setLocation((int)(getWidth() * 0.8), 0);
+      }
+    }
+
+    @Override
+    protected void paintComponent(@NotNull Graphics g) {
+      super.paintComponent(g);
+      Graphics2D g2d = (Graphics2D)g;
+      Paint paint = g2d.getPaint();
+      g2d.setPaint(backgroundPaint);
+      g2d.fill(getBounds());
+      g2d.setPaint(paint);
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+      return JBUI.size(-1, HEIGHT);
+    }
+
+    /**
+     * Set the x coordinates of each columns
+     *
+     * @param columnsX An array of the x coordinates for each columns
+     *                 from left to right
+     */
+    private void setColumnsX(@NotNull int[] columnsX) {
+      myColumnsX = columnsX;
+      revalidate();
+      repaint();
     }
   }
 }

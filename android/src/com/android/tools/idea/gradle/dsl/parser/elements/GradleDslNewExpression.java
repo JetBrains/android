@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.google.common.collect.Lists;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
 
 import java.io.File;
 import java.util.Collection;
@@ -27,12 +26,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a {@link GrNewExpression} element.
+ * Represents a new expression.
  */
 public final class GradleDslNewExpression extends GradleDslExpression {
   private final @NotNull List<GradleDslExpression> myArguments = Lists.newArrayList();
 
-  public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull GrNewExpression newExpression, @NotNull String name) {
+  public GradleDslNewExpression(@NotNull GradleDslElement parent, @NotNull PsiElement newExpression, @NotNull String name) {
     super(parent, newExpression, name, newExpression);
   }
 
@@ -62,19 +61,25 @@ public final class GradleDslNewExpression extends GradleDslExpression {
 
   @Override
   @NotNull
-  protected Collection<GradleDslElement> getChildren() {
+  public Collection<GradleDslElement> getChildren() {
     return Collections.emptyList();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Object getValue() {
-    GroovyPsiElement psiElement = getPsiElement();
+    PsiElement psiElement = getPsiElement();
     return psiElement != null ? psiElement.getText() : null;
   }
 
-  @Nullable
   @Override
+  @Nullable
+  public Object getUnresolvedValue() {
+    return getValue();
+  }
+
+  @Override
+  @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     if (clazz.isAssignableFrom(File.class)) {
       return clazz.cast(getFileValue());
@@ -84,6 +89,12 @@ public final class GradleDslNewExpression extends GradleDslExpression {
       return clazz.cast(value);
     }
     return null;
+  }
+
+  @Override
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    return getValue(clazz);
   }
 
   @Nullable
@@ -130,7 +141,7 @@ public final class GradleDslNewExpression extends GradleDslExpression {
 
   @Override
   @Nullable
-  public GroovyPsiElement create() {
+  public PsiElement create() {
     // TODO: Add support to create new element when there is a use case for it.
     return getPsiElement();
   }

@@ -22,8 +22,8 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -35,12 +35,10 @@ import java.awt.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profiler.proto.Common.CommonData;
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 public class NetworkProfilerStageViewTest {
@@ -149,13 +147,13 @@ public class NetworkProfilerStageViewTest {
 
   private static NetworkProfilerData createSpeedData(long time, long sent, long received) {
     return NetworkProfilerData.newBuilder()
-      .setBasicInfo(CommonData.newBuilder().setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(time)).build())
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(time))
       .setSpeedData(SpeedData.newBuilder().setReceived(received).setSent(sent).build()).build();
   }
 
   private static NetworkProfilerData createConnectionData(long time, int connectionNumber) {
     return NetworkProfilerData.newBuilder()
-      .setBasicInfo(CommonData.newBuilder().setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(time)).build())
+      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(time))
       .setConnectionData(NetworkProfiler.ConnectionData.newBuilder().setConnectionNumber(connectionNumber).build()).build();
   }
 }

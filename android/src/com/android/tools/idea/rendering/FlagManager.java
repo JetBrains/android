@@ -29,7 +29,7 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -117,19 +117,20 @@ public class FlagManager {
   }
 
   private static boolean ourFlagSettingAvailable = true;
-  private static Field ourLanguageFlagField;
+  private static Method ourLanguageFlagMethod;
 
   /** Whether users want to use flags to represent languages when possible */
-  private static boolean showFlagsForLanguages() {
+  public static boolean showFlagsForLanguages() {
     if (ourFlagSettingAvailable) {
       try {
-        if (ourLanguageFlagField == null) {
-          ourLanguageFlagField = UISettings.class.getDeclaredField("LANGUAGE_FLAGS");
+        if (ourLanguageFlagMethod == null) {
+          ourLanguageFlagMethod = UISettings.class.getDeclaredMethod("getLanguageFlags");
         }
-        return ourLanguageFlagField.getBoolean(UISettings.getInstance());
-      } catch (Throwable t) {
+        return (boolean)ourLanguageFlagMethod.invoke(UISettings.getInstance());
+      }
+      catch (Throwable t) {
         ourFlagSettingAvailable = false;
-        return true;
+        return false;
       }
     }
     return true;

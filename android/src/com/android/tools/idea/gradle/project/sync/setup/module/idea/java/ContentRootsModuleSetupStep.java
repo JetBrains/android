@@ -15,33 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup.removeExistingContentEntries;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
 public class ContentRootsModuleSetupStep extends JavaModuleSetupStep {
   @Override
-  protected void doSetUpModule(@NotNull Module module,
-                               @NotNull IdeModifiableModelsProvider ideModelsProvider,
-                               @NotNull JavaModuleModel javaModuleModel,
-                               @Nullable SyncAction.ModuleModels gradleModels,
-                               @Nullable ProgressIndicator indicator) {
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
+  protected void doSetUpModule(@NotNull ModuleSetupContext context,
+                               @NotNull JavaModuleModel javaModuleModel) {
+    ModifiableRootModel moduleModel = context.getModifiableRootModel();
     JavaContentEntriesSetup setup = new JavaContentEntriesSetup(javaModuleModel, moduleModel);
     List<ContentEntry> contentEntries = findContentEntries(moduleModel, javaModuleModel);
     setup.execute(contentEntries);

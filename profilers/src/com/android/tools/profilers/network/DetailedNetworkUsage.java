@@ -43,7 +43,7 @@ public class DetailedNetworkUsage extends NetworkUsage {
   @NotNull
   private NetworkOpenConnectionsDataSeries createOpenConnectionsSeries(@NotNull StudioProfilers profilers) {
     NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();
-    return new NetworkOpenConnectionsDataSeries(client, profilers.getProcessId(), profilers.getSession());
+    return new NetworkOpenConnectionsDataSeries(client, profilers.getSession());
   }
 
   @NotNull

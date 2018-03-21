@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -27,6 +28,7 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,13 +38,15 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -56,7 +60,6 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-
     mySetupStep = new ArtifactsByConfigurationModuleSetupStep();
   }
 
@@ -72,7 +75,8 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
     JavaModuleModel model = new JavaModuleModel(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
                                                 artifactsByConfiguration, null, null, null, true, false);
-    mySetupStep.doSetUpModule(module, modelsProvider, model, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
+    mySetupStep.doSetUpModule(context, model);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
@@ -95,7 +99,8 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
     JavaModuleModel model = new JavaModuleModel(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
                                                 artifactsByConfiguration, null, null, null, true, false);
-    mySetupStep.doSetUpModule(module, modelsProvider, model, null, null);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
+    mySetupStep.doSetUpModule(context, model);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
@@ -128,12 +133,12 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertThat(urls).hasLength(1);
     assertEquals(pathToIdeaUrl(jarFilePath), urls[0]);
 
-    assertAbout(libraryDependencies()).that(getModule()).contains(libraryName, COMPILE);
+    assertAbout(libraryDependencies()).that(getModule()).hasDependency(libraryName, COMPILE, true);
   }
 
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
-    return "Gradle: " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
+    return getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
   }
 
   public void testDoSetUpModuleWithCompiledJar() throws IOException {
@@ -150,10 +155,10 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     Map<String, Set<File>> artifactsByConfiguration = new HashMap<>();
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
-    JavaModuleModel model =
-      new JavaModuleModel(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-                          null, buildFolderPath, null, true, false);
-    mySetupStep.doSetUpModule(module, modelsProvider, model, null, null);
+    JavaModuleModel model = new JavaModuleModel(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                                                artifactsByConfiguration, null, buildFolderPath, null, true, false);
+    ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
+    mySetupStep.doSetUpModule(context, model);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 

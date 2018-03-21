@@ -16,14 +16,12 @@
 package org.jetbrains.android.dom;
 
 import com.google.common.collect.Sets;
+import com.intellij.codeInsight.completion.InsertHandler;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.XmlTagInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.TagNameVariantCollector;
 import com.intellij.psi.meta.PsiPresentableMetaData;
 import com.intellij.psi.xml.XmlFile;
@@ -38,10 +36,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
+import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
 /**
  * Tag name provider that is supposed to work with Java-style fully-qualified names
@@ -92,6 +92,10 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
       LookupElementBuilder lookupElement =
         declaration == null ? LookupElementBuilder.create(qualifiedName) : LookupElementBuilder.create(declaration, qualifiedName);
 
+      if (isDeclarationRestricted(declaration)) {
+        continue;
+      }
+
       final boolean isDeprecated = isDeclarationDeprecated(declaration);
       if (isDeprecated) {
         lookupElement = lookupElement.withStrikeoutness(true);
@@ -109,7 +113,9 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
 
       // Using insert handler is required for, e.g. automatic insertion of required fields in Android layout XMLs
       if (xmlExtension.useXmlTagInsertHandler()) {
-        lookupElement = lookupElement.withInsertHandler(XmlTagInsertHandler.INSTANCE);
+        InsertHandler<LookupElement> insertHandler =
+          isInnerViewClass(descriptor.getDeclaration()) ? XmlTagInnerClassInsertHandler.INSTANCE : XmlTagInsertHandler.INSTANCE;
+        lookupElement = lookupElement.withInsertHandler(insertHandler);
       }
 
       // Deprecated tag names are supposed to be shown below non-deprecated tags
@@ -129,6 +135,25 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
     }
   }
 
+  private static boolean isInnerViewClass(@Nullable PsiElement declaration) {
+    if (!(declaration instanceof PsiClass)) {
+      return false;
+    }
+
+    PsiClass aClass = (PsiClass)declaration;
+    if (aClass.getContainingClass() == null) {
+      return false;
+    }
+    Set<PsiClass> visited = new HashSet<>();
+    while (aClass != null && visited.add(aClass)) {
+      if ("android.view.View".equals(aClass.getQualifiedName())) {
+        return true;
+      }
+      aClass = aClass.getSuperClass();
+    }
+    return false;
+  }
+
   private static boolean isDeclarationDeprecated(@Nullable PsiElement declaration) {
     if (!(declaration instanceof PsiClass)) {
       return false;
@@ -141,5 +166,22 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
     }
 
     return modifierList.hasAnnotation("java.lang.Deprecated");
+  }
+
+  private static boolean isDeclarationRestricted(@Nullable PsiElement declaration) {
+    if (!(declaration instanceof PsiClass)) {
+      return false;
+    }
+
+    final PsiClass aClass = (PsiClass)declaration;
+    final PsiModifierList modifierList = aClass.getModifierList();
+    if (modifierList == null) {
+      return false;
+    }
+
+    if (!modifierList.hasModifierProperty(PsiModifier.PUBLIC)) {
+      return true;
+    }
+    return modifierList.findAnnotation(RESTRICT_TO_ANNOTATION) != null;
   }
 }

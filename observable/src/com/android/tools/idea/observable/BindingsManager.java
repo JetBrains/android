@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.observable;
 
-import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
+import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +59,7 @@ public final class BindingsManager {
    * break bindings conditionally.
    */
   public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src) {
-    bind(dest, src, BooleanExpressions.alwaysTrue());
+    bind(dest, src, BooleanExpression.ALWAYS_TRUE);
   }
 
   /**

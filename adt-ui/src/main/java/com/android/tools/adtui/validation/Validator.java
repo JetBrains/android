@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.validation;
 
+import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +26,6 @@ import javax.swing.*;
  * A class which is used to validate some input.
  */
 public interface Validator<T> {
-
   /**
    * Returns {@link Result#OK} if the input is valid, or a result with some other
    * {@link Severity} otherwise.
@@ -64,12 +64,36 @@ public interface Validator<T> {
   final class Result {
     public static final Result OK = new Result(Severity.OK, "");
 
-    private final Severity mySeverity;
-    private final String myMessage;
+    @NotNull private final Severity mySeverity;
+    @NotNull private final String myMessage;
 
     public Result(@NotNull Severity severity, @NotNull String message) {
       mySeverity = severity;
       myMessage = message;
+    }
+
+    /**
+     * Returns an error result, if given an error message, or an OK result if given a null or an empty message.
+     *
+     * @param errorMessage an error message, or null or an empty string to produce an OK result
+     */
+    @NotNull
+    public static Result fromNullableMessage(@Nullable String errorMessage) {
+      return Strings.isNullOrEmpty(errorMessage) ? OK : new Result(Severity.ERROR, errorMessage);
+    }
+
+    /**
+     * Returns an error result for the given throwable.
+     *
+     * @param throwable a throwable to produce error validation result for
+     */
+    @NotNull
+    public static Result fromThrowable(@NotNull Throwable throwable) {
+      String errorMessage = throwable.getMessage();
+      if (errorMessage == null) {
+        errorMessage = "Error (" + throwable.getClass().getSimpleName() + ")";
+      }
+      return fromNullableMessage(errorMessage);
     }
 
     @NotNull
@@ -82,16 +106,17 @@ public interface Validator<T> {
       return myMessage;
     }
 
-    /**
-     * Returns an error result, if given an error message, or an OK result if given a null message.
-     *
-     * There are a plenty of legacy validation methods that return error message or null if the validation succeeded.
-     * Instead of migrating all these methods this helper function allows to convert result of such a validation method
-     * to return proper {@link Result}.
-     */
-    @NotNull
-    public static Result fromNullableMessage(@Nullable/*if no error*/ String errorMessage) {
-      return (errorMessage == null) ? OK : new Result(Severity.ERROR, errorMessage);
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (obj == null || getClass() != obj.getClass()) return false;
+      Result other = (Result)obj;
+      return mySeverity == other.mySeverity && myMessage.equals(other.myMessage);
+    }
+
+    @Override
+    public int hashCode() {
+      return myMessage.hashCode() * 31 + mySeverity.ordinal();
     }
   }
 }

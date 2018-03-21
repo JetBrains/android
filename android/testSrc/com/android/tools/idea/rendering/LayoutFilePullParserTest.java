@@ -41,6 +41,9 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
 
     LayoutlibCallback callback = new DummyCallback();
     LayoutFilePullParser parser = LayoutFilePullParser.create(callback, file);
+
+    assertNull(parser.getName());
+
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag());

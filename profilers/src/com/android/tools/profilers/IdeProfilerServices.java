@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
@@ -84,19 +85,35 @@ public interface IdeProfilerServices {
   FeatureConfig getFeatureConfig();
 
   /**
-   * Open the dialog for managing the CPU profiling configurations.
-   * @param configuration Profiling configuration to be selected when opening the dialog
-   * @param isDeviceAtLeastO Whether device API level is O or higher
-   * @param dialogCallback Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
-   *                       that was selected on the configurations list when the dialog was closed.
+   * Allows the profiler to cache settings within the current studio session.
+   * e.g. settings are only preserved across profiling sessions within the same studio instance.
    */
-  void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
+  @NotNull
+  ProfilerPreferences getTemporaryProfilerPreferences();
+
+  /**
+   * Allows the profiler to cache settings across multiple studio sessions.
+   * e.g. settings are preserved when studio restarts.
+   */
+  @NotNull
+  ProfilerPreferences getPersistentProfilerPreferences();
+
+  /**
+   * Open the dialog for managing the CPU profiling configurations.
+   *
+   * @param configuration    Profiling configuration to be selected when opening the dialog
+   * @param deviceLevel API level of the device
+   * @param dialogCallback   Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
+   *                         that was selected on the configurations list when the dialog was closed.
+   */
+  void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel profilerModel, int deviceLevel,
                                             Consumer<ProfilingConfiguration> dialogCallback);
 
   /**
    * Displays a yes/no dialog warning the user the trace file is too large to be parsed and asking them if parsing should proceed.
+   *
    * @param yesCallback callback to be run if user clicks "Yes"
-   * @param noCallback callback to be run if user clicks "No"
+   * @param noCallback  callback to be run if user clicks "No"
    */
   void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback);
 
@@ -104,4 +121,27 @@ public interface IdeProfilerServices {
    * Returns the profiling configurations saved for a project.
    */
   List<ProfilingConfiguration> getCpuProfilingConfigurations();
+
+  /**
+   * Whether a native CPU profiling configuration is preferred over a Java one.
+   * Native configurations can be preferred for native projects, for instance.
+   */
+  boolean isNativeProfilingConfigurationPreferred();
+
+  /**
+   * Displays a balloon message showing the user that an error has occurred.
+   *
+   * @param title title of the message
+   * @param text  body of the message
+   */
+  void showErrorBalloon(@NotNull String title, @NotNull String text);
+
+  /**
+   * Wraps the supplied expection in a NoPiiException that is then sent to the crash report.
+   * This function should only be called when we are sure there is no PII within the exception message.
+   * The NoPiiException uploads the full exception message to the crash report site. This can then be
+   * to diagnose and root cause issues.
+   * @param t throwable to be wrapped. The exception should not contain PII within the message.
+   */
+  void reportNoPiiException(@NotNull Throwable t);
 }

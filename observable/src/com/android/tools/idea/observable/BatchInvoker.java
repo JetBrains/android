@@ -17,6 +17,7 @@ package com.android.tools.idea.observable;
 
 import com.google.common.collect.Queues;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
@@ -71,7 +72,6 @@ public final class BatchInvoker {
   private boolean myUpdateInProgress;
 
   public BatchInvoker() {
-
     this(ourOverrideStrategy != null ? ourOverrideStrategy : SWING_INVOKE_LATER_STRATEGY);
   }
 
@@ -107,10 +107,16 @@ public final class BatchInvoker {
   private void enqueueInvoke() {
     myStrategy.invoke(() -> {
       int cycleCount = 0;
+      RuntimeException runnableExceptionChain = null;
       while (true) {
         myUpdateInProgress = true;
         for (Runnable runnable : myRunnables) {
-          runnable.run();
+          try {
+            runnable.run();
+          }
+          catch (RuntimeException ex) {
+            runnableExceptionChain = addExceptionCause(ex, runnableExceptionChain);
+          }
         }
         myRunnables.clear();
 
@@ -120,7 +126,7 @@ public final class BatchInvoker {
           cycleCount++;
           if (cycleCount > MAX_CYCLE_COUNT) {
             myDeferredRunnables.clear();
-            throw new InfiniteCycleException();
+            throw new InfiniteCycleException(runnableExceptionChain);
           }
 
           myRunnables.addAll(myDeferredRunnables);
@@ -129,6 +135,10 @@ public final class BatchInvoker {
         else {
           break;
         }
+      }
+
+      if (runnableExceptionChain != null) {
+        throw runnableExceptionChain;
       }
     });
   }
@@ -164,8 +174,19 @@ public final class BatchInvoker {
    * amount of time.
    */
   public static final class InfiniteCycleException extends RuntimeException {
-    public InfiniteCycleException() {
-      super("Endless invocation cycle detected.");
+    public InfiniteCycleException(@Nullable Throwable cause) {
+      super("Endless invocation cycle detected.", cause);
     }
+  }
+
+  private static RuntimeException addExceptionCause(@NotNull RuntimeException ex, @Nullable RuntimeException cause) {
+    if (cause != null) {
+      Throwable tail = ex;
+      while (tail.getCause() != null) {
+        tail = ex.getCause();
+      }
+      tail.initCause(cause);
+    }
+    return ex;
   }
 }

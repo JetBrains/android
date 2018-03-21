@@ -50,10 +50,10 @@ public class BuildTypesTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   @Test
   public void addNewBuildType() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
+    String gradleFileContents = guiTest.importSimpleLocalApplication()
       .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .selectConfigurable("app")
       .selectBuildTypesTab()
@@ -61,7 +61,6 @@ public class BuildTypesTest {
       .setDebuggable("true")
       .setVersionNameSuffix("suffix")
       .clickOk()
-      .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("/app/build.gradle")
       .getCurrentFileContents();
@@ -86,7 +85,7 @@ public class BuildTypesTest {
   @RunIn(TestGroup.QA)
   @Test
   public void editBuildType() throws Exception {
-    String gradleFileContents = guiTest.importSimpleApplication()
+    String gradleFileContents = guiTest.importSimpleLocalApplication()
       .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .selectConfigurable("app")
       .selectBuildTypesTab()
@@ -94,7 +93,6 @@ public class BuildTypesTest {
       .setDebuggable("true")
       .setVersionNameSuffix("suffix")
       .clickOk()
-      .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("/app/build.gradle")
       .getCurrentFileContents();

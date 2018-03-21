@@ -17,12 +17,12 @@
 package org.jetbrains.android.intentions;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -88,15 +88,15 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
 
     ImmutableList.Builder<String> dependenciesBuilder = ImmutableList.builder();
     RepositoryUrlManager repositoryUrlManager = RepositoryUrlManager.get();
-    for (SupportLibrary library : SupportLibrary.values()) {
+    for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
       // Coordinate for any version available
-      GradleCoordinate libraryCoordinate = library.getGradleCoordinate("+");
+      GradleCoordinate coordinate = id.getCoordinate("+");
 
       // Get from the library coordinate only the group and artifactId to check if we have already added it
-      if (!existingDependencies.contains(libraryCoordinate.getId())) {
-        GradleCoordinate coordinate = repositoryUrlManager.resolveDynamicCoordinate(libraryCoordinate, buildModel.getProject());
-        if (coordinate != null) {
-          dependenciesBuilder.add(coordinate.toString());
+      if (!existingDependencies.contains(coordinate.getId())) {
+        GradleCoordinate resolvedCoordinate = repositoryUrlManager.resolveDynamicCoordinate(coordinate, buildModel.getProject());
+        if (resolvedCoordinate != null) {
+          dependenciesBuilder.add(resolvedCoordinate.toString());
         }
       }
     }
@@ -109,15 +109,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     if (!(file instanceof GroovyFile) || !file.getName().equals("build.gradle")) {
       return false;
     }
-    if (!AndroidFacet.hasAndroid(project)) return false;
-
-    GradleBuildModel buildModel = getGradleBuildModel(project, file);
-    // Check that this file is a gradle model and that it declares dependencies
-    if (buildModel == null || buildModel.dependencies().all().isEmpty()) {
-      return false;
-    }
-
-    return !findAllDependencies(buildModel).isEmpty();
+    return AndroidFacet.getInstance(file) != null;
   }
 
   /**
@@ -135,7 +127,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
       return;
     }
     final ArtifactDependencySpec newDependency =
-      new ArtifactDependencySpec(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getRevision());
+      ArtifactDependencySpec.create(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getRevision());
 
     WriteCommandAction.runWriteCommandAction(project, new Runnable() {
       @Override

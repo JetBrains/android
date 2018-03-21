@@ -15,15 +15,17 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.regex.Pattern;
 
 /**
  * Manages states of the selected capture, such as current select thread, capture details (i.e top down tree, bottom up true, chart).
@@ -38,7 +40,7 @@ class CaptureModel {
   /**
    * Negative number used when no thread is selected.
    */
-  static final int NO_THREAD = -1;
+  public static final int NO_THREAD = -1;
 
   @NotNull
   private final CpuProfilerStage myStage;
@@ -51,8 +53,18 @@ class CaptureModel {
   @NotNull
   private ClockType myClockType = ClockType.GLOBAL;
 
+  /**
+   * A filter that is applied to the current {@link CaptureNode}.
+   */
+  @Nullable
+  private Pattern myFilter;
+
   @Nullable
   private Details myDetails;
+
+  private int myTotalNodeCount;
+
+  private int myFilterNodeCount;
 
   /**
    * Reference to a selection range converted to ClockType.THREAD.
@@ -83,7 +95,7 @@ class CaptureModel {
       setThread(NO_THREAD);
     }
     rebuildDetails();
-    myStage.getAspect().changed(CpuProfilerAspect.CAPTURE);
+    myStage.getAspect().changed(CpuProfilerAspect.CAPTURE_SELECTION);
   }
 
   @Nullable
@@ -122,6 +134,14 @@ class CaptureModel {
     return myClockType;
   }
 
+  void setFilter(@Nullable Pattern filter) {
+    if (Objects.equals(filter, myFilter)) {
+      return;
+    }
+    myFilter = filter;
+    rebuildDetails();
+  }
+
   void setDetails(@Nullable Details.Type type) {
     if (type != null && myDetails != null && type == myDetails.getType()) {
       return;
@@ -145,13 +165,65 @@ class CaptureModel {
 
   private void buildDetails(@Nullable Details.Type type) {
     updateCaptureConvertedRange();
-    myDetails = type != null ? type.build(myCaptureConvertedRange, getNode()) : null;
+    myTotalNodeCount = 0;
+    myFilterNodeCount = 0;
+    if (type != null) {
+      CaptureNode node = getNode();
+      if (node != null) {
+        applyFilter(node, false);
+      }
+      myDetails = type.build(myCaptureConvertedRange, node);
+    }
+    else {
+      myDetails = null;
+    }
+
     myStage.getAspect().changed(CpuProfilerAspect.CAPTURE_DETAILS);
   }
 
   @Nullable
   private CaptureNode getNode() {
     return myCapture != null ? myCapture.getCaptureNode(myThread) : null;
+  }
+
+  public int getNodeCount() {
+    return myTotalNodeCount;
+  }
+
+  public int getFilterNodeCount() {
+    return myFilterNodeCount;
+  }
+
+  /**
+   * Applies the current filter {@link #myFilter} to the {@param node}.
+   *
+   * @param node    - a node to apply the current filter
+   * @param matches - whether there is a match to the filter in one of its ancestors.
+   */
+  private void applyFilter(@NotNull CaptureNode node, boolean matches) {
+    boolean nodeExactMatch = node.matchesToFilter(myFilter);
+    matches = matches || nodeExactMatch;
+    boolean allChildrenUnmatch = true;
+    myTotalNodeCount++;
+    if (nodeExactMatch) {
+      myFilterNodeCount++;
+    }
+    for (CaptureNode child : node.getChildren()) {
+      applyFilter(child, matches);
+      if (!child.isUnmatched()) {
+        allChildrenUnmatch = false;
+      }
+    }
+
+    if (!matches && allChildrenUnmatch) {
+      node.setFilterType(CaptureNode.FilterType.UNMATCH);
+    }
+    else if (nodeExactMatch && myFilter != null) {
+      node.setFilterType(CaptureNode.FilterType.EXACT_MATCH);
+    }
+    else {
+      node.setFilterType(CaptureNode.FilterType.MATCH);
+    }
   }
 
   /**
@@ -281,7 +353,7 @@ class CaptureModel {
 
   public static class CallChart implements Details {
     @NotNull private final Range myRange;
-    @Nullable private HNode<MethodModel> myNode;
+    @Nullable private CaptureNode myNode;
 
     public CallChart(@NotNull Range range, @Nullable CaptureNode node) {
       myRange = range;
@@ -294,7 +366,7 @@ class CaptureModel {
     }
 
     @Nullable
-    public HNode<MethodModel> getNode() {
+    public CaptureNode getNode() {
       return myNode;
     }
 
@@ -313,7 +385,7 @@ class CaptureModel {
     }
 
     @NotNull private final Range myFlameRange;
-    @Nullable private HNode<MethodModel> myFlameNode;
+    @Nullable private CaptureNode myFlameNode;
     @Nullable private final TopDownNode myTopDownNode;
 
     @NotNull private final Range mySelectionRange;
@@ -339,8 +411,9 @@ class CaptureModel {
       myTopDownNode.update(mySelectionRange);
       if (myTopDownNode.getTotal() > 0) {
         double start = Math.max(myTopDownNode.getNodes().get(0).getStart(), mySelectionRange.getMin());
-        myFlameNode = convertToHNode(myTopDownNode, start, 0);
-      } else {
+        myFlameNode = convertToFlameChart(myTopDownNode, start, 0);
+      }
+      else {
         myFlameNode = null;
       }
 
@@ -354,7 +427,7 @@ class CaptureModel {
     }
 
     @Nullable
-    public HNode<MethodModel> getNode() {
+    public CaptureNode getNode() {
       return myFlameNode;
     }
 
@@ -369,14 +442,20 @@ class CaptureModel {
     }
 
     /**
-     * Produces a HNode similar to {@link CallChart}, but the identical methods with the same sequence of callers
+     * Produces a flame chart that is similar to {@link CallChart}, but the identical methods with the same sequence of callers
      * are combined into one wider bar. It converts it from {@link TopDownNode} as it's similar to FlameChart and
      * building a {@link TopDownNode} instance only on creation gives a performance improvement in every update.
      */
-    private DefaultHNode<MethodModel> convertToHNode(@NotNull TopDownNode topDown, double start, int depth) {
+    private CaptureNode convertToFlameChart(@NotNull TopDownNode topDown, double start, int depth) {
       assert topDown.getTotal() > 0;
-      DefaultHNode<MethodModel> node = new DefaultHNode<>(topDown.getNodes().get(0).getData(),
-                                                          (long)start, (long)(start + topDown.getTotal()));
+
+      CaptureNode node = new CaptureNode(topDown.getNodes().get(0).getData());
+      node.setFilterType(topDown.getNodes().get(0).getFilterType());
+      node.setStartGlobal((long)start);
+      node.setStartThread((long)start);
+      node.setEndGlobal((long)(start + topDown.getTotal()));
+      node.setEndThread((long)(start + topDown.getTotal()));
+
       node.setDepth(depth);
 
       for (TopDownNode child : topDown.getChildren()) {
@@ -387,14 +466,17 @@ class CaptureModel {
       // When we display a topdown node in the ui, its sorting handled by the table's sorting mechanism.
       // Conversely, in the flame chart we take care of sorting.
       // List#sort api is stable, i.e it keeps order of the appearance if sorting arguments are equal.
-      sortedChildren.sort(Comparator.comparingDouble(TopDownNode::getTotal).reversed());
+      sortedChildren.sort((o1, o2) -> {
+        int cmp = Boolean.compare(o1.isUnmatched(), o2.isUnmatched());
+        return cmp == 0 ? Double.compare(o2.getTotal(), o1.getTotal()) : cmp;
+      });
 
       for (TopDownNode child : sortedChildren) {
         if (child.getTotal() == 0) {
           // Sorted in descending order, so starting from now every child's total is zero.
-          break;
+          continue;
         }
-        node.addChild(convertToHNode(child, start, depth + 1));
+        node.addChild(convertToFlameChart(child, start, depth + 1));
         start += child.getTotal();
       }
 

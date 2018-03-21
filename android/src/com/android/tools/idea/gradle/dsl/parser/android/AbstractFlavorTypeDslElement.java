@@ -58,4 +58,9 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
 
     super.addParsedElement(property, element);
   }
+
+  @Override
+  public boolean isInsignificantIfEmpty() {
+    return false;
+  }
 }

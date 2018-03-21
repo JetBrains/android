@@ -17,15 +17,16 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleDisposer;
+import com.intellij.concurrency.JobLauncher;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
 
@@ -53,16 +54,17 @@ class ObsoleteModuleDisposer {
       return;
     }
     // Dispose modules that do not have models.
-    List<Module> modulesToDispose = new ArrayList<>();
+    List<Module> modulesToDispose = new CopyOnWriteArrayList<>();
     List<Module> modules = Arrays.asList(myModelsProvider.getModules());
-    modules.forEach(module -> {
-      SyncAction.ModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
+    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, indicator, true, module -> {
+      GradleModuleModels moduleModels = module.getUserData(MODULE_GRADLE_MODELS_KEY);
       if (moduleModels == null) {
         modulesToDispose.add(module);
       }
       else {
         module.putUserData(MODULE_GRADLE_MODELS_KEY, null);
       }
+      return true;
     });
     myModuleDisposer.disposeModules(modulesToDispose, myProject, myModelsProvider);
   }

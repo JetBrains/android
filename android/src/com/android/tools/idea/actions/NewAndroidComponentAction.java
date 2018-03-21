@@ -17,12 +17,11 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -36,11 +35,12 @@ import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 /**
  * An action to launch a wizard to create a component from a template.
@@ -53,12 +53,12 @@ public class NewAndroidComponentAction extends AnAction {
   private final String myTemplateName;
   private final int myMinSdkVersion;
 
-  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, @Nullable TemplateMetadata metadata) {
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
     getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
-    myMinSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
+    myMinSdkVersion = minSdkVersion;
   }
 
   private boolean isActivityTemplate() {
@@ -85,7 +85,7 @@ public class NewAndroidComponentAction extends AnAction {
     }
     else {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
-      boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
+      boolean isProjectReady = facet != null && facet.getAndroidModel() != null && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP;
       presentation.setEnabled(isProjectReady);
     }
   }
@@ -119,23 +119,23 @@ public class NewAndroidComponentAction extends AnAction {
     assert file != null;
 
     String activityDescription = e.getPresentation().getText(); // e.g. "Empty Activity", "Tabbed Activity"
-    List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
-    assert !sourceSets.isEmpty();
+    List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
+    assert !moduleTemplates.isEmpty();
 
     String initialPackageSuggestion = targetDirectory == null
                                       ? AndroidPackageUtils.getPackageForApplication(facet)
-                                      : AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
+                                      : AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
     Project project = module.getProject();
 
     RenderTemplateModel templateModel = new RenderTemplateModel(
-      project, new TemplateHandle(file), initialPackageSuggestion, sourceSets.get(0), "New " + activityDescription);
+      module, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription);
 
     boolean isActivity = isActivityTemplate();
     String dialogTitle = AndroidBundle.message(isActivity ? "android.wizard.new.activity.title" : "android.wizard.new.component.title");
     String stepTitle = AndroidBundle.message(isActivity ? "android.wizard.config.activity.title" : "android.wizard.config.component.title");
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, sourceSets, facet));
+    wizardBuilder.addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates, facet));
     ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(project).build();
     dialog.show();
 

@@ -85,7 +85,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements Dep
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
     initializeDependencyDetails();
 
-    setIssuesViewer(new IssuesViewer(myContext, new SingleModuleIssuesRenderer()));
+    setIssuesViewer(new IssuesViewer(myContext, new SingleModuleIssuesRenderer(myContext)));
 
     myDependenciesTableModel = new DeclaredDependenciesTableModel(module, myContext);
     myDependenciesTable = new DeclaredDependenciesTableView<>(myDependenciesTableModel, myContext);

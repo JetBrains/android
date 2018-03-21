@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
@@ -52,26 +49,21 @@ public class NlDropListener extends DropTargetAdapter {
   /**
    * Attributes that can safely be copied when morphing the view
    */
-  public static final HashSet<String> ourCopyableAttributes = new HashSet<>(Arrays.asList(
+  private static final HashSet<String> ourCopyableAttributes = new HashSet<>(Arrays.asList(
     ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_ID, ATTR_BACKGROUND
   ));
 
   private final List<NlComponent> myDragged;
   private final NlComponentTree myTree;
   private DnDTransferItem myTransferItem;
-  protected NlComponent myDragReceiver;
-  protected NlComponent myNextDragSibling;
+  private NlComponent myDragReceiver;
+  private NlComponent myNextDragSibling;
   private final NlDropInsertionPicker myInsertionPicker;
 
   public NlDropListener(@NotNull NlComponentTree tree) {
-    this(tree, new NlDropInsertionPicker(tree));
-  }
-
-  @VisibleForTesting
-  NlDropListener(@NotNull NlComponentTree tree, @NotNull NlDropInsertionPicker insertionPicker) {
     myDragged = new ArrayList<>();
     myTree = tree;
-    myInsertionPicker = insertionPicker;
+    myInsertionPicker = new NlDropInsertionPicker(tree);
   }
 
   @Override
@@ -120,21 +112,21 @@ public class NlDropListener extends DropTargetAdapter {
   @Nullable
   private InsertType captureDraggedComponents(@NotNull NlDropEvent event, boolean isPreview) {
     clearDraggedComponents();
-    ScreenView screenView = myTree.getScreenView();
-    if (screenView == null) {
+    Scene scene = myTree.getScene();
+    if (scene == null) {
       return null;
     }
-    NlModel model = screenView.getModel();
+    NlModel model = scene.getSceneManager().getModel();
     if (event.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
       try {
         myTransferItem = (DnDTransferItem)event.getTransferable().getTransferData(ItemTransferable.DESIGNER_FLAVOR);
         InsertType insertType = determineInsertType(event, isPreview);
         if (insertType.isMove()) {
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.getSelectionModel().getSelection()));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(scene.getDesignSurface().getSelectionModel().getSelection()));
         }
         else {
           // TODO: support nav editor
-          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(NlModelHelperKt.createComponents(model, screenView, myTransferItem, insertType)));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(NlModelHelperKt.createComponents(model, scene, myTransferItem, insertType)));
         }
         return insertType;
       }
@@ -181,7 +173,7 @@ public class NlDropListener extends DropTargetAdapter {
     }
   }
 
-  protected void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
+  private void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
     myTree.skipNextUpdateDelay();
     NlModel model = myTree.getDesignerModel();
     assert model != null;
@@ -192,7 +184,7 @@ public class NlDropListener extends DropTargetAdapter {
     else if (!myDragReceiver.isRoot()
              && !NlComponentUtil.isDescendant(myDragReceiver, myDragged)
              && NlComponentHelperKt.isMorphableToViewGroup(myDragReceiver)) {
-      morphReceiverIntoViewGroup(model);
+      morphReceiverIntoViewGroup();
       performNormalDrop(event, insertType, model);
     }
     else {
@@ -214,7 +206,9 @@ public class NlDropListener extends DropTargetAdapter {
    */
   private void performNormalDrop(@NotNull DropTargetDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
-      model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType);
+      Scene scene = myTree.getScene();
+      ViewEditor editor = scene != null ? ViewEditorImpl.getOrCreate(scene) : null;
+      model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, editor);
 
       // This determines how the DnD source acts to a completed drop.
       // If we set the accepted drop action to DndConstants.ACTION_MOVE then the source should delete the source component.
@@ -224,6 +218,11 @@ public class NlDropListener extends DropTargetAdapter {
 
       event.dropComplete(true);
       model.notifyModified(NlModel.ChangeType.DROP);
+
+      if (scene != null) {
+        scene.getDesignSurface().getSelectionModel().setSelection(myDragged);
+        myTree.requestFocus();
+      }
     }
     catch (Exception exception) {
       Logger.getInstance(NlDropListener.class).warn(exception);
@@ -233,10 +232,8 @@ public class NlDropListener extends DropTargetAdapter {
 
   /**
    * Morph the receiver into a constraint layout and add the dragged component to it.
-   *
-   * @param model {@link NlComponentTree#getDesignerModel()}
    */
-  private void morphReceiverIntoViewGroup(@NotNull NlModel model) {
+  private void morphReceiverIntoViewGroup() {
 
     final AttributesTransaction transaction = myDragReceiver.startAttributeTransaction();
     for (AttributeSnapshot attribute : myDragReceiver.getAttributes()) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
@@ -22,20 +23,15 @@ import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.MultiResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -65,7 +61,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private JPanel myToolbarPanel;
 
   private final AndroidFacet myFacet;
-  private StringResourceRepository myResourceRepository;
 
   private GoToDeclarationAction myGoToAction;
   private DeleteStringAction myDeleteAction;
@@ -74,7 +69,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
     myFacet = facet;
 
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), parentDisposable, 200);
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, 200);
     myLoadingPanel.add(myContainer);
 
     ActionToolbar toolbar = createToolbar();
@@ -94,8 +89,12 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     myLoadingPanel.startLoading();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      new ParseTask("Loading string resource data").queue();
+      new ResourceLoadingTask(this).queue();
     }
+  }
+
+  @Override
+  public void dispose() {
   }
 
   public void removeSelectedKeys() {
@@ -185,23 +184,18 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     return myFacet;
   }
 
-  // TODO Delete this method
-  @Override
-  public void dispose() {
-  }
-
   void reloadData() {
     myLoadingPanel.setLoadingText("Updating string resource data");
     myLoadingPanel.startLoading();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      new ParseTask("Updating string resource data").queue();
+      new ResourceLoadingTask(this).queue();
     }
   }
 
   private ActionToolbar createToolbar() {
     DefaultActionGroup group = new DefaultActionGroup();
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TranslationsEditorToolbar", group, true);
 
     JComponent toolbarComponent = toolbar.getComponent();
     toolbarComponent.setName("toolbar");
@@ -226,7 +220,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   @NotNull
-  public JPanel getComponent() {
+  JBLoadingPanel getLoadingPanel() {
     return myLoadingPanel;
   }
 
@@ -237,11 +231,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   StringResourceTable getTable() {
     return myTable;
-  }
-
-  @NotNull
-  StringResourceRepository getRepository() {
-    return myResourceRepository;
   }
 
   @Override
@@ -286,31 +275,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     //sb.append("&lang=en");
 
     BrowserUtil.browse(sb.toString());
-  }
-
-  private class ParseTask extends Task.Backgroundable {
-    public ParseTask(String description) {
-      super(myFacet.getModule().getProject(), description, false);
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      indicator.setIndeterminate(true);
-      ModuleResourceRepository.getOrCreateInstance(myFacet);
-    }
-
-    @Override
-    public void onSuccess() {
-      myResourceRepository = new StringResourceRepository((MultiResourceRepository)ModuleResourceRepository.getOrCreateInstance(myFacet));
-      myTable.setModel(new StringResourceTableModel(myResourceRepository.getData(myFacet)));
-
-      myLoadingPanel.stopLoading();
-    }
-
-    @Override
-    public void onCancel() {
-      myLoadingPanel.stopLoading();
-    }
   }
 
   private class CellSelectionListener implements ListSelectionListener {
@@ -401,13 +365,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
         if (!StringUtil.equals(value, d.getDefaultValue())) {
           model.setValueAt(d.getDefaultValue(), row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
           setTextAndEditable(myDefaultValueTextField.getTextField(), d.getDefaultValue(), isValueEditableInline(d.getDefaultValue()));
-          myTable.refilter();
         }
 
         if (locale != null && !StringUtil.equals(translation, d.getTranslation())) {
           model.setValueAt(d.getTranslation(), row, column);
           setTextAndEditable(myTranslationTextField.getTextField(), d.getTranslation(), isValueEditableInline(d.getTranslation()));
-          myTable.refilter();
         }
       }
     }

@@ -20,6 +20,8 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.assistant.AssistActionState;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,18 +32,36 @@ import java.awt.*;
  */
 public class StatefulButtonMessage extends JPanel {
   @VisibleForTesting
-  @NonNull
-  final JBLabel myMessageDisplay;
+  @Nullable
+  JBLabel myMessageDisplay;
 
   public StatefulButtonMessage(@NonNull String message, @NonNull AssistActionState state) {
-    super(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    super(new GridBagLayout());
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
 
-    myMessageDisplay = new JBLabel(message);
-    myMessageDisplay.setOpaque(false);
-    myMessageDisplay.setIcon(state.getIcon());
-    myMessageDisplay.setForeground(state.getForeground());
-    add(myMessageDisplay);
+    GridBagConstraints c = new GridBagConstraints();
+    c.gridx = 0;
+    c.gridy = 0;
+    c.weightx = 0.01;
+    c.anchor = GridBagConstraints.NORTHWEST;
+
+    if (state.getIcon() != null) {
+      myMessageDisplay = new JBLabel();
+      myMessageDisplay.setOpaque(false);
+      myMessageDisplay.setIcon(state.getIcon());
+      myMessageDisplay.setForeground(state.getForeground());
+      add(myMessageDisplay, c);
+      c.gridx++;
+    }
+
+    JEditorPane section = new JEditorPane();
+    section.setOpaque(false);
+    section.setBorder(BorderFactory.createEmptyBorder());
+    section.setDragEnabled(false);
+    UIUtils.setHtml(section, message, "body {color: " + UIUtils.getCssColor(state.getForeground()) + "}");
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.weightx = 0.99;
+    add(section, c);
   }
 }

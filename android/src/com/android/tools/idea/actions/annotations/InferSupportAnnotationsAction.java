@@ -16,16 +16,19 @@
 package com.android.tools.idea.actions.annotations;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.templates.SupportLibrary;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
@@ -73,8 +76,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
@@ -274,7 +276,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
                                    pluralize("module", count),
                                    moduleNames,
                                    count > 1 ? "do" : "does",
-                                   SupportLibrary.SUPPORT_ANNOTATIONS.getArtifactId(),
+                                   GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.getMavenArtifactId(),
                                    pluralize("dependency", count));
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
       LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
@@ -283,18 +285,12 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
           @Override
           protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
-            String annotationsLibraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_ANNOTATIONS, true);
+            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
-              TRIGGER_PROJECT_MODIFIED);
-            GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
-              @Override
-              public void syncSucceeded(@NotNull Project project) {
-                restartAnalysis(project, scope);
-              }
-            });
+
+            syncAndRestartAnalysis(project, scope);
           }
         }.execute();
       }
@@ -303,6 +299,27 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       }
     }
     return false;
+  }
+
+  private void syncAndRestartAnalysis(@NotNull Project project, @NotNull AnalysisScope scope) {
+    assert ApplicationManager.getApplication().isDispatchThread();
+
+    ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
+      .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, false);
+
+    Futures.addCallback(syncResult, new FutureCallback<ProjectSystemSyncManager.SyncResult>() {
+      @Override
+      public void onSuccess(@Nullable ProjectSystemSyncManager.SyncResult syncResult) {
+        if (syncResult != null && syncResult.isSuccessful()) {
+          restartAnalysis(project, scope);
+        }
+      }
+
+      @Override
+      public void onFailure(@Nullable Throwable t) {
+        throw new RuntimeException(t);
+      }
+    });
   }
 
   private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {

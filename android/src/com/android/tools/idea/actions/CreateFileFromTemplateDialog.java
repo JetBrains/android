@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.BrowserUtil;
@@ -53,8 +54,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   private static final String ATTRIBUTE_FINAL = "FINAL";
   private static final String ATTRIBUTE_ABSTRACT = "ABSTRACT";
   private static final String ATTRIBUTE_IMPORT_BLOCK = "IMPORT_BLOCK";
-  private static final String HELP_URL = "https://developer.android.com/r/studio-ui/newjclass.html";
-  private static final String HELP_ID = "create.file.from.template";
+  private static final String HELP_ID = StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/newjclass.html";
 
   private JPanel myPanel;
   private JLabel myNameLabel;
@@ -295,11 +295,6 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   @Override
   protected String getHelpId() {
     return HELP_ID;
-  }
-
-  @Override
-  protected void doHelpAction() {
-    BrowserUtil.browse(HELP_URL);
   }
 
   @NotNull

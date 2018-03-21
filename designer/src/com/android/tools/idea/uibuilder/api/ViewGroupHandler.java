@@ -210,16 +210,15 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
    *
    * @param sceneComponent The component we'll add the targets on
-   * @param isParent       is it the parent view group component
    * @return The list of created target to add the the component. This list can be empty.
    */
   @Override
   @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
     return new ArrayList<>();
   }
 
-  public void cleanUpAttributes(@NotNull ViewEditor editor, @NotNull NlComponent child) {
+  public void cleanUpAttributes(@NotNull NlComponent child) {
   }
 
   /**
@@ -254,15 +253,17 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
 
   /**
    * Returns the number of children displayed in the component tree for this component
+   *
    * @param component the component tree element we are checking
    * @return number of children displayed in the component tree
    */
   public int getComponentTreeChildCount(@NotNull Object component) {
-    return ((NlComponent) component).getChildCount();
+    return ((NlComponent)component).getChildCount();
   }
 
   /**
    * Returns the child at position i in the given component
+   *
    * @param component
    * @param i
    * @return

@@ -24,9 +24,9 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.google.guava:guava:18.0'
-    compile 'com.android.support.constraint:constraint-layout:+'
-    testCompile 'junit:junit:4.+'
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    api 'com.android.support:appcompat-v7:23.1.1'
+    api 'com.google.guava:guava:18.0'
+    api 'com.android.support.constraint:constraint-layout:+'
+    testImplementation 'junit:junit:4.+'
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -44,16 +45,18 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 /**
  * This step allows the user to select which type of module they want to create.
  */
-public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
+public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   private final List<ModuleGalleryEntry> myModuleGalleryEntryList;
   private final JComponent myRootPanel;
+  private final Project myProject;
 
   private ASGallery<ModuleGalleryEntry> myFormFactorGallery;
   private Map<ModuleGalleryEntry, SkippableWizardStep> myModuleDescriptionToStepMap;
 
-  public ChooseModuleTypeStep(@NotNull NewModuleModel model, @NotNull List<ModuleGalleryEntry> moduleGalleryEntries) {
-    super(model, message("android.wizard.module.new.module.header"));
+  public ChooseModuleTypeStep(@NotNull Project project, @NotNull List<ModuleGalleryEntry> moduleGalleryEntries) {
+    super(message("android.wizard.module.new.module.header"));
 
+    myProject = project;
     myModuleGalleryEntryList = sortModuleEntries(moduleGalleryEntries);
     myRootPanel = createGallery();
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -71,7 +74,15 @@ public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
     List<ModelWizardStep> allSteps = Lists.newArrayList();
     myModuleDescriptionToStepMap = new HashMap<>();
     for (ModuleGalleryEntry moduleGalleryEntry : myModuleGalleryEntryList) {
-      SkippableWizardStep step = moduleGalleryEntry.createStep(getModel());
+      NewModuleModel model = new NewModuleModel(myProject);
+      if (moduleGalleryEntry instanceof ModuleTemplateGalleryEntry) {
+        ModuleTemplateGalleryEntry templateEntry =  (ModuleTemplateGalleryEntry) moduleGalleryEntry;
+        model.isLibrary().set(templateEntry.isLibrary());
+        model.instantApp().set(templateEntry.isInstantApp());
+        model.templateFile().setValue(templateEntry.getTemplateFile());
+      }
+
+      SkippableWizardStep step = moduleGalleryEntry.createStep(model);
       allSteps.add(step);
       myModuleDescriptionToStepMap.put(moduleGalleryEntry, step);
     }
@@ -124,19 +135,10 @@ public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
 
   @Override
   protected void onProceeding() {
-    getModel().getTemplateValues().clear();
-
     // This wizard includes a step for each module, but we only visit the selected one. First, we hide all steps (in case we visited a
     // different module before and hit back), and then we activate the step we care about.
     ModuleGalleryEntry selectedEntry = myFormFactorGallery.getSelectedElement();
     myModuleDescriptionToStepMap.forEach((galleryEntry, step) -> step.setShouldShow(galleryEntry == selectedEntry));
-
-    ModuleTemplateGalleryEntry templateEntry
-      = (selectedEntry instanceof ModuleTemplateGalleryEntry) ? (ModuleTemplateGalleryEntry) selectedEntry : null;
-
-    getModel().isLibrary().set(templateEntry == null ? false : templateEntry.isLibrary());
-    getModel().instantApp().set(templateEntry == null ? false : templateEntry.isInstantApp());
-    getModel().templateFile().setNullableValue(templateEntry == null ? null : templateEntry.getTemplateFile());
   }
 
   @Nullable

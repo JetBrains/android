@@ -17,12 +17,11 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
-import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -43,7 +42,7 @@ public class AllocationInfosDataSeriesTest {
 
   @Test
   public void testGetDataForXRange() throws Exception {
-    MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder()
+    MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(1)
       .addAllocationsInfo(
         AllocationsInfo.newBuilder()
@@ -55,8 +54,8 @@ public class AllocationInfosDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     AllocationInfosDataSeries series =
-      new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, 1,
-                                    new RelativeTimeConverter(0), myIdeProfilerServices.getFeatureTracker(), null);
+      new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
+                                    myIdeProfilerServices.getFeatureTracker(), null);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());

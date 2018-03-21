@@ -62,7 +62,7 @@ public class SceneCreationTest extends SceneTest {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
     LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
-    Scene scene = sceneBuilder.build();
+    Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
@@ -106,7 +106,7 @@ public class SceneCreationTest extends SceneTest {
 
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
-    SyncNlModel model = SyncNlModel.create(surface, null, myFacet, xmlFile);
+    SyncNlModel model = SyncNlModel.create(surface, null, myFacet, xmlFile.getVirtualFile());
 
     // Setting the model on the surface registers the listener
     surface.setModel(model);
@@ -126,7 +126,7 @@ public class SceneCreationTest extends SceneTest {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
     LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
-    Scene scene = sceneBuilder.build();
+    Scene scene = sceneBuilder.getScene();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
@@ -159,7 +159,7 @@ public class SceneCreationTest extends SceneTest {
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = new SyncLayoutlibSceneManager(model).build();
+    Scene scene = new SyncLayoutlibSceneManager(model).getScene();
     scene.setAnimated(false);
 
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
+import static com.android.tools.lint.checks.RangeDetector.RANGE;
+
 public class AndroidLintRangeInspection extends AndroidLintInspectionBase {
   public AndroidLintRangeInspection() {
-    super(AndroidBundle.message("android.lint.inspections.range"), SupportAnnotationDetector.RANGE);
+    super(AndroidBundle.message("android.lint.inspections.range"), RANGE);
   }
 }

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
 public class CompilerSettingsSetup {
   public void setOutputPaths(@NotNull ModifiableRootModel moduleModel, @NotNull File mainOutputPath, @Nullable File testOutputPath) {

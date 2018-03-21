@@ -35,9 +35,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.easymock.EasyMock.anyInt;
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
 
 public class AndroidProcessHandlerTest extends AndroidTestCase {
   private static final String DEVICE_NAME = "myDevice";
@@ -62,11 +59,11 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     myDevice = EasyMock.createMock(IDevice.class);
     EasyMock.expect(myDevice.getName()).andReturn(DEVICE_NAME).anyTimes();
     EasyMock.expect(myDevice.getVersion()).andReturn(new AndroidVersion(DEVICE_API_LEVEL)).anyTimes();
-    EasyMock.expect(myDevice.getClientName(anyInt())).andReturn(APPLICATION_ID).anyTimes();
+    EasyMock.expect(myDevice.getClientName(EasyMock.anyInt())).andReturn(APPLICATION_ID).anyTimes();
     EasyMock.expect(myDevice.getClient(APPLICATION_ID)).andAnswer(() -> myClient).anyTimes();
     EasyMock.expect(myDevice.getSerialNumber()).andReturn(DEVICE_SERIAL_NUMBER).anyTimes();
     EasyMock.expect(myDevice.isOnline()).andReturn(true).anyTimes();
-    myDevice.executeShellCommand(anyObject(), anyObject(), anyLong(), anyObject());
+    myDevice.executeShellCommand(EasyMock.anyObject(), EasyMock.anyObject(), EasyMock.anyLong(), EasyMock.anyObject());
     EasyMock.expectLastCall().andAnswer(() -> {
       AndroidLogcatReceiver receiver = (AndroidLogcatReceiver)EasyMock.getCurrentArguments()[1];
       sendTextLine(receiver, "[ 08-18 16:39:11.439 1493:1595 W/DummyFirst     ]");
@@ -114,7 +111,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     List<ProcessEvent> events = new ArrayList<>();
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override
-      public void onTextAvailable(ProcessEvent event, Key outputType) {
+      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         events.add(event);
       }
     });
@@ -142,7 +139,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     List<ProcessEvent> events = new ArrayList<>();
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override
-      public void onTextAvailable(ProcessEvent event, Key outputType) {
+      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         events.add(event);
       }
     });
@@ -166,7 +163,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     List<ProcessEvent> events = new ArrayList<>();
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override
-      public void onTextAvailable(ProcessEvent event, Key outputType) {
+      public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
         events.add(event);
       }
     });

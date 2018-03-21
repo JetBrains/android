@@ -15,24 +15,26 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profilers.cpu.CpuMonitor;
+import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
 import com.android.tools.profilers.cpu.CpuMonitorView;
-import com.android.tools.profilers.event.EventMonitor;
-import com.android.tools.profilers.event.EventMonitorTooltipView;
-import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.energy.EnergyMonitor;
+import com.android.tools.profilers.energy.EnergyMonitorTooltip;
+import com.android.tools.profilers.energy.EnergyMonitorTooltipView;
+import com.android.tools.profilers.energy.EnergyMonitorView;
+import com.android.tools.profilers.event.*;
 import com.android.tools.profilers.memory.MemoryMonitor;
+import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryMonitorTooltipView;
 import com.android.tools.profilers.memory.MemoryMonitorView;
 import com.android.tools.profilers.network.NetworkMonitor;
+import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,14 +49,6 @@ import java.util.List;
  * Bird eye view displaying high-level information across all profilers.
  */
 public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
-
-  @Nullable
-  private ProfilerTooltipView myMonitorTooltipView;
-  @NotNull
-  private final ViewBinder<StudioMonitorStageView, ProfilerMonitor, ProfilerTooltipView> myTooltipBinder;
-  @NotNull
-  private final JPanel myTooltip;
-
   @NotNull
   @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
   private final List<ProfilerMonitorView> myViews;
@@ -67,6 +61,10 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     binder.bind(CpuMonitor.class, CpuMonitorView::new);
     binder.bind(MemoryMonitor.class, MemoryMonitorView::new);
     binder.bind(EventMonitor.class, EventMonitorView::new);
+    boolean isEnergyProfilerEnabled = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isEnergyProfilerEnabled();
+    if (isEnergyProfilerEnabled) {
+      binder.bind(EnergyMonitor.class, EnergyMonitorView::new);
+    }
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
@@ -82,48 +80,31 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     TabularLayout layout = new TabularLayout("*");
     JPanel monitors = new JPanel(layout);
 
-
     ProfilerTimeline timeline = stage.getStudioProfilers().getTimeline();
 
-    myTooltip = new JPanel(new BorderLayout());
-    myTooltip.setMinimumSize(new Dimension(200, 10));
+    // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
+    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
     RangeTooltipComponent
-      tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltip);
+      tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), getTooltipPanel(),
+                                          ProfilerLayeredPane.class);
 
-    // The monitor's LineCharts trigger repaint on a container that's lower in the UI hierarchy than the tooltip.
-    // Here we synchronize the tooltip range changes to align with the LineCharts, otherwise the tooltip can flicker.
-    timeline.getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> timeline.getTooltipRange().changed(Range.Aspect.RANGE));
-
-    myTooltipBinder = new ViewBinder<>();
-    myTooltipBinder.bind(NetworkMonitor.class, NetworkMonitorTooltipView::new);
-    myTooltipBinder.bind(CpuMonitor.class, CpuMonitorTooltipView::new);
-    myTooltipBinder.bind(MemoryMonitor.class, MemoryMonitorTooltipView::new);
-    myTooltipBinder.bind(EventMonitor.class, EventMonitorTooltipView::new);
-
-    stage.getAspect().addDependency(this).onChange(StudioMonitorStage.Aspect.TOOLTIP, this::tooltipChanged);
+    getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
+    getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
+    getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
+    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
+    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
+    if (isEnergyProfilerEnabled) {
+      getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
+    }
 
     myViews = new ArrayList<>(stage.getMonitors().size());
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(profilersView, monitor);
+      view.registerTooltip(tooltip, stage);
       JComponent component = view.getComponent();
-      tooltip.registerListenersOn(component);
       component.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseEntered(MouseEvent e) {
-          if (monitor.isEnabled()) {
-            stage.setTooltip(monitor);
-          } else {
-            stage.setTooltip(null);
-          }
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-          stage.setTooltip(null);
-        }
-
         @Override
         public void mouseReleased(MouseEvent e) {
           expandMonitor(monitor);
@@ -157,21 +138,6 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     topPanel.add(timeAxis, new TabularLayout.Constraint(1, 0));
 
     getComponent().add(topPanel, BorderLayout.CENTER);
-  }
-
-  private void tooltipChanged() {
-    if (myMonitorTooltipView != null) {
-      myMonitorTooltipView.dispose();
-      myMonitorTooltipView = null;
-    }
-    myTooltip.removeAll();
-    ProfilerMonitor tooltip = getStage().getTooltip();
-    if (tooltip != null) {
-      myMonitorTooltipView = myTooltipBinder.build(this, tooltip);
-      Component component = myMonitorTooltipView.createComponent();
-      myTooltip.add(component, BorderLayout.CENTER);
-    }
-    myTooltip.repaint();
   }
 
   private void expandMonitor(ProfilerMonitor monitor) {

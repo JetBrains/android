@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
+import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
@@ -24,7 +25,6 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,6 +34,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
@@ -45,25 +46,19 @@ public class MemoryClassifierViewTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeMemoryService());
 
+  private FakeIdeProfilerServices myFakeIdeProfilerServices;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private MemoryProfilerStage myStage;
   private MemoryClassifierView myClassifierView;
-  private StudioProfilers myProfilers;
 
   @Before
   public void before() {
-    FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
+    myFakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
-    myStage = new MemoryProfilerStage(myProfilers, loader);
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myFakeIdeProfilerServices), loader);
     myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    myProfilers.stop();
   }
 
   /**
@@ -297,6 +292,10 @@ public class MemoryClassifierViewTest {
     //noinspection unchecked
     assertThat(selectedClassNode.getAdapter().isSupersetOf(((MemoryObjectTreeNode<ClassSet>)reselected).getAdapter())).isTrue();
 
+    // Clear the selection from the model. The Tree's selection should get cleared as well.
+    myStage.selectClassSet(null);
+    assertThat(classifierTree.getSelectionPath()).isNull();
+
     // Try selecting a package -- this should not result in any changes to the state.
     MemoryObjectTreeNode<? extends ClassifierSet> comPackage = findChildWithName(rootNode, "com");
     ClassSet selectedClass = myStage.getSelectedClassSet();
@@ -391,7 +390,7 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
 
@@ -534,7 +533,7 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
 
@@ -596,7 +595,7 @@ public class MemoryClassifierViewTest {
     assertThat(callstack3BarClassSet.findContainingClassifierSet(instance9)).isEqualTo(callstack3BarClassSet);
 
     ClassSet noStackIntArrayClassSet = findChildClassSetWithName(rootNode.getAdapter(), CLASS_NAME_2);
-    assertThat(noStackIntArrayClassSet.getAllocatedCount()).isEqualTo(1);
+    assertThat(noStackIntArrayClassSet.getDeltaAllocationCount()).isEqualTo(1);
 
     //noinspection unchecked
     MemoryObjectTreeNode<? extends ClassifierSet> nodeToSelect =
@@ -631,7 +630,7 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
 
@@ -683,16 +682,17 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
+    HeapSet heapSet = captureObject.getHeapSet(CaptureObject.DEFAULT_HEAP_ID);
     assertThat(heapSet).isNotNull();
     myStage.selectHeapSet(heapSet);
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
-    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Class Name", "Alloc Count", "Dealloc Count", "Native Size", "Shallow Size", "Retained Size");
+    treeInfo
+      .verifyColumnHeaders("Class Name", "Allocations", "Deallocations", "Total Count", "Native Size", "Shallow Size", "Retained Size");
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
@@ -714,8 +714,9 @@ public class MemoryClassifierViewTest {
                                       classSet.getClassEntry().getPackageName().isEmpty()
                                       ? null
                                       : " (" + classSet.getClassEntry().getPackageName() + ")"},
-                                    new String[]{Integer.toString(classSet.getAllocatedCount())},
-                                    new String[]{Integer.toString(classSet.getDeallocatedCount())},
+                                    new String[]{Integer.toString(classSet.getDeltaAllocationCount())},
+                                    new String[]{Integer.toString(classSet.getDeltaDeallocationCount())},
+                                    new String[]{Integer.toString(classSet.getTotalObjectCount())},
                                     new String[]{Long.toString(classSet.getTotalNativeSize())},
                                     new String[]{Long.toString(classSet.getTotalShallowSize())},
                                     new String[]{Long.toString(classSet.getTotalRetainedSize())});
@@ -724,15 +725,13 @@ public class MemoryClassifierViewTest {
 
   @Test
   public void testCaptureChangedListener() {
-    final int appId = 1;
     final int captureStartTime = 0;
-    // String containing data used for validating against each TreeNode.
-    // Format: Name, Alloc Count, Dealloc Count, Instance Count, Shallow Size, Children Size
-    final String nodeFormat = "%s,%d,%d,%d,%d";
+    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    // LiveAllocationCaptureObject assumes a valid, non-empty range.
+    selectionRange.set(0, 0);
 
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          appId,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
@@ -747,7 +746,7 @@ public class MemoryClassifierViewTest {
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
-    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
 
@@ -758,90 +757,203 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
-    // Initial selection from 0 to 3
+    // Initial selection from 0 to 4
+    selectionRange.set(captureStartTime, captureStartTime + 4);
+    Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
+
+    // Expand right to 8
+    selectionRange.set(captureStartTime, captureStartTime + 8);
+    Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 2, 0, 0, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "That", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 2, 0, 0, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 1, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
+
+    // Shrink left to 4
+    selectionRange.setMin(captureStartTime + 4);
+    Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 2));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 1, 1, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 2, 1, 1, 2));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
+
+    // Shrink right to 4
+    selectionRange.setMax(captureStartTime + 4);
+    Queue<MemoryObjectTreeNodeTestData> expected_4_to_4 = new LinkedList<>();
+    expected_4_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 2, 2, 2));
+    expected_4_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 0, 0, 1, 1, 1));
+    expected_4_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 0, 0, 1, 1, 1));
+    expected_4_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 0, 0, 1, 1, 0));
+    expected_4_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 0, 0, 1, 1, 1));
+    expected_4_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 0, 0, 1, 1, 1));
+    expected_4_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 0, 0, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_4, 0);
+  }
+
+  @Test
+  public void testCaptureFilter() {
+    final int captureStartTime = 0;
     Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-    selectionRange.set(captureStartTime, captureStartTime + 3);
-    Queue<String> expected_0_to_3 = new LinkedList<>();
-    expected_0_to_3.add(String.format(nodeFormat, "default heap", 3, 1, 2, 2));
-    expected_0_to_3.add(" " + String.format(nodeFormat, "This", 2, 1, 1, 2));
-    expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 1, 0, 1));
-    expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 1, 0, 0));
-    expected_0_to_3.add("  " + String.format(nodeFormat, "Also", 1, 0, 1, 1));
-    expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
-    expected_0_to_3.add(" " + String.format(nodeFormat, "That", 1, 0, 1, 1));
-    expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
-    expected_0_to_3.add("   " + String.format(nodeFormat, "Bar", 1, 0, 1, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_3, 0);
+    // LiveAllocationCaptureObject assumes a valid, non-empty range.
+    selectionRange.set(0, 0);
 
-    // Expand right to 6
-    selectionRange.set(captureStartTime, captureStartTime + 6);
-    Queue<String> expected_0_to_6 = new LinkedList<>();
-    expected_0_to_6.add(String.format(nodeFormat, "default heap", 6, 4, 2, 2));
-    expected_0_to_6.add(" " + String.format(nodeFormat, "This", 3, 2, 1, 2));
-    expected_0_to_6.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
-    expected_0_to_6.add("   " + String.format(nodeFormat, "Foo", 2, 1, 1, 0));
-    expected_0_to_6.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
-    expected_0_to_6.add("   " + String.format(nodeFormat, "Foo", 1, 1, 0, 0));
-    expected_0_to_6.add(" " + String.format(nodeFormat, "That", 3, 2, 1, 2));
-    expected_0_to_6.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
-    expected_0_to_6.add("   " + String.format(nodeFormat, "Bar", 2, 1, 1, 0));
-    expected_0_to_6.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
-    expected_0_to_6.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_6, 0);
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                          ProfilersTestData.SESSION_DATA,
+                                                                          captureStartTime,
+                                                                          MoreExecutors.newDirectExecutorService(),
+                                                                          myStage);
+    // Bypass the stage's selection logic and manually alter the range selection ourselves.
+    // This avoids the interaction of the SelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
+    myStage.getSelectionModel().clearListeners();
+    myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
+                                  MoreExecutors.directExecutor());
+    myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
+    // Changed to group by package so we can test nested node cases.
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
 
-    // Shrink left to 3
-    selectionRange.set(captureStartTime + 3, captureStartTime + 6);
-    Queue<String> expected_3_to_6 = new LinkedList<>();
-    expected_3_to_6.add(String.format(nodeFormat, "default heap", 3, 3, 0, 2));
-    expected_3_to_6.add(" " + String.format(nodeFormat, "This", 1, 1, 0, 2));
-    expected_3_to_6.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
-    expected_3_to_6.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
-    expected_3_to_6.add("  " + String.format(nodeFormat, "Also", 0, 1, -1, 1));
-    expected_3_to_6.add("   " + String.format(nodeFormat, "Foo", 0, 1, -1, 0));
-    expected_3_to_6.add(" " + String.format(nodeFormat, "That", 2, 2, 0, 2));
-    expected_3_to_6.add("  " + String.format(nodeFormat, "Is", 1, 1, 0, 1));
-    expected_3_to_6.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
-    expected_3_to_6.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
-    expected_3_to_6.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_3_to_6, 0);
+    JTree tree = myClassifierView.getTree();
+    assertThat(tree).isNotNull();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree().getComponent(0);
+    assertThat(columnTreePane).isNotNull();
+    ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
 
-    // Shrink right to 3
-    selectionRange.set(captureStartTime + 3, captureStartTime + 3);
-    Queue<String> expected_3_to_3 = new LinkedList<>();
-    expected_3_to_3.add(String.format(nodeFormat, "default heap", 0, 0, 0, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_3_to_3, 0);
+    Object root = tree.getModel().getRoot();
+    assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    //noinspection unchecked
+    MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+    assertThat(rootNode.getChildCount()).isEqualTo(0);
 
-    // Shifts to {4,10}
-    selectionRange.set(captureStartTime + 4, captureStartTime + 9);
-    Queue<String> expected_4_to_9 = new LinkedList<>();
-    expected_4_to_9.add(String.format(nodeFormat, "default heap", 5, 5, 0, 2));
-    expected_4_to_9.add(" " + String.format(nodeFormat, "This", 3, 3, 0, 2));
-    expected_4_to_9.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
-    expected_4_to_9.add("   " + String.format(nodeFormat, "Foo", 2, 1, 1, 0));
-    expected_4_to_9.add("  " + String.format(nodeFormat, "Also", 1, 2, -1, 1));
-    expected_4_to_9.add("   " + String.format(nodeFormat, "Foo", 1, 2, -1, 0));
-    expected_4_to_9.add(" " + String.format(nodeFormat, "That", 2, 2, 0, 2));
-    expected_4_to_9.add("  " + String.format(nodeFormat, "Is", 1, 1, 0, 1));
-    expected_4_to_9.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
-    expected_4_to_9.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
-    expected_4_to_9.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_9, 0);
+    // Initial selection from 0 to 4
+    selectionRange.set(captureStartTime, captureStartTime + 4);
+    Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
+
+    // Add a filter to remove That.is.Bar
+    myStage.selectCaptureFilter(Pattern.compile("^.*Foo.*$"));
+
+    expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 1, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
+
+    // Expand right to 8
+    selectionRange.setMax(captureStartTime + 8);
+    Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 3, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 2, 0, 0, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
+
+    // Shrink left to 4
+    selectionRange.setMin(captureStartTime + 4);
+    Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 2, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
+
+    // Changed to group by callstack and update the rootNode
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    root = tree.getModel().getRoot();
+    assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+
+    //// The 3, "Foo" filter should apply to the new grouping automatically
+    expected_4_to_8 = new LinkedList<>();
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 4));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "FooMethodB()", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "BarMethodA()", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "FooMethodA()", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "BarMethodB()", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 1, 1, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "BarMethodB()", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "FooMethodB()", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 1, 1, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "BarMethodA()", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "FooMethodA()", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
+
+    // Apply an invalid filter
+    myStage.selectCaptureFilter(Pattern.compile("^.*BLAH.*$"));
+    Queue<MemoryObjectTreeNodeTestData> expect_none = new LinkedList<>();
+    expect_none.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 0, 0, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expect_none, 0);
+    assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
+    assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isInstanceOf(InstructionsPanel.class);
   }
 
   @Test
   public void testSelectedClassSetAndInstance() {
-    final int appId = 1;
     final int captureStartTime = 0;
-    // String containing data used for validating against each TreeNode.
-    // Format: Name, Alloc Count, Dealloc Count, Instance Count, Shallow Size, Children Size
-    final String nodeFormat = "%s,%d,%d,%d,%d";
-
-    // classSetView includes necessary listeners to refresh class set instanceObjects
-    MemoryClassSetView classSetView = new MemoryClassSetView(myStage, myFakeIdeProfilerComponents);
+    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    // LiveAllocationCaptureObject assumes a valid, non-empty range.
+    selectionRange.set(0, 0);
 
     LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
                                                                           ProfilersTestData.SESSION_DATA,
-                                                                          appId,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
@@ -856,7 +968,7 @@ public class MemoryClassifierViewTest {
 
     JTree tree = myClassifierView.getTree();
     assertThat(tree).isNotNull();
-    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
 
@@ -867,20 +979,21 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
-    // Initial selection from 0 to 3
-    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-    selectionRange.set(captureStartTime, captureStartTime + 3);
-    Queue<String> expected_0_to_3 = new LinkedList<>();
-    expected_0_to_3.add(String.format(nodeFormat, "default heap", 3, 1, 2, 2));
-    expected_0_to_3.add(" " + String.format(nodeFormat, "This", 2, 1, 1, 2));
-    expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 1, 0, 1));
-    expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 1, 0, 0));
-    expected_0_to_3.add("  " + String.format(nodeFormat, "Also", 1, 0, 1, 1));
-    expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
-    expected_0_to_3.add(" " + String.format(nodeFormat, "That", 1, 0, 1, 1));
-    expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
-    expected_0_to_3.add("   " + String.format(nodeFormat, "Bar", 1, 0, 1, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_3, 0);
+    // Initial selection from 0 to 4
+    selectionRange.set(captureStartTime, captureStartTime + 4);
+    Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
 
     MemoryObjectTreeNode<ClassifierSet> childThat = rootNode.getChildren().get(1);
     MemoryObjectTreeNode<ClassifierSet> childThatIs = childThat.getChildren().get(0);
@@ -897,21 +1010,21 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> selectedNode = (MemoryObjectTreeNode<ClassifierSet>)tree.getSelectionPath().getLastPathComponent();
     assertThat(selectedNode).isEqualTo(childThatIsBar);
 
-    // Expand right to 6
-    selectionRange.set(captureStartTime, captureStartTime + 6);
-    Queue<String> expected_0_to_6 = new LinkedList<>();
-    expected_0_to_6.add(String.format(nodeFormat, "default heap", 6, 4, 2, 2));
-    expected_0_to_6.add(" " + String.format(nodeFormat, "This", 3, 2, 1, 2));
-    expected_0_to_6.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
-    expected_0_to_6.add("   " + String.format(nodeFormat, "Foo", 2, 1, 1, 0));
-    expected_0_to_6.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
-    expected_0_to_6.add("   " + String.format(nodeFormat, "Foo", 1, 1, 0, 0));
-    expected_0_to_6.add(" " + String.format(nodeFormat, "That", 3, 2, 1, 2));
-    expected_0_to_6.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
-    expected_0_to_6.add("   " + String.format(nodeFormat, "Bar", 2, 1, 1, 0));
-    expected_0_to_6.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
-    expected_0_to_6.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_6, 0);
+    // Expand right to 8
+    selectionRange.set(captureStartTime, captureStartTime + 8);
+    Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 2, 0, 0, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "That", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 2, 0, 0, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 1, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
 
     // Selected ClassSet should not change
     assertThat(tree.getSelectionPath().getLastPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
@@ -920,30 +1033,31 @@ public class MemoryClassifierViewTest {
     assertThat(myStage.getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
     assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
-    // Shifts to {4,10}
-    selectionRange.set(captureStartTime + 4, captureStartTime + 9);
-    Queue<String> expected_4_to_9 = new LinkedList<>();
-    expected_4_to_9.add(String.format(nodeFormat, "default heap", 5, 5, 0, 2));
-    expected_4_to_9.add(" " + String.format(nodeFormat, "This", 3, 3, 0, 2));
-    expected_4_to_9.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
-    expected_4_to_9.add("   " + String.format(nodeFormat, "Foo", 2, 1, 1, 0));
-    expected_4_to_9.add("  " + String.format(nodeFormat, "Also", 1, 2, -1, 1));
-    expected_4_to_9.add("   " + String.format(nodeFormat, "Foo", 1, 2, -1, 0));
-    expected_4_to_9.add(" " + String.format(nodeFormat, "That", 2, 2, 0, 2));
-    expected_4_to_9.add("  " + String.format(nodeFormat, "Is", 1, 1, 0, 1));
-    expected_4_to_9.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
-    expected_4_to_9.add("  " + String.format(nodeFormat, "Also", 1, 1, 0, 1));
-    expected_4_to_9.add("   " + String.format(nodeFormat, "Bar", 1, 1, 0, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_9, 0);
-    assertThat(myStage.getSelectedInstanceObject()).isNull();
+    // Shrink left to 4
+    selectionRange.setMin(captureStartTime + 4);
+    Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 2));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 1, 1, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 2, 1, 1, 2));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 1, 1, 0));
+    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
 
+    // Selected ClassSet should not change
+    assertThat(tree.getSelectionPath().getLastPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
+    selectedNode = (MemoryObjectTreeNode<ClassifierSet>)tree.getSelectionPath().getLastPathComponent();
+    assertThat(selectedNode.getAdapter()).isEqualTo(childThatIsBar.getAdapter());
+    assertThat(myStage.getSelectedClassSet()).isEqualTo(childThatIsBar.getAdapter());
+    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
-    // Shrink to empty range
-    selectionRange.set(captureStartTime + 3, captureStartTime + 3);
-    Queue<String> expected_3_to_3 = new LinkedList<>();
-    expected_3_to_3.add(String.format(nodeFormat, "default heap", 0, 0, 0, 0));
-    verifyLiveAllocRenderResult(treeInfo, rootNode, expected_3_to_3, 0);
-
+    // Apply an invalid filter
+    myStage.selectCaptureFilter(Pattern.compile("^.*BLAH.*$"));
     // No path is selected and selected ClassSet is set to EMPTY_CLASS_SET
     assertThat(tree.getSelectionPath()).isNull();
     assertThat(myStage.getSelectedClassSet()).isEqualTo(ClassSet.EMPTY_SET);
@@ -972,16 +1086,15 @@ public class MemoryClassifierViewTest {
    */
   private static boolean verifyLiveAllocRenderResult(@NotNull ColumnTreeTestInfo testInfo,
                                                      @NotNull MemoryObjectTreeNode node,
-                                                     @NotNull Queue<String> expected,
+                                                     @NotNull Queue<MemoryObjectTreeNodeTestData> expected,
                                                      int currentDepth) {
     boolean done = false;
     boolean currentNodeVisited = false;
     boolean childrenVisited = false;
-    String line;
+    MemoryObjectTreeNodeTestData testData;
 
-    while ((line = expected.peek()) != null && !done) {
-      String trimmedLine = line.trim();
-      int depth = line.indexOf(trimmedLine);
+    while ((testData = expected.peek()) != null && !done) {
+      int depth = testData.depth;
 
       if (depth < currentDepth) {
         // We are done with the current sub-tree.
@@ -989,7 +1102,7 @@ public class MemoryClassifierViewTest {
       }
       else if (depth > currentDepth) {
         // We need to go deeper...
-        List<MemoryObjectTreeNode> children = node.getChildren();
+        ImmutableList<MemoryObjectTreeNode> children = node.getChildren();
         assertThat(children.size()).isGreaterThan(0);
         assertThat(childrenVisited).isFalse();
         for (MemoryObjectTreeNode childNode : children) {
@@ -1006,16 +1119,47 @@ public class MemoryClassifierViewTest {
 
         // We are at current node, consumes the current line.
         expected.poll();
-        String[] split = trimmedLine.split(",");
-        testInfo.verifyRendererValues(node, new String[]{split[0]}, new String[]{split[1]}, new String[]{split[2]}, new String[]{split[3]});
+        testInfo.verifyRendererValues(node,
+                                      new String[]{testData.name},
+                                      new String[]{Integer.toString(testData.allocations)},
+                                      new String[]{Integer.toString(testData.deallocations)},
+                                      new String[]{Integer.toString(testData.total)},
+                                      new String[]{Long.toString(testData.shallowSize)});
 
         // Children's size
-        assertThat(node.getChildCount()).isEqualTo(Integer.parseInt(split[4]));
+        assertThat(node.getChildCount()).isEqualTo(testData.childrenSize);
         currentNodeVisited = true;
       }
     }
 
     assertThat(currentNodeVisited).isTrue();
     return currentNodeVisited;
+  }
+
+  // Auxiliary class to verify MemoryObjectTreeNodeTestData's internal data.
+  private static class MemoryObjectTreeNodeTestData {
+    int depth;
+    String name;
+    int allocations;
+    int deallocations;
+    int total;
+    long shallowSize;
+    int childrenSize;
+
+    MemoryObjectTreeNodeTestData(int depth,
+                                 String name,
+                                 int allocations,
+                                 int deallocations,
+                                 int total,
+                                 long shallowSize,
+                                 int childrenSize) {
+      this.depth = depth;
+      this.name = name;
+      this.allocations = allocations;
+      this.deallocations = deallocations;
+      this.total = total;
+      this.shallowSize = shallowSize;
+      this.childrenSize = childrenSize;
+    }
   }
 }

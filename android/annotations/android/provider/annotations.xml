@@ -252,6 +252,9 @@
   <item name="android.provider.DocumentsProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
+  <item name="android.provider.DocumentsProvider android.os.ParcelFileDescriptor openDocument(java.lang.String, java.lang.String, android.os.CancellationSignal) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.provider.DocumentsProvider android.provider.DocumentsContract.Path findDocumentPath(java.lang.String, java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>

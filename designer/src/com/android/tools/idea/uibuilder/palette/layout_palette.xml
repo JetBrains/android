@@ -14,66 +14,11 @@
   ~ limitations under the License.
   -->
 <palette>
-  <group name="Widgets">
-    <item tag="Button"/>
-    <item tag="ToggleButton"/>
-    <item tag="CheckBox"/>
-    <item tag="RadioButton"/>
-    <item tag="CheckedTextView"/>
-    <item tag="Spinner"/>
-    <item tag="ProgressBar"
-          title="ProgressBar">
-      <xml reuse="preview,drag-preview">
-        <![CDATA[
-            <ProgressBar
-              style="?android:attr/progressBarStyle"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-            />
-          ]]>
-      </xml>
-    </item>
-    <item tag="ProgressBar"
-          id="HorizontalProgressBar"
-          icon="AndroidIcons.Views.ProgressBarHorizontal"
-          title="ProgressBar (Horizontal)"
-          scale="2.0">
-      <xml reuse="preview,drag-preview">
-        <![CDATA[
-            <ProgressBar
-              style="?android:attr/progressBarStyleHorizontal"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-            />
-          ]]>
-      </xml>
-    </item>
-    <item tag="SeekBar"/>
-    <item tag="SeekBar"
-          id="DiscreteSeekBar"
-          icon="AndroidIcons.Views.SeekBarDiscrete"
-          title="SeekBar (Discrete)">
-      <xml reuse="preview,drag-preview">
-        <![CDATA[
-            <SeekBar
-              style="@style/Widget.AppCompat.SeekBar.Discrete"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:max="10"
-              android:progress="3"
-            />
-          ]]>
-      </xml>
-    </item>
-    <item tag="QuickContactBadge"/>
-    <item tag="RatingBar" scale="0.4"/>
-    <item tag="Switch"/>
-    <item tag="Space"/>
-  </group>
-
   <group name="Text">
-    <item tag="TextView"/>
-    <item tag="EditText" title="Plain Text">
+    <item tag="TextView" suggested="true" materialReference="https://material.io/guidelines/components/text-fields.html"/>
+    <item tag="EditText" title="Plain Text" suggested="true"
+          materialReference="https://material.io/guidelines/components/text-fields.html"
+          icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -85,18 +30,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:text="abc"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Password" title="Password"
-          icon="AndroidIcons.Views.EditTextPassword">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -107,20 +44,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Password"
-              android:inputType="textPassword"
-              android:text="••••••••"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="PasswordNumeric" title="Password (Numeric)"
-          icon="AndroidIcons.Views.EditTextPasswordNumeric">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -131,20 +58,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <!-- android:inputType="numberPassword" not used here to allow digits in preview only -->
-            <EditText
-              android:id="@+id/PasswordNumeric"
-              android:text="1•••2•••3"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Email" title="E-mail"
-      icon="AndroidIcons.Views.EditTextEmail">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -155,20 +72,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Email"
-              android:inputType="textEmailAddress"
-              android:text="user@domain.com"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Phone" title="Phone"
-          icon="AndroidIcons.Views.EditTextPhone">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -179,20 +86,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Phone"
-              android:inputType="phone"
-              android:text="(555) 123 0100"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="PostalAddress" title="Postal Address"
-          icon="AndroidIcons.Views.EditTextPostalAddress">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -203,20 +100,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/PostalAddress"
-              android:inputType="textPostalAddress"
-              android:text="Address"
-              android:layout_width="200dip"
-              android:layout_height="100dip">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="MultilineText" title="Multiline Text"
-          icon="AndroidIcons.Views.EditTextMultiline">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -227,20 +114,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/MultilineText"
-              android:inputType="textMultiLine"
-              android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor"
-              android:layout_width="200dip"
-              android:layout_height="100dip">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Time" title="Time"
-          icon="AndroidIcons.Views.EditTextTime">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -251,20 +128,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Time"
-              android:inputType="time"
-              android:text="12:00am"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Date" title="Date"
-      icon="AndroidIcons.Views.EditTextDate">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -275,20 +142,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Date"
-              android:inputType="date"
-              android:text="1/1/2011"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="Number" title="Number"
-          icon="AndroidIcons.Views.EditTextNumber">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -299,20 +156,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/Number"
-              android:inputType="number"
-              android:text="42"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="SignedNumber" title="Number (Signed)"
-      icon="AndroidIcons.Views.EditTextSigned">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -323,20 +170,10 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/SignedNumber"
-              android:inputType="numberSigned"
-              android:text="-42"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
     <item tag="EditText" id="DecimalNumber" title="Number (Decimal)"
-      icon="AndroidIcons.Views.EditTextNumberDecimal">
+          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          icon="StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
             <EditText
@@ -347,33 +184,148 @@
             />
           ]]>
       </xml>
-      <preview>
-        <![CDATA[
-            <EditText
-              android:id="@+id/DecimalNumber"
-              android:inputType="numberDecimal"
-              android:text="42.0"
-              android:layout_width="200dip"
-              android:layout_height="wrap_content">
-            </EditText>
-          ]]>
-      </preview>
     </item>
-    <item tag="AutoCompleteTextView"/>
-    <item tag="MultiAutoCompleteTextView"/>
+    <item tag="AutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
+    <item tag="MultiAutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
+    <item tag="CheckedTextView" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="android.support.design.widget.TextInputLayout" suggested="true" meta="material"/>
   </group>
-
+  <group name="Buttons">
+    <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
+    <item tag="ImageButton" suggested="true"/>
+    <item tag="CheckBox" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="RadioGroup" materialReference="https://material.io/guidelines/selection-controls.html#selection-controls-radio-button"/>
+    <item tag="RadioButton" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="ToggleButton" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html#buttons-toggle-buttons"/>
+    <item tag="Switch" suggested="true"
+          materialReference="https://material.io/guidelines/components/selection-controls.html#selection-controls-switch"/>
+    <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
+  </group>
+  <group name="Widgets">
+    <item tag="View"/>
+    <item tag="ImageView" suggested="true"/>
+    <item tag="WebView" suggested="true"/>
+    <item tag="VideoView"/>
+    <item tag="CalendarView"/>
+    <item tag="ProgressBar"
+          materialReference="https://material.io/guidelines/components/progress-activity.html"
+          suggested="true"
+          title="ProgressBar">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <ProgressBar
+              style="?android:attr/progressBarStyle"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="ProgressBar"
+          materialReference="https://material.io/guidelines/components/progress-activity.html"
+          id="HorizontalProgressBar"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL"
+          title="ProgressBar (Horizontal)">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <ProgressBar
+              style="?android:attr/progressBarStyleHorizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="SeekBar" suggested="true" materialReference="https://material.io/guidelines/components/sliders.html"/>
+    <item tag="SeekBar"
+          materialReference="https://material.io/guidelines/components/sliders.html"
+          id="DiscreteSeekBar"
+          icon="StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE"
+          title="SeekBar (Discrete)">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <SeekBar
+              style="@style/Widget.AppCompat.SeekBar.Discrete"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:max="10"
+              android:progress="3"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="RatingBar" materialReference="https://material.io/guidelines/components/sliders.html"/>
+    <item tag="SearchView"/>
+    <item tag="TextureView"/>
+    <item tag="SurfaceView"/>
+    <item tag="View"
+          id="divider1"
+          icon="StudioIcons.LayoutEditor.Palette.HORIZONTAL_DIVIDER"
+          title="Horizontal Divider">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <View
+              android:id="@+id/divider1"
+              android:layout_width="match_parent"
+              android:layout_height="1dp"
+              android:background="?android:attr/listDivider"
+            />
+          ]]>
+      </xml>
+    </item>
+    <item tag="View"
+          id="divider2"
+          icon="StudioIcons.LayoutEditor.Palette.VERTICAL_DIVIDER"
+          title="Vertical Divider">
+      <xml reuse="drag-preview">
+        <![CDATA[
+            <View
+              android:id="@+id/divider2"
+              android:layout_width="1dp"
+              android:layout_height="match_parent"
+              android:background="?android:attr/listDivider"
+            />
+          ]]>
+      </xml>
+    </item>
+  </group>
   <group name="Layouts">
-    <item tag="android.support.constraint.ConstraintLayout"/>
-    <item tag="GridLayout"/>
-    <!--
-    TODO: Uncomment this once flag for Flexbox is enabled
-    <item tag="com.google.android.flexbox.FlexboxLayout"/>
-    -->
-    <item tag="FrameLayout"/>
+    <item tag="android.support.constraint.ConstraintLayout" suggested="true"
+          materialReference="https://material.io/guidelines/layout/principles.html"/>
+    <item tag="android.support.constraint.Guideline"
+          title="Guideline (horizontal)"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE">
+      <xml>
+        <![CDATA[
+            <android.support.constraint.Guideline
+              android:orientation="horizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="android.support.constraint.Guideline"
+          title="Guideline (vertical)"
+          suggested="true"
+          id="VerticalGuideline"
+          icon="StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE">
+    <xml>
+        <![CDATA[
+            <android.support.constraint.Guideline
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
-          icon="AndroidIcons.Views.LinearLayout">
+          suggested="true"
+          id="HorizontalGuideline"
+          icon="StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ">
       <xml>
         <![CDATA[
             <LinearLayout
@@ -386,7 +338,9 @@
     </item>
     <item tag="LinearLayout"
           title="LinearLayout (vertical)"
-          icon="AndroidIcons.Views.VerticalLinearLayout">
+          suggested="true"
+          id="VerticalLinearLayout"
+          icon="StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT">
       <xml>
         <![CDATA[
             <LinearLayout
@@ -397,72 +351,47 @@
           ]]>
       </xml>
     </item>
-    <item tag="RelativeLayout"/>
+    <item tag="FrameLayout"/>
     <item tag="TableLayout"/>
     <item tag="TableRow"/>
-    <item tag="fragment"/>
+    <item tag="Space"/>
+    <!--
+    TODO: Uncomment this once flag for Flexbox is enabled
+    <item tag="com.google.android.flexbox.FlexboxLayout"/>
+    -->
   </group>
-
   <group name="Containers">
-    <item tag="RadioGroup"/>
-    <item tag="ListView"/>
-    <item tag="GridView"/>
-    <item tag="ExpandableListView"/>
+    <item tag="Spinner"/>
+    <item tag="android.support.v7.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
     <item tag="ScrollView"/>
-    <item tag="HorizontalScrollView"/>
-    <item tag="TabHost"/>
-    <item tag="WebView"/>
-    <item tag="SearchView"/>
+    <item tag="HorizontalScrollView" suggested="true"/>
+    <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
     <item tag="android.support.v4.view.ViewPager"/>
-  </group>
-  <group name="Images">
-    <item tag="ImageButton"/>
-    <item tag="ImageView"/>
-    <item tag="VideoView"/>
-  </group>
-  <group name="Date">
-    <item tag="TimePicker" render-separately="true"/>
-    <item tag="DatePicker"/>
-    <item tag="CalendarView"/>
-    <item tag="Chronometer"/>
-    <item tag="TextClock"/>
-  </group>
-  <group name="Transitions">
-    <item tag="ImageSwitcher"/>
-    <item tag="AdapterViewFlipper"/>
-    <item tag="StackView"/>
-    <item tag="TextSwitcher"/>
-    <item tag="ViewAnimator"/>
-    <item tag="ViewFlipper"/>
-    <item tag="ViewSwitcher"/>
-  </group>
-  <group name="Advanced">
-    <item tag="include"/>
-    <item tag="requestFocus"/>
-    <item tag="view"/>
+    <item tag="android.support.v7.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
+    <item tag="android.support.v4.view.ViewPager" id="Tabs" title="Tabs"/>
+    <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
+    <item tag="android.support.design.widget.NavigationView" suggested="true"/>
+    <item tag="android.support.design.widget.BottomNavigationView" suggested="true"/>
+    <item tag="android.support.v7.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/tabs.html"/>
+    <item tag="android.support.design.widget.TabItem" meta="material"
+          materialReference="https://material.io/guidelines/components/tabs.html"/>
     <item tag="ViewStub"/>
-    <item tag="TextureView"/>
-    <item tag="SurfaceView"/>
-    <item tag="NumberPicker"/>
+    <item tag="include"/>
+    <item tag="fragment"/>
+    <item tag="view"/>
+    <item tag="requestFocus"/>
   </group>
   <group name="Google">
-    <item tag="com.google.android.gms.ads.AdView"/>
-    <item tag="com.google.android.gms.maps.MapView"/>
+    <item tag="com.google.android.gms.ads.AdView" suggested="true"/>
+    <item tag="com.google.android.gms.maps.MapView" suggested="true"/>
   </group>
-  <group name="Design">
-    <item tag="android.support.design.widget.CoordinatorLayout"/>
-    <item tag="android.support.design.widget.AppBarLayout"/>
-    <item tag="android.support.design.widget.TabLayout"/>
-    <item tag="android.support.design.widget.TabItem"/>
-    <item tag="android.support.v4.widget.NestedScrollView"/>
-    <item tag="android.support.design.widget.FloatingActionButton"/>
-    <item tag="android.support.design.widget.TextInputLayout"/>
-    <!-- Tabs -->
-  </group>
-  <group name="AppCompat">
-    <item tag="android.support.v7.widget.CardView"/>
-    <item tag="android.support.v7.widget.GridLayout"/>
-    <item tag="android.support.v7.widget.RecyclerView"/>
-    <item tag="android.support.v7.widget.Toolbar" render-separately="true"/>
+  <group name="Legacy">
+    <item tag="android.support.v7.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
+    <item tag="ListView"/>
+    <item tag="TabHost"/>
+    <item tag="RelativeLayout"/>
+    <item tag="GridView"/>
   </group>
 </palette>

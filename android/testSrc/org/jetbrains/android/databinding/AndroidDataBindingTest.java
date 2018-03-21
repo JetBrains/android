@@ -17,10 +17,18 @@ package org.jetbrains.android.databinding;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.ModuleDataBinding;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.intellij.psi.*;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameterList;
 import org.jetbrains.android.AndroidTestCase;
 
+/**
+ * Tests symbol resolution in data binding expressions in layout XML files. The code being tested is located in
+ * {@link org.jetbrains.android.dom.converters.DataBindingConverter} and
+ * {@link com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor}.
+ */
 public class AndroidDataBindingTest extends AndroidTestCase {
   private static final String DUMMY_CLASS_QNAME = "p1.p2.DummyClass";
 
@@ -28,26 +36,35 @@ public class AndroidDataBindingTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.setTestDataPath(myFixture.getTestDataPath() + "/databinding");
+    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
   }
 
-  private void copyLayout(String... names) {
-    for (String name : names) {
-      myFixture.copyFileToProject("databinding/res/layout/" + name + ".xml", "res/layout/" + name + ".xml");
+  private VirtualFile copyLayout(String name) {
+    return myFixture.copyFileToProject("res/layout/" + name + ".xml");
+  }
+
+  private VirtualFile copyClass(String qName) {
+    String asPath = qName.replace(".", "/");
+    return myFixture.copyFileToProject("src/" + asPath + ".java");
+  }
+
+  private static void assertMethod(PsiClass aClass, String name, String returnType, String... parameters) {
+    PsiMethod[] methods = aClass.findMethodsByName(name, true);
+    assertEquals(1, methods.length);
+    PsiMethod method = methods[0];
+    assertNotNull(method.getReturnType());
+    assertEquals(returnType, method.getReturnType().getCanonicalText());
+    PsiParameterList parameterList = method.getParameterList();
+    assertEquals(parameters.length, parameterList.getParametersCount());
+    for (String parameterQName : parameters) {
+      assertEquals(parameterQName, parameterList.getParameters()[0].getType().getCanonicalText());
     }
   }
 
-  private void copyClass(String... qNames) {
-    for (String name : qNames) {
-      String asPath = name.replace(".", "/");
-      myFixture.copyFileToProject("databinding/java/" + asPath + ".java", "src/" + asPath + ".java");
-    }
-  }
-
-  public void testResolveSimpleVariable() {
+  public void testSimpleVariableResolution() {
     copyLayout("basic_binding");
     copyClass(DUMMY_CLASS_QNAME);
-    ModuleDataBinding.enable(myFacet);
-    ModuleResourceRepository.getOrCreateInstance(myFacet);
 
     PsiClass aClass = myFixture.findClass("p1.p2.databinding.BasicBindingBinding");
     assertNotNull(aClass);
@@ -56,11 +73,20 @@ public class AndroidDataBindingTest extends AndroidTestCase {
     assertMethod(aClass, "getDummy", DUMMY_CLASS_QNAME);
   }
 
-  public void testResolveImport() {
+  /**
+   * Tests symbol resolution in the scenario described in https://issuetracker.google.com/65467760.
+   */
+  public void testPropertyResolution() {
+    copyClass("p1.p2.ClassWithBindableProperty");
+    myFixture.configureByFile("res/layout/data_binding_property_reference.xml");
+    PsiElement element = myFixture.getElementAtCaret();
+    assertTrue(element instanceof PsiMethod);
+    assertEquals("getProperty", ((PsiMethod)element).getName());
+  }
+
+  public void testImportResolution() {
     copyLayout("import_variable");
     copyClass(DUMMY_CLASS_QNAME);
-    ModuleDataBinding.enable(myFacet);
-    ModuleResourceRepository.getOrCreateInstance(myFacet);
 
     PsiClass aClass = myFixture.findClass("p1.p2.databinding.ImportVariableBinding");
     assertNotNull(aClass);
@@ -81,11 +107,9 @@ public class AndroidDataBindingTest extends AndroidTestCase {
     assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
   }
 
-  public void testResolveImportAlias() {
+  public void testImportAliasResolution() {
     copyLayout("import_via_alias");
     copyClass(DUMMY_CLASS_QNAME);
-    ModuleDataBinding.enable(myFacet);
-    ModuleResourceRepository.getOrCreateInstance(myFacet);
 
     PsiClass aClass = myFixture.findClass("p1.p2.databinding.ImportViaAliasBinding");
     assertNotNull(aClass);
@@ -107,19 +131,6 @@ public class AndroidDataBindingTest extends AndroidTestCase {
 
     assertMethod(aClass, "setDummyMultiDimArray", "void", DUMMY_CLASS_QNAME + "[][][]");
     assertMethod(aClass, "getDummyMultiDimArray", DUMMY_CLASS_QNAME + "[][][]");
-  }
-
-  private static void assertMethod(PsiClass aClass, String name, String returnType, String... parameters) {
-    PsiMethod[] methods = aClass.findMethodsByName(name, true);
-    assertEquals(1, methods.length);
-    PsiMethod method = methods[0];
-    assertNotNull(method.getReturnType());
-    assertEquals(returnType, method.getReturnType().getCanonicalText());
-    PsiParameterList parameterList = method.getParameterList();
-    assertEquals(parameters.length, parameterList.getParametersCount());
-    for (String parameterQName : parameters) {
-      assertEquals(parameterQName, parameterList.getParameters()[0].getType().getCanonicalText());
-    }
   }
 }
 

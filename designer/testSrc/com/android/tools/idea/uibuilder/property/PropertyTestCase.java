@@ -15,26 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
-import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xml.XmlName;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -47,13 +49,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockNlUsageTracker;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
   private static final String UNKNOWN_TAG = "UnknownTagName";
+  protected static final int MOST_RECENT_API_LEVEL = AndroidVersion.VersionCodes.O_MR1;
+  protected static final int DEFAULT_MIN_API_LEVEL = AndroidVersion.VersionCodes.LOLLIPOP_MR1;
 
   protected NlComponent myTextView;
   protected NlComponent myProgressBar;
@@ -70,8 +73,6 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myAutoCompleteTextView;
   protected NlComponent myRadioGroup;
   protected NlComponent myButtonInConstraintLayout;
-  protected NlComponent myTextViewInLinearLayout;
-  protected NlComponent myButtonInLinearLayout;
   protected NlComponent myImageViewInCollapsingToolbarLayout;
   protected NlComponent myTabLayout;
   protected NlComponent myRelativeLayout;
@@ -79,16 +80,16 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myFragment;
   protected SyncNlModel myModel;
   protected DesignSurface myDesignSurface;
-  protected ScreenView myScreenView;
   protected NlPropertiesManager myPropertiesManager;
   protected NlUsageTracker myUsageTracker;
-  protected AndroidDomElementDescriptorProvider myDescriptorProvider;
-  protected Map<String, NlComponent> myComponentMap;
+  private AndroidDomElementDescriptorProvider myDescriptorProvider;
+  private Map<String, NlComponent> myComponentMap;
   protected PropertiesComponent myPropertiesComponent;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    setUpManifest();
     myModel = createModel();
     myComponentMap = createComponentMap();
     myTextView = myComponentMap.get("textView");
@@ -106,19 +107,13 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myConstraintLayout = myComponentMap.get("constraintLayout");
     myConstraintLayoutWithConstraintSet = myComponentMap.get("constraintLayoutWithConstraintSet");
     myButtonInConstraintLayout = myComponentMap.get("button2");
-    myTextViewInLinearLayout = myComponentMap.get("textview_in_linearlayout");
-    myButtonInLinearLayout = myComponentMap.get("button_in_linearlayout");
     myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
     myTabLayout = myComponentMap.get("tabLayout");
     myRelativeLayout = myComponentMap.get("relativeLayout");
     myViewTag = myComponentMap.get("viewTag");
     myFragment = myComponentMap.get("fragmentTag");
     myDesignSurface = myModel.getSurface();
-    myScreenView = createScreen(myModel);
     myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
-    NlInspectorProviders inspectorProviders = new NlInspectorProviders(myPropertiesManager, myDesignSurface);
-    when(myDesignSurface.getInspectorProviders(any(), any()))
-      .thenReturn(inspectorProviders);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
     myUsageTracker = mockNlUsageTracker(myDesignSurface);
@@ -149,14 +144,11 @@ public abstract class PropertyTestCase extends LayoutTestCase {
       myAutoCompleteTextView = null;
       myRadioGroup = null;
       myButtonInConstraintLayout = null;
-      myTextViewInLinearLayout = null;
-      myButtonInLinearLayout = null;
       myImageViewInCollapsingToolbarLayout = null;
       myTabLayout = null;
       myRelativeLayout = null;
       myModel = null;
       myDesignSurface = null;
-      myScreenView = null;
       myPropertiesManager = null;
       myUsageTracker = null;
       myDescriptorProvider = null;
@@ -167,6 +159,31 @@ public abstract class PropertyTestCase extends LayoutTestCase {
       super.tearDown();
     }
   }
+
+  @Override
+  public boolean providesCustomManifest() {
+    return true;
+  }
+
+  // By default we setup a manifest file with minSdkVersion and targetSdkVersion specified.
+  // The minSdkVersion can be specified by the test name:
+  //    testXyzMinApi17   -   will cause a manifest with minSdkVersion set to 17.
+  // If no MinApi is specified in the test name the default if LOLLIPOP_MR1.
+  // Alternatively a test can override this method to customize the manifest.
+  protected void setUpManifest() throws Exception {
+    String minApiAsString = StringUtil.substringAfter(getTestName(true), "MinApi");
+    int minApi = minApiAsString != null ? Integer.parseInt(minApiAsString) : DEFAULT_MIN_API_LEVEL;
+    myFixture.addFileToProject(FN_ANDROID_MANIFEST_XML, String.format(MANIFEST_SOURCE, minApi, MOST_RECENT_API_LEVEL));
+  }
+
+  @Language("XML")
+  private static final String MANIFEST_SOURCE =
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+    "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" \n" +
+    "    package='com.example'>\n" +
+    "        <uses-sdk android:minSdkVersion=\"%1$d\"\n" +
+    "                  android:targetSdkVersion=\"%2$d\" />\n" +
+    "</manifest>\n";
 
   @NotNull
   private Map<String, NlComponent> createComponentMap() {
@@ -199,6 +216,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                        .id("@id/textView")
                                        .width("wrap_content")
                                        .height("wrap_content")
+                                       .withAttribute(ANDROID_URI, ATTR_TEXT_COLOR, "#FF00FFFF")
                                        .withAttribute(ANDROID_URI, ATTR_ELEVATION, "2dp")
                                        .text("SomeText"),
                                      component(PROGRESS_BAR)
@@ -338,7 +356,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                                .withBounds(410, 310, 50, 100)
                                                .id("@id/imgv")
                                                .withAttribute(AUTO_URI, ATTR_COLLAPSE_PARALLAX_MULTIPLIER, ".2")
-                                       ))));
+                                           ))));
     return builder.build();
   }
 
@@ -346,7 +364,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     clearSnapshots(myModel.getComponents());
   }
 
-  protected static void clearSnapshots(@NotNull List<NlComponent> components) {
+  private static void clearSnapshots(@NotNull List<NlComponent> components) {
     for (NlComponent component : components) {
       component.setSnapshot(null);
       clearSnapshots(component.getChildren());
@@ -387,7 +405,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @Nullable
-  protected static AttributeDefinition getDefinition(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
+  private static AttributeDefinition getDefinition(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
     AndroidFacet facet = component.getModel().getFacet();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
@@ -414,7 +432,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   @NotNull
   protected Table<String, String, NlPropertyItem> getPropertyTable(@NotNull List<NlComponent> components) {
     NlProperties propertiesProvider = NlProperties.getInstance();
-    return propertiesProvider.getProperties(myPropertiesManager, components);
+    return propertiesProvider.getProperties(myFacet, myPropertiesManager, components);
   }
 
   @NotNull
@@ -458,7 +476,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     return property;
   }
 
-  protected boolean isApplicable(@NotNull InspectorProvider provider, @NotNull NlComponent... componentArray) {
+  protected boolean isApplicable(@NotNull InspectorProvider<NlPropertiesManager> provider, @NotNull NlComponent... componentArray) {
     return provider.isApplicable(Arrays.asList(componentArray), getPropertyMap(Arrays.asList(componentArray)), myPropertiesManager);
   }
 }

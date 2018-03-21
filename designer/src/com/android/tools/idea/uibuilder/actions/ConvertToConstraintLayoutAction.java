@@ -16,20 +16,21 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
-import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -87,7 +88,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    ScreenView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     NlComponent target = findTarget(screenView);
     if (target != null) {
       String tagName = target.getTagName();
@@ -113,7 +114,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   }
 
   @Nullable
-  private static NlComponent findTarget(@Nullable ScreenView screenView) {
+  private static NlComponent findTarget(@Nullable SceneView screenView) {
     if (screenView != null) {
       List<NlComponent> selection = screenView.getSelectionModel().getSelection();
       if (selection.size() == 1) {
@@ -131,7 +132,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -155,9 +156,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
 
     // Step #2: Ensure ConstraintLayout is available in the project
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
-    if (!manager.ensureLibraryIsIncluded(screenView.getModel().getModule(), Collections.singletonList(coordinate), null)) {
+    List<GoogleMavenArtifactId> notAdded = DependencyManagementUtil
+      .addDependencies(screenView.getModel().getModule(), Collections.singletonList(GoogleMavenArtifactId.CONSTRAINT_LAYOUT), false);
+    if (!notAdded.isEmpty()) {
       return;
     }
 
@@ -204,7 +205,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   private static class ConstraintLayoutConverter extends WriteCommandAction {
     private static final boolean DIRECT_INFERENCE = true;
-    private final ScreenView myScreenView;
+    private final SceneView myScreenView;
     private final boolean myFlatten;
     private final boolean myIncludeIds;
     private final boolean myIncludeCustomViews;
@@ -213,7 +214,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     private NlComponent myRoot;
     private NlComponent myLayout;
 
-    public ConstraintLayoutConverter(@NotNull ScreenView screenView,
+    public ConstraintLayoutConverter(@NotNull SceneView screenView,
                                      @NotNull NlComponent target,
                                      boolean flatten,
                                      boolean includeIds,
@@ -234,7 +235,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       if (myLayout == null) {
         return;
       }
-      NlComponentHelperKt.ensureId(myLayout);
+      myLayout.ensureId();
 
       boolean directConvert = true;
       if (myFlatten) {
@@ -258,7 +259,11 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       NlModel model = myLayout.getModel();
       XmlTag layoutTag = myLayout.getTag();
       XmlTag rootTag = myRoot.getTag();
-      myScreenView.getSurface().getSceneManager().layout(false);
+
+      SceneManager manager = myScreenView.getSurface().getSceneManager();
+      assert manager != null;
+
+      manager.layout(false);
 
       // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
       myRoot = model.findViewByTag(rootTag);
@@ -269,9 +274,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       if (DIRECT_INFERENCE) { // Let's run Scout after the flattening. Ideally we should run this after the model got a chance to update.
         final String id = myLayout.getId();
-        myScreenView.getModel().addListener(new ModelListener() {
+        manager.addRenderListener(new RenderListener() {
           @Override
-          public void modelRendered(@NotNull NlModel model) {
+          public void onRenderCompleted() {
             assert id != null;
             NlComponent layout = myScreenView.getModel().find(id);
 
@@ -287,19 +292,13 @@ public class ConvertToConstraintLayoutAction extends AnAction {
                 }
 
                 inferConstraints(layout);
-                myScreenView.getModel().removeListener(this);
+                manager.removeRenderListener(this);
               }
             });
 
             ApplicationManager.getApplication().invokeLater(action);
           }
-
-          @Override
-          public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-
-          }
         });
-
 
         //});
         //t.setRepeats(false);
@@ -484,7 +483,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       // See if the component seems to have a visual purpose - e.g. sets background or other styles
       if (component.getAttribute(ANDROID_URI, ATTR_BACKGROUND) != null
-          || component.getAttribute(ANDROID_URI, ATTR_FOREGROUND) != null  ) {// such as ?android:selectableItemBackgroun
+          || component.getAttribute(ANDROID_URI, ATTR_FOREGROUND) != null) {// such as ?android:selectableItemBackgroun
         return false;
       }
 

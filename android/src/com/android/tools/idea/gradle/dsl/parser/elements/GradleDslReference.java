@@ -15,49 +15,93 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.google.common.collect.ImmutableList;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Represents a {@link GrReferenceExpression} element.
+ * Represents a reference expression.
  */
-public final class GradleDslReference extends GradleDslExpression {
+public final class GradleDslReference extends GradleDslSettableExpression {
   public GradleDslReference(@NotNull GradleDslElement parent,
-                            @NotNull GroovyPsiElement psiElement,
+                            @NotNull PsiElement psiElement,
                             @NotNull String name,
-                            @NotNull GrReferenceExpression reference) {
+                            @NotNull PsiElement reference) {
     super(parent, psiElement, name, reference);
+  }
+
+  public GradleDslReference(@NotNull GradleDslElement parent, @NotNull String name) {
+    super(parent, null, name, null);
   }
 
   @Override
   @NotNull
-  protected Collection<GradleDslElement> getChildren() {
+  public Collection<GradleDslElement> getChildren() {
     return ImmutableList.of();
   }
 
   @Nullable
   public String getReferenceText() {
-    return myExpression != null ? myExpression.getText() : null;
+    PsiElement element = getCurrentElement();
+    return element != null ? element.getText() : null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Object getValue() {
     GradleDslLiteral valueLiteral = getValue(GradleDslLiteral.class);
     return valueLiteral != null ? valueLiteral.getValue() : getValue(String.class);
   }
 
   /**
-   * Returns the value of type {@code clazz} when the {@link GrReferenceExpression} element is referring to an element with the value
+   * Returns the same as getReferenceText if you need to get the unresolved version of what this
+   * reference refers to then use getResolvedVariables and call getRawValue on the result.
+   */
+  @Override
+  @Nullable
+  public Object getUnresolvedValue() {
+    return getReferenceText();
+  }
+
+  @Override
+  @NotNull
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    GradleReferenceInjection injection = getReferenceInjection();
+    if (injection == null) {
+      return Collections.emptyList();
+    }
+    return ImmutableList.of(injection);
+  }
+
+  @Nullable
+  public GradleReferenceInjection getReferenceInjection() {
+    String text = getReferenceText();
+    PsiElement psiElement = getCurrentElement();
+    if (text == null || psiElement == null) {
+      return null;
+    }
+
+    // Resolve our reference
+    GradleDslElement element = resolveReference(text);
+    if (element == null) {
+      return null;
+    }
+
+    return new GradleReferenceInjection(element, psiElement, text);
+  }
+
+  /**
+   * Returns the value of type {@code clazz} when the reference expression is referring to an element with the value
    * of that type, or {@code null} otherwise.
    */
-  @Nullable
   @Override
+  @Nullable
   public <T> T getValue(@NotNull Class<T> clazz) {
     String referenceText = getReferenceText();
     if (referenceText == null) {
@@ -67,29 +111,33 @@ public final class GradleDslReference extends GradleDslExpression {
   }
 
   @Override
+  @Nullable
+  public <T> T getUnresolvedValue(@NotNull Class<T> clazz) {
+    Object value = getUnresolvedValue();
+    if (value != null && clazz.isAssignableFrom(value.getClass())) {
+      return clazz.cast(value);
+    }
+    return null;
+  }
+
+  @Override
   public void setValue(@NotNull Object value) {
-    // TODO: Add support to set a reference value.
+    setUnsavedValue(getDslFile().getParser().convertToPsiElement(value));
   }
 
   @Override
   protected void apply() {
-    // TODO: Add support to update a reference element.
-  }
-
-  @Override
-  protected void reset() {
-    // TODO: Add support to update a reference element.
+    getDslFile().getWriter().applyDslReference(this);
   }
 
   @Override
   @Nullable
-  public GroovyPsiElement create() {
-    // TODO: Add support to create a new reference element.
-    return getPsiElement();
+  public PsiElement create() {
+    return getDslFile().getWriter().createDslReference(this);
   }
 
   @Override
   protected void delete() {
-    // TODO: Add support to delete a reference element.
+    getDslFile().getWriter().deleteDslReference(this);
   }
 }

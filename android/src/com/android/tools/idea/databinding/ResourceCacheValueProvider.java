@@ -21,6 +21,7 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.util.CachedValueProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 abstract public class ResourceCacheValueProvider<T> implements CachedValueProvider<T>, ModificationTracker {
   ModificationTracker[] myAdditionalTrackers;
@@ -40,9 +41,12 @@ abstract public class ResourceCacheValueProvider<T> implements CachedValueProvid
     }
   };
   private final AndroidFacet myFacet;
+  private final Object myComputeLock;
 
-  public ResourceCacheValueProvider(AndroidFacet facet, ModificationTracker... additionalTrackers) {
+  public ResourceCacheValueProvider(@NotNull AndroidFacet facet, @Nullable Object computeLock,
+                                    @NotNull ModificationTracker... additionalTrackers) {
     myFacet = facet;
+    myComputeLock = computeLock;
     myAdditionalTrackers = additionalTrackers;
   }
 
@@ -61,7 +65,17 @@ abstract public class ResourceCacheValueProvider<T> implements CachedValueProvid
     if (ModuleResourceRepository.findExistingInstance(myFacet) == null) {
       return Result.create(defaultValue(), myTracker, myAdditionalTrackers);
     }
-    return Result.create(doCompute(), myTracker, myAdditionalTrackers);
+    return Result.create(computeWithLock(), myTracker, myAdditionalTrackers);
+  }
+
+  private T computeWithLock() {
+    if (myComputeLock == null) {
+      return doCompute();
+    }
+
+    synchronized (myComputeLock) {
+      return doCompute();
+    }
   }
 
   abstract T doCompute();

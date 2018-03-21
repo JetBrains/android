@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.google.common.io.Closeables.close;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.SDK_NOT_FOUND;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;

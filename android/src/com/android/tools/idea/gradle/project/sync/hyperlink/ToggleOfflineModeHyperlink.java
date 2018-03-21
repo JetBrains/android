@@ -54,7 +54,7 @@ public class ToggleOfflineModeHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(myEnableOfflineMode);
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
   }
 
   @TestOnly

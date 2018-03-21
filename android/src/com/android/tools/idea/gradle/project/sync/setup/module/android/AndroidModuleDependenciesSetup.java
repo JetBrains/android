@@ -32,7 +32,6 @@ import java.io.File;
 import static com.android.SdkConstants.*;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 import static java.io.File.separatorChar;
 
 class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
@@ -48,7 +47,7 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull DependencyScope scope,
                               @NotNull File artifactPath,
                               boolean exported) {
-    setUpLibraryDependency(module, modelsProvider, libraryName, scope, artifactPath, new File[]{artifactPath}, EMPTY_FILE_ARRAY, exported);
+    setUpLibraryDependency(module, modelsProvider, libraryName, scope, artifactPath, new File[]{artifactPath}, exported);
   }
 
   void setUpLibraryDependency(@NotNull Module module,
@@ -57,7 +56,6 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
                               @NotNull DependencyScope scope,
                               @NotNull File artifactPath,
                               @NotNull File[] binaryPaths,
-                              @NotNull File[] documentationPaths,
                               boolean exported) {
 
     // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
@@ -89,7 +87,10 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
       if (sourceJarPath != null) {
         updateLibraryRootTypePaths(library, SOURCES, modelsProvider, sourceJarPath);
       }
-      updateLibraryRootTypePaths(library, JavadocOrderRootType.getInstance(), modelsProvider, documentationPaths);
+      File javadocJarPath = myLibraryFilePaths.findJavadocJarPath(artifactPath);
+      if (javadocJarPath != null) {
+        updateLibraryRootTypePaths(library, JavadocOrderRootType.getInstance(), modelsProvider, javadocJarPath);
+      }
 
       // Add external annotations.
       // TODO: Add this to the model instead!

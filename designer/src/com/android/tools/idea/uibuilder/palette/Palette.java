@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.annotations.NonNull;
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.IconLoader;
 import org.intellij.lang.annotations.Language;
@@ -32,10 +33,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A {@link Palette} contains a list of palette groups and items.
@@ -43,6 +41,8 @@ import java.util.Set;
  */
 @XmlRootElement(name = "palette")
 public class Palette {
+  public static final Palette EMPTY = new Palette();
+
   // @formatter:off
   @XmlElements({
     @XmlElement(name = "group", type = Group.class),
@@ -53,9 +53,12 @@ public class Palette {
 
   private final Set<String> myGradleCoordinateIds;
 
+  private final Map<String, Item> myItemsById;
+
   private Palette() {
     myItems = new ArrayList<>();
     myGradleCoordinateIds = new HashSet<>();
+    myItemsById = new HashMap<>();
   }
 
   /**
@@ -63,9 +66,7 @@ public class Palette {
    */
   public static Palette parse(@NotNull Reader xmlReader, @NotNull ViewHandlerManager manager) throws JAXBException {
     Palette palette = unMarshal(xmlReader);
-    palette.accept(Item::resolve);
-    palette.accept(item -> item.initHandler(manager));
-    palette.accept(item -> item.addGradleCoordinateId(palette.myGradleCoordinateIds));
+    palette.accept(item -> item.setUp(palette, manager));
     palette.setParentGroups();
     return palette;
   }
@@ -88,8 +89,13 @@ public class Palette {
     return myItems;
   }
 
+  @Nullable
+  public Item getItemById(@NotNull String id) {
+    return myItemsById.get(id);
+  }
+
   @NotNull
-  Set<String> getGradleCoordinateIds() {
+  public Set<String> getGradleCoordinateIds() {
     return myGradleCoordinateIds;
   }
 
@@ -115,6 +121,9 @@ public class Palette {
     void visit(@NotNull Item item);
 
     default void visit(@SuppressWarnings("UnusedParameters") @NotNull Group group) {
+    }
+
+    default void visitAfter(@SuppressWarnings("UnusedParameters") @NotNull Group group) {
     }
   }
 
@@ -197,6 +206,7 @@ public class Palette {
       for (BaseItem item : myItems) {
         item.accept(visitor);
       }
+      visitor.visitAfter(this);
     }
 
     @NotNull
@@ -233,17 +243,21 @@ public class Palette {
     @Nullable
     private String myGradleCoordinateId;
 
-    @XmlAttribute(name = "scale")
-    @Nullable
-    private Double myPreviewScale;
-
-    @XmlAttribute(name = "render-separately")
-    @Nullable
-    private Boolean myPreviewRenderSeparately;
-
     @XmlAttribute(name = "handler-class")
     @Nullable
     private String myHandlerClass;
+
+    @XmlAttribute(name = "suggested")
+    @Nullable
+    private Boolean mySuggested;
+
+    @XmlAttribute(name = "meta")
+    @Nullable
+    private String myMeta;
+
+    @XmlAttribute(name = "materialReference")
+    @Nullable
+    private String myMaterialReference;
 
     @XmlElement(name = "xml", type = XmlValuePart.class)
     private XmlValuePart myXmlValuePart;
@@ -251,11 +265,6 @@ public class Palette {
     @Language("XML")
     @Nullable
     private String myXml;
-
-    @XmlElement(name = "preview")
-    @Language("XML")
-    @Nullable
-    private String myPreviewXml;
 
     @XmlElement(name = "drag-preview")
     @Language("XML")
@@ -265,13 +274,15 @@ public class Palette {
     @Nullable
     private Group myParent;
 
+    private List<String> myMetaTags;
+
     private PaletteComponentHandler myHandler;
 
     // Needed for JAXB
     private Item() {
     }
 
-    public Item(@NotNull String tagName, @NotNull PaletteComponentHandler handler) {
+    public Item(@NotNull String tagName, @NotNull ViewHandler handler) {
       myTagName = tagName;
       myHandler = handler;
     }
@@ -322,12 +333,29 @@ public class Palette {
       return myHandler.getLargeIcon(myTagName);
     }
 
-    @Nullable
+    @NonNull
     public String getGradleCoordinateId() {
       if (myGradleCoordinateId != null) {
         return myGradleCoordinateId;
       }
       return myHandler.getGradleCoordinateId(myTagName);
+    }
+
+    public boolean isSuggested() {
+      if (mySuggested != null) {
+        return mySuggested;
+      }
+      return false;
+    }
+
+    @NotNull
+    public List<String> getMetaTags() {
+      return myMetaTags;
+    }
+
+    @Nullable
+    public String getMaterialReference() {
+      return myMaterialReference;
     }
 
     @NotNull
@@ -341,34 +369,11 @@ public class Palette {
 
     @NotNull
     @Language("XML")
-    public String getPreviewXml() {
-      if (myPreviewXml != null) {
-        return myPreviewXml;
-      }
-      return myHandler.getXml(myTagName, XmlType.PREVIEW_ON_PALETTE);
-    }
-
-    @NotNull
-    @Language("XML")
     public String getDragPreviewXml() {
       if (myDragPreviewXml != null) {
         return myDragPreviewXml;
       }
       return myHandler.getXml(myTagName, XmlType.DRAG_PREVIEW);
-    }
-
-    public double getPreviewScale() {
-      if (myPreviewScale != null) {
-        return myPreviewScale;
-      }
-      return myHandler.getPreviewScale(myTagName);
-    }
-
-    public boolean isPreviewRenderedSeparately() {
-      if (myPreviewRenderSeparately != null) {
-        return myPreviewRenderSeparately;
-      }
-      return false;
     }
 
     @Override
@@ -387,16 +392,31 @@ public class Palette {
       visitor.visit(this);
     }
 
+    void setUp(@NotNull Palette palette, @NotNull ViewHandlerManager manager) {
+      resolve();
+      initHandler(manager);
+      addGradleCoordinateId(palette.myGradleCoordinateIds);
+      palette.myItemsById.put(getId(), this);
+    }
+
     private void resolve() {
       if (myXmlValuePart != null) {
         myXml = myXmlValuePart.getValue();
-        if (myPreviewXml == null && myXmlValuePart.reuseForPreview()) {
-          myPreviewXml = addId(myXml);  // The preview must have an ID for custom XML
-        }
         if (myDragPreviewXml == null && myXmlValuePart.reuseForDragPreview()) {
           myDragPreviewXml = myXml;
         }
         myXmlValuePart = null; // No longer used
+      }
+      if (myMetaTags == null) {
+        if (myMeta == null || myMeta.trim().isEmpty()) {
+          myMetaTags = Collections.emptyList();
+        }
+        else if (myMeta.indexOf(',') < 0) {
+          myMetaTags = Collections.singletonList(myMeta.trim());
+        }
+        else {
+          myMetaTags = Splitter.on(",").trimResults().splitToList(myMeta);
+        }
       }
     }
 
@@ -417,29 +437,15 @@ public class Palette {
     private void addGradleCoordinateId(@NotNull Set<String> coordinateIds) {
       String coordinateId = getGradleCoordinateId();
 
-      if (!Strings.isNullOrEmpty(coordinateId)) {
+      if (!coordinateId.isEmpty()) {
         coordinateIds.add(coordinateId);
       }
-    }
-
-    @Language("XML")
-    @Nullable
-    private String addId(@Nullable @Language("XML") String xml) {
-      if (xml == null || myId == null) {
-        return xml;
-      }
-      int index = xml.indexOf("<" + myTagName);
-      if (index < 0) {
-        return xml;
-      }
-      index += 1 + myTagName.length();
-      return xml.substring(0, index) + "\n  android:id=\"@+id/" + getId() + "\"\n" + xml.substring(index);
     }
 
     @NotNull
     @Override
     public String toString() {
-      return myTagName;
+      return getTitle();
     }
   }
 
@@ -459,16 +465,8 @@ public class Palette {
       return myValue;
     }
 
-    private boolean reuseFor(@NotNull String part) {
-      return myReuse != null && Splitter.on(",").trimResults().splitToList(myReuse).contains(part);
-    }
-
-    public boolean reuseForPreview() {
-      return reuseFor("preview");
-    }
-
     public boolean reuseForDragPreview() {
-      return reuseFor("drag-preview");
+      return myReuse != null && Splitter.on(",").trimResults().splitToList(myReuse).contains("drag-preview");
     }
   }
 }

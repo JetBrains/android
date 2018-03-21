@@ -17,9 +17,12 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_HANDLE_DRAG_LEVEL;
 
 /**
  * {@linkplain DrawActionHandleDrag} is visible while the user is performing
@@ -31,44 +34,40 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
   public static final Stroke STROKE = new BasicStroke(3.0f);
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
-  private final Color myColor;
-
+  @SwingCoordinate private final int myRadius;
 
   public DrawActionHandleDrag(@SwingCoordinate int x,
                               @SwingCoordinate int y,
-                              @NotNull Color color) {
+                              @SwingCoordinate int radius) {
     myX = x;
     myY = y;
-    myColor = color;
+    myRadius = radius;
+  }
+
+  public DrawActionHandleDrag(String s) {
+    this(DrawCommandSerializationHelperKt.parse(s, 3));
+  }
+
+  private DrawActionHandleDrag(String[] sp) {
+    this(Integer.parseInt(sp[0]), Integer.parseInt(sp[1]), Integer.parseInt(sp[2]));
   }
 
   @Override
   public int getLevel() {
-    return DRAW_ACTION_HANDLE_DRAG;
+    return DRAW_ACTION_HANDLE_DRAG_LEVEL;
   }
 
   @Override
-  @NotNull
-  protected Object[] getProperties() {
-    return new Object[]{myX, myY, String.format("%x", myColor.getRGB())};
+  public String serialize() {
+    return DrawCommandSerializationHelperKt.buildString(getClass().getSimpleName(), myX, myY, myRadius);
   }
 
   @Override
-  public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    Color previousColor = g.getColor();
-    g.setColor(myColor);
+  protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+    g.setColor(sceneContext.getColorSet().getSelectedFrames());
+    g.fillOval(myX - myRadius, myY - myRadius, 2 * myRadius, 2 * myRadius);
 
-    g.fillOval(myX - DrawActionHandle.SMALL_RADIUS,
-               myY - DrawActionHandle.SMALL_RADIUS,
-               2 * DrawActionHandle.SMALL_RADIUS,
-               2 * DrawActionHandle.SMALL_RADIUS);
-
-    Stroke previousStroke = g.getStroke();
     g.setStroke(STROKE);
-
     g.drawLine(myX, myY, sceneContext.getMouseX(), sceneContext.getMouseY());
-
-    g.setColor(previousColor);
-    g.setStroke(previousStroke);
   }
 }

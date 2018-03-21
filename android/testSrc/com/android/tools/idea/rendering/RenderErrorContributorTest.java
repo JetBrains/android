@@ -231,7 +231,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     final RenderTask task = renderService.createTask(psiFile, configuration, logger, null);
     assertNotNull(task);
     task.disableSecurityManager();
-    RenderResult render = RenderTestBase.renderOnSeparateThread(task);
+    RenderResult render = RenderTestUtil.renderOnSeparateThread(task);
     assertNotNull(render);
 
     if (logOperation != null) {

@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
 import com.android.resources.Density;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
+
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 
 /**
  * Class that wraps the complex, nested {@code Map<String, Map<String, BufferedImage>>} returned
- * by a {@link GraphicGenerator} and provides a more user-friendly API for interacting with it.
+ * by an {@link IconGenerator} and provides a more user-friendly API for interacting with it.
  *
  * The original map looks something like this:
  * <pre>
@@ -55,15 +56,6 @@ public final class CategoryIconMap {
   }
 
   /**
-   * Convert the path to a density, if possible. Output paths don't always map cleanly to density
-   * values, such as the path for the "web" icon, so in those cases, {@code null} is returned.
-   */
-  @Nullable
-  public static Density pathToDensity(@NotNull String iconPath) {
-    return GraphicGenerator.pathToDensity(iconPath);
-  }
-
-  /**
    * Returns all icons as a single map of densities to images. Note that this may exclude images
    * that don't map neatly to any {@link Density}.
    */
@@ -78,7 +70,7 @@ public final class CategoryIconMap {
    */
   @NotNull
   public Map<Density, BufferedImage> toDensityMap(@NotNull Filter filter) {
-    Map<Density, BufferedImage> densityImageMap = Maps.newHashMap();
+    Map<Density, BufferedImage> densityImageMap = new HashMap<>();
     for (String category : myCategoryMap.keySet()) {
       if (filter.accept(category)) {
         Map<String, BufferedImage> pathImageMap = myCategoryMap.get(category);
@@ -101,7 +93,7 @@ public final class CategoryIconMap {
    */
   @NotNull
   public Map<File, BufferedImage> toFileMap(@NotNull File rootDir) {
-    Map<File, BufferedImage> outputMap = Maps.newHashMap();
+    Map<File, BufferedImage> outputMap = new HashMap<>();
     for (Map<String, BufferedImage> pathImageMap : myCategoryMap.values()) {
       for (Map.Entry<String, BufferedImage> pathImageEntry : pathImageMap.entrySet()) {
         outputMap.put(new File(rootDir, pathImageEntry.getKey()), pathImageEntry.getValue());
@@ -109,7 +101,6 @@ public final class CategoryIconMap {
     }
     return outputMap;
   }
-
 
   /**
    * Category filter used when flattening our nested maps into a single-level map.

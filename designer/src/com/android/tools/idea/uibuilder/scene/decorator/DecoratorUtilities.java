@@ -166,7 +166,11 @@ public class DecoratorUtilities {
 
   static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
     HashSet<String> set = new HashSet<>();
-    set.add(c.getId());
+    String id = c.getId();
+    if (id == null) {
+      return set;
+    }
+    set.add(id);
     int lastCount;
     do {
       lastCount = set.size();

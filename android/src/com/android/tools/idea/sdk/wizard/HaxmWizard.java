@@ -21,7 +21,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.*;
-import com.android.tools.idea.welcome.wizard.ProgressStep;
+import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.*;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;

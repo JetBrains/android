@@ -16,12 +16,19 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.util.ListenerCollection;
 import com.android.util.PropertiesMap;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -39,34 +46,70 @@ abstract public class SceneManager implements Disposable {
 
   public static final boolean SUPPORTS_LOCKING = false;
 
-  private final NlModel myModel;
-  final private DesignSurface myDesignSurface;
-  private Scene myScene;
+  @NotNull private final NlModel myModel;
+  @NotNull private final DesignSurface myDesignSurface;
+  @NotNull private final Scene myScene;
+  @NotNull private final ViewEditor myViewEditor;
+  // This will be initialized when constructor calls updateSceneView().
+  @SuppressWarnings("NullableProblems")
+  @NotNull private SceneView mySceneView;
+  private final ListenerCollection<RenderListener> myRenderListeners = ListenerCollection.createWithDirectExecutor();
 
-  public SceneManager(NlModel model, DesignSurface surface) {
+  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
+
+    myScene = new Scene(this, myDesignSurface);
+    myViewEditor = new ViewEditorImpl(myModel, myScene);
+
+    createSceneView();
+  }
+
+  /**
+   * Create the SceneView
+   */
+  private void createSceneView() {
+    mySceneView = doCreateSceneView();
+
+    myDesignSurface.addLayers(getLayers());
+  }
+
+  /**
+   * Create the SceneView.
+   * @return the created SceneView.
+   */
+  @NotNull
+  protected abstract SceneView doCreateSceneView();
+
+  /**
+   * Update the SceneView of SceneManager. The SceneView may be recreated if needed.
+   */
+  public void updateSceneView() {
+    myDesignSurface.removeLayers(getLayers());
+    getLayers().forEach(Layer::dispose);
+
+    createSceneView();
+  }
+
+  @NotNull
+  public SceneView getSceneView() {
+    return mySceneView;
+  }
+
+  @NotNull
+  public ImmutableList<Layer> getLayers() {
+    return mySceneView.getLayers();
   }
 
   @Override
   public void dispose() {
+    getLayers().forEach(Disposer::dispose);
+    myRenderListeners.clear();
   }
 
   /**
-   * Constructs a {@link Scene} from our {@link NlModel}. Must only be called once. For updates use {@link #update()}.
-   */
-  @NotNull
-  public Scene build() {
-    assert myScene == null;
-    myScene = new Scene(this, myDesignSurface);
-    return myScene;
-  }
-
-  /**
-   * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
-   * <p/>
-   * {@link #build()} must have been invoked already.<br/>
+   * Update the Scene with the components in the current NlModel. This method needs to be called in the dispatch thread.<br/>
    * This includes marking the display list as dirty.
    */
   public void update() {
@@ -141,6 +184,10 @@ abstract public class SceneManager implements Disposable {
       }
     }
     for (SceneComponent child : oldChildren) {
+      if (child instanceof TemporarySceneComponent && child.getParent() == sceneComponent) {
+        // ignore TemporarySceneComponent since its associated NlComponent has not been added to the hierarchy.
+        continue;
+      }
       if (child.getParent() == sceneComponent) {
         child.removeFromParent();
       }
@@ -188,6 +235,11 @@ abstract public class SceneManager implements Disposable {
     return tempComponent;
   }
 
+  @NotNull
+  public ViewEditor getViewEditor() {
+    return myViewEditor;
+  }
+
   /**
    * Updates a single SceneComponent from its corresponding NlComponent.
    */
@@ -201,17 +253,30 @@ abstract public class SceneManager implements Disposable {
   }
 
   @NotNull
-  protected NlModel getModel() {
+  public NlModel getModel() {
     return myModel;
   }
 
   @NotNull
-  protected Scene getScene() {
-    assert myScene != null;
+  public Scene getScene() {
     return myScene;
   }
 
+  public void addRenderListener(@NotNull RenderListener listener) {
+    myRenderListeners.add(listener);
+  }
+
+  public void removeRenderListener(@NotNull RenderListener listener) {
+    myRenderListeners.remove(listener);
+  }
+
+  protected void fireRenderListeners() {
+    myRenderListeners.forEach(RenderListener::onRenderCompleted);
+  }
+
   public abstract void requestRender();
+
+  public void requestLayoutAndRender(boolean animate) {}
 
   public abstract void layout(boolean animate);
 

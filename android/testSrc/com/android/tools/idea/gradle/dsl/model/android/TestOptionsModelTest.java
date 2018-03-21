@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 
 /**
@@ -89,7 +91,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
-    assertTrue(testOptions.hasValidPsiElement());
+    assertTrue(hasPsiElement(testOptions));
     testOptions.removeReportDir();
     testOptions.removeResultsDir();
     testOptions.unitTests().removeReturnDefaultValues();
@@ -100,7 +102,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
 
     testOptions = android.testOptions();
     verifyNullTestOptionsValues();
-    assertFalse(testOptions.hasValidPsiElement());
+    assertFalse(hasPsiElement(testOptions));
   }
 
   private void verifyTestOptionsValues() {

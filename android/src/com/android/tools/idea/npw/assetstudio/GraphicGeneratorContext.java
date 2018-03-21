@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -53,13 +54,13 @@ public class GraphicGeneratorContext implements Disposable {
   public GraphicGeneratorContext(int maxCacheSize, @Nullable DrawableRenderer drawableRenderer) {
     myImageCache = CacheBuilder.newBuilder().maximumSize(maxCacheSize).build();
     myDrawableRenderer = drawableRenderer;
+    if (myDrawableRenderer != null) {
+      Disposer.register(this, myDrawableRenderer);
+    }
   }
 
   @Override
   public void dispose() {
-    if (myDrawableRenderer != null) {
-      myDrawableRenderer.dispose();
-    }
   }
 
   /**
@@ -123,7 +124,7 @@ public class GraphicGeneratorContext implements Disposable {
 
   @NotNull
   private static ListenableFuture<BufferedImage> getStencilImage(@NotNull String path) throws IOException {
-    BufferedImage image = GraphicGenerator.getStencilImage(path);
+    BufferedImage image = BuiltInImages.getStencilImage(path);
     if (image == null) {
       image = AssetStudioUtils.createDummyImage();
     }
@@ -134,12 +135,5 @@ public class GraphicGeneratorContext implements Disposable {
   @NotNull
   private Logger getLog() {
     return Logger.getInstance(getClass());
-  }
-
-  /**
-   * Interface to be implemented by renderers of XML drawables.
-   */
-  public interface DrawableRenderer extends Disposable {
-    public ListenableFuture<BufferedImage> renderDrawable(@NonNull String xmlDrawableText, @NonNull Dimension size);
   }
 }

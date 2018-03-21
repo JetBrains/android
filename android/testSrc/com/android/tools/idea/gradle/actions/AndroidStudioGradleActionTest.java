@@ -52,7 +52,7 @@ public class AndroidStudioGradleActionTest extends IdeaTestCase {
   public void testUpdateWithAndroidStudioAndGradleProject() {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
 
-    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub(true /* is Android Studio */);
+    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub();
     action.update(myEvent);
 
     verifyWasPopulated(action.updateInvocationParameters);
@@ -63,16 +63,7 @@ public class AndroidStudioGradleActionTest extends IdeaTestCase {
   public void testUpdateWithAndroidStudioAndNonGradleProject() {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
 
-    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub(true /* is Android Studio */);
-    action.update(myEvent);
-
-    assertNull(action.updateInvocationParameters);
-    assertNull(action.actionPerformedInvocationParameters);
-    assertFalse(myPresentation.isEnabledAndVisible());
-  }
-
-  public void testUpdateWithIdeNotAndroidStudio() {
-    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub(false /* is not Android Studio */);
+    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub();
     action.update(myEvent);
 
     assertNull(action.updateInvocationParameters);
@@ -83,7 +74,7 @@ public class AndroidStudioGradleActionTest extends IdeaTestCase {
   public void testActionPerformedWithAndroidStudioAndGradleProject() {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
 
-    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub(true /* is Android Studio */);
+    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub();
     action.actionPerformed(myEvent);
 
     verifyWasPopulated(action.actionPerformedInvocationParameters);
@@ -99,15 +90,7 @@ public class AndroidStudioGradleActionTest extends IdeaTestCase {
   public void testActionPerformedWithAndroidStudioAndNonGradleProject() {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
 
-    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub(true /* is Android Studio */);
-    action.actionPerformed(myEvent);
-
-    assertNull(action.updateInvocationParameters);
-    assertNull(action.actionPerformedInvocationParameters);
-  }
-
-  public void testActionPerformedWithIdeNotAndroidStudio() {
-    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub(false /* is not Android Studio */);
+    AndroidStudioGradleActionStub action = new AndroidStudioGradleActionStub();
     action.actionPerformed(myEvent);
 
     assertNull(action.updateInvocationParameters);
@@ -118,8 +101,8 @@ public class AndroidStudioGradleActionTest extends IdeaTestCase {
     @Nullable ActionInvocationParameters updateInvocationParameters;
     @Nullable ActionInvocationParameters actionPerformedInvocationParameters;
 
-    AndroidStudioGradleActionStub(boolean androidStudio) {
-      super("Test", androidStudio);
+    AndroidStudioGradleActionStub() {
+      super("Test");
     }
 
     @Override

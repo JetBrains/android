@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.layout;
 
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.naveditor.model.NavCoordinate;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +31,9 @@ import java.util.stream.Collectors;
  * TODO: implement a better way
  */
 public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
-  private static final int WIDTH = 1000;
+  @NavCoordinate private static final int WIDTH = 600;
+  @NavCoordinate private static final int INITIAL_OFFSET = 20;
+  @NavCoordinate private static final int INTERVAL = 60;
 
   private final NavigationSchema mySchema;
 
@@ -52,16 +55,17 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
                                               .filter(c -> c.getParent() != null)
                                               .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(0, null)));
 
-    int xOffset = 50;
-    int yOffset = 50;
+    @NavCoordinate int xOffset = INITIAL_OFFSET;
+    @NavCoordinate int yOffset = INITIAL_OFFSET;
+
     while (true) {
       component.setPosition(xOffset, yOffset);
       Rectangle newBounds = component.fillDrawRect(0, null);
       bounds.put(component, newBounds);
-      xOffset += 130;
+      xOffset += INTERVAL;
       if (xOffset + component.getDrawWidth() > WIDTH) {
-        yOffset += 130;
-        xOffset = 50;
+        yOffset += INTERVAL;
+        xOffset = INITIAL_OFFSET;
       }
       if (checkOverlaps(bounds, component)) {
         break;

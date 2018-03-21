@@ -15,22 +15,29 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.diagnostics.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -41,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -55,10 +63,14 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   private final StudioFeatureTracker myFeatureTracker = new StudioFeatureTracker();
 
   @NotNull private final Project myProject;
+  @NotNull private final IntellijProfilerPreferences myPersistentPreferences;
+  @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
 
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
     myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
+    myPersistentPreferences = new IntellijProfilerPreferences();
+    myTemporaryPreferences = new TemporaryProfilerPreferences();
   }
 
   @NotNull
@@ -146,8 +158,48 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
+      public boolean isAtraceEnabled() {
+        return StudioFlags.PROFILER_USE_ATRACE.get();
+      }
+
+      @Override
+      public boolean isCpuCaptureFilterEnabled() {
+        return StudioFlags.PROFILER_CPU_CAPTURE_FILTER.get();
+      }
+
+      @Override
+      public boolean isEnergyProfilerEnabled() {
+        return StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get();
+      }
+
+      @Override
+      public boolean isJniReferenceTrackingEnabled() {
+        return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
+      }
+
+      @Override
       public boolean isJvmtiAgentEnabled() {
         return StudioFlags.PROFILER_USE_JVMTI.get();
+      }
+
+      @Override
+      public boolean isLiveAllocationsEnabled() {
+        return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
+      }
+
+      @Override
+      public boolean isMemoryCaptureFilterEnabled() {
+        return StudioFlags.PROFILER_MEMORY_CAPTURE_FILTER.get();
+      }
+
+      @Override
+      public boolean isMemorySnapshotEnabled() {
+        return StudioFlags.PROFILER_MEMORY_SNAPSHOT.get();
+      }
+
+      @Override
+      public boolean isNetworkRequestPayloadEnabled() {
+        return StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get();
       }
 
       @Override
@@ -159,20 +211,27 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isSimplePerfEnabled() {
         return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
       }
-
-      @Override
-      public boolean isLiveAllocationsEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
-      }
     };
   }
 
+  @NotNull
   @Override
-  public void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
+  public ProfilerPreferences getTemporaryProfilerPreferences() {
+    return myTemporaryPreferences;
+  }
+
+  @NotNull
+  @Override
+  public ProfilerPreferences getPersistentProfilerPreferences() {
+    return myPersistentPreferences;
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
                                                    Consumer<ProfilingConfiguration> dialogCallback) {
     CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
-                                                                                   isDeviceAtLeastO,
-                                                                                   configuration,
+                                                                                   deviceLevel,
+                                                                                   model,
                                                                                    dialogCallback,
                                                                                    myFeatureTracker);
     dialog.show();
@@ -198,5 +257,28 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
     return CpuProfilingConfigService.getInstance(myProject).getConfigurations();
+  }
+
+  @Override
+  public boolean isNativeProfilingConfigurationPreferred() {
+    // File extensions that we consider native. We can add more later if we feel that's necessary.
+    ImmutableList<String> nativeExtensions = ImmutableList.of("c", "cc", "cpp", "cxx", "c++", "h", "hh", "hpp", "hxx", "h++");
+    // If the user is viewing at least one (IntelliJ allows the user to view multiple files at the same time) native file,
+    // we want to give preference to a native CPU profiling configuration.
+    return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedFiles())
+      .anyMatch(file -> {
+        String extension = file.getExtension();
+        return extension != null && nativeExtensions.contains(extension.toLowerCase());
+      });
+  }
+
+  @Override
+  public void showErrorBalloon(@NotNull String title, @NotNull String text) {
+    AndroidNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR);
+  }
+
+  @Override
+  public void reportNoPiiException(@NotNull Throwable ex) {
+    getLogger().error(new NoPiiException(ex));
   }
 }

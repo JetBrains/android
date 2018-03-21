@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.xml.XmlBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import icons.AndroidIcons;
+import com.android.xml.XmlBuilder;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.annotations.NotNull;
@@ -143,13 +143,13 @@ public abstract class PaletteComponentHandler {
   @NotNull
   protected Icon loadBuiltinIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(getSimpleTagName(tagName));
-    return icon != null ? icon : AndroidIcons.Views.Unknown;
+    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW;
   }
 
   @NotNull
   protected Icon loadBuiltinLargeIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getLargeIconForViewTag(getSimpleTagName(tagName));
-    return icon != null ? icon : AndroidIcons.Views.UnknownLarge;
+    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW_LARGE;
   }
 
   @NotNull

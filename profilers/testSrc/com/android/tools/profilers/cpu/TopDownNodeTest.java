@@ -16,10 +16,14 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TopDownNodeTest {
 
@@ -50,6 +54,43 @@ public class TopDownNodeTest {
   }
 
   @Test
+  public void testTreeMergeWithFilter() {
+    CaptureNode root = createTree();
+    // Once merged for top down view, the tree should become:
+    //  A
+    //   +- B
+    //   |  +-D
+    //   |  +-E
+    //   +- C
+    //   |  +-F
+    //   +- B (unmatch)
+    //      +-E (unmatch)
+    //      +-G (unmatch)
+
+    // set node "A->B" unmatch.
+    root.getChildren().get(2).setFilterType(CaptureNode.FilterType.UNMATCH);
+    // set node "A->B->E" and "A->B->G" unmatch.
+    root.getChildren().get(2).getChildren().forEach(n -> n.setFilterType(CaptureNode.FilterType.UNMATCH));
+
+    TopDownNode topDown = new TopDownNode(root);
+
+    // A
+    assertEquals("A", topDown.getId());
+    checkChildrenIds(topDown, "B", "C", "B");
+    checkChildrenUnmatchStatus(topDown, false, false, true);
+
+    // A -> B
+    checkChildrenIds(topDown.getChildren().get(0), "D", "E");
+    checkChildrenUnmatchStatus(topDown.getChildren().get(0), false, false);
+    // A -> C
+    checkChildrenIds(topDown.getChildren().get(1), "F");
+    checkChildrenUnmatchStatus(topDown.getChildren().get(1), false);
+    // A -> B (unmatch)
+    checkChildrenIds(topDown.getChildren().get(2), "E", "G");
+    checkChildrenUnmatchStatus(topDown.getChildren().get(2), true, true);
+  }
+
+  @Test
   public void testTreeTime() {
     CaptureNode root = newNode("A", 0, 10);
     root.addChild(newNode("D", 3, 5));
@@ -70,16 +111,15 @@ public class TopDownNodeTest {
 
   @Test
   public void testTreeData() {
-    MethodModel rootModel = new MethodModel("A", "com.package", "");
+    CaptureNodeModel rootModel = new JavaMethodModel("A", "com.package.Class");
     TopDownNode topDown = new TopDownNode(newNode(rootModel, 0, 10));
 
-    assertEquals("com.package", topDown.getClassName());
-    assertEquals("A", topDown.getMethodName());
-
-    // Cover the case of null data
-    topDown = new TopDownNode(new CaptureNode());
-    assertEquals("", topDown.getClassName());
-    assertEquals("", topDown.getMethodName());
+    CaptureNodeModel model = topDown.getMethodModel();
+    assertEquals(rootModel, topDown.getMethodModel());
+    assertEquals("com.package.Class.A", rootModel.getFullName());
+    assertTrue(model instanceof JavaMethodModel);
+    assertEquals("com.package.Class", ((JavaMethodModel) model).getClassName());
+    assertEquals("A", model.getName());
   }
 
   /**
@@ -116,14 +156,27 @@ public class TopDownNodeTest {
   }
 
   static CaptureNode newNode(String method, long start, long end) {
-    return newNode(new MethodModel(method), start, end);
+    return newNode(new SingleNameModel(method), start, end);
   }
 
-  static CaptureNode newNode(MethodModel method, long start, long end) {
-    CaptureNode node = new CaptureNode();
-    node.setMethodModel(method);
+  static CaptureNode newNode(CaptureNodeModel method, long start, long end) {
+    CaptureNode node = new CaptureNode(method);
     node.setStartGlobal(start);
     node.setEndGlobal(end);
     return node;
+  }
+
+  private static void checkChildrenIds(TopDownNode node, String ...ids) {
+    assertEquals(ids.length, node.getChildren().size());
+    for (int i = 0; i < ids.length; ++i) {
+      assertEquals(ids[i], node.getChildren().get(i).getId());
+    }
+  }
+
+  private static void checkChildrenUnmatchStatus(TopDownNode node, boolean ...unmatched) {
+    assertEquals(unmatched.length, node.getChildren().size());
+    for (int i = 0; i < unmatched.length; ++i) {
+      assertEquals(unmatched[i], node.getChildren().get(i).isUnmatched());
+    }
   }
 }

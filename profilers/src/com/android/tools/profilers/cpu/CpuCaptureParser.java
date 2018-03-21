@@ -15,12 +15,14 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.simpleperf.SimplePerfTraceParser;
+import com.android.tools.profilers.cpu.atrace.AtraceParser;
+import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
@@ -69,7 +71,6 @@ public class CpuCaptureParser {
 
   /**
    * Returns a capture (or a promise of one) in case {@link #parse} was already called for the given trace id.
-   *
    */
   @Nullable
   public CompletableFuture<CpuCapture> getCapture(int traceId) {
@@ -82,18 +83,21 @@ public class CpuCaptureParser {
    * the trace id as key. Finally, returns the {@link CompletableFuture<CpuCapture>} created.
    */
   @Nullable
-  public CompletableFuture<CpuCapture> parse(int traceId, @NotNull ByteString traceData, CpuProfiler.CpuProfilerType profilerType) {
+  public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
+                                             int traceId,
+                                             @NotNull ByteString traceData,
+                                             CpuProfilerType profilerType) {
     if (!myCaptures.containsKey(traceId)) {
       // Trace is not being parsed nor is already parsed. We need to start parsing it.
       if (traceData.size() <= MAX_SUPPORTED_TRACE_SIZE) {
         // Trace size is supported. Start parsing normally and create the future object corresponding to the capture.
-        myCaptures.put(traceId, createCaptureFuture(traceData, profilerType));
+        myCaptures.put(traceId, createCaptureFuture(session, traceData, profilerType));
       }
       else {
         Runnable yesCallback = () -> {
           getLogger().warn(String.format("Parsing long (%d bytes) trace file.", traceData.size()));
           // User decided to proceed with capture. Start parsing and create the future object corresponding to the capture.
-          myCaptures.put(traceId, createCaptureFuture(traceData, profilerType));
+          myCaptures.put(traceId, createCaptureFuture(session, traceData, profilerType));
         };
 
         Runnable noCallback = () -> {
@@ -110,11 +114,15 @@ public class CpuCaptureParser {
     return myCaptures.get(traceId);
   }
 
-  private CompletableFuture<CpuCapture> createCaptureFuture(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType) {
-    return CompletableFuture.supplyAsync(() -> traceBytesToCapture(traceBytes, profilerType), myServices.getPoolExecutor());
+  private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session,
+                                                            ByteString traceBytes,
+                                                            CpuProfilerType profilerType) {
+    return CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceBytes, profilerType), myServices.getPoolExecutor());
   }
 
-  private static CpuCapture traceBytesToCapture(@NotNull ByteString traceData, CpuProfiler.CpuProfilerType profilerType) {
+  private static CpuCapture traceBytesToCapture(@NotNull Common.Session session,
+                                                @NotNull ByteString traceData,
+                                                CpuProfilerType profilerType) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
       File trace = FileUtil.createTempFile("cpu_trace", ".trace");
@@ -123,18 +131,25 @@ public class CpuCaptureParser {
       }
 
       TraceParser parser;
-      if (profilerType == CpuProfiler.CpuProfilerType.ART) {
+      boolean isCaptureDualClock;
+      if (profilerType == CpuProfilerType.ART) {
         parser = new ArtTraceParser();
+        isCaptureDualClock = true;
       }
-      else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
-        parser = new SimplePerfTraceParser();
+      else if (profilerType == CpuProfilerType.SIMPLEPERF) {
+        parser = new SimpleperfTraceParser();
+        isCaptureDualClock = false;
+      }
+      else if (profilerType == CpuProfilerType.ATRACE) {
+        parser = new AtraceParser(session.getPid());
+        isCaptureDualClock = false;
       }
       else {
-        throw new IllegalStateException("Trace file cannot be parsed. Profiler type (ART or simpleperf) needs to be set.");
+        throw new IllegalStateException("Trace file cannot be parsed. Profiler type (ART, simpleperf, or atrace) needs to be set.");
       }
 
       parser.parse(trace);
-      return new CpuCapture(parser.getRange(), parser.getCaptureTrees());
+      return new CpuCapture(parser.getRange(), parser.getCaptureTrees(), isCaptureDualClock);
     }
     catch (IOException | BufferUnderflowException e) {
       throw new IllegalStateException(e);

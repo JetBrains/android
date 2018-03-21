@@ -18,10 +18,16 @@ package com.android.tools.idea.tests.gui.debugger;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,14 +35,18 @@ import org.junit.runner.RunWith;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-@Ignore("https://android-devtools-builder.corp.google.com/builders/studio-unreliable_nightly/builds/34")
 public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final ScreenshotsDuringTest movieMaker = new ScreenshotsDuringTest();
 
+  /**
+   * <p>TT ID: TODO this test case needs a TT ID.
+   *
+   */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   public void testSessionRestart() throws Exception{
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -61,20 +71,37 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
     projectFrame.findDebugApplicationButton().click();
 
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), "Launching " + DEBUG_CONFIG_NAME);
-    errorMessage.requireMessageContains("Restart App").click("Restart " + DEBUG_CONFIG_NAME);
-
     DeployTargetPickerDialogFixture deployTargetPicker = DeployTargetPickerDialogFixture.find(guiTest.robot());
     deployTargetPicker.selectDevice(emulator.getDefaultAvdName()).clickOk();
+
+    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), "Launching " + DEBUG_CONFIG_NAME);
+    errorMessage.requireMessageContains("Restart App").click("Restart " + DEBUG_CONFIG_NAME);
 
     waitUntilDebugConsoleCleared(debugToolWindowFixture);
     waitForSessionStart(debugToolWindowFixture);
     stopDebugSession(debugToolWindowFixture);
   }
 
+  /**
+   * Verify native debugger is attached to a running process.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 45e4c839-5c55-40f7-8264-4fe75ee02624
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicCmakeAppForUI.
+   *   2. Select Native debugger on Edit Configurations dialog.
+   *   3. Set breakpoints both in Java and C++ code.
+   *   4. Debug on a device running M or earlier.
+   *   5. Verify that only native debugger is attached and running.
+   *   6. Stop debugging.
+   *   </pre>
+   */
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
-  public void testMultiBreakAndResume() throws Exception {
+  public void testNativeDebuggerBreakpoints() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
@@ -91,11 +118,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
     openAndToggleBreakPoints(projectFrame,
                              "app/src/main/jni/native-lib.c",
-                             "return sum;",
-                             "return product;",
-                             "return quotient;",
-                             "return (*env)->NewStringUTF(env, message);"
-    );
+                             "return (*env)->NewStringUTF(env, message);");
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())
@@ -104,48 +127,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
     waitForSessionStart(debugToolWindowFixture);
 
-    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
     String[] expectedPatterns = new String[]{
-      variableToSearchPattern("x1", "int", "1"),
-      variableToSearchPattern("x2", "int", "2"),
-      variableToSearchPattern("x3", "int", "3"),
-      variableToSearchPattern("x4", "int", "4"),
-      variableToSearchPattern("x5", "int", "5"),
-      variableToSearchPattern("x6", "int", "6"),
-      variableToSearchPattern("x7", "int", "7"),
-      variableToSearchPattern("x8", "int", "8"),
-      variableToSearchPattern("x9", "int", "9"),
-      variableToSearchPattern("x10", "int", "10"),
-      variableToSearchPattern("sum", "int", "55"),
-    };
-    checkAppIsPaused(projectFrame, expectedPatterns);
-    resume("app", projectFrame);
-
-    expectedPatterns = new String[]{
-      variableToSearchPattern("x1", "int", "1"),
-      variableToSearchPattern("x2", "int", "2"),
-      variableToSearchPattern("x3", "int", "3"),
-      variableToSearchPattern("x4", "int", "4"),
-      variableToSearchPattern("x5", "int", "5"),
-      variableToSearchPattern("x6", "int", "6"),
-      variableToSearchPattern("x7", "int", "7"),
-      variableToSearchPattern("x8", "int", "8"),
-      variableToSearchPattern("x9", "int", "9"),
-      variableToSearchPattern("x10", "int", "10"),
-      variableToSearchPattern("product", "int", "3628800"),
-    };
-    checkAppIsPaused(projectFrame, expectedPatterns);
-    resume("app", projectFrame);
-
-    expectedPatterns = new String[]{
-      variableToSearchPattern("x1", "int", "1024"),
-      variableToSearchPattern("x2", "int", "2"),
-      variableToSearchPattern("quotient", "int", "512"),
-    };
-    checkAppIsPaused(projectFrame, expectedPatterns);
-    resume("app", projectFrame);
-
-    expectedPatterns = new String[]{
       variableToSearchPattern("sum_of_10_ints", "int", "55"),
       variableToSearchPattern("product_of_10_ints", "int", "3628800"),
       variableToSearchPattern("quotient", "int", "512")
@@ -153,6 +135,93 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     checkAppIsPaused(projectFrame, expectedPatterns);
     assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNull();
     stopDebugSession(debugToolWindowFixture);
+  }
+
+  @Test
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  public void testNativeDebuggerCleanWhileDebugging() throws  Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    final IdeFrameFixture projectFrame = guiTest.ideFrame();
+
+    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Native")
+      .clickOk();
+
+    openAndToggleBreakPoints(projectFrame,
+                             "app/src/main/jni/native-lib.c",
+                             "return (*env)->NewStringUTF(env, message);");
+
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
+    waitForSessionStart(debugToolWindowFixture);
+
+    projectFrame.invokeMenuPath("Build", "Clean Project");
+    MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
+    // Cancel and check that the debugging session is still happening.
+    messagesFixture.clickCancel();
+    checkAppIsPaused(projectFrame, new String[]{});
+
+    projectFrame.invokeMenuPath("Build", "Clean Project");
+    messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
+    // Click okay and check that the debugger has been killed.
+    messagesFixture.click("Terminate");
+    assertThat(debugToolWindowFixture.getDebuggerContent("app-native")).isNull();
+  }
+
+  @Test
+  @RunIn(TestGroup.QA_UNRELIABLE)
+  public void testNativeDebuggerNewLibraryWhileDebugging() throws Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    final IdeFrameFixture projectFrame = guiTest.ideFrame();
+
+    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Native")
+      .clickOk();
+
+    openAndToggleBreakPoints(projectFrame,
+                             "app/src/main/jni/native-lib.c",
+                             "return (*env)->NewStringUTF(env, message);");
+
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
+    waitForSessionStart(debugToolWindowFixture);
+
+    // Add a new Android Library.  Note that this needs the path to Kotlin defined in the test's
+    // JVM arguments.  See go/studio-testing-pitfalls for information.
+    projectFrame.invokeMenuPath("File", "New", "New Module...");
+    NewModuleDialogFixture newModuleDialogFixture = NewModuleDialogFixture.find(guiTest.ideFrame());
+    newModuleDialogFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+
+    MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
+    // Cancel and check that the debugging session is still happening.
+    messagesFixture.clickCancel();
+    checkAppIsPaused(projectFrame, new String[]{});
+    stopDebugSession(debugToolWindowFixture);
+
+    projectFrame.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+    debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
+    waitForSessionStart(debugToolWindowFixture);
+
+    projectFrame.invokeMenuPath("File", "New", "New Module...");
+    newModuleDialogFixture = NewModuleDialogFixture.find(guiTest.ideFrame());
+    newModuleDialogFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+
+    messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
+    // Click okay and check that the debugger has been killed.
+    messagesFixture.click("Terminate");
+    assertThat(debugToolWindowFixture.getDebuggerContent("app-native")).isNull();
   }
 
   /**
@@ -174,8 +243,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)
-  public void testCAndJavaBreakAndResume() throws Exception {
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/37133277
+  public void testDualDebuggerBreakpoints() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();

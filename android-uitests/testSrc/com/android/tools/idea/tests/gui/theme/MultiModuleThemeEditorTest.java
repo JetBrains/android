@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.LogModel;
@@ -39,6 +36,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class MultiModuleThemeEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
   @Test
   public void testMultipleModules() throws IOException {

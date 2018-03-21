@@ -19,12 +19,12 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
@@ -49,7 +49,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
  * roots contain Java packages. This class overrides that behavior to provide a per source type node ({@link AndroidSourceTypeNode}) inside
  * a module.
  */
-public class AndroidModuleNode extends ProjectViewModuleNode {
+public class AndroidModuleNode extends AndroidViewModuleNode {
   private final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidModuleNode(@NotNull Project project,
@@ -201,15 +201,11 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   @Override
   public void update(@NotNull PresentationData presentation) {
     super.update(presentation);
-    // Use Android Studio Icons
-    presentation.setIcon(getModuleIcon(getModule()));
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+    // Use Android Studio Icons if module is available. If module was disposed, super.update will set the value of this node to null.
+    // This can happen when a module was just deleted, see b/67838273.
+    Module module = getValue();
+    if (module != null) {
+      presentation.setIcon(getModuleIcon(module));
     }
-    return super.equals(o);
   }
 }

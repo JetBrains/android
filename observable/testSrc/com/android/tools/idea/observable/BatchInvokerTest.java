@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.fail;
 
@@ -116,6 +118,29 @@ public final class BatchInvokerTest {
     IntWrapper intWrapper = new IntWrapper();
     invoker.enqueue(new AddToValue(0, intWrapper, 123));
     assertThat(intWrapper.value).isEqualTo(123);
+  }
+
+  @Test
+  public void batchedInvokingRecoversFromException() throws Exception {
+    AtomicBoolean invokeResult = new AtomicBoolean();
+    BatchInvoker invoker = new BatchInvoker(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
+
+    assertThat(invokeResult.get()).isFalse();
+
+    invoker.enqueue(() -> invokeResult.set(true));
+    assertThat(invokeResult.get()).isTrue();
+
+    try {
+      invoker.enqueue(() -> { // Simulate a task that throws an exception
+        throw new RuntimeException("Some Exception");
+      });
+    }
+    catch (RuntimeException ignored) {
+    }
+
+    // After an exception, the invoker should not get jammed
+    invoker.enqueue(() -> invokeResult.set(false));
+    assertThat(invokeResult.get()).isFalse();
   }
 
   private static final class IntWrapper {

@@ -15,15 +15,15 @@
   -->
 <palette>
   <group name="Preferences">
-    <item tag="CheckBoxPreference"/>
-    <item tag="EditTextPreference"/>
-    <item tag="ListPreference"/>
+    <item tag="CheckBoxPreference" suggested="true"/>
+    <item tag="EditTextPreference" suggested="true"/>
+    <item tag="ListPreference" suggested="true"/>
     <item tag="MultiSelectListPreference"/>
     <item tag="RingtonePreference"/>
-    <item tag="SwitchPreference"/>
+    <item tag="SwitchPreference" suggested="true"/>
   </group>
 
   <group name="Groups">
-    <item tag="PreferenceCategory"/>
+    <item tag="PreferenceCategory" suggested="true"/>
   </group>
 </palette>

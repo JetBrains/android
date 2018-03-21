@@ -16,12 +16,13 @@
 package com.android.tools.idea.tests.gui.framework.fixture.projectstructure;
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.SelectLibraryDependencyFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectModuleFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectPathFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.JDialog;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
@@ -51,6 +52,18 @@ public class DependencyTabFixture extends ProjectStructureDialogFixture {
 
     SelectModuleFixture.find(getIdeFrameFixture())
       .selectModule(moduleName)
+      .clickOK();
+
+    return this;
+  }
+
+  @NotNull
+  public DependencyTabFixture addLibraryDependency(@NotNull String partialMavenCoordinates) {
+    clickAddButtonImpl();
+    new JListFixture(robot(), waitForPopup(robot())).clickItem("Library dependency");
+
+    SelectLibraryDependencyFixture.find(getIdeFrameFixture())
+      .selectDependency(partialMavenCoordinates)
       .clickOK();
 
     return this;

@@ -16,12 +16,14 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.xml.XmlBuilder;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,8 +62,9 @@ public final class SwitchItemHandler extends MenuHandler {
       return false;
     }
 
-    if (type.equals(InsertType.CREATE) && !editor.moduleContainsResource(ResourceType.LAYOUT, SWITCH_ITEM)) {
-      editor.copyLayoutToMainModuleSourceSet(SWITCH_ITEM, SWITCH_ITEM_XML);
+    AndroidFacet facet = editor.getModel().getFacet();
+    if (type.equals(InsertType.CREATE) && !DesignSurfaceHelper.moduleContainsResource(facet, ResourceType.LAYOUT, SWITCH_ITEM)) {
+      DesignSurfaceHelper.copyLayoutToMainModuleSourceSet(editor.getModel().getProject(), facet, SWITCH_ITEM, SWITCH_ITEM_XML);
     }
 
     return true;

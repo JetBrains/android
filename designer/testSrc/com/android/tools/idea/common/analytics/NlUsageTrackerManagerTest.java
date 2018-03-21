@@ -21,19 +21,17 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.State;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.common.analytics.NlUsageTracker;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.palette.PaletteMode;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,6 +41,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -50,6 +49,7 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.annotations.NotNull;
+import org.picocontainer.MutablePicoContainer;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -64,13 +64,12 @@ import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
+public class NlUsageTrackerManagerTest extends AndroidTestCase {
   private static final Executor SYNC_EXECUTOR = Runnable::run;
   private static final String ATTR_CUSTOM_NAME = "MyCustomPropertyName";
 
   private LinkedList<AndroidStudioEvent> myLogCalls;
   private NlModel myModel;
-  private AndroidFacet myFacet;
   private AttributeDefinition myCollapseParallaxMultiplierDefinition;
   private AttributeDefinition myElevationDefinition;
   private AttributeDefinition myTextDefinition;
@@ -146,7 +145,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
   public void testPaletteDropLogging() {
     NlUsageTracker tracker = getUsageTracker();
 
-    tracker.logDropFromPalette(CONSTRAINT_LAYOUT, "<" + CONSTRAINT_LAYOUT + "/>", PaletteMode.ICON_AND_NAME, "All", -1);
+    tracker.logDropFromPalette(CONSTRAINT_LAYOUT, "<" + CONSTRAINT_LAYOUT + "/>", "All", -1);
     assertEquals(1, myLogCalls.size());
     AndroidStudioEvent studioEvent = myLogCalls.getFirst();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
@@ -154,7 +153,6 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.NORMAL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ALL_GROUPS);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.NONE);
-    assertThat(logged.getViewType()).isEqualTo(LayoutPaletteEvent.ViewType.ICON_AND_NAME);
   }
 
   public void testPaletteDropTextEditLogging() {
@@ -168,7 +166,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
                             "              android:ems=\"10\"\n" +
                             "            />\n";
 
-    tracker.logDropFromPalette(EDIT_TEXT, representation, PaletteMode.ICON_AND_NAME, "All", -1);
+    tracker.logDropFromPalette(EDIT_TEXT, representation, "All", -1);
     assertEquals(1, myLogCalls.size());
     AndroidStudioEvent studioEvent = myLogCalls.getFirst();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
@@ -176,14 +174,13 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.EMAIL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ALL_GROUPS);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.NONE);
-    assertThat(logged.getViewType()).isEqualTo(LayoutPaletteEvent.ViewType.ICON_AND_NAME);
   }
 
   public void testPaletteDropCustomViewLogging() {
     String tag = "com.acme.MyCustomControl";
     NlUsageTracker tracker = getUsageTracker();
 
-    tracker.logDropFromPalette(tag, "<" + tag + "/>", PaletteMode.LARGE_ICONS, "Advanced", 1);
+    tracker.logDropFromPalette(tag, "<" + tag + "/>", "Advanced", 1);
     assertEquals(1, myLogCalls.size());
     AndroidStudioEvent studioEvent = myLogCalls.getFirst();
     LayoutPaletteEvent logged = studioEvent.getLayoutEditorEvent().getPaletteEvent();
@@ -191,7 +188,6 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     assertThat(logged.getViewOption()).isEqualTo(LayoutPaletteEvent.ViewOption.NORMAL);
     assertThat(logged.getSelectedGroup()).isEqualTo(LayoutPaletteEvent.ViewGroup.ADVANCED);
     assertThat(logged.getSearchOption()).isEqualTo(SearchOption.SINGLE_MATCH);
-    assertThat(logged.getViewType()).isEqualTo(LayoutPaletteEvent.ViewType.LARGE_IONS);
   }
 
   public void testPropertyChangeLogging() {
@@ -400,7 +396,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
 
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
-    when(surface.getScreenMode()).thenReturn(NlDesignSurface.ScreenMode.BOTH);
+    when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfiguration()).thenReturn(configuration);
@@ -429,8 +425,6 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
   }
 
   private void initNeleModelMocks() {
-    myModel = mock(NlModel.class);
-    myFacet = mock(AndroidFacet.class);
     ModuleResourceManagers moduleResourceManagers = mock(ModuleResourceManagers.class);
     SystemResourceManager systemResourceManager = mock(SystemResourceManager.class);
     LocalResourceManager localResourceManager = mock(LocalResourceManager.class);
@@ -443,8 +437,14 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
     myCollapseParallaxMultiplierDefinition =
       new AttributeDefinition(ATTR_COLLAPSE_PARALLAX_MULTIPLIER, DESIGN_LIB_ARTIFACT, null, Collections.emptySet());
 
+    myModel = mock(NlModel.class);
     when(myModel.getFacet()).thenReturn(myFacet);
-    when(myFacet.getUserData(ModuleResourceManagers.KEY)).thenReturn(moduleResourceManagers);
+
+    UsageTrackerUtilTest.registerComponentInstance((MutablePicoContainer)myModule.getPicoContainer(),
+                                                   ModuleResourceManagers.class,
+                                                   moduleResourceManagers,
+                                                   getTestRootDisposable());
+
     when(moduleResourceManagers.getLocalResourceManager()).thenReturn(localResourceManager);
     when(moduleResourceManagers.getSystemResourceManager()).thenReturn(systemResourceManager);
     when(localResourceManager.getAttributeDefinitions()).thenReturn(localAttributeDefinitions);

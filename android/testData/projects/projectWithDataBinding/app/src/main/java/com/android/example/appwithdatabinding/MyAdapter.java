@@ -10,4 +10,9 @@ public class MyAdapter {
   public void bindTestSetter(android.view.View view, String foo) {
 
   }
+
+  @BindingAdapter("padding")
+  public void bindPadding(android.view.View view, String foo) {
+
+  }
 }

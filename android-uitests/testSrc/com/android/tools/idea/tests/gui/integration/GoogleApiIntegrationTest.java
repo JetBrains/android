@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ConfirmUninstallServiceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,7 +62,7 @@ public class GoogleApiIntegrationTest {
    *   </pre>
    */
   @Test
-  @RunIn (TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   public void testGoogleApiIntegration() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 
@@ -73,8 +74,7 @@ public class GoogleApiIntegrationTest {
       .toggleCheckBox();
     projectStructureDialog.selectNotificationsDeveloperService()
       .toggleCheckBox();
-    projectStructureDialog.clickOk();
-    ideFrame.waitForGradleProjectSyncToFinish();
+    projectStructureDialog.clickOk(Wait.seconds(30));
 
     EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
     String gradleFileContents = editor.getCurrentFileContents();
@@ -94,7 +94,6 @@ public class GoogleApiIntegrationTest {
       .toggleCheckBox();
     ConfirmUninstallServiceDialogFixture.find(ideFrame).clickYes();
     projectStructureDialog.clickOk();
-    ideFrame.waitForGradleProjectSyncToFinish();
 
     gradleFileContents = editor.getCurrentFileContents();
     assertThat(gradleFileContents).doesNotContainMatch(REG_EXP);

@@ -20,6 +20,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.ManagedChannel;
@@ -34,7 +35,10 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -59,7 +63,7 @@ public class ProfilerServiceProxyTest {
   @Test
   public void testUnknownDeviceLabel() throws Exception {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
-    Profiler.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
+    Common.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
     assertThat(profilerDevice.getModel()).isEqualTo("Unknown");
   }
 
@@ -68,7 +72,7 @@ public class ProfilerServiceProxyTest {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     when(mockDevice.isEmulator()).thenReturn(true);
     when(mockDevice.getAvdName()).thenReturn(null);
-    Profiler.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
+    Common.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
 
     assertThat(profilerDevice.getModel()).isEqualTo("Unknown");
   }
@@ -80,13 +84,13 @@ public class ProfilerServiceProxyTest {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.O, new Client[]{client1, client2});
 
     ProfilerServiceProxy proxy = new ProfilerServiceProxy(mockDevice, startNamedChannel("testClientsWithNullDescriptionsNotAdded"));
-    Map<Client, Profiler.Process> cachedProcesses = proxy.getCachedProcesses();
+    Map<Client, Common.Process> cachedProcesses = proxy.getCachedProcesses();
     assertThat(cachedProcesses.size()).isEqualTo(1);
-    Map.Entry<Client, Profiler.Process>  cachedProcess = cachedProcesses.entrySet().iterator().next();
+    Map.Entry<Client, Common.Process> cachedProcess = cachedProcesses.entrySet().iterator().next();
     assertThat(cachedProcess.getKey()).isEqualTo(client1);
     assertThat(cachedProcess.getValue().getPid()).isEqualTo(1);
     assertThat(cachedProcess.getValue().getName()).isEqualTo("testClientDescription");
-    assertThat(cachedProcess.getValue().getState()).isEqualTo(Profiler.Process.State.ALIVE);
+    assertThat(cachedProcess.getValue().getState()).isEqualTo(Common.Process.State.ALIVE);
     assertThat(cachedProcess.getValue().getAbiCpuArch()).isEqualTo(SdkConstants.CPU_ARCH_ARM);
   }
 
@@ -130,7 +134,7 @@ public class ProfilerServiceProxyTest {
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
     @Override
     public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
-      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(Profiler.Device.newBuilder()
+      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(Common.Device.newBuilder()
                                                                                    .setSerial("Serial")
                                                                                    .setBootId("Boot")
                                                                                    .build()).build());

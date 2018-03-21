@@ -28,6 +28,7 @@ import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.navigation.Place;
@@ -69,9 +70,10 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   private volatile boolean mySelectModuleQuietly;
 
   protected BasePerspectiveConfigurable(@NotNull PsContext context) {
+    ((JBSplitter)getSplitter()).setSplitterProportionKey("android.psd.proportion.modules");
     context.add(new GradleSyncListener.Adapter() {
       @Override
-      public void syncStarted(@NotNull Project project) {
+      public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
         if (myLoadingPanel != null) {
           myLoadingPanel.startLoading();
         }
@@ -202,14 +204,19 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
       myCenterComponent = splitter;
 
       JComponent first = splitter.getFirstComponent();
-      if (first instanceof JPanel && myHeader == null) {
+      if (first instanceof JPanel) {
         JPanel panel = (JPanel)first;
-        myHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, panel, ToolWindowAnchor.LEFT);
-        myHeader.setPreferredFocusedComponent(myTree);
-        myHeader.addMinimizeListener(() -> {
-          modulesTreeMinimized();
-          reInitWholePanelIfNeeded();
-        });
+        if (myHeader == null) {
+          myHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, panel, ToolWindowAnchor.LEFT);
+          myHeader.setPreferredFocusedComponent(myTree);
+          myHeader.addMinimizeListener(() -> {
+            modulesTreeMinimized();
+            reInitWholePanelIfNeeded();
+          });
+        }
+        else if (myHeader.getParent() != panel) {
+          panel.add(myHeader, BorderLayout.NORTH);
+        }
       }
     }
   }
@@ -375,6 +382,15 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     if (myHeader != null) {
       Disposer.dispose(myHeader);
     }
+  }
+
+  @Override
+  protected void processRemovedItems() {
+  }
+
+  @Override
+  protected boolean wasObjectStored(Object editableObject) {
+    return false;
   }
 
   @Override

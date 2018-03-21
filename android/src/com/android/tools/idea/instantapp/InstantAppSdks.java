@@ -84,19 +84,6 @@ public class InstantAppSdks {
     return true;
   }
 
-  public int getMinTargetSdk() {
-    try {
-      File iappSdk = getInstantAppSdk(false);
-      if (iappSdk != null) {
-        return Metadata.getInstance(iappSdk).getMinApiLevelSupported();
-      }
-    }
-    catch (InstantAppSdkException ex) {
-      getLogger().error(ex);
-    }
-    return 23; // If there is any exception return the default value
-  }
-
   public long getCompatApiMinVersion() {
     try {
       File iappSdk = getInstantAppSdk(false);

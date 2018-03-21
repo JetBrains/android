@@ -25,6 +25,7 @@ import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.List;
 
 final class GridInfo {
   private static final int NEW_CELL_SIZE = 32;
@@ -87,10 +88,11 @@ final class GridInfo {
   private Dimension getSize() {
     Dimension size = new Dimension();
 
-    if (layout.children != null) {
+    List<NlComponent> children = layout.getChildren();
+    if (!children.isEmpty()) {
       Insets padding = NlComponentHelperKt.getPadding(layout);
 
-      for (NlComponent child : layout.children) {
+      for (NlComponent child : children) {
         size.width = Math.max(
           NlComponentHelperKt.getX(child) - NlComponentHelperKt.getX(layout) - padding.left + NlComponentHelperKt.getW(child),
           size.width);
@@ -184,18 +186,16 @@ final class GridInfo {
   private void initChildren() throws NoSuchFieldException, IllegalAccessException {
     children = new NlComponent[rowCount][columnCount];
 
-    if (layout.children == null) {
-      return;
-    }
+    List<NlComponent> children = layout.getChildren();
 
-    for (NlComponent child : layout.children) {
+    for (NlComponent child : children) {
       ChildInfo info = getInfo(child);
       int endRow = Math.min(info.getRow2(), rowCount);
       int endColumn = Math.min(info.getColumn2(), columnCount);
 
       for (int row = info.getRow1(); row < endRow; row++) {
         for (int column = info.getColumn1(); column < endColumn; column++) {
-          children[row][column] = child;
+          this.children[row][column] = child;
         }
       }
     }

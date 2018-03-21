@@ -39,8 +39,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 

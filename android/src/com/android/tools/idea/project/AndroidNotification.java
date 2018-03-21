@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.project;
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.CustomNotificationListener;
+import com.android.tools.idea.ui.CustomNotificationListener;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.base.Objects;
 import com.intellij.notification.Notification;

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +30,7 @@ public class PsModulePathTest {
 
   private PsModulePath myModulePath;
   @Mock private PsModule myModule;
+  @Mock private PsContext myContext;
 
   @Before
   public void before() {
@@ -46,11 +48,15 @@ public class PsModulePathTest {
   public void toText() throws Exception {
     assertEquals("TestModuleName", myModulePath.toText(FOR_COMPARE_TO));
     assertEquals("TestModuleName", myModulePath.toText(PLAIN_TEXT));
-    assertEquals("", myModulePath.toText(HTML));
+    assertEquals("", myModulePath.getHtml(myContext));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(PsModulePath.class).verify();
+    EqualsVerifier
+      .forClass(PsModulePath.class)
+      .withPrefabValues(PsPath.class, new TestPath("a"), new TestPath("b"))
+      .withRedefinedSuperclass()
+      .verify();
   }
 }

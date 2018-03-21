@@ -42,7 +42,7 @@ public class CpuThreadsModelTest {
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myRange = new Range();
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), 42 /* Any process id */, ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), ProfilersTestData.SESSION_DATA);
   }
 
   @Test
@@ -102,7 +102,7 @@ public class CpuThreadsModelTest {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), 42 /* Any process id */, ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), ProfilersTestData.SESSION_DATA);
     assertEquals(1, myThreadsModel.getSize());
   }
 }

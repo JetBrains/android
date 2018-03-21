@@ -16,23 +16,60 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.intellij.ui.components.JBPanel;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 public abstract class StageView<T extends Stage> extends AspectObserver {
   private final T myStage;
   private final JPanel myComponent;
   private final StudioProfilersView myProfilersView;
 
+  /**
+   * Container for the tooltip.
+   */
+  private final JPanel myTooltipPanel;
+
+  /**
+   * View of the active tooltip for stages that contain more than one tooltips.
+   */
+  private ProfilerTooltipView myActiveTooltipView;
+
+  /**
+   * Binder to bind a tooltip to its view.
+   */
+  private final ViewBinder<StageView, ProfilerTooltip, ProfilerTooltipView> myTooltipBinder;
+
+  /**
+   * A common component for showing the current selection range.
+   */
+  @NotNull private final JLabel mySelectionTimeLabel;
+
   public StageView(@NotNull StudioProfilersView profilersView, @NotNull T stage) {
     myProfilersView = profilersView;
     myStage = stage;
     myComponent = new JBPanel(new BorderLayout());
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+
+    // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
+    myTooltipPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    myTooltipBinder = new ViewBinder<>();
+
+    mySelectionTimeLabel = new JLabel("");
+    mySelectionTimeLabel.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
+    mySelectionTimeLabel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+
+    stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.TOOLTIP, this::tooltipChanged);
+    stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
+    selectionChanged();
   }
 
   @NotNull
@@ -60,6 +97,19 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     return myStage.getStudioProfilers().getTimeline();
   }
 
+  public ViewBinder<StageView, ProfilerTooltip, ProfilerTooltipView> getTooltipBinder() {
+    return myTooltipBinder;
+  }
+
+  public JPanel getTooltipPanel() {
+    return myTooltipPanel;
+  }
+
+  @NotNull
+  public JLabel getSelectionTimeLabel() {
+    return mySelectionTimeLabel;
+  }
+
   @NotNull
   protected JComponent buildTimeAxis(StudioProfilers profilers) {
     JPanel axisPanel = new JPanel(new BorderLayout());
@@ -80,5 +130,45 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
    */
   public boolean needsProcessSelection() {
     return false;
+  }
+
+  protected void tooltipChanged() {
+    if (myActiveTooltipView != null) {
+      myActiveTooltipView.dispose();
+      myActiveTooltipView = null;
+    }
+    myTooltipPanel.removeAll();
+    myTooltipPanel.setVisible(false);
+
+    if (myStage.getTooltip() != null) {
+      myActiveTooltipView = myTooltipBinder.build(this, myStage.getTooltip());
+      myTooltipPanel.add(myActiveTooltipView.createComponent());
+      myTooltipPanel.setVisible(true);
+    }
+    myTooltipPanel.invalidate();
+    myTooltipPanel.repaint();
+  }
+
+  private void selectionChanged() {
+    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    Range selectionRange = timeline.getSelectionRange();
+    if (selectionRange.isEmpty()) {
+      mySelectionTimeLabel.setIcon(null);
+      mySelectionTimeLabel.setText("");
+      return;
+    }
+
+    // Note - relative time conversion happens in nanoseconds
+    long selectionMinUs = timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin()));
+    long selectionMaxUs = timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax()));
+    mySelectionTimeLabel.setIcon(StudioIcons.Profiler.Toolbar.CLOCK);
+    if (selectionRange.isPoint()) {
+      mySelectionTimeLabel.setText(TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMinUs));
+    }
+    else {
+      mySelectionTimeLabel.setText(String.format("%s - %s",
+                                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMinUs),
+                                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMaxUs)));
+    }
   }
 }

@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import org.jetbrains.android.AndroidTestCase;
+import org.mockito.Mockito;
 
 public class IssuePanelTest extends AndroidTestCase {
 
@@ -54,5 +56,33 @@ public class IssuePanelTest extends AndroidTestCase {
     MockIssueFactory.addLintIssue(newModel, HighlightDisplayLevel.WARNING);
     model.setLintAnnotationsModel(newModel);
     assertEquals("1 Warning", panel.getTitleText().trim());
+  }
+
+  /**
+   * Creates two similar issues where just the psi elements are different and check that the
+   * issue panel is updated when the first issue is replace by the other one
+   *<p>
+   * The bug associated with this test was caused because when editing a part of a component's xml (thus the psi)
+   * that was not affecting the issue details, the issueview was not updated and the fix action was still pointing to the old psi
+   * which was not valid anymore and had no parent.
+   *
+   * b/68236469
+   */
+  public void testRemoveIfPsiChangedError() {
+    IssueModel model = new IssueModel();
+    IssuePanel panel = new IssuePanel(LayoutTestUtilities.createSurface(DesignSurface.class), model);
+    assertEquals("No issues", panel.getTitleText());
+    LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
+    NlComponent source = Mockito.mock(NlComponent.class);
+    MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR, source);
+    model.setLintAnnotationsModel(lintAnnotationsModel);
+    IssueView issueView = panel.getIssueViews().get(0);
+    LintAnnotationsModel newModel = new LintAnnotationsModel();
+
+    // When we create a new lint issue, the PSI elements are not the same, so the IssueView should also have changed
+    MockIssueFactory.addLintIssue(newModel, HighlightDisplayLevel.ERROR, source);
+    model.setLintAnnotationsModel(newModel);
+    IssueView issueView2 = panel.getIssueViews().get(0);
+    assertNotSame(issueView, issueView2);
   }
 }

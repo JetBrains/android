@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.welcome.wizard.ProgressStep;
+import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import org.jetbrains.annotations.NotNull;

@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.common.editor.NlEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
@@ -26,7 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -48,11 +49,13 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.tabs.impl.JBTabsImpl;
+import com.intellij.ui.tabs.TabInfo;
+import com.intellij.ui.tabs.impl.JBEditorTabs;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -60,6 +63,7 @@ import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -208,7 +212,7 @@ public class EditorFixture {
   /**
    * Given a {@code regex} with one capturing group, selects the subsequence captured in the first match found in the selected text editor.
    *
-   * @throws IllegalStateException    if there is no currently selected text editor or no match is found
+   * @throws IllegalStateException if there is no currently selected text editor or no match is found
    * @throws IllegalArgumentException if {@code regex} does not have exactly one capturing group
    */
   @NotNull
@@ -237,6 +241,17 @@ public class EditorFixture {
     robot.pressMouse(selectTarget.component, selectTarget.startPoint);
     robot.moveMouse(selectTarget.component, selectTarget.endPoint);
     robot.releaseMouseButtons();
+
+    // Input events are sent through the X server, which means the events are sent
+    // back to the IDE asynchronously. We should wait for the cursor position to be updated
+    Wait.seconds(1)
+      .expecting("text caret position to be at the end of the matched group")
+      .until(() -> GuiQuery.getNonNull(() ->
+          end == FileEditorManager.getInstance(myFrame.getProject())
+            .getSelectedTextEditor()
+            .getCaretModel()
+            .getOffset()
+      ));
     return this;
   }
 
@@ -246,11 +261,22 @@ public class EditorFixture {
     Point endPoint;
   }
 
+  @NotNull
+  public EditorFixture selectCurrentLine() {
+    GuiTask.execute(() ->
+      FileEditorManager.getInstance(myFrame.getProject())
+        .getSelectedTextEditor()
+        .getSelectionModel()
+        .selectLineAtCaret()
+    );
+    return this;
+  }
+
   /**
    * Closes the current editor
    */
   public EditorFixture close() {
-    GuiTask.execute(
+    EdtTestUtil.runInEdtAndWait(
       () -> {
         VirtualFile currentFile = getCurrentFile();
         if (currentFile != null) {
@@ -265,7 +291,7 @@ public class EditorFixture {
    * Closes the specified file.
    */
   public EditorFixture closeFile(@NotNull String relativePath) {
-    GuiTask.execute(
+    EdtTestUtil.runInEdtAndWait(
       () -> {
         VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
         if (file != null) {
@@ -312,10 +338,12 @@ public class EditorFixture {
    * find and select the given file.
    *
    * @param file the file to open
-   * @param tab  which tab to open initially, if there are multiple editors
+   * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
-    GuiTask.execute(
+    robot.waitForIdle(); // Make sure there are no pending open requests
+
+    EdtTestUtil.runInEdtAndWait(
       () -> {
         // TODO: Use UI to navigate to the file instead
         Project project = myFrame.getProject();
@@ -336,8 +364,6 @@ public class EditorFixture {
       }
 
       FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
-      assert fileEditor != null;
-
       JComponent editorComponent = fileEditor.getComponent();
       if (editorComponent instanceof JBLoadingPanel) {
         return !((JBLoadingPanel)editorComponent).isLoading();
@@ -366,7 +392,7 @@ public class EditorFixture {
    * find and select the given file.
    *
    * @param relativePath the project-relative path (with /, not File.separator, as the path separator)
-   * @param tab          which tab to open initially, if there are multiple editors
+   * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab) {
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
@@ -408,7 +434,7 @@ public class EditorFixture {
       }
     }
     else {
-      GuiTask.execute(() -> {
+      EdtTestUtil.runInEdtAndWait(() -> {
         DataContext context = DataManager.getInstance().getDataContext(component);
         AnActionEvent event = AnActionEvent.createFromAnAction(anAction, null, "menu", context);
         anAction.actionPerformed(event);
@@ -423,7 +449,7 @@ public class EditorFixture {
       () -> {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getAllEditors();
         for (FileEditor editor : editors) {
-          if (editor instanceof TextEditor && editor.getComponent().isShowing()) {
+          if (editor instanceof TextEditor && editor.getComponent().isVisible()) {
             TextEditor textEditor = (TextEditor)editor;
             Document document = textEditor.getEditor().getDocument();
             PsiFile psiFile = PsiDocumentManager.getInstance(myFrame.getProject()).getPsiFile(document);
@@ -508,26 +534,24 @@ public class EditorFixture {
 
   /**
    * Waits for the quickfix bulb to appear before invoking the show intentions action,
-   * then waits for the actions to be displayed and finally picks the one with the given label prefix
+   * then waits for the actions to be displayed and finally picks the one with
+   * {@code labelPrefix}
    *
-   * @param labelPrefix the prefix of the action description to be shown
    */
   @NotNull
   public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix) {
-    return invokeQuickfixAction(labelPrefix, true);
+    waitForQuickfix();
+    return invokeQuickfixActionWithoutBulb(labelPrefix);
   }
 
   /**
-   * Waits for the quickfix bulb to appear before invoking the show intentions action,
-   * then waits for the actions to be displayed and finally picks the one with the given label prefix
+   * Invokes the show intentions action, without waiting for the quickfix bulb icon
+   * then waits for the actions to be displayed and finally picks the one with
+   * {@code labelPrefix}
    *
-   * @param labelPrefix the prefix of the action description to be shown
    */
-  @NotNull
-  public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix, boolean waitForBulbIcon) {
-    if (waitForBulbIcon) {
-      waitForQuickfix();
-    }
+  public EditorFixture invokeQuickfixActionWithoutBulb(@NotNull String labelPrefix) {
+    waitUntilErrorAnalysisFinishes();
     invokeAction(EditorAction.SHOW_INTENTION_ACTIONS);
     JBList popup = waitForPopup(robot);
     clickPopupMenuItem(labelPrefix, popup, robot);
@@ -576,15 +600,22 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
     }
 
-    Wait.seconds(1).expecting("Preview window to be visible")
+    Wait.seconds(10).expecting("Preview window to be visible")
       .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
 
     return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
   }
 
-  public boolean isPreviewShowing() {
+  private boolean isPreviewShowing() {
     return GuiQuery.getNonNull(
       () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
+  }
+
+  public boolean isPreviewShowing(@NotNull String fileName) {
+    return GuiQuery.getNonNull(() -> {
+      NlPreviewForm preview = NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm();
+      return preview.getSurface().isShowing() && getCurrentFileName().equals(preview.getFile().getName());
+    });
   }
 
   public int getPreviewUpdateCount() {
@@ -665,7 +696,21 @@ public class EditorFixture {
 
   @NotNull
   public String getSelectedTab() {
-    return robot.finder().find(Matchers.byType(JBTabsImpl.class)).getSelectedInfo().getText();
+    return robot.finder().find(
+      new GenericTypeMatcher<JBEditorTabs>(JBEditorTabs.class) {
+        @Override
+        protected boolean isMatching(@NotNull JBEditorTabs component) {
+          for (TabInfo tabInfo : component.getTabs()) {
+            String text = tabInfo.getText();
+            if (!("Design".equals(text)
+                  || "Text".equals(text))) {
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+    ).getSelectedInfo().getText();
   }
 
   /**
@@ -742,5 +787,12 @@ public class EditorFixture {
   @NotNull
   public LibraryEditorFixture getLibrarySymbolsFixture() {
     return LibraryEditorFixture.find(getIdeFrame());
+  }
+
+  @NotNull
+  public JListFixture getAutoCompleteWindow() {
+    CompletionFixture autocompletePopup = new CompletionFixture(myFrame);
+    autocompletePopup.waitForCompletionsToShow();
+    return autocompletePopup.getCompletionList();
   }
 }

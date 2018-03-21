@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import com.android.tools.idea.tests.gui.framework.fixture.JTextComponentWithHtmlFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.error.IssueView;
@@ -22,9 +23,11 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JLabelFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
 
 /**
  * Fixture for {@link com.android.tools.idea.uibuilder.error.IssuePanel}
@@ -38,10 +41,23 @@ public class IssuePanelFixture extends JPanelFixture {
     myIssuePanel = panel;
   }
 
+  @NotNull
   public JLabelFixture findIssueWithTitle(String issueTitle) throws NullPointerException {
     return label(Matchers.byText(JLabel.class, issueTitle));
   }
 
+  @NotNull
+  public JTextComponentWithHtmlFixture findIssueWithContent(@NotNull String content) {
+    return JTextComponentWithHtmlFixture.create(robot(), robot().finder().findByType(target(), JTextPane.class));
+  }
+
+  @NotNull
+  public IssuePanelFixture clickOnLink(@NotNull String content) throws BadLocationException {
+    findIssueWithContent(content).clickOnLink(content);
+    return this;
+  }
+
+  @NotNull
   public IssuePanelFixture clickFixButton() {
     button(Matchers.byText(JButton.class, "Fix")).click();
     return this;
@@ -51,14 +67,16 @@ public class IssuePanelFixture extends JPanelFixture {
     return myIssuePanel.getIssueModel().hasRenderError() && myIssuePanel.getTitleText().matches(".*[Ee]rror.*");
   }
 
-  public boolean containsText(String text) {
+  public boolean containsText(@NotNull String text) {
     return myIssuePanel.containsErrorWithText(text);
   }
 
+  @Nullable
   public IssueView getSelectedIssueView() {
     return myIssuePanel.getSelectedIssueView();
   }
 
+  @NotNull
   public String getTitle() {
     return myIssuePanel.getTitleText();
   }

@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
@@ -64,6 +65,7 @@ public class BuildToolsTooLowReporterTest extends IdeaTestCase {
 
     String minVersion = "25";
     when(mySyncIssue.getData()).thenReturn(minVersion);
+    when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
 
     Module module = getModule();
     List<NotificationHyperlink> quickFixes = new ArrayList<>();

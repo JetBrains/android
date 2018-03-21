@@ -16,8 +16,6 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.tools.idea.npw.assetstudio.TextRenderUtil;
-import com.android.tools.idea.observable.core.IntProperty;
-import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.collect.ImmutableList;
@@ -35,20 +33,25 @@ import java.util.List;
  */
 @SuppressWarnings("UseJBColor")
 public final class TextAsset extends BaseAsset {
+  public static final String DEFAULT_TEXT = "Aa";
   private static final String PREFERRED_FONT = "Roboto";
-  private final StringProperty myText = new StringValueProperty("Aa");
+  private static final int FONT_SIZE = 144;  // Large value for crisp icons.
+
+  private final StringProperty myText = new StringValueProperty(DEFAULT_TEXT);
   private final StringProperty myFontFamily = new StringValueProperty();
-  private final IntProperty myFontSize = new IntValueProperty(144); // Large value for crisp icons.
+  private final List<String> myAllFontFamilies;
 
   public TextAsset() {
-    List<String> fontFamilies = getAllFontFamilies();
-    assert !fontFamilies.isEmpty();
+    myAllFontFamilies = ImmutableList.copyOf(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames());
+    selectFontFamily(PREFERRED_FONT);
+  }
 
-    if (fontFamilies.contains(PREFERRED_FONT)) {
-      myFontFamily.set(PREFERRED_FONT);
+  private void selectFontFamily(@NotNull String fontFamily) {
+    if (myAllFontFamilies.contains(fontFamily)) {
+      myFontFamily.set(fontFamily);
     }
-    else {
-      myFontFamily.set(fontFamilies.get(0));
+    else if (!myAllFontFamilies.isEmpty()) {
+      myFontFamily.set(myAllFontFamilies.get(0));
     }
   }
 
@@ -77,11 +80,22 @@ public final class TextAsset extends BaseAsset {
     return myFontFamily;
   }
 
+  /**
+   * Returns the default font family, or an empty string if no font families are available in the graphics environment.
+   */
+  @NotNull
+  public String defaultFontFamily() {
+    if (myAllFontFamilies.contains(PREFERRED_FONT)) {
+      return PREFERRED_FONT;
+    }
+    return myAllFontFamilies.isEmpty() ? "" : myAllFontFamilies.get(0);
+  }
+
   @Override
   @Nullable
   public ListenableFuture<BufferedImage> toImage() {
     TextRenderUtil.Options options = new TextRenderUtil.Options();
-    options.font = Font.decode(myFontFamily + " " + myFontSize.get());
+    options.font = Font.decode(myFontFamily + " " + FONT_SIZE);
     options.foregroundColor = color().get().getRGB();
     return Futures.immediateFuture(TextRenderUtil.renderTextImage(myText.get(), 1, options));
   }

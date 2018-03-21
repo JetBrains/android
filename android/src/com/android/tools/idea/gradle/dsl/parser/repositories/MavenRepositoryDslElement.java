@@ -19,13 +19,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MavenRepositoryDslElement extends GradleDslBlockElement {
   @NonNls public static final String MAVEN_BLOCK_NAME = "maven";
   @NonNls public static final String JCENTER_BLOCK_NAME = "jcenter";
 
-  public MavenRepositoryDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  public MavenRepositoryDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
     super(parent, name);
     assert MAVEN_BLOCK_NAME.equals(name) || JCENTER_BLOCK_NAME.equals(name);
   }

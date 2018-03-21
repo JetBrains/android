@@ -33,6 +33,10 @@ public class AndroidNewModuleInGroupAction extends AndroidNewModuleAction {
   public void update(AnActionEvent e) {
     super.update(e);
 
+    if (!e.getPresentation().isVisible()) {
+      return; // Nothing to do, if above call to parent update() has disable the action
+    }
+
     ModuleGroup[] moduleGroups = e.getData(ARRAY_DATA_KEY);
     Module[] modules = e.getData(MODULE_CONTEXT_ARRAY);
     e.getPresentation().setVisible(isNotEmpty(moduleGroups) || isNotEmpty(modules));

@@ -80,12 +80,12 @@ public class StatefulButtonUI extends BasicButtonUI {
       AllIcons.Actions.Help.paintIcon(c, g, x + JBUI.scale(3), y + JBUI.scale(3));
     }
     else {
-      final Border border = c.getBorder();
       final GraphicsConfig config = GraphicsUtil.setupAAPainting(g);
       final boolean square = isSquare(c);
-      if (c.isEnabled() && border != null) {
-        final Insets ins = border.getBorderInsets(c);
-        final int yOff = (ins.top + ins.bottom) / 4;
+      final Insets ins = c.getInsets();
+      final int yOff = (ins.top + ins.bottom) / 4;
+      final int rad = JBUI.scale(square ? 3 : 5);
+      if (c.isEnabled()) {
         if (!square) {
           if (isDefaultButton(c)) {
             ((Graphics2D)g).setPaint(UIUtil.getGradientPaint(0, 0, getSelectedButtonColor1(), 0, h, getSelectedButtonColor2()));
@@ -94,9 +94,10 @@ public class StatefulButtonUI extends BasicButtonUI {
             ((Graphics2D)g).setPaint(UIUtil.getGradientPaint(0, 0, getButtonColor1(), 0, h, getButtonColor2()));
           }
         }
-        int rad = JBUI.scale(square ? 3 : 5);
         g.fillRoundRect(JBUI.scale(square ? 2 : 4), yOff, w - 2 * JBUI.scale(4), h - 2 * yOff, rad, rad);
       }
+      g.setColor(JBColor.GRAY);
+      g.drawRoundRect(JBUI.scale(square ? 2 : 4), yOff, w - 2 * JBUI.scale(4), h - 2 * yOff, rad, rad);
       config.restore();
       super.paint(g, c);
     }

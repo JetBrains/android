@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
@@ -34,12 +35,13 @@ import com.intellij.openapi.util.Disposer;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
@@ -109,7 +111,79 @@ public class InteractionManagerTest extends LayoutTestCase {
     assertEquals("@android:drawable/selected_image", model.find("imageView").getAttribute(ANDROID_URI, ATTR_SRC));
   }
 
-  public void testLinearLayoutCursorHoverComponent() throws Exception {
+  public void testSelectSingleComponent() {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+                                   Coordinates.getSwingXDip(screenView, textView.getCenterX()),
+                                   Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
+    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    assertEquals(1, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+  }
+
+  public void testMultiSelectComponent() {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+
+    surface.getSelectionModel().clear();
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+                                   Coordinates.getSwingXDip(screenView, textView.getCenterX()),
+                                   Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
+
+    SceneComponent button = screenView.getScene().getSceneComponent("button");
+    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+                                   Coordinates.getSwingXDip(screenView, button.getCenterX()),
+                                   Coordinates.getSwingYDip(screenView, button.getCenterY()), InputEvent.SHIFT_DOWN_MASK);
+
+    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    assertEquals(2, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+    assertEquals(button.getNlComponent(), selections.get(1));
+  }
+
+  public void testMarqueeSelect() {
+    InteractionManager manager = setupLinearLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+
+    SceneComponent button = screenView.getScene().getSceneComponent("button");
+    int startX = -20;
+    int startY = -20;
+
+    int endX = Coordinates.getSwingXDip(screenView, button.getDrawX()) + 3;
+    int endY = Coordinates.getSwingXDip(screenView, button.getDrawY()) + 3;
+    LayoutTestUtilities.pressMouse(manager, MouseEvent.BUTTON1, startX, startY, 0);
+    LayoutTestUtilities.dragMouse(manager, startX, startY, endX, endY, 0);
+    LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON1, endX, endY, 0);
+
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    assertEquals(ImmutableList.of(textView.getNlComponent(), button.getNlComponent()), selections);
+
+    surface.getSelectionModel().clear();
+
+    startX = Coordinates.getSwingXDip(screenView, button.getDrawX() + button.getDrawWidth() + 20);
+    startY = Coordinates.getSwingYDip(screenView, button.getDrawY() + button.getDrawHeight() + 20);
+    endX = Coordinates.getSwingXDip(screenView, button.getDrawX() + button.getDrawWidth()) - 3;
+    endY = Coordinates.getSwingXDip(screenView, button.getDrawY() + button.getDrawHeight()) - 3;
+    LayoutTestUtilities.pressMouse(manager, MouseEvent.BUTTON1, startX, startY, 0);
+    LayoutTestUtilities.dragMouse(manager, startX, startY, endX, endY, 0);
+    LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON1, endX, endY, 0);
+
+    selections = surface.getSelectionModel().getSelection();
+    assertEquals(ImmutableList.of(button.getNlComponent()), selections);
+
+    manager.stopListening();
+    Disposer.dispose(surface);
+  }
+
+  public void testLinearLayoutCursorHoverComponent() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
@@ -119,12 +193,12 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
   }
 
-  public void testLinearLayoutCursorHoverComponentHandle() throws Exception {
+  public void testLinearLayoutCursorHoverComponentHandle() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    SelectionModel selectionModel = screenView.getModel().getSelectionModel();
+    SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
     selectionModel.getHandles(textView.getNlComponent());
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
@@ -132,19 +206,20 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
-  public void testLinearLayoutCursorHoverRoot() throws Exception {
+  public void testLinearLayoutCursorHoverRoot() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
                          Coordinates.getSwingYDip(screenView, textView.getCenterY()));
-    Mockito.verify(surface).setCursor(Cursor.getDefaultCursor());
+    Mockito.verify(surface).setCursor(null);
   }
 
-  public void testLinearLayoutCursorHoverSceneHandle() throws Exception {
+  public void testLinearLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
+    Mockito.when(((NlDesignSurface)surface).hasCustomDevice()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height);
@@ -161,19 +236,21 @@ public class InteractionManagerTest extends LayoutTestCase {
           .id("@+id/textView")
           .text("Hello World")
           .wrapContentWidth()
-          .wrapContentHeight())).build();
+          .wrapContentHeight(),
+        component(BUTTON)
+          .id("@+id/button")
+          .withBounds(50, 50, 50, 50)
+          .text("Button")
+          .wrapContentWidth()
+          .wrapContentHeight()
+        )).build();
 
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
-    Mockito.when(surface.getScale()).thenReturn(1.0);
-
-    ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
-    Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
-    InteractionManager manager = createManager(surface);
     surface.getScene().buildDisplayList(new DisplayList(), 0);
-    return manager;
+    return createManager(surface);
   }
 
-  public void testConstraintLayoutCursorHoverComponent() throws Exception {
+  public void testConstraintLayoutCursorHoverComponent() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
@@ -183,12 +260,12 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
   }
 
-  public void testConstraintLayoutCursorHoverComponentHandle() throws Exception {
+  public void testConstraintLayoutCursorHoverComponentHandle() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    SelectionModel selectionModel = screenView.getModel().getSelectionModel();
+    SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
     selectionModel.getHandles(textView.getNlComponent());
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
@@ -196,19 +273,20 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
-  public void testConstraintLayoutCursorHoverRoot() throws Exception {
+  public void testConstraintLayoutCursorHoverRoot() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawHeight() + textView.getDrawY() + 20),
                          Coordinates.getSwingYDip(screenView, textView.getCenterY()));
-    Mockito.verify(surface).setCursor(Cursor.getDefaultCursor());
+    Mockito.verify(surface).setCursor(null);
   }
 
-  public void testConstraintLayoutCursorHoverSceneHandle() throws Exception {
+  public void testConstraintLayoutCursorHoverSceneHandle() {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
+    Mockito.when(((NlDesignSurface)surface).hasCustomDevice()).thenReturn(true);
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     manager.updateCursor(screenView.getX() + screenView.getSize().width,
                          screenView.getY() + screenView.getSize().height);
@@ -229,12 +307,8 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
-
-    ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
-    Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
-    InteractionManager manager = createManager(surface);
-    screenView.getScene().buildDisplayList(new DisplayList(), 0);
-    return manager;
+    surface.getScene().buildDisplayList(new DisplayList(), 0);
+    return createManager(surface);
   }
 
   private static class FakeImageViewHandler extends ImageViewHandler {

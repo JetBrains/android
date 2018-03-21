@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
+import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryModel;
+import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceDirectoryModel;
-import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceFileModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -270,7 +272,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    assertTrue(android.hasValidPsiElement());
+    checkForValidPsiElement(android, AndroidModelImpl.class);
 
     for (SourceSetModel sourceSet : android.sourceSets()) {
       sourceSet.removeRoot();
@@ -283,7 +285,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
     assertNotNull(android);
-    assertFalse(android.hasValidPsiElement()); // the whole android block is deleted from the file.
+    checkForInValidPsiElement(android, AndroidModelImpl.class); // the whole android block is deleted from the file.
     assertThat(android.sourceSets()).isEmpty();
   }
 
@@ -349,47 +351,47 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     SourceDirectoryModel aidl = sourceSet.aidl();
     assertEquals("name", "aidl", aidl.name());
     assertThat(aidl.srcDirs()).hasSize(1);
-    assertEquals(savedToFile, aidl.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(aidl));
 
     SourceDirectoryModel assets = sourceSet.assets();
     assertEquals("name", "assets", assets.name());
     assertThat(assets.srcDirs()).hasSize(1);
-    assertEquals(savedToFile, aidl.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(aidl));
 
     SourceDirectoryModel java = sourceSet.java();
     assertEquals("name", "java", java.name());
     assertThat(java.srcDirs()).hasSize(1);
-    assertEquals(savedToFile, java.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(java));
 
     SourceDirectoryModel jni = sourceSet.jni();
     assertEquals("name", "jni", jni.name());
     assertThat(jni.srcDirs()).hasSize(1);
-    assertEquals(savedToFile, java.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(java));
 
     SourceDirectoryModel jniLibs = sourceSet.jniLibs();
     assertEquals("name", "jniLibs", jniLibs.name());
     assertThat(jniLibs.srcDirs()).hasSize(1);
-    assertEquals(savedToFile, jniLibs.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(jniLibs));
 
     SourceFileModel manifest = sourceSet.manifest();
     assertEquals("name", "manifest", manifest.name());
     assertNotNull(manifest.srcFile());
-    assertEquals(savedToFile, manifest.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(manifest));
 
     SourceDirectoryModel renderscript = sourceSet.renderscript();
     assertEquals("name", "renderscript", renderscript.name());
     assertThat(renderscript.srcDirs()).hasSize(1);
-    assertEquals(savedToFile, renderscript.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(renderscript));
 
     SourceDirectoryModel res = sourceSet.res();
     assertEquals("name", "res", res.name());
     assertThat(res.srcDirs()).hasSize(1);
-    assertEquals(savedToFile, res.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(res));
 
     SourceDirectoryModel resources = sourceSet.resources();
     assertEquals("name", "resources", resources.name());
     assertThat(resources.srcDirs()).hasSize(1);
-    assertEquals(savedToFile, resources.hasValidPsiElement());
+    assertEquals(savedToFile, hasPsiElement(resources));
   }
 
   public void testRemoveAndApplyBlockElements() throws Exception {
@@ -431,7 +433,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
-    assertTrue(android.hasValidPsiElement());
+    checkForValidPsiElement(android, AndroidModelImpl.class);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
     assertThat(sourceSets).hasSize(1);
@@ -452,7 +454,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
     assertNotNull(android);
-    assertFalse(android.hasValidPsiElement()); // Whole android block gets removed as it would become empty.
+    checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
   }
 }

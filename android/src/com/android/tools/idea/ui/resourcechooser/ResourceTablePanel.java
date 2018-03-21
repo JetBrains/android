@@ -19,7 +19,7 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.editors.strings.FontUtil;
+import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Pair;

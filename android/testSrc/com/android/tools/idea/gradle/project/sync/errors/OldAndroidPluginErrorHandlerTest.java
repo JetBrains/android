@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -30,6 +32,8 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.reg
 import static com.android.tools.idea.testing.TestProjectPaths.PLUGIN_IN_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link OldAndroidPluginErrorHandler}.
@@ -80,5 +84,16 @@ public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
     NotificationHyperlink gotoFile = quickFixes.get(1);
     assertThat(gotoFile).isInstanceOf(OpenFileHyperlink.class);
     assertThat(new File(((OpenFileHyperlink)gotoFile).getFilePath())).isEqualTo(expectedHyperlinkValue);
+  }
+
+  public void testHandleErrorNotInitialized() throws Exception {
+    OldAndroidPluginErrorHandler errorHandler = new OldAndroidPluginErrorHandler();
+    loadProject(SIMPLE_APPLICATION);
+    Project spyProject = spy(getProject());
+    when(spyProject.isInitialized()).thenReturn(false);
+    List<NotificationHyperlink> quickFixes = errorHandler.getQuickFixHyperlinks(spyProject, "Error text");
+    assertSize(2, quickFixes);
+    assertThat(quickFixes.get(0)).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
+    assertThat(quickFixes.get(1)).isInstanceOf(OpenPluginBuildFileHyperlink.class);
   }
 }

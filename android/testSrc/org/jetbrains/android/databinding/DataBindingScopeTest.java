@@ -35,7 +35,7 @@ public class DataBindingScopeTest extends AndroidGradleTestCase {
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(ModuleDataBinding.isEnabled(myAndroidFacet));
+    assertTrue(ModuleDataBinding.getInstance(myAndroidFacet).isEnabled());
     assertTrue(myModules.hasModule("lib"));
     assertTrue(myModules.hasModule("lib2"));
     // app depends on lib depends on lib2

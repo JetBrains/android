@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;

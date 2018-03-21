@@ -16,14 +16,21 @@
 package com.android.tools.idea.uibuilder.handlers.ui;
 
 import com.android.ide.common.rendering.api.SessionParams;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -32,6 +39,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -52,10 +60,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
@@ -287,11 +292,11 @@ public class AppBarConfigurationDialog extends JDialog {
     });
   }
 
-  public boolean open(@NotNull final XmlFile file) {
-    Project project = file.getProject();
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    boolean syncNeeded = !manager.dependsOn(myEditor.getModel().getModule(), DESIGN_LIB_ARTIFACT);
-    if (syncNeeded && !addDesignLibrary(manager)) {
+  public boolean open() {
+    NlModel model = myEditor.getModel();
+    Project project = model.getProject();
+    boolean hasDesignLib = DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.DESIGN);
+    if (!hasDesignLib && !addDesignLibrary()) {
       return false;
     }
 
@@ -305,12 +310,13 @@ public class AppBarConfigurationDialog extends JDialog {
     setLocation(screen.x + (screen.width - size.width) / 2, screen.y + (screen.height - size.height) / 2);
     updateControls();
     myButtonOK.requestFocus();
-    if (!syncNeeded) {
+    if (hasDesignLib) {
       generatePreviews();
     }
 
     setVisible(true);
     if (myWasAccepted) {
+      XmlFile file = model.getFile();
       WriteCommandAction action = new WriteCommandAction(project, "Configure App Bar", file) {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
@@ -322,14 +328,54 @@ public class AppBarConfigurationDialog extends JDialog {
     return myWasAccepted;
   }
 
-  private boolean addDesignLibrary(@NotNull GradleDependencyManager manager) {
+  private boolean addDesignLibrary() {
     myLoadingPanel.startLoading();
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+");
-    return manager.ensureLibraryIsIncluded(myEditor.getModel().getModule(), Collections.singletonList(coordinate), () -> {
-      if (isVisible()) {
-        ApplicationManager.getApplication().invokeLater(this::generatePreviews);
+
+    Module module = myEditor.getModel().getModule();
+
+    boolean designAdded = DependencyManagementUtil
+      .addDependencies(module, Collections.singletonList(GoogleMavenArtifactId.DESIGN), true, false)
+      .isEmpty();
+
+    if (!designAdded) {
+      return false;
+    }
+
+    ListenableFuture<SyncResult> syncResult = ProjectSystemUtil.getSyncManager(module.getProject())
+      .syncProject(SyncReason.PROJECT_MODIFIED, true);
+
+    Futures.addCallback(syncResult, new FutureCallback<SyncResult>() {
+      @Override
+      public void onSuccess(@Nullable SyncResult result) {
+        if (result != null && result.isSuccessful()) {
+          onDesignSourcesGenerated();
+        }
+        else {
+          onBuildError();
+        }
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        onBuildError();
       }
     });
+
+    return true;
+  }
+
+  private void onDesignSourcesGenerated() {
+    if (isVisible()) {
+      ApplicationManager.getApplication().invokeLater(this::generatePreviews);
+    }
+  }
+
+  private void onBuildError() {
+    myPreview.setText("Preview is unavailable until after a successful build");
+    myPreview.setIcon(AllIcons.General.Warning);
+    myCollapsedLabel.setVisible(false);
+    myExpandedLabel.setVisible(false);
+    myLoadingPanel.stopLoading();
   }
 
   private void onOK() {

@@ -18,43 +18,39 @@ package com.android.tools.adtui.model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
- * An interface that represents a tree where each node has range and data.
- * HNode is used by {@code HTreeChart} to visualize the tree by rectangular bars.
+ * An entry in a {@code HTreeChart}. A node has associated data and a range as well, which will
+ * be visualized by the parent tree as rectangular bars.
  *
- * @param <T> - type of data.
+ * @param <N> Type of the node subclass, provided to allow using get methods without casting
  */
-public interface HNode<T> {
+public interface HNode<N extends HNode<N>> {
+
   int getChildCount();
 
   @NotNull
-  HNode<T> getChildAt(int index);
+  N getChildAt(int index);
 
   @Nullable
-  HNode<T> getParent();
+  N getParent();
 
   long getStart();
 
   long getEnd();
 
-  @Nullable
-  T getData();
-
   int getDepth();
 
-  default long duration() {
+  default long getDuration() {
     return getEnd() - getStart();
   }
 
   @Nullable
-  default HNode<T> getFirstChild() {
+  default N getFirstChild() {
     return getChildCount() == 0 ? null : getChildAt(0);
   }
 
   @Nullable
-  default HNode<T> getLastChild() {
+  default N getLastChild() {
     return getChildCount() == 0 ? null : getChildAt(getChildCount() - 1);
   }
 }

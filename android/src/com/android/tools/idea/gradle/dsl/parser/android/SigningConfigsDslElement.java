@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.google.common.collect.Lists;
@@ -32,7 +33,7 @@ public final class SigningConfigsDslElement extends GradleDslElementMap {
   }
 
   @Override
-  protected boolean isBlockElement() {
+  public boolean isBlockElement() {
     return true;
   }
 
@@ -40,7 +41,7 @@ public final class SigningConfigsDslElement extends GradleDslElementMap {
   public List<SigningConfigModel> get() {
     List<SigningConfigModel> result = Lists.newArrayList();
     for (SigningConfigDslElement dslElement : getValues(SigningConfigDslElement.class)) {
-      result.add(new SigningConfigModel(dslElement));
+      result.add(new SigningConfigModelImpl(dslElement));
     }
     return result;
   }

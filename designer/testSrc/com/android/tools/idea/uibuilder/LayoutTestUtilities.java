@@ -20,21 +20,21 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
-import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
-import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
+import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
+import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
+import com.android.tools.idea.uibuilder.model.NlComponentMixin;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -48,6 +48,7 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetListener;
@@ -61,7 +62,12 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class LayoutTestUtilities {
-  public static void dragMouse(InteractionManager manager, int x1, int y1, int x2, int y2, int modifiers) {
+  public static void dragMouse(InteractionManager manager,
+                               @SwingCoordinate int x1,
+                               @SwingCoordinate int y1,
+                               @SwingCoordinate int x2,
+                               @SwingCoordinate int y2,
+                               int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseMotionListener);
     MouseMotionListener mouseListener = (MouseMotionListener)listener;
@@ -84,7 +90,7 @@ public class LayoutTestUtilities {
     }
   }
 
-  public static void pressMouse(InteractionManager manager, int button, int x, int y, int modifiers) {
+  public static void pressMouse(InteractionManager manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
@@ -97,7 +103,7 @@ public class LayoutTestUtilities {
                                  .build());
   }
 
-  public static void releaseMouse(InteractionManager manager, int button, int x, int y, int modifiers) {
+  public static void releaseMouse(InteractionManager manager, int button, @SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
@@ -109,7 +115,12 @@ public class LayoutTestUtilities {
                                   .withId(MouseEvent.MOUSE_RELEASED).build());
   }
 
-  public static void clickMouse(InteractionManager manager, int button, int count, int x, int y, int modifiers) {
+  public static void clickMouse(InteractionManager manager,
+                                int button,
+                                int count,
+                                @SwingCoordinate int x,
+                                @SwingCoordinate int y,
+                                int modifiers) {
     JComponent layeredPane = manager.getSurface().getLayeredPane();
     for (int i = 0; i < count; i++) {
       pressMouse(manager, button, x, y, modifiers);
@@ -130,7 +141,22 @@ public class LayoutTestUtilities {
     }
   }
 
-  public static void dragDrop(InteractionManager manager, int x1, int y1, int x2, int y2, Transferable transferable) {
+  public static void dragDrop(InteractionManager manager,
+                              @SwingCoordinate int x1,
+                              @SwingCoordinate int y1,
+                              @SwingCoordinate int x2,
+                              @SwingCoordinate int y2,
+                              Transferable transferable) {
+    dragDrop(manager, x1, y1, x2, y2, transferable, DnDConstants.ACTION_COPY);
+  }
+
+  public static void dragDrop(InteractionManager manager,
+                              @SwingCoordinate int x1,
+                              @SwingCoordinate int y1,
+                              @SwingCoordinate int x2,
+                              @SwingCoordinate int y2,
+                              Transferable transferable,
+                              int dropAction) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof DropTargetListener);
     DropTargetListener dropListener = (DropTargetListener)listener;
@@ -141,14 +167,15 @@ public class LayoutTestUtilities {
     double ySlope = (y2 - y) / frames;
 
     DropTargetContext context = createDropTargetContext();
-    dropListener.dragEnter(new DropTargetDragEventBuilder(context, (int)x, (int)y, transferable).build());
+    dropListener.dragEnter(new DropTargetDragEventBuilder(context, (int)x, (int)y, transferable).withDropAction(dropAction).build());
     for (int i = 0; i < frames + 1; i++) {
-      dropListener.dragOver(new DropTargetDragEventBuilder(context, (int)x, (int)y, transferable).build());
+      dropListener.dragOver(new DropTargetDragEventBuilder(context, (int)x, (int)y, transferable).withDropAction(dropAction).build());
       x += xSlope;
       y += ySlope;
     }
 
-    DropTargetDropEvent dropEvent = new DropTargetDropEventBuilder(context, (int)x, (int)y, transferable).build();
+    DropTargetDropEvent dropEvent =
+      new DropTargetDropEventBuilder(context, (int)x, (int)y, transferable).withDropAction(dropAction).build();
     dropListener.drop(dropEvent);
 
     verify(dropEvent, times(1)).acceptDrop(anyInt());
@@ -161,26 +188,18 @@ public class LayoutTestUtilities {
 
   public static ScreenView createScreen(SyncNlModel model, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y) {
-    ScreenView screenView = mock(ScreenView.class);
-    when(screenView.getConfiguration()).thenReturn(model.getConfiguration());
-    when(screenView.getModel()).thenReturn(model);
-    when(screenView.getScale()).thenReturn(scale);
-    SelectionModel selectionModel = model.getSelectionModel();  // Mockito requires this to be a separate variable
-    when(screenView.getSelectionModel()).thenReturn(selectionModel);
-    when(screenView.getSize()).thenReturn(new Dimension());
-    DesignSurface surface = model.getSurface();
-    when(screenView.getSurface()).thenReturn(surface);
-    when(screenView.getX()).thenReturn(x);
-    when(screenView.getY()).thenReturn(y);
-
-    when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
-    when(surface.getCurrentSceneView()).thenReturn(screenView);
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
-    Scene scene = builder.build();
-    scene.buildDisplayList(new DisplayList(), 0);
-
-    when(screenView.getScene()).thenReturn(scene);
-    when(screenView.getSceneManager()).thenReturn(builder);
+    NlDesignSurface surface = (NlDesignSurface) model.getSurface();
+    LayoutlibSceneManager spy = spy(surface.getSceneManager());
+    when(surface.getSceneManager()).thenReturn(spy);
+    ScreenView screenView = new ScreenView(surface, spy) {
+      @Override
+      public double getScale() {
+        return scale;
+      }
+    };
+    screenView.setLocation(x, y);
+    when(spy.getSceneView()).thenReturn(screenView);
+    surface.getScene().buildDisplayList(new DisplayList(), 0);
     return screenView;
   }
 
@@ -191,16 +210,16 @@ public class LayoutTestUtilities {
     when(surface.getSelectionModel()).thenReturn(new SelectionModel());
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
-    when(surface.createComponent(any())).thenCallRealMethod();
     if (NlDesignSurface.class.equals(surfaceClass)) {
       when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
+      when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT_ONLY);
     }
     return surface;
   }
 
   public static InteractionManager createManager(DesignSurface surface) {
     InteractionManager manager = new InteractionManager(surface);
-    manager.registerListeners();
+    manager.startListening();
     return manager;
   }
 

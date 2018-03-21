@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 19
-    buildToolsVersion '19.1.0'
 
     defaultConfig {
         minSdkVersion 14
@@ -13,6 +12,6 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    api 'com.android.support:appcompat-v7:26.1.0'
+    api fileTree(dir: 'libs', include: ['*.jar'])
 }

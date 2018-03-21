@@ -21,13 +21,13 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.google.protobuf3jarjar.ByteString;
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -400,7 +400,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     double threadSelectionStart = captureNode.getStartGlobal() +
                                   threadToGlobal * (captureNode.getStartThread() - timeline.getSelectionRange().getMin());
     double threadSelectionEnd = threadSelectionStart +
-                                threadToGlobal * captureNode.duration();
+                                threadToGlobal * captureNode.getDuration();
     assertThat(threadSelectionStart).isWithin(eps).of(timeline.getSelectionRange().getMin());
     assertThat(threadSelectionEnd).isWithin(eps).of(timeline.getSelectionRange().getMax());
 
@@ -494,9 +494,9 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void testUsageTooltip() {
     myStage.enter();
-    myStage.setTooltip(CpuProfilerStage.Tooltip.Type.USAGE);
-    assertThat(myStage.getTooltip()).isInstanceOf(CpuProfilerStage.UsageTooltip.class);
-    CpuProfilerStage.UsageTooltip tooltip = (CpuProfilerStage.UsageTooltip)myStage.getTooltip();
+    myStage.setTooltip(new CpuUsageTooltip(myStage));
+    assertThat(myStage.getTooltip()).isInstanceOf(CpuUsageTooltip.class);
+    CpuUsageTooltip tooltip = (CpuUsageTooltip)myStage.getTooltip();
 
     CpuProfilerStage.CpuStageLegends legends = tooltip.getLegends();
     double tooltipTime = TimeUnit.SECONDS.toMicros(0);
@@ -506,8 +506,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(legends.getCpuLegend().getName()).isEqualTo("App");
     assertThat(legends.getOthersLegend().getName()).isEqualTo("Others");
     assertThat(legends.getThreadsLegend().getName()).isEqualTo("Threads");
-    assertThat(legends.getCpuLegend().getValue()).isEqualTo("10%");
-    assertThat(legends.getOthersLegend().getValue()).isEqualTo("40%");
+    assertThat(legends.getCpuLegend().getValue()).isEqualTo("10 %");
+    assertThat(legends.getOthersLegend().getValue()).isEqualTo("40 %");
     assertThat(legends.getThreadsLegend().getValue()).isEqualTo("1");
   }
 
@@ -519,19 +519,39 @@ public class CpuProfilerStageTest extends AspectObserver {
     viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
 
     myStage.enter();
-    myStage.setTooltip(CpuProfilerStage.Tooltip.Type.THREADS);
-    assertThat(myStage.getTooltip()).isInstanceOf(CpuProfilerStage.ThreadsTooltip.class);
-    CpuProfilerStage.ThreadsTooltip tooltip = (CpuProfilerStage.ThreadsTooltip)myStage.getTooltip();
+    myStage.setTooltip(new CpuThreadsTooltip(myStage));
+    assertThat(myStage.getTooltip()).isInstanceOf(CpuThreadsTooltip.class);
+    CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
 
-    ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, 1, ProfilersTestData.SESSION_DATA, 1);
-    // 1 - running - 8 - dead - 11
+    // Null thread series
+    tooltip.setThread(null, null);
+    assertThat(tooltip.getThreadName()).isNull();
+    assertThat(tooltip.getThreadState()).isNull();
+
+    // Thread series: 1 - running - 8 - dead - 11
+    ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, ProfilersTestData.SESSION_DATA, 1);
     tooltip.setThread("myThread", series);
 
     assertThat(tooltip.getThreadName()).isEqualTo("myThread");
-    tooltipRange.set(TimeUnit.SECONDS.toMicros(5), TimeUnit.SECONDS.toMicros(5));
+
+    // Tooltip before all data.
+    long tooltipTimeUs = TimeUnit.SECONDS.toMicros(0);
+    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
+    assertThat(tooltip.getThreadState()).isNull();
+
+    // Tooltip on first thread.
+    tooltipTimeUs = TimeUnit.SECONDS.toMicros(5);
+    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
     assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.RUNNING);
 
-    tooltipRange.set(TimeUnit.SECONDS.toMicros(9), TimeUnit.SECONDS.toMicros(9));
+    // Tooltip right on second thread.
+    tooltipTimeUs = TimeUnit.SECONDS.toMicros(8);
+    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
+    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
+
+    // Tooltip after all data. Because data don't contain end time so the last thread state lasts "forever".
+    tooltipTimeUs = TimeUnit.SECONDS.toMicros(12);
+    tooltipRange.set(tooltipTimeUs, tooltipTimeUs);
     assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
   }
 
@@ -560,105 +580,38 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void profilingModesAvailableDependOnDeviceApi() {
-    myServices.enableSimplePerf(true);
-
-    // Set a device that doesn't support simpleperf
-    addAndSetDevice(14, "FakeDevice1");
-
-    List<ProfilingConfiguration> configs = myStage.getProfilingConfigurations();
-    // First configuration in the list should be a dummy entry used to open the configurations dialog
-    assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-
-    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(configs);
-    assertThat(realConfigs).hasSize(2);
-    // First actual configuration should be ART Sampled
-    assertThat(realConfigs.get(0).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
-    assertThat(realConfigs.get(0).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
-    // Second actual configuration should be ART Instrumented
-    assertThat(realConfigs.get(1).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
-    assertThat(realConfigs.get(1).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
-
-    // Simpleperf is supported on API 26 and greater.
-    addAndSetDevice(26, "FakeDevice2");
-
-    configs = myStage.getProfilingConfigurations();
-    // Dummy configuration
-    assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-
-    realConfigs = filterFakeConfigs(configs);
-    assertThat(realConfigs).hasSize(3);
-
-    // First and second actual configurations should be the same
-    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
-    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
-    // Third configuration should be simpleperf
-    assertThat(realConfigs.get(2).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
-    assertThat(realConfigs.get(2).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(realConfigs.get(2).getName()).isEqualTo("Sampled (Hybrid)");
-  }
-
-  @Test
-  public void simpleperfIsOnlyAvailableWhenFlagIsTrue() {
-    myServices.enableSimplePerf(true);
-
-    // Set a device that supports simpleperf
-    addAndSetDevice(26, "Fake Device 1");
-
-    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
-
-    assertThat(realConfigs).hasSize(3);
-    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
-    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
-    assertThat(realConfigs.get(2).getName()).isEqualTo("Sampled (Hybrid)");
-
-    // Now disable simpleperf
-    myServices.enableSimplePerf(false);
-
-    // Set a device that supports simpleperf
-    addAndSetDevice(26, "Fake Device 2");
-    realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
-    // Simpleperf should not be listed as a profiling option
-    assertThat(realConfigs).hasSize(2);
-    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
-    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
-  }
-
-  @Test
   public void editConfigurationsEntryCantBeSetAsProfilingConfiguration() {
     assertThat(myStage.getProfilingConfiguration()).isNotNull();
     // ART Sampled should be the default configuration when starting the stage,
     // as it's the first configuration on the list.
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo("Sampled");
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
 
     // Set a new configuration and check it's actually set as stage's profiling configuration
-    ProfilingConfiguration instrumented = new ProfilingConfiguration("Instrumented",
+    ProfilingConfiguration instrumented = new ProfilingConfiguration(ProfilingConfiguration.ART_INSTRUMENTED,
                                                                      CpuProfiler.CpuProfilerType.ART,
                                                                      CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
     myStage.setProfilingConfiguration(instrumented);
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo("Instrumented");
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
 
     // Set CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY as profiling configuration
     // and check it doesn't actually replace the current configuration
     myStage.setProfilingConfiguration(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo("Instrumented");
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
 
     // Just sanity check "Instrumented" is not the name of CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY
-    assertThat(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY.getName()).isNotEqualTo("Instrumented");
+    assertThat(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY.getName()).isNotEqualTo(ProfilingConfiguration.ART_INSTRUMENTED);
   }
 
   @Test
   public void stopProfilerIsConsistentToStartProfiler() throws InterruptedException, IOException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
-                                                                CpuProfiler.CpuProfilerType.SIMPLE_PERF,
+                                                                CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     myStage.setProfilingConfiguration(config1);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
     captureSuccessfully();
-    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
 
     ProfilingConfiguration config2 = new ProfilingConfiguration("My Config 2",
                                                                 CpuProfiler.CpuProfilerType.ART,
@@ -676,10 +629,27 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void suggestedProfilingConfigurationDependsOnNativePreference() {
+    // Make sure simpleperf is supported.
+    myServices.enableSimplePerf(true);
+    addAndSetDevice(26, "Any Serial");
+
+    myServices.setNativeProfilingConfigurationPreferred(false);
+    myStage = new CpuProfilerStage(myStage.getStudioProfilers());
+    // ART Sampled should be the default configuration when there is no preference for a native config.
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.ART_SAMPLED);
+
+    myServices.setNativeProfilingConfigurationPreferred(true);
+    myStage = new CpuProfilerStage(myStage.getStudioProfilers());
+    // Simpleperf should be the default configuration when a native config is preferred.
+    assertThat(myStage.getProfilingConfiguration().getName()).isEqualTo(ProfilingConfiguration.SIMPLEPERF);
+  }
+
+  @Test
   public void exitingStateAndEnteringAgainShouldPreserveCaptureState() throws IOException, InterruptedException {
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
     ProfilingConfiguration config1 = new ProfilingConfiguration("My Config",
-                                                                CpuProfiler.CpuProfilerType.SIMPLE_PERF,
+                                                                CpuProfiler.CpuProfilerType.SIMPLEPERF,
                                                                 CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     myStage.setProfilingConfiguration(config1);
     startCapturingSuccess();
@@ -700,24 +670,21 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
 
     // Stop profiler should be the same as the one passed in the start request
-    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
 
     // Make sure we tracked the correct configuration
     ProfilingConfiguration trackedConfig =
       ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata().getProfilingConfiguration();
-    assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF);
     assertThat(trackedConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
   }
 
   @Test
-  public void setAndSelectCaptureShouldNotChangeStreamingMode() throws Exception {
+  public void setAndSelectCaptureShouldStopStreamingMode() throws Exception {
     // Capture has changed, keeps the same type of details
     CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
     myStage.getStudioProfilers().getTimeline().setIsPaused(false);
     myStage.getStudioProfilers().getTimeline().setStreaming(true);
-    myStage.setAndSelectCapture(capture);
-    assertThat(myStage.getStudioProfilers().getTimeline().isStreaming()).isTrue();
-    myStage.getStudioProfilers().getTimeline().setStreaming(false);
     myStage.setAndSelectCapture(capture);
     assertThat(myStage.getStudioProfilers().getTimeline().isStreaming()).isFalse();
   }
@@ -866,8 +833,8 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void cpuMetadataFailureParsing() throws InterruptedException, IOException {
     // Try to parse a simpleperf trace with ART config. Parsing should fail.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
-                                                                CpuProfiler.CpuProfilerType.ART,
-                                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     config.setProfilingSamplingIntervalUs(10);
     config.setProfilingBufferSizeInMb(15);
     myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
@@ -929,6 +896,37 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void parsingFailureIsNotifiedToUi() throws InterruptedException, IOException {
+    // Start an ART capturing successfully
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    config.setProfilingSamplingIntervalUs(10);
+    config.setProfilingBufferSizeInMb(15);
+    myStage.setProfilingConfiguration(config);
+    startCapturingSuccess();
+
+    // Sequence of states that should happen after stopping a capture that failures to parse the trace
+    ImmutableList<CpuProfilerStage.CaptureState> captureStates = ImmutableList.of(CpuProfilerStage.CaptureState.STOPPING,
+                                                                                  CpuProfilerStage.CaptureState.PARSING,
+                                                                                  CpuProfilerStage.CaptureState.PARSING_FAILURE,
+                                                                                  CpuProfilerStage.CaptureState.IDLE);
+    // Listen to CAPTURE_STATE changes and check if the new state is equal to what we expect.
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(
+      CpuProfilerAspect.CAPTURE_STATE, () -> assertThat(myStage.getCaptureState()).isEqualTo(captureStates.iterator().next()));
+
+    // Force the return of a simpleperf. As we started an ART capture, the capture parsing should fail.
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace"));
+    myCpuService.setValidTrace(true);
+    stopCapturing();
+
+    // As parsing has failed, capture should be null.
+    assertThat(myStage.getCapture()).isNull();
+  }
+
+  @Test
   public void startCapturingJumpsToLiveData() throws InterruptedException, IOException {
     ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
     timeline.setStreaming(false);
@@ -944,21 +942,31 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(timeline.isStreaming()).isTrue();
   }
 
+  @Test
+  public void testHasUserUsedCapture() {
+    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
+    assertThat(myStage.hasUserUsedCpuCapture()).isFalse();
+    startCapturing();
+    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+    assertThat(myStage.hasUserUsedCpuCapture()).isTrue();
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
-    Profiler.Device device =
-      Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Profiler.Device.State.ONLINE).build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    int deviceId = serial.hashCode();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(deviceId)
+      .setFeatureLevel(featureLevel)
+      .setSerial(serial)
+      .setState(Common.Device.State.ONLINE).build();
+    Common.Process process = Common.Process.newBuilder()
       .setPid(20)
-      .setState(Profiler.Process.State.ALIVE)
+      .setDeviceId(deviceId)
+      .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
-      .build();
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
       .build();
     myProfilerService.addDevice(device);
     // Adds at least one ALIVE process as well. Otherwise, StudioProfilers would prefer selecting a device that has live processes.
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(device, process);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new device to be picked up
     myStage.getStudioProfilers().setDevice(device);

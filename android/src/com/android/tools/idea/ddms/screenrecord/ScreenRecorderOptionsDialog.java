@@ -17,6 +17,7 @@
 package com.android.tools.idea.ddms.screenrecord;
 
 import com.android.ddmlib.ScreenRecorderOptions;
+import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -82,14 +83,7 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
   @Nullable
   @Override
   protected String getHelpId() {
-    return "https://developer.android.com/r/studio-ui/am-video.html";
-  }
-
-  @Override
-  protected void doHelpAction() {
-    String helpId = getHelpId();
-    assert helpId != null; // Otherwise, doHelpAction would not be triggered
-    BrowserUtil.browse(helpId);
+    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/am-video.html";
   }
 
   @Override

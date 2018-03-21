@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 
@@ -204,7 +206,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     LintOptionsModel lintOptions = android.lintOptions();
-    assertTrue(lintOptions.hasValidPsiElement());
+    checkForValidPsiElement(lintOptions, LintOptionsModelImpl.class);
     lintOptions.removeAbortOnError();
     lintOptions.removeAbsolutePaths();
     lintOptions.removeAllCheck();
@@ -235,7 +237,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     lintOptions = android.lintOptions();
-    assertFalse(lintOptions.hasValidPsiElement());
+    checkForInValidPsiElement(lintOptions, LintOptionsModelImpl.class);
     verifyNullLintOptions();
   }
 
@@ -371,7 +373,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     LintOptionsModel lintOptions = android.lintOptions();
-    assertTrue(lintOptions.hasValidPsiElement());
+    checkForValidPsiElement(lintOptions, LintOptionsModelImpl.class);
     assertEquals("check", ImmutableList.of("check-id"), lintOptions.check());
     assertEquals("disable", ImmutableList.of("disable-id"), lintOptions.disable());
     assertEquals("enable", ImmutableList.of("enable-id"), lintOptions.enable());
@@ -393,7 +395,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     lintOptions = android.lintOptions();
-    assertFalse(lintOptions.hasValidPsiElement());
+    checkForInValidPsiElement(lintOptions, LintOptionsModelImpl.class);
     assertNull("check", lintOptions.check());
     assertNull("disable", lintOptions.disable());
     assertNull("enable", lintOptions.enable());

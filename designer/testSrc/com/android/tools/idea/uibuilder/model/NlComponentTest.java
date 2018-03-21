@@ -19,8 +19,13 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
@@ -45,7 +51,7 @@ public final class NlComponentTest extends AndroidTestCase {
   }
 
   private NlComponent createComponent(@NotNull XmlTag tag) {
-    NlComponent result = new NlComponent(myModel, tag);
+    NlComponent result = new NlComponent(myModel, tag, createTagPointer(tag));
     NlComponentHelper.INSTANCE.registerComponent(result);
     return result;
   }
@@ -55,6 +61,12 @@ public final class NlComponentTest extends AndroidTestCase {
     when(tag.getName()).thenReturn(tagName);
 
     return tag;
+  }
+
+  static SmartPsiElementPointer<XmlTag> createTagPointer(XmlTag tag) {
+    SmartPsiElementPointer<XmlTag> tagPointer = mock(SmartPsiElementPointer.class);
+    when(tagPointer.getElement()).thenReturn(tag);
+    return tagPointer;
   }
 
   public void testNeedsDefaultId() {
@@ -209,5 +221,58 @@ public final class NlComponentTest extends AndroidTestCase {
     assertEquals("150dp", textViewXmlTag.getAttribute("android:layout_width").getValue());
     // Check we haven't executed the delete on the attribute that was modified
     assertEquals("900dp", textViewXmlTag.getAttribute("android:layout_height").getValue());
+  }
+
+  public void testRemoveObsoleteAttributes() throws Exception {
+    @Language("XML")
+    String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<RelativeLayout\n" +
+                      "  xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "  xmlns:tools=\"http://schemas.android.com/tools\">" +
+                      "  <Button\n" +
+                      "         android:id=\"@+id/editText\"\n" +
+                      "         android:layout_width=\"wrap_content\"\n" +
+                      "         android:layout_height=\"wrap_content\"\n" +
+                      "         android:ems=\"10\"\n" +
+                      "         android:inputType=\"textEmailAddress\"\n" +
+                      "         android:orientation=\"vertical\"\n" +
+                      "         tools:layout_editor_absoluteX=\"32dp\"\n" +
+                      "         tools:layout_editor_absoluteY=\"43dp\"\n/>" +
+                      "</RelativeLayout>";
+
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
+
+    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+    assertEquals(1, subTags.length);
+
+    NlComponent component = MockNlComponent.create(subTags[0]);
+    component.setMixin(new NlComponentMixin(component));
+    CommandProcessor.getInstance().runUndoTransparentAction(component::removeObsoleteAttributes);
+
+    @Language("XML")
+    String expected = "<Button\n" +
+                      "         android:id=\"@+id/editText\"\n" +
+                      "         android:layout_width=\"wrap_content\"\n" +
+                      "         android:layout_height=\"wrap_content\"\n" +
+                      "         android:ems=\"10\"\n" +
+                      "         android:inputType=\"textEmailAddress\"\n" +
+                      "         />";
+    assertEquals(expected, component.getTag().getText());
+  }
+
+  public void testIdFromMixin() {
+    XmlTag tag = mock(XmlTag.class);
+    when(tag.isValid()).thenReturn(true);
+    NlComponent component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
+
+    NlComponent.XmlModelComponentMixin mixin = mock(NlComponent.XmlModelComponentMixin.class);
+    when(mixin.getAttribute(ANDROID_URI, ATTR_ID)).thenReturn("@id/mixinId");
+    component.setMixin(mixin);
+    assertEquals("mixinId", component.getId());
+
+    when(tag.getAttributeValue(ATTR_ID, ANDROID_URI)).thenReturn("@id/componentId");
+    component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
+    component.setMixin(mixin);
+    assertEquals("componentId", component.getId());
   }
 }

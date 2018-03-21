@@ -290,7 +290,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/values2.xml", "res/values/values2.xml");
     checkJavadoc("/javadoc/colors/layout3.xml", "res/layout/layout.xml",
                  "<html><body>" +
-                 "<table style=\"background-color:rgb(0,0,0);width:200px;text-align:center;vertical-align:middle;\" " +
+                 "<table style=\"background-color:rgb(122,122,122);width:200px;text-align:center;vertical-align:middle;\" " +
                  "border=\"0\">" +
                  "<tr height=\"100\">" +
                  "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">#80000000" +
@@ -309,13 +309,13 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
     checkJavadoc("/javadoc/colors/values.xml", "res/values/values.xml",
                  "<html><body>" +
-                 "<table><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
+                 "<table><tr><td><table style=\"background-color:rgb(250,250,250);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
                  "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Pressed</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr><tr><td><FONT color=\"#ff0000\"><B>@android:color/my_white</B></FONT></td><td>Selected</td></tr><tr><td><table><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
+                 "</td></tr><tr><td><FONT color=\"#ff0000\"><B>@android:color/my_white</B></FONT></td><td>Selected</td></tr><tr><td><table><tr><td><table style=\"background-color:rgb(250,250,250);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
                  "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +

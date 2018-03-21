@@ -19,33 +19,35 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColorUtil;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class CpuThreadsTooltipView extends ProfilerTooltipView {
-  @NotNull private final CpuProfilerStage.ThreadsTooltip myTooltip;
-  @NotNull private final JLabel myContent;
+  @NotNull private final CpuThreadsTooltip myTooltip;
   @NotNull private final ProfilerTimeline myTimeline;
-  private int myMaximumLabelWidth = 0;
 
-  protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.ThreadsTooltip tooltip) {
+  @VisibleForTesting
+  @NotNull protected final JLabel myContent;
+
+  protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuThreadsTooltip tooltip) {
     super(view.getTimeline(), "CPU");
-    myLabel.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
-
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
     myContent = new JLabel();
     myContent.setFont(AdtUiUtils.DEFAULT_FONT);
     myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    tooltip.addDependency(this).onChange(CpuProfilerStage.ThreadsTooltip.Aspect.THREAD_STATE, this::threadStateChanged);
+    tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::timeChanged);
+  }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+    myTooltip.removeDependencies(this);
   }
 
   @Override
@@ -55,28 +57,25 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
       String time = TimeAxisFormatter.DEFAULT
         .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
       String title = myTooltip.getThreadName() != null ? myTooltip.getThreadName() : "CPU";
-      myLabel.setText(String.format("<html>%s <span style='color:#%s'>%s</span></html",
-                                    title,
-                                    ColorUtil.toHex(ProfilerColors.CPU_THREADS_TOOLTIP_TIME_COLOR),
-                                    time));
-      myMaximumLabelWidth = Math.max(myMaximumLabelWidth, myLabel.getWidth());
-      myLabel.setMinimumSize(new Dimension(myMaximumLabelWidth, 0));
+      myHeadingLabel.setText(String.format("<html>%s <span style='color:#%s'>%s</span></html",
+                                           title,
+                                           ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
+                                           time));
+      myContent.setText(myTooltip.getThreadState() == null ? "" : threadStateToString(myTooltip.getThreadState()));
+      updateMaximumLabelDimensions();
     } else {
-      myLabel.setText("");
+      myHeadingLabel.setText("");
+      myContent.setText("");
     }
   }
 
-  private void threadStateChanged() {
-    String state = myTooltip.getThreadState() == null ? "" : threadStateToString(myTooltip.getThreadState());
-    myContent.setText(state);
-  }
-
+  @NotNull
   @Override
-  protected Component createTooltip() {
+  protected JComponent createTooltip() {
     return myContent;
   }
 
-  private String threadStateToString(@NotNull CpuProfilerStage.ThreadState state) {
+  private static String threadStateToString(@NotNull CpuProfilerStage.ThreadState state) {
     switch (state) {
       case RUNNING:
       case RUNNING_CAPTURED:

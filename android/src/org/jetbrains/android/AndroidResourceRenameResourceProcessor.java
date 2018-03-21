@@ -21,6 +21,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -82,11 +83,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.DECLARE_STYLEABLE;
 import static com.android.resources.ResourceType.STYLEABLE;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -248,6 +249,20 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     if (name != null) {
       for (PsiField resField : AndroidResourceUtil.findIdFields(value)) {
         allRenames.put(resField, AndroidResourceUtil.getFieldNameByResourceName(name));
+      }
+    }
+
+    // Rename the id in app:constraint_referenced_ids attribute, which contains a list of id and use comma as separator.
+    List<XmlAttributeValue> usages = manager.findConstraintReferencedIds(id);
+    for (XmlAttributeValue usage : usages) {
+      // Include the element in refactoring only if it is a part of the project.
+      if (fileIndex.isInContent(usage.getContainingFile().getVirtualFile())) {
+        String newId = AndroidResourceUtil.getResourceNameByReferenceText(newName);
+        String oldValue = usage.getValue();
+        if (oldValue != null) {
+          String newValue = Arrays.stream(oldValue.split(",")).map(s -> id.equals(s) ? newId : s).collect(Collectors.joining(","));
+          allRenames.put(new ValueResourceElementWrapper(usage), newValue);
+        }
       }
     }
   }
@@ -719,7 +734,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
           File current = sourceFile.getParentFile();
           while (current != null) {
             String name = current.getName();
-            if (EXPLODED_AAR.equals(name)) {
+            if (FilenameConstants.EXPLODED_AAR.equals(name)) {
               localRoot = prev;
               break;
             }

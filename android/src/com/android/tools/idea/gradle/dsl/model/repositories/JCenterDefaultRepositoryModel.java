@@ -16,14 +16,21 @@
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a repository defined with jcenter().
  */
-public class JCenterDefaultRepositoryModel extends UrlBasedRepositoryModel {
+public class JCenterDefaultRepositoryModel extends UrlBasedRepositoryModelImpl {
   @NonNls public static final String JCENTER_METHOD_NAME = "jcenter";
 
   public JCenterDefaultRepositoryModel() {
     super(null, "BintrayJCenter2", "https://jcenter.bintray.com/");
+  }
+
+  @NotNull
+  @Override
+  public RepositoryType getType() {
+    return RepositoryType.JCENTER_DEFAULT;
   }
 }

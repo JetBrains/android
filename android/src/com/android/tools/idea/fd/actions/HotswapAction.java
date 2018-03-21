@@ -26,22 +26,20 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidSessionInfo;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
-import com.intellij.execution.RunManagerEx;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +48,12 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.SUPPORTED;
 
 public class HotswapAction extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
+
+  private static final CustomShortcutSet SHORTCUT_SET = CustomShortcutSet.fromString(SystemInfo.isMac ? "control meta R" : "control F10");
+
   public HotswapAction() {
-    super("Apply Changes", "Apply Changes", AndroidIcons.RunIcons.HotReload, true);
+    super("Apply Changes", "Apply Changes", AndroidIcons.RunIcons.HotReload);
+    setShortcutSet(SHORTCUT_SET);
   }
 
   @Override
@@ -64,14 +66,14 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
+    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
     if (settings == null) {
       presentation.setText("Apply Changes: No run configuration selected");
       return;
     }
 
     AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
-    if (session == null) {
+    if (session == null || session.getDevices().isEmpty()) {
       presentation.setText(String.format("Apply Changes: No active '%1$s' launch", settings.getName()));
       return;
     }
@@ -129,20 +131,13 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    presentation.setText("Apply Changes" + getShortcutText());
+    presentation.setText("Apply Changes");
     presentation.setEnabled(true);
-  }
-
-  @Nullable
-  private static String getShortcutText() {
-    Keymap activeKeymap = KeymapManager.getInstance().getActiveKeymap();
-    Shortcut[] shortcuts = activeKeymap.getShortcuts("Android.HotswapChanges");
-    return shortcuts.length > 0 ? " (" + KeymapUtil.getShortcutText(shortcuts[0]) + ") " : "";
   }
 
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
-    RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
+    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
     if (settings == null) {
       InstantRunManager.LOG.warn("Hotswap Action could not locate current run config settings");
       return;
@@ -193,12 +188,7 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
 
   @Nullable
   private static AndroidSessionInfo getAndroidSessionInfo(Project project, RunnerAndConfigurationSettings settings) {
-    RunConfiguration configuration = settings.getConfiguration();
-    if (configuration == null) {
-      return null;
-    }
-
-    AndroidSessionInfo session = AndroidSessionInfo.findOldSession(project, null, configuration.getUniqueID());
+    AndroidSessionInfo session = AndroidSessionInfo.findOldSession(project, null, settings.getConfiguration().getUniqueID());
     if (session == null) {
       return null;
     }

@@ -49,7 +49,7 @@ public class DeviceExplorerPanel {
   private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
   private static final int TEXT_RENDERER_VERT_PADDING = 4;
   private JComboBox myDeviceCombo;
-  private JBScrollPane myColumnTreePane;
+  private JComponent myColumnTreePane;
   private JPanel myComponent;
   private JPanel myToolbarPanel;
   private ProgressPanel myProgressPanel;
@@ -86,7 +86,7 @@ public class DeviceExplorerPanel {
   }
 
   @TestOnly
-  public JBScrollPane getColumnTreePane() { return myColumnTreePane; }
+  public JBScrollPane getColumnTreePane() { return (JBScrollPane)myColumnTreePane.getComponent(0); }
 
   public void showMessageLayer(@NotNull String message, boolean showDeviceList) {
     showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), null, showDeviceList);
@@ -190,7 +190,7 @@ public class DeviceExplorerPanel {
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer())
       );
-    myColumnTreePane = (JBScrollPane)builder.build();
+    myColumnTreePane = builder.build();
   }
 
   @NotNull

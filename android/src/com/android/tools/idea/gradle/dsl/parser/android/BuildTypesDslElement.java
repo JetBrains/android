@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.google.common.collect.Lists;
@@ -32,7 +33,7 @@ public final class BuildTypesDslElement extends GradleDslElementMap {
   }
 
   @Override
-  protected boolean isBlockElement() {
+  public boolean isBlockElement() {
     return true;
   }
 
@@ -40,7 +41,7 @@ public final class BuildTypesDslElement extends GradleDslElementMap {
   public List<BuildTypeModel> get() {
     List<BuildTypeModel> result = Lists.newArrayList();
     for (BuildTypeDslElement dslElement : getValues(BuildTypeDslElement.class)) {
-      result.add(new BuildTypeModel(dslElement));
+      result.add(new BuildTypeModelImpl(dslElement));
     }
     return result;
   }

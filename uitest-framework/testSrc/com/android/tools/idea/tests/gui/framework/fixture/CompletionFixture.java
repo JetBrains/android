@@ -18,9 +18,12 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.codeInsight.lookup.impl.LookupImpl;
-import com.intellij.openapi.project.Project;
+import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.JList;
 
 public class CompletionFixture {
   // In most cases a 8 second delay is not needed.
@@ -29,9 +32,11 @@ public class CompletionFixture {
   private static final long MAX_DELAY_SECONDS = 8;
 
   private final LookupManager myManager;
+  @NotNull private final IdeFrameFixture myFrame;
 
   public CompletionFixture(@NotNull IdeFrameFixture frame) {
     myManager = LookupManager.getInstance(frame.getProject());
+    this.myFrame = frame;
   }
 
   public void waitForCompletionsToShow() {
@@ -49,5 +54,20 @@ public class CompletionFixture {
     }
     LookupImpl impl = (LookupImpl)lookup;
     return impl.isVisible() && impl.getList().isShowing();
+  }
+
+  @NotNull
+  private JList getList() {
+    Lookup lookup = myManager.getActiveLookup();
+    if (!(lookup instanceof LookupImpl)) {
+      throw new ComponentLookupException("LookupImpl not found");
+    }
+    return ((LookupImpl)lookup).getList();
+  }
+
+  @NotNull
+  public JListFixture getCompletionList() {
+    waitForCompletionsToShow();
+    return new JListFixture(myFrame.robot(), getList());
   }
 }

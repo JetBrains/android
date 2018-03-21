@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -43,12 +44,14 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   private PsProductFlavorCollection myProductFlavorCollection;
   private PsVariantCollection myVariantCollection;
   private PsAndroidDependencyCollection myDependencyCollection;
+  private PsSigningConfigCollection mySigningConfigCollection;
 
   public PsAndroidModule(@NotNull PsProject parent,
                          @NotNull Module resolvedModel,
                          @NotNull String gradlePath,
-                         @NotNull AndroidModuleModel gradleModel) {
-    super(parent, resolvedModel, gradlePath);
+                         @NotNull AndroidModuleModel gradleModel,
+                         @NotNull GradleBuildModel parsedModel) {
+    super(parent, resolvedModel, gradlePath, parsedModel);
     myGradleModel = gradleModel;
   }
 
@@ -135,6 +138,20 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return myDependencyCollection == null ? myDependencyCollection = new PsAndroidDependencyCollection(this) : myDependencyCollection;
   }
 
+  @Nullable
+  public PsSigningConfig findSigningConfig(@NotNull String signingConfig) {
+    return getOrCreateSigningConfigCollection().findElement(signingConfig, PsSigningConfig.class);
+  }
+
+  public void forEachSigningConfig(@NotNull Consumer<PsSigningConfig> consumer) {
+    getOrCreateSigningConfigCollection().forEach(consumer);
+  }
+
+  @NotNull
+  private PsSigningConfigCollection getOrCreateSigningConfigCollection() {
+    return mySigningConfigCollection == null ? mySigningConfigCollection = new PsSigningConfigCollection(this) : mySigningConfigCollection;
+  }
+
   @Override
   @NotNull
   public AndroidModuleModel getGradleModel() {
@@ -207,5 +224,20 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
     fireLibraryDependencyAddedEvent(spec);
     setModified(true);
+  }
+
+  @NotNull
+  public PsBuildType addNewBuildType(@NotNull String name) {
+    return getOrCreateBuildTypeCollection().addNew(name);
+  }
+
+  @NotNull
+  public PsProductFlavor addNewProductFlavor(@NotNull String name) {
+    return getOrCreateProductFlavorCollection().addNew(name);
+  }
+
+  @NotNull
+  public PsSigningConfig addNewSigningConfig(@NotNull String name) {
+    return getOrCreateSigningConfigCollection().addNew(name);
   }
 }

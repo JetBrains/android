@@ -51,6 +51,7 @@ public class LightBrClass extends AndroidLightClassBase {
   private String[] myCachedFieldNames = new String[]{"_all"};
   private final String myQualifiedName;
   private PsiFile myContainingFile;
+  private final Object myLock = new Object();
 
   public LightBrClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
     super(psiManager);
@@ -58,7 +59,8 @@ public class LightBrClass extends AndroidLightClassBase {
     myFacet = facet;
     myFieldCache =
       CachedValuesManager.getManager(facet.getModule().getProject()).createCachedValue(
-        new ResourceCacheValueProvider<PsiField[]>(facet, psiManager.getModificationTracker().getJavaStructureModificationTracker()) {
+        new ResourceCacheValueProvider<PsiField[]>(facet, myLock,
+                                                   psiManager.getModificationTracker().getJavaStructureModificationTracker()) {
           @Override
           PsiField[] doCompute() {
             Project project = facet.getModule().getProject();

@@ -149,7 +149,7 @@ public class MemoryClassSetViewTest {
 
   @Test
   public void testCorrectColumnsAndRendererContents() {
-    JScrollPane columnTreePane = (JScrollPane)myClassSetView.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassSetView.getColumnTree().getComponent(0);
     assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(myClassSetTree, columnTreePane);
     treeInfo.verifyColumnHeaders("Instance", "Alloc Time", "Dealloc Time", "Depth", "Native Size", "Shallow Size", "Retained Size");
@@ -349,12 +349,12 @@ public class MemoryClassSetViewTest {
     assertThat(myStage.getSelectedInstanceObject()).isEqualTo(myInstanceObjects.get(0));
 
     // Remove MockInstance2 and refresh selected heap, myStage should still select MockInstance1
-    classSet.removeAddingInstanceObject(myInstanceObjects.get(1));
+    classSet.removeAddedDeltaInstanceObject(myInstanceObjects.get(1));
     myStage.refreshSelectedHeap();
     assertThat(myStage.getSelectedInstanceObject()).isEqualTo(myInstanceObjects.get(0));
 
     // Remove MockInstance1 and refresh selected heap, myStage should not select any InstanceObject
-    classSet.removeAddingInstanceObject(myInstanceObjects.get(0));
+    classSet.removeAddedDeltaInstanceObject(myInstanceObjects.get(0));
     myStage.refreshSelectedHeap();
     assertThat(myStage.getSelectedInstanceObject()).isNull();
   }

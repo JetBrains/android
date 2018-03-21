@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import com.android.SdkConstants;
-import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.npw.assetstudio.GraphicGenerator;
-import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.adtui.SearchField;
+import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -38,6 +34,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -50,16 +47,18 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.intellij.util.ArrayUtilRt.EMPTY_STRING_ARRAY;
+
 /**
- * Generate a dialog to pick a pre-configured material icon in vector format.
+ * A dialog to pick a pre-configured material icon in vector format.
  */
 public final class IconPickerDialog extends DialogWrapper {
-  private static final String DEFAULT_ICON_NAME = "action/ic_android_black_24dp.xml";
-  private static final String[] ICON_CATEGORIES = initIconCategories();
+  @NotNull private static final String[] ICON_CATEGORIES = initIconCategories();
 
   @VisibleForTesting
   static String[] initIconCategories() {
@@ -69,13 +68,13 @@ public final class IconPickerDialog extends DialogWrapper {
 
     Collection<String> allAndCategories = new ArrayList<>(categories.size() + 1);
 
-    // "All" is not a real category. All the icons are categorized but there's no filtering when "All" is selected. This is why the array is
-    // usually dereferenced starting from 1.
+    // "All" is not a real category. All the icons are categorized but there's no filtering
+    // when "All" is selected. This is why the array is usually dereferenced starting from 1.
     allAndCategories.add("All");
     allAndCategories.addAll(categories);
 
     // noinspection SSBasedInspection
-    return allAndCategories.toArray(new String[0]);
+    return allAndCategories.toArray(EMPTY_STRING_ARRAY);
   }
 
   private static final String ALL_CATEGORY = ICON_CATEGORIES[0];
@@ -91,11 +90,10 @@ public final class IconPickerDialog extends DialogWrapper {
   /**
    * A list of all active icons (based on the currently selected category).
    */
-  private final List<VdIcon> myIconList = Lists.newArrayListWithCapacity(1000);
-  private final List<VdIcon> myFilteredIconList = Lists.newArrayListWithCapacity(1000);
+  private final List<VdIcon> myIconList = new ArrayList<>(1000);
+  private final List<VdIcon> myFilteredIconList = new ArrayList<>(1000);
 
   private final AbstractTableModel myModel = new AbstractTableModel() {
-
     @Override
     public String getColumnName(int column) {
       return null;
@@ -135,7 +133,7 @@ public final class IconPickerDialog extends DialogWrapper {
   private HyperlinkLabel myLicenseLabel;
   private SearchField mySearchField;
 
-  @Nullable private VdIcon mySelectedIcon = null;
+  @Nullable private VdIcon mySelectedIcon;
 
   public IconPickerDialog(@Nullable VdIcon selectedIcon) {
     super(false);
@@ -144,13 +142,13 @@ public final class IconPickerDialog extends DialogWrapper {
     initializeIconMap();
 
     // On the left hand side, add the categories chooser.
-    final JBList categoryList = new JBList(ICON_CATEGORIES);
-    final JBScrollPane categoryPane = new JBScrollPane(categoryList);
+    JBList categoryList = new JBList((Object[])ICON_CATEGORIES);
+    JBScrollPane categoryPane = new JBScrollPane(categoryList);
     myCategoriesPanel.add(categoryPane);
 
 
-    // The default panel color in darcula mode is too dark given that our icons are all black. We
-    // provide a lighter color for better contrast.
+    // The default panel color in darcula mode is too dark given that our icons are all black.
+    // We provide a lighter color for higher contrast.
     Color iconBackgroundColor = UIUtil.getListBackground();
 
     TableCellRenderer tableRenderer = new DefaultTableCellRenderer() {
@@ -188,7 +186,7 @@ public final class IconPickerDialog extends DialogWrapper {
       }
     };
 
-    // For the main content area, display a grid if icons
+    // For the main content area, display a grid if icons.
     myIconTable.setBackground(iconBackgroundColor);
     myIconTable.setDefaultRenderer(VdIcon.class, tableRenderer);
     myIconTable.setRowHeight(ICON_ROW_HEIGHT);
@@ -280,19 +278,6 @@ public final class IconPickerDialog extends DialogWrapper {
     myModel.fireTableDataChanged();
   }
 
-  @Nullable
-  public static VdIcon getDefaultIcon() {
-    URL url = GraphicGenerator.class.getClassLoader().getResource(MaterialDesignIcons.PATH + DEFAULT_ICON_NAME);
-    assert url != null;
-
-    try {
-      return new VdIcon(url);
-    }
-    catch (IOException ioe) {
-      return null;
-    }
-  }
-
   private void initializeSelection(@NotNull VdIcon selectedIcon) {
     for (int r = 0; r < myIconTable.getRowCount(); r++) {
       for (int c = 0; c < myIconTable.getColumnCount(); c++) {
@@ -308,12 +293,8 @@ public final class IconPickerDialog extends DialogWrapper {
   private void initializeIconMap() {
     for (int i = 1; i < ICON_CATEGORIES.length; i++) {
       String categoryName = ICON_CATEGORIES[i];
-      String categoryNameLowerCase = categoryName.toLowerCase(Locale.ENGLISH);
-      String fullDirName = MaterialDesignIcons.PATH + categoryNameLowerCase + '/';
-      for (Iterator<String> iterator = GraphicGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iterator.hasNext(); ) {
-        final String iconName = iterator.next();
-        URL url = GraphicGenerator.class.getClassLoader().getResource(fullDirName + iconName);
-        assert url != null;
+      for (String iconName : MaterialDesignIcons.getIconNames(categoryName)) {
+        URL url = MaterialDesignIcons.getIcon(iconName, categoryName);
 
         try {
           VdIcon icon = new VdIcon(url);
@@ -321,7 +302,7 @@ public final class IconPickerDialog extends DialogWrapper {
           myCategoryIcons.put(categoryName, icon);
         }
         catch (IOException ignore) {
-          // Skip this icon
+          // Skip this icon.
         }
       }
     }

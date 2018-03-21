@@ -35,8 +35,8 @@ import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.welcome.wizard.InstallComponentsPath;
-import com.android.tools.idea.welcome.wizard.ProgressStep;
+import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
+import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -65,7 +65,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
   public static final Logger LOG = Logger.getInstance(AndroidVirtualDevice.class);
   private static final String DEFAULT_DEVICE_ID = "Nexus 5X";
   private static final IdDisplay ID_ADDON_GOOGLE_API_IMG = IdDisplay.create("google_apis", "Google APIs");
-  private static final IdDisplay ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google Inc.");
+  private static final IdDisplay ID_VENDOR_GOOGLE = IdDisplay.create("google", "Google LLC");
   private static final Storage DEFAULT_RAM_SIZE = new Storage(1536, Storage.Unit.MiB);
   private static final Storage DEFAULT_HEAP_SIZE = new Storage(256, Storage.Unit.MiB);
 
@@ -121,7 +121,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     SystemImageDescription systemImageDescription = getSystemImageDescription(sdkHandler);
 
     String cardSize = AvdOptionsModel.toIniString(DEFAULT_INTERNAL_STORAGE, false);
-    File hardwareSkinPath = resolveSkinPath(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
+    File hardwareSkinPath = pathToUpdatedSkins(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
     String displayName =
       String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
     displayName = connection.uniquifyDisplayName(displayName);

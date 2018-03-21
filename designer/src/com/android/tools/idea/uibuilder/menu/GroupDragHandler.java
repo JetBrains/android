@@ -21,10 +21,10 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Ints;
@@ -64,16 +64,18 @@ final class GroupDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+    NlComponent groupComponent = myGroup.getNlComponent();
     int insertIndex = getInsertIndex();
 
-    if (!canInsertComponents(insertIndex, insertType)) {
+    if (!editor.canInsertChildren(groupComponent, myItems, insertIndex)) {
       return;
     }
 
     NlWriteCommandAction.run(myItems.get(0), "menu item addition", () -> {
       updateOrderInCategoryAttributes();
       updateShowAsActionAttribute();
-      insertComponents(insertIndex, insertType);
+      editor.getDependencyManager().addDependencies(myItems, editor.getModel().getFacet());
+      editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
     });
   }
 
@@ -99,6 +101,7 @@ final class GroupDragHandler extends DragHandler {
 
   private void updateActionBarGroupOrderInCategoryAttributes(int order) {
     if (lastX >= myActiveItem.getCenterX()) {
+      // noinspection AssignmentToMethodParameter
       order++;
     }
 
@@ -110,6 +113,7 @@ final class GroupDragHandler extends DragHandler {
 
   private void updateOverflowGroupOrderInCategoryAttributes(int order) {
     if (lastY >= myActiveItem.getCenterY()) {
+      // noinspection AssignmentToMethodParameter
       order++;
     }
 
@@ -166,7 +170,9 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private String getNamespace() {
-    return NlModelHelperKt.isModuleDependency(editor.getModel(), APPCOMPAT_LIB_ARTIFACT) ? AUTO_URI : ANDROID_URI;
+    return editor.getDependencyManager().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, editor.getModel().getFacet())
+           ? AUTO_URI
+           : ANDROID_URI;
   }
 
   @Nullable

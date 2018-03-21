@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.common.model.NlComponent;
@@ -25,13 +26,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class MockNlComponent extends NlComponent {
-  private MockNlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
-    super(model, tag);
+  private MockNlComponent(@NotNull NlModel model, @NotNull XmlTag tag, @NotNull SmartPsiElementPointer<XmlTag> tagPointer) {
+    super(model, tag, tagPointer);
   }
 
   public static NlComponent create(@NotNull XmlTag tag) {
+    AndroidFacet facet = AndroidFacet.getInstance(tag);
     NlModel mockModel = mock(NlModel.class);
-    when(mockModel.getFacet()).thenReturn(AndroidFacet.getInstance(tag));
-    return new MockNlComponent(mockModel, tag);
+    when(mockModel.getFacet()).thenReturn(facet);
+    when(mockModel.getModule()).thenReturn(facet.getModule());
+    SmartPsiElementPointer<XmlTag> mockTagPointer = mock(SmartPsiElementPointer.class);
+    when(mockTagPointer.getElement()).thenReturn(tag);
+    return new MockNlComponent(mockModel, tag, mockTagPointer);
+  }
+
+  public static NlComponent create(@NotNull NlModel model, @NotNull XmlTag tag) {
+    SmartPsiElementPointer<XmlTag> mockTagPointer = mock(SmartPsiElementPointer.class);
+    when(mockTagPointer.getElement()).thenReturn(tag);
+    return new MockNlComponent(model, tag, mockTagPointer);
   }
 }

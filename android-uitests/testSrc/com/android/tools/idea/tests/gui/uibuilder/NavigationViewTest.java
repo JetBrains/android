@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Objects;
 
+@Ignore("b/66680171")
 @RunWith(GuiTestRunner.class)
 public final class NavigationViewTest {
   @Rule

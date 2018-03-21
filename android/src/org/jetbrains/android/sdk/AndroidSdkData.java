@@ -18,7 +18,6 @@ package org.jetbrains.android.sdk;
 
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
@@ -45,7 +44,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision;

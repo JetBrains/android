@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.statelist;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,5 +33,18 @@ public final class SelectorHandler extends ViewGroupHandler {
       "constantSize",
       "dither",
       "variablePadding");
+  }
+
+  @NotNull
+  @Override
+  public Icon getIcon(@NotNull NlComponent component) {
+    switch (component.getTagName()) {
+      case SdkConstants.TAG_SELECTOR:
+        return StudioIcons.LayoutEditor.Palette.MENU;
+      case SdkConstants.TAG_ITEM:
+        return StudioIcons.LayoutEditor.Palette.ITEM;
+      default:
+        return super.getIcon(component);
+    }
   }
 }

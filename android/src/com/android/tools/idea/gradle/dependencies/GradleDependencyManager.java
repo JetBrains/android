@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.dependencies;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -28,25 +27,24 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
+import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
 public class GradleDependencyManager {
@@ -58,23 +56,10 @@ public class GradleDependencyManager {
   }
 
   /**
-   * Returns {@code true} if the main artifact of the given Android model depends on the given artifact, which consists of a group id and an
-   * artifact id, such as {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
-   *
-   * @param module the module to check
-   * @param artifact the artifact
-   * @return {@code true} if the module depends on the given artifact (including transitively)
-   */
-  public boolean dependsOn(@NotNull Module module, @NotNull String artifact) {
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-    return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
-  }
-
-  /**
    * Returns the dependencies that are NOT included in the specified module.
    * Note: the version of the dependency is disregarded.
    *
-   * @param module the module to check dependencies in
+   * @param module       the module to check dependencies in
    * @param dependencies the dependencies of interest.
    * @return a list of the dependencies NOT included in the module
    */
@@ -109,7 +94,7 @@ public class GradleDependencyManager {
 
     Project project = module.getProject();
     RepositoryUrlManager manager = RepositoryUrlManager.get();
-    List<GradleCoordinate> missingLibraries = Lists.newArrayList();
+    List<GradleCoordinate> missingLibraries = new ArrayList<>();
     for (GradleCoordinate coordinate : dependencies) {
       String groupId = coordinate.getGroupId();
       String artifactId = coordinate.getArtifactId();
@@ -162,37 +147,32 @@ public class GradleDependencyManager {
   }
 
   /**
-   * Ensures that all the specified dependencies are included in the specified module.
-   * <p/>
-   * If some dependencies are missing a dialog is presented to the user if those dependencies should be added to the module.
-   * If the user agrees the dependencies are added. The caller may supply a callback to determine when the requested dependencies
-   * have been added (this make take several seconds).
+   * Add all the specified dependencies to the module. Adding a dependency that already exists will result in a no-op.
+   * A sync will be triggered immediately after a successful addition (e.g. [dependencies] contains a dependency that
+   * doesn't already exist and is therefore added); and caller may supply a callback to determine when the requested
+   * dependencies have been added (this make take several seconds).
    *
    * @param module       the module to add dependencies to
-   * @param dependencies the dependencies of interest.
+   * @param dependencies the dependencies of interest
    * @param callback     an optional callback to signal to completion of the added dependencies
-   * @return true if the dependencies were already present in the module or if the user requested adding them, and
-   * false if the dependency was missing and the user declined adding them
+   * @return true if the dependencies were successfully added or were already present in the module
    */
-  public boolean ensureLibraryIsIncluded(@NotNull Module module,
-                                         @NotNull Iterable<GradleCoordinate> dependencies,
-                                         @Nullable Runnable callback) {
-    List<GradleCoordinate> missing = findMissingDependencies(module, dependencies);
-    if (missing.isEmpty()) {
-      return true;
-    }
+  public boolean addDependenciesAndSync(@NotNull Module module,
+                                        @NotNull Iterable<GradleCoordinate> dependencies,
+                                        @Nullable Runnable callback) {
+    return addDependenciesInTransaction(module, dependencies, true, callback);
+  }
 
-    GradleBuildModel buildModel = GradleBuildModel.get(module);
-    if (buildModel == null) {
-      return false;
-    }
-
-    if (userWantToAddDependencies(module, missing)) {
-      addDependenciesInTransaction(buildModel, module, missing, callback);
-      return true;
-    }
-
-    return false;
+  /**
+   * Add all the specified dependencies to the module without triggering a sync afterwards.
+   * Adding a dependency that already exists will result in a no-op.
+   *
+   * @param module       the module to add dependencies to
+   * @param dependencies the dependencies of interest
+   * @return true if the dependencies were successfully added or were already present in the module.
+   */
+  public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
+    return addDependenciesInTransaction(module, dependencies, false, null);
   }
 
   /**
@@ -211,34 +191,51 @@ public class GradleDependencyManager {
     return true;
   }
 
-  public static boolean userWantToAddDependencies(@NotNull Module module, @NotNull Collection<GradleCoordinate> missing) {
-    String libraryNames = StringUtil.join(missing, GradleCoordinate::getArtifactId, ", ");
+  public boolean userWantToAddDependencies(@NotNull Module module, @NotNull Collection<GradleCoordinate> missing) {
+    String libraryNames = join(missing, GradleCoordinate::getArtifactId, ", ");
     String message = String.format("This operation requires the %1$s %2$s. \n\nWould you like to add %3$s %1$s now?",
                                    pluralize("library", missing.size()), libraryNames, pluralize("this", missing.size()));
     Project project = module.getProject();
     return Messages.showOkCancelDialog(project, message, "Add Project Dependency", Messages.getErrorIcon()) == Messages.OK;
   }
 
-  public static void addDependenciesInTransaction(@NotNull GradleBuildModel buildModel,
-                                                  @NotNull Module module,
-                                                  @NotNull List<GradleCoordinate> coordinates,
-                                                  @Nullable Runnable callback) {
-    assert !coordinates.isEmpty();
+  private boolean addDependenciesInTransaction(@NotNull Module module,
+                                               @NotNull Iterable<GradleCoordinate> coordinates,
+                                               boolean performSync,
+                                               @Nullable Runnable callback) {
+    // callback method should never be provided when a sync is not requested.
+    if (!performSync && callback != null) {
+      throw new IllegalArgumentException("Callback must be null if sync is not requested.");
+    }
+
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel == null) {
+      return false;
+    }
 
     Project project = module.getProject();
     new WriteCommandAction(project, ADD_DEPENDENCY) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        addDependencies(buildModel, module, coordinates);
-        requestProjectSync(project, callback);
+        List<GradleCoordinate> missing = findMissingDependencies(module, coordinates);
+        if (missing.isEmpty()) {
+          return;
+        }
+
+        addDependencies(buildModel, module, missing);
+
+        if (performSync) {
+          requestProjectSync(project, callback);
+        }
       }
     }.execute();
+    return true;
   }
 
   private static void addDependencies(@NotNull GradleBuildModel buildModel,
                                       @NotNull Module module,
                                       @NotNull List<GradleCoordinate> coordinates) {
-    ModuleRootModificationUtil.updateModel(module, model -> {
+    updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (GradleCoordinate coordinate : coordinates) {
         String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
@@ -270,18 +267,18 @@ public class GradleDependencyManager {
       // This is needed since the designer cannot display correctly with source generation.
       GradleBuildInvoker.getInstance(project).add(new GradleCompletionTask(project, callback));
     }
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(true).setTrigger(
-      TRIGGER_PROJECT_MODIFIED);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.generateSourcesOnSuccess = true;
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request);
   }
 
   private static void updateDependencies(@NotNull GradleBuildModel buildModel,
                                          @NotNull Module module,
                                          @NotNull List<GradleCoordinate> coordinates) {
-    ModuleRootModificationUtil.updateModel(module, model -> {
+    updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (GradleCoordinate gc : coordinates) {
-        List<ArtifactDependencyModel> artifacts = Lists.newArrayList(dependenciesModel.artifacts());
+        List<ArtifactDependencyModel> artifacts = new ArrayList<>(dependenciesModel.artifacts());
         for (ArtifactDependencyModel m : artifacts) {
           if (gc.getGroupId() != null && gc.getGroupId().equals(m.group().value())
               && gc.getArtifactId() != null && gc.getArtifactId().equals(m.name().value())

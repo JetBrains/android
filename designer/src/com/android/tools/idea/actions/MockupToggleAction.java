@@ -56,6 +56,7 @@ public class MockupToggleAction extends ToggleAction {
   }
 
   private static Icon getDesignIcon() {
+    // TODO: add new icon to StudioIcons and replace this icon
     return AndroidIcons.Mockup.Mockup;
   }
 

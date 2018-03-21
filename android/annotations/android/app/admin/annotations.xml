@@ -109,6 +109,12 @@
   <item name="android.app.admin.DevicePolicyManager android.os.UserHandle createAndManageUser(android.content.ComponentName, java.lang.String, android.content.ComponentName, android.os.PersistableBundle, int) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager android.os.UserHandle createAndManageUser(android.content.ComponentName, java.lang.String, android.content.ComponentName, android.os.PersistableBundle, int) 4">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.admin.DevicePolicyManager.SKIP_SETUP_WIZARD}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.app.admin.DevicePolicyManager boolean addCrossProfileWidgetProvider(android.content.ComponentName, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>

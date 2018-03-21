@@ -17,19 +17,29 @@ package com.android.tools.idea.uibuilder.model
 
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.*
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Computable
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
  */
+
+/**
+ * Regex to get the base name of a component id, where the basename of
+ * "component123" is "component"
+ */
+private val BASE_ID_PATTERN = Regex("(.*[^0-9])([0-9]+)?")
 
 @AndroidCoordinate
 var NlComponent.x: Int
@@ -98,7 +108,7 @@ fun NlComponent.needsDefaultId(): Boolean {
     return false
   }
 
-  // Handle <Space> in the compatibility library package
+  // Handle <Space> in the compatibility library b
   if (tagName.endsWith(SPACE) && tagName.length > SPACE.length && tagName[tagName.length - SPACE.length] == '.') {
     return false
   }
@@ -117,11 +127,13 @@ fun NlComponent.needsDefaultId(): Boolean {
 }
 
 /**
- * Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
- * not need one according to [.needsDefaultId]
+ * Returns the basename of a component id, where the basename of
+ * "component123" is "component" or null if the id is empty or null, or no baseName can be found
  */
-fun NlComponent.ensureId(): String {
-  return id ?: assignId()
+fun NlComponent.getBaseIdName(): String? {
+  return this.id?.let {
+    return BASE_ID_PATTERN.find(it)?.groups?.get(1)?.value
+  }
 }
 
 /**
@@ -177,11 +189,11 @@ val NlComponent.margins: Insets
           // Doesn't look like we need to read startMargin and endMargin here;
           // ViewGroup.MarginLayoutParams#doResolveMargins resolves and assigns values to the others
 
-          if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-            result = Insets.NONE
+          result = if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+            Insets.NONE
           }
           else {
-            result = Insets(left, top, right, bottom)
+            Insets(left, top, right, bottom)
           }
         }
         catch (e: Throwable) {
@@ -211,11 +223,11 @@ fun NlComponent.getPadding(force: Boolean): Insets {
       val top = fixDefault(layoutClass.getMethod("getPaddingTop").invoke(layoutParams) as Int)
       val right = fixDefault(layoutClass.getMethod("getPaddingRight").invoke(layoutParams) as Int)
       val bottom = fixDefault(layoutClass.getMethod("getPaddingBottom").invoke(layoutParams) as Int)
-      if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-        result = Insets.NONE
+      result = if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+        Insets.NONE
       }
       else {
-        result = Insets(left, top, right, bottom)
+        Insets(left, top, right, bottom)
       }
     }
     catch (e: Throwable) {
@@ -231,13 +243,13 @@ fun NlComponent.isGroup(): Boolean {
     return true
   }
 
-  when (tagName) {
+  return when (tagName) {
     PreferenceTags.PREFERENCE_CATEGORY,
     PreferenceTags.PREFERENCE_SCREEN,
     TAG_GROUP,
     TAG_MENU,
-    TAG_SELECTOR -> return true
-    else -> return false
+    TAG_SELECTOR -> true
+    else -> false
   }
 }
 
@@ -285,15 +297,22 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 
 val NlComponent.viewHandler: ViewHandler?
   get() {
-    if (!tag.isValid) {
-      return null
-    }
-    return ViewHandlerManager.get(tag.project).getHandler(this)
+    return ApplicationManager.getApplication().runReadAction(Computable{
+      if (!tag.isValid) {
+        null
+      }
+      else {
+        ViewHandlerManager.get(tag.project).getHandler(this)
+      }
+    })
   }
 
 val NlComponent.viewGroupHandler: ViewGroupHandler?
   get() {
-    if (!tag.isValid) {
+    @Suppress("SENSELESS_COMPARISON")
+    // tag can be null for a mock component. To avoid the need of creating a fully functionnal mock XmlTag
+    // that passes all tests, we check the nullity.
+    if (tag == null || !tag.isValid) {
       return null
     }
     return ViewHandlerManager.get(tag.project).findLayoutHandler(this, false)
@@ -317,13 +336,13 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
  * @param insertType The type of insertion
  */
 fun NlComponent.createChild(editor: ViewEditor,
-                                                                fqcn: String,
-                                                                before: NlComponent?,
-                                                                insertType: InsertType): NlComponent? {
+                            fqcn: String,
+                            before: NlComponent?,
+                            insertType: InsertType): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   val tag = tag.createChildTag(tagName, null, null, false)
 
-  return model.createComponent((editor as ViewEditorImpl).sceneView, tag, this, before, insertType)
+  return model.createComponent(editor, tag, this, before, insertType)
 }
 
 fun NlComponent.clearAttributes() {
@@ -339,26 +358,14 @@ val NlComponent.hasNlComponentInfo: Boolean
 val NlComponent.isMorphableToViewGroup: Boolean
   get() = VIEW == tagName && getAttribute(TOOLS_URI, ATTR_MOCKUP) != null
 
-fun NlComponent.getDependencies(artifacts: MutableSet<String>) {
-  if (!hasNlComponentInfo) {
-    return
-  }
-  val handler = ViewHandlerManager.get(model.project).getHandler(this)
-  if (handler != null) {
-    val artifactId = handler.getGradleCoordinateId(this)
-
-    if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
-      artifacts.add(artifactId)
-    }
-  }
-  children?.forEach { it.getDependencies(artifacts) }
-}
+val NlComponent.componentClassName: String?
+  get() = viewInfo?.className
 
 private val NlComponent.nlComponentData: NlComponentData
   get() {
     val mixin = this.mixin
-    when (mixin) {
-      is NlComponentMixin -> return mixin.data
+    return when (mixin) {
+      is NlComponentMixin -> mixin.data
       else -> throw IllegalArgumentException("${this} is not registered!")
     }
   }
@@ -379,6 +386,27 @@ class NlComponentMixin(component: NlComponent)
 
   override fun toString(): String {
     return String.format("%s (%s, %s) %s × %s", super.toString(), data.x, data.y, data.w, data.h)
+  }
+
+  override fun getAttribute(namespace: String?, attribute: String): String? {
+    val styleAttributeValue = component.getAttribute(null, "style") ?: return null
+
+    val resources = component.model.configuration.resourceResolver ?: return null
+
+    // Pretend the style was referenced from a proper resource by constructing a temporary ResourceValue. TODO: aapt namespace?
+    val tmpResourceValue = ResourceValue(ResourceUrl.create(null, ResourceType.STYLE, component.tagName), styleAttributeValue)
+
+    val styleResourceValue = resources.resolveResValue(tmpResourceValue) as? StyleResourceValue ?: return null
+
+    val itemResourceValue = resources.findItemInStyle(styleResourceValue, attribute, true) ?: return null
+
+    return itemResourceValue.value
+  }
+
+  override fun getTooltipText(): String? {
+    component.id?.let { return it }
+    val str = component.componentClassName ?: return null
+    return str.substring(str.lastIndexOf('.') + 1)
   }
 }
 

@@ -58,7 +58,7 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
   }
 
   public static boolean doIsMyFile(@NotNull XmlFile file, @NotNull ResourceFolderType folderType) {
-    return FileDescriptionUtils.isResourceOfType(file, folderType, Collections.emptySet());
+    return FileDescriptionUtils.isResourceOfTypeWithRootTag(file, folderType, Collections.emptySet());
   }
 
   @Override

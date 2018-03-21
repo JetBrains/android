@@ -34,15 +34,15 @@ public class DefaultHNodeTest {
 
   @Test
   public void testDefaultConstructor() throws Exception {
-    DefaultHNode<String> root = new DefaultHNode<>();
-    assertThat(root.getData()).isNull();
+    DefaultHNode<String> root = new DefaultHNode<>("Root");
+    assertThat(root.getData()).isEqualTo("Root");
     assertThat(root.getStart()).isEqualTo(0);
     assertThat(root.getEnd()).isEqualTo(0);
   }
 
   @Test
   public void testStartEnd() throws Exception {
-    DefaultHNode<String> root = new DefaultHNode<>();
+    DefaultHNode<String> root = new DefaultHNode<>("");
 
     assertThat(root.getStart()).isEqualTo(0);
     root.setStart(5);
@@ -53,7 +53,7 @@ public class DefaultHNodeTest {
     assertThat(root.getEnd()).isEqualTo(30);
 
     // Duration should be end - start
-    assertThat(root.duration()).isEqualTo(25);
+    assertThat(root.getDuration()).isEqualTo(25);
   }
 
   @Test
@@ -62,16 +62,16 @@ public class DefaultHNodeTest {
     //        A
     //    B --+-- C
     //          D-+-E
-    DefaultHNode<String> nodeA = new DefaultHNode<>();
-    DefaultHNode<String> nodeB = new DefaultHNode<>();
-    DefaultHNode<String> nodeC = new DefaultHNode<>();
+    DefaultHNode<String> nodeA = new DefaultHNode<>("A");
+    DefaultHNode<String> nodeB = new DefaultHNode<>("B");
+    DefaultHNode<String> nodeC = new DefaultHNode<>("C");
 
     nodeA.addChild(nodeB);
     nodeA.addChild(nodeC);
     assertThat(nodeA.getChildren()).hasSize(2);
 
-    DefaultHNode<String> nodeD = new DefaultHNode<>();
-    DefaultHNode<String> nodeE = new DefaultHNode<>();
+    DefaultHNode<String> nodeD = new DefaultHNode<>("D");
+    DefaultHNode<String> nodeE = new DefaultHNode<>("E");
 
     nodeC.addChild(nodeD);
     nodeC.addChild(nodeE);
@@ -83,16 +83,8 @@ public class DefaultHNodeTest {
   }
 
   @Test
-  public void testData() {
-    DefaultHNode<String> root = new DefaultHNode<>();
-    assertThat(root.getData()).isNull();
-    root.setData("Root");
-    assertThat(root.getData()).isEqualTo("Root");
-  }
-
-  @Test
   public void testDepth() {
-    DefaultHNode<String> root = new DefaultHNode<>();
+    DefaultHNode<String> root = new DefaultHNode<>("");
     root.setDepth(3);
     assertThat(root.getDepth()).isEqualTo(3);
     root.setDepth(5);

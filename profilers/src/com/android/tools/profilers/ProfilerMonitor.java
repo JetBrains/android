@@ -62,6 +62,8 @@ public abstract class ProfilerMonitor extends AspectModel<ProfilerMonitor.Aspect
 
   public abstract String getName();
 
+  public abstract ProfilerTooltip buildTooltip();
+
   public void setFocus(boolean focus) {
     if (focus != myFocus) {
       myFocus = focus;

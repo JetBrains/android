@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
@@ -31,16 +30,20 @@ import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
-public class NlPropertyOrderingTest extends LayoutTestCase {
+public class NlPropertyOrderingTest extends PropertyTestCase {
   public void testGrouping() {
     @Language("XML")
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                     "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
                     "  <TextView />" +
                     "</RelativeLayout>";
     NlComponent component = getFirstComponent(source);
     NlPropertiesManager manager = mock(NlPropertiesManager.class);
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(manager, ImmutableList.of(component));
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, manager, ImmutableList.of(component));
+
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
     List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, ImmutableList.of(component));
 
@@ -57,7 +60,7 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
     //assertNotNull("Attribute password missing inside textview attributes", findItemByName(textView.getChildren(), "password"));
 
     // certain special attrs should be at the top level
-                  assertNotNull("Missing attribute id at the top level after grouping", findItemByName(items, "id"));
+    assertNotNull("Missing attribute ID at the top level after grouping", findItemByName(items, "id"));
   }
 
   public void testSorting() {
@@ -69,7 +72,10 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
 
     NlComponent component = getFirstComponent(source);
     NlPropertiesManager manager = mock(NlPropertiesManager.class);
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(manager, ImmutableList.of(component));
+
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, manager, ImmutableList.of(component));
+
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
     List<NlPropertyItem> sortedList = new NlPropertiesSorter().sort(propertyList, ImmutableList.of(component));
     List<PTableItem> items = new NlPropertiesGrouper().group(sortedList, ImmutableList.of(component));

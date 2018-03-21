@@ -17,7 +17,6 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.android.tools.lint.client.api.DefaultConfiguration;
-import com.android.tools.lint.client.api.LintBaseline;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -75,7 +74,7 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
           XmlTag tag = xmlFile.getRootTag();
           if (tag != null) {
             String tagName = tag.getName();
-            if (DefaultConfiguration.TAG_LINT.equals(tagName) || LintBaseline.TAG_ISSUES.equals(tagName)) {
+            if (DefaultConfiguration.TAG_LINT.equals(tagName) || SdkConstants.TAG_ISSUES.equals(tagName)) {
               return true;
             }
           }

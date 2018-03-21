@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
 import com.android.utils.ILogger;
-import com.android.tools.log.LogWrapper;
 import com.google.common.base.Strings;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DeviceInfo;

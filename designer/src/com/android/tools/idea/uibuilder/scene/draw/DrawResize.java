@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
 import java.awt.*;
 
@@ -65,10 +65,10 @@ public class DrawResize extends DrawRegion {
                          @AndroidDpCoordinate float right,
                          @AndroidDpCoordinate float bottom,
                          int mode) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
-    int h = transform.getSwingDimension(bottom - top);
+    int l = transform.getSwingXDip(left);
+    int t = transform.getSwingYDip(top);
+    int w = transform.getSwingDimensionDip(right - left);
+    int h = transform.getSwingDimensionDip(bottom - top);
     list.add(new DrawResize(l, t, w, h, mode));
   }
 }

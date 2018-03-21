@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
@@ -178,6 +179,19 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     return items;
   }
 
+  @VisibleForTesting
+  static String releaseDisplayName(@NotNull SystemImageDescription systemImage) {
+    AndroidVersion version = systemImage.getVersion();
+    String codeName = version.isPreview() ? version.getCodename()
+                                          : SdkVersionInfo.getCodeName(version.getApiLevel());
+    if (codeName == null) {
+      codeName = "API " + version.getApiLevel();
+    }
+    String maybeDeprecated = systemImage.obsolete() ||
+                             version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
+    return codeName + maybeDeprecated;
+  }
+
   /**
    * List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
    * the cell value in that column for a given row item.
@@ -187,15 +201,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
-        AndroidVersion version = systemImage.getVersion();
-        String codeName = version.isPreview() ? version.getCodename()
-                                              : SdkVersionInfo.getCodeName(version.getApiLevel());
-        if (codeName == null) {
-          codeName = "API " + version.getApiLevel();
-        }
-        String maybeDeprecated = systemImage.obsolete() ||
-                                 version.getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API ? " (Deprecated)" : "";
-        return codeName + maybeDeprecated;
+        return releaseDisplayName(systemImage);
       }
     },
     new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
@@ -271,21 +277,22 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JBLabel label = new JBLabel((String)value);
         if (isSelected) {
           if (image.isRemote()) {
             panel.setBackground(UIUtil.getListUnfocusedSelectionBackground());
           } else {
             panel.setBackground(table.getSelectionBackground());
+            label.setBackground(table.getSelectionBackground());
+            label.setForeground(table.getSelectionForeground());
           }
           panel.setForeground(table.getSelectionForeground());
-          panel.setOpaque(true);
         }
         else {
           panel.setBackground(table.getBackground());
           panel.setForeground(table.getForeground());
-          panel.setOpaque(true);
         }
-        JBLabel label = new JBLabel((String)value);
+        panel.setOpaque(true);
         Font labelFont = UIUtil.getLabelFont();
         if (column == 0) {
           label.setFont(labelFont.deriveFont(Font.BOLD));

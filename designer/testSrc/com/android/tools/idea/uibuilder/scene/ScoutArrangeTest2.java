@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -66,6 +67,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyMiddle, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -75,25 +78,24 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteY=\"494dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponentBackground,50,375,100,20,1,false\n" +
+                        "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
                         "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,200,525,100,15,1,false\n" +
+                        "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
                         "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,6,200x525x100x15,2,50x375x100x20,2,0,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,6,200x525x100x15,3,50x375x100x20,3,0,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,325,575,100,25,1,false\n" +
+                        "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
                         "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
@@ -112,9 +114,11 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    System.out.println("list size"+list.size());
-    Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
-   Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyBottom, list,true);
+    System.out.println("list size" + list.size());
+    Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list, true);
+    Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyBottom, list, true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -123,24 +127,23 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        app:layout_constraintBottom_toBottomOf=\"@+id/textview1\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintStart_toStartOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponentBackground,50,375,100,20,1,false\n" +
+                        "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
                         "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,200,525,100,15,1,false\n" +
+                        "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
                         "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,1,200x525x100x15,3,50x375x100x20,3,0,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,325,575,100,25,1,false\n" +
+                        "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
                         "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
@@ -160,6 +163,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyTop, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -168,25 +173,23 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"@+id/textview1\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponentBackground,50,375,100,20,1,false\n" +
+                        "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
                         "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,200,525,100,15,1,false\n" +
+                        "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
                         "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,1,200x525x100x15,2,50x375x100x20,2,0,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,325,575,100,25,1,false\n" +
+                        "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
                         "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
@@ -206,6 +209,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyCenter, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -215,25 +220,24 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
                  "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteX=\"191dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponentBackground,50,375,100,20,1,false\n" +
+                        "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
                         "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,200,525,100,15,1,false\n" +
+                        "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
                         "DrawConnection,6,200x525x100x15,0,50x375x100x20,0,0,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,6,200x525x100x15,1,50x375x100x20,1,0,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,325,575,100,25,1,false\n" +
+                        "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
                         "DrawConnection,6,325x575x100x25,0,200x525x100x15,0,0,true,0,0,false,0.5,2,0,0\n" +
@@ -254,33 +258,32 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponentBackground,50,375,100,20,1,false\n" +
+                        "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
                         "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,200,525,100,15,1,false\n" +
+                        "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
                         "DrawConnection,1,200x525x100x15,0,50x375x100x20,0,0,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,325,575,100,25,1,false\n" +
+                        "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
                         "DrawConnection,1,325x575x100x25,0,200x525x100x15,0,0,true,0,0,false,0.5,2,0,0\n" +
@@ -300,6 +303,8 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyRight, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
+    NlWriteCommandAction
+      .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -307,26 +312,23 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"525dp\" />");
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
-                        "DrawComponentBackground,50,375,100,20,1,false\n" +
+                        "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
                         "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,200,525,100,15,1,false\n" +
+                        "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
                         "DrawConnection,1,200x525x100x15,1,50x375x100x20,1,0,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
-                        "DrawComponentBackground,325,575,100,25,1,false\n" +
+                        "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
                         "DrawConnection,1,325x575x100x25,1,200x525x100x15,1,0,true,0,0,false,0.5,2,0,0\n" +
@@ -344,13 +346,14 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.HorizontalPack, list,true);
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.HorizontalPack, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"50dp\" />");
+                 "        tools:layout_editor_absoluteX=\"50dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 
   public void testVerticalPack() {
@@ -360,12 +363,13 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.VerticalPack, list,true);
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.VerticalPack, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"375dp\" />");
   }
   public void testExpandHorizontally() {
@@ -375,13 +379,14 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ExpandHorizontally, list,true);
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ExpandHorizontally, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"984dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"8dp\" />");
+                 "        tools:layout_editor_absoluteX=\"8dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 
   public void testExpandVertically() {
@@ -391,12 +396,13 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.ExpandVertically, list,true);
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.ExpandVertically, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"984dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"200dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"8dp\" />");
   }
 
@@ -407,12 +413,15 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.DistributeVertically, list,true);
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.DistributeVertically, list,true);
+
     myScreen.get("@+id/textview1")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview1\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
-                 "        android:layout_height=\"40dp\" />");
+                 "        android:layout_height=\"40dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"50dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"375dp\" />");
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
@@ -420,7 +429,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"30dp\"\n" +
                  "        android:layout_marginTop=\"82dp\"\n" +
                  "        app:layout_constraintTop_toBottomOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteY=\"477dp\" />");
+                 "        tools:layout_editor_absoluteX=\"200dp\" />");
     myScreen.get("@+id/textview3")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview3\"\n" +
@@ -428,7 +437,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "        android:layout_height=\"50dp\"\n" +
                  "        android:layout_marginTop=\"83dp\"\n" +
                  "        app:layout_constraintTop_toBottomOf=\"@+id/textview2\"\n" +
-                 "        tools:layout_editor_absoluteY=\"575dp\" />");
+                 "        tools:layout_editor_absoluteX=\"325dp\" />");
   }
 
   public void testDistributeHorizontally() {
@@ -438,14 +447,15 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"/>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
-    Scout.arrangeWidgets(Scout.Arrange.DistributeHorizontally, list,true);
+    Scout.arrangeWidgetsAndCommit(Scout.Arrange.DistributeHorizontally, list,true);
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
+                 "        android:layout_marginLeft=\"37dp\"\n" +
                  "        android:layout_marginStart=\"37dp\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/textview1\"\n" +
-                 "        tools:layout_editor_absoluteX=\"187dp\" />");
+                 "        tools:layout_editor_absoluteY=\"525dp\" />");
   }
 }

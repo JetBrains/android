@@ -18,9 +18,12 @@ package org.jetbrains.android.dom.navigation;
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidDomElement;
 
+import java.util.List;
+
 /**
  * An element representing an action tag in a navigation graph.
  */
 @DefinesXml
 public interface NavActionElement extends AndroidDomElement {
+  List<ArgumentElement> getArguments();
 }

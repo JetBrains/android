@@ -87,24 +87,23 @@ public class Sampler implements Runnable {
       // Retrieve the ongoing tree associate with this thread.
       DefaultHNode<Method> tree = forest.get(sampledThread.getName());
       if (tree == null) {
-        tree = new DefaultHNode();
-        tree.setStart(getLastMidTime());
         Method rootMethod = new Method();
         rootMethod.setName("rootMethod");
         rootMethod.setNamespace("root.package.foo.bar");
-        tree.setData(rootMethod);
+        tree = new DefaultHNode<>(rootMethod);
+        tree.setStart(getLastMidTime());
         forest.put(sampledThread.getName(), tree);
       }
 
       // Compare last captured stack with current stack. Stop as soon as they diverge.
       int depth = elements.length - 1;
       DefaultHNode<Method> previousNode = tree;
-      DefaultHNode<Method> currentNode = (DefaultHNode<Method>)previousNode.getLastChild();
+      DefaultHNode<Method> currentNode = previousNode.getLastChild();
       while (currentNode != null && depth >= 0 && isSameMethod(currentNode,
                                                                elements[depth])) {
         depth--;
         previousNode = currentNode;
-        currentNode = (DefaultHNode<Method>)currentNode.getLastChild();
+        currentNode = currentNode.getLastChild();
       }
 
       // We found the point where the stacks diverge. We need to:
@@ -127,9 +126,8 @@ public class Sampler implements Runnable {
         m.setNamespace(trace.getClassName());
         m.setName(trace.getMethodName());
 
-        DefaultHNode<Method> newNode = new DefaultHNode<>();
+        DefaultHNode<Method> newNode = new DefaultHNode<>(m);
         newNode.setStart(getLastMidTime());
-        newNode.setData(m);
         newNode.setDepth(elements.length - depth - 1);
         previousNode.addChild(newNode);
 

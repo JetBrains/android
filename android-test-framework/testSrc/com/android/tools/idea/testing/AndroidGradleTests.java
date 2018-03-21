@@ -15,23 +15,35 @@
  */
 package com.android.tools.idea.testing;
 
+import com.android.testutils.TestUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.RegEx;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class AndroidGradleTests {
+  private static final Pattern REPOSITORIES_PATTERN = Pattern.compile("repositories[ ]+\\{");
+  private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
+  private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
+
   public static void updateGradleVersions(@NotNull File folderRootPath, @NotNull String gradlePluginVersion) throws IOException {
     doUpdateGradleVersions(folderRootPath, getLocalRepositories(), gradlePluginVersion);
   }
@@ -58,6 +70,8 @@ public class AndroidGradleTests {
                                    pluginVersion);
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
                                    buildEnvironment.getExperimentalPluginVersion());
+
+      contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", getKotlinVersionForTests());
 
       contents = updateBuildToolsVersion(contents);
       contents = updateCompileSdkVersion(contents);
@@ -87,16 +101,39 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
-    return contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
+    String newContents = REPOSITORIES_PATTERN.matcher(contents).replaceAll("repositories {\n" + localRepositories);
+    if (TestUtils.runningFromBazel()) {
+      // only remove google() and jcenter() repositories if tests run in Bazel, because the sandbox will make tests fail with
+      // Gradle 4.2+
+      newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+      newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+    }
+    return newContents;
   }
 
   @NotNull
   public static String getLocalRepositories() {
-    String path = "prebuilts/tools/common/m2/repository";
+    Collection<File> repositories = getLocalRepositoryDirectories();
+    return StringUtil.join(repositories,
+                           file -> "maven {url \"" + file.toURI().toString() + "\"}", "\n");
+  }
 
-    File prebuiltsRepoDir = getWorkspaceFile(path);
-    String uri = prebuiltsRepoDir.toURI().toString();
-    return "maven { url \"" + uri + "\" }\n";
+  @NotNull
+  public static Collection<File> getLocalRepositoryDirectories() {
+    List<File> repositories = new ArrayList<>();
+    String prebuiltsRepo = "prebuilts/tools/common/m2/repository";
+    String publishLocalRepo = "out/repo";
+    if (TestUtils.runningFromBazel()) {
+      // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
+      File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
+      repositories.add(new File(tmp, prebuiltsRepo));
+      // publish local should already be available inside prebuilts
+    }
+    else {
+      repositories.add(getWorkspaceFile(prebuiltsRepo));
+      repositories.add(getWorkspaceFile(publishLocalRepo));
+    }
+    return repositories;
   }
 
 

@@ -14,6 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends optional="true" config-file="sdk-updates-as.xml">com.intellij.modules.androidstudio</depends>
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.updater.AndroidSdkUpdaterPlugin</implementation-class>

@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import org.fest.swing.fixture.JTreeFixture;
@@ -33,6 +35,7 @@ public final class DragPreferencesFromPaletteToComponentTreeTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/66857119
   @Test
   public void dragAndDrop() throws IOException {
     myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -44,11 +47,10 @@ public final class DragPreferencesFromPaletteToComponentTreeTest {
     layoutEditor.waitForRenderToFinish();
 
     JTreeFixture componentTree = layoutEditor.getComponentTree();
-
-    layoutEditor.getPaletteItemList(1).drag("PreferenceCategory");
+    layoutEditor.getPalette().dragComponent("Groups", "PreferenceCategory");
     componentTree.drop("PreferenceScreen");
 
-    layoutEditor.getPaletteItemList(0).drag("CheckBoxPreference");
+    layoutEditor.getPalette().dragComponent("Preferences", "CheckBoxPreference");
     componentTree.drop("PreferenceScreen/PreferenceCategory");
 
     assertPathExists(componentTree, "PreferenceScreen/PreferenceCategory/CheckBoxPreference");

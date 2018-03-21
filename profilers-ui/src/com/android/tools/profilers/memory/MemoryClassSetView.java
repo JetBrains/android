@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 
 final class MemoryClassSetView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
@@ -51,9 +52,9 @@ final class MemoryClassSetView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final RelativeTimeConverter myTimeConverter;
+  @NotNull private final ProfilerTimeline myTimeline;
 
-  @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
+  @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
   @NotNull private final Map<InstanceAttribute, AttributeColumn<MemoryObject>> myAttributeColumns = new HashMap<>();
 
@@ -79,8 +80,8 @@ final class MemoryClassSetView extends AspectObserver {
 
   public MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeConverter = myStage.getStudioProfilers().getRelativeTimeConverter();
-    myIdeProfilerComponents = ideProfilerComponents;
+    myTimeline = myStage.getStudioProfilers().getTimeline();
+    myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
@@ -96,6 +97,7 @@ final class MemoryClassSetView extends AspectObserver {
         ValueColumnRenderer::new,
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparing(o -> {
           if (!(o.getAdapter() instanceof ValueObject)) {
             return "";
@@ -124,6 +126,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparingInt(o -> ((ValueObject)o.getAdapter()).getDepth())));
     myAttributeColumns.put(
       InstanceAttribute.ALLOCATION_TIME,
@@ -136,13 +139,14 @@ final class MemoryClassSetView extends AspectObserver {
             if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
               return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                 TimeUnit.MILLISECONDS.toMicros(1),
-                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getAllocTime())));
+                myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
             }
           }
           return "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.ASCENDING,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getAllocTime())));
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
@@ -155,13 +159,14 @@ final class MemoryClassSetView extends AspectObserver {
             if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
               return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                 TimeUnit.MILLISECONDS.toMicros(1),
-                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getDeallocTime())));
+                myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
             }
           }
           return "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
@@ -173,6 +178,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> ((ValueObject)o.getAdapter()).getNativeSize())));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
@@ -184,6 +190,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingInt(o -> ((ValueObject)o.getAdapter()).getShallowSize())));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
@@ -195,6 +202,7 @@ final class MemoryClassSetView extends AspectObserver {
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
+        SortOrder.DESCENDING,
         Comparator.comparingLong(o -> ((ValueObject)o.getAdapter()).getRetainedSize())));
 
     JPanel headingPanel = new JPanel(new BorderLayout());
@@ -253,7 +261,7 @@ final class MemoryClassSetView extends AspectObserver {
     myTree = new JTree();
     int defaultFontHeight = myTree.getFontMetrics(myTree.getFont()).getHeight();
     myTree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
-    myTree.setBorder(ProfilerLayout.TABLE_ROW_BORDER);
+    myTree.setBorder(TABLE_ROW_BORDER);
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -348,7 +356,7 @@ final class MemoryClassSetView extends AspectObserver {
     myTree.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
-        if (myTree.getSelectionCount() == 0 && myTree.getRowCount() != 0){
+        if (myTree.getSelectionCount() == 0 && myTree.getRowCount() != 0) {
           myTree.setSelectionRow(0);
         }
       }
@@ -357,6 +365,7 @@ final class MemoryClassSetView extends AspectObserver {
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
+    builder.setTableIntercellSpacing(new Dimension());
     myColumnTree = builder.build();
     myInstancesPanel.add(myColumnTree, BorderLayout.CENTER);
   }
@@ -364,7 +373,7 @@ final class MemoryClassSetView extends AspectObserver {
   private void installTreeContextMenus() {
     assert myTree != null;
 
-    myIdeProfilerComponents.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+    myContextMenuInstaller.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = myTree.getSelectionPath();
       if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;
@@ -383,7 +392,7 @@ final class MemoryClassSetView extends AspectObserver {
       return null;
     });
 
-    myIdeProfilerComponents.installContextMenu(myTree, new ContextMenuItem() {
+    myContextMenuInstaller.installGenericContextMenu(myTree, new ContextMenuItem() {
       @NotNull
       @Override
       public String getText() {
@@ -532,6 +541,8 @@ final class MemoryClassSetView extends AspectObserver {
     if (myInstanceObject == null) {
       return;
     }
+
+    assert myTreeRoot != null;
 
     // TODO: select node which is not visible yet
     for (MemoryObjectTreeNode<MemoryObject> node : myTreeRoot.getChildren()) {

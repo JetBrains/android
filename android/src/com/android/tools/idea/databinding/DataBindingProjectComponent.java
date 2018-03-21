@@ -53,7 +53,7 @@ public class DataBindingProjectComponent implements ModificationTracker {
         if (facet == null) {
           continue;
         }
-        if (ModuleDataBinding.isEnabled(facet)) {
+        if (ModuleDataBinding.getInstance(facet).isEnabled()) {
           facets.add(facet);
         }
       }
@@ -153,6 +153,7 @@ public class DataBindingProjectComponent implements ModificationTracker {
       .flatMap(DataBindingProjectComponent::getPsiLiterals)
       .map(PsiLiteral::getValue)
       .filter(Objects::nonNull)
+      .distinct()
       .map(Object::toString);
   }
 }

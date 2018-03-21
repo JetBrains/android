@@ -62,7 +62,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
       dialog.setModal(true);
       if (dialog.showAndGet() && setNdkPath(project, dialog.getAndroidNdkPath())) {
         // Saving NDK path is successful.
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
       }
       return;
     }
@@ -81,7 +81,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
         if (ndkPackage != null) {
           ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(ndkPackage.getPath()));
           if (dialog != null && dialog.showAndGet()) {
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, null);
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
           }
           return;
         }

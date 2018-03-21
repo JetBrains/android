@@ -19,7 +19,6 @@ import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -30,26 +29,26 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Text field with browse button which wraps a {@link VectorAsset}, which allows the user to
- * specify a path to an SVG file or other supported vector format.
+ * A text field with a browse button which wraps a {@link VectorAsset}, which allows the user
+ * to specify a path to an SVG or PSD file.
  */
 public final class VectorAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent<VectorAsset>, Disposable {
-  private final VectorAsset myAsset = new VectorAsset(VectorAsset.FileType.SVG);
+  private final VectorAsset myAsset = new VectorAsset();
   private final BindingsManager myBindings = new BindingsManager();
 
-  private final List<ActionListener> myAssetListeners = Lists.newArrayListWithExpectedSize(1);
+  private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
   public VectorAssetBrowser() {
     addBrowseFolderListener(null, null, null, createMultiFileDescriptor("svg", "psd"));
 
-    final StringProperty absolutePath = new TextProperty(getTextField());
+    StringProperty absolutePath = new TextProperty(getTextField());
     myBindings.bind(absolutePath, myAsset.path().transform(File::getAbsolutePath));
     myBindings.bind(myAsset.path(), absolutePath.transform(File::new));
-    myBindings.bind(myAsset.type(), absolutePath.transform(VectorAsset::typeFromExtension));
 
     myAsset.path().addListener(sender -> {
       ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
@@ -59,8 +58,8 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
     });
   }
 
-  @NotNull
   @Override
+  @NotNull
   public VectorAsset getAsset() {
     return myAsset;
   }
@@ -76,8 +75,8 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
     myAssetListeners.clear();
   }
 
-  private static FileChooserDescriptor createMultiFileDescriptor(final String... extensions) {
+  private static FileChooserDescriptor createMultiFileDescriptor(@NotNull String... extensions) {
     return new FileChooserDescriptor(true, false, false, false, false, false).withFileFilter(
-      file -> Arrays.stream(extensions).anyMatch(e -> Comparing.equal(file.getExtension(), e, SystemInfo.isFileSystemCaseSensitive)));
+        file -> Arrays.stream(extensions).anyMatch(e -> Comparing.equal(file.getExtension(), e, SystemInfo.isFileSystemCaseSensitive)));
   }
 }

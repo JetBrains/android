@@ -22,6 +22,7 @@ import com.android.tools.idea.common.editor.NlEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,7 @@ public final class ScrollingActivityTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
+  @Ignore("b/66680171")
   @Test
   public void contentScrollingXmlOpensInLayoutEditor() {
     WizardUtils.createNewProject(myGuiTest, "Scrolling Activity");
@@ -44,7 +46,6 @@ public final class ScrollingActivityTest {
     myGuiTest.ideFrame().getEditor().open(path);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(myGuiTest.getProjectPath().toPath().resolve(path).toFile());
-    assert file != null;
 
     assertTrue(FileEditorManager.getInstance(myGuiTest.ideFrame().getProject()).getSelectedEditor(file) instanceof NlEditor);
   }

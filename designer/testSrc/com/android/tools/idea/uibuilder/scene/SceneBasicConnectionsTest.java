@@ -17,12 +17,14 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ActionTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test basic connection interactions
@@ -38,6 +40,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        android:layout_marginStart=\"8dp\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
@@ -72,6 +75,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
                  "        android:layout_marginEnd=\"8dp\"\n" +
+                 "        android:layout_marginRight=\"8dp\"\n" +
                  "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
   }
@@ -112,9 +116,31 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "        android:id=\"@id/button2\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        android:layout_marginStart=\"8dp\"\n" +
                  "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/button\" />");
+  }
+
+  public void testConnectBaselineWithNoId() {
+    SceneComponent noIdComponent = null;
+    for (SceneComponent component : myScene.getSceneComponents()) {
+      if (component.getId() == null) {
+        noIdComponent = component;
+      }
+    }
+    assertThat(noIdComponent).isNotNull();
+    myInteraction.select(noIdComponent, true);
+    myInteraction.mouseDown(noIdComponent, ActionTarget.class, 1);
+    myInteraction.mouseRelease(noIdComponent, ActionTarget.class, 1);
+    myInteraction.mouseDown(noIdComponent, AnchorTarget.Type.BASELINE);
+    myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
+    assertThat(noIdComponent.getNlComponent().getTag().getText())
+      .isEqualTo("<TextView\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
+                 "        tools:layout_editor_absoluteX=\"500dp\" />");
   }
 
   @Override
@@ -141,6 +167,12 @@ public class SceneBasicConnectionsTest extends SceneTest {
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "300dp")
+                                       .withAttribute("tools:layout_editor_absoluteY", "200dp"),
+                                     component(TEXT_VIEW)
+                                       .withBounds(300, 200, 100, 20)
+                                       .width("100dp")
+                                       .height("20dp")
+                                       .withAttribute("tools:layout_editor_absoluteX", "500dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "200dp")
                                    ));
     return builder;

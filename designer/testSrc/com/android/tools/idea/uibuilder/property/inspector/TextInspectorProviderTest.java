@@ -16,10 +16,14 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
-import com.android.tools.idea.uibuilder.property.editors.*;
+import com.android.tools.idea.common.property.editors.BaseComponentEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
+import com.android.tools.idea.common.property.editors.NlComponentEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.inspector.TextInspectorProvider.TextInspectorComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.UIUtil;
@@ -76,7 +80,7 @@ public class TextInspectorProviderTest extends PropertyTestCase {
     Map<String, NlProperty> properties = getPropertyMap(components);
 
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
-    for (String propertyName : TextInspectorProvider.TEXT_PROPERTIES) {
+    for (String propertyName : TextInspectorProvider.REQUIRED_TEXT_PROPERTIES) {
       Map<String, NlProperty> props = new HashMap<>(properties);
       props.remove(propertyName);
       assertThat(myProvider.isApplicable(components, props, myPropertiesManager)).isFalse();
@@ -152,8 +156,8 @@ public class TextInspectorProviderTest extends PropertyTestCase {
       .findFirst();
     assertThat(textAppearanceEditor.isPresent()).isTrue();
     assert textAppearanceEditor.isPresent();
-    assertThat(textAppearanceEditor.get()).isInstanceOf(NlBaseComponentEditor.class);
-    NlBaseComponentEditor editor = (NlBaseComponentEditor)textAppearanceEditor.get();
+    assertThat(textAppearanceEditor.get()).isInstanceOf(BaseComponentEditor.class);
+    BaseComponentEditor editor = (BaseComponentEditor)textAppearanceEditor.get();
     editor.stopEditing("Material.Display1");
     UIUtil.dispatchAllInvocationEvents();
 
@@ -166,6 +170,36 @@ public class TextInspectorProviderTest extends PropertyTestCase {
     assertThat(properties.get(ATTR_TEXT_STYLE).getValue()).isNull();
     assertThat(properties.get(ATTR_TEXT_ALL_CAPS).getValue()).isNull();
     assertThat(properties.get(ATTR_TEXT_ALIGNMENT).getValue()).isNull();
+  }
+
+  public void testTextAppearanceWithEmptyProperties() {
+    // Simulate the case where a property is not supported by a certain API level
+    // http://b/72926267
+    List<NlComponent> components = ImmutableList.of(myTextView);
+    Map<String, NlProperty> properties = getPropertyMap(components);
+    properties.remove(ATTR_TEXT_ALIGNMENT);
+
+    assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
+    TextInspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
+    inspector.refresh();
+
+    Optional<NlComponentEditor> textAppearanceEditor = inspector.getEditors().stream()
+      .filter(editor -> editor.getProperty().getName().equals(ATTR_TEXT_APPEARANCE))
+      .findFirst();
+    assertThat(textAppearanceEditor.isPresent()).isTrue();
+    assert textAppearanceEditor.isPresent();
+    assertThat(textAppearanceEditor.get()).isInstanceOf(BaseComponentEditor.class);
+    BaseComponentEditor editor = (BaseComponentEditor)textAppearanceEditor.get();
+    editor.stopEditing("Material.Display1");
+    UIUtil.dispatchAllInvocationEvents();
+
+    assertThat(properties.get(ATTR_TEXT_APPEARANCE).getValue()).isEqualTo("Material.Display1");
+    assertThat(properties.get(ATTR_TYPEFACE).getValue()).isNull();
+    assertThat(properties.get(ATTR_TEXT_SIZE).getValue()).isNull();
+    assertThat(properties.get(ATTR_LINE_SPACING_EXTRA).getValue()).isNull();
+    assertThat(properties.get(ATTR_TEXT_COLOR).getValue()).isNull();
+    assertThat(properties.get(ATTR_TEXT_STYLE).getValue()).isNull();
+    assertThat(properties.get(ATTR_TEXT_ALL_CAPS).getValue()).isNull();
   }
 
 

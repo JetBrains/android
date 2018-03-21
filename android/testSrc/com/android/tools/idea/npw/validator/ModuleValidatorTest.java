@@ -59,6 +59,11 @@ public final class ModuleValidatorTest {
     assertInvalidModuleName("..");
     assertInvalidModuleName("123:456");
     assertInvalidModuleName("123!456");
+    assertInvalidModuleName("a\\b");
+    assertInvalidModuleName("a/b");
+    assertInvalidModuleName("a'b");
+    assertInvalidModuleName("'");
+    assertInvalidModuleName("'''");
   }
 
   @Test

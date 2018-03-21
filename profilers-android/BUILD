@@ -8,6 +8,17 @@ iml_module(
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea/platform/credential-store",
+        "//tools/idea/platform/tasks-platform-impl",
+        "//tools/idea/json",
+        "//tools/idea/xml/relaxng",
+        "//tools/adt/idea/adt-branding",
+        "//tools/idea/java/compiler/instrumentation-util-8",
+        "//tools/idea/plugins/maven:maven2-server-impl",
+        "//tools/vendor/intellij/cidr:doxygen",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/core-api[module]",
         "//tools/idea/platform/platform-api[module]",
@@ -23,12 +34,15 @@ iml_module(
         "//tools/adt/idea/android-common[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/platform/lang-api[module]",
-        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/idea/platform/lang-impl[module]",
         "//tools/base/ddmlib:studio.ddmlib[module]",
+        "//tools/idea/platform/platform-impl[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/flags:studio.flags[module]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork[module]",
+        "//tools/adt/idea/android-adb[module]",
+        "//tools/vendor/intellij/cidr:cidr-lang[module]",
     ],
 )

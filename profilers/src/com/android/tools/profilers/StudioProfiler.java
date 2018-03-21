@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers;
 
-
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class StudioProfiler {
@@ -29,7 +27,7 @@ public abstract class StudioProfiler {
 
   abstract public ProfilerMonitor newMonitor();
 
-  public abstract void startProfiling(Common.Session session, Profiler.Process process);
+  public abstract void startProfiling(Common.Session session, Common.Process process);
 
-  public abstract void stopProfiling(Common.Session session, Profiler.Process process);
+  public abstract void stopProfiling(Common.Session session, Common.Process process);
 }

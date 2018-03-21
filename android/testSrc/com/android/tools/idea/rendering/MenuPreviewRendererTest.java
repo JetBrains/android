@@ -20,17 +20,32 @@ import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.utils.StringHelper;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.AndroidTestCase;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
 
-public class MenuPreviewRendererTest extends RenderTestBase {
+public class MenuPreviewRendererTest extends AndroidTestCase {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    RenderTestUtil.beforeRenderTestCase();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      RenderTestUtil.afterRenderTestCase();
+    } finally {
+      super.tearDown();
+    }
+  }
 
   public void test() throws Exception {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
-    RenderTask task = createRenderTask(file);
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, file);
     assertNotNull(task);
     ILayoutPullParser parser = LayoutPullParsers.create(task);
     assertTrue(parser instanceof DomPullParser);
@@ -45,7 +60,7 @@ public class MenuPreviewRendererTest extends RenderTestBase {
 
     newXml = StringHelper.toSystemLineSeparator(newXml);
 
-    checkRendering(task, "menu/menu1.png");
+    RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1.png");
     assertEquals(newXml, layout);
   }
 
@@ -53,10 +68,11 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
-    Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID, "@android:style/Theme.Holo.Light");
-    RenderTask task = createRenderTask(file, configuration);
+    Configuration configuration =
+      RenderTestUtil.getConfiguration(myModule, file, RenderTestUtil.DEFAULT_DEVICE_ID, "@android:style/Theme.Holo.Light");
+    RenderTask task = RenderTestUtil.createRenderTask(myModule, file, configuration);
     assertNotNull(task);
 
-    checkRendering(task, "menu/menu1-light.png");
+    RenderTestUtil.checkRendering(task, getTestDataPath() + "/render/thumbnails/menu/menu1-light.png");
   }
 }

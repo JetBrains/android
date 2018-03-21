@@ -229,11 +229,11 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       myFacet, ImmutableList.of(projectResources, aar), ImmutableList.of(aar));
 
     Collection<String> idResources = appResources.getItemsOfType(ResourceType.ID);
-    Collection<String> aarIds = aar.getAllDeclaredIds();
+    Map<String, Integer> aarIds = aar.getAllDeclaredIds();
     assertNotNull(aarIds);
-    assertNotEmpty(aarIds);
-    assertContainsElements(idResources, aarIds);
-    assertFalse(aarIds.contains("btn_title_refresh"));
+    assertFalse(aarIds.isEmpty());
+    assertContainsElements(idResources, aarIds.keySet());
+    assertFalse(aarIds.keySet().contains("btn_title_refresh"));
     assertContainsElements(idResources, "btn_title_refresh");
   }
 

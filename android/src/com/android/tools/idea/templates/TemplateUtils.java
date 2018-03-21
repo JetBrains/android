@@ -18,7 +18,6 @@ package com.android.tools.idea.templates;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
@@ -237,21 +236,6 @@ public class TemplateUtils {
     }
 
     return versions;
-  }
-
-  /**
-   * Lists the files of the given directory and returns them as an array which
-   * is never null. This simplifies processing file listings from for each
-   * loops since {@link File#listFiles} can return null. This method simply
-   * wraps it and makes sure it returns an empty array instead if necessary.
-   *
-   * @param dir the directory to list
-   * @return the children, or empty if it has no children, is not a directory,
-   * etc.
-   */
-  @NotNull
-  public static File[] listFiles(@Nullable File dir) {
-    return WizardUtils.listFiles(dir);
   }
 
   /**

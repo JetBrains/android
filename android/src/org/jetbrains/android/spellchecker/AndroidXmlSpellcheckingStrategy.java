@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.spellchecker;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.DefaultConfiguration;
-import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.util.TextRange;
@@ -109,7 +109,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
       XmlTag tag = file.getRootTag();
       if (tag != null) {
         String tagName = tag.getName();
-        if (DefaultConfiguration.TAG_LINT.equals(tagName) || LintBaseline.TAG_ISSUES.equals(tagName)) {
+        if (DefaultConfiguration.TAG_LINT.equals(tagName) || SdkConstants.TAG_ISSUES.equals(tagName)) {
           return true;
         }
       }

@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="java.lang.Boolean java.lang.Boolean valueOf(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Boolean java.lang.Boolean valueOf(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Byte java.lang.Byte valueOf(byte)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.lang.CharSequence java.lang.String toString()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Character java.lang.Character valueOf(char)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.lang.Class boolean isAssignableFrom(java.lang.Class&lt;?&gt;) 0">
@@ -29,7 +41,25 @@
   <item name="java.lang.Enum T valueOf(java.lang.Class&lt;T&gt;, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.lang.Integer java.lang.Integer valueOf(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Integer java.lang.Integer valueOf(java.lang.String, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.lang.Iterable java.util.Iterator&lt;T&gt; iterator()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Long java.lang.Long decode(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Long java.lang.Long valueOf(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Long java.lang.Long valueOf(java.lang.String, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Long java.lang.Long valueOf(long)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.lang.Object java.lang.Class&lt;?&gt; getClass()">
@@ -44,6 +74,18 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{java.lang.reflect.Member.PUBLIC, java.lang.reflect.Member.DECLARED}" />
     </annotation>
+  </item>
+  <item name="java.lang.Short java.lang.Short decode(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Short java.lang.Short valueOf(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Short java.lang.Short valueOf(java.lang.String, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.lang.Short java.lang.Short valueOf(short)">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.lang.String String(byte[]) 0">
     <annotation name="android.support.annotation.NonNull" />

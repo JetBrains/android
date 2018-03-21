@@ -15,11 +15,12 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -30,20 +31,19 @@ import java.util.concurrent.TimeUnit;
 
 public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
 
-  private final int myProcessId;
-  private final Common.Session myDeviceSerial;
+  @NotNull private final Common.Session mySession;
   private final int myThreadId;
-  private final CpuProfilerStage myStage;
+  @NotNull private final CpuProfilerStage myStage;
 
-  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, int pid, Common.Session session, int tid) {
+  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, @NotNull Common.Session session, int tid) {
     myStage = stage;
-    myProcessId = pid;
-    myDeviceSerial = session;
+    mySession = session;
     myThreadId = tid;
   }
 
-  public int getProcessId() {
-    return myProcessId;
+  @VisibleForTesting
+  int getProcessId() {
+    return mySession.getPid();
   }
 
   @Override
@@ -54,38 +54,36 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
     long min = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
     long max = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
     CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
-    CpuProfiler.GetThreadsResponse threads = client.getThreads(CpuProfiler.GetThreadsRequest.newBuilder()
-      .setProcessId(myProcessId)
-      .setSession(myDeviceSerial)
-      .setStartTimestamp(min)
-      .setEndTimestamp(max)
-      .build());
+    GetThreadsResponse threads = client.getThreads(GetThreadsRequest.newBuilder()
+                                                     .setSession(mySession)
+                                                     .setStartTimestamp(min)
+                                                     .setEndTimestamp(max)
+                                                     .build());
 
-    CpuProfiler.GetTraceInfoResponse traces = client.getTraceInfo(CpuProfiler.GetTraceInfoRequest.newBuilder()
-        .setProcessId(myProcessId)
-        .setSession(myDeviceSerial)
-        .setFromTimestamp(min)
-        .setToTimestamp(max)
-        .build());
+    GetTraceInfoResponse traces = client.getTraceInfo(GetTraceInfoRequest.newBuilder()
+                                                        .setSession(mySession)
+                                                        .setFromTimestamp(min)
+                                                        .setToTimestamp(max)
+                                                        .build());
 
-    for (CpuProfiler.GetThreadsResponse.Thread thread : threads.getThreadsList()) {
+    for (GetThreadsResponse.Thread thread : threads.getThreadsList()) {
       if (thread.getTid() == myThreadId) {
         // Merges information from traces and samples:
         ArrayList<Double> captureTimes = new ArrayList<>(traces.getTraceInfoCount() * 2);
-        for (CpuProfiler.TraceInfo traceInfo : traces.getTraceInfoList()) {
+        for (TraceInfo traceInfo : traces.getTraceInfoList()) {
           if (traceInfo.getThreadsList().stream().anyMatch(t -> t.getTid() == myThreadId)) {
             captureTimes.add((double)TimeUnit.NANOSECONDS.toMicros(traceInfo.getFromTimestamp()));
             captureTimes.add((double)TimeUnit.NANOSECONDS.toMicros(traceInfo.getToTimestamp()));
           }
         }
 
-        List<CpuProfiler.GetThreadsResponse.ThreadActivity> list = thread.getActivitiesList();
+        List<GetThreadsResponse.ThreadActivity> list = thread.getActivitiesList();
         int i = 0;
         int j = 0;
         boolean inCapture = false;
-        CpuProfiler.GetThreadsResponse.State state = CpuProfiler.GetThreadsResponse.State.UNSPECIFIED;
+        GetThreadsResponse.State state = GetThreadsResponse.State.UNSPECIFIED;
         while (i < list.size()) {
-          CpuProfiler.GetThreadsResponse.ThreadActivity activity = list.get(i);
+          GetThreadsResponse.ThreadActivity activity = list.get(i);
 
           long timestamp = TimeUnit.NANOSECONDS.toMicros(activity.getTimestamp());
           long captureTime = j < captureTimes.size() ? captureTimes.get(j).longValue() : Long.MAX_VALUE;
@@ -102,7 +100,7 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
             i++;
           }
           // We shouldn't add an activity if capture has started before the first activity for the current thread.
-          if (state != CpuProfiler.GetThreadsResponse.State.UNSPECIFIED) {
+          if (state != GetThreadsResponse.State.UNSPECIFIED) {
             data.add(new SeriesData<>(time, getState(state, inCapture)));
           }
         }
@@ -116,7 +114,7 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
     return data;
   }
 
-  private static CpuProfilerStage.ThreadState getState(CpuProfiler.GetThreadsResponse.State state, boolean captured) {
+  private static CpuProfilerStage.ThreadState getState(GetThreadsResponse.State state, boolean captured) {
     switch (state) {
       case RUNNING:
         return captured ? CpuProfilerStage.ThreadState.RUNNING_CAPTURED : CpuProfilerStage.ThreadState.RUNNING;

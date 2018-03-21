@@ -27,7 +27,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidConnectDebuggerAction extends AnAction {
@@ -35,10 +34,6 @@ public class AndroidConnectDebuggerAction extends AnAction {
   public void actionPerformed(AnActionEvent e) {
     final Project project = e.getProject();
     assert project != null;
-
-    if (!AndroidSdkUtils.activateDdmsIfNecessary(project)) {
-      return;
-    }
 
     final AndroidProcessChooserDialog dialog = new AndroidProcessChooserDialog(project, true);
     dialog.show();

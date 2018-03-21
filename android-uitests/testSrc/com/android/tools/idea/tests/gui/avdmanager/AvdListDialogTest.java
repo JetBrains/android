@@ -32,7 +32,11 @@ public class AvdListDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/64486607
+  /**
+   * TT ID: TODO need to add a test tracker ID
+   *
+   */
+  @RunIn(TestGroup.QA)
   @Test
   public void testCreateAvd() throws Exception {
     guiTest.importSimpleApplication();
@@ -63,6 +67,10 @@ public class AvdListDialogTest {
     avdManagerDialog.close();
   }
 
+  /**
+   * TT ID: TODO need to add a test tracker ID
+   *
+   */
   @RunIn(TestGroup.QA)
   @Test
   public void testEditAvd() throws Exception {

@@ -20,6 +20,8 @@ import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
@@ -43,9 +45,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class for creating unit tests for XML editor. Contains utility methods for performing things such as
@@ -70,6 +71,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     super.setUp();
     ensureWebserverAccess();
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    //noinspection unchecked
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,
                                 AndroidElementNotAllowedInspection.class);
@@ -79,6 +81,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     try {
       Class builtinWebServerAccess = Class.forName("com.intellij.util.BuiltinWebServerAccess");
       if (builtinWebServerAccess != null) {
+        //noinspection unchecked
         Method ensureUserAuthenticationToken =
           builtinWebServerAccess.getMethod("ensureUserAuthenticationToken");
         if (ensureUserAuthenticationToken != null) {
@@ -99,7 +102,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     return "dom/res";
   }
 
-  protected final void doTestJavaCompletion(String aPackage) throws Throwable {
+  protected final void doTestJavaCompletion(@NotNull String aPackage) throws Throwable {
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     String fileName = getTestName(false) + ".java";
     VirtualFile file = copyFileToProject(fileName, "src/" + aPackage.replace('/', '.') + '/' + fileName);
@@ -135,12 +138,12 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   /**
-   * Loads file, invokes code completion at &lt;caret&gt; marker and returns resulting completion variants as strings.
+   * Loads file, invokes code completion at &lt;caret&gt; marker and verifies the resulting completion variants as strings.
    */
   protected final void doTestCompletionVariants(String fileName, String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
-    UsefulTestCase.assertSameElements(lookupElementStrings, variants);
+    assertSameElements(lookupElementStrings, variants);
   }
 
   protected final void doTestCompletionVariantsContains(String fileName, String... variants) throws Throwable {
@@ -149,11 +152,39 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     assertContainsElements(lookupElementStrings, variants);
   }
 
+  /**
+   * Loads file, invokes code completion at &lt;caret&gt; marker and verifies the completions that are presented to the user as strings.
+   * Use {@link #doTestCompletionVariants} to check the strings used for the actual completion.
+   */
+  protected final void doTestPresentableCompletionVariants(@NotNull String fileName, @NotNull String... variants) throws Throwable {
+    List<String> lookupElementStrings = getPresentableCompletionElements(fileName);
+    assertNotNull(lookupElementStrings);
+    assertSameElements(lookupElementStrings, variants);
+  }
+
   private List<String> getCompletionElements(String fileName) throws IOException {
     VirtualFile file = copyFileToProject(fileName);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     return myFixture.getLookupElementStrings();
+  }
+
+  @NotNull
+  private List<String> getPresentableCompletionElements(@NotNull String fileName) throws IOException {
+    VirtualFile file = copyFileToProject(fileName);
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    return Arrays.stream(myFixture.getLookupElements())
+      .map(AndroidDomTestCase::toPresentableText)
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+  }
+
+  @Nullable
+  private static String toPresentableText(@NotNull LookupElement element) {
+    LookupElementPresentation presentation = new LookupElementPresentation();
+    element.renderElement(presentation);
+    return presentation.getItemText();
   }
 
   protected final void doTestHighlighting() throws Throwable {
@@ -218,6 +249,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   protected final void doTestSpellcheckerQuickFixes() throws IOException {
+    //noinspection unchecked
     myFixture.enableInspections(SpellCheckingInspection.class);
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
@@ -251,7 +283,7 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
       assertNotNull(strs);
       assertEquals(strs.get(0), prefix);
     }
-    else if (strs != null && strs.size() > 0) {
+    else if (strs != null && !strs.isEmpty()) {
       String first = strs.get(0);
       assertFalse(first.endsWith(":"));
     }

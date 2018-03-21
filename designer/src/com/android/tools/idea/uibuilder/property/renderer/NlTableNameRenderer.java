@@ -30,7 +30,6 @@ import javax.swing.*;
 import java.awt.*;
 
 import static com.android.SdkConstants.TOOLS_URI;
-import static icons.AndroidIcons.NeleIcons.DesignProperty;
 
 public class NlTableNameRenderer extends PTableCellRenderer implements PNameRenderer {
   private static final int BEFORE_STAR_SPACING = 2;
@@ -104,11 +103,11 @@ public class NlTableNameRenderer extends PTableCellRenderer implements PNameRend
     }
     if (TOOLS_URI.equals(item.getNamespace())) {
       if (icon == null) {
-        icon = DesignProperty;
+        icon = StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY;
       }
       else {
-        LayeredIcon layered = new LayeredIcon(icon, DesignProperty);
-        layered.setIcon(DesignProperty, 1, afterGroupIcon + icon.getIconWidth(), 0);
+        LayeredIcon layered = new LayeredIcon(icon, StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
+        layered.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY, 1, afterGroupIcon + icon.getIconWidth(), 0);
         icon = layered;
       }
       textGap = 4;

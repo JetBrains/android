@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.property.fixtures;
 
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.fixtures.EditorFixtureBase;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.assertEquals;
 
-public class NlBooleanEditorFixture extends NlEditorFixtureBase {
+public class NlBooleanEditorFixture extends EditorFixtureBase {
   private final NlBooleanEditor myComponentEditor;
   private final ThreeStateCheckBox myCheckBox;
 
@@ -47,6 +49,12 @@ public class NlBooleanEditorFixture extends NlEditorFixtureBase {
   public NlBooleanEditorFixture expectValue(@Nullable Boolean expectedValue) {
     String expectedString = expectedValue != null ? expectedValue.toString() : null;
     assertThat(myComponentEditor.getProperty().getValue()).isEqualTo(expectedString);
+    return this;
+  }
+
+  public NlBooleanEditorFixture expectCheckboxTipText(@NotNull String expectedTipText) {
+    String actual = myCheckBox.getToolTipText();
+    assertEquals(expectedTipText, actual);
     return this;
   }
 

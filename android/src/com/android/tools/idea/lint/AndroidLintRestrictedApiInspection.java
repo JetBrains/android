@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.SupportAnnotationDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
+import static com.android.tools.lint.checks.RestrictToDetector.RESTRICTED;
+
 public class AndroidLintRestrictedApiInspection extends AndroidLintInspectionBase {
   public AndroidLintRestrictedApiInspection() {
-    super(AndroidBundle.message("android.lint.inspections.restricted.api"), SupportAnnotationDetector.RESTRICTED);
+    super(AndroidBundle.message("android.lint.inspections.restricted.api"), RESTRICTED);
   }
 }

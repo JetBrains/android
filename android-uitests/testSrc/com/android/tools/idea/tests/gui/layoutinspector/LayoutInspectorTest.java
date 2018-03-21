@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
+import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
+import com.android.tools.idea.tests.util.ddmlib.DeviceQueries;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,17 +43,44 @@ public class LayoutInspectorTest {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
+  /**
+   * Verify layout inspector is a full replacement for the hierarchy viewer
+   *
+   * <p>TT ID: 65743195-bcf9-4127-8f4a-b60fde2b269e
+   *
+   * <pre>
+   *   Test steps:
+   *   1. Create a new project.
+   *   2. Open the layout inspector by following Tools > Layout Inspector from the menu.
+   *   3. Select the process running this project's application.
+   *   4. Retrieve the layout's elements from the process.
+   *   Verify:
+   *   1. Ensure that the layout's elements contain the expected elements, which include
+   *      a RelativeLayout, a TextView, and a FrameLayout.
+   * </pre>
+   */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.SANITY)
   public void launchLayoutInspectorViaChooser() throws Exception {
-    guiTest.ideFrame().runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    ideFrame.runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
-    guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Android", "Layout Inspector");
+
+    // The following includes a wait for the run tool window to appear.
+    // Also show the run tool window in case of failure so we have more information.
+    ideFrame.getRunToolWindow().activate();
+
+    //Wait for emulator to launch the app
+    IDevice emu = AndroidDebugBridgeUtils.getEmulator(emulator.getDefaultAvdName(), emulator.getEmulatorConnection(), 5);
+    assertThat(emu).isNotNull();
+    new DeviceQueries(emu).waitUntilAppViewsAreVisible("google.simpleapplication", 5);
+
+    guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Layout Inspector");
     // easier to select via index rather than by path string which changes depending on the api version
     AndroidProcessChooserDialogFixture.find(guiTest.robot()).selectProcess().clickOk();
     List<String> layoutElements = new LayoutInspectorFixture(guiTest.robot()).getLayoutElements();

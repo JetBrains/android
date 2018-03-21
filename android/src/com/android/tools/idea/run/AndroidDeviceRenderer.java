@@ -111,9 +111,11 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
         }
 
         EdtInvocationManager.getInstance().invokeLater(() -> {
-          ListModel model = list.getModel();
-          if (model instanceof DevicePickerListModel) {
-            ((DevicePickerListModel)model).entryContentChanged(entry);
+          if (list.isDisplayable()) {
+            ListModel model = list.getModel();
+            if (model instanceof DevicePickerListModel) {
+              ((DevicePickerListModel)model).entryContentChanged(entry);
+            }
             setPaintBusy(list, false);
           }
         });

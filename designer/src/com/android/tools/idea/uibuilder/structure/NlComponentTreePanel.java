@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -35,7 +37,7 @@ import java.util.List;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSurface> {
+public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolContent<DesignSurface> {
   private final NlComponentTree myTree;
   private final BackNavigationComponent myNavigationComponent;
 
@@ -47,6 +49,7 @@ public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSu
     myNavigationComponent = new BackNavigationComponent();
     add(myNavigationComponent, BorderLayout.NORTH);
     add(pane, BorderLayout.CENTER);
+    myTree.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     Disposer.register(this, myTree);
   }
 

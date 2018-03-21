@@ -94,14 +94,20 @@ public interface Target {
    */
   void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext);
 
-  void setOver(boolean over);
+  /**
+   * Set the status of this Target if it is hovered by mouse
+   *
+   * @param over new status of hovered.
+   */
+  void setMouseHovered(boolean over);
 
   /**
    * Can be used by the target to expand its bounds
    *
    * @param expand true to expand
    */
-  void setExpandSize(boolean expand);
+  default void setExpandSize(boolean expand) {
+  }
 
   String getToolTipText();
 
@@ -117,9 +123,9 @@ public interface Target {
   /**
    * Implement this method to react to mouse drag events
    *
-   * @param x             X coordinate of the mouse in DP
-   * @param y             Y coordinate of the mouse in DP
-   * @param closestTarget Closest target from the mouse if there is one
+   * @param x              X coordinate of the mouse in DP
+   * @param y              Y coordinate of the mouse in DP
+   * @param closestTargets Closest target from the mouse if there is one
    */
   default void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
   }
@@ -127,9 +133,9 @@ public interface Target {
   /**
    * Implement this method to react to mouse release events
    *
-   * @param x             X coordinate of the mouse in DP
-   * @param y             Y coordinate of the mouse in DP
-   * @param closestTarget Closest target from the mouse if there is one
+   * @param x              X coordinate of the mouse in DP
+   * @param y              Y coordinate of the mouse in DP
+   * @param closestTargets Closest target from the mouse if there is one
    */
   default void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
   }
@@ -144,12 +150,15 @@ public interface Target {
   @AndroidDpCoordinate
   float getCenterY();
 
-  boolean canChangeSelection();
+  default boolean canChangeSelection() {
+    return true;
+  }
 
   /**
-   * Notified when the underlying component changes selection
+   * Notified when the associated component changes the status of selection.
    *
-   * @param selection
+   * @param selection the new selection status of associated component
    */
-  void setComponentSelection(boolean selection);
+  default void onComponentSelectionChanged(boolean selection) {
+  }
 }

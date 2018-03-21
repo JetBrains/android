@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.Arrays;
+import java.util.List;
 
 public final class CodeLocation {
   public static final int INVALID_LINE_NUMBER = -1;
@@ -31,11 +32,18 @@ public final class CodeLocation {
   @Nullable
   private final String myMethodName;
   /**
-   * See {@link Builder#setMethodSignature(String, String)} for details about this field.
+   * See {@link Builder#setMethodSignature(String)} for details about this field.
    */
   @Nullable
   private final String mySignature;
+  /**
+   * See {@link Builder#setMethodParameters(String)} for details about this field.
+   */
+  @Nullable
+  private final List<String> myMethodParameters;
+
   private final int myLineNumber;
+  private final boolean myNativeCode;
   private final int myHashcode;
 
   private CodeLocation(@NotNull Builder builder) {
@@ -43,7 +51,9 @@ public final class CodeLocation {
     myFileName = builder.myFileName;
     myMethodName = builder.myMethodName;
     mySignature = builder.mySignature;
+    myMethodParameters = builder.myMethodParameters;
     myLineNumber = builder.myLineNumber;
+    myNativeCode = builder.myNativeCode;
     myHashcode = Arrays.hashCode(new int[]{myClassName.hashCode(), myFileName == null ? 0 : myFileName.hashCode(),
       myMethodName == null ? 0 : myMethodName.hashCode(), mySignature == null ? 0 : mySignature.hashCode(),
       Integer.hashCode(myLineNumber)});
@@ -92,11 +102,20 @@ public final class CodeLocation {
   }
 
   /**
-   * See {@link Builder#setMethodSignature(String, String)} for details about this value.
+   * See {@link Builder#setMethodSignature(String)} for details about this value.
    */
   @Nullable
   public String getSignature() {
     return mySignature;
+  }
+
+  @Nullable
+  public List<String> getMethodParameters() {
+    return myMethodParameters;
+  }
+
+  public boolean isNativeCode() {
+    return myNativeCode;
   }
 
   @Override
@@ -123,7 +142,9 @@ public final class CodeLocation {
     @Nullable String myFileName;
     @Nullable String myMethodName;
     @Nullable String mySignature;
+    @Nullable List<String> myMethodParameters;
     int myLineNumber = INVALID_LINE_NUMBER;
+    boolean myNativeCode;
 
     public Builder(@NotNull String className) {
       myClassName = className;
@@ -134,6 +155,7 @@ public final class CodeLocation {
       myFileName = rhs.getFileName();
       myMethodName = rhs.getMethodName();
       mySignature = rhs.getSignature();
+      myMethodParameters = rhs.getMethodParameters();
       myLineNumber = rhs.getLineNumber();
     }
 
@@ -159,9 +181,19 @@ public final class CodeLocation {
      * Java encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
      */
     @NotNull
-    public Builder setMethodSignature(@NotNull String methodName, @NotNull String signature) {
-      myMethodName = methodName;
+    public Builder setMethodSignature(@NotNull String signature) {
       mySignature = signature;
+      return this;
+    }
+
+    /**
+     * Parameters of a method or function.
+     *
+     * For example, {@code int aMethod(int a, float b} produces {@code ["int", "float"]} as the list of parameters.
+     */
+    @NotNull
+    public Builder setMethodParameters(@NotNull List<String> methodParameters) {
+      myMethodParameters = methodParameters;
       return this;
     }
 
@@ -171,6 +203,11 @@ public final class CodeLocation {
     @NotNull
     public Builder setLineNumber(int lineNumber) {
       myLineNumber = lineNumber;
+      return this;
+    }
+
+    public Builder setNativeCode(boolean nativeCode) {
+      myNativeCode = nativeCode;
       return this;
     }
 

@@ -125,6 +125,63 @@
       <val name="value" val="android.content.Context.BATTERY_SERVICE" />
     </annotation>
   </item>
+  <item name="android.os.Binder android.os.IInterface queryLocalInterface(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder android.os.IInterface queryLocalInterface(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder android.os.UserHandle getCallingUserHandle()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder boolean onTransact(int, android.os.Parcel, android.os.Parcel, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder boolean onTransact(int, android.os.Parcel, android.os.Parcel, int) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder boolean transact(int, android.os.Parcel, android.os.Parcel, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder boolean transact(int, android.os.Parcel, android.os.Parcel, int) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder boolean unlinkToDeath(android.os.IBinder.DeathRecipient, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder java.lang.String getInterfaceDescriptor()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder void attachInterface(android.os.IInterface, java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder void attachInterface(android.os.IInterface, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder void dump(java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder void dump(java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder void dump(java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder void dump(java.io.FileDescriptor, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder void dump(java.io.FileDescriptor, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder void dumpAsync(java.io.FileDescriptor, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Binder void dumpAsync(java.io.FileDescriptor, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Binder void linkToDeath(android.os.IBinder.DeathRecipient, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.os.Build java.lang.String getSerial()">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
@@ -393,6 +450,39 @@
   <item name="android.os.HardwarePropertiesManager float[] getFanSpeeds()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.os.IBinder android.os.IInterface queryLocalInterface(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.IBinder android.os.IInterface queryLocalInterface(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.IBinder boolean transact(int, android.os.Parcel, android.os.Parcel, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.IBinder boolean transact(int, android.os.Parcel, android.os.Parcel, int) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.IBinder boolean unlinkToDeath(android.os.IBinder.DeathRecipient, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.IBinder java.lang.String getInterfaceDescriptor()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.IBinder void dump(java.io.FileDescriptor, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.IBinder void dump(java.io.FileDescriptor, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.IBinder void dumpAsync(java.io.FileDescriptor, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.IBinder void dumpAsync(java.io.FileDescriptor, java.lang.String[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.IBinder void linkToDeath(android.os.IBinder.DeathRecipient, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.os.LocaleList LocaleList(java.util.Locale...) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -531,6 +621,27 @@
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.RECOVERY&quot;" />
     </annotation>
+  </item>
+  <item name="android.os.SharedMemory android.os.SharedMemory create(java.lang.String, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.SharedMemory android.os.SharedMemory create(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.SharedMemory java.nio.ByteBuffer map(int, int, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.SharedMemory java.nio.ByteBuffer mapReadOnly()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.SharedMemory java.nio.ByteBuffer mapReadWrite()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.SharedMemory void unmap(java.nio.ByteBuffer) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.SharedMemory void writeToParcel(android.os.Parcel, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserManager">
     <annotation name="android.support.annotation.SystemService">

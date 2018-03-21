@@ -30,7 +30,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,8 +104,8 @@ public class NlTreeBadgeHandler {
           }
         }
         if (SUPPORTS_LOCKING) {
-          Icon unlockIcon = AndroidIcons.SherpaIcons.UnlockConstraints;
-          Icon lockIcon = AndroidIcons.SherpaIcons.LockConstraints;
+          Icon unlockIcon = StudioIcons.LayoutEditor.Toolbar.UNLOCK;
+          Icon lockIcon = StudioIcons.LayoutEditor.Toolbar.LOCK;
           if (firstIcon != null) {
             myLockIconX = myBadgeX - BADGE_MARGIN - lockIcon.getIconWidth();
           }

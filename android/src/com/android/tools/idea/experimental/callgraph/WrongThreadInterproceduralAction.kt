@@ -20,10 +20,15 @@ import com.android.tools.idea.lint.LintIdeRequest
 import com.android.tools.lint.checks.WrongThreadInterproceduralDetector
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
+import com.android.tools.lint.detector.api.Issue
+import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
 import com.intellij.analysis.BaseAnalysisAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -32,7 +37,7 @@ import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance(WrongThreadInterproceduralAction::class.java)
 
-/** Uses a call graph to more precisely check for thread annotation violations. */
+/** An internal action for running the interprocedural thread annotation Lint check. Useful for timing and debugging. */
 class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_NAME) {
 
   companion object {
@@ -40,23 +45,34 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
   }
 
   override fun analyze(project: Project, scope: AnalysisScope) {
-    val time = measureTimeMillis {
-      val client = LintIdeClient.forBatch(project, mutableMapOf(), scope, setOf(WrongThreadInterproceduralDetector.ISSUE))
-      try {
-        val files = ArrayList<VirtualFile>()
-        scope.accept { files.add(it) }
-        val modules = ModuleManager.getInstance(project).modules.toList()
-        val request = LintIdeRequest(client, project, files, modules, /*incremental*/ false)
-        request.setScope(WrongThreadInterproceduralDetector.SCOPE)
-        val issue = object : IssueRegistry() {
-          override fun getIssues() = listOf(WrongThreadInterproceduralDetector.ISSUE)
+    ProgressManager.getInstance().run(object : Task.Backgroundable(
+        project, "Finding interprocedural thread annotation violations", true) {
+
+      override fun run(indicator: ProgressIndicator) {
+        val time = measureTimeMillis {
+          // The Lint check won't run unless explicitly enabled by default..
+          val wasEnabledByDefault = WrongThreadInterproceduralDetector.ISSUE.isEnabledByDefault()
+          val detectorIssue = WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(true)
+          val client = LintIdeClient.forBatch(project, mutableMapOf(), scope, setOf(detectorIssue))
+          try {
+            val files = ArrayList<VirtualFile>()
+            scope.accept { files.add(it) }
+            val modules = ModuleManager.getInstance(project).modules.toList()
+            val request = LintIdeRequest(client, project, files, modules, /*incremental*/ false)
+            request.setScope(EnumSet.of(Scope.ALL_JAVA_FILES))
+            val issue = object : IssueRegistry() {
+              override val issues: List<Issue>
+                get() = listOf(WrongThreadInterproceduralDetector.ISSUE)
+            }
+            LintDriver(issue, client, request).analyze()
+          }
+          finally {
+            Disposer.dispose(client)
+            WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(wasEnabledByDefault)
+          }
         }
-        LintDriver(issue, client, request).analyze()
+        LOG.info("Interprocedural thread check: ${time}ms")
       }
-      finally {
-        Disposer.dispose(client)
-      }
-    }
-    LOG.info("Interprocedural thread check: ${time}ms")
+    })
   }
 }

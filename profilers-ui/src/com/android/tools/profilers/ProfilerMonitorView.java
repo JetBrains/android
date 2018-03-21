@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.intellij.ui.HyperlinkAdapter;
@@ -28,6 +29,8 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
 
@@ -123,6 +126,31 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
       myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
       linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(12f));
     }
+  }
+
+  /**
+   * Helper function to register monitor components on tooltips. This function is responsible for setting the
+   * active tooltip on the stage when a mouse enters the desired component.
+   */
+  public void registerTooltip(@NotNull RangeTooltipComponent tooltip, Stage stage) {
+    JComponent component = getComponent();
+    tooltip.registerListenersOn(component);
+    component.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        if (myMonitor.isEnabled()) {
+          stage.setTooltip(myMonitor.buildTooltip());
+        }
+        else {
+          stage.setTooltip(null);
+        }
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        stage.setTooltip(null);
+      }
+    });
   }
 
   abstract protected void populateUi(JPanel container);

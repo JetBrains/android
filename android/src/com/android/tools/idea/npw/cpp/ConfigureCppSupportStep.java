@@ -25,12 +25,14 @@ import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Joiner;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +41,8 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -48,6 +52,7 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
 
+  private JBScrollPane myRoot;
   private JPanel myRootPanel;
   private JComboBox<CppStandardType> myCppStandardCombo;
   private JCheckBox myExceptionSupportCheck;
@@ -64,7 +69,9 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
     myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
     myDocumentationLink.setHyperlinkTarget("https://developer.android.com/ndk/guides/cpp-support.html");
 
-    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+    myRoot = new JBScrollPane(new StudioWizardStepPanel(myRootPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    myRoot.setBorder(null);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRoot);
   }
 
   @Override
@@ -100,7 +107,7 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myRoot;
   }
 
   @Nullable

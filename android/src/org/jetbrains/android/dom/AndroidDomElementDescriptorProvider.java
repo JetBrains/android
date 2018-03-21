@@ -17,6 +17,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.sdklib.SdkVersionInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Pair;
@@ -34,7 +35,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -142,24 +143,36 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       Ref<Icon> iconRef = ourViewTagName2Icon.get(keyName);
 
       if (iconRef == null) {
-        iconRef = Ref.create(IconLoader.findIcon("AndroidIcons.Views." + keyName));
+        // Find icons from StudioIcons.LayoutEditor.Palette first, then AndroidIcons.Views.
+        Icon icon = IconLoader.findIcon("StudioIcons.LayoutEditor.Palette." + convertToPaletteIconName(keyName));
+        // TODO: Eliminate AndroidIcons once all icons are provided by StudioIcons.LayoutEditor.Palette.
+        if (icon == null) {
+          icon = IconLoader.findIcon("AndroidIcons.Views." + keyName);
+        }
+        iconRef = Ref.create(icon);
         ourViewTagName2Icon.put(keyName, iconRef);
       }
       return iconRef.get();
     }
   }
 
+  /**
+   * Utility function to convert tagName (e.g. TextView, CheckBox, etc.) to the icon name of {@link StudioIcons.LayoutEditor.Palette}.
+   * The keys in {@link StudioIcons} are always upper case with underline.
+   * @param tagName the name of the widget tag.
+   * @return the icon name matches the format of {@link StudioIcons}.
+   */
+  @NotNull
+  private static String convertToPaletteIconName(@NotNull String tagName) {
+    return SdkVersionInfo.camelCaseToUnderlines(tagName).toUpperCase();
+  }
+
   @NotNull
   private static Map<String, Icon> getInitialViewTagName2IconMap() {
     final HashMap<String, Icon> map = new HashMap<>();
-    map.put("fragment", AndroidIcons.Views.Fragment);
-    map.put("fragmentLarge", AndroidIcons.Views.FragmentLarge);
-    map.put("include", AndroidIcons.Views.Include);
-    map.put("includeLarge", AndroidIcons.Views.IncludeLarge);
-    map.put("view", AndroidIcons.Views.View);
-    map.put("viewLarge", AndroidIcons.Views.ViewLarge);
-    map.put("requestFocus", AndroidIcons.Views.RequestFocus);
-    map.put("requestFocusLarge", AndroidIcons.Views.RequestFocusLarge);
+    // The default icon for LinearLayout is horizontal version.
+    map.put("LinearLayout", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
+    map.put("LinearLayoutLarge", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ_LARGE);
     return map;
   }
 }

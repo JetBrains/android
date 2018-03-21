@@ -19,18 +19,14 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.mock;
 
 public class GradleSyncMessagesStub extends GradleSyncMessages {
   @NotNull private final List<SyncMessage> myMessages = new ArrayList<>();
@@ -47,8 +43,7 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
   }
 
   public GradleSyncMessagesStub(@NotNull Project project) {
-    super(project, mock(ExternalSystemNotificationManager.class));
-    Disposer.register(project, this);
+    super(project);
   }
 
   @Override
@@ -96,6 +91,12 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
 
   public void clearReportedMessages() {
     myMessages.clear();
+  }
+
+  @Override
+  public void removeMessages(@NotNull String... groupNames) {
+    Set<String> groupNamesSet = new HashSet<>(Arrays.asList(groupNames));
+    myMessages.removeIf(m -> groupNamesSet.contains(m.getGroup()));
   }
 
   public static class NotificationUpdate {

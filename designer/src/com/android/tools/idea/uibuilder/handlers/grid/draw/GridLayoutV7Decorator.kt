@@ -15,15 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid.draw
 
-import com.android.SdkConstants
-import com.android.tools.idea.common.model.NlComponent
-
-class GridLayoutV7Decorator : GridLayoutDecorator() {
-  override fun retrieveCellData(nlComponent: NlComponent): CellInfo {
-    // By default, the (row, column, rowSpan, columnSpan) is (0, 0, 1, 1)
-    return CellInfo(nlComponent.getLiveAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ROW)?.toIntOrNull() ?: 0,
-        nlComponent.getLiveAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_COLUMN)?.toIntOrNull() ?: 0,
-        nlComponent.getLiveAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ROW_SPAN)?.toIntOrNull() ?: 1,
-        nlComponent.getLiveAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_COLUMN_SPAN)?.toIntOrNull() ?: 1)
-  }
-}
+/**
+ * Decorator for GridLayoutV7 which is in support library.
+ */
+open class GridLayoutV7Decorator : GridLayoutDecorator()

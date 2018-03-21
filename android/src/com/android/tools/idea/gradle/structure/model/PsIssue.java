@@ -33,7 +33,6 @@ public final class PsIssue {
   @NotNull private final Severity mySeverity;
 
   @Nullable private final String myDescription;
-  @Nullable private PsPath myExtraPath;
   @Nullable private PsPath myQuickFixPath;
 
   public PsIssue(@NotNull String text, @NotNull PsPath path, @NotNull PsIssueType type, @NotNull Severity severity) {
@@ -77,15 +76,6 @@ public final class PsIssue {
   }
 
   @Nullable
-  public PsPath getExtraPath() {
-    return myExtraPath;
-  }
-
-  public void setExtraPath(@Nullable PsPath extraPath) {
-    myExtraPath = extraPath;
-  }
-
-  @Nullable
   public PsPath getQuickFixPath() {
     return myQuickFixPath;
   }
@@ -126,18 +116,20 @@ public final class PsIssue {
   }
 
   public enum Severity {
-    ERROR("Error", BalloonError, RED, 0),
-    WARNING("Warning", BalloonWarning, YELLOW, 1),
-    INFO("Information", BalloonInformation, GRAY, 2),
-    UPDATE("Update", Download, GRAY, 3);
+    ERROR("Error", "Errors", BalloonError, RED, 0),
+    WARNING("Warning", "Warnings", BalloonWarning, YELLOW, 1),
+    INFO("Information", "Information", BalloonInformation, GRAY, 2),
+    UPDATE("Update", "Updates", Download, GRAY, 3);
 
     @NotNull private final String myText;
+    @NotNull private final String myPluralText;
     @NotNull private final Icon myIcon;
     @NotNull private final Color myColor;
     private final int myPriority;
 
-    Severity(@NotNull String text, @NotNull Icon icon, @NotNull Color color, int priority) {
+    Severity(@NotNull String text, @NotNull String pluralText, @NotNull Icon icon, @NotNull Color color, int priority) {
       myText = text;
+      myPluralText = pluralText;
       myColor = color;
       myIcon = icon;
       myPriority = priority;
@@ -146,6 +138,11 @@ public final class PsIssue {
     @NotNull
     public String getText() {
       return myText;
+    }
+
+    @NotNull
+    public String getPluralText() {
+      return myPluralText;
     }
 
     @NotNull

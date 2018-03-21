@@ -17,13 +17,11 @@ package com.android.tools.idea.tests.gui.instantapp;
 
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -32,11 +30,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -46,6 +47,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRunner.class)
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
   private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName,
@@ -55,18 +57,16 @@ public class NewInstantAppTest {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-    configureAndroidProjectStep
-      .enterCompanyDomain("test.android.com")
-      .enterApplicationName(projectName);
-
     newProjectWizard
+      .getConfigureAndroidProjectStep()
+      .enterCompanyDomain("test.android.com")
+      .enterApplicationName(projectName)
+      .wizard()
       .clickNext() // Complete project configuration
       .getConfigureFormFactorStep()
       .selectMinimumSdkApi(MOBILE, "23")
-      .selectInstantAppSupport(MOBILE);
-
-    newProjectWizard
+      .selectInstantAppSupport(MOBILE)
+      .wizard()
       .clickNext(); // Complete form factor configuration
 
     if (featureModuleName != null) {
@@ -81,9 +81,17 @@ public class NewInstantAppTest {
       .clickNext() // Complete "Add Activity" step
       .clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .findRunApplicationButton().waitUntilEnabledAndShowing(); // Wait for the toolbar to be ready
+
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(featureModuleName == null ? "feature" : featureModuleName);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/71515855
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects() throws IOException {
     String projectName = "Warning";
@@ -95,11 +103,6 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-                               // For now our offline index is not up-to-date, because 26.0.0-beta2 breaks the UI editor.
-                               "    Android Lint: Correctness\n" +
-                               "        Obsolete Gradle Dependency\n" +
-                               "            build.gradle\n" +
-                               "                A newer version of com.android.support:appcompat-v7 than 26.0.0-beta1 is available: 26.0.0-beta2\n" +
                                "    Android Lint: Security\n" +
                                "        AllowBackup/FullBackupContent Problems\n" +
                                "            AndroidManifest.xml\n" +
@@ -109,16 +112,15 @@ public class NewInstantAppTest {
                                "            AndroidManifest.xml\n" +
                                "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n" +
                                "    Declaration redundancy\n" +
+                               "        Redundant throws clause\n" +
+                               "            ExampleInstrumentedTest\n" +
+                               "            ExampleUnitTest\n" +
+                               "                The declared exception 'Exception' is never thrown\n" +
                                "        Unnecessary module dependency\n" +
-                               "            app\n" +
-                               "                Module 'app' sources do not depend on module 'base' sources\n" +
-                               "                Module 'app' sources do not depend on module 'feature' sources\n" +
                                "            feature\n" +
                                "                Module 'feature' sources do not depend on module 'base' sources\n" +
                                "    XML\n" +
                                "        Unused XML schema declaration\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                Namespace declaration is never used\n" +
                                "            AndroidManifest.xml\n" +
                                "                Namespace declaration is never used\n" +
                                "        XML tag empty body\n" +
@@ -147,6 +149,7 @@ public class NewInstantAppTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/69171895
   @Test
   public void testCanBuildNewInstantAppProjectsWithLoginActivity() throws IOException {
     createAndOpenDefaultAIAProject("BuildApp", null, "Login Activity");
@@ -174,6 +177,55 @@ public class NewInstantAppTest {
       .moveBetween("FullscreenTheme", "")
       .moveBetween("FullscreenActionBarStyle", "");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test // b/68122671
+  public void addMapActivityToExistingIappModule() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
+      .clickFinish();
+
+    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish();
+
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "base/src/debug/res/values/google_maps_api.xml")).isFile();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "base/src/release/res/values/google_maps_api.xml")).isFile();
+  }
+
+  @Test // b/68478730
+  public void addMasterDetailActivityToExistingIappModule() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
+      .clickFinish();
+
+    String baseStrings = guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("base/src/main/res/values/strings.xml")
+      .getCurrentFileContents();
+
+    assertThat(baseStrings).contains("title_item_detail");
+    assertThat(baseStrings).contains("title_item_list");
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)  // b/69171895
+  @Test // b/68684401
+  public void addFullscreenActivityToExistingIappModule() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", "feature", null);
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
+      .clickFinish();
+
+    String baseStrings = guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("base/src/main/res/values/strings.xml")
+      .getCurrentFileContents();
+
+    assertThat(baseStrings).contains("title_activity_fullscreen");
   }
 
   @Test

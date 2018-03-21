@@ -31,9 +31,12 @@ public class MissingCMakeErrorHandler extends BaseSyncErrorHandler {
   @Override
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String message = rootCause.getMessage();
-    if (isNotEmpty(message) && getFirstLineMessage(message).startsWith("Failed to find CMake.")) {
-      updateUsageTracker();
-      return "Failed to find CMake.";
+    if (isNotEmpty(message)) {
+      String firstLine = getFirstLineMessage(message);
+      if (firstLine.startsWith("Failed to find CMake.") || firstLine.startsWith("Unable to get the CMake version")) {
+        updateUsageTracker();
+        return "Failed to find CMake.";
+      }
     }
     return null;
   }

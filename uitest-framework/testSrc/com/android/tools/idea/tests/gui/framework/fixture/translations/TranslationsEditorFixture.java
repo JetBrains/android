@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.List;
@@ -141,9 +142,13 @@ public final class TranslationsEditorFixture {
   @Nullable
   public SimpleColoredComponent getCellRenderer(int row, int column) {
     return GuiActionRunner.execute(new GuiQuery<SimpleColoredComponent>() {
+      @Nullable
       @Override
-      protected SimpleColoredComponent executeInEDT() throws Throwable {
-        return new SimpleColoredComponent((com.intellij.ui.SimpleColoredComponent)getTable().target().getCellRenderer(row, column));
+      protected SimpleColoredComponent executeInEDT() {
+        JTable table = getTable().target();
+        TableCellRenderer renderer = table.getCellRenderer(row, column);
+
+        return new SimpleColoredComponent((com.intellij.ui.SimpleColoredComponent)table.prepareRenderer(renderer, row, column));
       }
     });
   }

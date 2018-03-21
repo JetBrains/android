@@ -16,8 +16,12 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.*;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.StudioProfilers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,8 +35,8 @@ import static org.junit.Assert.*;
 
 public class ThreadStateDataSeriesTest {
 
-  private static final int FAKE_PID = 3039;
-
+  private static final int FAKE_PID = 1234;
+  private static final Common.Session FAKE_SESSION = Common.Session.newBuilder().setSessionId(4321).setPid(FAKE_PID).build();
   private final FakeCpuService myService = new FakeCpuService();
 
   @Rule
@@ -46,7 +50,7 @@ public class ThreadStateDataSeriesTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_PID, ProfilersTestData.SESSION_DATA);
+    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_SESSION);
   }
 
   @Test

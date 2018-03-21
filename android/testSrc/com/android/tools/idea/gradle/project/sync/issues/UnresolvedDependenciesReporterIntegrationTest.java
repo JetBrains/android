@@ -17,13 +17,12 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.util.PositionInFile;
+import com.android.tools.idea.util.PositionInFile;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -67,8 +66,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   protected void tearDown() throws Exception {
     try {
       myIdeComponents.restore();
-      myIdeComponents = null;
-      mySyncMessagesStub = null;
     }
     finally {
       super.tearDown();
@@ -156,6 +153,9 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
+    AddGoogleMavenRepositoryHyperlink addQuickFix = (AddGoogleMavenRepositoryHyperlink)quickFix;
+    // Confirm that the repository will be added to project build file (b/68657672)
+    assertThat(addQuickFix.getBuildFile()).isEqualTo(GradleBuildModel.get(getProject()).getVirtualFile());
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       quickFix = quickFixes.get(1);
@@ -171,7 +171,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     // Add Google repository
     GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     Project project = getProject();
-    GoogleMavenRepository.addGoogleRepository(buildModel.repositories(), project);
+    buildModel.repositories().addGoogleMavenRepository(project);
     runWriteCommandAction(project, buildModel::applyChanges);
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");

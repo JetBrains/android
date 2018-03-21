@@ -72,7 +72,7 @@ public class IdeTestApplication implements Disposable {
       ourInstance = new IdeTestApplication();
       recreateDirectory(configDirPath);
 
-      File newProjectsRootDirPath = getProjectCreationDirPath();
+      File newProjectsRootDirPath = getProjectCreationDirPath(null);
       recreateDirectory(newProjectsRootDirPath);
 
       ClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
@@ -131,10 +131,6 @@ public class IdeTestApplication implements Disposable {
     Thread.currentThread().setContextClassLoader(myIdeClassLoader);
 
     WindowsCommandLineProcessor.ourMirrorClass = Class.forName(WindowsCommandLineProcessor.class.getName(), true, myIdeClassLoader);
-
-    // We turn on "GUI Testing Mode" right away, even before loading the IDE.
-    Class<?> androidPluginClass = Class.forName("org.jetbrains.android.AndroidPlugin", true, myIdeClassLoader);
-    method("setGuiTestingMode").withParameterTypes(boolean.class).in(androidPluginClass).invoke(true);
 
     Class<?> classUtilCoreClass = Class.forName("com.intellij.ide.ClassUtilCore", true, myIdeClassLoader);
     method("clearJarURLCache").in(classUtilCoreClass).invoke();
@@ -217,7 +213,6 @@ public class IdeTestApplication implements Disposable {
     // Duplicates what PluginManager#start does.
     Main.setFlags(args);
   }
-
   @NotNull
   public ClassLoader getIdeClassLoader() {
     return myIdeClassLoader;

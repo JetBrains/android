@@ -16,11 +16,29 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
+import com.android.tools.lint.detector.api.LintFix;
+import com.google.common.collect.ObjectArrays;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
+import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import org.jetbrains.android.refactoring.MigrateToAppCompatQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintAppCompatCustomViewInspection extends AndroidLintInspectionBase {
   public AndroidLintAppCompatCustomViewInspection() {
     super(AndroidBundle.message("android.lint.inspections.app.compat.custom.view"), AppCompatCustomViewDetector.ISSUE);
+  }
+
+  @NotNull
+  @Override
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    return ObjectArrays.concat(
+      AndroidLintInspectionBase.createFixes(startElement.getContainingFile(), fixData),
+      new MigrateToAppCompatQuickFix());
   }
 }

@@ -26,7 +26,7 @@ android {
 }
 
 dependencies {
-    compile project(":feature:feature1")
-    compile project(":feature:feature2")
-    compile project(":feature:base")
+    api project(":feature:feature1")
+    api project(":feature:feature2")
+    api project(":feature:base")
 }

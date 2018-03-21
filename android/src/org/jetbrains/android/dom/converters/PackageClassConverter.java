@@ -128,21 +128,6 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     return psiClass;
   }
 
-  /**
-   * @return whether the given file is contained within the test sources
-   */
-  public static boolean isTestFile(@NotNull AndroidFacet facet, @Nullable VirtualFile file) {
-    if (file != null) {
-      for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentTestSourceProviders(facet)) {
-        if (sourceProvider.containsFile(file)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
   @NotNull
   @Override
   public PsiReference[] createReferences(GenericDomValue<PsiClass> value, final PsiElement element, ConvertContext context) {
@@ -164,7 +149,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
-    final boolean isTestFile = facet != null && isTestFile(facet, element.getContainingFile().getVirtualFile());
+    VirtualFile file = element.getContainingFile().getVirtualFile();
+    final boolean isTestFile = facet != null && file != null && IdeaSourceProvider.isTestFile(facet, file);
 
     if (strValue.isEmpty()) {
       return PsiReference.EMPTY_ARRAY;

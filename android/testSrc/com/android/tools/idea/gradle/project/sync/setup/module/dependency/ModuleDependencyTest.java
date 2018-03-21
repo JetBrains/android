@@ -15,30 +15,41 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.io.File;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ModuleDependency}.
  */
 public class ModuleDependencyTest {
+  @Mock private Module myModule;
+
+  @Before
+  public void setUp() {
+    initMocks(this);
+  }
+
   @Test
   public void constructorWithGradlePath() {
     String projectName = "module1";
     String gradlePath = "abc:xyz:" + projectName;
-    ModuleDependency dependency = new ModuleDependency(gradlePath, DependencyScope.TEST);
+    ModuleDependency dependency = new ModuleDependency(gradlePath, DependencyScope.TEST, myModule);
     assertEquals(gradlePath, dependency.getGradlePath());
     assertEquals(DependencyScope.TEST, dependency.getScope());
   }
 
   @Test
   public void setBackupDependency() {
-    ModuleDependency dependency = new ModuleDependency("abc:module1", DependencyScope.COMPILE);
+    ModuleDependency dependency = new ModuleDependency("abc:module1", DependencyScope.COMPILE, myModule);
     LibraryDependency backup = new LibraryDependency(new File("guava-11.0.2.jar"), "guava-11.0.2", DependencyScope.TEST);
     dependency.setBackupDependency(backup);
     assertSame(backup, dependency.getBackupDependency());
@@ -47,7 +58,7 @@ public class ModuleDependencyTest {
 
   @Test
   public void setScope() {
-    ModuleDependency dependency = new ModuleDependency("abc:module1", DependencyScope.COMPILE);
+    ModuleDependency dependency = new ModuleDependency("abc:module1", DependencyScope.COMPILE, myModule);
     LibraryDependency backup = new LibraryDependency(new File("guava-11.0.2.jar"), "guava-11.0.2", DependencyScope.COMPILE);
     dependency.setBackupDependency(backup);
     dependency.setScope(DependencyScope.TEST);

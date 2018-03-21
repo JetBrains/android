@@ -20,23 +20,24 @@ import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.adtui.model.AspectObserver;
-import com.intellij.util.ui.JBEmptyBorder;
-import icons.StudioIcons;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
+import com.android.tools.profilers.energy.EnergyProfilerStage;
+import com.android.tools.profilers.energy.EnergyProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -49,8 +50,8 @@ public class StudioProfilersView extends AspectObserver {
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
   private StageView myStageView;
-  private BorderLayout myLayout;
-  private JPanel myComponent;
+  private final BorderLayout myLayout;
+  private final JPanel myComponent;
   private JPanel myStageToolbar;
   private JPanel myMonitoringToolbar;
   private JPanel myCommonToolbar;
@@ -63,6 +64,9 @@ public class StudioProfilersView extends AspectObserver {
     myProfiler = profiler;
     myIdeProfilerComponents = ideProfilerComponents;
     myStageView = null;
+    myLayout = new BorderLayout();
+    myComponent = new JPanel(myLayout);
+
     initializeUi();
 
     myBinder = new ViewBinder<>();
@@ -71,6 +75,7 @@ public class StudioProfilersView extends AspectObserver {
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
+    myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
 
     myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
     updateStageView();
@@ -88,10 +93,7 @@ public class StudioProfilersView extends AspectObserver {
   }
 
   private void initializeUi() {
-    myLayout = new BorderLayout();
-    myComponent = new JPanel(myLayout);
-
-    JComboBox<Profiler.Device> deviceCombo = new FlatComboBox<>();
+    JComboBox<Common.Device> deviceCombo = new FlatComboBox<>();
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
                                                 myProfiler::getDevice,
@@ -101,7 +103,7 @@ public class StudioProfilersView extends AspectObserver {
     devices.bind();
     deviceCombo.setRenderer(new DeviceComboBoxRenderer());
 
-    JComboBox<Profiler.Process> processCombo = new FlatComboBox<>();
+    JComboBox<Common.Process> processCombo = new FlatComboBox<>();
     JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,
@@ -119,11 +121,11 @@ public class StudioProfilersView extends AspectObserver {
     // There is a border of 5 pixels that is not scaled.
     toolbar.setPreferredSize(new Dimension(15, JBUI.scale(25) + 5));
 
-    myMonitoringToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    myMonitoringToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myMonitoringToolbar.add(deviceCombo);
     myMonitoringToolbar.add(processCombo);
 
-    myCommonToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     JButton button = new FlatButton(StudioIcons.Common.BACK_ARROW);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
@@ -150,15 +152,16 @@ public class StudioProfilersView extends AspectObserver {
     leftToolbar.add(myCommonToolbar);
     toolbar.add(leftToolbar, BorderLayout.WEST);
 
-    JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    JPanel rightToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     toolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    FlatButton close = new FlatButton(AllIcons.Actions.Cancel);
-    close.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Cancel));
-    close.addActionListener(event -> myProfiler.stop());
-    close.setToolTipText("Close");
-    rightToolbar.add(close);
+    FlatButton endSession = new FlatButton("End Session");
+    endSession.setFont(endSession.getFont().deriveFont(12.f));
+    endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
+    endSession.addActionListener(event -> myProfiler.stop());
+    endSession.setToolTipText("Stop profiling and close tab");
+    rightToolbar.add(endSession);
 
     rightToolbar.add(new FlatSeparator());
 
@@ -255,13 +258,13 @@ public class StudioProfilersView extends AspectObserver {
   }
 
   @VisibleForTesting
-  public static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Profiler.Device> {
+  public static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Common.Device> {
 
     @NotNull
     private final String myEmptyText = "No connected devices";
 
     @Override
-    protected void customizeCellRenderer(@NotNull JList list, Profiler.Device value, int index,
+    protected void customizeCellRenderer(@NotNull JList list, Common.Device value, int index,
                                          boolean selected, boolean hasFocus) {
       if (value != null) {
         renderDeviceName(value);
@@ -271,7 +274,7 @@ public class StudioProfilersView extends AspectObserver {
       }
     }
 
-    public void renderDeviceName(@NotNull Profiler.Device d) {
+    public void renderDeviceName(@NotNull Common.Device d) {
       // TODO: Share code between here and DeviceRenderer#renderDeviceName
       String manufacturer = d.getManufacturer();
       String model = d.getModel();
@@ -286,8 +289,8 @@ public class StudioProfilersView extends AspectObserver {
       append(model, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       append(String.format(" (%1$s)", serial), SimpleTextAttributes.GRAY_ATTRIBUTES);
 
-      Profiler.Device.State state = d.getState();
-      if (state != Profiler.Device.State.ONLINE && state != Profiler.Device.State.UNSPECIFIED) {
+      Common.Device.State state = d.getState();
+      if (state != Common.Device.State.ONLINE && state != Common.Device.State.UNSPECIFIED) {
         append(String.format(" [%s]", state), SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
       }
     }
@@ -300,13 +303,13 @@ public class StudioProfilersView extends AspectObserver {
   }
 
   @VisibleForTesting
-  public static class ProcessComboBoxRenderer extends ColoredListCellRenderer<Profiler.Process> {
+  public static class ProcessComboBoxRenderer extends ColoredListCellRenderer<Common.Process> {
 
     @NotNull
     private final String myEmptyText = "No debuggable processes";
 
     @Override
-    protected void customizeCellRenderer(@NotNull JList list, Profiler.Process value, int index,
+    protected void customizeCellRenderer(@NotNull JList list, Common.Process value, int index,
                                          boolean selected, boolean hasFocus) {
       if (value != null) {
         renderProcessName(value);
@@ -316,7 +319,7 @@ public class StudioProfilersView extends AspectObserver {
       }
     }
 
-    private void renderProcessName(@NotNull Profiler.Process process) {
+    private void renderProcessName(@NotNull Common.Process process) {
       // TODO: Share code between here and ClientCellRenderer#renderClient
       String name = process.getName();
       // Highlight the last part of the process name.
@@ -326,7 +329,7 @@ public class StudioProfilersView extends AspectObserver {
 
       append(String.format(" (%1$d)", process.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
 
-      if (process.getState() != Profiler.Process.State.ALIVE) {
+      if (process.getState() != Common.Process.State.ALIVE) {
         append(" [DEAD]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
       }
     }
@@ -344,7 +347,8 @@ public class StudioProfilersView extends AspectObserver {
     private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
       CpuProfilerStage.class, "CPU",
       MemoryProfilerStage.class, "MEMORY",
-      NetworkProfilerStage.class, "NETWORK");
+      NetworkProfilerStage.class, "NETWORK",
+      EnergyProfilerStage.class, "ENERGY");
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, Class value, int index, boolean selected, boolean hasFocus) {

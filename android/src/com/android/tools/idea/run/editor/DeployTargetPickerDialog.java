@@ -18,9 +18,12 @@ package com.android.tools.idea.run.editor;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.concurrent.EdtExecutor;
+import com.android.tools.idea.adb.AdbService;
+import com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -31,11 +34,14 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.AdbAssistantStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTabbedPane;
@@ -51,28 +57,23 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-public class DeployTargetPickerDialog extends DialogWrapper {
+public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandler {
   private static final int DEVICE_TAB_INDEX = 0;
-  private static final int CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX = 1;
+  private static final int FIRST_CUSTOM_DEPLOY_TARGET_INDEX = 1;
 
   private final int myContextId;
   @NotNull private final AndroidFacet myFacet;
 
-  @Nullable private final DeployTargetProvider<DeployTargetState> myDeployTargetProvider;
-  @Nullable private final DeployTargetState myDeployTargetState;
-  @Nullable private final DeployTargetConfigurable<DeployTargetState> myDeployTargetConfigurable;
+  private final List<DeployTargetInfo> myDeployTargetInfos;
 
   private final DevicePicker myDevicePicker;
   private final ListenableFuture<AndroidDebugBridge> myAdbFuture;
 
   private JPanel myContentPane;
   private JBTabbedPane myTabbedPane;
-  private JPanel myCloudTargetsPanel;
   private JPanel myDevicesPanel;
   private DeployTarget myDeployTarget;
   private List<AndroidDevice> mySelectedDevices;
@@ -85,25 +86,11 @@ public class DeployTargetPickerDialog extends DialogWrapper {
                                   @NotNull LaunchCompatibilityChecker compatibilityChecker) {
     super(facet.getModule().getProject(), true);
 
-    // TODO: Eventually we may support more than 1 custom run provider. In such a case, there should be
-    // a combo to pick one of the cloud providers.
-    if (deployTargetProviders.size() > 1) {
-      throw new IllegalArgumentException("Only 1 custom run profile state provider can be displayed right now..");
-    }
-
     myFacet = facet;
     myContextId = runContextId;
-    if (!deployTargetProviders.isEmpty()) {
-      myDeployTargetProvider = deployTargetProviders.get(0);
-      myDeployTargetState = deployTargetStates.get(myDeployTargetProvider.getId());
-    }
-    else {
-      myDeployTargetProvider = null;
-      myDeployTargetState = null;
-    }
 
     // Tab 1
-    myDevicePicker = new DevicePicker(getDisposable(), runContextId, facet, deviceCount, compatibilityChecker);
+    myDevicePicker = new DevicePicker(getDisposable(), runContextId, facet, deviceCount, compatibilityChecker, this);
     myDevicesPanel.add(myDevicePicker.getComponent(), BorderLayout.CENTER);
     myDevicesPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
     myDevicePicker.installDoubleClickListener(new DoubleClickListener() {
@@ -118,18 +105,22 @@ public class DeployTargetPickerDialog extends DialogWrapper {
       }
     });
 
-    // Tab 2
-    if (!deployTargetProviders.isEmpty() && myDeployTargetProvider != null) {
-      Module module = facet.getModule();
-      myDeployTargetConfigurable = myDeployTargetProvider.createConfigurable(module.getProject(), getDisposable(), new Context(module));
-      JComponent component = myDeployTargetConfigurable.createComponent();
-      if (component != null) {
-        myCloudTargetsPanel.add(component, BorderLayout.CENTER);
+    // Extra tabs
+    Module module = facet.getModule();
+    myDeployTargetInfos = new ArrayList<>(deployTargetProviders.size());
+    for (DeployTargetProvider<DeployTargetState> provider : deployTargetProviders) {
+      DeployTargetState state = deployTargetStates.get(provider.getId());
+      if (state == null) {
+        continue;
       }
-      myDeployTargetConfigurable.resetFrom(myDeployTargetState, myContextId);
-    }
-    else {
-      myDeployTargetConfigurable = null;
+      DeployTargetConfigurable<DeployTargetState> configurable =
+        provider.createConfigurable(module.getProject(), getDisposable(), new Context(module));
+      myDeployTargetInfos.add(new DeployTargetInfo(provider, state, configurable));
+      JComponent component = configurable.createComponent();
+      if (component != null) {
+        myTabbedPane.add(component);
+      }
+      configurable.resetFrom(state, myContextId);
     }
 
     File adb = AndroidSdkUtils.getAdb(myFacet.getModule().getProject());
@@ -138,11 +129,9 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     }
     myAdbFuture = AdbService.getInstance().getDebugBridge(adb);
 
-    // do not offer option to "use same selection" if Instant Run is enabled since we automatically
-    if (!InstantRunSettings.isInstantRunEnabled()) {
-      DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
-      setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
-    }
+    DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
+    setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
+
     setTitle("Select Deployment Target");
     setModal(true);
     init();
@@ -152,7 +141,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), getDisposable());
-    loadingPanel.add(myDeployTargetProvider == null ? myDevicesPanel : myContentPane);
+    loadingPanel.add(myDeployTargetInfos.isEmpty() ? myDevicesPanel : myContentPane);
 
     loadingPanel.setLoadingText("Initializing ADB");
 
@@ -192,17 +181,17 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    if (myTabbedPane.getSelectedIndex() == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX &&
-        myDeployTargetConfigurable != null &&
-        myDeployTargetState != null) {
-      myDeployTargetConfigurable.applyTo(myDeployTargetState, myContextId);
-      List<ValidationError> errors = myDeployTargetState.validate(myFacet);
+    int selectedIndex = myTabbedPane.getSelectedIndex();
+    if (isDeviceTab(selectedIndex)) {
+      return myDevicePicker.validate();
+    }
+    else if (isCustomDeployTargetTab(selectedIndex)) {
+      DeployTargetInfo info = myDeployTargetInfos.get(selectedIndex - FIRST_CUSTOM_DEPLOY_TARGET_INDEX);
+      info.myConfigurable.applyTo(info.myState, myContextId);
+      List<ValidationError> errors = info.myState.validate(myFacet);
       if (!errors.isEmpty()) {
         return new ValidationInfo(errors.get(0).getMessage(), null);
       }
-    }
-    else {
-      return myDevicePicker.validate();
     }
 
     return super.doValidate();
@@ -217,7 +206,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Override
   protected void doOKAction() {
     int selectedIndex = myTabbedPane.getSelectedIndex();
-    if (selectedIndex == DEVICE_TAB_INDEX) {
+    if (isDeviceTab(selectedIndex)) {
       mySelectedDevices = myDevicePicker.getSelectedDevices();
       if (canLaunchDevices(mySelectedDevices)) {
         myDeployTarget = new RealizedDeployTarget(null, null, launchDevices(mySelectedDevices));
@@ -227,17 +216,40 @@ public class DeployTargetPickerDialog extends DialogWrapper {
         return;
       }
     }
-    else if (selectedIndex == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX) {
+    else if (isCustomDeployTargetTab(selectedIndex)) {
+      DeployTargetInfo info = myDeployTargetInfos.get(selectedIndex - FIRST_CUSTOM_DEPLOY_TARGET_INDEX);
       mySelectedDevices = Collections.emptyList();
-      myDeployTarget = new RealizedDeployTarget(myDeployTargetProvider, myDeployTargetState, null);
+      myDeployTarget = new RealizedDeployTarget(info.myProvider, info.myState, null);
     }
 
     super.doOKAction();
   }
 
+  @Nullable
+  @Override
+  protected String getHelpId() {
+    return "android.deploy.target.picker";
+  }
+
   @Override
   protected void doHelpAction() {
-    myDevicePicker.launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE);
+    launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE);
+  }
+
+  @Override
+  public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
+    UsageTracker.getInstance().log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
+        .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));
+    if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
+      OpenAssistSidePanelAction action = new OpenAssistSidePanelAction();
+      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, myFacet.getModule().getProject());
+      doCancelAction(); // need to close the dialog for tool window to show
+    }
+    else {
+      BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
+    }
   }
 
   /**
@@ -334,6 +346,28 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @NotNull
   public List<AndroidDevice> getSelectedDevices() {
     return mySelectedDevices;
+  }
+
+  private boolean isDeviceTab(int index) {
+    return myDeployTargetInfos.isEmpty() || index == DEVICE_TAB_INDEX;
+  }
+
+  private boolean isCustomDeployTargetTab(int index) {
+    return index >= FIRST_CUSTOM_DEPLOY_TARGET_INDEX && index - FIRST_CUSTOM_DEPLOY_TARGET_INDEX < myDeployTargetInfos.size();
+  }
+
+  private static class DeployTargetInfo {
+    @NotNull public final DeployTargetProvider<DeployTargetState> myProvider;
+    @NotNull public final DeployTargetState myState;
+    @NotNull public final DeployTargetConfigurable<DeployTargetState> myConfigurable;
+
+    public DeployTargetInfo(@NotNull DeployTargetProvider<DeployTargetState> provider,
+                            @NotNull DeployTargetState state,
+                            @NotNull DeployTargetConfigurable<DeployTargetState> configurable) {
+      myProvider = provider;
+      myState = state;
+      myConfigurable = configurable;
+    }
   }
 
   private static final class Context implements DeployTargetConfigurableContext {

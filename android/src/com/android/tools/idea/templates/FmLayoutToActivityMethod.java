@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
-import static com.android.tools.idea.wizard.template.TemplateWizardState.ACTIVITY_NAME_SUFFIX;
-import static com.android.tools.idea.wizard.template.TemplateWizardState.LAYOUT_NAME_PREFIX;
-
+import com.android.tools.idea.templates.AssetNameConverter.Type;
 import freemarker.template.*;
 
 import java.util.List;
@@ -34,22 +32,6 @@ public class FmLayoutToActivityMethod implements TemplateMethodModelEx {
     }
 
     String name = ((TemplateScalarModel)args.get(0)).getAsString();
-
-    // Strip off the beginning portion of the layout name. The user might be typing
-    // the activity name such that only a portion has been entered so far (e.g.
-    // "MainActivi") and we want to chop off that portion too such that we don't
-    // offer a layout name partially containing the activity suffix (e.g. "main_activi").
-    if (name.startsWith(LAYOUT_NAME_PREFIX)) {
-      name = name.substring(LAYOUT_NAME_PREFIX.length());
-    }
-
-    name = TemplateUtils.underlinesToCamelCase(name);
-    String className = TemplateUtils.extractClassName(name);
-    if (className == null) {
-      className = "Main";
-    }
-    String activityName = className + ACTIVITY_NAME_SUFFIX;
-
-    return new SimpleScalar(activityName);
+    return new SimpleScalar(new AssetNameConverter(Type.LAYOUT, name).getValue(Type.ACTIVITY));
   }
 }

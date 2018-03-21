@@ -40,6 +40,11 @@ public class FlatSeparator extends JComponent {
   }
 
   @Override
+  public Dimension getMinimumSize() {
+    return mySize;
+  }
+
+  @Override
   protected void paintComponent(final Graphics g) {
     final Insets i = getInsets();
     if (UIUtil.isUnderAquaBasedLookAndFeel() || UIUtil.isUnderDarcula()) {

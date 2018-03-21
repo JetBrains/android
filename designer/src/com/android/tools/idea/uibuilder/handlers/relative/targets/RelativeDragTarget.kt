@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
@@ -41,7 +42,7 @@ class RelativeDragTarget : DragBaseTarget() {
    */
   private fun updateMarginOnX(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int) {
     val parent = myComponent.parent!!
-    if (myComponent.centerX < parent.drawX + parent.drawWidth / 2) {
+    if (myComponent.drawX + myComponent.drawWidth / 2 < parent.drawX + parent.drawWidth / 2) {
       // near to left side
       attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START, "true")
       attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_START,
@@ -61,7 +62,7 @@ class RelativeDragTarget : DragBaseTarget() {
    */
   private fun updateMarginOnY(attributes: AttributesTransaction, @AndroidDpCoordinate y: Int) {
     val parent = myComponent.parent!!
-    if (myComponent.centerY < parent.drawY + parent.drawHeight / 2) {
+    if (myComponent.drawY + myComponent.drawHeight / 2 < parent.drawY + parent.drawHeight / 2) {
       // near to top side
       attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP, "true")
       attributes.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
@@ -83,16 +84,20 @@ class RelativeDragTarget : DragBaseTarget() {
     // Need to call this to update the targetsProvider when moving from one layout to another during a drag
     // but we should have a better scenario to recreate the targets
     (parent.scene.sceneManager as LayoutlibSceneManager).addTargets(myComponent)
-    parent.updateTargets(true)
+    parent.updateTargets()
 
     super.mouseDown(x, y)
-    myComponent.setModelUpdateAuthorized(false)
+    myComponent.setModelUpdateAuthorized(true)
   }
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>?) {
     myComponent.isDragging = true
     trySnap(x, y)
     myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
+
+    val attributes = myComponent.authoritativeNlComponent.startAttributeTransaction()
+    updateAttributes(attributes, mySnappedPoint.x, mySnappedPoint.y)
+    attributes.apply()
 
     myTargetX?.myIsHighlight = false
     myTargetX = targetNotchSnapper.snappedNotchX?.target as BaseRelativeTarget?
@@ -116,7 +121,6 @@ class RelativeDragTarget : DragBaseTarget() {
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
     if (!myComponent.isDragging) return
-
     myComponent.isDragging = false
 
     if (myComponent.parent != null) {
@@ -133,12 +137,31 @@ class RelativeDragTarget : DragBaseTarget() {
       }
     }
 
-    myComponent.setModelUpdateAuthorized(true)
-    myComponent.updateTargets(false)
+    myComponent.updateTargets()
 
     myTargetX?.myIsHighlight = false
     myTargetY?.myIsHighlight = false
 
+    if (myChangedComponent) {
+      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+    }
+  }
+
+  fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, component: NlComponent) {
+    myComponent.isDragging = false
+    if (myComponent.parent != null) {
+      val attributes = component.startAttributeTransaction()
+      trySnap(x, y)
+      myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
+      myComponent.setPosition(mySnappedPoint.x, mySnappedPoint.y, false)
+
+      updateAttributes(attributes, mySnappedPoint.x, mySnappedPoint.y)
+      attributes.apply()
+
+      if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
+        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+      }
+    }
     if (myChangedComponent) {
       myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
     }

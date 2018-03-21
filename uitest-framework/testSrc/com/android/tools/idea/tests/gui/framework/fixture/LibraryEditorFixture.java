@@ -93,13 +93,6 @@ public class LibraryEditorFixture extends EditorFixture {
       .until(() -> getApplyChangesLabel(robot, libraryContainer) != null);
 
     new HyperlinkLabelFixture(robot, getApplyChangesLabel(robot, libraryContainer)).clickLink("Apply Changes");
-    Wait.seconds(5)
-      .expecting("path mappings to be performed")
-      .until(() -> {
-        String expectedLabel = "All debug symbol paths are mapped to local paths.";
-        JLabel label = getPathMappingsLabel(robot, libraryContainer);
-        return label != null && label.getText().equals(expectedLabel);
-      });
     return this;
   }
 

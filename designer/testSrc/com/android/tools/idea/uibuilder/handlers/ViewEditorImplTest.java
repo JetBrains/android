@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.intellij.psi.PsiClass;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -57,7 +56,20 @@ public class ViewEditorImplTest extends AndroidTestCase {
       "}";
 
     @Language("JAVA")
-    String hiddenText =
+    String protectedView =
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.content.Context;\n" +
+      "import android.widget.ImageView;\n" +
+      "\n" +
+      "class ProtectedImageView extends ImageView {\n" +
+      "    public ProtectedImageView(Context context) {\n" +
+      "        super(context);\n" +
+      "    }\n" +
+      "}";
+
+    @Language("JAVA")
+    String restrictedView =
       "package p1.p2;\n" +
       "\n" +
       "import android.content.Context;\n" +
@@ -72,7 +84,7 @@ public class ViewEditorImplTest extends AndroidTestCase {
       "}";
 
     @Language("JAVA")
-    String visibleText =
+    String view =
       "package p1.p2;\n" +
       "\n" +
       "import android.content.Context;\n" +
@@ -85,9 +97,8 @@ public class ViewEditorImplTest extends AndroidTestCase {
       "}";
 
     myFixture.addClass(restrictText);
-    PsiClass hiddenClass = myFixture.addClass(hiddenText);
-    PsiClass visibleClass = myFixture.addClass(visibleText);
-    assertTrue(ViewEditorImpl.isRestricted(hiddenClass));
-    assertFalse(ViewEditorImpl.isRestricted(visibleClass));
+    assertFalse(ViewEditorImpl.isPublicAndUnRestricted(myFixture.addClass(protectedView)));
+    assertFalse(ViewEditorImpl.isPublicAndUnRestricted(myFixture.addClass(restrictedView)));
+    assertTrue(ViewEditorImpl.isPublicAndUnRestricted(myFixture.addClass(view)));
   }
 }

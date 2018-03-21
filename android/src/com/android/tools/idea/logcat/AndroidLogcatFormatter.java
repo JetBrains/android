@@ -20,7 +20,6 @@ import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatTimestamp;
-import com.google.common.base.Strings;
 import com.intellij.diagnostic.logging.DefaultLogFormatter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +38,7 @@ import java.util.regex.Pattern;
  * {@link #createCustomFormat(boolean, boolean, boolean, boolean)}) to hide parts of the header.
  */
 public final class AndroidLogcatFormatter extends DefaultLogFormatter {
+  private static final CharSequence CONTINUATION_INDENT = "    ";
   private final AndroidLogcatPreferences myPreferences;
 
   public AndroidLogcatFormatter(@NotNull AndroidLogcatPreferences preferences) {
@@ -62,9 +62,6 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   @NonNls private static final Pattern CONTINUATION_PATTERN = Pattern.compile("^\\+ (.*)$");
 
   private static final String FULL_FORMAT = createCustomFormat(true, true, true, true);
-
-  // Remember the length of the last header, which we will use to indent any continuation lines
-  private int myLastHeaderLength = 0;
 
   /**
    * Given data parsed from a line of logcat, return a final, formatted string that represents a
@@ -104,7 +101,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     }
     if (showPid) {
       // Slightly different formatting if we show BOTH PID and package instead of one or the other
-      builder.append("%2$s").append(showPackage?'/':' ');
+      builder.append("%2$s").append(showPackage ? '/' : ' ');
     }
     if (showPackage) {
       builder.append("%3$s ");
@@ -114,7 +111,8 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
       builder.append("/%5$s");
     }
     builder.append(": %6$s");
-    return builder.toString();  }
+    return builder.toString();
+  }
 
   /**
    * Helper method useful for previewing what final output will look like given a custom formatter.
@@ -207,7 +205,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     // If the prefix is set, it contains log lines which were initially skipped over by our
     // filter but were belatedly accepted later.
     String[] lines = prefix.split("\n");
-    StringBuilder sb = new StringBuilder(prefix.length() + (lines.length - 1) * myLastHeaderLength); // Extra space for indents
+    StringBuilder sb = new StringBuilder(prefix.length() + (lines.length - 1) * CONTINUATION_INDENT.length());
     for (String line : lines) {
       sb.append(formatMessage(line));
       sb.append('\n');
@@ -220,14 +218,12 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   public String formatMessage(String msg) {
     String continuation = tryParseContinuation(msg);
     if (continuation != null) {
-      return Strings.repeat(" ", myLastHeaderLength) + continuation;
+      return CONTINUATION_INDENT + continuation;
     }
     else {
       LogCatMessage message = tryParseMessage(msg);
       if (message != null) {
-        String formatted = formatMessage(myPreferences.LOGCAT_FORMAT_STRING, msg);
-        myLastHeaderLength = formatted.indexOf(message.getMessage());
-        return formatted;
+        return formatMessage(myPreferences.LOGCAT_FORMAT_STRING, msg);
       }
     }
 

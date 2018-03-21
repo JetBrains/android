@@ -27,6 +27,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.util.Pair;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -39,7 +40,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidUtils;
@@ -288,7 +288,7 @@ public class AppResourceRepository extends MultiResourceRepository {
         }
       }
     }
-    catch (UnsupportedMethodException e) {
+    catch (UnsupportedOperationException e) {
       // This happens when there is an incompatibility between the builder-model interfaces embedded in Android Studio and the
       // cached model.
       // If we got here is because this code got invoked before project sync happened (e.g. when reopening a project with open editors).
@@ -348,7 +348,7 @@ public class AppResourceRepository extends MultiResourceRepository {
       }
       for (FileResourceRepository library : myLibraries) {
         if (library.getAllDeclaredIds() != null) {
-          myIds.addAll(library.getAllDeclaredIds());
+          myIds.addAll(library.getAllDeclaredIds().keySet());
         }
       }
       // Also add all ids from resource types, just in case it contains things that are not in the libraries.
@@ -431,7 +431,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // we're rendering in a library module, and Gradle sync has mapped an
     // AAR library to an existing library definition in the main module. In
     // that case we need to find the corresponding resources there.
-    int exploded = aarPath.indexOf(AndroidModuleModel.EXPLODED_AAR);
+    int exploded = aarPath.indexOf(FilenameConstants.EXPLODED_AAR);
     if (exploded != -1) {
       String suffix = aarPath.substring(exploded) + File.separator + FD_RES;
       for (LocalResourceRepository r : myLibraries) {

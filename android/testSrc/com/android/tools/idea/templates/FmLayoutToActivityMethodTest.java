@@ -32,35 +32,35 @@ public class FmLayoutToActivityMethodTest extends TestCase {
     assertEquals(expected, ((SimpleScalar)method.exec(list)).getAsString());
   }
 
-  public void test1() throws Exception {
+  public void testConvertWithoutPrefix() throws Exception {
     check("foo", "FooActivity");
   }
 
-  public void test2() throws Exception {
+  public void testConvertWithPrefix() throws Exception {
     check("activity_foo", "FooActivity");
   }
 
-  public void test3() throws Exception {
+  public void testConvertPrefixOnly() throws Exception {
     check("activity_", "MainActivity");
   }
 
-  public void test4() throws Exception {
+  public void testConvertNameIsSubsetOfActivity() throws Exception {
     check("activ", "ActivActivity");
   }
 
-  public void test5() throws Exception {
+  public void testConvertEmptyString() throws Exception {
     check("", "MainActivity");
   }
 
-  public void test7() throws Exception {
+  public void testConvertWithTrailingDigit() throws Exception {
     check("activity_foo2", "Foo2Activity");
   }
 
-  public void test8() throws Exception {
+  public void testConvertWithTrailingDigits() throws Exception {
     check("activity_foo200", "Foo200Activity");
   }
 
-  public void test9() throws Exception {
+  public void testConvertWithOnlyDigits() throws Exception {
     check("activity_200", "MainActivity");
   }
 }

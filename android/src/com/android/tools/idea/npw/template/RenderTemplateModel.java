@@ -17,25 +17,31 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.ide.scratch.ScratchFileService;
+import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.PlainTextLanguage;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,12 +62,13 @@ public final class RenderTemplateModel extends WizardModel {
 
   @NotNull private final String myCommandName;
   @NotNull private final OptionalProperty<Project> myProject;
-  @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
+  @NotNull private final ObjectProperty<NamedModuleTemplate> myTemplates;
   @NotNull private final ObjectProperty<Language> myLanguageSet;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
   @NotNull private final BoolProperty myInstantApp;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
+  @Nullable private final Module myModule;
   private final boolean myIsNewProject;
 
   /**
@@ -70,33 +77,35 @@ public final class RenderTemplateModel extends WizardModel {
    */
   @Nullable private TemplateHandle myTemplateHandle;
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
-  @Nullable private AndroidIconGenerator myIconGenerator;
+  @Nullable private IconGenerator myIconGenerator;
 
-  public RenderTemplateModel(@NotNull Project project,
+  public RenderTemplateModel(@NotNull Module module,
                              @Nullable TemplateHandle templateHandle,
                              @NotNull String initialPackageSuggestion,
-                             @NotNull AndroidSourceSet sourceSet,
+                             @NotNull NamedModuleTemplate template,
                              @NotNull String commandName) {
-    myProject = new OptionalValueProperty<>(project);
+    myProject = new OptionalValueProperty<>(module.getProject());
+    myModule = module;
     myInstantApp = new BoolValueProperty(false);
     myPackageName = new StringValueProperty(initialPackageSuggestion);
-    mySourceSet = new ObjectValueProperty<>(sourceSet);
+    myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
     myMultiTemplateRenderer = new MultiTemplateRenderer();
-    myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(project));
+    myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(module.getProject()));
     myIsNewProject = myProject.getValueOrNull() == null;
     init();
   }
 
   public RenderTemplateModel(@NotNull NewModuleModel moduleModel,
                              @Nullable TemplateHandle templateHandle,
-                             @NotNull AndroidSourceSet sourceSet,
+                             @NotNull NamedModuleTemplate template,
                              @NotNull String commandName) {
     myProject = moduleModel.getProject();
+    myModule = null;
     myInstantApp = moduleModel.instantApp();
     myPackageName = moduleModel.packageName();
-    mySourceSet = new ObjectValueProperty<>(sourceSet);
+    myTemplates = new ObjectValueProperty<>(template);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
     myMultiTemplateRenderer = moduleModel.getMultiTemplateRenderer();
@@ -124,8 +133,8 @@ public final class RenderTemplateModel extends WizardModel {
    * paths the template's output will be rendered into).
    */
   @NotNull
-  public ObjectProperty<AndroidSourceSet> getSourceSet() {
-    return mySourceSet;
+  public ObjectProperty<NamedModuleTemplate> getTemplate() {
+    return myTemplates;
   }
 
   @NotNull
@@ -167,7 +176,7 @@ public final class RenderTemplateModel extends WizardModel {
   /**
    * If this template should also generate icon assets, set an icon generator.
    */
-  public void setIconGenerator(@NotNull AndroidIconGenerator iconGenerator) {
+  public void setIconGenerator(@NotNull IconGenerator iconGenerator) {
     myIconGenerator = iconGenerator;
   }
 
@@ -190,7 +199,7 @@ public final class RenderTemplateModel extends WizardModel {
         return false;
       }
 
-      AndroidProjectPaths paths = mySourceSet.get().getPaths();
+      AndroidModuleTemplate paths = myTemplates.get().getPaths();
       final Project project = myProject.getValue();
 
       return renderTemplate(true, project, paths, null, null);
@@ -198,7 +207,7 @@ public final class RenderTemplateModel extends WizardModel {
 
     @Override
     public void render() {
-      final AndroidProjectPaths paths = mySourceSet.get().getPaths();
+      final AndroidModuleTemplate paths = myTemplates.get().getPaths();
       final Project project = myProject.getValue();
       final List<File> filesToOpen = Lists.newArrayListWithExpectedSize(3);
       final List<File> filesToReformat = Lists.newArrayList();
@@ -208,7 +217,7 @@ public final class RenderTemplateModel extends WizardModel {
         protected void run(@NotNull Result<Boolean> result) throws Throwable {
           boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
           if (success && myIconGenerator != null) {
-            myIconGenerator.generateImageIconsIntoPath(paths);
+            myIconGenerator.generateIconsToDisk(paths);
           }
 
           result.setResult(success);
@@ -217,7 +226,7 @@ public final class RenderTemplateModel extends WizardModel {
 
       if (success) {
         if (isKotlinTemplate()) {
-          JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, myIsNewProject, () -> {
+          JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, () -> {
             // replace .java w/ .kt files
             for (int i = 0; i < filesToOpen.size(); i++) {
               File file = filesToOpen.get(i);
@@ -239,12 +248,12 @@ public final class RenderTemplateModel extends WizardModel {
     }
 
     private boolean isKotlinTemplate() {
-      return StudioFlags.NPW_KOTLIN.get() && (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false);
+      return (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false);
     }
 
     private boolean renderTemplate(boolean dryRun,
                                    @NotNull Project project,
-                                   @NotNull AndroidProjectPaths paths,
+                                   @NotNull AndroidModuleTemplate paths,
                                    @Nullable List<File> filesToOpen,
                                    @Nullable List<File> filesToReformat) {
       final Template template = myTemplateHandle.getTemplate();
@@ -253,12 +262,20 @@ public final class RenderTemplateModel extends WizardModel {
         return false;
       }
 
+      if (!dryRun && StudioFlags.NPW_DUMP_TEMPLATE_VARS.get() && filesToOpen != null) {
+        VirtualFile result = toScratchFile(project);
+        if (result != null) {
+          filesToOpen.add(VfsUtilCore.virtualToIoFile(result));
+        }
+      }
+
       // @formatter:off
     final RenderingContext context = RenderingContext.Builder.newContext(template, project)
       .withCommandName(myCommandName)
       .withDryRun(dryRun)
       .withShowErrors(true)
       .withModuleRoot(paths.getModuleRoot())
+      .withModule(myModule)
       .withParams(myTemplateValues)
       .intoOpenFiles(filesToOpen)
       .intoTargetFiles(filesToReformat)
@@ -266,6 +283,20 @@ public final class RenderTemplateModel extends WizardModel {
     // @formatter:on
       return template.render(context, dryRun);
     }
+  }
+
+  // For ease of debugging add a scratch file containing the template values.
+  private VirtualFile toScratchFile(@Nullable Project project) {
+    StringBuilder templateVars = new StringBuilder();
+    String lineSeparator = System.lineSeparator();
+    for (Map.Entry<String, Object> entry : myTemplateValues.entrySet()) {
+      templateVars.append(entry.getKey())
+        .append("=").append(entry.getValue())
+        .append(lineSeparator);
+    }
+    return ScratchRootType.getInstance()
+      .createScratchFile(project, "templateVars.txt", PlainTextLanguage.INSTANCE,
+                         templateVars.toString(), ScratchFileService.Option.create_new_always);
   }
 
   /**

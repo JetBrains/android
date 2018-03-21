@@ -207,19 +207,28 @@ class Return {
 /** Test lambdas. */
 class Lambdas {
   void f(Object o) {}
+
   void g() {
     Consumer<Object> r = this::f;
     r.accept(null);
   }
+
   void h() {
     Runnable r = () -> { f(); g(); };
     r.run();
   }
+
   void i() {
     Runnable r = new Runnable() {
       @Override
       public void run() { f(); }
     };
+    r.run();
+  }
+
+  void j() {
+    Runnable captured = () -> f(null);
+    Runnable r = () -> captured.run();
     r.run();
   }
 }
@@ -280,4 +289,15 @@ class Contextual {
       public void run() { f(); }
     });
   }
+
+  // Test lambda captures.
+  void runWrapped(Runnable captured) { run(() -> captured.run()); }
+  void d() { runWrapped(() -> f()); }
+  void runWrappedMulti(MultiArg it, Runnable r) { run(() -> it.run(r)); }
+  void e() { runWrappedMulti(new MultiArgA(), this::f); }
+  void h() { runWrappedMulti(new MultiArgB(), this::g); }
+
+  // Test that recursive lambda specialization is properly limited. (If not, the analysis will never finish.)
+  void recursiveCapture(Runnable r) { recursiveCapture(() -> r.run()); }
+  void runRecursiveCapture() { recursiveCapture(() -> f()); }
 }

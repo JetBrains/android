@@ -18,14 +18,14 @@ package com.android.tools.idea.uibuilder.error;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.utils.HtmlBuilder;
-import com.android.utils.Pair;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,15 +36,19 @@ import javax.swing.text.StyleConstants;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 
 /**
  * Representation of a {@link NlIssue} in the {@link IssuePanel}
  */
+@SuppressWarnings("unused") // Fields are used in the design form
 public class IssueView extends JPanel {
 
   private static final Dimension COLLAPSED_ROW_SIZE = JBUI.size(Integer.MAX_VALUE, 30);
   private static final String SUGGESTED_FIXES = "Suggested Fixes";
-  private static final RoundedLineBorder SELECTED_BORDER = IdeBorderFactory.createRoundedBorder(1);
+  private static final int BORDER_THICKNESS = 1;
+  private static final JBColor SELECTED_BG_COLOR = new JBColor(0xf2f2f2, 0x232425);
+  private static final RoundedLineBorder SELECTED_BORDER = IdeBorderFactory.createRoundedBorder(BORDER_THICKNESS);
   private static final Border UNSELECTED_BORDER = IdeBorderFactory.createEmptyBorder(SELECTED_BORDER.getThickness());
 
   static {
@@ -52,10 +56,9 @@ public class IssueView extends JPanel {
   }
 
   private final IssuePanel myContainerIssuePanel;
-  @SuppressWarnings("unused") private JPanel myContent;
+  private JPanel myContent;
   private JBLabel myExpandIcon;
   private JLabel myErrorIcon;
-  private JBLabel myCategoryLabel;
   private JLabel mySourceLabel;
   private JTextPane myErrorDescription;
   private JBLabel myErrorTitle;
@@ -88,7 +91,6 @@ public class IssueView extends JPanel {
     myErrorIcon.setIcon(getSeverityIcon(issue.getSeverity()));
     myExpandIcon.setIcon(UIUtil.getTreeCollapsedIcon());
     myErrorTitle.setText(issue.getSummary());
-    myCategoryLabel.setText(issue.getCategory());
     NlComponent source = issue.getSource();
     if (source != null) {
       String id = source.getId();
@@ -107,6 +109,9 @@ public class IssueView extends JPanel {
         mySuggestedFixLabel.setText(SUGGESTED_FIXES);
       }
     }
+    else {
+      myFixPanel.setVisible(false);
+    }
   }
 
   private void setupDescriptionPanel(@NotNull NlIssue issue) {
@@ -115,6 +120,7 @@ public class IssueView extends JPanel {
     myErrorDescription.setEditorKit(UIUtil.getHTMLEditorKit());
     myErrorDescription.addHyperlinkListener(issue.getHyperlinkListener());
     myErrorDescription.setText(formattedText);
+    myErrorDescription.setFont(UIUtil.getToolTipFont());
     myErrorDescription.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -140,8 +146,8 @@ public class IssueView extends JPanel {
     return myDisplayPriority;
   }
 
-  private void createFixEntry(Pair<String, Runnable> pair) {
-    myFixPanel.add(new FixEntry(pair.getFirst(), pair.getSecond()).getComponent());
+  private void createFixEntry(@NotNull NlIssue.Fix fix) {
+    myFixPanel.add(new FixEntry(fix.getDescription(), fix.getRunnable()));
   }
 
   @NotNull
@@ -166,6 +172,8 @@ public class IssueView extends JPanel {
     myIsExpanded = expanded;
     myDetailPanel.setVisible(myIsExpanded);
     myExpandIcon.setIcon(myIsExpanded ? UIUtil.getTreeExpandedIcon() : UIUtil.getTreeCollapsedIcon());
+    myContainerIssuePanel.revalidate();
+    myContainerIssuePanel.repaint();
   }
 
   /**
@@ -175,23 +183,19 @@ public class IssueView extends JPanel {
   public static Icon getSeverityIcon(@Nullable HighlightSeverity severity) {
     if (severity != null) {
       if (HighlightSeverity.ERROR.equals(severity)) {
-        return AndroidIcons.Issue.Error;
+        return StudioIcons.Common.ERROR;
       }
       else if (HighlightSeverity.WARNING.equals(severity)) {
-        return AndroidIcons.Issue.Warning;
+        return StudioIcons.Common.WARNING;
       }
     }
-    return AndroidIcons.Issue.Info;
+    return StudioIcons.Common.INFO;
   }
 
   void setSelected(boolean selected) {
     setOpaque(selected);
-    setBackground(selected ? UIUtil.getPanelBackground() : UIUtil.getEditorPaneBackground());
+    setBackground(selected ? SELECTED_BG_COLOR : UIUtil.getEditorPaneBackground());
     setFocused(myContainerIssuePanel.hasFocus() && selected);
-  }
-
-  int getCategoryLabelWidth() {
-    return myCategoryLabel.getFontMetrics(myCategoryLabel.getFont()).stringWidth(myCategoryLabel.getText());
   }
 
   int getSourceLabelWidth() {
@@ -210,20 +214,6 @@ public class IssueView extends JPanel {
     Dimension size = mySourceLabel.getPreferredSize();
     size.width = sourceLabelSize;
     mySourceLabel.setPreferredSize(size);
-  }
-
-  /**
-   * Set size of the category {@link JLabel}
-   *
-   * The method is used my the {@link IssuePanel} to ensure that every {@link IssueView}'s category
-   * label has the same size.
-   *
-   * @param categoryLabelSize
-   */
-  void setCategoryLabelSize(int categoryLabelSize) {
-    Dimension size = myCategoryLabel.getPreferredSize();
-    size.width = categoryLabelSize;
-    myCategoryLabel.setPreferredSize(size);
   }
 
   @VisibleForTesting
@@ -273,7 +263,25 @@ public class IssueView extends JPanel {
     setBorder(focused ? SELECTED_BORDER : UNSELECTED_BORDER);
   }
 
-  public static class FixEntry {
+  @VisibleForTesting
+  @NotNull
+  FixEntry[] getFixEntries() {
+    return Arrays.copyOf(myFixPanel.getComponents(), myFixPanel.getComponentCount(), FixEntry[].class);
+  }
+
+  /**
+   * Get the x coordinates of each columns of this view
+   *
+   * @return An array of the x coordinates for each columns
+   * from left to right
+   */
+  @NotNull
+  int[] getColumsX() {
+    return new int[]{myExpandIcon.getX(), mySourceLabel.getX()};
+  }
+
+  @SuppressWarnings("unused") // Used in the design form
+  public static class FixEntry extends JComponent {
     private JButton myFixButton;
     private JBLabel myFixText;
     private JComponent myComponent;
@@ -283,9 +291,8 @@ public class IssueView extends JPanel {
       myFixButton.addActionListener(e -> fixRunnable.run());
     }
 
-    @NotNull
-    public JComponent getComponent() {
-      return myComponent;
+    private void createUIComponents() {
+      myComponent = this;
     }
   }
 }

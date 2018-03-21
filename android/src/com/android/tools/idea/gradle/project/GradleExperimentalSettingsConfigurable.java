@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
@@ -32,11 +31,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   @NotNull private final GradleExperimentalSettings mySettings;
 
   private JPanel myPanel;
-  private JCheckBox myEnableModuleSelectionOnImportCheckBox;
   private JSpinner myModuleNumberSpinner;
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
-  private JCheckBox myUseNewProjectStructureCheckBox;
-  private JCheckBox myUseNewGradleSyncCheckBox;
   private JCheckBox myUseL2DependenciesCheckBox;
 
   public GradleExperimentalSettingsConfigurable() {
@@ -46,7 +42,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   @VisibleForTesting
   GradleExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings) {
     mySettings = settings;
-    myUseNewGradleSyncCheckBox.setVisible(NewGradleSync.isOptionVisible());
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
   }
@@ -83,10 +78,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public boolean isModified() {
-    if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
-        mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
-        mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG != isUseNewProjectStructureDialog() ||
-        mySettings.USE_NEW_GRADLE_SYNC != isUseNewGradleSync() ||
+    if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync()) {
       return true;
     }
@@ -96,11 +88,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public void apply() throws ConfigurationException {
-    mySettings.SELECT_MODULES_ON_PROJECT_IMPORT = isModuleSelectionOnImportEnabled();
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
-
-    mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG = isUseNewProjectStructureDialog();
-    mySettings.USE_NEW_GRADLE_SYNC = isUseNewGradleSync();
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
 
     Integer value = getMaxModuleCountForSourceGen();
@@ -122,16 +110,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   }
 
   @VisibleForTesting
-  boolean isModuleSelectionOnImportEnabled() {
-    return myEnableModuleSelectionOnImportCheckBox.isSelected();
-  }
-
-  @TestOnly
-  void setModuleSelectionOnImportEnabled(boolean value) {
-    myEnableModuleSelectionOnImportCheckBox.setSelected(value);
-  }
-
-  @VisibleForTesting
   boolean isSkipSourceGenOnSync() {
     return mySkipSourceGenOnSyncCheckbox.isSelected();
   }
@@ -139,26 +117,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   @TestOnly
   void setSkipSourceGenOnSync(boolean value) {
     mySkipSourceGenOnSyncCheckbox.setSelected(value);
-  }
-
-  @VisibleForTesting
-  boolean isUseNewProjectStructureDialog() {
-    return myUseNewProjectStructureCheckBox.isSelected();
-  }
-
-  @TestOnly
-  void setUseNewProjectStructure(boolean value) {
-    myUseNewProjectStructureCheckBox.setSelected(value);
-  }
-
-  @VisibleForTesting
-  boolean isUseNewGradleSync() {
-    return myUseNewGradleSyncCheckBox.isSelected();
-  }
-
-  @TestOnly
-  void setUseNewGradleSync(boolean value) {
-    myUseNewGradleSyncCheckBox.setSelected(value);
   }
 
   @VisibleForTesting
@@ -173,11 +131,8 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   @Override
   public void reset() {
-    myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
-    myUseNewProjectStructureCheckBox.setSelected(mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG);
-    myUseNewGradleSyncCheckBox.setSelected(mySettings.USE_NEW_GRADLE_SYNC);
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
   }
 

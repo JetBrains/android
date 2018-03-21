@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model.util;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.MavenRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
+import com.android.tools.idea.gradle.dsl.model.repositories.MavenRepositoryModelImpl;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
@@ -29,9 +29,7 @@ import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_URL;
-import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.addGoogleRepository;
-import static com.android.tools.idea.gradle.dsl.model.util.GoogleMavenRepository.hasGoogleMavenRepository;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static org.mockito.Mockito.spy;
@@ -66,7 +64,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     String text = "repositories {\n" +
                   "}";
     writeToBuildFile(text);
-    assertFalse(hasGoogleMavenRepository(getGradleBuildModel().repositories()));
+    assertFalse(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   public void testhasGoogleMavenRepositoryName3dot5() throws IOException {
@@ -75,7 +73,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("3.5"));
-    assertFalse(hasGoogleMavenRepository(getGradleBuildModel().repositories()));
+    assertFalse(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   public void testhasGoogleMavenRepositoryName4dot0() throws IOException {
@@ -84,7 +82,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("4.0"));
-    assertTrue(hasGoogleMavenRepository(getGradleBuildModel().repositories()));
+    assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   public void testhasGoogleMavenRepositoryUrl3dot5() throws IOException {
@@ -95,7 +93,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("3.5"));
-    assertTrue(hasGoogleMavenRepository(getGradleBuildModel().repositories()));
+    assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   public void testhasGoogleMavenRepositoryUrl4dot0() throws IOException {
@@ -106,7 +104,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
                   "}";
     writeToBuildFile(text);
     when(myGradleVersions.getGradleVersion(getProject())).thenReturn(GradleVersion.parse("4.0"));
-    assertTrue(hasGoogleMavenRepository(getGradleBuildModel().repositories()));
+    assertTrue(getGradleBuildModel().repositories().hasGoogleMavenRepository());
   }
 
   public void testAddGoogleRepositoryEmpty3dot5() throws IOException {
@@ -121,7 +119,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).isEmpty();
 
     // add repository
-    addGoogleRepository(repositoriesModel, project);
+    repositoriesModel.addGoogleMavenRepository(project);
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -130,7 +128,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     repositoriesModel = buildModel.repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
-    assertThat(repositories.get(0)).isInstanceOf(MavenRepositoryModel.class);
+    assertThat(repositories.get(0)).isInstanceOf(MavenRepositoryModelImpl.class);
   }
 
   public void testAddGoogleRepositoryEmpty4dot0() throws IOException {
@@ -145,7 +143,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).isEmpty();
 
     // add repository
-    addGoogleRepository(repositoriesModel, project);
+    repositoriesModel.addGoogleMavenRepository(project);
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -154,7 +152,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     repositoriesModel = buildModel.repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
-    assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
+    assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModelImpl.class);
   }
 
   public void testAddGoogleRepositoryWithUrlAlready() throws IOException {
@@ -171,7 +169,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).hasSize(1);
 
     // add repository
-    addGoogleRepository(repositoriesModel, project);
+    repositoriesModel.addGoogleMavenRepository(project);
 
     // Verify
     assertFalse(buildModel.isModified());
@@ -190,7 +188,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).hasSize(1);
 
     // add repository
-    addGoogleRepository(repositoriesModel, project);
+    repositoriesModel.addGoogleMavenRepository(project);
     assertTrue(buildModel.isModified());
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
@@ -199,8 +197,8 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     repositoriesModel = buildModel.repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(2);
-    assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModel.class);
-    assertThat(repositories.get(1)).isInstanceOf(MavenRepositoryModel.class);
+    assertThat(repositories.get(0)).isInstanceOf(GoogleDefaultRepositoryModelImpl.class);
+    assertThat(repositories.get(1)).isInstanceOf(MavenRepositoryModelImpl.class);
   }
 
   public void testAddGoogleRepositoryWithGoogleAlready4dot0() throws IOException {
@@ -216,7 +214,7 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     assertThat(repositoriesModel.repositories()).hasSize(1);
 
     // add repository
-    addGoogleRepository(repositoriesModel, project);
+    repositoriesModel.addGoogleMavenRepository(project);
 
     // Verify
     assertFalse(buildModel.isModified());

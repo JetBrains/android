@@ -28,8 +28,6 @@ import static org.junit.Assert.*;
 
 public class CpuUsageDataSeriesTest {
 
-  private static final int FAKE_PID = 42;
-
   private static final Range ANY_RANGE = new Range(0, 100);
 
   private final FakeCpuService myService = new FakeCpuService();
@@ -41,9 +39,9 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void thisProcessCpuUsage() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, FAKE_PID, ProfilersTestData.SESSION_DATA);
-    int systemTime = (int) (0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
-    int appTime = (int) (0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, ProfilersTestData.SESSION_DATA);
+    int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    int appTime = (int)(0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     myService.setAppTimeMs(appTime);
     List<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
@@ -52,8 +50,8 @@ public class CpuUsageDataSeriesTest {
     assertNotNull(appUsageData);
     assertEquals(40, (long)appUsageData.value); // 40% of total elapsed time
 
-    systemTime = (int) (0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
-    appTime = (int) (0.8 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    appTime = (int)(0.8 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     myService.setAppTimeMs(appTime);
     seriesData = mySeries.getDataForXRange(ANY_RANGE);
@@ -64,7 +62,7 @@ public class CpuUsageDataSeriesTest {
     // the system total usage.
     assertEquals(systemTime, (long)appUsageData.value);
 
-    appTime = (int) (-0.2 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    appTime = (int)(-0.2 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setAppTimeMs(appTime);
     seriesData = mySeries.getDataForXRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
@@ -76,8 +74,8 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void otherProcessesCpuUsage() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), true, FAKE_PID, ProfilersTestData.SESSION_DATA);
-    int systemTime = (int) (0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), true, ProfilersTestData.SESSION_DATA);
+    int systemTime = (int)(0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     List<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
@@ -85,7 +83,7 @@ public class CpuUsageDataSeriesTest {
     assertNotNull(systemUsageData);
     assertEquals(60, (long)systemUsageData.value); // 60% of total elapsed time
 
-    systemTime = (int) (1.5 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    systemTime = (int)(1.5 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     seriesData = mySeries.getDataForXRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
@@ -94,7 +92,7 @@ public class CpuUsageDataSeriesTest {
     // System usage shouldn't be greater than 100%. If that happens, we cap the value to 100%.
     assertEquals(100, (long)systemUsageData.value);
 
-    systemTime = (int) (-0.5 * FakeCpuService.TOTAL_ELAPSED_TIME);
+    systemTime = (int)(-0.5 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     seriesData = mySeries.getDataForXRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
@@ -106,7 +104,7 @@ public class CpuUsageDataSeriesTest {
 
   @Test
   public void emptyData() {
-    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, FAKE_PID, ProfilersTestData.SESSION_DATA);
+    mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), false, ProfilersTestData.SESSION_DATA);
     assertNotNull(mySeries);
     assertFalse(mySeries.getDataForXRange(ANY_RANGE).isEmpty());
     myService.setEmptyUsageData(true);

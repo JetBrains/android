@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 
 public abstract class ModuleDependenciesSetup {
   protected void updateLibraryRootTypePaths(@NotNull Library library,
@@ -52,7 +52,8 @@ public abstract class ModuleDependenciesSetup {
     for (OrderEntry orderEntry : modelsProvider.getModifiableRootModel(module).getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
         Library entryLibrary = ((LibraryOrderEntry)orderEntry).getLibrary();
-        if (entryLibrary != null && libraryName.equals(entryLibrary.getName())) {
+        DependencyScope entryScope = ((LibraryOrderEntry)orderEntry).getScope();
+        if (entryLibrary != null && libraryName.equals(entryLibrary.getName()) && scope.equals(entryScope)) {
           // Dependency already set up.
           return;
         }

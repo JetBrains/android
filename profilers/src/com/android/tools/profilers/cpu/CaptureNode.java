@@ -17,13 +17,17 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
-public class CaptureNode implements HNode<MethodModel> {
+import static com.android.tools.profilers.cpu.CaptureNode.FilterType.UNINITIALIZED;
+
+public class CaptureNode implements HNode<CaptureNode> {
 
   /**
    * Start time with GLOBAL clock.
@@ -57,19 +61,24 @@ public class CaptureNode implements HNode<MethodModel> {
   private CaptureNode myParent;
 
   /**
-   * The corresponding method of this node.
+   * see {@link FilterType}.
    */
-  private MethodModel myMethodModel;
+  @NotNull
+  private FilterType myFilterType = UNINITIALIZED;
 
   /**
    * The shortest distance from the root.
    */
   private int myDepth;
 
-  public CaptureNode() {
+  @NotNull
+  private final CaptureNodeModel myData;
+
+  public CaptureNode(@NotNull CaptureNodeModel model) {
     myChildren = new ArrayList<>();
     myClockType = ClockType.GLOBAL;
     myDepth = 0;
+    myData = model;
   }
 
   public void addChild(CaptureNode node) {
@@ -80,6 +89,11 @@ public class CaptureNode implements HNode<MethodModel> {
   @NotNull
   public List<CaptureNode> getChildren() {
     return myChildren;
+  }
+
+  @NotNull
+  public CaptureNodeModel getData() {
+    return myData;
   }
 
   @Override
@@ -99,18 +113,6 @@ public class CaptureNode implements HNode<MethodModel> {
     return myParent;
   }
 
-  @Nullable
-  @Override
-  public CaptureNode getFirstChild() {
-    return getChildCount() == 0 ? null : getChildAt(0);
-  }
-
-  @Nullable
-  @Override
-  public CaptureNode getLastChild() {
-    return getChildCount() == 0 ? null : getChildAt(getChildCount() - 1);
-  }
-
   @Override
   public long getStart() {
     return myClockType == ClockType.THREAD ? myStartThread : myStartGlobal;
@@ -119,12 +121,6 @@ public class CaptureNode implements HNode<MethodModel> {
   @Override
   public long getEnd() {
     return myClockType == ClockType.THREAD ? myEndThread : myEndGlobal;
-  }
-
-  @Nullable
-  @Override
-  public MethodModel getData() {
-    return myMethodModel;
   }
 
   @Override
@@ -182,16 +178,51 @@ public class CaptureNode implements HNode<MethodModel> {
     return myClockType;
   }
 
-  @Nullable
-  public MethodModel getMethodModel() {
-    return myMethodModel;
-  }
-
-  public void setMethodModel(MethodModel methodModel) {
-    myMethodModel = methodModel;
-  }
-
   public void setDepth(int depth) {
     myDepth = depth;
+  }
+
+  /**
+   * @return true if this node matches to the {@param filter}.
+   * Note: this node matches to the null {@param filter}.
+   */
+  public boolean matchesToFilter(@Nullable Pattern filter) {
+    return filter == null || filter.matcher(getData().getFullName()).matches();
+  }
+
+  @NotNull
+  public FilterType getFilterType() {
+    return myFilterType;
+  }
+
+  public void setFilterType(@NotNull FilterType type) {
+    myFilterType = type;
+  }
+
+  public boolean isUnmatched() {
+    return getFilterType() == FilterType.UNMATCH;
+  }
+
+  public enum FilterType {
+    /**
+     * Set by default, to avoid issues with a nullable value being queried as non-null. However,
+     * expected to get overwritten by {@link #setFilterType(FilterType)}.
+     */
+    UNINITIALIZED,
+
+    /**
+     * This {@link CaptureNode} matches to the filter, i.e {@link #matchesToFilter(String)} is true.
+     */
+    EXACT_MATCH,
+
+    /**
+     * Either one of its ancestor is a {@link #EXACT_MATCH} or one of its descendant.
+     */
+    MATCH,
+
+    /**
+     * Neither this node matches to the filter nor one of its ancestor nor one of its descendant.
+     */
+    UNMATCH,
   }
 }

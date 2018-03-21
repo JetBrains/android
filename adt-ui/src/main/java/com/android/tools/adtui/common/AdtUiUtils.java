@@ -23,6 +23,7 @@ import com.intellij.util.ui.JBUI;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.util.function.Predicate;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
@@ -58,32 +59,44 @@ public final class AdtUiUtils {
   /**
    * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
    *
-   * @param metrics           the {@link FontMetrics} used to measure the text's width.
    * @param text              the original text.
+   * @param metrics           the {@link FontMetrics} used to measure the text's width.
    * @param availableSpace    the available space to render the text.
-   * @param characterToShrink the number of characters to trim by on each truncate iteration.
    * @return the fitted text. If the available space is too small to fit an ellipsys, an empty string is returned.
    */
-  public static String getFittedString(FontMetrics metrics, String text, float availableSpace, int characterToShrink) {
-    int textWidth = metrics.stringWidth(text);
-    int ellipsysWidth = metrics.stringWidth(ELLIPSIS);
-    if (textWidth <= availableSpace) {
+  public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace) {
+    return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace);
+  }
+
+  /**
+   * Similar to {@link #shrinkToFit(String, FontMetrics, float)},
+   * but takes a predicate method to determine whether the text should fit or not.
+   */
+  public static String shrinkToFit(String text, Predicate<String> textFitPredicate) {
+    if (textFitPredicate.test(text)) {
       // Enough space - early return.
       return text;
     }
-    else if (availableSpace < ellipsysWidth) {
+    else if (!textFitPredicate.test(ELLIPSIS)) {
       // No space to fit "..." - early return.
       return "";
     }
 
-    // This loop test the length of the word we are trying to draw, if it is to big to fit the available space,
-    // we add an ellipsis and remove a character. We do this until the word fits in the space available to draw.
-    while (textWidth > availableSpace) {
-      text = text.substring(0, Math.max(0, text.length() - characterToShrink));
-      textWidth = metrics.stringWidth(text) + ellipsysWidth;
-    }
+    int smallestLength = 0;
+    int largestLength = text.length();
+    int bestLength = smallestLength;
+    do {
+      int midLength = smallestLength + (largestLength - smallestLength) / 2;
+      if (textFitPredicate.test(text.substring(0, midLength) + ELLIPSIS)) {
+        bestLength = midLength;
+        smallestLength = midLength + 1;
+      }
+      else {
+        largestLength = midLength - 1;
+      }
+    } while (smallestLength <= largestLength);
 
-    return text + ELLIPSIS;
+    return text.substring(0, bestLength) + ELLIPSIS;
   }
 
   /**
@@ -91,5 +104,22 @@ public final class AdtUiUtils {
    */
   public static int unscale(int i) {
     return Math.round(i / JBUI.scale(1.0f));
+  }
+
+  /**
+   * Returns the resulting sRGB color (no alpha) by overlaying a foregrond color with a given opacity over a background color.
+   *
+   * @param backgroundRgb     the sRGB color of the background.
+   * @param foregroundRbg     the sRGB color of the foreground.
+   * @param foregroundOpacity the opaicty of the foreground, in the range of 0.0 - 1.0
+   * @return
+   */
+  public static Color overlayColor(int backgroundRgb, int foregroundRbg, float foregroundOpacity) {
+    Color background = new Color(backgroundRgb);
+    Color forground = new Color(foregroundRbg);
+    return new Color(
+      Math.round(background.getRed() * (1 - foregroundOpacity) + forground.getRed() * foregroundOpacity),
+      Math.round(background.getGreen() * (1 - foregroundOpacity) + forground.getGreen() * foregroundOpacity),
+      Math.round(background.getBlue() * (1 - foregroundOpacity) + forground.getBlue() * foregroundOpacity));
   }
 }

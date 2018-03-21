@@ -18,24 +18,55 @@ package com.android.tools.idea.uibuilder.handlers.relative
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.LayoutTestUtilities.mockViewWithBaseline
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 
 class RelativeLayoutHandlerKtTest : SceneTest() {
 
-  override fun setUp() {
-    // Trigger this flag to use RelativeLayoutHandlerKt
-    StudioFlags.NELE_TARGET_RELATIVE.override(true)
-
-    super.setUp()
+  fun testResizeFromTopLeft() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.LEFT_TOP)
+    myInteraction.mouseRelease(110f, 130f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"50dp\"\n" +
+            "        android:layout_height=\"30dp\"\n" +
+            "        android:layout_below=\"@id/button\"\n" +
+            "        android:layout_marginLeft=\"10dp\"\n" +
+            "        android:layout_marginTop=\"30dp\"\n" +
+            "        android:layout_toRightOf=\"@id/button\" />")
   }
 
-  override fun tearDown() {
-    super.tearDown()
+  fun testResizeFromTopRight() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.RIGHT_TOP)
+    myInteraction.mouseRelease(220f, 130f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"70dp\"\n" +
+            "        android:layout_height=\"30dp\"\n" +
+            "        android:layout_below=\"@id/button\"\n" +
+            "        android:layout_marginLeft=\"100dp\"\n" +
+            "        android:layout_marginTop=\"30dp\"\n" +
+            "        android:layout_toRightOf=\"@id/button\" />")
+  }
 
-    StudioFlags.NELE_TARGET_RELATIVE.clearOverride()
+  fun testResizeFromBottomLeft() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.LEFT_BOTTOM)
+    myInteraction.mouseRelease(110f, 230f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "        android:id=\"@id/checkbox\"\n" +
+            "        android:layout_width=\"50dp\"\n" +
+            "        android:layout_height=\"80dp\"\n" +
+            "        android:layout_below=\"@id/button\"\n" +
+            "        android:layout_marginLeft=\"10dp\"\n" +
+            "        android:layout_marginTop=\"100dp\"\n" +
+            "        android:layout_toRightOf=\"@id/button\" />")
   }
 
   fun testResizeFromBottomRight() {

@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerTooltip;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +59,11 @@ public class MemoryMonitor extends ProfilerMonitor {
   }
 
   @Override
+  public ProfilerTooltip buildTooltip() {
+    return new MemoryMonitorTooltip(this);
+  }
+
+  @Override
   public void enter() {
     myProfilers.getUpdater().register(myMemoryUsage);
     myProfilers.getUpdater().register(myMemoryAxis);
@@ -79,6 +85,7 @@ public class MemoryMonitor extends ProfilerMonitor {
     myProfilers.setStage(new MemoryProfilerStage(myProfilers));
   }
 
+  @NotNull
   public AxisComponentModel getMemoryAxis() {
     return myMemoryAxis;
   }

@@ -135,7 +135,7 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
     String name = super.getName();
 
     // At designtime, replace fragments with includes.
-    if (name.equals(VIEW_FRAGMENT)) {
+    if (VIEW_FRAGMENT.equals(name)) {
       myFragmentLayout = LayoutMetadata.getProperty(this, LayoutMetadata.KEY_FRAGMENT_LAYOUT);
       if (myFragmentLayout != null) {
         return VIEW_INCLUDE;

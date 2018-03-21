@@ -45,6 +45,22 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   }
 
   /**
+   * @return a custom panel to use in the inspector for a view. Can be null.
+   */
+  @Nullable
+  public CustomPanel getCustomPanel() {
+    return null;
+  }
+
+  /**
+   * @return a custom panel to use in the inspector for the children of a viewgroup. Can be null.
+   */
+  @Nullable
+  public CustomPanel getLayoutCustomPanel() {
+    return null;
+  }
+
+  /**
    * @return the properties that should be shown in the inspector for a child of this component.
    */
   @NotNull
@@ -70,6 +86,18 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   @Nullable
   public String getPreferredProperty() {
     return ATTR_ID;
+  }
+
+  /**
+   * Returns a browser for editing a specific attribute.
+   * This browser is used to edit the value in the inspector when the user press the
+   * button with ellipses after the control in the inspector.
+   * This method returns null if there is not a custom browser to display for the
+   * given attribute.
+   */
+  @Nullable
+  public AttributeBrowser getBrowser(@NotNull String attributeName) {
+    return null;
   }
 
   /**

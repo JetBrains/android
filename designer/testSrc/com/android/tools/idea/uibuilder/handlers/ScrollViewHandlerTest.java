@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.common.util.XmlTagUtil;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.common.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +32,17 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.*;
 
 public class ScrollViewHandlerTest extends LayoutTestCase {
+
+  public void testAcceptChild() throws Exception {
+    SyncNlModel model = createModel();
+    NlComponent scrollView = model.getComponents().get(0);
+    ScrollViewHandler handler = new ScrollViewHandler();
+    NlComponent component = model.createComponent(XmlTagUtil.createTag(myModule.getProject(), "<TextView />"));
+
+    assertFalse(handler.acceptsChild(scrollView, component));
+    scrollView.removeChild(scrollView.getChild(0));
+    assertTrue(handler.acceptsChild(scrollView, component));
+  }
 
   public void testScrollNothing() throws Exception {
     SyncNlModel model = createModel();

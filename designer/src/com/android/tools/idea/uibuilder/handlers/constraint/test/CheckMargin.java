@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.test;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.MarginWidget;
-import com.android.tools.sherpa.drawing.BlueprintColorSet;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
 import javax.swing.*;
 import java.awt.*;

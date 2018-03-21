@@ -16,9 +16,8 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ActionMenuViewHandler;
@@ -29,7 +28,6 @@ import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHa
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,8 +42,9 @@ import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,7 +108,7 @@ public class NlPaletteModel implements Disposable {
   }
 
   @NotNull
-  Palette getPalette(@NotNull NlLayoutType type) {
+  public Palette getPalette(@NotNull NlLayoutType type) {
     assert type.isSupportedByDesigner();
     Palette palette = myTypeToPalette.get(type);
 
@@ -170,7 +169,6 @@ public class NlPaletteModel implements Disposable {
         .map(Palette.Group::getItems)
         .forEach(List::clear);
 
-      loadThirdPartyLibraryComponents(type, palette);
       loadProjectComponents(type, palette, viewClasses);
     }
 
@@ -182,27 +180,10 @@ public class NlPaletteModel implements Disposable {
 
   @VisibleForTesting
   @NotNull
-  Palette loadPalette(@NotNull Reader reader, @NotNull NlLayoutType type) throws JAXBException {
+  public Palette loadPalette(@NotNull Reader reader, @NotNull NlLayoutType type) throws JAXBException {
     Palette palette = Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
     myTypeToPalette.put(type, palette);
     return palette;
-  }
-
-  private void loadThirdPartyLibraryComponents(@NotNull NlLayoutType type, @NotNull Palette palette) {
-    AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(myModule);
-    if (appResourceRepository == null) {
-      return;
-    }
-    for (FileResourceRepository fileResource : appResourceRepository.getLibraries()) {
-      // TODO: Add all palette components here:
-      //for (PaletteComponent component : fileResource.getPaletteComponents()) {
-      //  addThirdPartyComponent(...);
-      //}
-    }
-    // TODO: Remove this. Use this line to test this feature.
-    //addThirdPartyComponent(type, THIRD_PARTY_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24,
-    //                       "com.google.android.exoplayer2.ui.SimpleExoPlayerView", null, null, "com.google.android.exoplayer:exoplayer",
-    //                       null, Collections.singletonList("tag"), Collections.emptyList());
   }
 
   private void loadProjectComponents(@NotNull NlLayoutType type,
@@ -211,15 +192,16 @@ public class NlPaletteModel implements Disposable {
     Project project = myModule.getProject();
     viewClasses.apply(project).forEach(psiClass -> {
       String description = psiClass.getName(); // We use the "simple" name as description on the preview.
-      String className = psiClass.getQualifiedName();
+      String tagName = psiClass.getQualifiedName();
+      String className = PackageClassConverter.getQualifiedName(psiClass);
 
-      if (description == null || className == null) {
+      if (description == null || tagName == null || className == null) {
         // Currently we ignore anonymous views
         return false;
       }
 
-      addAdditionalComponent(type, PROJECT_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24,
-                             className, null, null, "",
+      addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
+                             StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE, tagName, className, null, null, "",
                              null, Collections.emptyList(), Collections.emptyList());
 
       return true;
@@ -236,6 +218,7 @@ public class NlPaletteModel implements Disposable {
                                  @Nullable Icon icon16,
                                  @Nullable Icon icon24,
                                  @NotNull String tagName,
+                                 @NotNull String className,
                                  @Nullable @Language("XML") String xml,
                                  @Nullable @Language("XML") String previewXml,
                                  @NotNull String libraryCoordinate,
@@ -250,9 +233,8 @@ public class NlPaletteModel implements Disposable {
     }
 
     ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
-    ViewHandler handler = manager.getHandlerOrDefault(tagName);
+    ViewHandler handler = manager.createBuiltInHandler(tagName);
 
-    // For now only support layouts
     if (type != NlLayoutType.LAYOUT ||
         handler instanceof PreferenceHandler ||
         handler instanceof PreferenceCategoryHandler ||
@@ -261,13 +243,29 @@ public class NlPaletteModel implements Disposable {
       return false;
     }
 
-    if (handler instanceof ViewGroupHandler) {
-      handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate,
-                                           preferredProperty, properties, layoutProperties);
+    if (handler == null) { // no built in handler, let's create a delegate
+      handler = manager.getHandlerOrDefault(tagName);
+
+      // For now only support layouts
+      if (type != NlLayoutType.LAYOUT ||
+          handler instanceof PreferenceHandler ||
+          handler instanceof PreferenceCategoryHandler ||
+          handler instanceof MenuHandler ||
+          handler instanceof ActionMenuViewHandler) {
+        return false;
+      }
+
+      if (handler instanceof ViewGroupHandler) {
+        handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, icon24, tagName, className, xml, previewXml,
+                                             libraryCoordinate, preferredProperty, properties, layoutProperties);
+      }
+      else {
+        handler = new CustomViewHandler(handler, icon16, icon24, tagName, className, xml, previewXml,
+                                        libraryCoordinate, preferredProperty, properties);
+      }
     }
-    else {
-      handler = new CustomViewHandler(handler, icon16, icon24, tagName, xml, previewXml, libraryCoordinate, preferredProperty, properties);
-    }
+
+    manager.registerHandler(tagName, handler);
 
     List<Palette.BaseItem> groups = palette.getItems();
     Palette.Group group = groups.stream()
@@ -280,8 +278,10 @@ public class NlPaletteModel implements Disposable {
       group = new Palette.Group(groupName);
       groups.add(group);
     }
-    group.getItems().add(new Palette.Item(tagName, handler));
-    manager.registerHandler(tagName, handler);
+    Palette.Item item = new Palette.Item(tagName, handler);
+    group.getItems().add(item);
+    item.setUp(palette, manager);
+    item.setParent(group);
     return true;
   }
 

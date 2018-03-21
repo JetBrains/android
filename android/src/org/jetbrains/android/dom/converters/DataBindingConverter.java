@@ -257,7 +257,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
           if (Character.isLowerCase(alias.charAt(0))) {
             PsiPrimitiveType primitive = PsiJavaParserFacadeImpl.getPrimitiveType(alias);
             if (primitive != null) {
-              result.add(new PsiReferenceBase.Immediate(element, true, element));
+              result.add(new PsiReferenceBase.Immediate<>(element, true, element));
             }
           }
           else {
