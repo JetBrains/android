@@ -39,10 +39,8 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   private val zoomOutAction: AnAction = DesignSurfaceShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface)
   private val zoomToFitAction: AnAction = DesignSurfaceShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface)
 
-  private val createDestinationMenu by lazy { CreateDestinationMenu(mySurface) }
-
   // Open for testing only
-  open val addExistingDestinationMenu by lazy { AddExistingDestinationMenu(mySurface) }
+  open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
 
   override fun registerActionsShortcuts(component: JComponent) {
     ActionManager.registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)
@@ -138,7 +136,6 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     toolbar: Boolean
   ) {
     // This is called whenever the selection changes, but since our contents are static they can be cached.
-    group.add(createDestinationMenu)
-    group.add(addExistingDestinationMenu)
+    group.add(addDestinationMenu)
   }
 }

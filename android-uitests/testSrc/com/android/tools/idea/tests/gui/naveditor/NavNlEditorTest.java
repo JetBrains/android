@@ -23,7 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.CreateDestinationMenuFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import org.fest.swing.driver.BasicJListCellReader;
@@ -86,7 +86,7 @@ public class NavNlEditorTest {
     frame.waitForGradleProjectSyncToFinish();
     layout.waitForRenderToFinish();
 
-    ((NavDesignSurfaceFixture)layout.getSurface()).openAddExistingMenu().selectDestination("fragment_my");
+    ((NavDesignSurfaceFixture)layout.getSurface()).openAddDestinationMenu().selectDestination("fragment_my");
 
     DestinationListFixture fixture = DestinationListFixture.Companion.create(guiTest.robot());
     fixture.replaceCellReader(new BasicJListCellReader(c -> c.toString()));
@@ -115,12 +115,19 @@ public class NavNlEditorTest {
     frame.waitForGradleProjectSyncToFinish();
     layout.waitForRenderToFinish();
 
-    CreateDestinationMenuFixture fixture = ((NavDesignSurfaceFixture)layout.getSurface()).openNewDestinationMenu();
-    fixture.setLabel("my label");
-    fixture.clickCreate();
+    AddDestinationMenuFixture fixture = ((NavDesignSurfaceFixture)layout.getSurface()).openAddDestinationMenu();
+    fixture.clickCreateBlank();
+    try {
+      // click again to make sure the action only actually gets invoked once.
+      // But it might already be hidden, so in that case catch the exception and keep going.
+      fixture.clickCreateBlank();
+    }
+    catch (IllegalStateException e) {
+      // nothing
+    }
 
     assertEquals(1, layout.getSelection().size());
-    assertEquals("my label", layout.getSelection().get(0).getAttribute(ANDROID_URI, ATTR_LABEL));
+    assertEquals("fragment", layout.getSelection().get(0).getAttribute(ANDROID_URI, ATTR_LABEL));
 
     DestinationListFixture destinationListFixture = DestinationListFixture.Companion.create(guiTest.robot());
     List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();

@@ -30,7 +30,12 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
   var balloon: Balloon? = null
 
   override fun actionPerformed(e: AnActionEvent) {
-    show(e.inputEvent.source as JComponent)
+    if (balloon?.wasFadedOut() == false) {
+      balloon?.hide()
+    }
+    else {
+      show(e.inputEvent.source as JComponent)
+    }
   }
 
   fun show(component: JComponent) {

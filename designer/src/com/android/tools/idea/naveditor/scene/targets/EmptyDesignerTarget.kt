@@ -71,6 +71,6 @@ class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() 
 
   override fun mouseRelease(x: Int, y: Int, closestTargets: MutableList<Target>) {
     val navActionManager = surface.actionManager as? NavActionManager
-    navActionManager?.addExistingDestinationMenu?.show()
+    navActionManager?.addDestinationMenu?.show()
   }
 }

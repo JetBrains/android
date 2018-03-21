@@ -19,8 +19,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.editor.AddExistingDestinationMenu
-import com.android.tools.idea.naveditor.editor.CreateDestinationMenu
+import com.android.tools.idea.naveditor.editor.AddDestinationMenu
 import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
@@ -39,10 +38,10 @@ class EmptyDesignerTargetTest : NavTestCase() {
     `when`<SceneView>(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(view)
 
     val actionManager = mock(NavActionManager::class.java)
-    val menu = mock(AddExistingDestinationMenu::class.java)
+    val menu = mock(AddDestinationMenu::class.java)
 
     `when`(surface.actionManager).thenReturn(actionManager)
-    doReturn(menu).`when`(actionManager).addExistingDestinationMenu
+    doReturn(menu).`when`(actionManager).addDestinationMenu
 
     val scene = surface.scene!!
     val root = scene.getSceneComponent("root")!!

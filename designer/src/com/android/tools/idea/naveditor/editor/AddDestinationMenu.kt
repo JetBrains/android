@@ -21,7 +21,10 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
@@ -31,6 +34,7 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.DottedBorder
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -38,18 +42,18 @@ import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
+import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.AndroidGotoRelatedProvider
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.resourceManagers.LocalResourceManager
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.Image
-import java.awt.MediaTracker
+import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.*
 import javax.swing.*
+import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
 /**
@@ -57,10 +61,11 @@ import javax.swing.event.DocumentEvent
  */
 // open for testing only
 @VisibleForTesting
-open class AddExistingDestinationMenu(surface: NavDesignSurface) :
-    NavToolbarMenu(surface, "Available Destinations", StudioIcons.NavEditor.Toolbar.ADD_EXISTING) {
+open class AddDestinationMenu(surface: NavDesignSurface) :
+    NavToolbarMenu(surface, "New Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
 
   private lateinit var myButton: JComponent
+  private var creatingInProgress = false
 
   @VisibleForTesting
   val destinations: List<Destination>
@@ -121,8 +126,12 @@ open class AddExistingDestinationMenu(surface: NavDesignSurface) :
 
   override val mainPanel: JPanel
     get() {
+      creatingInProgress = false
       return _mainPanel ?: createSelectionPanel().also { _mainPanel = it}
     }
+
+  @VisibleForTesting
+  lateinit var blankDestinationButton: ActionButtonWithText
 
   init {
     val listener = ResourceNotificationManager.ResourceChangeListener { _ -> _mainPanel = null }
@@ -137,13 +146,9 @@ open class AddExistingDestinationMenu(surface: NavDesignSurface) :
 
     listModel.setFilter { destination -> destination.label.toLowerCase().contains(mySearchField.text.toLowerCase()) }
     @Suppress("UNCHECKED_CAST")
-    destinationsList = object : JBList<Destination>(listModel as ListModel<Destination>) {
-      override fun getPreferredScrollableViewportSize(): Dimension {
-        return Dimension(252, 300)
-      }
-    }
+    destinationsList = JBList<Destination>(listModel as ListModel<Destination>)
     destinationsList.setCellRenderer { _, value, _, _, _ ->
-      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail.getScaledInstance(50, 64, Image.SCALE_SMOOTH))
+      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail.getScaledInstance(JBUI.scale(50), JBUI.scale(64), Image.SCALE_SMOOTH))
       PRIMARY_TEXT_RENDERER.text = value.label
       SECONDARY_TEXT_RENDERER.text = value.typeLabel
       RENDERER
@@ -167,6 +172,16 @@ open class AddExistingDestinationMenu(surface: NavDesignSurface) :
     val result = AdtSecondaryPanel(VerticalLayout(5))
     destinationsList.background = result.background
     result.add(mySearchField)
+
+    val action: AnAction = object : AnAction("Create blank destination") {
+      override fun actionPerformed(e: AnActionEvent?) {
+        createBlankDestination()
+      }
+    }
+    blankDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar",  JBDimension(0, 45))
+    val buttonPanel = AdtSecondaryPanel(BorderLayout())
+    buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), NavColorSet.FRAME_COLOR))
+    buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
     mySearchField.addDocumentListener(
         object : DocumentAdapter() {
           override fun textChanged(e: DocumentEvent) {
@@ -174,8 +189,11 @@ open class AddExistingDestinationMenu(surface: NavDesignSurface) :
           }
         }
     )
-
-    val scrollPane = JBScrollPane(destinationsList)
+    val scrollable = AdtSecondaryPanel(BorderLayout())
+    scrollable.add(buttonPanel, BorderLayout.NORTH)
+    scrollable.add(destinationsList, BorderLayout.CENTER)
+    val scrollPane = JBScrollPane(scrollable)
+    scrollPane.preferredSize = JBDimension(252, 300)
     scrollPane.border = BorderFactory.createEmptyBorder()
     val mediaTracker = MediaTracker(destinationsList)
     destinations.forEach { destination -> mediaTracker.addImage(destination.thumbnail, 0) }
@@ -201,18 +219,36 @@ open class AddExistingDestinationMenu(surface: NavDesignSurface) :
           override fun mouseClicked(event: MouseEvent) {
             val element = destinationsList.selectedValue
             if (element != null) {
-              element.addToGraph()
-              // explicitly update so the new SceneComponent is created
-              surface.sceneManager!!.update()
-              val component = element.component
-              surface.selectionModel.setSelection(ImmutableList.of(component!!))
-              surface.scrollToCenter(ImmutableList.of(component))
-              balloon?.hide()
+              addDestination(element)
             }
           }
         }
     )
     return result
+  }
+
+  @VisibleForTesting
+  fun createBlankDestination() {
+    addDestination(
+        Destination.RegularDestination(
+            surface.currentNavigation,
+            surface.schema.getDefaultTag(NavigationSchema.DestinationType.FRAGMENT)!!
+        )
+    )
+  }
+
+  private fun addDestination(destination: Destination) {
+    if (creatingInProgress) {
+      return
+    }
+    creatingInProgress = true
+    destination.addToGraph()
+    // explicitly update so the new SceneComponent is created
+    surface.sceneManager!!.update()
+    val component = destination.component
+    surface.selectionModel.setSelection(ImmutableList.of(component!!))
+    surface.scrollToCenter(ImmutableList.of(component))
+    balloon?.hide()
   }
 
   override fun createCustomComponent(presentation: Presentation): JComponent {
@@ -236,7 +272,7 @@ open class AddExistingDestinationMenu(surface: NavDesignSurface) :
       SECONDARY_TEXT_RENDERER.foreground = NavColorSet.SUBDUED_TEXT_COLOR
       RENDERER.add(THUMBNAIL_RENDERER, BorderLayout.WEST)
       val leftPanel = JPanel(VerticalLayout(8))
-      leftPanel.border = BorderFactory.createEmptyBorder(12, 6, 0, 0)
+      leftPanel.border = JBUI.Borders.empty(12, 6, 0, 0)
       leftPanel.add(PRIMARY_TEXT_RENDERER, VerticalLayout.CENTER)
       leftPanel.add(SECONDARY_TEXT_RENDERER, VerticalLayout.CENTER)
       RENDERER.add(leftPanel, BorderLayout.CENTER)
