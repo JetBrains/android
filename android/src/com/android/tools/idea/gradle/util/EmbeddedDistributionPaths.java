@@ -158,7 +158,10 @@ public class EmbeddedDistributionPaths {
     }
     if (!jdkRootPath.exists()) {
       // fallback to JAVA_HOME
-      jdkRootPath = new File(System.getenv("JAVA_HOME"));
+      String javaHome = System.getenv("JAVA_HOME");
+      if (javaHome != null) {
+        jdkRootPath = new File(javaHome);
+      }
     }
     return getSystemSpecificJdkPath(jdkRootPath);
   }
