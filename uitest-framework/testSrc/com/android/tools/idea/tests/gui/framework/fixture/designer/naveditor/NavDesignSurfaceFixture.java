@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor;
 
-import com.android.tools.idea.naveditor.editor.AddExistingDestinationMenu;
-import com.android.tools.idea.naveditor.editor.CreateDestinationMenu;
+import com.android.tools.idea.naveditor.editor.AddDestinationMenu;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
@@ -74,12 +73,7 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
   }
 
   @Nullable
-  public CreateDestinationMenuFixture openNewDestinationMenu() {
-    return new CreateDestinationMenuFixture(robot(), openMenu(CreateDestinationMenu.class));
-  }
-
-  @Nullable
-  public AddExistingDestinationMenuFixture openAddExistingMenu() {
-    return new AddExistingDestinationMenuFixture(robot(), openMenu(AddExistingDestinationMenu.class));
+  public AddDestinationMenuFixture openAddDestinationMenu() {
+    return new AddDestinationMenuFixture(robot(), openMenu(AddDestinationMenu.class));
   }
 }

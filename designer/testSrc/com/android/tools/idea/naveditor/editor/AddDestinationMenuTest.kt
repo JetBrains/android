@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.SdkConstants.ATTR_LABEL
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -26,9 +27,10 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseEvent
+import java.util.stream.Collectors
 
 // TODO: testing with custom navigators
-class AddExistingDestinationMenuTest : NavTestCase() {
+class AddDestinationMenuTest : NavTestCase() {
 
 
   private var _model: SyncNlModel? = null
@@ -39,7 +41,7 @@ class AddExistingDestinationMenuTest : NavTestCase() {
   private val surface
     get() = _surface!!
 
-  private var _menu: AddExistingDestinationMenu? = null
+  private var _menu: AddDestinationMenu? = null
   private val menu
     get() = _menu!!
 
@@ -47,7 +49,7 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     super.setUp()
     _model = model("nav.xml") {
       navigation("navigation") {
-        fragment("fragment1")
+        fragment("fragment")
         navigation("subnav") {
           fragment("fragment2")
         }
@@ -57,7 +59,7 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     _surface = NavDesignSurface(project, myRootDisposable)
     surface.setSize(1000, 1000)
     surface.model = model
-    _menu = AddExistingDestinationMenu(surface)
+    _menu = AddDestinationMenu(surface)
     menu.mainPanel
   }
 
@@ -70,7 +72,7 @@ class AddExistingDestinationMenuTest : NavTestCase() {
     val expected2 = Destination.RegularDestination(parent, "activity", null, "MainActivity", "mytest.navtest.MainActivity",
         layoutFile = xmlFile)
     val expected3 = Destination.IncludeDestination("navigation.xml", parent)
-    assertSameElements(AddExistingDestinationMenu(surface).destinations, ImmutableList.of(expected1, expected2, expected3))
+    assertSameElements(AddDestinationMenu(surface).destinations, ImmutableList.of(expected1, expected2, expected3))
   }
 
   override fun tearDown() {
@@ -114,16 +116,25 @@ class AddExistingDestinationMenuTest : NavTestCase() {
   fun testCaching() {
     val group = DefaultActionGroup()
     surface.actionManager.addActions(group, null, null, listOf<NlComponent>(), true)
-    val addExistingDestinationMenu = group.getChildren(null)[1] as AddExistingDestinationMenu
-    val panel = addExistingDestinationMenu.mainPanel
+    val addDestinationMenu = group.getChildren(null)[0] as AddDestinationMenu
+    val panel = addDestinationMenu.mainPanel
     // get it again and check that it's the same instance
-    assertSame(panel, addExistingDestinationMenu.mainPanel)
+    assertSame(panel, addDestinationMenu.mainPanel)
 
     myFixture.addClass("class Foo extends android.app.Fragment {}")
     UIUtil.dispatchAllInvocationEvents()
 
-    assertNotSame(panel, addExistingDestinationMenu.mainPanel)
-    addExistingDestinationMenu.destinations.first { it.label == "Foo" }
+    assertNotSame(panel, addDestinationMenu.mainPanel)
+    addDestinationMenu.destinations.first { it.label == "Foo" }
+  }
+
+
+  fun testCreateBlank() {
+    model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
+    menu.createBlankDestination()
+    val added = model.find("fragment3")!!
+    assertEquals("fragment", added.tagName)
+    assertEquals("fragment", added.getAndroidAttribute(ATTR_LABEL))
   }
 
   fun testImageLoading() {

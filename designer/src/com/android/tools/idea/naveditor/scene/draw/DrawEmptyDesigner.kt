@@ -23,13 +23,13 @@ import com.android.tools.idea.common.scene.draw.pointToString
 import com.android.tools.idea.common.scene.draw.stringToPoint
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons.NavEditor.Toolbar.ADD_EXISTING
+import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.Point
 
 private val text1 = "Click "
-private val text2 = " to add an existing destination"
+private val text2 = " to add a destination"
 @SwingCoordinate private val FONT_SIZE = JBUI.scale(13)
 @SwingCoordinate private val VERTICAL_OFFSET = JBUI.scale(3)
 
@@ -46,7 +46,7 @@ class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand
     val g2 = g.create() as Graphics2D
 
     g2.color = sceneContext.colorSet.text
-    g2.font = Font("Default", 0, FONT_SIZE)
+    g2.font = Font("Default", 0, JBUI.scale(FONT_SIZE))
 
     @SwingCoordinate var x = point.x
     @SwingCoordinate val y = point.y
@@ -54,8 +54,8 @@ class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand
     g2.drawString(text1, x, y)
     x += g2.fontMetrics.stringWidth(text1)
 
-    ADD_EXISTING.paintIcon(null, g2, x, y - ADD_EXISTING.iconHeight + VERTICAL_OFFSET)
-    x += ADD_EXISTING.iconWidth
+    ADD_DESTINATION.paintIcon(null, g2, x, y - ADD_DESTINATION.iconHeight + JBUI.scale(VERTICAL_OFFSET))
+    x += ADD_DESTINATION.iconWidth
 
     g2.drawString(text2, x, y)
   }

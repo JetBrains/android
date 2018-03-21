@@ -13,7 +13,8 @@
 // limitations under the License.
 package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor
 
-import com.android.tools.idea.naveditor.editor.AddExistingDestinationMenu
+import com.android.tools.idea.naveditor.editor.AddDestinationMenu
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -23,8 +24,8 @@ import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JListFixture
 import javax.swing.JPanel
 
-class AddExistingDestinationMenuFixture(private val robot: Robot, private val menu: AddExistingDestinationMenu) :
-    ComponentFixture<AddExistingDestinationMenuFixture, JPanel>(AddExistingDestinationMenuFixture::class.java, robot, menu.mainPanel) {
+class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddDestinationMenu) :
+    ComponentFixture<AddDestinationMenuFixture, JPanel>(AddDestinationMenuFixture::class.java, robot, menu.mainPanel) {
 
   fun selectDestination(label: String) {
     val index = ProgressManager.getInstance().runProcess(Computable {
@@ -33,5 +34,9 @@ class AddExistingDestinationMenuFixture(private val robot: Robot, private val me
       })
     }, EmptyProgressIndicator())
     JListFixture(robot, menu.destinationsList).clickItem(index)
+  }
+
+  fun clickCreateBlank() {
+    ActionButtonFixture(robot, menu.blankDestinationButton).click()
   }
 }
