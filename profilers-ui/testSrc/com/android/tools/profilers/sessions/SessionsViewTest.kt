@@ -143,24 +143,29 @@ class SessionsViewTest {
       .setPid(10).setDeviceId(2).setName("Process3").setState(Common.Process.State.ALIVE).build()
 
     var selectionAction = mySessionsView.processSelectionAction
-    assertThat(selectionAction.childrenActionCount).isEqualTo(1)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
+    var loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
+    assertThat(loadAction.isSelected).isFalse()
+    assertThat(loadAction.isEnabled).isTrue()
+    assertThat(loadAction.childrenActionCount).isEqualTo(0)
+    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.Separator::class.java)
+    assertThat(selectionAction.childrenActions[2].text).isEqualTo(SessionsView.NO_SUPPORTED_DEVICES)
+    assertThat(selectionAction.childrenActions[2].isEnabled).isFalse()
 
     myProfilerService.addDevice(device1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.Separator::class.java)
-    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
-    assertThat(deviceAction1.isSelected).isFalse()
-    assertThat(deviceAction1.isEnabled).isTrue()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(0)
-
-    myProfilerService.addDevice(device1)
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
-    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
+    assertThat(loadAction.isSelected).isFalse()
+    assertThat(loadAction.isEnabled).isTrue()
+    assertThat(loadAction.childrenActionCount).isEqualTo(0)
+    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
     assertThat(deviceAction1.isSelected).isTrue()
-    assertThat(deviceAction1.isEnabled).isFalse()
-    assertThat(deviceAction1.childrenActionCount).isEqualTo(0)
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
+    assertThat(deviceAction1.childrenActions[0].text).isEqualTo(SessionsView.NO_DEBUGGABLE_PROCESSES)
+    assertThat(deviceAction1.childrenActions[0].isEnabled).isFalse()
 
     myProfilerService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
