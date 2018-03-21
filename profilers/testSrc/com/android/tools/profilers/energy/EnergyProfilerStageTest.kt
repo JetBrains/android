@@ -63,4 +63,15 @@ class EnergyProfilerStageTest {
     assertThat(myStage.instructionsEaseOutModel.percentageComplete).isWithin(0f).of(1f);
     assertThat(myStage.hasUserUsedEnergySelection()).isTrue()
   }
+
+  @Test
+  fun setUsageTooltip() {
+    myStage.enter()
+    myStage.tooltip = EnergyUsageTooltip(myStage)
+    assertThat(myStage.tooltip).isInstanceOf(EnergyUsageTooltip::class.java)
+    val tooltip = myStage.tooltip as EnergyUsageTooltip
+    assertThat(tooltip.legends.legends).hasSize(2)
+    assertThat(tooltip.legends.cpuLegend.name).isEqualTo("CPU")
+    assertThat(tooltip.legends.networkLegend.name).isEqualTo("NETWORK")
+  }
 }
