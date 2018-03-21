@@ -17,21 +17,14 @@
 package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.ClientData;
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.ddms.OpenVmTraceHandler;
-import com.android.tools.idea.ddms.actions.*;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ui.ConsoleView;
@@ -39,10 +32,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -62,8 +51,6 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import com.intellij.ui.content.ContentManagerAdapter;
-import com.intellij.ui.content.ContentManagerEvent;
 import com.intellij.util.messages.MessageBusConnection;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -97,40 +84,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
     DeviceContext deviceContext = new DeviceContext();
 
-    // We should only set OpenVmTraceHandler as ClientData's IMethodProfilingHandler when using the old monitors,
-    // because the new profilers use LegacyProfilingHandler instead.
-    boolean monitorsVisible = showMonitors();
-
-    if (monitorsVisible) {
-      // TODO Remove global handlers. These handlers are global, but are set per project.
-      // if there are two projects opened, things go very wrong.
-      ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
-    }
-
     AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId());
     Content logcatContent = createLogcatContent(layoutUi, project, logcatView);
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
 
     DevicePanel devicePanel = new DevicePanel(project, deviceContext);
-
-    if (monitorsVisible) {
-      logcatContent.setSearchComponent(logcatView.createSearchComponent());
-      MonitorContentFactory.createMonitorContent(project, deviceContext, layoutUi);
-      layoutUi.getOptions().setLeftToolbar(getToolbarActions(project, deviceContext), ActionPlaces.UNKNOWN);
-      layoutUi.addListener(new ContentManagerAdapter() {
-        @Override
-        public void selectionChanged(ContentManagerEvent event) {
-          Content selectedContent = event.getContent();
-          BaseMonitorView view = selectedContent.getUserData(BaseMonitorView.MONITOR_VIEW_KEY);
-          if (view != null && event.getOperation() == ContentManagerEvent.ContentOperation.add) {
-            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                             .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
-                                             .setKind(AndroidStudioEvent.EventKind.MONITOR_RUNNING)
-                                             .setMonitorType(view.getMonitorType()));
-          }
-        }
-      }, project);
-    }
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
     loadingPanel.add(new DeviceAndSearchPanel(devicePanel, logcatView), BorderLayout.NORTH);
@@ -184,24 +142,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
   }
 
   public static String getToolWindowId() {
-    return showMonitors() ? "Android Monitor" : "Logcat";
-  }
-
-  @NotNull
-  private static ActionGroup getToolbarActions(Project project, DeviceContext deviceContext) {
-    DefaultActionGroup group = new DefaultActionGroup();
-
-    group.add(new ScreenshotAction(project, deviceContext));
-    group.add(new ScreenRecorderAction(project, deviceContext));
-    group.add(DumpSysActions.create(project, deviceContext));
-    group.add(new Separator());
-
-    group.add(new TerminateVMAction(deviceContext));
-    //group.add(new LayoutInspectorAction(project, deviceContext));
-    group.add(new Separator());
-    group.add(new BrowserHelpAction("Android Monitor", "http://developer.android.com/r/studio-ui/android-monitor.html"));
-
-    return group;
+    return "Logcat";
   }
 
   private static Content createLogcatContent(RunnerLayoutUi layoutUi, final Project project, AndroidLogcatView logcatView) {
@@ -269,13 +210,9 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     }
   }
 
-  static boolean showMonitors() {
-    return !StudioFlags.PROFILER_ENABLED.get();
-  }
-
   @Override
   public boolean value(Project project) {
-    return !showMonitors();
+    return true;
   }
 
   private static class MyAndroidPlatformListener implements ModuleRootListener {
