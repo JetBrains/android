@@ -92,6 +92,13 @@ public interface IdeProfilerServices {
   ProfilerPreferences getTemporaryProfilerPreferences();
 
   /**
+   * Allows the profiler to cache settings across multiple studio sessions.
+   * e.g. settings are preserved when studio restarts.
+   */
+  @NotNull
+  ProfilerPreferences getPersistentProfilerPreferences();
+
+  /**
    * Open the dialog for managing the CPU profiling configurations.
    *
    * @param profilerModel    {@link CpuProfilerConfigModel} corresponding to the {@link ProfilingConfiguration} to be selected when opening

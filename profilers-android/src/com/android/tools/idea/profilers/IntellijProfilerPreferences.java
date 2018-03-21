@@ -16,80 +16,61 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.ProfilerPreferences;
-import com.intellij.util.containers.HashMap;
+import com.intellij.ide.util.PropertiesComponent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
 /**
- * per-studio session caching of key-value pairs.
- * To persist preferences across studio instances, use {@link IntellijProfilerPreferences} instead.
+ * Simple wrapper for {@link PropertiesComponent#getInstance()} that caches key-value pairs across studio instances.
+ * For per-studio session caching, use {@link TemporaryProfilerPreferences} instead.
  */
-public final class TemporaryProfilerPreferences implements ProfilerPreferences {
-  @NotNull private static final Map<String, String> ourPreferenceMap = new HashMap<>();
+public class IntellijProfilerPreferences implements ProfilerPreferences {
+  // prefix to be used for each key to avoid clashing in the global xml space.
+  private static final String PROFILER_PREFIX = "studio.profiler";
+
+  @NotNull private final PropertiesComponent myPropertiesComponent;
+
+  public IntellijProfilerPreferences() {
+    myPropertiesComponent = PropertiesComponent.getInstance();
+  }
 
   @NotNull
   @Override
   public String getValue(@NotNull String name, @NotNull String defaultValue) {
-    if (ourPreferenceMap.containsKey(name)) {
-      return ourPreferenceMap.get(name);
-    }
-
-    return defaultValue;
+    return myPropertiesComponent.getValue(PROFILER_PREFIX + name, defaultValue);
   }
 
   @Override
   public float getFloat(@NotNull String name, float defaultValue) {
-    if (ourPreferenceMap.containsKey(name)) {
-      try {
-        return Float.parseFloat(ourPreferenceMap.get(name));
-      }
-      catch (NumberFormatException ignored) {
-      }
-    }
-
-    return defaultValue;
+    return myPropertiesComponent.getFloat(PROFILER_PREFIX + name, defaultValue);
   }
 
   @Override
   public int getInt(@NotNull String name, int defaultValue) {
-    if (ourPreferenceMap.containsKey(name)) {
-      try {
-        return Integer.parseInt(ourPreferenceMap.get(name));
-      }
-      catch (NumberFormatException ignored) {
-      }
-    }
-
-    return defaultValue;
+    return myPropertiesComponent.getInt(PROFILER_PREFIX + name, defaultValue);
   }
 
   @Override
   public boolean getBoolean(@NotNull String name, boolean defaultValue) {
-    if (ourPreferenceMap.containsKey(name)) {
-      return Boolean.parseBoolean(ourPreferenceMap.get(name));
-    }
-
-    return defaultValue;
+    return myPropertiesComponent.getBoolean(PROFILER_PREFIX + name, defaultValue);
   }
 
   @Override
   public void setValue(@NotNull String name, @NotNull String value) {
-    ourPreferenceMap.put(name, value);
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value);
   }
 
   @Override
   public void setFloat(@NotNull String name, float value) {
-    ourPreferenceMap.put(name, Float.toString(value));
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, 0f);
   }
 
   @Override
   public void setInt(@NotNull String name, int value) {
-    ourPreferenceMap.put(name, Integer.toString(value));
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value, 0);
   }
 
   @Override
   public void setBoolean(@NotNull String name, boolean value) {
-    ourPreferenceMap.put(name, Boolean.toString(value));
+    myPropertiesComponent.setValue(PROFILER_PREFIX + name, value);
   }
 }

@@ -71,11 +71,13 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   private final StudioFeatureTracker myFeatureTracker = new StudioFeatureTracker();
 
   @NotNull private final Project myProject;
+  @NotNull private final IntellijProfilerPreferences myPersistentPreferences;
   @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
 
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
     myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
+    myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
   }
 
@@ -254,6 +256,12 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public ProfilerPreferences getTemporaryProfilerPreferences() {
     return myTemporaryPreferences;
+  }
+
+  @NotNull
+  @Override
+  public ProfilerPreferences getPersistentProfilerPreferences() {
+    return myPersistentPreferences;
   }
 
   @Override
