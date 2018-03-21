@@ -186,8 +186,7 @@ public final class BatteryModel {
       if (prevSample.getTimestamp() == newSample.getTimestamp()) {
         // This means we had multiple events occur at the same time. Replace with the latest sample
         // in that case.
-        mySparseSamples.remove(prevSampleIndex);
-        mySparseSamples.add(prevSampleIndex, newSample);
+        mySparseSamples.set(prevSampleIndex, newSample);
       }
       else {
         mySparseSamples.add(prevSampleIndex + 1, newSample);
