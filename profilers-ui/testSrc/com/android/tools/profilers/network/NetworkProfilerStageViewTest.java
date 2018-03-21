@@ -77,7 +77,11 @@ public class NetworkProfilerStageViewTest {
   @Before
   public void setUp() {
     myTimer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
+    // TODO b/76100366 temporarily disable the sessions panel as the spliiter's divider can interfere with the mouse events targeting over
+    // the LineChart.
+    ideProfilerServices.enableSessionsView(false);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, myTimer);
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
