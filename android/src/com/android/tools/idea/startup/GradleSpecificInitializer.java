@@ -23,7 +23,6 @@ import com.android.tools.idea.actions.*;
 import com.android.tools.idea.fd.actions.HotswapAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.gradle.actions.RefreshProjectAction;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -152,7 +151,7 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static void setUpGradleViewToolbarActions() {
-    replaceAction("ExternalSystem.RefreshAllProjects", new RefreshProjectAction());
+    hideAction("ExternalSystem.RefreshAllProjects");
     hideAction("ExternalSystem.SelectProjectDataToImport");
   }
 

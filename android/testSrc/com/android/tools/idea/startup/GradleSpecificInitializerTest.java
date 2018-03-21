@@ -16,7 +16,6 @@
 package com.android.tools.idea.startup;
 
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
-import com.android.tools.idea.gradle.actions.RefreshProjectAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -66,9 +65,9 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
     assertThat(child).isInstanceOf(AndroidTemplateProjectSettingsGroup.class);
   }
 
-  public void testRefreshProjectsActionIsReplaced() {
+  public void testRefreshProjectsActionIsHidden() {
     AnAction refreshProjectsAction = ActionManager.getInstance().getAction("ExternalSystem.RefreshAllProjects");
-    assertThat(refreshProjectsAction).isInstanceOf(RefreshProjectAction.class);
+    assertThat(refreshProjectsAction).isInstanceOf(EmptyAction.class);
   }
 
   public void testSelectProjectToImportActionIsHidden() {
