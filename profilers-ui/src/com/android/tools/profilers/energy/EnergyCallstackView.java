@@ -63,6 +63,9 @@ public final class EnergyCallstackView extends JPanel {
       StackTraceView stackTraceView = myStageView.getIdeComponents().createStackView(model);
       stackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, codeLocationList);
       JComponent traceComponent = stackTraceView.getComponent();
+      if (traceComponent instanceof JScrollPane) {
+        ((JScrollPane) traceComponent).setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+      }
 
       String time = TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(event.getTimestamp() - startTimeNs));
       String metadataCase = event.getMetadataCase().name();
