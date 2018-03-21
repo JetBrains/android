@@ -439,52 +439,13 @@ public class Scene implements SelectionListener, Disposable {
     // TODO: this should really be delegated to the handlers
     SceneComponent component = target.getComponent();
     if (component.isSelected()) {
-      boolean hasBaselineConnection = component.getAuthoritativeNlComponent().getAttribute(SHERPA_URI,
-                                                                                           ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
-      if (target instanceof ConstraintAnchorTarget) {
-        ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)target;
-        if (anchor.getType() == AnchorTarget.Type.BASELINE) {
-          // only show baseline anchor as needed
-          return component.canShowBaseline() || hasBaselineConnection;
-        }
-        else {
-          // if the baseline is showing, hide the rest of the anchors
-          return (!hasBaselineConnection && !component.canShowBaseline())
-                 || (hasBaselineConnection && anchor.isHorizontalAnchor());
-        }
-      }
-      // if the baseline shows, hide all the targets others than ActionTarget, ConstraintDragTarget and ResizeTarget
       if (component.canShowBaseline()) {
-        return (target instanceof ConstraintDragTarget) ||
-               (target instanceof DragBaseTarget);
+        return (target instanceof DragBaseTarget);
       }
       return !component.isDragging();
     }
     if (target instanceof CoordinatorSnapTarget) {
       return true;
-    }
-    if (target instanceof ConstraintAnchorTarget) {
-      ConstraintAnchorTarget anchor = (ConstraintAnchorTarget)target;
-      if (myFilterType == FilterType.BASELINE_ANCHOR) {
-        return anchor.getType() == AnchorTarget.Type.BASELINE;
-      }
-      if (myFilterType == FilterType.VERTICAL_ANCHOR
-          && anchor.isVerticalAnchor()) {
-        return true;
-      }
-      if (myFilterType == FilterType.HORIZONTAL_ANCHOR
-          && anchor.isHorizontalAnchor()) {
-        return true;
-      }
-      if (myFilterType == FilterType.ANCHOR) {
-        return true;
-      }
-    }
-    if (target instanceof RelativeAnchorTarget) {
-      RelativeAnchorTarget anchor = (RelativeAnchorTarget) target;
-      if (anchor.isConnectible(myFilterType)) {
-        return true;
-      }
     }
     if (target instanceof MultiComponentTarget) {
       return true;
