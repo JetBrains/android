@@ -75,7 +75,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull private Common.Session myProfilingSession;
 
   /**
-   * A cache of the view ranges that were used by each session before it was unselected.
+   * A cache of the view ranges that were used by each session before it was unselected. Note that the key represents a Session's id.
    */
   private final Map<Long, Range> mySessionViewRangeMap;
 
