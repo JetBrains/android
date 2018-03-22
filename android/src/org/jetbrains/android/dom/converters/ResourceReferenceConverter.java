@@ -23,10 +23,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.ResourceNamespaceContext;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.*;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -265,7 +262,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     });
 
     // Find matching ID resource declarations.
-    Collection<String> ids = AppResourceRepository.getOrCreateInstance(facet).getItemsOfType(namespace, ResourceType.ID);
+    Collection<String> ids = ResourceRepositoryManager.getAppResources(facet).getItemsOfType(namespace, ResourceType.ID);
     for (String name : ids) {
       ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
       if (!value.startsWith(doToString(ref))) {
@@ -293,7 +290,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @NotNull
   public static EnumSet<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
     EnumSet<ResourceType> result = EnumSet.noneOf(ResourceType.class);
-    AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
     for (ResourceType type : ResourceType.values()) {
       if (resourceRepository.hasResourcesOfType(type)) {
         if (type == ResourceType.DECLARE_STYLEABLE) {
@@ -379,7 +376,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                            explicitResourceType);
       }
       else {
-        AppResourceRepository appResources = repoManager.getAppResources(true);
+        LocalResourceRepository appResources = repoManager.getAppResources(true);
 
         if (onlyNamespace != null) {
           addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,

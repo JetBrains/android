@@ -125,7 +125,7 @@ public class ThemeEditorUtils {
   public static String generateToolTipText(@NotNull final ItemResourceValue resValue,
                                            @NotNull final Module module,
                                            @NotNull final Configuration configuration) {
-    final LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(module);
+    final LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(module);
     if (repository == null) {
       return "";
     }

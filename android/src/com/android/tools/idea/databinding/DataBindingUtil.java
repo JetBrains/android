@@ -25,10 +25,7 @@ import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
 import com.android.tools.idea.lang.databinding.psi.PsiDbConstantValue;
 import com.android.tools.idea.lang.databinding.psi.PsiDbDefaults;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.DataBindingInfo;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -107,7 +104,7 @@ public class DataBindingUtil {
   public static boolean invalidateAllSources(DataBindingProjectComponent component) {
     boolean invalidated = false;
     for (AndroidFacet facet : component.getDataBindingEnabledFacets()) {
-      LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
+      LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(facet);
       Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
         continue;
@@ -238,7 +235,7 @@ public class DataBindingUtil {
     if (layout == null) {
       return null;
     }
-    LocalResourceRepository moduleResources = ModuleResourceRepository.findExistingInstance(facet);
+    LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(false);
     if (moduleResources == null) {
       return null;
     }

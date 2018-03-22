@@ -17,7 +17,8 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;
@@ -68,7 +69,7 @@ public class DataBindingPackageFinder extends PsiElementFinder {
           return new ResourceCacheValueProvider<Set<String>>(facet, null) {
             @Override
             Set<String> doCompute() {
-              LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(getFacet());
+              LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(getFacet());
               Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
               if (dataBindingResourceFiles == null) {
                 return Collections.emptySet();

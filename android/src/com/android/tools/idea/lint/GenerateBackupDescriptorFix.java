@@ -18,7 +18,8 @@ package com.android.tools.idea.lint;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
@@ -123,7 +124,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     AndroidFacet facet = AndroidFacet.getInstance(startElement);
-    AppResourceRepository appResources = facet == null ? null : AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = facet == null ? null : ResourceRepositoryManager.getAppResources(facet);
     return appResources == null || !appResources.getItemsOfType(ResourceType.XML).contains(myUrl.name);
   }
 

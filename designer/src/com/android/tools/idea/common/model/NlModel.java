@@ -27,11 +27,12 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -950,7 +951,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Looks up the existing set of id's reachable from this model
    */
   public Set<String> getIds() {
-    AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(getFacet());
+    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getFacet());
     Set<String> ids = new HashSet<>(resources.getItemsOfType(ResourceType.ID));
     Set<String> pendingIds = getPendingIds();
     if (!pendingIds.isEmpty()) {

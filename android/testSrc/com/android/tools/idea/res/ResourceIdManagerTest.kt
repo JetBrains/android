@@ -42,19 +42,20 @@ class ResourceIdManagerTest : LightCodeInsightFixtureTestCase() {
 
   fun testGetDeclaredArrayValues() {
     val appResources = createTestAppResourceRepository(facet)
+    val libraries = (appResources as AppResourceRepository).libraries
 
     val attrList = mutableListOf(AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "some-attr"), null))
-    assertOrderedEquals(idManager.getDeclaredArrayValues(appResources.libraries, attrList, "Styleable1")!!, 0x7f010000)
+    assertOrderedEquals(idManager.getDeclaredArrayValues(libraries, attrList, "Styleable1")!!, 0x7f010000)
 
     // Declared styleables mismatch
     attrList += AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "some-attr"), null)
     attrList += AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "other-attr"), null)
 
-    assertNull(idManager.getDeclaredArrayValues(appResources.libraries, attrList, "Styleable1"))
+    assertNull(idManager.getDeclaredArrayValues(libraries, attrList, "Styleable1"))
 
     assertOrderedEquals(
       idManager.getDeclaredArrayValues(
-        appResources.libraries,
+        libraries,
         listOf(
           AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "app_attr1"), null),
           AttrResourceValue(ResourceReference(RES_AUTO, ResourceType.ATTR, "app_attr2"), null),

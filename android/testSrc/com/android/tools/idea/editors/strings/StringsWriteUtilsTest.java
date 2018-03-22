@@ -20,7 +20,7 @@ import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
@@ -41,7 +41,7 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
 
     myProject = myFacet.getModule().getProject();
     myResourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    myResourceRepository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(myResourceDirectory));
+    myResourceRepository = ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(myResourceDirectory));
   }
 
   @Override

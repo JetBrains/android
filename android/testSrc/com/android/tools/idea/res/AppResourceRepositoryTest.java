@@ -65,8 +65,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testStable() {
-    assertSame(AppResourceRepository.getOrCreateInstance(myFacet), AppResourceRepository.getOrCreateInstance(myFacet));
-    assertSame(AppResourceRepository.getOrCreateInstance(myFacet), AppResourceRepository.getOrCreateInstance(myModule));
+    assertSame(ResourceRepositoryManager.getAppResources(myFacet), ResourceRepositoryManager.getAppResources(myFacet));
+    assertSame(ResourceRepositoryManager.getAppResources(myFacet), ResourceRepositoryManager.getAppResources(myModule));
   }
 
   public void testStringOrder() {

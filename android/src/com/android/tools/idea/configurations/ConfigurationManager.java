@@ -28,10 +28,7 @@ import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -174,7 +171,7 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
-    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(getModule());
+    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getModule());
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     if (fileState != null) {
       matcher.adaptConfigSelection(true);
@@ -210,7 +207,7 @@ public class ConfigurationManager implements Disposable {
     if (baseConfig != null) {
       configuration.setEffectiveDevice(baseConfig.getDevice(), baseConfig.getDeviceState());
     }
-    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(getModule());
+    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getModule());
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     matcher.adaptConfigSelection(true /*needBestMatch*/);
     myCache.put(file, configuration);
@@ -439,7 +436,7 @@ public class ConfigurationManager implements Disposable {
   @NotNull
   public List<Locale> getLocales() {
     // Get locales from modules, but not libraries!
-    LocalResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(getModule());
+    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(getModule());
     assert projectResources != null;
     if (projectResources.getModificationCount() != myLocaleCacheStamp) {
       myLocales = null;

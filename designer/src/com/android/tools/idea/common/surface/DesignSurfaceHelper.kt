@@ -22,7 +22,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons
-import com.android.tools.idea.res.ModuleResourceRepository
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.resolveLayout
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
@@ -72,7 +72,7 @@ fun openResource(configuration: Configuration, reference: String, currentFile: V
 }
 
 fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
-  return ModuleResourceRepository.getOrCreateInstance(facet).hasResourceItem(type, name)
+  return ResourceRepositoryManager.getModuleResources(facet).hasResourceItem(type, name)
 }
 
 fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, asset: String) {

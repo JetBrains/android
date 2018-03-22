@@ -19,8 +19,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -85,7 +83,7 @@ public class LocalResourceManager extends ResourceManager {
   @Override
   @NotNull
   public AbstractResourceRepository getResourceRepository() {
-    return ProjectResourceRepository.getOrCreateInstance(myFacet);
+    return ResourceRepositoryManager.getProjectResources(myFacet);
   }
 
   @Override
@@ -113,7 +111,7 @@ public class LocalResourceManager extends ResourceManager {
   @NotNull
   @Override
   public Multimap<String, VirtualFile> getAllResourceDirs() {
-    return AppResourceRepository.getOrCreateInstance(myFacet).getAllResourceDirs();
+    return ResourceRepositoryManager.getOrCreateInstance(myFacet).getAllResourceDirs();
   }
 
   @Override

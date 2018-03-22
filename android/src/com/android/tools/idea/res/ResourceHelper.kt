@@ -794,7 +794,7 @@ private fun addProjectItems(
   destination: MutableList<String>,
   type: ResourceType,
   includeFileResources: Boolean,
-  repository: AppResourceRepository,
+  repository: LocalResourceRepository,
   lookup: ResourceVisibilityLookup?
 ) {
   for (resourceName in repository.getItemsOfType(type)) {

@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
@@ -283,7 +283,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
 
     @Override
     Map<String, List<DataBindingInfo>> doCompute() {
-      LocalResourceRepository moduleResources = ModuleResourceRepository.findExistingInstance(getFacet());
+      LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(getFacet()).getModuleResources(false);
       if (moduleResources == null) {
         return defaultValue();
       }

@@ -204,7 +204,7 @@ public class AndroidJavaDocRenderer {
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
     protected final Module myModule;
     protected final Configuration myConfiguration;
-    protected AppResourceRepository myAppResources;
+    protected LocalResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
     protected AbstractResourceRepository myFrameworkResources;
@@ -303,7 +303,7 @@ public class AndroidJavaDocRenderer {
 
       List<ItemInfo> results = new ArrayList<>();
 
-      AppResourceRepository resources = getAppResources();
+      LocalResourceRepository resources = getAppResources();
 
       List<AndroidFacet> dependencies =  AndroidUtils.getAllAndroidDependencies(myModule, true);
       boolean hasGradleModel = false;
@@ -371,7 +371,7 @@ public class AndroidJavaDocRenderer {
       if (resources != null) {
         if (hasGradleModel) {
           // Go through all the binary libraries and look for additional resources there
-          for (LocalResourceRepository dependency : resources.getLibraries()) {
+          for (LocalResourceRepository dependency : ResourceRepositoryManager.getOrCreateInstance(facet).getLibraries()) {
             addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
           }
         }
@@ -562,9 +562,9 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public AppResourceRepository getAppResources() {
+    public LocalResourceRepository getAppResources() {
       if (myAppResources == null) {
-        myAppResources = AppResourceRepository.getOrCreateInstance(myModule);
+        myAppResources = ResourceRepositoryManager.getAppResources(myModule);
       }
 
       return myAppResources;

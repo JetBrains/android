@@ -18,7 +18,7 @@ package org.jetbrains.android.resourceManagers;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.res.ModuleResourceRepository.EmptyRepository;
+import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.project.Project;

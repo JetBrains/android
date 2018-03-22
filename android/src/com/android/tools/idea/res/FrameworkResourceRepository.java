@@ -62,6 +62,8 @@ import static com.google.common.collect.Sets.newLinkedHashSetWithExpectedSize;
  * <p>For safety we don't assume any compatibility of cache file format between different versions
  * of the Android plugin. For the built-in framework resources used by LayoutLib this also guarantees
  * freshness of the cache when the Android plugin is updated.
+ *
+ * @see ResourceRepositoryManager#getFrameworkResources(boolean)
  */
 public final class FrameworkResourceRepository extends FileResourceRepository {
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;

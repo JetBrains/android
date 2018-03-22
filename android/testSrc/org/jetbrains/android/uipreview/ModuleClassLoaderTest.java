@@ -23,9 +23,7 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceClassRegistry;
-import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -116,7 +114,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     generateRClass("test", new File(outputDir, "R.class"));
 
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(module);
     ResourceClassRegistry rClassRegistry = ResourceClassRegistry.get(module.getProject());
     rClassRegistry.addLibrary(appResources, ResourceIdManager.get(module), "test", ResourceNamespace.fromPackageName("test"));
 

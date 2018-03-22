@@ -977,11 +977,11 @@ public class LintIdeClient extends LintClient implements Disposable {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         if (includeLibraries) {
-          return AppResourceRepository.getOrCreateInstance(facet);
+          return ResourceRepositoryManager.getAppResources(facet);
         } else if (includeModuleDependencies) {
-          return ProjectResourceRepository.getOrCreateInstance(facet);
+          return ResourceRepositoryManager.getProjectResources(facet);
         } else {
-          return ModuleResourceRepository.getOrCreateInstance(facet);
+          return ResourceRepositoryManager.getModuleResources(facet);
         }
       }
     }

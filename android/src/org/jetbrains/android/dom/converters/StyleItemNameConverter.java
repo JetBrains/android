@@ -22,7 +22,8 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
@@ -85,11 +86,11 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       // Try to find the parents of the styles where this item is defined and add to the suggestion every non-framework attribute that has been used.
       // This is helpful in themes like AppCompat where there is not only a framework attribute defined but also a custom attribute. This
       // will show both in the completion list.
-      AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(context.getModule());
+      LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(context.getModule());
       XmlTag styleTag = context.getTag().getParentTag();
       String parent = getParentNameFromTag(styleTag);
       List<ResourceItem> parentDefinitions =
-        parent != null && appResourceRepository != null ? appResourceRepository.getResourceItem(ResourceType.STYLE, parent) : null;
+        parent != null && LocalResourceRepository != null ? LocalResourceRepository.getResourceItem(ResourceType.STYLE, parent) : null;
 
       if (parentDefinitions != null && !parentDefinitions.isEmpty()) {
         HashSet<String> attributeNames = Sets.newHashSet();
@@ -112,7 +113,7 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
 
           ResourceReference parentStyle = parentValue.getParentStyle();
           if (parentStyle != null) {
-            toExplore.addAll(appResourceRepository.getResourceItems(parentStyle));
+            toExplore.addAll(LocalResourceRepository.getResourceItems(parentStyle));
           }
         }
 

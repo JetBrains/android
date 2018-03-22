@@ -15,63 +15,28 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceTable;
-import com.android.resources.ResourceType;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
- * Resource repository for a single module (which can possibly have multiple resource folders). Does not include
- * resources from any dependencies.
+ * @see ResourceRepositoryManager#getModuleResources(boolean)
  */
-public final class ModuleResourceRepository extends MultiResourceRepository {
+final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
   private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener = (facet, folders, added, removed) -> updateRoots();
   private final ResourceFolderManager myResourceFolderManager;
-
-  /**
-   * Returns the Android resources specific to this module, not including resources in any
-   * dependent modules or any AAR libraries, create the app resources if necessary.
-   *
-   * @param module the module to look up resources for
-   * @return the resource repository
-   */
-  @Nullable
-  public static LocalResourceRepository getOrCreateInstance(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? getOrCreateInstance(facet) : null;
-  }
-
-  @NotNull
-  public static LocalResourceRepository getOrCreateInstance(@NotNull AndroidFacet facet) {
-    return findModuleResources(facet, true);
-  }
-
-  @Nullable
-  public static LocalResourceRepository findExistingInstance(@NotNull AndroidFacet facet) {
-    return findModuleResources(facet, false);
-  }
-
-  @Contract("_, true -> !null")
-  @Nullable
-  private static LocalResourceRepository findModuleResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    ResourceRepositoryManager repositories = ResourceRepositoryManager.getOrCreateInstance(facet);
-    return repositories.getModuleResources(createIfNecessary);
-  }
 
   /**
    * Creates a new resource repository for the given module, <b>not</b> including its dependent modules.
@@ -210,37 +175,5 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
       delegates.add(dynamicResourceValueRepository);
     }
     return new ModuleResourceRepository(facet, delegates);
-  }
-
-  public static final class EmptyRepository extends LocalResourceRepository {
-    public EmptyRepository() {
-      super("");
-    }
-
-    @NotNull
-    @Override
-    protected Set<VirtualFile> computeResourceDirs() {
-      return Collections.emptySet();
-    }
-
-    @NonNull
-    @Override
-    protected ResourceTable getFullTable() {
-      return new ResourceTable();
-    }
-
-    @Nullable
-    @Override
-    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
-                                                        @NotNull ResourceType type,
-                                                        boolean create) {
-      return create ? ArrayListMultimap.create() : null;
-    }
-
-    @NonNull
-    @Override
-    public Set<ResourceNamespace> getNamespaces() {
-      return Collections.emptySet();
-    }
   }
 }

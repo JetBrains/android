@@ -1,11 +1,9 @@
 package org.jetbrains.android.uipreview;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.sdklib.IAndroidTarget;
-import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -98,8 +96,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
       if (!myInsideJarClassLoader) {
         if (module != null) {
           if (isResourceClassName(name)) {
-            AppResourceRepository appResources = AppResourceRepository.findExistingInstance(module);
-            if (appResources != null) {
+            AndroidFacet facet = AndroidFacet.getInstance(module);
+            if (facet != null) {
+              LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
               byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
               if (data != null) {
                 data = convertClass(data);
@@ -110,7 +109,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
               }
             }
             else if (LOG.isDebugEnabled()) {
-              LOG.debug("  AppResourceRepositoryInstance not found");
+              LOG.debug("  LocalResourceRepositoryInstance not found");
             }
           }
         }
@@ -370,10 +369,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   private static void registerLibraryResourceFiles(@NotNull Module module, @NotNull File jarFile) {
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
-    if (appResources == null) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
       return;
     }
+
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = repositoryManager.getAppResources(true);
 
     // We need to figure out the layout of the resources relative to the jar file. This changed over time, so we check for different
     // layouts until we find one we recognize.
@@ -412,7 +414,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return;
     }
 
-    AbstractResourceRepository aarResources = appResources.findRepositoryFor(resourcesDirectory);
+    AbstractResourceRepository aarResources = repositoryManager.findRepositoryFor(resourcesDirectory);
     if (aarResources == null) {
       return;
     }
@@ -425,13 +427,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (packageName == null) {
       return;
     }
-
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return;
-    }
-
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
 
     // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
     AbstractResourceRepository rClassContents;

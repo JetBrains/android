@@ -34,7 +34,8 @@ import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.google.common.collect.ImmutableList;
@@ -133,7 +134,7 @@ public class CanvasResizeInteraction extends Interaction {
     VirtualFile file = configuration.getFile();
     assert file != null;
     String layoutName = file.getNameWithoutExtension();
-    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(configuration.getModule());
+    LocalResourceRepository resourceRepository = ResourceRepositoryManager.getProjectResources(configuration.getModule());
     assert resourceRepository != null;
 
     // TODO: namespaces

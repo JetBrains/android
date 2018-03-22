@@ -116,7 +116,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (elements.isEmpty() && myResourceValue.getResourceName() != null && resolvedNamespace != ResourceNamespace.ANDROID) {
       // Dynamic items do not appear in the XML scanning file index; look for
       // these in the resource repositories.
-      LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(myFacet.getModule());
+      LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(myFacet.getModule());
       ResourceType resourceType = myResourceValue.getType();
       if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
         assert resources != null;

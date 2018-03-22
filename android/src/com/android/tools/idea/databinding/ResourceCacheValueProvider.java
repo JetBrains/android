@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.util.CachedValueProvider;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -30,7 +30,7 @@ abstract public class ResourceCacheValueProvider<T> implements CachedValueProvid
     private long myVersion = 0;
     @Override
     public long getModificationCount() {
-      LocalResourceRepository moduleResources = ModuleResourceRepository.findExistingInstance(myFacet);
+      LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(myFacet).getModuleResources(false);
       // make sure it changes if facet's module resource availability changes
       long version = moduleResources == null ? Integer.MIN_VALUE : moduleResources.getModificationCount();
       if (version != myLastVersion) {
@@ -62,7 +62,7 @@ abstract public class ResourceCacheValueProvider<T> implements CachedValueProvid
   @NotNull
   @Override
   public final Result<T> compute() {
-    if (ModuleResourceRepository.findExistingInstance(myFacet) == null) {
+    if (ResourceRepositoryManager.getOrCreateInstance(myFacet).getModuleResources(false) == null) {
       return Result.create(defaultValue(), myTracker, myAdditionalTrackers);
     }
     return Result.create(computeWithLock(), myTracker, myAdditionalTrackers);

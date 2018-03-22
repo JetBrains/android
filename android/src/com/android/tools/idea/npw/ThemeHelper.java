@@ -23,7 +23,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,11 +42,11 @@ public class ThemeHelper {
   private static final String APP_COMPAT = "Theme.AppCompat.";    //$NON-NLS-1$
 
   private final Module myModule;
-  private final ProjectResourceRepository myProjectRepository;
+  private final LocalResourceRepository myProjectRepository;
 
   public ThemeHelper(@NotNull Module module) {
     myModule = module;
-    myProjectRepository = ProjectResourceRepository.getOrCreateInstance(module);
+    myProjectRepository = ResourceRepositoryManager.getProjectResources(module);
   }
 
   @Nullable

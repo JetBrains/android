@@ -28,9 +28,7 @@ import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.AssetRepositoryImpl;
-import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -144,7 +142,7 @@ public class GraphicsLayoutRenderer {
       throw new UnsupportedLayoutlibException("GraphicsLayoutRenderer requires at least layoutlib version " + MIN_LAYOUTLIB_API_VERSION);
     }
 
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
 
     final Module module = facet.getModule();
     // Security token used to disable the security manager. Only objects that have a reference to it are allowed to disable it.

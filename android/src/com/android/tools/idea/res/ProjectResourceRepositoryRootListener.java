@@ -87,11 +87,12 @@ public class ProjectResourceRepositoryRootListener {
       ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
       repoManager.resetVisibility();
 
-      ProjectResourceRepository projectResources = repoManager.getProjectResources(false);
+      // TODO(b/76128326): move this to ResourceRepositoryManager
+      ProjectResourceRepository projectResources = (ProjectResourceRepository)repoManager.getProjectResources(false);
       if (projectResources != null) {
         projectResources.updateRoots();
 
-        AppResourceRepository appResources = repoManager.getAppResources(false);
+        AppResourceRepository appResources = (AppResourceRepository)repoManager.getAppResources(false);
         if (appResources != null) {
           appResources.invalidateCache(projectResources);
           appResources.updateRoots();

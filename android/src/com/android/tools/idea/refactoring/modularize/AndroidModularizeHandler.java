@@ -23,8 +23,9 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -288,7 +289,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       XmlResourceReferenceVisitor(@NotNull AndroidFacet facet, @NotNull PsiElement source) {
         myFacet = facet;
         mySource = source;
-        myResourceRepository = ModuleResourceRepository.getOrCreateInstance(facet);
+        myResourceRepository = ResourceRepositoryManager.getModuleResources(facet);
       }
 
       @Override
@@ -340,7 +341,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       JavaReferenceVisitor(@NotNull AndroidFacet facet, @NotNull PsiElement source) {
         myFacet = facet;
         mySource = source;
-        myResourceRepository = ModuleResourceRepository.getOrCreateInstance(facet);
+        myResourceRepository = ResourceRepositoryManager.getModuleResources(facet);
       }
 
       @Override

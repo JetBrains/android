@@ -20,10 +20,10 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.MergerResourceRepository;
-import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepositoryFixture;
+import com.android.ide.common.resources.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.collect.ImmutableList;
@@ -433,7 +433,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testWithAars() throws Exception {
-    AppResourceRepository appResources = ResourcesTestsUtil.createTestAppResourceRepository(myFacet);
+    AppResourceRepository appResources = (AppResourceRepository)ResourcesTestsUtil.createTestAppResourceRepository(myFacet);
     ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
     Class<?> clz = generateClass(generator, "pkg.R$id");

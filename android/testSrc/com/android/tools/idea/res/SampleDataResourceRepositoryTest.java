@@ -29,7 +29,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -285,7 +284,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("sampledata/images/image2.png", "\n");
     myFixture.addFileToProject("sampledata/images/image3.png", "\n");
 
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
     List<ResourceItem> items = repository.getResourceItems(ResourceNamespace.TODO, ResourceType.SAMPLE_DATA);
     assertSize(1, items);
     assertEquals("images", items.get(0).getName());

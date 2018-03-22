@@ -27,7 +27,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.ApiLookup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -315,8 +316,8 @@ public class ResolutionUtils {
           resourceRepository.getResourceItems(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
     }
     else {
-      AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
-      configurables = appResourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
+      LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet);
+      configurables = LocalResourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
     }
     Configurable configurable = configuration.findMatchingConfigurable(configurables);
     assert configurable != null;

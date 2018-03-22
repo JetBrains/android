@@ -30,9 +30,9 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
@@ -226,7 +226,7 @@ public class Configuration implements Disposable, ModificationTracker {
     // TODO: Figure out whether we need this, or if it should be replaced by
     // a call to ConfigurationManager#createSimilar()
     Configuration configuration = base.clone();
-    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(base.getModule());
+    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(base.getModule());
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
     matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -320,7 +320,7 @@ public class Configuration implements Disposable, ModificationTracker {
     destination.myTheme = source.getTheme();
     //destination.myDisplayName = source.getDisplayName();
 
-    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(source.myManager.getModule());
+    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(source.myManager.getModule());
     ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
     //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
       matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -470,7 +470,7 @@ public class Configuration implements Disposable, ModificationTracker {
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(module);
+          LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(module);
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
             if (folderType != null) {
@@ -1241,7 +1241,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
-    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(getModule());
+    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getModule());
     return new ConfigurationMatcher(this, resources, file).isCurrentFileBestMatchFor(config);
   }
 

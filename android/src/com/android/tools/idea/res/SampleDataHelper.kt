@@ -23,7 +23,7 @@ import com.android.resources.ResourceType
  * Return all the [SampleDataResourceItem] representing images in all namespaces
  * accessible from this repository
  */
-fun AppResourceRepository.getSampleDataOfType(type: SampleDataResourceItem.ContentType): Sequence<SampleDataResourceItem> {
+fun LocalResourceRepository.getSampleDataOfType(type: SampleDataResourceItem.ContentType): Sequence<SampleDataResourceItem> {
   val namespaces = this.namespaces.asSequence()
 
   return namespaces

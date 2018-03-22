@@ -22,10 +22,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceFolderRegistry;
-import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -516,7 +513,7 @@ public final class Parameter {
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+      LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
       return repository.hasResourceItem(resourceType, name);
     }
     return false;

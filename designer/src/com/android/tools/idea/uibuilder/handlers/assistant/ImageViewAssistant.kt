@@ -20,7 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.ui.ClickableLabel
-import com.android.tools.idea.res.AppResourceRepository
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.SampleDataResourceItem.ContentType.IMAGE
 import com.android.tools.idea.res.getDrawableResources
@@ -183,7 +183,7 @@ class ImageViewAssistant(
   }
 
   private fun fetchSampleItems(facet: AndroidFacet) =
-    AppResourceRepository.getOrCreateInstance(facet).getSampleDataOfType(IMAGE).toList()
+    ResourceRepositoryManager.getAppResources(facet).getSampleDataOfType(IMAGE).toList()
 
   private fun applySampleItem(item: SampleDataResourceItem?, resourceValueIndex: Int) {
     val useAll = resourceValueIndex < 0

@@ -25,7 +25,8 @@ import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.editors.NlXmlEditors;
 import com.android.tools.idea.uibuilder.property.renderer.NlXmlRenderers;
 import com.google.common.collect.Multimap;
@@ -102,7 +103,7 @@ public class NlXmlPropertyBuilder {
 
   private void resolveValue(@NotNull NlPropertyItem property) {
     AndroidFacet facet = property.getModel().getFacet();
-    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository resourceRepository = ResourceRepositoryManager.getProjectResources(facet);
     ResourceResolver resolver = property.getResolver();
     if (resolver == null) {
       return;
@@ -142,7 +143,7 @@ public class NlXmlPropertyBuilder {
   }
 
   @Nullable
-  private static ResourceItem findUserDefinedResourceItem(@NotNull ProjectResourceRepository resourceRepository,
+  private static ResourceItem findUserDefinedResourceItem(@NotNull LocalResourceRepository resourceRepository,
                                                           @NotNull ResourceValue resource) {
     if (resource.isFramework() || resource.getLibraryName() != null || resource.getResourceType() == null) {
       return null;

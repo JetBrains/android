@@ -15,24 +15,32 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
@@ -41,12 +49,19 @@ import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.util.*;
+
+import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
+
 public class ResourceRepositoryManager implements Disposable {
   private static final Key<ResourceRepositoryManager> KEY = Key.create(ResourceRepositoryManager.class.getName());
+  private static final Logger LOG = Logger.getInstance(ResourceRepositoryManager.class);
 
   private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
@@ -95,6 +110,72 @@ public class ResourceRepositoryManager implements Disposable {
     return getOrCreateInstance(facet);
   }
 
+  /**
+   * Computes and returns the app resources.
+   *
+   * @see #getAppResources(boolean)
+   * @return the resource repository or null if the module is not an Android module
+   */
+  @Nullable
+  public static LocalResourceRepository getAppResources(@NonNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? getAppResources(facet) : null;
+  }
+
+  /**
+   * Computes and returns the app resources.
+   *
+   * @see #getAppResources(boolean)
+   */
+  @NotNull
+  public static LocalResourceRepository getAppResources(@NonNull AndroidFacet facet) {
+    return getOrCreateInstance(facet).getAppResources(true);
+  }
+
+  /**
+   * Computes and returns the project resources.
+   *
+   * @see #getProjectResources(boolean)
+   * @return the resource repository or null if the module is not an Android module
+   */
+  @Nullable
+  public static LocalResourceRepository getProjectResources(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? getProjectResources(facet) : null;
+  }
+
+  /**
+   * Computes and returns the project resources.
+   *
+   * @see #getProjectResources(boolean)
+   */
+  @NotNull
+  public static LocalResourceRepository getProjectResources(@NotNull AndroidFacet facet) {
+    return getOrCreateInstance(facet).getProjectResources(true);
+  }
+
+  /**
+   * Computes and returns the module resources.
+   *
+   * @see #getModuleResources(boolean)
+   * @return the resource repository or null if the module is not an Android module
+   */
+  @Nullable
+  public static LocalResourceRepository getModuleResources(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? getModuleResources(facet) : null;
+  }
+
+  /**
+   * Computes and returns the module resources.
+   *
+   * @see #getModuleResources(boolean)
+   */
+  @NotNull
+  public static LocalResourceRepository getModuleResources(@NotNull AndroidFacet facet) {
+    return getOrCreateInstance(facet).getModuleResources(true);
+  }
+
   private ResourceRepositoryManager(@NotNull AndroidFacet facet) {
     myFacet = facet;
     Disposer.register(facet, this);
@@ -114,9 +195,135 @@ public class ResourceRepositoryManager implements Disposable {
     }, false);
   }
 
+  /**
+   * Returns true if this project is build with Gradle but the AndroidModuleModel did not exist when the resources were cached.
+   * And reset the state.
+   */
+  public static boolean testAndClearTempResourceCached(@NotNull Project project) {
+    if (project.getUserData(AppResourceRepository.TEMPORARY_RESOURCE_CACHE) != Boolean.TRUE) {
+      return false;
+    }
+    project.putUserData(AppResourceRepository.TEMPORARY_RESOURCE_CACHE, null);
+    return true;
+  }
+
+  @NotNull
+  public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<Library> libraries = new ArrayList<>();
+    if (facet.requiresAndroidModel()) {
+      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+      if (androidModel != null) {
+        List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+        addGradleLibraries(libraries, androidModel);
+        for (AndroidFacet dependentFacet : dependentFacets) {
+          AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
+          if (dependentGradleModel != null) {
+            addGradleLibraries(libraries, dependentGradleModel);
+          }
+        }
+      }
+    }
+    return libraries;
+  }
+
+  private static void addGradleLibraries(@NotNull List<Library> list, @NotNull AndroidModuleModel androidModuleModel) {
+    list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
+  }
+
+  @NotNull
+  static Map<File, String> findAarLibraries(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
+    // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
+    // which have been persisted since the most recent sync
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+    if (androidModuleModel != null) {
+      List<Library> libraries = new ArrayList<>();
+      addGradleLibraries(libraries, androidModuleModel);
+      for (AndroidFacet dependentFacet : dependentFacets) {
+        AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
+        if (dependentGradleModel != null) {
+          addGradleLibraries(libraries, dependentGradleModel);
+        }
+      }
+      GradleVersion modelVersion = androidModuleModel.getModelVersion();
+      assert modelVersion != null;
+      return findAarLibrariesFromGradle(modelVersion, dependentFacets, libraries);
+    }
+    Project project = facet.getModule().getProject();
+    if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      project.putUserData(AppResourceRepository.TEMPORARY_RESOURCE_CACHE, true);
+    }
+    return findAarLibrariesFromIntelliJ(facet, dependentFacets);
+  }
+
+  /**
+   * Reads IntelliJ library definitions ({@link com.intellij.openapi.roots.LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
+   * {@code .aar} resource library to include. This works before the Gradle project has been initialized.
+   */
+  @NotNull
+  private static Map<File, String> findAarLibrariesFromIntelliJ(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
+    // Find .aar libraries from old IntelliJ library definitions
+    Map<File, String> dirs = new HashMap<>();
+    addAarsFromModuleLibraries(facet, dirs);
+    for (AndroidFacet f : dependentFacets) {
+      addAarsFromModuleLibraries(f, dirs);
+    }
+    return dirs;
+  }
+
+  /**
+   * Looks up the library dependencies from the Gradle tools model and returns the corresponding {@code .aar}
+   * resource directories.
+   */
+  @NotNull
+  private static Map<File, String> findAarLibrariesFromGradle(@NotNull GradleVersion modelVersion,
+                                                              @NotNull List<AndroidFacet> dependentFacets,
+                                                              @NotNull List<Library> libraries) {
+    // Pull out the unique directories, in case multiple modules point to the same .aar folder
+    Map<File, String> files = new HashMap<>(libraries.size());
+
+    Set<String> moduleNames = new HashSet<>();
+    for (AndroidFacet f : dependentFacets) {
+      moduleNames.add(f.getModule().getName());
+    }
+    try {
+      for (Library library : libraries) {
+        // We should only add .aar dependencies if they aren't already provided as modules.
+        // For now, the way we associate them with each other is via the library name;
+        // in the future the model will provide this for us
+        String libraryName = library.getArtifactAddress();
+        if (!moduleNames.contains(libraryName)) {
+          File resFolder = new File(library.getResFolder());
+          if (resFolder.exists()) {
+            files.put(resFolder, libraryName);
+            // Don't add it again!
+            moduleNames.add(libraryName);
+          }
+        }
+      }
+    }
+    catch (UnsupportedOperationException e) {
+      // This happens when there is an incompatibility between the builder-model interfaces embedded in Android Studio and the
+      // cached model.
+      // If we got here, it is because this code got invoked before project sync happened (e.g. when reopening a project with open editors).
+      // Project sync now is smart enough to handle this case and will trigger a full sync.
+      LOG.warn("Incompatibility found between the IDE's builder-model and the cached Gradle model", e);
+    }
+    return files;
+  }
+
+  /**
+   * Returns the repository with all non-framework resources available to a given module (in the current variant). This includes not just
+   * the resources defined in this module, but in any other modules that this module depends on, as well as any libraries those modules may
+   * depend on (such as appcompat).
+   *
+   * <p>When a layout is rendered in the layout, it is fetching resources from the app resource repository: it should see all the resources
+   * just like the app does.
+   *
+   * @return the computed repository or null of {@code createIfNecessary} is false and no other action caused the creation of the repository.
+   */
   @Contract("true -> !null")
   @Nullable
-  public AppResourceRepository getAppResources(boolean createIfNecessary) {
+  public LocalResourceRepository getAppResources(boolean createIfNecessary) {
     return ApplicationManager.getApplication().runReadAction((Computable<AppResourceRepository>)() -> {
       synchronized (APP_RESOURCES_LOCK) {
         if (myAppResources == null && createIfNecessary) {
@@ -128,9 +335,21 @@ public class ResourceRepositoryManager implements Disposable {
     });
   }
 
+  /**
+   * Returns the resource repository for a module along with all its (local) module dependencies.
+   *
+   * <p>It doesn't contain resources from AAR dependencies.
+   *
+   * <p>An example of where this is useful is the layout editor; in its “Language” menu it lists all the relevant languages in the project and
+   * lets you choose between them. Here we don’t want to include resources from libraries; If you depend on Google Play Services, and it
+   * provides 40 translations for its UI, we don’t want to show all 40 languages in the language menu, only the languages actually locally in
+   * the user’s source code.
+   *
+   * @return the computed repository or null of {@code createIfNecessary} is false and no other action caused the creation of the repository.
+   */
   @Contract("true -> !null")
   @Nullable
-  public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
+  public LocalResourceRepository getProjectResources(boolean createIfNecessary) {
     return ApplicationManager.getApplication().runReadAction((Computable<ProjectResourceRepository>)() -> {
       synchronized (PROJECT_RESOURCES_LOCK) {
         if (myProjectResources == null && createIfNecessary) {
@@ -142,6 +361,12 @@ public class ResourceRepositoryManager implements Disposable {
     });
   }
 
+  /**
+   * Returns the resource repository for a single module (which can possibly have multiple resource folders). Does not include
+   * resources from any dependencies.
+   *
+   * @return the computed repository or null of {@code createIfNecessary} is false and no other action caused the creation of the repository.
+   */
   @Contract("true -> !null")
   @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
@@ -156,6 +381,13 @@ public class ResourceRepositoryManager implements Disposable {
     });
   }
 
+  /**
+   * Returns the resource repository with Android framework resources, for the module's compile SDK.
+   *
+   * @param needLocales if the return repository should contain resources defined using a locale qualifier (e.g. all translation strings).
+   *                    This makes creating the repository noticeably slower.
+   * @return the framework repository or null if the SDK resources directory cannot be determined for the module.
+   */
   @Nullable
   public AbstractResourceRepository getFrameworkResources(boolean needLocales) {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
@@ -257,5 +489,36 @@ public class ResourceRepositoryManager implements Disposable {
     }
 
     return ResourceVisibilityLookup.NONE;
+  }
+
+  @NotNull
+  public Multimap<String, VirtualFile> getAllResourceDirs() {
+    // TODO(b/76128326): manage the set of directories here.
+    synchronized (APP_RESOURCES_LOCK) {
+      getAppResources(true);
+      return myAppResources.getAllResourceDirs();
+    }
+  }
+
+
+  @Nullable
+  public LocalResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
+    // TODO(b/76128326): manage the libraries here.
+    synchronized (APP_RESOURCES_LOCK) {
+      getAppResources(true);
+      return myAppResources.findRepositoryFor(aarDirectory);
+    }
+  }
+
+  /**
+   * Returns the libraries among the app resources, if any.
+   */
+  @NotNull
+  public List<? extends LocalResourceRepository> getLibraries() {
+    // TODO(b/76128326): manage the libraries here.
+    synchronized (APP_RESOURCES_LOCK) {
+      getAppResources(true);
+      return myAppResources.getLibraries();
+    }
   }
 }

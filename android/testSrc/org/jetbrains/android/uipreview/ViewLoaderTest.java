@@ -22,10 +22,11 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTestUtil;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
@@ -96,8 +97,9 @@ public class ViewLoaderTest extends AndroidTestCase {
     RenderLogger logger = RenderService.getInstance(myFacet).createLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
 
-    // No AppResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
-    assertNull(AppResourceRepository.findExistingInstance(myModule));
+    // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertNull(facet != null ? ResourceRepositoryManager.getOrCreateInstance(facet).getAppResources(false) : null);
     viewLoader.loadAndParseRClass("org.jetbrains.android.uipreview.ViewLoaderTest$R");
 
     ResourceIdManager idManager = ResourceIdManager.get(myModule);

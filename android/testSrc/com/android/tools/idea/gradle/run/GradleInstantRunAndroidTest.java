@@ -21,7 +21,8 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.hash.HashCode;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -44,7 +45,7 @@ public class GradleInstantRunAndroidTest extends AndroidTestCase {
     HashCode hash = GradleInstantRunContext.getManifestResourcesHash(myFacet);
 
     // change a resource not referenced from manifest
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myFacet);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
     ResourceValue resValue = repository.getConfiguredValue(ResourceType.STRING, "title_section1", new FolderConfiguration());
     resValue.setValue("foo");
     assertEquals("Hash should not change if a resource not referenced from the manifest is changed",

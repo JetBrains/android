@@ -17,7 +17,8 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
@@ -45,7 +46,7 @@ public class DataBindingClassFinder extends PsiElementFinder {
       return null;
     }
     for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
-      LocalResourceRepository moduleResources = ModuleResourceRepository.getOrCreateInstance(facet);
+      LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(facet);
       Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
         continue;

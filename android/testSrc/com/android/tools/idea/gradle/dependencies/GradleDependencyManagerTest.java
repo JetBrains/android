@@ -21,7 +21,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 
@@ -68,7 +68,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertTrue(found);
 
     // @formatter:off
-    List<ResourceItem> items = AppResourceRepository.getOrCreateInstance(myAndroidFacet)
+    List<ResourceItem> items = ResourceRepositoryManager.getAppResources(myAndroidFacet)
                                                     .getResourceItem(ResourceType.DECLARE_STYLEABLE, "RecyclerView");
     // @formatter:on
     assertThat(items).isNotEmpty();

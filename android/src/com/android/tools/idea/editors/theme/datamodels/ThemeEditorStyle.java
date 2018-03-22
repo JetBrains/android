@@ -29,9 +29,8 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -103,7 +102,7 @@ public class ThemeEditorStyle {
     if (isFramework()) {
       return false;
     }
-    ProjectResourceRepository repository = ProjectResourceRepository.getOrCreateInstance(myManager.getModule());
+    LocalResourceRepository repository = ResourceRepositoryManager.getProjectResources(myManager.getModule());
     assert repository != null;
     return repository.hasResourceItem(ResourceType.STYLE, myQualifiedName);
   }
@@ -145,7 +144,7 @@ public class ThemeEditorStyle {
       resultItems = ImmutableList.copyOf(resourceItems.values());
     }
     else {
-      LocalResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(module);
+      LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(module);
       assert resourceRepository != null;
       List<ResourceItem> items = resourceRepository.getResourceItem(ResourceType.STYLE, myQualifiedName);
       if (items != null) {

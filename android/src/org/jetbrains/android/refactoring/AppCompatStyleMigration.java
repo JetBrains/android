@@ -22,7 +22,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -98,7 +99,7 @@ class AppCompatStyleMigration {
 
     addStyleUsagesFromManifest(facet, frameworkResources, result);
 
-    ProjectResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(facet);
 
     addUsagesFromStyles(project, frameworkResources, result, projectResources);
 
@@ -109,7 +110,7 @@ class AppCompatStyleMigration {
 
   private void addUsagesFromLayout(Project project,
                                    List<ChangeStyleUsageInfo> result,
-                                   ProjectResourceRepository projectResources) {
+                                   LocalResourceRepository projectResources) {
 
     Set<XmlFile> psiLayoutFiles =
       MigrateToAppCompatUtil.getPsiFilesOfType(project, projectResources, ResourceType.LAYOUT);
@@ -186,7 +187,7 @@ class AppCompatStyleMigration {
   private void addUsagesFromStyles(@NotNull Project project,
                                    AbstractResourceRepository frameworkResources,
                                    List<ChangeStyleUsageInfo> result,
-                                   ProjectResourceRepository projectResources) {
+                                   LocalResourceRepository projectResources) {
     Set<XmlFile> xmlFiles = MigrateToAppCompatUtil.getPsiFilesOfType(project, projectResources, ResourceType.STYLE);
 
     for (XmlFile xmlFile : xmlFiles) {

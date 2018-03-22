@@ -57,7 +57,7 @@ public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
   public void testAddLibrary() {
     String pkg1 = "com.google.example1";
     String pkg2 = "com.google.example2";
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(myModule);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
     myRegistry.addLibrary(repository, myIdManager, pkg1, ResourceNamespace.fromPackageName(pkg1));
     assertSameElements(myRegistry.getGeneratorMap().keySet(), repository);
     assertSameElements(myRegistry.getPackages(), pkg1);

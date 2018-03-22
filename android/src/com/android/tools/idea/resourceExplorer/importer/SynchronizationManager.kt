@@ -16,7 +16,7 @@
 package com.android.tools.idea.resourceExplorer.importer
 
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.ModuleResourceRepository
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -33,7 +33,7 @@ class SynchronizationManager(facet: AndroidFacet)
   : VirtualFileListener,
     Disposable {
 
-  private var resourcesRepository = ModuleResourceRepository.getOrCreateInstance(facet)
+  private var resourcesRepository = ResourceRepositoryManager.getModuleResources(facet)
   private var hashToFile: MutableMap<String, VirtualFile> = mapAllModuleResources(resourcesRepository.resourceDirs)
   private val listeners: MutableList<SynchronizationListener> = mutableListOf()
 

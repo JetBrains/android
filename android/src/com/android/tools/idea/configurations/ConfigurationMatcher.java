@@ -22,10 +22,10 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.io.BufferingFileWrapper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
@@ -618,7 +618,7 @@ public class ConfigurationMatcher {
       }
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
-        LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(module);
+        LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(module);
         if (resources != null) {
           ResourceFolderType folderType = ResourceHelper.getFolderType(file);
           if (folderType != null) {
