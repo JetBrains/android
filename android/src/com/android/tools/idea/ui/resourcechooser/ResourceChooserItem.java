@@ -22,6 +22,9 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.SampleDataResourceItem;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
@@ -31,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 
@@ -129,14 +133,14 @@ public abstract class ResourceChooserItem {
   }
 
   public static ResourceChooserItem createProjectItem(@NotNull ResourceType type,
-                                               @NotNull String name,
-                                               @NotNull List<ResourceItem> resourceItems) {
+                                                      @NotNull String name,
+                                                      @NotNull List<ResourceItem> resourceItems) {
     return new ResourceChooserItemImpl(type, name, resourceItems, false);
   }
 
   public static ResourceChooserItem createFrameworkItem(@NotNull ResourceType type,
-                                                @NotNull String name,
-                                                @NotNull List<ResourceItem> resourceItems) {
+                                                        @NotNull String name,
+                                                        @NotNull List<ResourceItem> resourceItems) {
     return new ResourceChooserItemImpl(type, name, resourceItems, true);
   }
 
@@ -257,7 +261,8 @@ public abstract class ResourceChooserItem {
     public String getResourceUrl() {
       if (isFramework()) {
         return PREFIX_THEME_REF + ANDROID_NS_NAME_PREFIX + ResourceType.ATTR.getName() + '/' + myName;
-      } else {
+      }
+      else {
         return PREFIX_THEME_REF + ResourceType.ATTR.getName() + '/' + myName;
       }
     }
@@ -303,7 +308,7 @@ public abstract class ResourceChooserItem {
     @Nullable
     @Override
     public String getDefaultValue() {
-      return getResourceUrl();
+      return Iterables.getFirst(getSampleDataResourceValue().getValueAsLines(), getResourceUrl());
     }
 
     @NotNull
@@ -314,13 +319,24 @@ public abstract class ResourceChooserItem {
 
     @NotNull
     @Override
+    public List<Pair<FolderConfiguration, String>> getQualifiersAndValues() {
+      FolderConfiguration folderConfiguration = new FolderConfiguration();
+      return getSampleDataResourceValue().getValueAsLines().stream()
+        .limit(10)
+        .map((string) -> Pair.create(folderConfiguration, string))
+        .collect(Collectors.toList());
+    }
+
+    @NotNull
+    @Override
     public ResourceValue getResourceValue() {
       ResourceType type = myItem.getContentType() == SampleDataResourceItem.ContentType.IMAGE ?
                           ResourceType.DRAWABLE :
                           myItem.getType();
       SampleDataResourceValue value = getSampleDataResourceValue();
       ResourceReference ref = myItem.getReferenceToSelf();
-      return new ResourceValue(new ResourceReference(ref.getNamespace(), type, ref.getName()), value.getValueAsLines().get(0), value.getLibraryName());
+      return new ResourceValue(new ResourceReference(ref.getNamespace(), type, ref.getName()), value.getValueAsLines().get(0),
+                               value.getLibraryName());
     }
   }
 }

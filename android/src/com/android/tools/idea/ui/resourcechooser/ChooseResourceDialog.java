@@ -1470,7 +1470,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                                          int row,
                                                          int column) {
             if (value instanceof ResourceChooserItem) {
-              value = ((ResourceChooserItem)value).getDefaultValue();
+              value = StringUtil.shortenTextWithEllipsis(StringUtil.notNullize(((ResourceChooserItem)value).getDefaultValue()), 80, 10);
               setBackground(table.getBackground());
             }
             else {
