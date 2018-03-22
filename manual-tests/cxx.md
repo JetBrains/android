@@ -11,7 +11,7 @@
 **Expect to see 'includes' node**
 
 
-![New Project Enhanced Includes][res/cxx/enhanced-header-files/new-project.png]
+![New Project Enhanced Includes][new-project]
 
 NOTE: On Windows the slashes in paths displayed should be back slashes.
 
@@ -19,9 +19,9 @@ NOTE: On Windows the slashes in paths displayed should be back slashes.
 1. Right-click on `cpp` and choose `New C/C++ Header File`
 1. Name the new header file `my-header-file.h`
 
-**Expect to see 'my-header-file.h' node under `includes`**
+**Expect to see 'my-header-file.h' node under `cpp`**
 
-![New Project Enhanced Includes][res/cxx/enhanced-header-files/add-new-header-file.png]
+![New Project Enhanced Includes][add-new-header-file]
 
 NOTE: On Windows the slashes in paths displayed should be back slashes.
 
@@ -34,7 +34,7 @@ NOTE: On Windows the slashes in paths displayed should be back slashes.
 **Expect to see several sub-nodes under 'NDK Components' node**
 
 
-![New Project Enhanced Includes][res/cxx/enhanced-header-files/endless-tunnel-ndk-components.png]
+![New Project Enhanced Includes][endless-tunnel-ndk-components]
 
 NOTE 1: On Windows the slashes in paths displayed should be back slashes.
 
@@ -53,3 +53,9 @@ NOTE 2: The exact content of the sub-nodes depends on the version of the NDK ins
 
 
 ![New Project Enhanced Includes][res/cxx/enhanced-header-files/cdep-free-type-example.png]
+
+
+[new-project]: res/cxx/enhanced-header-files/new-project.png
+[add-new-header-file]: res/cxx/enhanced-header-files/add-new-header-file.png
+[endless-tunnel-ndk-components]: res/cxx/enhanced-header-files/endless-tunnel-ndk-components.png
+[cdep-free-type-example]: res/cxx/enhanced-header-files/cdep-free-type-example..png
