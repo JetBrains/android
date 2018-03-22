@@ -90,6 +90,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myEventModel.addSeries(
       new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.ALARM, EnergyDuration.Kind.JOB)));
     myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.WAKE_LOCK)));
+    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(sourceSeries, EnergyDuration.Kind.LOCATION)));
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
   }
