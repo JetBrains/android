@@ -276,7 +276,7 @@ public class InstantRunTest {
       .getEditor()
       .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
       .moveBetween("", "<application")
-      .enterText("<uses-permission android:name=\"android.permission.INTERNET\" /\n");
+      .pasteText("<uses-permission android:name=\"android.permission.INTERNET\" />\n");
 
     ideFrameFixture
       .findApplyChangesButton()
