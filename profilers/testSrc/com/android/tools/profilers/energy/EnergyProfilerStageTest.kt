@@ -16,10 +16,12 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.StudioProfilers
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -27,11 +29,49 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 class EnergyProfilerStageTest {
+  private val fakeData = ImmutableList.of<EnergyProfiler.EnergyEvent>(
+    EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(2000)
+      .setAlarmSet(EnergyProfiler.AlarmSet.getDefaultInstance())
+      .build(),
+    EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(3000)
+      .setAlarmCancelled(EnergyProfiler.AlarmCancelled.getDefaultInstance())
+      .setIsTerminal(true)
+      .build(),
+    EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(3000)
+      .setJobScheduled(EnergyProfiler.JobScheduled.getDefaultInstance())
+      .build(),
+    EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(4000)
+      .setJobFinished(EnergyProfiler.JobFinished.getDefaultInstance())
+      .setIsTerminal(true)
+      .build(),
+    EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(0)
+      .setWakeLockAcquired(EnergyProfiler.WakeLockAcquired.getDefaultInstance())
+      .build(),
+    EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(1000)
+      .setWakeLockReleased(EnergyProfiler.WakeLockReleased.getDefaultInstance())
+      .setIsTerminal(true)
+      .build(),
+    EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(4000)
+      .setLocationUpdateRequested(EnergyProfiler.LocationUpdateRequested.getDefaultInstance())
+      .build(),
+    EnergyProfiler.EnergyEvent.newBuilder()
+      .setTimestamp(5000)
+      .setLocationUpdateRemoved(EnergyProfiler.LocationUpdateRemoved.getDefaultInstance())
+      .setIsTerminal(true)
+      .build()
+  )
 
   private val profilerService = FakeProfilerService(true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("EnergyProfilerStageTest", profilerService, FakeEnergyService())
+  var grpcChannel = FakeGrpcChannel("EnergyProfilerStageTest", profilerService, FakeEnergyService(eventList = fakeData))
 
   private lateinit var timer: FakeTimer
   private lateinit var myStage: EnergyProfilerStage
@@ -85,5 +125,32 @@ class EnergyProfilerStageTest {
     assertThat(tooltip.legends.locationLegend.name).isEqualTo("Location Event")
     assertThat(tooltip.legends.wakeLockLegend.name).isEqualTo("Wake Locks")
     assertThat(tooltip.legends.alarmAndJobLegend.name).isEqualTo("Alarms & Jobs")
+  }
+
+  fun getEventsModel() {
+    val range = myStage.studioProfilers.timeline.viewRange
+    val eventSeries = myStage.eventModel.series
+    assertThat(eventSeries).hasSize(3)
+
+    // Alarms & Jobs
+    val alarmAndJobEvents = eventSeries[0].dataSeries.getDataForXRange(range)
+    assertThat(alarmAndJobEvents).hasSize(4)
+    for (i in 0..3) {
+      assertThat(alarmAndJobEvents[i].value).isEqualTo(fakeData[i])
+    }
+
+    // Wake locks
+    val wakeLockEvents = eventSeries[1].dataSeries.getDataForXRange(range)
+    assertThat(wakeLockEvents).hasSize(2)
+    for (i in 0..1) {
+      assertThat(wakeLockEvents[i].value).isEqualTo(fakeData[i + 4])
+    }
+
+    // Locations
+    val locationEvents = eventSeries[2].dataSeries.getDataForXRange(range)
+    assertThat(locationEvents).hasSize(2)
+    for (i in 0..1) {
+      assertThat(locationEvents[i].value).isEqualTo(fakeData[i + 6])
+    }
   }
 }
