@@ -86,7 +86,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_IMPORT_SESSION = Flag.create(
     PROFILER, "import.session", "Enable the session import dialog",
     "Shows the file open drop down menu for session import.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_USE_JVMTI = Flag.create(
     PROFILER, "jvmti", "Enable JVMTI profiling",
