@@ -203,20 +203,22 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final TraceIdsIterator myTraceIdsIterator;
 
   /**
-   * Whether the stage was initiated in Inspect Trace mode. In this mode, some data might be missing (e.g. thread states and CPU usage in
+   * Whether the stage was initiated in Import Trace mode. In this mode, some data might be missing (e.g. thread states and CPU usage in
    * ART and simpleperf captures), the {@link ProfilerTimeline} is static and just big enough to display a {@link CpuCapture} entirely.
-   * Inspect Trace mode is triggered when importing a CPU trace.
+   * Import Trace mode is triggered when importing a CPU trace.
    */
-  private final boolean myIsInspectTraceMode;
+  private final boolean myIsImportTraceMode;
 
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, false);
   }
 
-  public CpuProfilerStage(@NotNull StudioProfilers profilers, boolean inspectTraceMode) {
+  public CpuProfilerStage(@NotNull StudioProfilers profilers, boolean importTraceMode) {
     super(profilers);
-    // Only allow inspect trace mode if Import CPU trace flag is enabled.
-    myIsInspectTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled() && inspectTraceMode;
+    // Only allow import trace mode if Import CPU trace and sessions flag are enabled.
+    myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()
+                          && getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()
+                          && importTraceMode;
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerModel = new CpuProfilerConfigModel(profilers, this);
@@ -325,8 +327,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return Logger.getInstance(CpuProfilerStage.class);
   }
 
-  public boolean isInspectTraceMode() {
-    return myIsInspectTraceMode;
+  public boolean isImportTraceMode() {
+    return myIsImportTraceMode;
   }
 
   public boolean hasUserUsedCpuCapture() {

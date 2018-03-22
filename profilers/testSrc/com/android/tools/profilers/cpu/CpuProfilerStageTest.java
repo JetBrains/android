@@ -1218,26 +1218,40 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void inspectTraceModeOnlyEnabledWhenImportFlagIsSet() {
+  public void inspectTraceModeOnlyEnabledWhenImportAndSessionsFlagsAreSet() {
     StudioProfilers profilers = myStage.getStudioProfilers();
     myServices.enableImportTrace(false);
+    myServices.enableSessionsView(false);
 
     CpuProfilerStage stage = new CpuProfilerStage(profilers, true /* inspectTraceMode */);
-    // Import trace flag is not set. Inspect trace mode should be disabled.
-    assertThat(stage.isInspectTraceMode()).isFalse();
+    // Import trace flag is not set. Nor is sessions flag. Inspect trace mode should be disabled.
+    assertThat(stage.isImportTraceMode()).isFalse();
 
     myServices.enableImportTrace(true);
+    myServices.enableSessionsView(true);
     stage = new CpuProfilerStage(profilers, true /* inspectTraceMode */);
-    // When the flag is enabled, passing "true" to the constructor will set the stage to inspect trace mode.
-    assertThat(stage.isInspectTraceMode()).isTrue();
+    // Both flags are enabled, passing "true" to the constructor will set the stage to inspect trace mode.
+    assertThat(stage.isImportTraceMode()).isTrue();
 
     stage = new CpuProfilerStage(profilers, false /* inspectTraceMode */);
     // Similarly, passing "false" to the constructor will set the stage to normal mode.
-    assertThat(stage.isInspectTraceMode()).isFalse();
+    assertThat(stage.isImportTraceMode()).isFalse();
 
     stage = new CpuProfilerStage(profilers);
     // Not specifying whether the stage is initiated in inspect trace mode is the same as initializing it in normal mode.
-    assertThat(stage.isInspectTraceMode()).isFalse();
+    assertThat(stage.isImportTraceMode()).isFalse();
+
+    myServices.enableImportTrace(true);
+    myServices.enableSessionsView(false);
+    stage = new CpuProfilerStage(profilers, true /* inspectTraceMode */);
+    // Import trace flag is set, but sessions flag isn't. Inspect trace mode should be disabled.
+    assertThat(stage.isImportTraceMode()).isFalse();
+
+    myServices.enableImportTrace(false);
+    myServices.enableSessionsView(true);
+    stage = new CpuProfilerStage(profilers, true /* inspectTraceMode */);
+    // Sessions flag is not set, but Import trace flag isn't. Inspect trace mode should be disabled.
+    assertThat(stage.isImportTraceMode()).isFalse();
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {
