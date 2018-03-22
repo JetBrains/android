@@ -24,6 +24,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -541,6 +542,42 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
           parent.invalidateResourceDirs();
         }
       }
+    }
+  }
+
+  public static final class EmptyRepository extends LocalResourceRepository {
+    public EmptyRepository() {
+      super("");
+    }
+
+    @NotNull
+    @Override
+    protected Set<VirtualFile> computeResourceDirs() {
+      return Collections.emptySet();
+    }
+
+    @NonNull
+    @Override
+    protected ResourceTable getFullTable() {
+      return new ResourceTable();
+    }
+
+    @Nullable
+    @Override
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
+                                                        @NotNull ResourceType type,
+                                                        boolean create) {
+      if (create) {
+        throw new UnsupportedOperationException();
+      } else {
+        return null;
+      }
+    }
+
+    @NonNull
+    @Override
+    public Set<ResourceNamespace> getNamespaces() {
+      return Collections.emptySet();
     }
   }
 }

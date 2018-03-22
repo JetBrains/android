@@ -4,7 +4,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Multimap;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
@@ -276,10 +277,11 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     if (facet == null) {
       return;
     }
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    LocalResourceRepository repository = repositoryManager.getAppResources(true);
     List<ResourceItem> styles = repository.getResourceItems(ResourceNamespace.TODO, ResourceType.STYLE, styleName);
     if (styles.size() == 1) {
-      Multimap<String, VirtualFile> resourceDirs = repository.getAllResourceDirs();
+      Multimap<String, VirtualFile> resourceDirs = repositoryManager.getAllResourceDirs();
       resDirs.addAll(new HashSet<>(resourceDirs.values()));
     }
   }

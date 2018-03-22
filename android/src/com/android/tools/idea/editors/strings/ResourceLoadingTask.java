@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ final class ResourceLoadingTask extends Task.Backgroundable {
   private LocalResourceRepository myRepository;
 
   ResourceLoadingTask(@NotNull StringResourceViewPanel panel) {
-    this(panel, () -> ModuleResourceRepository.getOrCreateInstance(panel.getFacet()));
+    this(panel, () -> ResourceRepositoryManager.getModuleResources(panel.getFacet()));
   }
 
   ResourceLoadingTask(@NotNull StringResourceViewPanel panel, @NotNull Supplier<LocalResourceRepository> repositorySupplier) {

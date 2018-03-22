@@ -20,7 +20,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.HorizontalSpinner;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
@@ -126,7 +127,7 @@ public class RecyclerViewAssistant extends JPanel {
 
   @NotNull
   private static String getTemplateName(@NotNull AndroidFacet facet, @NotNull String templateRootName) {
-    AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet);
     String resourceNameRoot = AndroidResourceUtil.getValidResourceFileName(templateRootName);
 
     String resourceName;
@@ -134,7 +135,7 @@ public class RecyclerViewAssistant extends JPanel {
     do {
       resourceName = resourceNameRoot + (index < 1 ? "" : "_" + index);
       index++;
-    } while (!appResourceRepository.getResourceItems(ResourceNamespace.TODO, ResourceType.LAYOUT, resourceName).isEmpty());
+    } while (!LocalResourceRepository.getResourceItems(ResourceNamespace.TODO, ResourceType.LAYOUT, resourceName).isEmpty());
     return resourceName;
   }
 

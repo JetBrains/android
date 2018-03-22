@@ -16,25 +16,19 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,62 +37,42 @@ import java.util.*;
 
 import static com.android.SdkConstants.FD_RES;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
- * This repository gives you a merged view of all the resources available to the app, as seen from the given module, with the current
- * variant. That includes not just the resources defined in this module, but in any other modules that this module depends on, as well as
- * any libraries those modules may depend on (such as appcompat).
- *
- * <p>When a layout is rendered in the layout, it is fetching resources from the app resource repository: it should see all the resources
- * just like the app does.
- *
- * <p>This class also keeps track of IDs assigned to resources and can generate unused IDs.
+ * @see ResourceRepositoryManager#getAppResources(boolean)
  */
+@VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE) // Left visible for Kotlin binary compatibility.
 public class AppResourceRepository extends MultiResourceRepository {
+
+  @VisibleForTesting // Left for Kotlin binary compatibility, do not use.
+  @Nullable
+  public static AppResourceRepository getOrCreateInstance(@NotNull Module module) {
+    return (AppResourceRepository)ResourceRepositoryManager.getAppResources(module);
+  }
+
+  @VisibleForTesting // Left for Kotlin binary compatibility, do not use.
+  @SuppressWarnings("unused")
+  @Nullable
+  public static AppResourceRepository findExistingInstance(@NotNull Module module) {
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+    return repositoryManager == null ? null : (AppResourceRepository)repositoryManager.getAppResources(false);
+  }
+
   private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
-  private static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
+  static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
 
   private final AndroidFacet myFacet;
   private List<FileResourceRepository> myLibraries;
   private long myIdsModificationCount;
-
   private Set<String> myIds;
+
+  private final Object RESOURCE_MAP_LOCK = new Object();
 
   /**
    * Map from library name to resource dirs.
    * The key library name may be null.
    */
-  private final Object RESOURCE_MAP_LOCK = new Object();
   @Nullable private Multimap<String, VirtualFile> myResourceDirMap;
-
-  @Nullable
-  public static AppResourceRepository getOrCreateInstance(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? getOrCreateInstance(facet) : null;
-  }
-
-  @NotNull
-  public static AppResourceRepository getOrCreateInstance(@NotNull AndroidFacet facet) {
-    return findAppResources(facet, true);
-  }
-
-  @Nullable
-  public static AppResourceRepository findExistingInstance(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? findExistingInstance(facet) : null;
-  }
-
-  @Nullable
-  public static AppResourceRepository findExistingInstance(@NotNull AndroidFacet facet) {
-    return findAppResources(facet, false);
-  }
-
-  @Contract("_, true -> !null")
-  @Nullable
-  private static AppResourceRepository findAppResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    return ResourceRepositoryManager.getOrCreateInstance(facet).getAppResources(createIfNecessary);
-  }
 
   @NotNull
   static AppResourceRepository create(@NotNull AndroidFacet facet) {
@@ -109,19 +83,8 @@ public class AppResourceRepository extends MultiResourceRepository {
     return repository;
   }
 
-  /**
-   * Return true if this project is build with Gradle but the AndroidModuleModel did not exist when the resources were cached.
-   * And reset the state.
-   */
-  public static boolean testAndClearTempResourceCached(@NotNull Project project) {
-    if (project.getUserData(TEMPORARY_RESOURCE_CACHE) != Boolean.TRUE) {
-      return false;
-    }
-    project.putUserData(TEMPORARY_RESOURCE_CACHE, null);
-    return true;
-  }
-
-  public Multimap<String, VirtualFile> getAllResourceDirs() {
+  @NotNull
+  Multimap<String, VirtualFile> getAllResourceDirs() {
     synchronized (RESOURCE_MAP_LOCK) {
       if (myResourceDirMap == null) {
         myResourceDirMap = HashMultimap.create();
@@ -136,7 +99,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
                                                                    List<FileResourceRepository> libraries) {
     List<LocalResourceRepository> repositories = new ArrayList<>(10);
-    LocalResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository resources = ResourceRepositoryManager.getProjectResources(facet);
     repositories.addAll(libraries);
     repositories.add(resources);
     repositories.add(new SampleDataResourceRepository(facet));
@@ -149,7 +112,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     }
 
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-    Map<File, String> aarDirs = findAarLibraries(facet, dependentFacets);
+    Map<File, String> aarDirs = ResourceRepositoryManager.findAarLibraries(facet, dependentFacets);
 
     if (aarDirs.isEmpty()) {
       if (LOG.isDebugEnabled()) {
@@ -180,110 +143,6 @@ public class AppResourceRepository extends MultiResourceRepository {
     return resources;
   }
 
-  @NotNull
-  private static Map<File, String> findAarLibraries(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
-    // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
-    // which have been persisted since the most recent sync
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-    if (androidModuleModel != null) {
-      List<Library> libraries = new ArrayList<>();
-      addGradleLibraries(libraries, androidModuleModel);
-      for (AndroidFacet dependentFacet : dependentFacets) {
-        AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
-        if (dependentGradleModel != null) {
-          addGradleLibraries(libraries, dependentGradleModel);
-        }
-      }
-      GradleVersion modelVersion = androidModuleModel.getModelVersion();
-      assert modelVersion != null;
-      return findAarLibrariesFromGradle(modelVersion, dependentFacets, libraries);
-    }
-    Project project = facet.getModule().getProject();
-    if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-      project.putUserData(TEMPORARY_RESOURCE_CACHE, true);
-    }
-    return findAarLibrariesFromIntelliJ(facet, dependentFacets);
-  }
-
-  @NotNull
-  public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<Library> libraries = new ArrayList<>();
-    if (facet.requiresAndroidModel()) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-      if (androidModel != null) {
-        List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-        addGradleLibraries(libraries, androidModel);
-        for (AndroidFacet dependentFacet : dependentFacets) {
-          AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
-          if (dependentGradleModel != null) {
-            addGradleLibraries(libraries, dependentGradleModel);
-          }
-        }
-      }
-    }
-    return libraries;
-  }
-
-  /**
-   * Reads IntelliJ library definitions ({@link com.intellij.openapi.roots.LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
-   * {@code .aar} resource library to include. This works before the Gradle project has been initialized.
-   */
-  private static Map<File, String> findAarLibrariesFromIntelliJ(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
-    // Find .aar libraries from old IntelliJ library definitions
-    Map<File, String> dirs = new HashMap<>();
-    addAarsFromModuleLibraries(facet, dirs);
-    for (AndroidFacet f : dependentFacets) {
-      addAarsFromModuleLibraries(f, dirs);
-    }
-    return dirs;
-  }
-
-  /**
-   * Looks up the library dependencies from the Gradle tools model and returns the corresponding {@code .aar}
-   * resource directories.
-   */
-  @NotNull
-  private static Map<File, String> findAarLibrariesFromGradle(@NotNull GradleVersion modelVersion,
-                                                              List<AndroidFacet> dependentFacets,
-                                                              List<Library> libraries) {
-    // Pull out the unique directories, in case multiple modules point to the same .aar folder
-    Map<File, String> files = new HashMap<>(libraries.size());
-
-    Set<String> moduleNames = new HashSet<>();
-    for (AndroidFacet f : dependentFacets) {
-      moduleNames.add(f.getModule().getName());
-    }
-    try {
-      for (Library library : libraries) {
-        // We should only add .aar dependencies if they aren't already provided as modules.
-        // For now, the way we associate them with each other is via the library name;
-        // in the future the model will provide this for us
-        String libraryName = library.getArtifactAddress();
-        if (!moduleNames.contains(libraryName)) {
-          File resFolder = new File(library.getResFolder());
-          if (resFolder.exists()) {
-            files.put(resFolder, libraryName);
-            // Don't add it again!
-            moduleNames.add(libraryName);
-          }
-        }
-      }
-    }
-    catch (UnsupportedOperationException e) {
-      // This happens when there is an incompatibility between the builder-model interfaces embedded in Android Studio and the
-      // cached model.
-      // If we got here is because this code got invoked before project sync happened (e.g. when reopening a project with open editors).
-      // Project sync now is smart enough to handle this case and will trigger a full sync.
-      LOG.warn("Incompatibility found between the IDE's builder-model and the cached Gradle model", e);
-    }
-    return files;
-  }
-
-  // TODO: b/23032391
-  private static void addGradleLibraries(List<Library> list, AndroidModuleModel androidModuleModel) {
-    list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
-  }
-
   protected AppResourceRepository(@NotNull AndroidFacet facet,
                                   @NotNull List<? extends LocalResourceRepository> delegates,
                                   @NotNull List<FileResourceRepository> libraries) {
@@ -298,10 +157,10 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   /**
-   * Returns the libraries among the app resources, if any
+   * Returns the libraries among the app resources, if any.
    */
   @NotNull
-  public List<FileResourceRepository> getLibraries() {
+  List<FileResourceRepository> getLibraries() {
     return myLibraries;
   }
 
@@ -385,7 +244,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   @Nullable
-  public FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
+  FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
     String aarPath = aarDirectory.getPath();
     for (LocalResourceRepository r : myLibraries) {
       if (r instanceof FileResourceRepository) {

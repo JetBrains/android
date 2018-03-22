@@ -22,10 +22,7 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.*;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Collections2;
@@ -181,7 +178,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   }
 
   private static void prepareCustomViewRenaming(PsiClass cls, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     String oldName = cls.getName();
     if (appResources.hasResourceItem(DECLARE_STYLEABLE, oldName)) {
       LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
@@ -543,7 +540,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       // before checking if it is already used.
       newName = AndroidCommonUtils.getResourceName(type.getName(), newName);
     }
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     if (appResources.hasResourceItem(type, newName)) {
       boolean foundElements = false;
       PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, type.getName(), newName, true);
@@ -587,7 +584,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       if (all == null) {
         all = Collections.emptyList();
       }
-      List<ResourceItem> local = ProjectResourceRepository.getOrCreateInstance(facet).getResourceItem(type, name);
+      List<ResourceItem> local = ResourceRepositoryManager.getProjectResources(facet).getResourceItem(type, name);
       if (local == null) {
         local = Collections.emptyList();
       }
@@ -711,7 +708,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     for (ResourceItem item : all) {
       if (!local.contains(item)) {
         if (libraries == null) {
-          libraries = AppResourceRepository.findAarLibraries(facet);
+          libraries = ResourceRepositoryManager.findAarLibraries(facet);
         }
         File sourceFile = item.getFile();
         if (sourceFile != null) {

@@ -133,7 +133,7 @@ public class RenderTask {
                                     ScreenOrientation.PORTRAIT;
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     myLayoutlibCallback =
         new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory);

@@ -22,7 +22,7 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository.EmptyRepository;
+import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.google.common.collect.Maps;

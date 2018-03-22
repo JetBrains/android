@@ -23,8 +23,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ResourceResolverCache
 import com.android.tools.idea.model.MergedManifest
-import com.android.tools.idea.res.AppResourceRepository
-import com.android.tools.idea.res.ModuleResourceRepository
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.resolveDrawable
 import com.android.tools.idea.resourceExplorer.importer.SynchronizationManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
@@ -76,7 +75,7 @@ class ModuleResourcesBrowserViewModel(
   }
 
   private fun getModuleResources(type: ResourceType): List<ResourceItem> {
-    val moduleRepository = ModuleResourceRepository.getOrCreateInstance(facet)
+    val moduleRepository = ResourceRepositoryManager.getModuleResources(facet)
     return moduleRepository.namespaces.flatMap { namespace ->
       moduleRepository.getItemsOfType(namespace, type)
         .flatMap { resourceItem -> moduleRepository.getResourceItems(namespace, type, resourceItem) }
@@ -84,8 +83,8 @@ class ModuleResourcesBrowserViewModel(
   }
 
   private fun getLibrariesResources(type: ResourceType): List<ResourceItem> {
-    val repository = AppResourceRepository.getOrCreateInstance(facet)
-    return repository.libraries.flatMap { lib ->
+    val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
+    return repoManager.libraries.flatMap { lib ->
       lib.namespaces.flatMap { namespace ->
         lib.getItemsOfType(namespace, type)
           .flatMap { resourceItem -> lib.getResourceItems(namespace, type, resourceItem) }

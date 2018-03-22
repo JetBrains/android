@@ -25,8 +25,8 @@ import com.android.tools.idea.rendering.FlagManager;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -161,7 +161,7 @@ public class LocaleMenuAction extends DropDownAction {
       }
     }
 
-    LocalResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(module);
+    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(module);
     Set<LocaleQualifier> languages = projectResources != null ? projectResources.getLocales() : Collections.emptySet();
     for (LocaleQualifier l : languages) {
       if (specificLocale != null && !specificLocale.isMatchFor(l)) {

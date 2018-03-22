@@ -17,8 +17,8 @@ package com.android.tools.idea.ui.resourcechooser.preview;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -86,7 +86,7 @@ public abstract class ResourceEditorTab {
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
 
     Function<Module, IdeResourceNameValidator> nameValidatorFactory =
-      selectedModule -> IdeResourceNameValidator.forResourceName(resourceType, AppResourceRepository.getOrCreateInstance(selectedModule));
+      selectedModule -> IdeResourceNameValidator.forResourceName(resourceType, ResourceRepositoryManager.getAppResources(selectedModule));
 
     // There is no need to choose the resource name or value here (controlled by parent).
     myLocationSettings = newResourceHandler.createNewResourceValuePanel(module, resourceType, folderType, "", "",

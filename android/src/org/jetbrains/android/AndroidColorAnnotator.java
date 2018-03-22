@@ -30,9 +30,10 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -265,7 +266,7 @@ public class AndroidColorAnnotator implements Annotator {
         String attribute = null;
         if ("vector".equals(tag)) {
           // Take a look and see if we have a bitmap we can fall back to
-          AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
+          LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items = resourceRepository.getResourceItem(resourceValue.getResourceType(), resourceValue.getName());
           if (items != null) {
             for (ResourceItem item : items) {
@@ -414,7 +415,7 @@ public class AndroidColorAnnotator implements Annotator {
       }
       return items.get(0).getResourceValue();
     } else {
-      LocalResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+      LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(module);
       if (appResources == null) {
         return null;
       }

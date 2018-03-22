@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
-import com.android.tools.idea.res.AppResourceRepository
 import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -92,7 +91,7 @@ class ClearResourceCacheAfterFirstBuild(project: Project) : AbstractProjectCompo
    */
   @VisibleForTesting
   fun clearResourceCacheIfNecessary() {
-    if (AppResourceRepository.testAndClearTempResourceCached(myProject)) {
+    if (ResourceRepositoryManager.testAndClearTempResourceCached(myProject)) {
       ResourceClassRegistry.get(myProject).clearCache()
 
       AndroidUtils.getApplicationFacets(myProject).forEach { facet ->

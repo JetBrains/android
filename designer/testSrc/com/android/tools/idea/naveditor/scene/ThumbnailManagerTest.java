@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.ImagePool;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -76,7 +76,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile resDir = myFixture.findFileInTempDir("res");
     AndroidResourceUtil.createValueResource(getProject(), resDir, "foo", ResourceType.STRING, "strings.xml",
                                             Collections.singletonList(ResourceFolderType.VALUES.getName()), "bar");
-    AppResourceRepository.getOrCreateInstance(myFacet).sync();
+    ResourceRepositoryManager.getAppResources(myFacet).sync();
 
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration());
     assertNotSame(image, imageFuture.get());

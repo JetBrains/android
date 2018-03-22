@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -96,7 +96,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
         if (module != null) {
           VirtualFile file = myRenderContext.getConfiguration().getFile();
           if (file != null) {
-            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, AppResourceRepository.getOrCreateInstance(module), file);
+            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, ResourceRepositoryManager.getAppResources(module), file);
             List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
             if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
               // Switch files, and leave this configuration alone

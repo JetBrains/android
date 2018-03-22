@@ -30,7 +30,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.*;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -139,7 +139,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   public LayoutlibCallbackImpl(@Nullable RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
-                               @NotNull AppResourceRepository projectRes,
+                               @NotNull LocalResourceRepository projectRes,
                                @NotNull Module module,
                                @NotNull AndroidFacet facet,
                                @NotNull IRenderLogger logger,

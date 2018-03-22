@@ -20,8 +20,8 @@ import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.MultiResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,7 +47,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myTable = myPanel.getTable();
 
     VirtualFile resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    MultiResourceRepository parent = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
+    LocalResourceRepository parent =
+      ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory));
 
     myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet));
 

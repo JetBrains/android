@@ -20,7 +20,7 @@ import com.android.builder.model.ClassField;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicResourceValueRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
@@ -66,7 +66,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     Disposer.register(myFacet, dynamicResourceValueRepository);
 
     LocalResourceRepository parent =
-      ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicResourceValueRepository);
+      ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicResourceValueRepository);
 
     data = StringResourceRepository.create(parent).getData(myFacet);
   }

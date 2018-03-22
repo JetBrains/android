@@ -16,8 +16,9 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.ModuleResourceRepository
+import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.createTestModuleRepository
 import com.android.tools.idea.resourceExplorer.*
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
@@ -72,10 +73,10 @@ class ExternalBrowserViewModelTest {
     val facet = AndroidFacet.getInstance(module)!!
     // Init the res folder with a dummy file
     val res = projectRule.fixture.copyFileToProject(getTestDataDirectory() + "/res/values.xml", "res/values/values.xml").parent.parent
-    ModuleResourceRepository.createForTest(facet, listOf(res))
-    val repository = ModuleResourceRepository.getOrCreateInstance(facet)
+    createTestModuleRepository(facet, listOf(res))
+    val repository = ResourceRepositoryManager.getModuleResources(facet)
     ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches()
-    assertFalse(repository is ModuleResourceRepository.EmptyRepository)
+    assertFalse(repository is LocalResourceRepository.EmptyRepository)
 
     val resourceBrowserViewModel = createViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())
@@ -103,7 +104,7 @@ class ExternalBrowserViewModelTest {
     projectRule.fixture.copyFileToProject(getAssetDir() + "/add@2x.png", "res/drawable-xhdpi/add.png").parent.parent
     projectRule.fixture.copyFileToProject(getAssetDir() + "/add@2x_dark.png", "res/drawable-night-xhdpi/add.png").parent.parent
     projectRule.fixture.copyFileToProject(getAssetDir() + "/add_dark.png", "res/drawable-night-mdpi/add.png").parent.parent
-    ModuleResourceRepository.createForTest(facet, listOf(res))
+    createTestModuleRepository(facet, listOf(res))
     ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches()
 
     val resourceBrowserViewModel = createViewModel(facet)

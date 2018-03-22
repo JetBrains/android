@@ -29,7 +29,7 @@ import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseArray;
@@ -96,7 +96,7 @@ public class ResourceResolverCache {
                                               @NotNull String themeStyle,
                                               @NotNull FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    final AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(myManager.getModule());
+    final LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(myManager.getModule());
     if (resources == null) {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }

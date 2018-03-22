@@ -22,7 +22,8 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -253,7 +254,7 @@ class MigrateToAppCompatUtil {
    * @param operations A list of {@link AppCompatMigrationEntry.XmlElementMigration} instances that define
    *                   which tags/attributes and attribute values should be looked at.
    * @param resourceType The {@link ResourceType} such as LAYOUT, MENU that is used for fetching
-   *                     the resources from the {@link ProjectResourceRepository}.
+   *                     the resources from the {@link LocalResourceRepository}.
    * @return A list of UsageInfos that describe the changes to be migrated.
    */
   public static List<UsageInfo> findUsagesOfXmlElements(@NonNull Project project,
@@ -276,7 +277,7 @@ class MigrateToAppCompatUtil {
 
     List<UsageInfo> usageInfos = new ArrayList<>();
     for (Module module : modules) {
-      ProjectResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(module);
+      LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(module);
       if (projectResources == null) {
         continue;
       }

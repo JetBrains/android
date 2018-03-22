@@ -22,7 +22,7 @@ import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
@@ -95,7 +95,7 @@ public class ResourceChooserGroups {
   @NotNull
   private static ImmutableList<ResourceChooserItem> getProjectItems(@NotNull ResourceType type,
                                                                     boolean includeFileResources,
-                                                                    @NotNull AppResourceRepository repository,
+                                                                    @NotNull LocalResourceRepository repository,
                                                                     @Nullable ResourceVisibilityLookup lookup) {
     ImmutableList.Builder<ResourceChooserItem> chooserItems = ImmutableList.builder();
     for (String resourceName : repository.getItemsOfType(type)) {
@@ -147,7 +147,7 @@ public class ResourceChooserGroups {
     }
     else {
       ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-      AppResourceRepository appResources = repoManager.getAppResources(true);
+      LocalResourceRepository appResources = repoManager.getAppResources(true);
 
       //noinspection ConstantConditions
       ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS ? repoManager.getResourceVisibility() : null;
@@ -188,11 +188,11 @@ public class ResourceChooserGroups {
 
   @NotNull
   public static ResourceChooserGroup createSampleDataGroup(@NotNull ResourceType type, @NotNull AndroidFacet facet) {
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
 
     Predicate<SampleDataResourceItem> filter = IMAGE_RESOURCE_TYPES.contains(type) ? ONLY_IMAGES_FILTER : NOT_IMAGES_FILTER;
     ImmutableList<ResourceChooserItem> items =
-      AppResourceRepository.getOrCreateInstance(facet).getItemsOfType(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).stream()
+      ResourceRepositoryManager.getAppResources(facet).getItemsOfType(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).stream()
         .map(itemName -> (SampleDataResourceItem)repository.getResourceItems(ResourceNamespace.TOOLS,
                                                                              ResourceType.SAMPLE_DATA, itemName).get(0))
         .filter(filter)

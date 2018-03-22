@@ -157,7 +157,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
         .flatMap(Collection::stream);
 
     VirtualFileManager manager = VirtualFileManager.getInstance();
-    Stream<VirtualFile> dirsFromAars = AppResourceRepository.findAarLibraries(facet).stream()
+    Stream<VirtualFile> dirsFromAars = ResourceRepositoryManager.findAarLibraries(facet).stream()
       .map(aarMapper)
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);

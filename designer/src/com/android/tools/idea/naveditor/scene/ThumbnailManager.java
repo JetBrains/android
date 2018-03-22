@@ -16,10 +16,10 @@
 package com.android.tools.idea.naveditor.scene;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -43,7 +43,7 @@ public class ThumbnailManager extends AndroidFacetScopedService {
   private final Table<XmlFile, Configuration, ImagePool.Image> myImages = HashBasedTable.create();
   private final Table<XmlFile, Configuration, Long> myRenderVersions = HashBasedTable.create();
   private final Table<XmlFile, Configuration, Long> myRenderModStamps = HashBasedTable.create();
-  private final AppResourceRepository myResourceRepository;
+  private final LocalResourceRepository myResourceRepository;
 
   @NotNull
   public static ThumbnailManager getInstance(@NotNull AndroidFacet facet) {
@@ -62,7 +62,7 @@ public class ThumbnailManager extends AndroidFacetScopedService {
 
   protected ThumbnailManager(@NotNull AndroidFacet facet) {
     super(facet);
-    myResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
+    myResourceRepository = ResourceRepositoryManager.getAppResources(facet);
   }
 
   @Nullable

@@ -17,8 +17,8 @@ package com.android.tools.idea.folding;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingBuilderEx;
@@ -229,7 +229,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       return null;
     }
 
-    return AppResourceRepository.getOrCreateInstance(module);
+    return ResourceRepositoryManager.getAppResources(module);
   }
 
   private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name,

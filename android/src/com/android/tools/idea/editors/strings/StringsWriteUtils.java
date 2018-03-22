@@ -24,7 +24,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -221,7 +222,7 @@ public class StringsWriteUtils {
 
   @Nullable
   private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
-    LocalResourceRepository repository = ModuleResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(facet);
     // Ensure that items *just* created are processed by the resource repository
     repository.sync();
     List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);

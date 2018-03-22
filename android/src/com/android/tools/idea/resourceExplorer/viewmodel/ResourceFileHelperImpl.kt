@@ -17,7 +17,7 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.ModuleResourceRepository
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
@@ -58,7 +58,7 @@ interface ResourceFileHelper {
      * @throws IOException if the facet does not contain any resource folder
      */
     private fun getResourceFolderForAsset(asset: DesignAsset, facet: AndroidFacet): VirtualFile {
-      val resourceDirs = ModuleResourceRepository.getOrCreateInstance(facet).resourceDirs
+      val resourceDirs = ResourceRepositoryManager.getModuleResources(facet).resourceDirs
       if (resourceDirs.isEmpty()) {
         throw IOException("No resource directory found in this module (${facet.module.name})")
       }

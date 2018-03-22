@@ -129,10 +129,9 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
     assert(resource.resourceType == ResourceType.ID)
 
     return ResourceRepositoryManager.getOrCreateInstance(facet)
-      .getAppResources(true)!!
       .libraries
       .asSequence()
-      .mapNotNull { it.allDeclaredIds?.get(resource.name) }
+      .mapNotNull { (it as FileResourceRepository).allDeclaredIds?.get(resource.name) }
       .any()
   }
 
@@ -142,8 +141,12 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * TODO(namespaces): stop reading R.txt, keep track of the IDs of framework resources and use them.
    */
   override fun getDeclaredArrayValues(attrs: List<AttrResourceValue>, styleableName: String): Array<Int?>? {
-    val aarLibraries = ResourceRepositoryManager.getOrCreateInstance(facet).getAppResources(true)?.libraries ?: return null
-    return getDeclaredArrayValues(aarLibraries, attrs, styleableName)
+    @Suppress("UNCHECKED_CAST") // Until we get rid of R.txt parsing, we rely on the right type of library repositories.
+    return getDeclaredArrayValues(
+      ResourceRepositoryManager.getOrCreateInstance(facet).libraries as MutableList<FileResourceRepository>,
+      attrs,
+      styleableName
+    )
   }
 
   @VisibleForTesting

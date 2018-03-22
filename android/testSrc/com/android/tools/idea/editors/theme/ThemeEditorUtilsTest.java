@@ -23,8 +23,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -156,7 +156,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
 
-    LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(myModule);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
     assertNotNull(repository);
     List<ResourceItem> resources = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
     assertNotNull(resources);
@@ -183,7 +183,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-en-night/styles.xml");
     myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-v19/styles.xml");
 
-    LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(myModule);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
     assertNotNull(repository);
     final List<ResourceItem> styleItems = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
     assertNotNull(styleItems);

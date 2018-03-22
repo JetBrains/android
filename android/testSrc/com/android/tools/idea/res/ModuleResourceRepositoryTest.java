@@ -32,6 +32,7 @@ import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -52,8 +53,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
   public void testStable() {
-    assertSame(ModuleResourceRepository.getOrCreateInstance(myFacet), ModuleResourceRepository.getOrCreateInstance(myFacet));
-    assertSame(ModuleResourceRepository.getOrCreateInstance(myFacet), ModuleResourceRepository.getOrCreateInstance(myModule));
+    assertSame(ResourceRepositoryManager.getModuleResources(myFacet), ResourceRepositoryManager.getModuleResources(myFacet));
+    assertSame(ResourceRepositoryManager.getModuleResources(myFacet), ResourceRepositoryManager.getModuleResources(myModule));
   }
 
   public void testSingleResourceFolder() {

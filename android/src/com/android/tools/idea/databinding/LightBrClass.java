@@ -16,10 +16,7 @@
 package com.android.tools.idea.databinding;
 
 import com.android.ide.common.resources.DataBindingResourceType;
-import com.android.tools.idea.res.DataBindingInfo;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.*;
@@ -64,7 +61,7 @@ public class LightBrClass extends AndroidLightClassBase {
           PsiField[] doCompute() {
             Project project = facet.getModule().getProject();
             PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
-            LocalResourceRepository moduleResources = ModuleResourceRepository.findExistingInstance(facet);
+            LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(false);
             if (moduleResources == null) {
               return defaultValue();
             }

@@ -16,28 +16,29 @@
 package com.android.tools.idea.uibuilder.handlers.assistant
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.CommandProcessor
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.util.ui.JBUI
-
-import javax.swing.*
-import java.awt.*
-
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.res.AppResourceRepository
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory.Context
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
+import java.awt.GridLayout
+import javax.swing.JComboBox
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 class TextViewAssistant(private val context: Context) : JPanel(BorderLayout()) {
   private val myComponent: NlComponent = context.component
   private val myOriginalTextValue: String?
-  private val myAppResources = AppResourceRepository.getOrCreateInstance(context.component.model.facet)
+  private val myAppResources = ResourceRepositoryManager.getAppResources(context.component.model.facet)
 
   private var myProject: Project
 

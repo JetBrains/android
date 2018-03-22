@@ -22,6 +22,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BuildSelection;
 import com.android.tools.idea.fd.InstantRunContext;
@@ -31,7 +32,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -112,7 +113,7 @@ public class GradleInstantRunContext implements InstantRunContext {
 
     final Hasher hasher = Hashing.goodFastHash(32).newHasher();
     SortedSet<ResourceUrl> appResourceReferences = getAppResourceReferences(manifest.getDocumentElement());
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
 
     // read action needed when reading the values for app resources
     ApplicationManager.getApplication().runReadAction(() -> hashResources(appResourceReferences, appResources, hasher));
@@ -152,7 +153,7 @@ public class GradleInstantRunContext implements InstantRunContext {
   }
 
   private static void hashResources(@NotNull SortedSet<ResourceUrl> appResources,
-                                    @NotNull AppResourceRepository resources,
+                                    @NotNull LocalResourceRepository resources,
                                     @NotNull Hasher hasher) {
     for (ResourceUrl url : appResources) {
       List<ResourceItem> items = resources.getResourceItem(url.type, url.name);

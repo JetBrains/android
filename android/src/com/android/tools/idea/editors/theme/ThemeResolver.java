@@ -26,9 +26,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
@@ -134,7 +133,7 @@ public class ThemeResolver {
    */
   @NotNull
   private List<StyleResourceValue> resolveNonFrameworkThemes() {
-    LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(myConfiguration.getModule());
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myConfiguration.getModule());
     if (repository == null) {
       return Collections.emptyList();
     }
@@ -154,11 +153,11 @@ public class ThemeResolver {
     Module module = myConfiguration.getModule();
     List<Pair<StyleResourceValue, Module>> result = new ArrayList<>();
 
-    fillModuleResources(module, ModuleResourceRepository.getOrCreateInstance(module), result);
+    fillModuleResources(module, ResourceRepositoryManager.getModuleResources(module), result);
 
     List<AndroidFacet> allAndroidDependencies = AndroidUtils.getAllAndroidDependencies(module, false);
     for (AndroidFacet facet : allAndroidDependencies) {
-      fillModuleResources(facet.getModule(), ModuleResourceRepository.getOrCreateInstance(facet), result);
+      fillModuleResources(facet.getModule(), ResourceRepositoryManager.getModuleResources(facet), result);
     }
 
     return result;

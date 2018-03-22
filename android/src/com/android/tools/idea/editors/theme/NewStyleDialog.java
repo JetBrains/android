@@ -20,8 +20,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionDialog;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListCellRenderer;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -68,7 +68,7 @@ public class NewStyleDialog extends DialogWrapper {
 
     final Configuration configuration = context.getConfiguration();
     myResourceNameValidator =
-      IdeResourceNameValidator.forResourceName(ResourceType.STYLE, AppResourceRepository.getOrCreateInstance(configuration.getModule()));
+      IdeResourceNameValidator.forResourceName(ResourceType.STYLE, ResourceRepositoryManager.getAppResources(configuration.getModule()));
 
     String styleTypeString = isTheme ? "theme"  : "style";
     setTitle("New " + StringUtil.capitalize(styleTypeString));

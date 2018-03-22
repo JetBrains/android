@@ -22,7 +22,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
 import com.google.common.collect.Lists;
@@ -199,7 +200,7 @@ public class ResourceDrawablePanel extends JBScrollPane implements ActionListene
       return Stream.empty();
     }
 
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     ResourceItemResolver resolver = new ResourceItemResolver(configuration.getFullConfig(), frameworkResources, appResources, null);
     List<ResourceValue> lookupChain = Lists.newArrayList();
     resolver.setLookupChainList(lookupChain);

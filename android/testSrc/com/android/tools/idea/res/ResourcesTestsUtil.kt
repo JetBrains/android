@@ -17,16 +17,18 @@
 
 package com.android.tools.idea.res
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.projectsystem.FilenameConstants
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Paths
 
-const val AAR_LIBRARY_NAME = "com.test:test-library:1.0.0";
+const val AAR_LIBRARY_NAME = "com.test:test-library:1.0.0"
 
-fun createTestAppResourceRepository(facet: AndroidFacet): AppResourceRepository {
-  val moduleResources = ModuleResourceRepository.createForTest(facet, emptyList())
-  val projectResources = ProjectResourceRepository.createForTest(facet, listOf<LocalResourceRepository>(moduleResources))
+fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepository {
+  val moduleResources = createTestModuleRepository(facet, emptyList())
+  val projectResources = ProjectResourceRepository.createForTest(facet, listOf(moduleResources))
   val appResources = AppResourceRepository.createForTest(facet, listOf<LocalResourceRepository>(projectResources), emptyList())
   val aar = getTestAarRepository()
   appResources.updateRoots(listOf(projectResources, aar), mutableListOf(aar))
@@ -39,4 +41,14 @@ fun getTestAarRepository(): FileResourceRepository {
     Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, "my_aar_lib", "res").toFile(),
     AAR_LIBRARY_NAME
   )
+}
+
+@JvmOverloads
+fun createTestModuleRepository(
+  facet: AndroidFacet,
+  resourceDirectories: Collection<VirtualFile>,
+  namespace: ResourceNamespace = ResourceNamespace.RES_AUTO,
+  dynamicRepo: DynamicResourceValueRepository? = null
+): LocalResourceRepository {
+  return ModuleResourceRepository.createForTest(facet, resourceDirectories, namespace, dynamicRepo)
 }
