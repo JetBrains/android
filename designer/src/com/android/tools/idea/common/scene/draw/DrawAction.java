@@ -71,15 +71,15 @@ public class DrawAction extends DrawRegion {
     }
     ColorSet colorSet = sceneContext.getColorSet();
     g.setColor(colorSet.getComponentObligatoryBackground());
-    g.fillRoundRect(x - 2, y - 2, width + 4, height + 4, r, r);
+    g.fillRoundRect(x - 1, y - 1, width + 2, height + 2, r, r);
     if (myIsOver) {
-      g.setColor(colorSet.getSelectedBackground());
+      g.setColor(colorSet.getWidgetActionSelectedBackground());
       g.fillRoundRect(x, y, width, height, r, r);
-      g.setColor(colorSet.getFrames());
+      g.setColor(colorSet.getWidgetActionSelectedBorder());
       g.drawRoundRect(x, y, width, height, r, r);
     }
     else {
-      g.setColor(colorSet.getFrames());
+      g.setColor(colorSet.getWidgetActionBackground());
       g.fillRoundRect(x, y, width, height, r, r);
     }
     Color color = colorSet.getText();

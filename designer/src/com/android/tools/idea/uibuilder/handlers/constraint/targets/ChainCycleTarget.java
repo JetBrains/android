@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +34,7 @@ import java.util.List;
  */
 public class ChainCycleTarget extends ActionTarget {
   // TODO: add new icon to StudioIcons and replace this icon
-  private static final NlIcon CHAIN_ICON = new NlIcon(AndroidIcons.SherpaIcons.Chain, AndroidIcons.SherpaIcons.ChainBlue);
+  private static final NlIcon CHAIN_ICON = new NlIcon(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD_INLINE, AndroidIcons.SherpaIcons.ChainBlue);
 
   private ChainChecker myChainChecker = new ChainChecker();
 

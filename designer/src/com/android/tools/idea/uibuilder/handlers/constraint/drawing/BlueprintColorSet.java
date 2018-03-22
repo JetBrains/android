@@ -87,8 +87,8 @@ public class BlueprintColorSet extends ColorSet {
 
         // Widget actions
 
-        mWidgetActionBackground = mSelectedFrames;
-        mWidgetActionSelectedBackground = Color.white;
+        mWidgetActionBackground = ColorTheme.fadeToColor(mSelectedConstraints, mSelectedBackground, 0.9f);
+        mWidgetActionSelectedBackground = ColorTheme.fadeToColor(mSelectedConstraints, mSelectedBackground, 0.5f);
 
         // Tooltip
 
