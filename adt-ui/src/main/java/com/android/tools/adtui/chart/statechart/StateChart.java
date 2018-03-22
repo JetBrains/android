@@ -134,7 +134,7 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
     return myColorMapper.apply(value);
   }
 
-  protected void render() {
+  private void render() {
     long renderTime = System.nanoTime();
 
     List<RangedSeries<T>> series = myModel.getSeries();
@@ -238,7 +238,8 @@ public final class StateChart<T> extends MouseAdapterComponent<T> {
       Color color = getColor(value);
       // If the mouse is over the current rectangle lighten the color a bit to show.
       if (isMouseOverRectangle(rect)) {
-        color = ColorUtil.brighter(color, 2);
+        // Keep the alpha value of the passed in element.
+        color = ColorUtil.withAlpha(ColorUtil.brighter(color, 2), color.getAlpha() / 255.0);
       }
       g2d.setColor(color);
       g2d.fill(shape);
