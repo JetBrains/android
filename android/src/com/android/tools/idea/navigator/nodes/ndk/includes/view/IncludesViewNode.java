@@ -44,15 +44,17 @@ import java.util.*;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 /**
+ * <pre>
  * This node represents all of the include folders and files for a given native module.
  *
  * So for example,
  *
  * app
- * cpp
- * includes (this class)
- * NDK Components (PackagingFamilyExpressionView)
+ *   cpp
+ *     includes (this class)
+ *       NDK Components (PackagingFamilyExpressionView)
  * ...
+ * </pre>
  */
 public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements FolderGroupNode {
 
@@ -67,14 +69,6 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   @NotNull
   private static IncludeSet distinctIncludes(@NotNull NativeIncludes nativeIncludes) {
     IncludeSet set = new IncludeSet();
-
-    // Include source file directories first
-    for (NativeArtifact artifact : nativeIncludes.myArtifacts) {
-      for (NativeFile sourceFile : artifact.getSourceFiles()) {
-        File workingDirectory = sourceFile.getWorkingDirectory();
-        set.add(sourceFile.getFilePath().getParentFile().getPath(), workingDirectory);
-      }
-    }
 
     // Then include folders from the settings
     Set<String> settingsSeen = new HashSet<>();

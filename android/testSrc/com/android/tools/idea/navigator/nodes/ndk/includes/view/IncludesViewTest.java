@@ -21,7 +21,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.tests.LeakCheckerRule;
 import com.google.common.collect.Lists;
-import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.testFramework.IdeaTestCase;
@@ -36,7 +35,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeVi
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
-public class TestIncludesView extends IdeaTestCase {
+public class IncludesViewTest extends IdeaTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();
 
@@ -46,11 +45,7 @@ public class TestIncludesView extends IdeaTestCase {
       .addArtifact("my-artifact", "foo.cpp");
 
     Collection<? extends AbstractTreeNode> nodes = IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes());
-    assertThat(nodes).hasSize(1);
-    PsiFileNode node = (PsiFileNode)nodes.iterator().next();
-    assertThat(node.getVirtualFile().exists()).isTrue();
-    assertThat(node.getVirtualFile().getName()).isEqualTo("foo.h");
-    checkPresentationDataHasOsSpecificSlashes(node, "");
+    assertThat(nodes).hasSize(0);
   }
 
   public void testSimpleRemoteIncludesView() throws IOException {
@@ -153,23 +148,22 @@ public class TestIncludesView extends IdeaTestCase {
 
       List<? extends AbstractTreeNode> nodes =
         Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
-      assertThat(nodes).hasSize(2);
-      PsiFileNode child1 = (PsiFileNode)nodes.get(0);
-      checkPresentationDataHasOsSpecificSlashes(child1, "");
-      PackagingFamilyViewNode child2 = (PackagingFamilyViewNode)nodes.get(1);
-      List<? extends AbstractTreeNode> child2Children = Lists.newArrayList(child2.getChildren());
-      assertThat(child2Children).hasSize(2);
-      SimpleIncludeViewNode child2Child1 = (SimpleIncludeViewNode)child2Children.get(0);
-      SimpleIncludeViewNode child2Child2 = (SimpleIncludeViewNode)child2Children.get(1);
-      List<? extends AbstractTreeNode> child2child1Children = Lists.newArrayList(child2Child1.getChildren());
-      List<? extends AbstractTreeNode> child2child2Children = Lists.newArrayList(child2Child2.getChildren());
+      assertThat(nodes).hasSize(1);
+
+      PackagingFamilyViewNode child1 = (PackagingFamilyViewNode)nodes.get(0);
+      List<? extends AbstractTreeNode> child1Children = Lists.newArrayList(child1.getChildren());
+      assertThat(child1Children).hasSize(2);
+      SimpleIncludeViewNode child1Child1 = (SimpleIncludeViewNode)child1Children.get(0);
+      SimpleIncludeViewNode child1Child2 = (SimpleIncludeViewNode)child1Children.get(1);
+      List<? extends AbstractTreeNode> child2child1Children = Lists.newArrayList(child1Child1.getChildren());
+      List<? extends AbstractTreeNode> child2child2Children = Lists.newArrayList(child1Child2.getChildren());
       assertThat(child2child1Children).hasSize(1);
       assertThat(child2child2Children).hasSize(1);
       PsiFileNode child2child1child1 = (PsiFileNode)child2child1Children.get(0);
       PsiFileNode child2child2child1 = (PsiFileNode)child2child2Children.get(0);
       assertThat(child2child1child1.getVirtualFile().getName()).isEqualTo("bar.h");
       assertThat(child2child2child1.getVirtualFile().getName()).isEqualTo("foo.h");
-      checkPresentationDataHasOsSpecificSlashes(child2Child1, "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
+      checkPresentationDataHasOsSpecificSlashes(child1Child1, "NDK Helper (sources{os-slash}android{os-slash}ndk_helper)");
     } finally {
       ideComponents.restore();
     }

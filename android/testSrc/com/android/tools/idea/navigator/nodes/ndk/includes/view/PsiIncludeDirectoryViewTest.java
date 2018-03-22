@@ -32,7 +32,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeVi
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
-public class TestPsiIncludeDirectoryView extends IdeaTestCase {
+public class PsiIncludeDirectoryViewTest extends IdeaTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();
 
