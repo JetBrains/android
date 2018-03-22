@@ -118,6 +118,8 @@ effects.**
 
 ### JNI References Allocation
 
+(This test is expected to work only on Android O+, API >= 26)
+
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
 1. In the QA App, select the "JNI References Allocation" scenario.
 1. Press the "run" button
