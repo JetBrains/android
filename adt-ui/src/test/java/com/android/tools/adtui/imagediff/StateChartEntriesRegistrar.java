@@ -34,6 +34,8 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerTextStateChart();
     registerRepeatedState();
     registerMouseOverSeriesStateChart();
+    registerMouseExitSeriesStateChart();
+    registerMouseOverAlphaSeriesStateChart();
   }
 
   private void registerSimpleStateChart() {
@@ -62,6 +64,41 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       @Override
       protected void setUp() {
         super.setUp();
+        // Move the mouse over an element other than the first (which is transparent).
+        myStateChart.mouseMoved(new MouseEvent(myStateChart, 0, 0, 0, 130, 0, 0, false, 0));
+      }
+
+      @Override
+      protected void generateComponent() {
+        // Create a state chart with multiple series
+        addSeries();
+      }
+    });
+  }
+
+  private void registerMouseExitSeriesStateChart() {
+    register(new StateChartImageDiffEntry("state_chart_mouse_exit.png") {
+      @Override
+      protected void setUp() {
+        super.setUp();
+        // Ensure that mouse exit moves off all elements.
+        myStateChart.mouseExited(new MouseEvent(myStateChart, 0, 0, 0, 0, 0, 0, false, 0));
+      }
+
+      @Override
+      protected void generateComponent() {
+        // Create a state chart with multiple series
+        addSeries();
+      }
+    });
+  }
+
+  private void registerMouseOverAlphaSeriesStateChart() {
+    register(new StateChartImageDiffEntry("state_chart_mouse_over_alpha.png") {
+      @Override
+      protected void setUp() {
+        super.setUp();
+        // Ensure that mouse exit moves off all elements.
         myStateChart.mouseMoved(new MouseEvent(myStateChart, 0, 0, 0, 0, 0, 0, false, 0));
       }
 
@@ -199,8 +236,9 @@ class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     private static EnumMap<TestState, Color> getTestStateColor() {
       EnumMap<TestState, Color> colors = new EnumMap<>(TestState.class);
       colors.put(TestState.NONE, new Color(0, 0, 0, 0));
-      colors.put(TestState.STATE1, Color.RED);
-      colors.put(TestState.STATE2, Color.BLUE);
+      // Using colors other than primary so we can see a change with mouse over effect.
+      colors.put(TestState.STATE1, new Color(0x558A71));
+      colors.put(TestState.STATE2, new Color(0x8FB3EA));
       return colors;
     }
 
