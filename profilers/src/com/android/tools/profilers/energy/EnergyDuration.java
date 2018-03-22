@@ -47,6 +47,7 @@ public final class EnergyDuration implements Comparable<EnergyDuration> {
           return WAKE_LOCK;
 
         case ALARM_SET:
+        case ALARM_FIRED:
         case ALARM_CANCELLED:
           return ALARM;
 
