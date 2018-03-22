@@ -191,7 +191,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     final JPanel details = new JPanel(new TabularLayout("*", "Fit,*"));
     details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
-    if (!myStage.isInspectTraceMode()) {
+    if (!myStage.isImportTraceMode()) {
       // We shouldn't display the events monitor while in import trace mode.
       final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
       eventsView.registerTooltip(myTooltipComponent, getStage());
@@ -855,7 +855,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   @Override
   public JComponent getToolbar() {
     // We shouldn't display the CPU toolbar in import trace mode, so we return an empty panel.
-    if (myStage.isInspectTraceMode()) {
+    if (myStage.isImportTraceMode()) {
       return new JPanel();
     }
     JPanel panel = new JPanel(new BorderLayout());
