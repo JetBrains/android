@@ -27,6 +27,7 @@ import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
 import com.intellij.idea.IdeaLogger;
+import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -52,6 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ErrorReporter extends ErrorReportSubmitter {
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
@@ -161,9 +163,16 @@ public class ErrorReporter extends ErrorReportSubmitter {
     }
     else if ("Crashes".equals(type)) {
       //noinspection unchecked
-      List<String> descriptions = (List<String>)map.get("descriptions");
+      List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
+      List<String> descriptions = crashDetails.stream().map(details -> details.getDescription()).collect(Collectors.toList());
+      // If at least one report was JVM crash, submit the batch as a JVM crash
+      boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
+      // As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
+      // a single crash anyway).
+      long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
+
       StudioCrashReporter.getInstance().submit(
-        CrashReport.Builder.createForCrashes(descriptions).build());
+        CrashReport.Builder.createForCrashes(descriptions, isJvmCrash, uptimeInMs).build());
     }
     return true;
   }
