@@ -854,6 +854,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
+    // We shouldn't display the CPU toolbar in import trace mode, so we return an empty panel.
+    if (myStage.isInspectTraceMode()) {
+      return new JPanel();
+    }
     JPanel panel = new JPanel(new BorderLayout());
     JPanel toolbar = new JPanel(createToolbarLayout());
 
