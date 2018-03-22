@@ -8,4 +8,7 @@ maven_jar(
     artifact = "junit:junit:4.10",
 )
 
-# android_sdk_repository added programmatically by BazelGuiTestProjectSystem
+android_sdk_repository(
+    name = "androidsdk",
+    path = "%ANDROID_SDK_PATH%",
+)
