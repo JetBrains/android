@@ -44,7 +44,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
 
   init {
     header.foreground = JBColor.LIGHT_GRAY
-    header.border = JBUI.Borders.emptyLeft(topItemIndent)
+    header.border = JBUI.Borders.emptyLeft(TOP_ITEM_INDENT)
     super.setBorderInsets(borderInsets)
   }
 
@@ -80,12 +80,12 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
   private fun indent(item: EnumValue, index: Int) =
     when {
       index < 0 -> 0
-      item.indented -> subItemIndent
-      else -> topItemIndent
+      item.indented -> SUB_ITEM_INDENT
+      else -> TOP_ITEM_INDENT
     }
 
   companion object {
-    private val topItemIndent = JBUI.scale(StandardDimensions.HORIZONTAL_PADDING + INDENT_NO_HEADER)
-    private val subItemIndent = JBUI.scale(StandardDimensions.HORIZONTAL_PADDING + INDENT_WITH_HEADER)
+    private val TOP_ITEM_INDENT = StandardDimensions.HORIZONTAL_PADDING + INDENT_NO_HEADER
+    private val SUB_ITEM_INDENT = StandardDimensions.HORIZONTAL_PADDING + INDENT_WITH_HEADER
   }
 }

@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.common.property2.api.InspectorLineModel
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.*
@@ -28,8 +28,8 @@ class ComboBoxPropertyEditorModelTest {
 
   private fun createModel(): ComboBoxPropertyEditorModel {
     val formModel = mock(FormModel::class.java)
-    val property = PropertyModelUtil.makeProperty(SdkConstants.ANDROID_URI, "visibility", "visible")
-    val enumSupport = PropertyModelUtil.makeEnumSupport("visible", "invisible", "gone")
+    val property = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, "visibility", "visible")
+    val enumSupport = PropertyModelTestUtil.makeEnumSupport("visible", "invisible", "gone")
     return ComboBoxPropertyEditorModel(property, formModel, enumSupport, true)
   }
 

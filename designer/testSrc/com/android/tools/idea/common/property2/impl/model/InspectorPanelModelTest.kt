@@ -18,7 +18,7 @@ package com.android.tools.idea.common.property2.impl.model
 import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -29,17 +29,17 @@ class InspectorPanelModelTest {
   class Inspector {
     val model = InspectorPanelModel()
 
-    private val colorProperty = PropertyModelUtil.makeProperty(SdkConstants.ANDROID_URI, "color", "#00FF00")
-    private val backgroundProperty = PropertyModelUtil.makeProperty(SdkConstants.TOOLS_URI, "background", "#00FF00")
-    private val textProperty = PropertyModelUtil.makeProperty(SdkConstants.AUTO_URI, "text", "hello")
-    private val textAppProperty = PropertyModelUtil.makeProperty(SdkConstants.AUTO_URI, "textApp", "")
-    private val someProperty = PropertyModelUtil.makeProperty("SomeNamespace", "some", "world")
+    private val colorProperty = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, "color", "#00FF00")
+    private val backgroundProperty = PropertyModelTestUtil.makeProperty(SdkConstants.TOOLS_URI, "background", "#00FF00")
+    private val textProperty = PropertyModelTestUtil.makeProperty(SdkConstants.AUTO_URI, "text", "hello")
+    private val textAppProperty = PropertyModelTestUtil.makeProperty(SdkConstants.AUTO_URI, "textApp", "")
+    private val someProperty = PropertyModelTestUtil.makeProperty("SomeNamespace", "some", "world")
 
-    private val colorEditor = PropertyModelUtil.makePropertyEditorModel(colorProperty, model)
-    private val backgroundEditor = PropertyModelUtil.makePropertyEditorModel(backgroundProperty, model)
-    val textEditor = PropertyModelUtil.makePropertyEditorModel(textProperty, model)
-    val textAppEditor = PropertyModelUtil.makePropertyEditorModel(textAppProperty, model)
-    val someEditor = PropertyModelUtil.makePropertyEditorModel(someProperty, model)
+    private val colorEditor = PropertyModelTestUtil.makePropertyEditorModel(colorProperty, model)
+    private val backgroundEditor = PropertyModelTestUtil.makePropertyEditorModel(backgroundProperty, model)
+    val textEditor = PropertyModelTestUtil.makePropertyEditorModel(textProperty, model)
+    val textAppEditor = PropertyModelTestUtil.makePropertyEditorModel(textAppProperty, model)
+    val someEditor = PropertyModelTestUtil.makePropertyEditorModel(someProperty, model)
 
     private val properties = PropertiesComponentMock()
 
@@ -132,7 +132,7 @@ class InspectorPanelModelTest {
   fun testEnterInFilterWithNoFilterSet() {
     val inspector = Inspector()
     assertThat(inspector.model.enterInFilter()).isFalse()
-    assertThat(inspector.textAppEditor.focusRequest).isFalse()
+    assertThat(inspector.textAppEditor.focusWasRequested).isFalse()
   }
 
   @Test
@@ -140,7 +140,7 @@ class InspectorPanelModelTest {
     val inspector = Inspector()
     inspector.model.filter = "tex"
     assertThat(inspector.model.enterInFilter()).isFalse()
-    assertThat(inspector.textAppEditor.focusRequest).isFalse()
+    assertThat(inspector.textAppEditor.focusWasRequested).isFalse()
   }
 
   @Test
@@ -149,14 +149,14 @@ class InspectorPanelModelTest {
     inspector.model.filter = "textAp"
     inspector.model.enterInFilter()
     assertThat(inspector.model.enterInFilter()).isTrue()
-    assertThat(inspector.textAppEditor.focusRequest).isTrue() // Focus request on the editor for "textAppProperty"
+    assertThat(inspector.textAppEditor.focusWasRequested).isTrue()
   }
 
   @Test
   fun testMoveToNextEditor() {
     val inspector = Inspector()
     inspector.model.moveToNextLineEditor(inspector.textItem)
-    assertThat(inspector.someEditor.focusRequest).isTrue()  // Focus request on the editor for "someProperty"
+    assertThat(inspector.someEditor.focusWasRequested).isTrue()
   }
 
   @Test

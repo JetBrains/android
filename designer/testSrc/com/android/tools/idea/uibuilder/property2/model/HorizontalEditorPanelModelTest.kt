@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property2.model
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil.makeProperty
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeProperty
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
@@ -43,9 +43,9 @@ class HorizontalEditorPanelModelTest {
     val test = createTestData()
     test.toggle1.focusGained()
     test.model.prior()
-    assertThat(test.toggle1.focusRequest).isFalse()
-    assertThat(test.toggle2.focusRequest).isFalse()
-    assertThat(test.toggle3.focusRequest).isTrue()
+    assertThat(test.toggle1.focusWasRequested).isFalse()
+    assertThat(test.toggle2.focusWasRequested).isFalse()
+    assertThat(test.toggle3.focusWasRequested).isTrue()
   }
 
   @Test
@@ -53,9 +53,9 @@ class HorizontalEditorPanelModelTest {
     val test = createTestData()
     test.toggle2.focusGained()
     test.model.prior()
-    assertThat(test.toggle1.focusRequest).isTrue()
-    assertThat(test.toggle2.focusRequest).isFalse()
-    assertThat(test.toggle3.focusRequest).isFalse()
+    assertThat(test.toggle1.focusWasRequested).isTrue()
+    assertThat(test.toggle2.focusWasRequested).isFalse()
+    assertThat(test.toggle3.focusWasRequested).isFalse()
   }
 
   @Test
@@ -63,18 +63,18 @@ class HorizontalEditorPanelModelTest {
     val test = createTestData()
     test.toggle3.focusGained()
     test.model.prior()
-    assertThat(test.toggle1.focusRequest).isFalse()
-    assertThat(test.toggle2.focusRequest).isTrue()
-    assertThat(test.toggle3.focusRequest).isFalse()
+    assertThat(test.toggle1.focusWasRequested).isFalse()
+    assertThat(test.toggle2.focusWasRequested).isTrue()
+    assertThat(test.toggle3.focusWasRequested).isFalse()
   }
 
   @Test
   fun testPriorWithoutFocus() {
     val test = createTestData()
     test.model.prior()
-    assertThat(test.toggle1.focusRequest).isFalse()
-    assertThat(test.toggle2.focusRequest).isFalse()
-    assertThat(test.toggle3.focusRequest).isTrue()
+    assertThat(test.toggle1.focusWasRequested).isFalse()
+    assertThat(test.toggle2.focusWasRequested).isFalse()
+    assertThat(test.toggle3.focusWasRequested).isTrue()
   }
 
   @Test
@@ -82,9 +82,9 @@ class HorizontalEditorPanelModelTest {
     val test = createTestData()
     test.toggle1.focusGained()
     test.model.next()
-    assertThat(test.toggle1.focusRequest).isFalse()
-    assertThat(test.toggle2.focusRequest).isTrue()
-    assertThat(test.toggle3.focusRequest).isFalse()
+    assertThat(test.toggle1.focusWasRequested).isFalse()
+    assertThat(test.toggle2.focusWasRequested).isTrue()
+    assertThat(test.toggle3.focusWasRequested).isFalse()
   }
 
   @Test
@@ -92,9 +92,9 @@ class HorizontalEditorPanelModelTest {
     val test = createTestData()
     test.toggle2.focusGained()
     test.model.next()
-    assertThat(test.toggle1.focusRequest).isFalse()
-    assertThat(test.toggle2.focusRequest).isFalse()
-    assertThat(test.toggle3.focusRequest).isTrue()
+    assertThat(test.toggle1.focusWasRequested).isFalse()
+    assertThat(test.toggle2.focusWasRequested).isFalse()
+    assertThat(test.toggle3.focusWasRequested).isTrue()
   }
 
   @Test
@@ -102,31 +102,36 @@ class HorizontalEditorPanelModelTest {
     val test = createTestData()
     test.toggle3.focusGained()
     test.model.next()
-    assertThat(test.toggle1.focusRequest).isTrue()
-    assertThat(test.toggle2.focusRequest).isFalse()
-    assertThat(test.toggle3.focusRequest).isFalse()
+    assertThat(test.toggle1.focusWasRequested).isTrue()
+    assertThat(test.toggle2.focusWasRequested).isFalse()
+    assertThat(test.toggle3.focusWasRequested).isFalse()
   }
 
   @Test
   fun testNextWithoutFocus() {
     val test = createTestData()
     test.model.next()
-    assertThat(test.toggle1.focusRequest).isTrue()
-    assertThat(test.toggle2.focusRequest).isFalse()
-    assertThat(test.toggle3.focusRequest).isFalse()
+    assertThat(test.toggle1.focusWasRequested).isTrue()
+    assertThat(test.toggle2.focusWasRequested).isFalse()
+    assertThat(test.toggle3.focusWasRequested).isFalse()
   }
 
   @Test
   fun testFocusRequestIsPropagatedToToggle1() {
     val test = createTestData()
-    test.model.focusRequest = true
-    assertThat(test.toggle1.focusRequest).isTrue()
-    assertThat(test.toggle2.focusRequest).isFalse()
-    assertThat(test.toggle3.focusRequest).isFalse()
+    test.model.requestFocus()
+    assertThat(test.toggle1.focusWasRequested).isTrue()
+    assertThat(test.toggle2.focusWasRequested).isFalse()
+    assertThat(test.toggle3.focusWasRequested).isFalse()
   }
 
   private class MockEditorModel(property: PropertyItem, formModel: FormModel): BasePropertyEditorModel(property, formModel) {
-    override var focusRequest: Boolean = false
+    var focusWasRequested = false
+      private set
+
+    override fun requestFocus() {
+      focusWasRequested = true
+    }
   }
 
   private class TestData(

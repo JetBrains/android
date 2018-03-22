@@ -46,27 +46,27 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
 
     inspector.addSeparator()
     val textViewLabel = inspector.addExpandableTitle("TextView")
-    addComponent(inspector, properties[ANDROID_URI, ATTR_TEXT], textViewLabel)
-    addComponent(inspector, getDesignProperty(properties, ATTR_TEXT), textViewLabel)
-    addComponent(inspector, properties[ANDROID_URI, ATTR_CONTENT_DESCRIPTION], textViewLabel)
+    addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT], textViewLabel)
+    addEditor(inspector, getDesignProperty(properties, ATTR_TEXT), textViewLabel)
+    addEditor(inspector, properties[ANDROID_URI, ATTR_CONTENT_DESCRIPTION], textViewLabel)
 
-    val textAppearanceLabel = addComponent(inspector, properties[ANDROID_URI, ATTR_TEXT_APPEARANCE], textViewLabel)
+    val textAppearanceLabel = addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT_APPEARANCE], textViewLabel)
     textAppearanceLabel.makeExpandable(initiallyExpanded = false)
 
     val fontFamily = getOptionalProperty(properties, ATTR_FONT_FAMILY)
     if (fontFamily != null) {
-      addComponent(inspector, fontFamily, textAppearanceLabel)
+      addEditor(inspector, fontFamily, textAppearanceLabel)
     }
-    addComponent(inspector, properties[ANDROID_URI, ATTR_TYPEFACE], textAppearanceLabel)
-    addComponent(inspector, properties[ANDROID_URI, ATTR_TEXT_SIZE], textAppearanceLabel)
-    addComponent(inspector, properties[ANDROID_URI, ATTR_LINE_SPACING_EXTRA], textAppearanceLabel)
-    addComponent(inspector, properties[ANDROID_URI, ATTR_TEXT_COLOR], textAppearanceLabel)
+    addEditor(inspector, properties[ANDROID_URI, ATTR_TYPEFACE], textAppearanceLabel)
+    addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT_SIZE], textAppearanceLabel)
+    addEditor(inspector, properties[ANDROID_URI, ATTR_LINE_SPACING_EXTRA], textAppearanceLabel)
+    addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT_COLOR], textAppearanceLabel)
     addTextStyle(inspector, properties, textAppearanceLabel)
     addAlignment(inspector, properties, textAppearanceLabel)
   }
 
-  private fun addComponent(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
-    val line = inspector.addComponent(editorProvider.provide(property))
+  private fun addEditor(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
+    val line = inspector.addEditor(editorProvider(property))
     group.addChild(line)
     return line
   }
@@ -78,7 +78,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     val italic = textStyle.flag(TextStyle.VALUE_ITALIC)
     val model = HorizontalEditorPanelModel(textStyle, formModel)
     val panel = HorizontalEditorPanel(model)
-    val line = inspector.addComponent(model, panel)
+    val line = inspector.addEditor(model, panel)
     panel.add(createIconEditor(line, bold, "Bold", TEXT_STYLE_BOLD, "true", "false"))
     panel.add(createIconEditor(line, italic, "Italics", TEXT_STYLE_ITALIC, "true", "false"))
     panel.add(createIconEditor(line, allCaps, "All Caps", TEXT_STYLE_UPPERCASE, "true", "false"))
@@ -89,7 +89,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     val alignment = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALIGNMENT) ?: return
     val model = HorizontalEditorPanelModel(alignment, formModel)
     val panel = HorizontalEditorPanel(model)
-    val line = inspector.addComponent(model, panel)
+    val line = inspector.addEditor(model, panel)
     panel.add(createIconEditor(line, alignment, "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START))
     panel.add(createIconEditor(line, alignment, "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START))
     panel.add(createIconEditor(line, alignment, "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER))

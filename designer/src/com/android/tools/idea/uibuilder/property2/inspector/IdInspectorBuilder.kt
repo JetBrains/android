@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 /**
  * An [InspectorBuilder] for the [ATTR_ID] attribute shown on top in the Nele inspector.
  */
-class IdInspectorBuilder(private val provideEditor: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class IdInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
 
   private val menuTags = setOf(TAG_GROUP, TAG_ITEM, TAG_MENU)
 
@@ -31,7 +31,7 @@ class IdInspectorBuilder(private val provideEditor: EditorProvider<NelePropertyI
     val property = properties.getOrNull(ANDROID_URI, ATTR_ID) ?: return
     if (!isApplicable(property)) return
 
-    inspector.addComponent(provideEditor.provide(property))
+    inspector.addEditor(editorProvider(property))
   }
 
   private fun isApplicable(property: NelePropertyItem): Boolean {

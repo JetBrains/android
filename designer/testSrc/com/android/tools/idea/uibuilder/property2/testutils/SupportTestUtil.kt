@@ -62,7 +62,7 @@ open class SupportTestUtil(parentDisposable: Disposable, private val facet: Andr
     val activityAttrs = formatActivityAttributes(activityName)
     val text = "<$tag xmlns:android=\"http://schemas.android.com/apk/res/android\" $activityAttrs/>"
     val file = fixture.addFileToProject("res/layout/${tag.toLowerCase()}.xml", text) as XmlFile
-    return file to MockNlComponent.create(file.rootTag!!)
+    return Pair(file, MockNlComponent.create(file.rootTag!!))
   }
 
   private fun createParentedComponent(tag: String, parentTag: String, activityName: String): Pair<PsiFile, NlComponent> {
@@ -72,7 +72,7 @@ open class SupportTestUtil(parentDisposable: Disposable, private val facet: Andr
     val parent = MockNlComponent.create(file.rootTag!!)
     val child = MockNlComponent.create(file.rootTag!!.findFirstSubTag(tag)!!)
     parent.addChild(child)
-    return file to child
+    return Pair(file, child)
   }
 
   private fun formatActivityAttributes(activityName: String): String {

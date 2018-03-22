@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.intellij.util.containers.IntArrayList
+import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Container
@@ -51,7 +52,7 @@ class InspectorLayoutManager: LayoutManager2 {
     val size = container.size
     val width = size.width - insets.left - insets.right
     val leftMargin = insets.left
-    val left = maxOf(minOf((width * LEFT_FRACTION).toInt(), maxLabelWidth), 0)
+    val left = maxOf(minOf((width * LEFT_FRACTION).toInt(), SCALED_MAX_LABEL_WIDTH), 0)
     val right = maxOf(width - left, 0)
     var rowIndex = 0
     var y = insets.top
@@ -79,14 +80,14 @@ class InspectorLayoutManager: LayoutManager2 {
 
   override fun getLayoutAlignmentX(container: Container) = 0.5f
 
-  override fun maximumLayoutSize(container: Container) = maximumLayoutSize
+  override fun maximumLayoutSize(container: Container) = MAXIMUM_LAYOUT_SIZE
 
   override fun preferredLayoutSize(container: Container): Dimension {
     computePreferredGridSize(container)
     return Dimension(leftWidth + rightWidth, totalHeight)
   }
 
-  override fun minimumLayoutSize(container: Container) = minimumLayoutSize
+  override fun minimumLayoutSize(container: Container) = MINIMUM_LAYOUT_SIZE
 
   override fun addLayoutComponent(component: Component, place: Any?) {
     val placement = place as? Placement ?: Placement.LINE
@@ -108,8 +109,8 @@ class InspectorLayoutManager: LayoutManager2 {
 
   fun removeAll() {
     lastAdded = Placement.LINE
-    invalidateLayout()
     placementMap.clear()
+    invalidateLayout()
   }
 
   fun getRowHeight(component: Component): Int {
@@ -202,8 +203,8 @@ class InspectorLayoutManager: LayoutManager2 {
   }
 
   companion object {
-    val maxLabelWidth = JBUI.scale(MAX_LABEL_WIDTH)
-    val minimumLayoutSize = Dimension(JBUI.scale(MIN_WIDTH), JBUI.scale(MIN_HEIGHT))
-    val maximumLayoutSize = Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)
+    private val SCALED_MAX_LABEL_WIDTH = JBUI.scale(MAX_LABEL_WIDTH)
+    private val MINIMUM_LAYOUT_SIZE = JBDimension(MIN_WIDTH, MIN_HEIGHT)
+    private val MAXIMUM_LAYOUT_SIZE = Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE)
   }
 }

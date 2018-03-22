@@ -27,7 +27,7 @@ private const val TEXT_APPEARANCE_SUFFIX = "TextAppearance"
 /**
  * Given a [NelePropertyItem] compute the [EnumSupport] of the attribute if applicable.
  */
-class EnumSupportProviderImpl : EnumSupportProvider<NelePropertyItem> {
+class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
 
   /**
    * Return the [EnumSupport] for a given property.

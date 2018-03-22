@@ -31,7 +31,7 @@ import javax.swing.JPanel
  * then the custom panel if applicable, followed by the layout attributes
  * defined in the [ViewHandler] of the layout ViewGroup.
  */
-class LayoutInspectorBuilder(project: Project, private val provideEditor: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class LayoutInspectorBuilder(project: Project, private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   private val viewHandlerManager = ViewHandlerManager.get(project)
   private val cachedCustomPanels = mutableMapOf<String, CustomPanel>()
 
@@ -47,7 +47,7 @@ class LayoutInspectorBuilder(project: Project, private val provideEditor: Editor
     inspector.addSeparator()
     val titleModel = inspector.addExpandableTitle("layout")
     if (custom != null) {
-      val customLine = inspector.addPanel(custom)
+      val customLine = inspector.addComponent(custom)
       titleModel.addChild(customLine)
     }
 
@@ -55,7 +55,7 @@ class LayoutInspectorBuilder(project: Project, private val provideEditor: Editor
       // TODO: Handle other namespaces
       val property = properties.getOrNull(ANDROID_URI, propertyName)
       if (property != null) {
-        val line = inspector.addComponent(provideEditor.provide(property))
+        val line = inspector.addEditor(editorProvider(property))
         titleModel.addChild(line)
       }
     }
@@ -83,7 +83,7 @@ class LayoutInspectorBuilder(project: Project, private val provideEditor: Editor
   private fun setupCustomPanel(properties: PropertiesTable<NelePropertyItem>): JPanel? {
     val parentTagName = getParentTagName(properties) ?: return null
     val panel = cachedCustomPanels[parentTagName] ?: createCustomPanel(parentTagName)
-    if (panel == EmptyCustomPanel.INSTANCE) return null
+    if (panel == DummyCustomPanel.INSTANCE) return null
 
     val property = properties.first ?: return null
     val component = property.components.singleOrNull() ?: return null
@@ -93,7 +93,7 @@ class LayoutInspectorBuilder(project: Project, private val provideEditor: Editor
 
   private fun createCustomPanel(parentTagName: String): CustomPanel {
     val handler = viewHandlerManager.getHandler(parentTagName)
-    val panel = handler?.layoutCustomPanel ?: EmptyCustomPanel.INSTANCE
+    val panel = handler?.layoutCustomPanel ?: DummyCustomPanel.INSTANCE
     cachedCustomPanels[parentTagName] = panel
     return panel
   }

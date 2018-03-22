@@ -17,7 +17,7 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.idea.common.property2.api.FlagsPropertyItem
 import com.android.tools.idea.common.property2.api.FormModel
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
 import com.android.tools.idea.common.property2.impl.model.util.TestFlagsPropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -344,14 +344,14 @@ class FlagPropertyEditorModelTest {
   }
 
   private fun createAutoLink(): TestFlagsPropertyItem {
-    return PropertyModelUtil.makeFlagsProperty(
+    return PropertyModelTestUtil.makeFlagsProperty(
         "autoLink",
         listOf("none", "phone", "map", "perm", "all"),
         listOf(0, 1, 2, 4, 7))
   }
 
   private fun createGravity(): TestFlagsPropertyItem {
-    return PropertyModelUtil.makeFlagsProperty(
+    return PropertyModelTestUtil.makeFlagsProperty(
         "gravity",
         listOf("left", "center", "right"),
         listOf(1, 2, 4))

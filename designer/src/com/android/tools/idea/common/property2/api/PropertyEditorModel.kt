@@ -81,16 +81,14 @@ interface PropertyEditorModel {
   var visible: Boolean
 
   /**
-   * Controls the focus of the editor.
-   *
-   * When this is set to true, an editor should request focus on itself.
-   */
-  var focusRequest: Boolean
-
-  /**
    * Returns true if the editor currently has the focus.
    */
-  val focus: Boolean
+  val hasFocus: Boolean
+
+  /**
+   * Request focus to be placed on this editor.
+   */
+  fun requestFocus()
 
   /**
    * Update the value shown in the editor.

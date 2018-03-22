@@ -38,24 +38,22 @@ class HorizontalEditorPanelModel(property: PropertyItem, formModel: FormModel) :
   fun prior() {
     val index = focusIndex
     val model = if (index <= 0) models.last() else models[index - 1]
-    model.focusRequest = true
+    model.requestFocus()
   }
 
   fun next() {
     val index = focusIndex
     val model = if (index < 0 || index == models.lastIndex) models.first() else models[index + 1]
-    model.focusRequest = true
+    model.requestFocus()
   }
 
   private val focusIndex: Int
-    get() = models.indexOfFirst { it.focus }
+    get() = models.indexOfFirst { it.hasFocus }
 
 
-  override var focusRequest: Boolean
-    get() = super.focusRequest
-    set(value) {
-      models.firstOrNull()?.focusRequest = value
-    }
+  override fun requestFocus() {
+    models.firstOrNull()?.requestFocus()
+  }
 
   override fun refresh() {
     models.forEach { it.refresh() }

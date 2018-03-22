@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.common.property2.api.InspectorLineModel
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -29,11 +29,11 @@ class TextFieldPropertyEditorModelTest {
 
   private fun createModel(): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
     val formModel = mock(FormModel::class.java)
-    val property = PropertyModelUtil.makeProperty(SdkConstants.ANDROID_URI, "text", "hello")
+    val property = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, "text", "hello")
     val model = TextFieldPropertyEditorModel(property, formModel, true)
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
-    return model to listener
+    return Pair(model, listener)
   }
 
   @Test

@@ -105,17 +105,15 @@ class CollapsibleLabelModel(
   override val focusable: Boolean
     get() = editorModel != null
 
-  override var focusRequest
-    get() = false
-    set(value) {
-      editorModel?.focusRequest = value
-    }
+  override fun requestFocus() {
+    editorModel?.requestFocus()
+  }
 
   companion object {
-    @VisibleForTesting
+    @JvmField @VisibleForTesting
     val EXPANDED_ICON = UIManager.get("Tree.expandedIcon") as Icon
 
-    @VisibleForTesting
+    @JvmField @VisibleForTesting
     val COLLAPSED_ICON = UIManager.get("Tree.collapsedIcon") as Icon
   }
 

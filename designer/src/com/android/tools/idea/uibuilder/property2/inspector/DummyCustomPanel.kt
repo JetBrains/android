@@ -28,11 +28,7 @@ import javax.swing.JPanel
  * that the [InspectorBuilder] only have to attempt to generate
  * it once. See [LayoutInspectorBuilder].
  */
-class EmptyCustomPanel: CustomPanel {
-
-  companion object {
-    val INSTANCE = EmptyCustomPanel()
-  }
+class DummyCustomPanel private constructor() : CustomPanel {
 
   override fun getPanel(): JPanel {
     throw NotImplementedError()
@@ -44,5 +40,10 @@ class EmptyCustomPanel: CustomPanel {
 
   override fun refresh() {
     throw NotImplementedError()
+  }
+
+  companion object {
+    @JvmField
+    val INSTANCE = DummyCustomPanel()
   }
 }

@@ -17,8 +17,8 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants.*
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil.makeProperty
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil.makePropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeProperty
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makePropertyEditorModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.util.text.Matcher

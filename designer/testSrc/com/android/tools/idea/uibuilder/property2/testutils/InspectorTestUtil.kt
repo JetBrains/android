@@ -20,8 +20,8 @@ import com.android.tools.idea.common.property2.impl.support.EditorProviderImpl
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.support.ControlTypeProviderImpl
-import com.android.tools.idea.uibuilder.property2.support.EnumSupportProviderImpl
+import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
+import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.intellij.openapi.Disposable
@@ -34,16 +34,16 @@ import javax.swing.JComponent
 
 class InspectorTestUtil(parent: Disposable, facet: AndroidFacet, fixture: JavaCodeInsightTestFixture,
                         tag: String, parentTag: String = ""): SupportTestUtil(parent, facet, fixture, tag, parentTag) {
+  private val enumSupportProvider = NeleEnumSupportProvider()
+  private val controlTypeProvider = NeleControlTypeProvider()
+  private val formModel = mock(FormModel::class.java)
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
   val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
 
-  val enumSupportProvider = EnumSupportProviderImpl()
-  val controlTypeProvider = ControlTypeProviderImpl()
-  val formModel = mock(FormModel::class.java)
   val editorProvider = EditorProviderImpl(enumSupportProvider, controlTypeProvider, formModel)
 
-  val inspector = MockInspectorPanel()
+  val inspector = FakeInspectorPanel()
 
   fun addProperty(namespace: String, name: String, type: NelePropertyType) {
     _properties.put(namespace, name, makeProperty(namespace, name, type))
@@ -64,18 +64,24 @@ enum class LineType {
   TITLE, PROPERTY, PANEL, SEPARATOR
 }
 
-class MockInspectorLine(val type: LineType) : InspectorLineModel {
+class FakeInspectorLine(val type: LineType) : InspectorLineModel {
   override var visible = true
   override var hidden = false
   override var focusable = true
-  override var focusRequest = false
   var title: String? = null
   var editorModel: PropertyEditorModel? = null
   var expandable = false
   var expanded = false
   val children = mutableListOf<InspectorLineModel>()
   val childProperties: List<String>
-    get() = children.map { it as MockInspectorLine }.map { it.editorModel!!.property.name }
+    get() = children.map { it as FakeInspectorLine }.map { it.editorModel!!.property.name }
+
+  var focusWasRequested = false
+    private set
+
+  override fun requestFocus() {
+    focusWasRequested = true
+  }
 
   override fun makeExpandable(initiallyExpanded: Boolean) {
     expandable = true
@@ -87,36 +93,36 @@ class MockInspectorLine(val type: LineType) : InspectorLineModel {
   }
 }
 
-class MockInspectorPanel : InspectorPanel {
-  val lines = mutableListOf<MockInspectorLine>()
+class FakeInspectorPanel : InspectorPanel {
+  val lines = mutableListOf<FakeInspectorLine>()
 
   override fun addTitle(title: String): InspectorLineModel {
-    val line = MockInspectorLine(LineType.TITLE)
+    val line = FakeInspectorLine(LineType.TITLE)
     line.title = title
     lines.add(line)
     return line
   }
 
-  override fun addComponent(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
-    val line = MockInspectorLine(LineType.PROPERTY)
+  override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
+    val line = FakeInspectorLine(LineType.PROPERTY)
     editorModel.line = line
     line.editorModel = editorModel
     lines.add(line)
     return line
   }
 
-  override fun addComponent(modelEditorPair: Pair<PropertyEditorModel, JComponent>): InspectorLineModel {
-    return addComponent(modelEditorPair.first, modelEditorPair.second)
+  override fun addEditor(modelEditorPair: Pair<PropertyEditorModel, JComponent>): InspectorLineModel {
+    return addEditor(modelEditorPair.first, modelEditorPair.second)
   }
 
-  override fun addPanel(panel: JComponent): InspectorLineModel {
-    val line = MockInspectorLine(LineType.PANEL)
+  override fun addComponent(component: JComponent): InspectorLineModel {
+    val line = FakeInspectorLine(LineType.PANEL)
     lines.add(line)
     return line
   }
 
   override fun addSeparator(): InspectorLineModel {
-    val line = MockInspectorLine(LineType.SEPARATOR)
+    val line = FakeInspectorLine(LineType.SEPARATOR)
     lines.add(line)
     return line
   }

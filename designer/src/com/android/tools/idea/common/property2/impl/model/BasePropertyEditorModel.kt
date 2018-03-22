@@ -27,7 +27,7 @@ import com.intellij.openapi.util.text.StringUtil
  * @property formModel The form model with settings for all editors
  * @property value The computed value of the property
  * @property visible Controls the visibility of the editor
- * @property focus Shows if an editor has focus. Setting this to true will cause focus to be requested to the editor.
+ * @property hasFocus Shows if an editor has focus. Setting this to true will cause focus to be requested to the editor.
  */
 abstract class BasePropertyEditorModel(override val property: PropertyItem, override val formModel: FormModel) : PropertyEditorModel {
   private val valueChangeListeners = mutableListOf<ValueChangedListener>()
@@ -46,17 +46,26 @@ abstract class BasePropertyEditorModel(override val property: PropertyItem, over
       fireValueChanged()
     }
 
-  final override var focus = false
+  final override var hasFocus = false
     private set
 
-  override var focusRequest = false
-    set(value) {
-      if (value && !focus) {
-        field = true
-        fireValueChanged()
-        field = false
-      }
+  /**
+   * A focus request was made.
+   *
+   * We cannot call a method in the UI to request focus.
+   * Instead [focusRequest] is temporarily set to true, and the Ui is
+   * requested to update itself. See the [requestFocus] function.
+   */
+  var focusRequest = false
+    private set
+
+  override fun requestFocus() {
+    if (!hasFocus) {
+      focusRequest = true
+      fireValueChanged()
+      focusRequest = false
     }
+  }
 
   override var line: InspectorLineModel? = null
 
@@ -89,11 +98,11 @@ abstract class BasePropertyEditorModel(override val property: PropertyItem, over
   }
 
   fun focusGained() {
-    focus = true
+    hasFocus = true
   }
 
   fun focusLost(editedValue: String) {
-    focus = false
+    hasFocus = false
     if (editedValue != value) {
       value = editedValue
     }

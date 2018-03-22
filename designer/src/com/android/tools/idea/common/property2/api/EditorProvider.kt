@@ -25,8 +25,7 @@ import javax.swing.JComponent
  * implementation by calling [EditorProvider.create].
  * @param P a client defined property class
  */
-interface EditorProvider<in P: PropertyItem> {
-  fun provide(property: P): Pair<PropertyEditorModel, JComponent>
+interface EditorProvider<in P : PropertyItem> : (P) -> Pair<PropertyEditorModel, JComponent> {
 
   companion object {
     /**
@@ -55,7 +54,7 @@ interface EditorProvider<in P: PropertyItem> {
  *
  * @param P a client defined property class that must implement the interface: [PropertyItem]
  */
-typealias EnumSupportProvider<P> = (P) -> EnumSupport?
+interface EnumSupportProvider<in P : PropertyItem> : (P) -> EnumSupport?
 
 /**
  * Provider of a [ControlType] for given property.
@@ -66,4 +65,4 @@ typealias EnumSupportProvider<P> = (P) -> EnumSupport?
  *
  * @param P a client defined property class that must implement the interface: [PropertyItem]
  */
-typealias ControlTypeProvider<P> = (P, EnumSupport?) -> ControlType
+interface ControlTypeProvider<in P : PropertyItem> : (P, EnumSupport?) -> ControlType
