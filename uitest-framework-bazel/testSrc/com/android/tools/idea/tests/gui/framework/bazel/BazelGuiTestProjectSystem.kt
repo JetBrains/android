@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
-import com.google.common.io.Files
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -45,7 +44,7 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
     // If the uitestignore file exists, then delete the files listed in that file.
     val ignoreFile = File(targetTestDirectory, "bazel.uitestignore")
     if (ignoreFile.exists()) {
-      Files.readLines(ignoreFile, Charsets.UTF_8)
+      ignoreFile.readLines()
         .map { name -> File(targetTestDirectory, name) }
         .forEach { file -> file.delete() }
     }
@@ -55,18 +54,14 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
       .filter { f -> f.exists() && f.name.endsWith(".bazeltestfile") }
       .forEach { f -> f.renameTo(File(f.parent, f.nameWithoutExtension)) }
 
+    val workspaceFile = File(targetTestDirectory, "WORKSPACE")
+    workspaceFile.writeText(injectRuntimeVariables(workspaceFile.readText()))
 
-    val androidSdkRepositoryInfo =
-        """
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${getSdkPath()}"
-)
-        """
-
-    Files.append(androidSdkRepositoryInfo, File(targetTestDirectory, "WORKSPACE"), Charsets.UTF_8)
-    Files.append("startup --host_javabase=" + getJdkPath(), File(targetTestDirectory, ".bazelrc"), Charsets.UTF_8)
+    File(targetTestDirectory, ".bazelrc").appendText("startup --host_javabase=" + getJdkPath())
   }
+
+  private fun injectRuntimeVariables(workspaceFileContent: String) =
+    workspaceFileContent.replace("%ANDROID_SDK_PATH%", getSdkPath())
 
   override fun importProject(targetTestDirectory: File, robot: Robot, buildPath: String?) {
     logger.info("Importing project.")
