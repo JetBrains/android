@@ -186,12 +186,17 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCpus = new JBList<>(myStage.getCpuKernelModel());
 
     final OverlayComponent overlay = new OverlayComponent(mySelection);
-    final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
-    eventsView.registerTooltip(myTooltipComponent, getStage());
 
     // "Fit" for the event profiler, "*" for everything else.
     final JPanel details = new JPanel(new TabularLayout("*", "Fit,*"));
     details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
+
+    if (!myStage.isInspectTraceMode()) {
+      // We shouldn't display the events monitor while in import trace mode.
+      final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
+      eventsView.registerTooltip(myTooltipComponent, getStage());
+      details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
+    }
 
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     configureOverlayPanel(overlayPanel, overlay);
@@ -237,7 +242,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     monitorCpuThreadsPanel.add(monitorPanel, new TabularLayout.Constraint(MONITOR_PANEL_ROW, 0));
 
     // Panel that represents all of L2
-    details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
     details.add(monitorCpuThreadsPanel, new TabularLayout.Constraint(1, 0));
     details.add(myTooltipComponent, new TabularLayout.Constraint(1, 0, 2, 1));
     details.add(timeAxis, new TabularLayout.Constraint(3, 0));
