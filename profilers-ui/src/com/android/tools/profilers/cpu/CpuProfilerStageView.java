@@ -301,7 +301,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     scrollingCpus.setBorder(MONITOR_BORDER);
     scrollingCpus.setViewportView(myCpus);
     myCpus.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    myCpus.setCellRenderer(new CpuKernelCellRenderer(myStage.getStudioProfilers().getProcess().getPid(),
+    myCpus.setCellRenderer(new CpuKernelCellRenderer(myStage.getStudioProfilers().getSession().getPid(),
                                                      myStage.getUpdatableManager(), myCpus, myThreads));
 
     // Handle selection.

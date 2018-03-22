@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profilers.ProfilerColors;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +39,8 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
   /**
    * Current process id so we can highlight user process threads as a different color.
    */
-  private final int myProcessId;
+  @VisibleForTesting
+  final int myProcessId;
 
   /**
    * Creates a new {@link CpuKernelCellRenderer}, this cell renderer creates a label, as well as a {@link StateChart} for each element
