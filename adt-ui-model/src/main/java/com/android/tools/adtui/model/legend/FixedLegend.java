@@ -26,7 +26,7 @@ public class FixedLegend implements Legend {
   @Nullable private final String myValue;
 
   public FixedLegend(@NotNull String legend) {
-    this(legend, null);
+    this(legend, "");
   }
 
   public FixedLegend(@NotNull String name, @Nullable String value) {
