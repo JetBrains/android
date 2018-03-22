@@ -87,6 +87,7 @@ public class ColorSet {
 
     protected Color mWidgetActionBackground;
     protected Color mWidgetActionSelectedBackground;
+    protected Color mWidgetActionSelectedBorder;
     protected Color mButtonBackground;
 
     protected Color mSelectionColor;
@@ -254,6 +255,8 @@ public class ColorSet {
     public Color getWidgetActionBackground() { return mWidgetActionBackground; }
 
     public Color getWidgetActionSelectedBackground() { return mWidgetActionSelectedBackground; }
+
+    public Color getWidgetActionSelectedBorder() { return mWidgetActionSelectedBorder; }
 
     public Stroke getSoftConstraintStroke() {
         return mSoftConstraintStroke;
