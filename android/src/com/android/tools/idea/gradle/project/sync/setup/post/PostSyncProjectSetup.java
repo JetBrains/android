@@ -195,7 +195,7 @@ public class PostSyncProjectSetup {
       // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
       // previous sync, and not the one from the sync that just ended.
       mySyncState.syncFailed("");
-      finishFailedSync(taskId);
+      finishFailedSync(taskId, myProject);
       return;
     }
 
@@ -254,14 +254,14 @@ public class PostSyncProjectSetup {
     ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
   }
 
-  private void finishFailedSync(@Nullable ExternalSystemTaskId taskId) {
+  public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project) {
     if (taskId != null) {
       String message = "sync failed";
-      GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
+      GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
       List<Failure> failures = messages.showEvents(taskId);
       FailureResultImpl failureResult = new FailureResultImpl(failures);
       FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), message, failureResult);
-      ServiceManager.getService(myProject, SyncViewManager.class).onEvent(finishBuildEvent);
+      ServiceManager.getService(project, SyncViewManager.class).onEvent(finishBuildEvent);
     }
   }
 
