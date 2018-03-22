@@ -97,7 +97,8 @@ public class FileResourceRepository extends LocalResourceRepository {
   }
 
   @NotNull
-  private static FileResourceRepository create(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace, @Nullable String libraryName) {
+  private static FileResourceRepository create(@NotNull File resourceDirectory, @NotNull ResourceNamespace namespace,
+                                               @Nullable String libraryName) {
     FileResourceRepository repository = new FileResourceRepository(resourceDirectory, namespace, libraryName);
     try {
       ResourceMerger resourceMerger = createResourceMerger(resourceDirectory, namespace, libraryName);
