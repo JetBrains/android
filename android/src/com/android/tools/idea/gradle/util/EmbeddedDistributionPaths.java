@@ -48,30 +48,32 @@ public class EmbeddedDistributionPaths {
     }
     // Development build
     List<File> repoPaths = new ArrayList<>();
-    File repoPath;
 
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
-      repoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
-      if (!repoPath.isDirectory()) {
+      File customRepoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
+      if (!customRepoPath.isDirectory()) {
         throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
       }
+      repoPaths.add(customRepoPath);
     }
     else {
-      String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
-      repoPath = new File(toCanonicalPath(getIdeHomePath() + relativePath));
-    }
-    getLog().info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
-    if (repoPath.isDirectory()) {
-      repoPaths.add(repoPath);
+      File localGMaven = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/repo"));
+      if (localGMaven.isDirectory()) {
+        repoPaths.add(localGMaven);
+      }
+      File prebuiltOfflineM2 = new File(toCanonicalPath(getIdeHomePath() + toSystemDependentName("/../../prebuilts/tools/common/offline-m2")));
+      getLog().info("Looking for embedded Maven repo at '" + prebuiltOfflineM2.getPath() + "'");
+      if (prebuiltOfflineM2.isDirectory()) {
+        repoPaths.add(prebuiltOfflineM2);
+      }
     }
 
-    // Add locally published studio repo
-    String relativePath = toSystemDependentName("/../../out/studio/repo");
-    repoPath = new File(PathManager.getHomePath() + relativePath);
-    if (repoPath.isDirectory()) {
-      repoPaths.add(repoPath);
+    // Add locally published offline studio repo
+    File localOfflineRepoPath = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/studio/repo"));
+    if (localOfflineRepoPath.isDirectory()) {
+      repoPaths.add(localOfflineRepoPath);
     }
 
     return repoPaths;
