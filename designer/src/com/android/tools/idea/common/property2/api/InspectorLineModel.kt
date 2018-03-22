@@ -49,13 +49,9 @@ interface InspectorLineModel {
   val focusable: Boolean
 
   /**
-   * Controls the focus of the inspector.
-   *
-   * When this is set to true, an editor in this line should request focus on itself
-   * next time the UI is notified to update itself. Note: the model cannot call a
-   * method in the UI, the UI reacts to changes of the model.
+   * Request the focus to be placed in this line.
    */
-  var focusRequest: Boolean
+  fun requestFocus()
 
   /**
    * Return true, if this line should be shown for the specified search filter.

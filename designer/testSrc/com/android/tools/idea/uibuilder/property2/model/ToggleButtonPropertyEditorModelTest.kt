@@ -19,7 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.FormModel
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
 import com.google.common.truth.Truth.assertThat
 import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
 import org.junit.Test
@@ -30,7 +30,7 @@ class ToggleButtonPropertyEditorModelTest {
 
   private fun createModel(propertyValue: String?, trueValue: String, falseValue: String): ToggleButtonPropertyEditorModel {
     val formModel = Mockito.mock(FormModel::class.java)
-    val property = PropertyModelUtil.makeProperty(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue)
+    val property = PropertyModelTestUtil.makeProperty(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue)
     return ToggleButtonPropertyEditorModel("description", TEXT_ALIGN_CENTER, trueValue, falseValue, property, formModel)
   }
 

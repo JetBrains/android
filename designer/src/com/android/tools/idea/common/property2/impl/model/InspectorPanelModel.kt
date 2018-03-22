@@ -57,7 +57,7 @@ class InspectorPanelModel: FormModel {
     val index = lines.indexOf(line)
     if (index < 0) return false
     val nextLine = findClosestNextLine(index) ?: return false
-    nextLine.focusRequest = true
+    nextLine.requestFocus()
     return true
   }
 
@@ -102,7 +102,7 @@ class InspectorPanelModel: FormModel {
     }
     val label = visibleLabels[0] as? CollapsibleLabelModel
     val editor = label?.editorModel ?: return false
-    editor.focusRequest = true
+    editor.requestFocus()
     return true
   }
 

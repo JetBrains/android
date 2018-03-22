@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.property2.impl
+package com.android.tools.idea.common.property2.api
 
-import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.common.property2.impl.model.CollapsibleLabelModel
 import com.android.tools.idea.common.property2.impl.model.GenericInspectorLineModel
 import com.android.tools.idea.common.property2.impl.model.InspectorPanelModel
@@ -96,7 +95,7 @@ class PropertiesView<P: PropertyItem>(val model: PropertiesModel<P>, parentDispo
     return model
   }
 
-  override fun addComponent(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
+  override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
     val label = CollapsibleLabel(model, false)
     editorModel.line = model
@@ -105,15 +104,15 @@ class PropertiesView<P: PropertyItem>(val model: PropertiesModel<P>, parentDispo
     return model
   }
 
-  override fun addPanel(panel: JComponent): InspectorLineModel {
+  override fun addComponent(component: JComponent): InspectorLineModel {
     val model = GenericInspectorLineModel()
-    val wrapper = GenericLinePanel(panel, model)
+    val wrapper = GenericLinePanel(component, model)
     inspectorModel.add(model)
     inspector.addLineElement(wrapper)
     return model
   }
 
   override fun addSeparator(): InspectorLineModel {
-    return addPanel(JSeparator())
+    return addComponent(JSeparator())
   }
 }

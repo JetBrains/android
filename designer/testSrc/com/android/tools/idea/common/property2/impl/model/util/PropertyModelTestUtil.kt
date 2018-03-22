@@ -31,7 +31,8 @@ interface TestFlagsPropertyItem: FlagsPropertyItem<FlagPropertyItem> {
   override var resolvedValue: String?
 }
 
-object PropertyModelUtil {
+object PropertyModelTestUtil {
+
   fun makeProperty(namespace: String, name: String, value: String?): PropertyItem {
     return object : PropertyItem {
       var propertyValue = value
@@ -125,12 +126,12 @@ object PropertyModelUtil {
     }
   }
 
-  fun makePropertyEditorModel(property: PropertyItem): PropertyEditorModel {
-    return makePropertyEditorModel(property, null)
+  interface TestPropertyEditorModel: PropertyEditorModel {
+    val focusWasRequested: Boolean
   }
 
-  fun makePropertyEditorModel(property: PropertyItem, form: FormModel?): PropertyEditorModel {
-    return object: PropertyEditorModel {
+  fun makePropertyEditorModel(property: PropertyItem, form: FormModel? = null): TestPropertyEditorModel {
+    return object: TestPropertyEditorModel {
 
       override val property: PropertyItem
         get() = property
@@ -140,11 +141,16 @@ object PropertyModelUtil {
       override val formModel: FormModel
         get() = form ?: throw NotImplementedError()
 
-      override var visible: Boolean = true
+      override var visible = true
 
-      override var focusRequest: Boolean = false
+      override var focusWasRequested = false
+        private set
 
-      override val focus = false
+      override fun requestFocus() {
+        focusWasRequested = true
+      }
+
+      override val hasFocus = false
 
       override var line: InspectorLineModel? = null
 

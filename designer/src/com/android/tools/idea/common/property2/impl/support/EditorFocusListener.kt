@@ -29,6 +29,7 @@ class EditorFocusListener(private val model: BasePropertyEditorModel, private va
   override fun focusGained(event: FocusEvent) {
     model.focusGained()
   }
+
   override fun focusLost(event: FocusEvent) {
     model.focusLost(lastValue())
   }

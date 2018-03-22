@@ -19,7 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.common.property2.api.InspectorLineModel
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelUtil.makeProperty
+import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeProperty
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.*
@@ -71,7 +71,7 @@ class BasePropertyEditorModelTest {
   @Test
   fun testFocusRequestIsPropagatedToValueListener() {
     val (model, listener) = createModelWithListener(false)
-    model.focusRequest = true
+    model.requestFocus()
     verify(listener).valueChanged()
   }
 
@@ -79,7 +79,7 @@ class BasePropertyEditorModelTest {
   fun testFocusGainIsRecodedButNotPropagatedToListener() {
     val (model, listener) = createModelWithListener(false)
     model.focusGained()
-    assertThat(model.focus).isTrue()
+    assertThat(model.hasFocus).isTrue()
     verify(listener, never()).valueChanged()
   }
 
@@ -91,7 +91,7 @@ class BasePropertyEditorModelTest {
 
     // test
     model.focusLost("#333333")
-    assertThat(model.focus).isFalse()
+    assertThat(model.hasFocus).isFalse()
     assertThat(model.property.value).isEqualTo("#333333")
     verify(listener).valueChanged()
   }

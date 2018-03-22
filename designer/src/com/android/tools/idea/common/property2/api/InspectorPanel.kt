@@ -48,24 +48,24 @@ interface InspectorPanel {
    *
    * Add [editor] with model [editorModel] to the inspector, and return the new [InspectorLineModel].
    */
-  fun addComponent(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel
+  fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel
 
   /**
    * Add an editor component with the property name for the label to the inspector.
    *
-   * Same as [addComponent], but takes the model and editor as a pair.
+   * Same as [addEditor], but takes the model and editor as a pair.
    * Add an editor with a model as a [modelEditorPair] to the inspector, and return the new [InspectorLineModel].
    */
-  fun addComponent(modelEditorPair: Pair<PropertyEditorModel, JComponent>): InspectorLineModel {
-    return addComponent(modelEditorPair.first, modelEditorPair.second)
+  fun addEditor(modelEditorPair: Pair<PropertyEditorModel, JComponent>): InspectorLineModel {
+    return addEditor(modelEditorPair.first, modelEditorPair.second)
   }
 
   /**
    * Adds a custom panel that spans the entire width.
    *
-   * Add a [panel] (usually a JPanel) to the inspector, and return the new [InspectorLineModel].
+   * Add a [component] (usually a JPanel) to the inspector, and return the new [InspectorLineModel].
    */
-  fun addPanel(panel: JComponent): InspectorLineModel
+  fun addComponent(component: JComponent): InspectorLineModel
 
   /**
    * Add a separator line to the inspector.

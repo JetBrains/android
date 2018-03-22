@@ -46,9 +46,9 @@ open class GenericInspectorLineModel : InspectorLineModel {
   override val focusable: Boolean
     get() = false
 
-  override var focusRequest: Boolean
-    get() = error(ERROR_NOT_FOCUSABLE)
-    set(value) = error(ERROR_NOT_FOCUSABLE)
+  override fun requestFocus() {
+    error(ERROR_NOT_FOCUSABLE)
+  }
 
   fun addValueChangedListener(listener: ValueChangedListener) {
     listeners.add(listener)

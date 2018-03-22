@@ -17,11 +17,11 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.impl.PropertiesView
+import com.android.tools.idea.common.property2.api.PropertiesView
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.property2.inspector.*
-import com.android.tools.idea.uibuilder.property2.support.ControlTypeProviderImpl
-import com.android.tools.idea.uibuilder.property2.support.EnumSupportProviderImpl
+import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
+import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
@@ -35,8 +35,8 @@ import javax.swing.JPanel
 class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val model = NelePropertiesModel(this, facet)
   private val properties = PropertiesView(model, this)
-  private val controlTypeProvider = ControlTypeProviderImpl()
-  private val enumSupportProvider = EnumSupportProviderImpl()
+  private val controlTypeProvider = NeleControlTypeProvider()
+  private val enumSupportProvider = NeleEnumSupportProvider()
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider, properties.formModel)
   private val filterKeyListener = createFilterKeyListener()
 

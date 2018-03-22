@@ -28,7 +28,7 @@ import com.intellij.ide.util.PropertiesComponent
 const val STARRED_PROP = "ANDROID.STARRED_PROPERTIES"
 
 class FavoritesInspectorBuilder(
-  private val provideEditor: EditorProvider<NelePropertyItem>,
+  private val editorProvider: EditorProvider<NelePropertyItem>,
   private val propertiesComponent: PropertiesComponent = PropertiesComponent.getInstance()
 ) : InspectorBuilder<NelePropertyItem> {
 
@@ -41,7 +41,7 @@ class FavoritesInspectorBuilder(
       // TODO: Handle other namespaces
       val property = properties.getOrNull(SdkConstants.ANDROID_URI, propertyName)
       if (property != null) {
-        val line = inspector.addComponent(provideEditor.provide(property))
+        val line = inspector.addEditor(editorProvider(property))
         titleModel.addChild(line)
       }
     }

@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyType
 /**
  * Computation of the [ControlType] of a [NelePropertyItem].
  */
-class ControlTypeProviderImpl : ControlTypeProvider<NelePropertyItem> {
+class NeleControlTypeProvider : ControlTypeProvider<NelePropertyItem> {
 
   override fun invoke(property: NelePropertyItem, enumSupport: EnumSupport?) =
     when {
