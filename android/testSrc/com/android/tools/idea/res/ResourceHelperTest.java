@@ -25,6 +25,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -249,12 +250,8 @@ public class ResourceHelperTest extends AndroidTestCase {
   }
 
   public void testResolve() {
-    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
     ResourceNamespace appNs = ResourceNamespace.fromPackageName("com.example.app");
-    runWriteCommandAction(getProject(), () -> {
-      myFacet.getManifest().getPackage().setValue(appNs.getPackageName());
-      PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    });
+    setProjectNamespace(appNs);
 
     PsiFile innerFileLand = myFixture.addFileToProject("res/layout-land/inner.xml", "<LinearLayout/>");
     PsiFile innerFilePort = myFixture.addFileToProject("res/layout-port/inner.xml", "<LinearLayout/>");
@@ -294,9 +291,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     "</LinearLayout>\n";
 
   public void testGetResourceResolverFromXmlTag_namespacesEnabled() {
-    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
-    ResourceNamespace appNs = ResourceNamespace.fromPackageName("com.example.app");
-    runWriteCommandAction(getProject(), () -> myFacet.getManifest().getPackage().setValue(appNs.getPackageName()));
+    setProjectNamespace(ResourceNamespace.fromPackageName("com.example.app"));
 
     XmlFile file = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);
     XmlTag layout = file.getRootTag();
@@ -313,6 +308,17 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(resolver.uriToPrefix(ANDROID_URI)).isEqualTo("framework");
     assertThat(resolver.prefixToUri("newtools")).isEqualTo(TOOLS_URI);
     assertThat(resolver.prefixToUri("framework")).isEqualTo(ANDROID_URI);
+  }
+
+  private void setProjectNamespace(ResourceNamespace appNs) {
+    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
+    FileDocumentManager.getInstance().saveAllDocuments();
+    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    runWriteCommandAction(getProject(), () -> {
+      myFacet.getManifest().getPackage().setValue(appNs.getPackageName());
+      FileDocumentManager.getInstance().saveAllDocuments();
+      PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    });
   }
 
   public void testGetResourceResolverFromXmlTag_namespacesDisabled() {
