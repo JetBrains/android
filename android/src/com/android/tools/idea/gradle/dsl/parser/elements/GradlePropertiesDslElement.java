@@ -118,8 +118,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   private void mergePropertiesFrom(@NotNull GradlePropertiesDslElement other) {
     Map<String, GradleDslElement> ourProperties = getPropertyElements();
     for (Map.Entry<String, GradleDslElement> entry : other.getPropertyElements().entrySet()) {
+      GradleDslElement newProperty = entry.getValue();
       if (ourProperties.containsKey(entry.getKey())) {
-        GradleDslElement newProperty = entry.getValue();
         GradleDslElement existingProperty = getElementWhere(entry.getKey(), PROPERTY_FILTER);
         // If they are both block elements, merge them.
         if (newProperty instanceof GradleDslBlockElement && existingProperty instanceof GradleDslBlockElement) {
@@ -127,6 +127,17 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
           continue;
         }
       }
+      else if (newProperty instanceof GradlePropertiesDslElement) {
+        // If the element we are trying to add a GradlePropertiesDslElement that doesn't exist, create it.
+        GradlePropertiesDslElement createdElement =
+          getDslFile().getParser().getBlockElement(Arrays.asList(entry.getKey().split("\\.")), this);
+        if (createdElement != null) {
+          // Merge it with the created element.
+          createdElement.mergePropertiesFrom((GradlePropertiesDslElement)newProperty);
+          continue;
+        }
+      }
+
       // Otherwise just add the new property.
       addAppliedProperty(entry.getValue());
     }
@@ -521,7 +532,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
         // GradleDslElementLists do not have a PsiElement, as such we need to ask them where they should be placed.
         if (item.myElement instanceof GradleDslElementList || item.myElement instanceof ApplyDslElement) {
           lastElement = item.myElement.requestAnchor(element);
-        } else {
+        }
+        else {
           lastElement = item.myElement;
         }
       }
@@ -661,8 +673,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
         }
         ElementItem item = myElements.get(i);
         if (item.myElementState != TO_BE_REMOVED &&
-          item.myElementState != APPLIED &&
-          item.myElementState != HIDDEN) {
+            item.myElementState != APPLIED &&
+            item.myElementState != HIDDEN) {
           // Make sure we are only counting elements with the same qualified name.
           if (element.getNameElement().qualifyingParts().equals(item.myElement.getNameElement().qualifyingParts())) {
             index--;
