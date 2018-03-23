@@ -30,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.timing.Wait;
@@ -45,7 +46,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class CreateAPKProjectTest extends DebuggerTestBase {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

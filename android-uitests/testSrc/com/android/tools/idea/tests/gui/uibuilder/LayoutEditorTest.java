@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +42,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 /**
  * UI tests for the layout editor
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class LayoutEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

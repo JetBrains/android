@@ -58,6 +58,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -102,7 +103,7 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.*;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleSyncTest {
   @Nullable private File myBackupProperties;
 

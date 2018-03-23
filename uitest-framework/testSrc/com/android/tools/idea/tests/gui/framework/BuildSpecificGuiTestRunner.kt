@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBui
 import com.google.common.collect.Iterables
 import org.junit.internal.builders.IgnoredClassRunner
 import org.junit.runner.Runner
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.runners.Parameterized
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.InitializationError
@@ -68,7 +69,7 @@ import org.junit.runners.parameterized.TestWithParameters
  * <p>
  * If a test is not annotated with any build system, then {@link TargetBuildSystem.BuildSystem#getDefault()} will be used.
  */
-class BuildSpecificGuiTestRunner @Throws(InitializationError::class) constructor(test: TestWithParameters) : GuiTestRunner(
+class BuildSpecificGuiTestRunner @Throws(InitializationError::class) constructor(test: TestWithParameters) : GuiTestRemoteRunner(
     test.testClass.javaClass,
     Iterables.getOnlyElement(test.parameters) as TargetBuildSystem.BuildSystem
 ) {

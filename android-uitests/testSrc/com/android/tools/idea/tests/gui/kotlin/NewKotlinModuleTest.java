@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +34,7 @@ import java.util.Locale;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith (GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NewKotlinModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

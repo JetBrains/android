@@ -36,6 +36,7 @@ import com.android.tools.idea.tests.util.WizardUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.BundleBase;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableCellFixture;
@@ -59,7 +60,7 @@ import static org.fest.swing.data.TableCell.row;
 /**
  * UI tests for the constraint layout
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ConstraintLayoutTest {
   private static final Path ACTIVITY_MAIN_XML_RELATIVE_PATH =
     FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");

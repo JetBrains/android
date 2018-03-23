@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
 import com.android.xml.XmlBuilder;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import icons.StudioIcons;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
@@ -38,7 +39,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public final class LinearLayoutTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();

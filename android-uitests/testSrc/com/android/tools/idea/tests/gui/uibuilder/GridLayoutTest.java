@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.intellij.lang.annotations.Language;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,7 +34,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public final class GridLayoutTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
