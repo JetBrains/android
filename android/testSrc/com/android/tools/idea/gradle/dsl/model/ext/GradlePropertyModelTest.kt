@@ -3115,7 +3115,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
                apply from: "a.gradle"
 
                ext {
-                 prop3 = "goodbye"
                  prop4 = prop1[0]
                  prop5 = 5
                }""".trimIndent()
@@ -3133,10 +3132,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyListProperty(properties["prop1"], listOf("var1", "var2", "var3"), false)
       verifyListProperty(properties["prop1"], listOf("1", true, 1), REGULAR, 3)
       verifyFilePathsAreEqual(File(myProjectBasePath, "b.gradle"), properties["prop1"]!!.gradleFile)
-      // TODO: This is currently picking up the wrong element. Once ordering is complete they should be correct.
-      verifyPropertyModel(properties["prop4"], STRING_TYPE, "boo", STRING, REGULAR, 0, "prop4", "ext.prop4")
-      verifyFilePathsAreEqual(File(myProjectBasePath, "a.gradle"), properties["prop4"]!!.gradleFile)
-      // TODO: This is currently picking up the wrong element. Once ordering is complete they should be correct.
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "prop1[0]", REFERENCE, REGULAR, 1, "prop4", "ext.prop4")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "build.gradle"), properties["prop4"]!!.gradleFile)
       verifyPropertyModel(properties["prop3"], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop3", "ext.prop3")
       verifyFilePathsAreEqual(File(myProjectBasePath, "a.gradle"), properties["prop3"]!!.gradleFile)
       verifyPropertyModel(properties["prop5"], INTEGER_TYPE, 5, INTEGER, REGULAR, 0, "prop5", "ext.prop5")
@@ -3163,8 +3160,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyListProperty(properties["prop1"], listOf(2, "var2", "var3"), false)
       verifyListProperty(properties["prop1"], listOf(2, false, 1), REGULAR, 2)
       verifyFilePathsAreEqual(File(myProjectBasePath, "b.gradle"), properties["prop1"]!!.gradleFile)
-      verifyPropertyModel(properties["prop4"], STRING_TYPE, "boo", STRING, REGULAR, 0, "prop4", "ext.prop4")
-      verifyFilePathsAreEqual(File(myProjectBasePath, "a.gradle"), properties["prop4"]!!.gradleFile)
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "prop1[0]", REFERENCE, REGULAR, 1, "prop4", "ext.prop4")
+      verifyFilePathsAreEqual(File(myProjectBasePath, "build.gradle"), properties["prop4"]!!.gradleFile)
       verifyPropertyModel(properties["prop3"], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop3", "ext.prop3")
       verifyFilePathsAreEqual(File(myProjectBasePath, "a.gradle"), properties["prop3"]!!.gradleFile)
     }

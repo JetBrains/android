@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.util.Computable;
@@ -86,6 +87,15 @@ public interface GradleDslParser {
   @NotNull
   List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement);
 
+  /**
+   * This method creates an empty block element (possibly nested) from {@code nameParts} with {@code parentElement} as a parent.
+   * This method returns null if any of the block names are unrecognized and will return the parent element if {@code nameParts} is
+   * empty.
+   */
+  @Nullable
+  GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
+                                             @NotNull GradlePropertiesDslElement parentElement);
+
   class Adapter implements GradleDslParser {
     @Override
     public void parse() { }
@@ -112,6 +122,13 @@ public interface GradleDslParser {
     @NotNull
     public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
       return Collections.emptyList();
+    }
+
+    @Override
+    @Nullable
+    public GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
+                                                      @NotNull GradlePropertiesDslElement parentElement) {
+      return null;
     }
   }
 }

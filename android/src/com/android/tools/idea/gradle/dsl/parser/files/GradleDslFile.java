@@ -103,8 +103,17 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
   public void parse() {
     myGradleDslParser.parse();
-    // Apply all of the files.
-    mergeAppliedFiles();
+    // Attempt to resolve all the remaining dependencies. Ideally we would not have to do this here, but when elements
+    // are created there parents are not necessarily attached to the tree. This means references to their siblings will not
+    // be resolved, for example take:
+    //  ext.vars = [
+    //    key: "value",
+    //    key1: ext.vars.key
+    //  ]
+    //
+    // When key1 is parsed it can't find ext.vars.key. This is a bug with the parser that should be fixed in the future.
+    // For now however we call resolveAll() here.
+    getContext().getDependencyManager().resolveAll();
   }
 
   @NotNull
@@ -192,27 +201,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   public void registerAppliedFile(@NotNull ApplyDslElement applyElement) {
     myAppliedFiles.add(applyElement);
   }
-
-  // TODO: Fix cycle here.
-  private void mergeAppliedFiles() {
-    for (ApplyDslElement applyElement : myAppliedFiles) {
-      VirtualFile file = applyElement.getAppliedFile();
-      // Don't apply if the file is null.
-      if (file == null) {
-        continue;
-      }
-
-      // Parse the file
-      GradleDslFile dslFile = myBuildModelContext.getOrCreateBuildFile(file);
-      applyElement.setAppliedDslFile(dslFile);
-
-      addAppliedModelProperties(dslFile);
-    }
-
-    // Make sure any dependencies are correct.
-    getContext().getDependencyManager().resolveAll();
-  }
-
+  
   @NotNull
   public List<BuildModelNotification> getPublicNotifications() {
     return myBuildModelContext.getPublicNotifications();

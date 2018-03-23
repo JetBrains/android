@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -30,8 +29,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class ApplyDslElement extends GradlePropertiesDslElement {
   @NonNls public static final String APPLY_BLOCK_NAME = "apply";
-  // The file that is applied by the element. For apply statements that apply plugins, this is null.
-  @Nullable private VirtualFile myAppliedFile;
   // The GradleDslFile that represents the virtual file that has been applied.
   // This will be set when parsing the build file we belong to.
   @Nullable private GradleDslFile myAppliedDslFile;
@@ -53,9 +50,13 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
       if (fileName != null) {
         VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(getDslFile().getFile().getParent() + "/" + fileName);
         if (file != null) {
-          myAppliedFile = file;
           // Register the applied file.
           getDslFile().registerAppliedFile(this);
+
+          // Parse the file
+          myAppliedDslFile = getDslFile().getContext().getOrCreateBuildFile(file);
+
+          getDslFile().addAppliedModelProperties(myAppliedDslFile);
         }
       }
     }
@@ -80,17 +81,8 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   }
 
   @Nullable
-  public VirtualFile getAppliedFile() {
-    return myAppliedFile;
-  }
-
-  @Nullable
   public GradleDslFile getAppliedDslFile() {
     return myAppliedDslFile;
-  }
-
-  public void setAppliedDslFile(@NotNull GradleDslFile dslFile) {
-    myAppliedDslFile = dslFile;
   }
 
   @Nullable
