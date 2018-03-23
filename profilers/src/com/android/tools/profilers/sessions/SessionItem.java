@@ -17,6 +17,7 @@ package com.android.tools.profilers.sessions;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -112,8 +113,10 @@ public class SessionItem implements SessionArtifact {
 
   @Override
   public void onSelect() {
-    // TODO b/75281845 check that we are already in StudioMonitorStage. If not, we should navigate to it.
     myProfilers.getSessionsManager().setSession(mySession);
+    if (!myProfilers.getStageClass().equals(StudioMonitorStage.class)) {
+      myProfilers.setStage(new StudioMonitorStage(myProfilers));
+    }
     myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 }
