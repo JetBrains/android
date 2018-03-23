@@ -1352,8 +1352,8 @@ public class ChooseResourceDialog extends DialogWrapper {
         Disposer.dispose(animationDisposable);
       }, PooledThreadExecutor.INSTANCE)
         .thenRunAsync(() -> {
-          select(mySelectedValue);
           updateFilter();
+          select(mySelectedValue);
         }, EdtExecutorService.getInstance());
 
       myPreviewPanel = new JPanel(new CardLayout());
