@@ -84,6 +84,7 @@ class AswbGotoDeclarationTest {
     }
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/76176149
   @Test
   @TargetBuildSystem(TargetBuildSystem.BuildSystem.BAZEL)
   fun gotoDeclaration_withLocalResources() {
