@@ -27,7 +27,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -75,12 +74,15 @@ public class CompileWithJava8Test {
       .clickOk();
 
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
+    String printedLog = "D/TAG: Hello World from Lambda Expression";
+    Pattern LOG_PATTERN = Pattern.compile(".*" + printedLog + ".*", Pattern.DOTALL);
     ExecutionToolWindowFixture.ContentFixture runWindow = ideFrameFixture.getRunToolWindow().findContent(CONF_NAME);
     runWindow.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+    runWindow.waitForOutput(new PatternTextMatcher(LOG_PATTERN), 60);
 
     // Verify statement prints "D/TAG: Hello World from Lambda Expression" on logcat.
     AndroidToolWindowFixture androidToolWindow = ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess("android.com.app");
     String logcatPrint = androidToolWindow.getLogcatPrint();
-    assertThat(logcatPrint).contains("D/TAG: Hello World from Lambda Expression");
+    assertThat(logcatPrint).contains(printedLog);
   }
 }
