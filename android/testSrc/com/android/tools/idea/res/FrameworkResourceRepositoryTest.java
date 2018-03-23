@@ -93,21 +93,20 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testLoading() {
-    File resFolder = getSdkResFolder();
     for (boolean withLocaleResources : new boolean[] {true, false}) {
       // Test loading without cache.
       long start = System.currentTimeMillis();
       if (PRINT_STATS) {
-        FrameworkResourceRepository.create(resFolder, withLocaleResources, false);
+        FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, false);
       }
       long loadTimeWithoutCache = System.currentTimeMillis() - start;
-      FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(resFolder, withLocaleResources, true);
+      FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true);
       assertFalse(fromSourceFiles.isLoadedFromCache());
       checkContents(fromSourceFiles);
 
       // Test loading from cache.
       start = System.currentTimeMillis();
-      FrameworkResourceRepository fromCache = FrameworkResourceRepository.create(resFolder, withLocaleResources, true);
+      FrameworkResourceRepository fromCache = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true);
       long loadTimeWithCache = System.currentTimeMillis() - start;
       assertTrue(fromCache.isLoadedFromCache());
       checkContents(fromCache);
@@ -172,7 +171,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     if ((source1 == null) != (source2 == null)) {
       return false;
     }
-    return source1.getFile().equals(source2.getFile());
+    return source1.getFile().getPath().equals(source2.getFile().getPath());
   }
 
   private static void checkContents(@NotNull FrameworkResourceRepository repository) {
