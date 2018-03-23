@@ -19,13 +19,69 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.TimeUnit;
 
 public class CpuProfiler extends StudioProfiler {
   public CpuProfiler(@NotNull StudioProfilers profilers) {
     super(profilers);
+    if (profilers.getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()) {
+      // Only enable handling *.trace files if the import CPU traces flag is enabled.
+      registerImportedSessionListener();
+      registerTraceImportHandler();
+    }
+  }
+
+  /**
+   * Registers a listener that will open a {@link CpuProfilerStage} in import trace mode when the {@link Common.Session} selected is a
+   * {@link Common.SessionMetaData.SessionType#CPU_CAPTURE}.
+   */
+  private void registerImportedSessionListener() {
+    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, () -> {
+      // Make sure the timeline is paused when the stage is opened, and its bounds are [sessionStartTimestamp, sessionEndTimestamp].
+      ProfilerTimeline timeline = myProfilers.getTimeline();
+      timeline.reset(myProfilers.getSession().getStartTimestamp(), myProfilers.getSession().getEndTimestamp());
+      timeline.setIsPaused(true);
+
+      // Open a CpuProfilerStage in import mode when selecting an imported session.
+      // TODO(b/76154264): parses the trace file corresponding to this session and create/set a CpuCapture.
+      myProfilers.setStage(new CpuProfilerStage(myProfilers, true));
+    });
+  }
+
+  /**
+   * Registers a handler for importing *.trace files. It will create a {@link Common.SessionMetaData.SessionType#CPU_CAPTURE}
+   * {@link Common.Session} and select it.
+   * TODO(b/76154264): parse the *.trace file and save it into the current session.
+   */
+  private void registerTraceImportHandler() {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    sessionsManager.registerImportHandler("trace", file -> {
+      long startTimestampEpochMs = System.currentTimeMillis();
+      // Session start time should be the import time
+      long startTimestampNs = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+      // The end timestamp is going to be updated once the capture is parsed. When starting the session (before parsing a trace), set it to
+      // be one minute from the begin time, as it is a reasonable length for a "default" timeline that can be displayed if parsing fails
+      // and before the parsing happens.
+      long endTimestampNs = startTimestampNs + TimeUnit.MINUTES.toNanos(1);
+
+      Common.Session importedSession = sessionsManager.createImportedSession(file.getName(),
+                                                                             Common.SessionMetaData.SessionType.CPU_CAPTURE,
+                                                                             startTimestampNs,
+                                                                             endTimestampNs,
+                                                                             startTimestampEpochMs);
+      // TODO(b/76154264): parse the trace file, save the trace info and load it the only capture of the session. Then update the session
+      //                   end time to be (sessionStartTime + capture length) by making a EndSessionRequest.
+      // Select the imported session
+      sessionsManager.update();
+      // TODO(b/76206865): add usage tracking for creating sessions by importing CPU trace files.
+      sessionsManager.setSession(importedSession);
+    });
   }
 
   @Override

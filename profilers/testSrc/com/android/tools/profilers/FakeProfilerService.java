@@ -40,6 +40,8 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   private boolean myAttachAgentCalled;
   private AgentStatusResponse.Status myAgentStatus;
 
+  private Common.SessionMetaData.SessionType myLastImportedSessionType;
+
   public FakeProfilerService() {
     this(true);
   }
@@ -212,6 +214,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       .build();
     mySessionMetaDatas.put(sessionId, metadata);
     myAttachAgentCalled = false;
+    myLastImportedSessionType = request.getSessionType();
     responseObserver.onNext(ImportSessionResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
@@ -271,5 +274,9 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
 
   public boolean getAgentAttachCalled() {
     return myAttachAgentCalled;
+  }
+
+  public Common.SessionMetaData.SessionType getLastImportedSessionType() {
+    return myLastImportedSessionType;
   }
 }
