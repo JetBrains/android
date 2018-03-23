@@ -129,6 +129,8 @@ final class TabUiUtils {
     }
 
     JEditorPane htmlTextPane = new JEditorPane();
+    htmlTextPane.setBackground(null);
+    htmlTextPane.setEditable(false);
     htmlTextPane.setContentType("text/html");
     HTMLEditorKit editorKit = new BreakWordWrapHTMLEditorKit();
     htmlTextPane.setEditorKit(editorKit);
