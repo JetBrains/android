@@ -18,6 +18,7 @@ package com.android.tools.nativeSymbolizer
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import java.io.IOException
@@ -43,8 +44,15 @@ interface NativeSymbolizer : Disposable {
 }
 
 fun createNativeSymbolizer(project: Project): NativeSymbolizer {
-  val symLocator = SymbolFilesLocator(getArchToSymDirsMap(project))
-  return LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
+  val symDirMap = getArchToSymDirsMap(project)
+  val symbolizerPath = getLlvmSymbolizerPath()
+  val log = getLogger()
+  log.info("Creating a native symbolizer. Executable path: $symbolizerPath")
+  for ((arch, dirs) in symDirMap) {
+    log.debug("Native symbolizer paths for $arch is [$dirs]")
+  }
+  val symLocator = SymbolFilesLocator(symDirMap)
+  return LlvmSymbolizer(symbolizerPath, symLocator)
 }
 
 /**
@@ -84,4 +92,8 @@ class NopSymbolizer : NativeSymbolizer {
 
   override fun dispose() {
   }
+}
+
+private fun getLogger(): Logger {
+  return Logger.getInstance("NativeSymbolizer")
 }
