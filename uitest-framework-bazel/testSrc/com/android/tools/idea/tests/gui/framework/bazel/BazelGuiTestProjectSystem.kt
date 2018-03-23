@@ -69,14 +69,16 @@ class BazelGuiTestProjectSystem : GuiTestProjectSystem {
   override fun importProject(targetTestDirectory: File, robot: Robot, buildPath: String?) {
     logger.info("Importing project.")
 
+    val checkedBuildPath = buildPath ?: "app/BUILD"
+
     openBazelImportWizard(robot)
       .setWorkspacePath(targetTestDirectory.path)
       .clickNext()
       .setBazelBinaryPath(getBazelBinaryPath())
       .clickNext()
-      .selectGenerateFromBuildFileOptionAndSetPath(buildPath ?: "app/BUILD")
+      .selectGenerateFromBuildFileOptionAndSetPath(checkedBuildPath)
       .clickNext()
-      .uncommentApi27(File(targetTestDirectory, "app/BUILD"))
+      .uncommentApi27(File(targetTestDirectory, checkedBuildPath))
       .clickFinish()
       .waitForProjectValidation()
   }
