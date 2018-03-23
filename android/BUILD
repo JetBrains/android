@@ -256,6 +256,7 @@ iml_module(
         "//tools/adt/idea/android-lang[module, test]",
         "//tools/adt/idea/android/lib:instantapps-api-1.0",
         "//tools/analytics-library/crash:analytics-crash[module, test]",
+        "//tools/idea/.idea/libraries:commons-io",
     ],
 )
 
