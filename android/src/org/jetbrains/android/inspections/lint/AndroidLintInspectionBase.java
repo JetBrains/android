@@ -28,7 +28,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
-import com.intellij.xml.util.PsiElementPointer;
 import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
@@ -618,7 +617,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       if (data.oldPattern != null) {
         regexp = data.oldPattern;
       } else if (data.oldString != null) {
-        regexp = "(" + Pattern.quote(data.oldString) + ")";
+        if (data.oldString == ReplaceString.INSERT_BEGINNING || data.oldString == ReplaceString.INSERT_END) {
+          regexp = data.oldString;
+        } else {
+          regexp = "(" + Pattern.quote(data.oldString) + ")";
+        }
       } else {
         regexp = null;
       }

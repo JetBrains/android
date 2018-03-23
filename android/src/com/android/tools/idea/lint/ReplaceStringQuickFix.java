@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -40,6 +40,9 @@ import javax.annotation.RegEx;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_BEGINNING;
+import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_END;
+
 /**
  * Generic lint quickfix which replaces text somewhere in the range from [startElement,endElement] by matching
  * a regular expression and replacing the first group with a specified value. The regular expression can be null
@@ -59,13 +62,13 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
    * Creates a new lint quickfix which can replace string contents at the given PSI element
    *
    * @param name the quickfix description, which is optional (if not specified, it will be Replace with X)
-   * @param regexp the regular expression
+   * @param regexp the regular expression, or {@link ReplaceString#INSERT_BEGINNING} or {@link ReplaceString#INSERT_END}
    * @param newValue
    */
   public ReplaceStringQuickFix(@Nullable String name, @Nullable @RegEx String regexp, @NotNull String newValue) {
     myName = name;
     myNewValue = newValue;
-    if (regexp != null && regexp.indexOf('(') == -1) {
+    if (regexp != null && regexp.indexOf('(') == -1 && !regexp.equals(INSERT_BEGINNING) && !regexp.equals(INSERT_END)) {
       regexp = "(" + Pattern.quote(regexp) + ")";
     }
     myRegexp = regexp;
@@ -202,6 +205,11 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
       }
     }
     if (myRegexp != null) {
+      if (INSERT_BEGINNING.equals(myRegexp)) {
+        return new TextRange(start, start);
+      } else if (INSERT_END.equals(myRegexp)) {
+        return new TextRange(end, end);
+      }
       try {
         Pattern pattern = Pattern.compile(myRegexp, Pattern.MULTILINE);
         String sequence;
@@ -240,7 +248,7 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
           }
 
           if (computeReplacement && myExpandedNewValue == null) {
-            myExpandedNewValue = LintFix.ReplaceString.expandBackReferences(myNewValue, matcher);
+            myExpandedNewValue = ReplaceString.expandBackReferences(myNewValue, matcher);
           }
         }
         else {
