@@ -50,10 +50,10 @@ class AllDestinationsEditorTest : NavTestCase() {
         .expectChoices(
           "none", null,
           "root", "@+id/root",
-          "fragment1 (f1)", "@+id/f1",
+          "f1", "@+id/f1",
           "activity1", "@+id/activity1",
           "subnav1", "@+id/subnav1",
-          "fragment2 (f2)", "@+id/f2",
+          "f2", "@+id/f2",
           "f3", "@+id/f3",
           "subnav2", "@+id/subnav2",
           "f4", "@+id/f4"
@@ -68,10 +68,10 @@ class AllDestinationsEditorTest : NavTestCase() {
         .expectChoices(
           "none", null,
           "root", "@+id/root",
-          "fragment1 (f1)", "@+id/f1",
+          "f1", "@+id/f1",
           "activity1", "@+id/activity1",
           "subnav1", "@+id/subnav1",
-          "fragment2 (f2)", "@+id/f2",
+          "f2", "@+id/f2",
           "f3", "@+id/f3",
           "subnav2", "@+id/subnav2",
           "f4", "@+id/f4"

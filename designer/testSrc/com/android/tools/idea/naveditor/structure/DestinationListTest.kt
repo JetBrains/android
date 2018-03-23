@@ -208,7 +208,7 @@ class DestinationListTest : NavTestCase() {
     surface.selectionModel.clear()
 
     assertTrue(list.myBackPanel.isVisible)
-    assertEquals("sub nav", list.myBackLabel.text)
+    assertEquals("subnav", list.myBackLabel.text)
   }
 
   fun testRendering() {
@@ -239,11 +239,11 @@ class DestinationListTest : NavTestCase() {
       result.put(component.toString(), component.icon)
     }
 
-    assertEquals(StudioIcons.NavEditor.Tree.FRAGMENT, result["fragmentLabel"])
+    assertEquals(StudioIcons.NavEditor.Tree.FRAGMENT, result["fragment1"])
     assertEquals(StudioIcons.NavEditor.Tree.FRAGMENT, result["fragment2 - Start"])
     assertEquals(StudioIcons.NavEditor.Tree.ACTIVITY, result["activity"])
-    assertEquals(StudioIcons.NavEditor.Tree.NESTED_GRAPH, result["navName"])
-    assertEquals(StudioIcons.NavEditor.Tree.NESTED_GRAPH, result["navName"])
-    assertEquals(StudioIcons.NavEditor.Tree.INCLUDE_GRAPH, result["myCoolLabel"])
+    assertEquals(StudioIcons.NavEditor.Tree.NESTED_GRAPH, result["nav1"])
+    assertEquals(StudioIcons.NavEditor.Tree.NESTED_GRAPH, result["nav2"])
+    assertEquals(StudioIcons.NavEditor.Tree.INCLUDE_GRAPH, result["nav"])
   }
 }

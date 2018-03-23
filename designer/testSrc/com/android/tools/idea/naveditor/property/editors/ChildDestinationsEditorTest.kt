@@ -48,7 +48,7 @@ class ChildDestinationsEditorTest : NavTestCase() {
         .showPopup()
         .expectChoices(
           "none", null,
-          "fragment1 (f1)", "@+id/f1",
+          "f1", "@+id/f1",
           "activity1", "@+id/activity1",
           "subnav1", "@+id/subnav1",
           "subnav2", "@+id/subnav2"
@@ -62,7 +62,7 @@ class ChildDestinationsEditorTest : NavTestCase() {
         .showPopup()
         .expectChoices(
           "none", null,
-          "fragment2 (f2)", "@+id/f2",
+          "f2", "@+id/f2",
           "f3", "@+id/f3"
         )
     }

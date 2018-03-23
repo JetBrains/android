@@ -54,8 +54,7 @@ enum class ActionType {
 }
 
 fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
-  val name = resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL) ?:
-      id ?:
+  val name = id ?:
       resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".") ?:
       tagName
   return resourceResolver?.resolveStringValue(name) ?: name
