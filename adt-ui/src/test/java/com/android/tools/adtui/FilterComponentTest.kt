@@ -28,8 +28,6 @@ class FilterComponentTest {
   private lateinit var myPanel: JPanel
   private lateinit var myFilterComponent: FilterComponent
   private lateinit var myFilterButton: CommonToggleButton
-  private lateinit var myPattern: Pattern
-  private lateinit var myLatch: CountDownLatch
   @Before
   fun setUp() {
     myPanel = JPanel(BorderLayout())
@@ -39,34 +37,33 @@ class FilterComponentTest {
     myPanel.add(myFilterComponent, BorderLayout.SOUTH)
     myFilterComponent.isVisible = false
     FilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, myFilterButton)
-    myPattern = Pattern.compile("")
-
-    myFilterComponent.addOnFilterChange { p, _ ->
-      run {
-        myPattern = p
-        myLatch.countDown()
-      }
-    }
   }
 
   @Test
   fun clicksFilterButton() {
-    myFilterButton.doClick();
+    myFilterButton.doClick()
     assertThat(myFilterComponent.isVisible).isTrue()
-    myFilterButton.doClick();
+    myFilterButton.doClick()
     assertThat(myFilterComponent.isVisible).isFalse()
   }
 
   @Test
   fun changeFilterContent() {
-    myLatch = CountDownLatch(3)
-    myFilterComponent.textEditor.text = "test[A-Z]ext";
+    val latch = CountDownLatch(3)
+    var pattern = Pattern.compile("")
+    myFilterComponent.addOnFilterChange { p, _ ->
+        if (p != null) {
+          pattern = p
+        }
+        latch.countDown()
+    }
     myFilterComponent.matchCaseCheckBox.isSelected = true
+    myFilterComponent.textEditor.text = "test[A-Z]ext"
     myFilterComponent.regexCheckBox.isSelected = true
-    myLatch.await()
-    assertThat(myPattern.matcher("testText").matches()).isTrue()
-    assertThat(myPattern.matcher("testAext").matches()).isTrue()
-    assertThat(myPattern.matcher("testaext").matches()).isFalse()
-    assertThat(myPattern.matcher("test.ext").matches()).isFalse()
+    latch.await()
+    assertThat(pattern.matcher("testText").matches()).isTrue()
+    assertThat(pattern.matcher("testAext").matches()).isTrue()
+    assertThat(pattern.matcher("testaext").matches()).isFalse()
+    assertThat(pattern.matcher("test.ext").matches()).isFalse()
   }
 }
