@@ -348,21 +348,6 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     return true;
   }
 
-  private static String getCategoryBundleKey(Category category) {
-    StringBuilder sb = new StringBuilder(100);
-    sb.append("android.lint.inspections.group.name.");
-    String name = category.getFullName().toLowerCase(Locale.US);
-    for (int i = 0, n = name.length(); i < n; i++) {
-      char c = name.charAt(i);
-      if (Character.isLetter(c)) {
-        sb.append(c);
-      } else {
-        sb.append('.');
-      }
-    }
-    return sb.toString();
-  }
-
   private static String getIssueFieldName(Issue issue) {
     Class<? extends Detector> detectorClass = getDetectorClass(issue);
 
