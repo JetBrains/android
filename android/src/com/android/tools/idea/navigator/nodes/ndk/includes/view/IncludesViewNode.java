@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeSettings;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.*;
 import com.android.tools.idea.navigator.nodes.ndk.includes.resolver.IncludeResolver;
@@ -25,6 +26,8 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.util.VirtualFiles;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.CppHeadersViewEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -114,6 +117,20 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
+    Long startTime = System.currentTimeMillis();
+    try {
+      return getChildrenImpl();
+    }
+    finally {
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
+                                       .setCppHeadersViewEvent(
+                                         CppHeadersViewEvent.newBuilder().setEventDurationMs(System.currentTimeMillis() - startTime)
+                                           .setType(CppHeadersViewEvent.CppHeadersViewEventType.OPEN_TOP_INCLUDES_NODE)));
+    }
+  }
+
+  @NotNull
+  private Collection<? extends AbstractTreeNode> getChildrenImpl() {
     List<AbstractTreeNode> result = new ArrayList<>();
     Project project = getProject();
     if (project == null) {
@@ -135,9 +152,11 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
         result.addAll(IncludeViewNodes.getIncludeFolderNodesWithShadowing(concrete.getIncludePathsInOrder(),
                                                                           VirtualFiles.convertToVirtualFile(concrete.myExcludes), false,
                                                                           project, getSettings()));
-      } else if (include instanceof SimpleIncludeValue) {
+      }
+      else if (include instanceof SimpleIncludeValue) {
         result.add(new SimpleIncludeViewNode((SimpleIncludeValue)include, includeSet, true, getProject(), getSettings()));
-      } else if (include instanceof ClassifiedIncludeValue) {
+      }
+      else if (include instanceof ClassifiedIncludeValue) {
         // Add folders to the list of folders to exclude from the simple path group
         ClassifiedIncludeValue classifiedIncludeValue = (ClassifiedIncludeValue)include;
         result.add(IncludeViewNode.createIncludeView(
