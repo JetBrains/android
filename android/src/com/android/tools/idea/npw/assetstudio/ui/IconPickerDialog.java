@@ -282,7 +282,7 @@ public final class IconPickerDialog extends DialogWrapper {
     for (int r = 0; r < myIconTable.getRowCount(); r++) {
       for (int c = 0; c < myIconTable.getColumnCount(); c++) {
         VdIcon icon = (VdIcon)myIconTable.getValueAt(r, c);
-        if (icon.getURL().equals(selectedIcon.getURL())) {
+        if (icon != null && icon.getURL().equals(selectedIcon.getURL())) {
           myIconTable.changeSelection(r, c, false, false);
           return;
         }
