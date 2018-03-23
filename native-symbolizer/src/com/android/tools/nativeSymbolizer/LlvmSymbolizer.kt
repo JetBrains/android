@@ -74,7 +74,8 @@ class LlvmSymbolizer(private val symbolizerExe: String, private val symLocator: 
   }
 
   private fun formatRequest(symFile: File, offset: Long): String {
-    return java.lang.String.format("%s 0x%x\n", symFile.path, offset)
+    val escapedPath = symFile.path.replace("\\", "\\\\").replace("\"", "\\\"")
+    return java.lang.String.format("\"%s\" 0x%x\n", escapedPath, offset)
   }
 
   private fun parseResponse(response: List<String>, module: String): Symbol? {
@@ -111,7 +112,7 @@ class LlvmSymbolizer(private val symbolizerExe: String, private val symLocator: 
     val builder = ProcessBuilder(symbolizerExe, "-demangle")
     val process = builder.start()
     if (!process.isAlive) {
-      throw IOException("Symbolizer process is not alive.")
+      throw IOException("Symbolizer process is not alive. Executable: $symbolizerExe")
     }
 
     val stdin = OutputStreamWriter(process.outputStream, Charsets.UTF_8)
