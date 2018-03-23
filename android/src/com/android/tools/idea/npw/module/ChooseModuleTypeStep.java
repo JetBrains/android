@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.ASGallery;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.npw.ui.WizardGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.IconUtil;
@@ -31,14 +31,10 @@ import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.accessibility.AccessibleContext;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.*;
-import java.util.List;
 
-import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static java.util.stream.Collectors.toMap;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -92,31 +88,12 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
 
   @NotNull
   private JComponent createGallery() {
-    myFormFactorGallery = new ASGallery<ModuleGalleryEntry>(
-      JBList.createDefaultListModel(),
-      image -> image.getIcon() == null ? null : IconUtil.toImage(image.getIcon()),
-      label -> label == null ? message("android.wizard.gallery.item.none") : label.getName(), DEFAULT_GALLERY_THUMBNAIL_SIZE,
-      null
-    ) {
+    myFormFactorGallery = new WizardGallery<>(
+      getTitle(),
+      galEntry -> galEntry.getIcon() == null ? null : IconUtil.toImage(galEntry.getIcon()),
+      galEntry -> galEntry == null ? message("android.wizard.gallery.item.none") : galEntry.getName()
+    );
 
-      @Override
-      public Dimension getPreferredScrollableViewportSize() {
-        // The default implementations assigns a height as tall as the screen.
-        // When calling setVisibleRowCount(2), the underlying implementation is buggy, and  will have a gap on the right and when the user
-        // resizes, it enters on an adjustment loop at some widths (can't decide to fit 3 or for elements, and loops between the two)
-        Dimension cellSize = computeCellSize();
-        int heightInsets = getInsets().top + getInsets().bottom;
-        int widthInsets = getInsets().left + getInsets().right;
-        // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
-        return new Dimension(cellSize.width * 5 + widthInsets, (int)(cellSize.height * 2.2) + heightInsets);
-      }
-    };
-
-    myFormFactorGallery.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    AccessibleContext accessibleContext = myFormFactorGallery.getAccessibleContext();
-    if (accessibleContext != null) {
-      accessibleContext.setAccessibleDescription(getTitle());
-    }
     return new JBScrollPane(myFormFactorGallery);
   }
 
