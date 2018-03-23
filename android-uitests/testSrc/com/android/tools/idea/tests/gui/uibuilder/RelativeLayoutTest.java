@@ -80,23 +80,17 @@ public class RelativeLayoutTest {
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.showOnlyDesignView();
     layout.waitForRenderToFinish();
     layout.dragComponentToSurface("Widgets", "ImageView");
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
-    assertThat(dialog.getTitle()).isEqualTo("Resources");
-    dialog.expandList("Project").getList("Project").selectItem("ic_launcher");
-
-    dialog.clickOK();
-
-    editor.switchToTab("Text");
-
+    editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     String content = editor.getCurrentFileContents();
     assertThat(content).contains("    <ImageView\n" +
                                  "        android:id=\"@+id/imageView\"\n" +
                                  "        android:layout_width=\"wrap_content\"\n" +
                                  "        android:layout_height=\"wrap_content\"\n");
     // There may be some align and/or margin attributes between android:layout_height and android:src. Ignore them.
-    assertThat(content).contains("        android:src=\"@drawable/ic_launcher\"");
+    assertThat(content).contains("        tools:src=\"@tools:sample/avatars\"");
   }
 }
