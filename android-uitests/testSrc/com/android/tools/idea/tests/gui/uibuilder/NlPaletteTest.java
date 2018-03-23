@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPaletteFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import icons.StudioIcons;
 import org.fest.swing.fixture.JListFixture;
 import org.junit.Rule;
@@ -33,7 +34,7 @@ import java.awt.event.KeyEvent;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NlPaletteTest {
 
   @Rule

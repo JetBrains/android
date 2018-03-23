@@ -18,13 +18,14 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleUpdateTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

@@ -26,11 +26,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ApkViewerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

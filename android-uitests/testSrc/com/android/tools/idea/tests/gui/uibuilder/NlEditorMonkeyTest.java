@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.KeyPressInfo;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -39,7 +40,7 @@ import java.util.function.Consumer;
  * Test that applies random actions on the layout editor. This test is meant to be ran manually to discover issues that can be
  * found by random testing (performance, invalid states, etc).
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NlEditorMonkeyTest {
   private static final Random RND = new Random(101);
 

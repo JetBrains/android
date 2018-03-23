@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.openapi.util.Ref;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JListFixture;
@@ -36,7 +37,7 @@ import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class EspressoRecorderTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

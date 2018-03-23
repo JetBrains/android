@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
@@ -29,7 +30,7 @@ import static org.junit.Assert.assertFalse;
 /**
  * UI test for the component assistant in the properties panel
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ComponentAssistantTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

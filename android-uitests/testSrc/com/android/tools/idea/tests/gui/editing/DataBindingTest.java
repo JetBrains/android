@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,7 +32,7 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class DataBindingTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 

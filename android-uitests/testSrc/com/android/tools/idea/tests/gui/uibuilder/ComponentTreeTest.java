@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JTreeFixture;
 import org.intellij.lang.annotations.Language;
 import org.junit.Rule;
@@ -38,7 +39,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public final class ComponentTreeTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();

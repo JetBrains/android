@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.Des
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.driver.BasicJListCellReader;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +47,7 @@ import static org.junit.Assert.assertNotEquals;
 /**
  * UI tests for {@link NlEditor} as used in the navigation editor.
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NavNlEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

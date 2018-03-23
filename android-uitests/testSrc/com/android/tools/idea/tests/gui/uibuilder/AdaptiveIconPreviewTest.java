@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +29,7 @@ import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class AdaptiveIconPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

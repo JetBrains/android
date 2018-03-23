@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +38,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Unit test for the theme preview
  */
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ThemePreviewTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);

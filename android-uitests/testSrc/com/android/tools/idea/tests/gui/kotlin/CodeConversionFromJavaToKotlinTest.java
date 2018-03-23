@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.DialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,7 +32,7 @@ import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class CodeConversionFromJavaToKotlinTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
