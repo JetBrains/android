@@ -221,9 +221,9 @@ public class ProfilerColors {
 
   public static final Color ENERGY_BACKGROUND = new JBColor(new Color(0xF1B876), new Color(0xFFDFA6));
 
-  public static final Color ENERGY_CPU = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
+  public static final Color ENERGY_CPU = new JBColor(new Color(0xDCD0F3), new Color(0x685A83));
 
-  public static final Color ENERGY_NETWORK = new JBColor(new Color(0x80EDDC), new Color(0x4EA783));
+  public static final Color ENERGY_NETWORK = new JBColor(new Color(0xB39DDB), new Color(0xA78BD8));
 
   public static final Color ENERGY_WAKE_LOCK = new JBColor(new Color(0xF44271), new Color(0xF3596C));
 
