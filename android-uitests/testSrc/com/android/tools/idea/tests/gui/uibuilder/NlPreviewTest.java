@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ import static org.junit.Assert.*;
 /**
  * UI test for the layout preview window
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

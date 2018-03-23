@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
@@ -54,7 +55,7 @@ import static org.junit.Assert.*;
  * Note that {@link ThemeEditorTableTest} also exercises the resource chooser a bit
  */
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ChooseResourceDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

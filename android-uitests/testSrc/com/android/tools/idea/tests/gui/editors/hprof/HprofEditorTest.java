@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,7 +35,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class HprofEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

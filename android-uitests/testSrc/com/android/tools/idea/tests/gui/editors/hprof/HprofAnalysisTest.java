@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Before;
@@ -43,7 +44,7 @@ import java.util.zip.GZIPInputStream;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class HprofAnalysisTest {
 
   private static final String HPROF_FILENAME = "memory-analysis-sample.hprof";

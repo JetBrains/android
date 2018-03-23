@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.dualView.TreeTableView;
 import org.fest.reflect.exception.ReflectionError;
@@ -52,7 +53,7 @@ import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class UpgradeBuildToolsTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();

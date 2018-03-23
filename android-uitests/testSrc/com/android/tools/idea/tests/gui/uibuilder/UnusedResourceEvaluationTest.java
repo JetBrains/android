@@ -22,11 +22,12 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RefactorToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RefactoringDialogFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class UnusedResourceEvaluationTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 

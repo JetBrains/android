@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplate
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.actions.CreateFileFromTemplateDialog.Visibility;
 import com.android.tools.idea.actions.CreateNewClassDialogValidatorExImpl;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.query.ComponentVisibleQuery;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -36,7 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 @RunIn(TestGroup.EDITING)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class CreateNewClassDialogGuiTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
   private static final String THING_NAME = "TestThing";

@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * UI test for the layout preview window
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class OpenIncludedLayoutTest {
 
   public static final String INCLUDED_XML = "inner.xml";

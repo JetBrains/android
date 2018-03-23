@@ -28,6 +28,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -45,7 +46,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleTestArtifactSyncTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
