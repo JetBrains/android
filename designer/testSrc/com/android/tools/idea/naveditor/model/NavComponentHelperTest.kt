@@ -44,17 +44,15 @@ class NavComponentHelperTest {
     assertEquals("Bar", component.getUiName(null))
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn("@+id/myId")
     assertEquals("myId", component.getUiName(null))
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL)).thenReturn("myLabel")
-    assertEquals("myLabel", component.getUiName(null))
   }
 
   @Test
   fun testUiNameWithResources() {
     val resolver = ResourceResolver.withValues(
-      ResourceValue(ResourceNamespace.RES_AUTO, ResourceType.STRING, "myLabel", "resolvedValue")
+      ResourceValue(ResourceNamespace.RES_AUTO, ResourceType.STRING, "myName", "resolvedValue")
     )
     val component = mock(NlComponent::class.java)
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL)).thenReturn("@string/myLabel")
+    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("@string/myName")
     assertEquals("resolvedValue", component.getUiName(resolver))
   }
 }

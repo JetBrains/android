@@ -32,9 +32,7 @@ class DestinationEnumSupport(property: NlProperty, private val destinationGetter
   }
 
   private fun getDisplayForDestination(component: NlComponent): ValueWithDisplayString {
-    val uiName = component.getUiName(myProperty.resolver)
-    val id = component.id
-    val displayString = if (uiName == id) id else "$uiName ($id)"
+    val displayString = component.getUiName(myProperty.resolver)
     return ValueWithDisplayString(displayString, component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID))
   }
 
