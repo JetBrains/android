@@ -540,11 +540,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @NotNull
   List<GradlePropertyModelImpl> dependencies() {
-    if (myElement == null) {
+    GradleDslElement element = getElement();
+    if (element == null) {
       return Collections.emptyList();
     }
 
-    return myElement.getResolvedVariables().stream()
+    return element.getResolvedVariables().stream()
       .map(injection -> {
         GradleDslElement injected = injection.getToBeInjected();
         return injected != null ? new GradlePropertyModelImpl(injected) : null;

@@ -836,11 +836,111 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     run {
       val firstModel = buildModel.ext().findProperty("prop1")
-      // TODO: This should have 0 dependencies when resolution respects property order.
-      verifyPropertyModel(firstModel, STRING_TYPE, "prop2", REFERENCE, REGULAR, 1, "prop1")
+      verifyPropertyModel(firstModel, STRING_TYPE, "prop2", REFERENCE, REGULAR, 0, "prop1")
       val secondModel = buildModel.ext().findProperty("prop2")
       verifyPropertyModel(secondModel, STRING_TYPE, "hello", STRING, REGULAR, 0, "prop2")
     }
+  }
 
+  @Test
+  fun testDirectReferenceExtCorrectOrder() {
+    val text = """
+               ext {
+                 prop1 = 10
+                 prop1 = 20
+               }
+
+               android {
+                 defaultConfig {
+                   minSdkVersion prop1
+                 }
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val propertyModel = buildModel.android()!!.defaultConfig().minSdkVersion()
+    verifyPropertyModel(propertyModel, INTEGER_TYPE, 20, INTEGER, REGULAR, 1, "minSdkVersion")
+  }
+
+  @Test
+  fun testAboveExt() {
+    val text = """
+               android {
+                 defaultConfig {
+                   minSdkVersion minSdk
+                   maxSdkVersion maxSdk
+                 }
+               }
+
+               ext {
+                 minSdk 14
+                 maxSdk 18
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    val minSdkModel = buildModel.android()!!.defaultConfig().minSdkVersion()
+    val maxSdkModel = buildModel.android()!!.defaultConfig().maxSdkVersion()
+
+    verifyPropertyModel(minSdkModel, STRING_TYPE, "minSdk", REFERENCE, REGULAR, 0, "minSdkVersion")
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, "maxSdk", REFERENCE, REGULAR, 0, "maxSdkVersion")
+  }
+
+  @Test
+  fun testAboveExtQualifiedReference() {
+    val text = """
+               android {
+                 defaultConfig {
+                   minSdkVersion ext.minSdk
+                   maxSdkVersion ext.maxSdk
+                 }
+               }
+
+               ext {
+                 minSdk 14
+                 maxSdk 18
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    val minSdkModel = buildModel.android()!!.defaultConfig().minSdkVersion()
+    val maxSdkModel = buildModel.android()!!.defaultConfig().maxSdkVersion()
+
+    verifyPropertyModel(minSdkModel, STRING_TYPE, "ext.minSdk", REFERENCE, REGULAR, 0, "minSdkVersion")
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, "ext.maxSdk", REFERENCE, REGULAR, 0, "maxSdkVersion")
+  }
+
+  @Test
+  fun testResolveToLastProperty() {
+    val text = """
+               ext {
+                 def var1 = "hello"
+                 def var1 = "goodbye"
+                 def var2 = "on"
+                 def var2 = "off"
+
+                 greeting = var1
+                 state = var2
+               }
+
+               android {
+                 signingConfigs {
+                   myConfig {
+                     storeFile file(greeting)
+                     storePassword state
+                   }
+                 }
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val configModel = buildModel.android()!!.signingConfigs()[0]!!
+    val fileModel = configModel.storeFile()
+    val passwordModel = configModel.storePassword()
+
+    verifyPropertyModel(fileModel, STRING_TYPE, "goodbye", STRING, REGULAR, 1, "storeFile")
+    verifyPropertyModel(passwordModel.resolve(), STRING_TYPE, "off", STRING, REGULAR, 1, "storePassword")
   }
 }
