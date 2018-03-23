@@ -118,10 +118,18 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
       LOG.warn(e);
     }
 
-    ResourceMerger resourceMerger = new ResourceMerger(0);
-    resourceMerger.setPreserveOriginalItems(true);
-    resourceMerger.addDataSet(resourceSet);
-    repository.getItems().update(resourceMerger);
+    ResourceTable resourceTable = repository.getFullTable();
+    ListMultimap<String, ResourceItem> resourceItems = resourceSet.getDataMap();
+    for (String key : resourceItems.keys()) {
+      List<ResourceItem> items = resourceItems.get(key);
+      for (int i = items.size(); --i >= 0;) {
+        ResourceItem item = items.get(i);
+        ListMultimap<String, ResourceItem> multimap = resourceTable.getOrPutEmpty(item.getNamespace(), item.getType());
+        if (!multimap.containsEntry(item.getName(), item)) {
+          multimap.put(item.getName(), item);
+        }
+      }
+    }
 
     repository.loadPublicResources();
     if (usePersistentCache) {
