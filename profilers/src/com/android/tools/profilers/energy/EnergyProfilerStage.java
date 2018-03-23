@@ -25,13 +25,10 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener {
@@ -59,8 +56,8 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myDetailedUsage = new DetailedEnergyUsage(profilers);
     myAxis = new AxisComponentModel(myDetailedUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT);
     myEventMonitor = new EventMonitor(profilers);
-    myLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getDataRange(), false);
-    myTooltipLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange(), true);
+    myLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getDataRange());
+    myTooltipLegends = new EnergyLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange());
     myEventLegends = new EnergyEventLegends();
     mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
@@ -222,19 +219,15 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     @NotNull private final SeriesLegend myCpuLegend;
     @NotNull private final SeriesLegend myNetworkLegend;
 
-    EnergyLegends(DetailedEnergyUsage detailedUsage, Range range, boolean isTooltip) {
+    EnergyLegends(DetailedEnergyUsage detailedUsage, Range range) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myCpuLegend = new SeriesLegend(detailedUsage.getCpuUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "CPU",
                                      Interpolatable.SegmentInterpolator);
       myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyAxisFormatter.DEFAULT, range, "NETWORK",
                                          Interpolatable.SegmentInterpolator);
 
-      List<SeriesLegend> legends = Lists.newArrayList(myCpuLegend, myNetworkLegend);
-      if (isTooltip) {
-        // Reversing legends, bottom-to-top, matches the line chart graph order
-        Collections.reverse(legends);
-      }
-      legends.forEach(this::add);
+      add(myCpuLegend);
+      add(myNetworkLegend);
     }
 
     @NotNull

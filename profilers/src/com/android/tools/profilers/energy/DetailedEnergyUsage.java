@@ -28,14 +28,14 @@ public class DetailedEnergyUsage extends LineChartModel {
 
   public DetailedEnergyUsage(@NotNull StudioProfilers profilers) {
     myUsageRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
-    EnergyUsageDataSeries cpuDataSeries =
-      new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getCpuUsage);
-    myCpuUsageSeries = new RangedContinuousSeries("CPU", profilers.getTimeline().getViewRange(), myUsageRange, cpuDataSeries);
-    add(myCpuUsageSeries);
     EnergyUsageDataSeries networkDataSeries =
       new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getNetworkUsage);
     myNetworkUsageSeries = new RangedContinuousSeries("NETWORK", profilers.getTimeline().getViewRange(), myUsageRange, networkDataSeries);
     add(myNetworkUsageSeries);
+    EnergyUsageDataSeries cpuDataSeries =
+      new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getCpuUsage);
+    myCpuUsageSeries = new RangedContinuousSeries("CPU", profilers.getTimeline().getViewRange(), myUsageRange, cpuDataSeries);
+    add(myCpuUsageSeries);
   }
 
   @NotNull
