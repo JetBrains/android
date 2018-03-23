@@ -1079,15 +1079,13 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.setValue(File("Hello"))
         fail()
-      }
-      catch (e: IllegalArgumentException) {
+      } catch (e: IllegalArgumentException) {
         // Expected
       }
       try {
         propertyModel.setValue(IllegalStateException("Boo"))
         fail()
-      }
-      catch (e: IllegalArgumentException) {
+      } catch (e: IllegalArgumentException) {
         // Expected
       }
 
@@ -1478,8 +1476,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
   }
 
-  // This test currently fails due to bug: 71579307
-  fun /*test*/DependencyNoCycle() {
+  fun testDependencyNoCycle() {
     val text = """
                ext {
                  prop1 = "Value"
@@ -1772,8 +1769,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.getMapValue("key")
         fail("Exception should have been thrown!")
-      }
-      catch (e: IllegalStateException) {
+      } catch (e: IllegalStateException) {
         // Expected.
       }
     }
@@ -2128,7 +2124,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   }
 
   // Test currently fails due to b/72144740
-  fun /*test*/SetLiteralToMapValue() {
+  fun testSetLiteralToMapValue() {
     val text = """
                ext {
                  def val = 'value'
@@ -2147,7 +2143,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       // Check it is not a map yet
       verifyPropertyModel(mapPropertyModel, STRING_TYPE, "value", STRING, VARIABLE, 0)
 
-      mapPropertyModel.getMapValue("key").setValue("Hello")
+      mapPropertyModel.convertToEmptyMap().getMapValue("key").setValue("Hello")
 
       assertEquals(MAP, mapPropertyModel.valueType)
       val map = mapPropertyModel.getValue(MAP_TYPE)!!
@@ -2156,15 +2152,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
-
-    /* This is what is written to file, it is very wrong, the property are the wrong way round.
-       This would not work in Gradle.
-            ext {
-                prop1 = val
-                def val = [key: 'Hello']
-            }
-    */
-    fail()
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2410,16 +2397,14 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.addListValue().setValue("True")
         fail()
-      }
-      catch (e: IllegalStateException) {
+      } catch (e: IllegalStateException) {
         // Expected
       }
 
       try {
         propertyModel.addListValueAt(23).setValue(72)
         fail()
-      }
-      catch (e: IllegalStateException) {
+      } catch (e: IllegalStateException) {
         // Expected
       }
     }
@@ -2441,8 +2426,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         propertyModel.addListValueAt(82).setValue(true)
         fail()
-      }
-      catch (e: IndexOutOfBoundsException) {
+      } catch (e: IndexOutOfBoundsException) {
         // Expected
       }
     }
@@ -2672,14 +2656,24 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules2.txt"), DERIVED, 0)
       proguardFiles.addListValueAt(0).setValue("z.txt")
       proguardFiles.addListValueAt(2).setValue("proguard-rules.txt")
-      verifyListProperty(proguardFiles, listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"), DERIVED, 0)
+      verifyListProperty(
+          proguardFiles,
+          listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
+          DERIVED,
+          0
+      )
     }
 
     applyChangesAndReparse(buildModel)
 
     run {
       val proguardFiles = buildModel.android()?.defaultConfig()?.proguardFiles()!!
-      verifyListProperty(proguardFiles, listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"), DERIVED, 0)
+      verifyListProperty(
+          proguardFiles,
+          listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
+          DERIVED,
+          0
+      )
     }
   }
 
@@ -2971,8 +2965,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         firstModel.getMapValue("value1").setValue("newValue")
         fail()
-      }
-      catch (e: IllegalStateException) {
+      } catch (e: IllegalStateException) {
         // Expected
       }
 
@@ -2980,8 +2973,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         secondModel.getMapValue("hello").setValue("goodbye")
         fail()
-      }
-      catch (e: IllegalStateException) {
+      } catch (e: IllegalStateException) {
         // Expected
       }
 
@@ -2989,8 +2981,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         thirdModel.getMapValue("key").setValue(0)
         fail()
-      }
-      catch (e: IllegalStateException) {
+      } catch (e: IllegalStateException) {
         // Expected
       }
     }
@@ -3377,7 +3368,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       try {
         listItem.rename("listItemName")
         fail()
-      } catch (e : IllegalStateException) {
+      } catch (e: IllegalStateException) {
         // Expected
       }
 
@@ -3421,7 +3412,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val androidProperties = buildModel.android()!!.declaredProperties
     val debugProperties = buildModel.android()!!.buildTypes()[0].declaredProperties
 
-    assertSize(2 ,extProperties)
+    assertSize(2, extProperties)
     assertSize(3, androidProperties)
     assertSize(2, debugProperties)
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.parser.java.print
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
@@ -99,9 +100,9 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
                  propValue = 'value'
                  prop25 = 25
                  propTrue = true
-                 propRef = propValue
                  propInterpolated = "${'$'}{prop25}th"
                  propUnresolved = unresolvedReference
+                 propRef = propValue
                  propOtherExpression1 = z(1)
                  propOtherExpression2 = 1 + 2
                }""".trimIndent()
@@ -112,9 +113,9 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     val propValue = extModel.findProperty("propValue").wrap(::parseString, ResolvedPropertyModel::asString)
     val prop25 = extModel.findProperty("prop25").wrap(::parseInt, ResolvedPropertyModel::asInt)
     val propTrue = extModel.findProperty("propTrue").wrap(::parseBoolean, ResolvedPropertyModel::asBoolean)
-    val propRef = extModel.findProperty("propRef").wrap(::parseString, ResolvedPropertyModel::asString)
     val propInterpolated = extModel.findProperty("propInterpolated").wrap(::parseString, ResolvedPropertyModel::asString)
     val propUnresolved = extModel.findProperty("propUnresolved").wrap(::parseString, ResolvedPropertyModel::asString)
+    val propRef = extModel.findProperty("propRef").wrap(::parseString, ResolvedPropertyModel::asString)
     val propOtherExpression1 = extModel.findProperty("propOtherExpression1").wrap(::parseString, ResolvedPropertyModel::asString)
     val propOtherExpression2 = extModel.findProperty("propOtherExpression2").wrap(::parseString, ResolvedPropertyModel::asString)
 
@@ -130,11 +131,11 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     propInterpolated.testSetInterpolatedString("${'$'}{prop25} items")
     assertThat(propInterpolated.testValue(), equalTo("26 items"))
 
-    propRef.testSetReference("propInterpolated")
-    assertThat(propRef.testValue(), equalTo("26 items"))
-
     propUnresolved.testSetValue("reset")
     assertThat(propUnresolved.testValue(), equalTo("reset"))
+
+    propRef.testSetReference("propInterpolated")
+    assertThat(propRef.testValue(), equalTo("26 items"))
     assertThat(propOtherExpression1.testValue(), nullValue())
     assertThat(propOtherExpression2.testValue(), nullValue())
   }

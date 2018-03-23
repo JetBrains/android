@@ -253,13 +253,14 @@ public abstract class GradleDslExpression extends GradleDslElement {
   @Nullable
   private static GradleDslElement extractElementFromProperties(@NotNull GradlePropertiesDslElement properties,
                                                                @NotNull String name,
-                                                               boolean sameScope) {
+                                                               boolean sameScope,
+                                                               @Nullable GradleDslElement child) {
     // First check if any indexing has been done.
     Matcher indexMatcher = INDEX_PATTERN.matcher(name);
 
     // If the index matcher doesn't give us anything, just attempt to find the property on the element;
     if (!indexMatcher.find()) {
-      return sameScope ? properties.getElement(name) : properties.getPropertyElement(name);
+      return sameScope ? properties.getElementBefore(child, name) : properties.getPropertyElementBefore(child, name);
     }
 
     // Sanity check
@@ -273,7 +274,8 @@ public abstract class GradleDslExpression extends GradleDslElement {
       return null;
     }
 
-    GradleDslElement element = sameScope ? properties.getElement(elementName) : properties.getPropertyElement(elementName);
+    GradleDslElement element =
+      sameScope ? properties.getElementBefore(child, elementName) : properties.getPropertyElementBefore(child, elementName);
 
     // Construct a list of all of the index parts
     Deque<String> indexParts = new ArrayDeque<>();
@@ -336,12 +338,13 @@ public abstract class GradleDslExpression extends GradleDslElement {
 
   @Nullable
   private static GradleDslElement resolveReferenceOnPropertiesElement(@NotNull GradlePropertiesDslElement properties,
-                                                                      @NotNull List<String> nameParts) {
+                                                                      @NotNull List<String> nameParts,
+                                                                      @Nullable GradleDslElement child) {
     // Go through each of the parts and extract the elements from each of them.
     GradleDslElement element;
     for (int i = 0; i < nameParts.size() - 1; i++) {
       // Only look for variables on the first iteration, otherwise only properties should be accessible.
-      element = extractElementFromProperties(properties, nameParts.get(i), i == 0);
+      element = extractElementFromProperties(properties, nameParts.get(i), i == 0, child);
       while (element instanceof GradleDslReference) {
         // Attempt to follow references
         GradleReferenceInjection injection = ((GradleDslReference)element).getReferenceInjection();
@@ -359,23 +362,30 @@ public abstract class GradleDslExpression extends GradleDslElement {
       properties = (GradlePropertiesDslElement)element;
     }
 
-    return extractElementFromProperties(properties, nameParts.get(nameParts.size() - 1), nameParts.size() == 1);
+    return extractElementFromProperties(properties, nameParts.get(nameParts.size() - 1), nameParts.size() == 1, child);
   }
 
   @Nullable
   private static GradleDslElement resolveReferenceOnElement(GradleDslElement element, @NotNull List<String> nameParts) {
-    // Find a properties element that contains the property.
+    // We need to keep track of the last element we saw to ensure we only check items BEFORE the one we are resolving.
+    GradleDslElement lastElement = null;
+    boolean extChecked = false;
     while (element != null) {
       if (element instanceof GradlePropertiesDslElement) {
-        GradleDslElement propertyElement = resolveReferenceOnPropertiesElement((GradlePropertiesDslElement)element, nameParts);
+        GradleDslElement propertyElement = resolveReferenceOnPropertiesElement((GradlePropertiesDslElement)element, nameParts, lastElement);
         if (propertyElement != null) {
           return propertyElement;
         }
 
-        if (element instanceof GradleDslFile) {
-          ExtDslElement extDslElement = ((GradleDslFile)element).getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
-          if (extDslElement != null) {
-            GradleDslElement extPropertyElement = resolveReferenceOnPropertiesElement(extDslElement, nameParts);
+        // Check if we see a ExtElement before we hit the file. We don't bother checking it again.
+        if (element instanceof ExtDslElement) {
+          extChecked = true;
+        }
+
+        if (element instanceof GradleDslFile && !extChecked) {
+          GradleDslElement extDslElement = ((GradleDslFile)element).getPropertyElementBefore(lastElement, EXT_BLOCK_NAME);
+          if (extDslElement instanceof ExtDslElement) {
+            GradleDslElement extPropertyElement = resolveReferenceOnPropertiesElement((ExtDslElement)extDslElement, nameParts, lastElement);
             if (extPropertyElement != null) {
               return extPropertyElement;
             }
@@ -383,6 +393,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
           break;
         }
       }
+      lastElement = element;
       element = element.getParent();
     }
 
@@ -431,7 +442,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
     while (parentDslFile != null) {
       ExtDslElement extDslElement = parentDslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
       if (extDslElement != null) {
-        GradleDslElement extPropertyElement = resolveReferenceOnPropertiesElement(extDslElement, referenceText);
+        GradleDslElement extPropertyElement = resolveReferenceOnPropertiesElement(extDslElement, referenceText, null);
         if (extPropertyElement != null) {
           return extPropertyElement;
         }

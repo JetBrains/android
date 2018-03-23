@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -30,6 +31,12 @@ import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 import static com.android.utils.FileUtils.toSystemIndependentPath;
 
 /**
@@ -68,8 +75,10 @@ public class ExtModelTest extends GradleFileModelTestCase {
                   "]";
     writeToBuildFile(text);
 
-    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
-    assertEquals("com.google.guava:guava:19.0-rc1", extModel.getLiteralProperty("libraries.guava", String.class));
+
+    ExtModel extModel = getGradleBuildModel().ext();
+    GradlePropertyModel model = extModel.findProperty("libraries").toMap().get("guava");
+    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:19.0-rc1", STRING, DERIVED, 0, "guava");
   }
 
   public void testResolveExtProperty() throws IOException {
@@ -80,12 +89,13 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
-    assertEquals(21, extModel.getLiteralProperty("COMPILE_SDK_VERSION", Integer.class));
+    ExtModel extModel = getGradleBuildModel().ext();
+    GradlePropertyModel model = extModel.findProperty("COMPILE_SDK_VERSION");
+    verifyPropertyModel(model, INTEGER_TYPE, 21, INTEGER, REGULAR, 0, "COMPILE_SDK_VERSION");
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
-    assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
+    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, "compileSdkVersion");
   }
 
   public void testResolveQualifiedExtProperty() throws IOException {
@@ -98,12 +108,13 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    ExtModelImpl extModel = (ExtModelImpl)getGradleBuildModel().ext();
-    assertEquals(21, extModel.getLiteralProperty("constants.COMPILE_SDK_VERSION", Integer.class));
+    ExtModel extModel = getGradleBuildModel().ext();
+    GradlePropertyModel model = extModel.findProperty("constants").toMap().get("COMPILE_SDK_VERSION");
+    verifyPropertyModel(model, INTEGER_TYPE, 21, INTEGER, DERIVED, 0, "COMPILE_SDK_VERSION");
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
-    assertEquals("compileSdkVersion", "21", androidModel.compileSdkVersion());
+    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, "compileSdkVersion");
   }
 
   public void testResolveMultiLevelExtProperty() throws IOException {

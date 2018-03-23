@@ -279,10 +279,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @Nullable
   public GradleDslElement getVariableElement(@NotNull String property) {
-    if (!isPropertyNested(property)) {
-      return getElementWhere(property, VARIABLE_FILTER);
-    }
-    return searchForNestedProperty(property, GradlePropertiesDslElement::getVariableElement);
+    assert !isPropertyNested(property);
+    return getElementWhere(property, VARIABLE_FILTER);
   }
 
   /**
@@ -291,38 +289,33 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    */
   @Nullable
   public GradleDslElement getPropertyElement(@NotNull String property) {
-    if (!isPropertyNested(property)) {
-      return getElementWhere(property, PROPERTY_FILTER);
-    }
-    return searchForNestedProperty(property, GradlePropertiesDslElement::getPropertyElement);
+    assert !isPropertyNested(property);
+    return getElementWhere(property, PROPERTY_FILTER);
   }
 
   @Nullable
   public GradleDslElement getElement(@NotNull String property) {
-    if (!isPropertyNested(property)) {
-      return getElementWhere(property, ANY_FILTER);
-    }
-    return searchForNestedProperty(property, GradlePropertiesDslElement::getElement);
+    assert !isPropertyNested(property);
+    return getElementWhere(property, ANY_FILTER);
   }
 
-  /**
-   * Searches for a nested {@code property}.
-   */
   @Nullable
-  private GradleDslElement searchForNestedProperty(@NotNull String property,
-                                                   @NotNull BiFunction<GradlePropertiesDslElement, String, GradleDslElement> func) {
-    List<String> propertyNameSegments = Splitter.on('.').splitToList(property);
-    GradlePropertiesDslElement nestedElement = this;
-    for (int i = 0; i < propertyNameSegments.size() - 1; i++) {
-      GradleDslElement element = nestedElement.getElement(propertyNameSegments.get(i).trim());
-      if (element instanceof GradlePropertiesDslElement) {
-        nestedElement = (GradlePropertiesDslElement)element;
-      }
-      else {
-        return null;
-      }
+  public GradleDslElement getPropertyElementBefore(@Nullable GradleDslElement element, @NotNull String property) {
+    assert !isPropertyNested(property);
+    if (element == null) {
+      return getElementWhere(property, PROPERTY_FILTER);
+    } else {
+      return myProperties.getElementBeforeChildWhere(e -> PROPERTY_FILTER.test(e) && e.myElement.getName().equals(property), element);
     }
-    return func.apply(nestedElement, propertyNameSegments.get(propertyNameSegments.size() - 1));
+  }
+
+  @Nullable GradleDslElement getElementBefore(@Nullable GradleDslElement element, @NotNull String property) {
+    assert !isPropertyNested(property);
+    if (element == null) {
+      return getElementWhere(property, ANY_FILTER);
+    } else {
+      return myProperties.getElementBeforeChildWhere(e -> ANY_FILTER.test(e) && e.myElement.getName().equals(property), element);
+    }
   }
 
   /**
@@ -630,6 +623,30 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       // later on in the file.
       return myElements.stream().filter(e -> e.myElementState != TO_BE_REMOVED && e.myElementState != HIDDEN)
         .filter(predicate).map(e -> e.myElement).reduce((first, second) -> second).orElse(null);
+    }
+
+    /**
+     * Return the last element satisfying {@code predicate} that is BEFORE {@code child}. If {@code child} is not a child of
+     * this {@link GradlePropertiesDslElement} then every element is checked and the last one (if any) returned.
+     */
+    @Nullable
+    private GradleDslElement getElementBeforeChildWhere(@NotNull Predicate<ElementItem> predicate, @NotNull GradleDslElement child) {
+      GradleDslElement lastElement = null;
+      for (ElementItem i : myElements) {
+        // Skip removed or hidden elements.
+        if (i.myElementState == TO_BE_REMOVED || i.myElementState == HIDDEN) {
+          continue;
+        }
+
+        if (predicate.test(i)) {
+           lastElement = i.myElement;
+        }
+
+        if (i.myElement == child) {
+          return lastElement;
+        }
+      }
+      return lastElement;
     }
 
     private void addElement(@NotNull GradleDslElement newElement, @NotNull ElementState state) {

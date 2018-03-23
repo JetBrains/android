@@ -184,7 +184,7 @@ public abstract class GradleDslElement implements AnchorProvider {
   }
 
   @NotNull
-  public Collection<GradleReferenceInjection> getResolvedVariables() {
+  public List<GradleReferenceInjection> getResolvedVariables() {
     ImmutableList.Builder<GradleReferenceInjection> resultBuilder = ImmutableList.builder();
     for (GradleDslElement child : getChildren()) {
       resultBuilder.addAll(child.getResolvedVariables());
