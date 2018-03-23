@@ -26,6 +26,7 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -37,7 +38,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -300,7 +300,7 @@ public class SessionsView extends AspectObserver {
       loadAction.setAction(
         () -> myIdeProfilerComponents.createImportDialog().open(
           () -> "Open",
-          Collections.singletonList("hprof"),
+          ImmutableList.of("hprof", "trace"),
           file -> {
             if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
               myIdeProfilerComponents.createUiMessageHandler()

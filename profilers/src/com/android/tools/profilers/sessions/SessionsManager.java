@@ -261,13 +261,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull
   public Common.Session createImportedSession(@NotNull String sessionName,
                                               @NotNull Common.SessionMetaData.SessionType sessionType,
-                                              long startTimestamp,
-                                              long endTimestamp,
+                                              long startTimestampNs,
+                                              long endTimestampNs,
                                               long startTimestampEpochMs) {
     Common.Session session = Common.Session.newBuilder()
       .setSessionId(generateUniqueSessionId())
-      .setStartTimestamp(startTimestamp)
-      .setEndTimestamp(endTimestamp)
+      .setStartTimestamp(startTimestampNs)
+      .setEndTimestamp(endTimestampNs)
       .build();
 
     Profiler.ImportSessionRequest sessionRequest = Profiler.ImportSessionRequest.newBuilder()
@@ -284,7 +284,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * Register the import handler for a specific extension
    *
    * @param extension extension of the file
-   * @param listener  import listener
+   * @param handler   handles the file imported
    */
   public void registerImportHandler(@NotNull String extension, @NotNull Consumer<File> handler) {
     myImportHandlers.put(extension, handler);
