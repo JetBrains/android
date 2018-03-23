@@ -160,76 +160,76 @@ public final class FrameworkResourceRepository extends FileResourceRepository {
     File valuesFolder = new File(getResourceDirectory(), SdkConstants.FD_RES_VALUES);
     File publicXmlFile = new File(valuesFolder, "public.xml");
 
-    if (publicXmlFile.exists()) {
-      try (InputStream stream = new BufferedInputStream(new FileInputStream(publicXmlFile))) {
-        KXmlParser parser = new KXmlParser();
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-        parser.setInput(stream, StandardCharsets.UTF_8.name());
+    try (InputStream stream = new BufferedInputStream(new FileInputStream(publicXmlFile))) {
+      KXmlParser parser = new KXmlParser();
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+      parser.setInput(stream, StandardCharsets.UTF_8.name());
 
-        ResourceType lastType = null;
-        String lastTypeName = "";
-        while (true) {
-          int event = parser.next();
-          if (event == XmlPullParser.START_TAG) {
-            // As of API 15 there are a number of "java-symbol" entries here.
-            if (!parser.getName().equals(SdkConstants.TAG_PUBLIC)) {
-              continue;
-            }
+      ResourceType lastType = null;
+      String lastTypeName = "";
+      while (true) {
+        int event = parser.next();
+        if (event == XmlPullParser.START_TAG) {
+          // As of API 15 there are a number of "java-symbol" entries here.
+          if (!parser.getName().equals(SdkConstants.TAG_PUBLIC)) {
+            continue;
+          }
 
-            String name = null;
-            String typeName = null;
-            for (int i = 0, n = parser.getAttributeCount(); i < n; i++) {
-              String attribute = parser.getAttributeName(i);
+          String name = null;
+          String typeName = null;
+          for (int i = 0, n = parser.getAttributeCount(); i < n; i++) {
+            String attribute = parser.getAttributeName(i);
 
-              if (attribute.equals(SdkConstants.ATTR_NAME)) {
-                name = parser.getAttributeValue(i);
-                if (typeName != null) {
-                  // Skip id attribute processing.
-                  break;
-                }
-              }
-              else if (attribute.equals(SdkConstants.ATTR_TYPE)) {
-                typeName = parser.getAttributeValue(i);
+            if (attribute.equals(SdkConstants.ATTR_NAME)) {
+              name = parser.getAttributeValue(i);
+              if (typeName != null) {
+                // Skip id attribute processing.
+                break;
               }
             }
-
-            if (name != null && typeName != null) {
-              ResourceType type;
-              if (typeName.equals(lastTypeName)) {
-                type = lastType;
-              }
-              else {
-                type = ResourceType.getEnum(typeName);
-                lastType = type;
-                lastTypeName = typeName;
-              }
-
-              if (type != null) {
-                List<ResourceItem> matchingResources = getResourceItems(ANDROID_NAMESPACE, type, name);
-                // Some entries in public.xml point to attributes defined attrs_manifest.xml and therefore
-                // don't match any resources.
-                if (!matchingResources.isEmpty()) {
-                  List<ResourceItem> publicList = myPublicResources.get(type);
-                  if (publicList == null) {
-                    publicList = new ArrayList<>(getMap(type, false).size());
-                    myPublicResources.put(type, publicList);
-                  }
-
-                  publicList.addAll(matchingResources);
-                }
-              }
-              else {
-                LOG.error("Public resource declaration \"" + name + "\" of type " + typeName + " points to unknown resource type.");
-              }
+            else if (attribute.equals(SdkConstants.ATTR_TYPE)) {
+              typeName = parser.getAttributeValue(i);
             }
           }
-          else if (event == XmlPullParser.END_DOCUMENT) {
-            break;
+
+          if (name != null && typeName != null) {
+            ResourceType type;
+            if (typeName.equals(lastTypeName)) {
+              type = lastType;
+            }
+            else {
+              type = ResourceType.getEnum(typeName);
+              lastType = type;
+              lastTypeName = typeName;
+            }
+
+            if (type != null) {
+              List<ResourceItem> matchingResources = getResourceItems(ANDROID_NAMESPACE, type, name);
+              // Some entries in public.xml point to attributes defined attrs_manifest.xml and therefore
+              // don't match any resources.
+              if (!matchingResources.isEmpty()) {
+                List<ResourceItem> publicList = myPublicResources.get(type);
+                if (publicList == null) {
+                  publicList = new ArrayList<>(getMap(type, false).size());
+                  myPublicResources.put(type, publicList);
+                }
+
+                publicList.addAll(matchingResources);
+              }
+            }
+            else {
+              LOG.error("Public resource declaration \"" + name + "\" of type " + typeName + " points to unknown resource type.");
+            }
           }
         }
-      } catch (Exception e) {
-        LOG.error("Can't read and parse public attribute list " + publicXmlFile.getPath(), e);
+        else if (event == XmlPullParser.END_DOCUMENT) {
+          break;
+        }
       }
+    } catch (FileNotFoundException e) {
+      // There is no public.xml. This not considered an error.
+    } catch (Exception e) {
+      LOG.error("Can't read and parse public attribute list " + publicXmlFile.getPath(), e);
     }
 
     // Put unmodifiable list for all resource types in the public resource map.
