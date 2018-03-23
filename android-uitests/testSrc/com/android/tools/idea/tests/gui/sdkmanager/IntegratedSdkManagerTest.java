@@ -25,13 +25,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.sdk.SdkProblemDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SelectSdkDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SyncAndroidSdkDialogFixture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 @RunIn(TestGroup.PROJECT_WIZARD)
 public class IntegratedSdkManagerTest {
 

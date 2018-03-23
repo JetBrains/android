@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyTableFixture;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.data.TableCellInSelectedRow;
 import org.fest.swing.fixture.AbstractComponentFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -44,7 +45,7 @@ import static java.awt.event.KeyEvent.*;
 /**
  * UI test for the layout preview window
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NlPropertyTableTest {
   private IdeFrameFixture myFrame;
   private Dimension myOriginalFrameSize;

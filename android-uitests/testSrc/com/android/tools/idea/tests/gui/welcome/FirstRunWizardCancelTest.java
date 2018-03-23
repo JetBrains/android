@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.welcome.FirstRunWizardFixture;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class FirstRunWizardCancelTest {
 
   @Rule public final RestoreFlagRule<Boolean> myRestoreFlagRule = new RestoreFlagRule<>(NPW_FIRST_RUN_WIZARD);
