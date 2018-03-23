@@ -189,6 +189,7 @@ java_test(
     size = "large",
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
+        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:tools/support-annotations",
         ":aswb_plugin",
     ] + glob([
