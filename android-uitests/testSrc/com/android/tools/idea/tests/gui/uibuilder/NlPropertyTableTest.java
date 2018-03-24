@@ -186,7 +186,7 @@ public class NlPropertyTableTest {
     CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
-    textEditor.enterText("tring/copy");
+    guiTest.robot().typeText("tring/copy");  // TODO: move this and previous few lines to fixtures
 
     textEditor.pressAndReleaseKeys(VK_ENTER);
 
