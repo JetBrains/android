@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.CreateDestinationMenuFixture;
@@ -30,11 +31,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.awt.event.KeyEvent;
 import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LABEL;
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -150,5 +153,39 @@ public class NavNlEditorTest {
     NlEditorFixture layout = editor.getLayoutEditor(false);
     layout.waitForRenderToFinish();
     */
+  }
+
+  @Test
+  public void testKeyMappings() throws Exception {
+    IdeFrameFixture frame = guiTest.importProject("Navigation");
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layout = editor.getLayoutEditor(true);
+
+    // This is separate to catch the case where we have a problem opening the file before sync is complete.
+    frame.waitForGradleProjectSyncToFinish();
+    layout.waitForRenderToFinish();
+
+    DesignSurfaceFixture fixture = layout.getSurface();
+    NlComponentFixture screen = ((NavDesignSurfaceFixture)fixture).findDestination("first_screen");
+    screen.click();
+
+    double scale = fixture.getScale();
+
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_MINUS);
+    double zoomOutScale = fixture.getScale();
+    assertTrue(zoomOutScale < scale);
+
+    guiTest.robot().pressKey(KeyEvent.VK_SHIFT);
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_PLUS);
+    guiTest.robot().releaseKey(KeyEvent.VK_SHIFT);
+    double zoomInScale = fixture.getScale();
+    assertTrue(zoomInScale >  zoomOutScale);
+
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_0);
+    double fitScale = fixture.getScale();
+
+    assertTrue(Math.abs(fitScale - scale) < 0.001);
   }
 }

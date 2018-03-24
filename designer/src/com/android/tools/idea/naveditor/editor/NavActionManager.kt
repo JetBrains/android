@@ -17,14 +17,14 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.idea.common.actions.*
 import com.android.tools.idea.common.editor.ActionManager
-import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.ZoomType
+import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.naveditor.actions.*
 import com.android.tools.idea.naveditor.model.getUiName
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import javax.swing.JComponent
@@ -34,7 +34,10 @@ import javax.swing.JComponent
  */
 // Open for testing only
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
-  private val gotoComponentAction: GotoComponentAction = GotoComponentAction(surface)
+  private val gotoComponentAction: AnAction = GotoComponentAction(surface)
+  private val zoomInAction: AnAction = DesignSurfaceShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface)
+  private val zoomOutAction: AnAction = DesignSurfaceShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface)
+  private val zoomToFitAction: AnAction = DesignSurfaceShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface)
 
   private val createDestinationMenu by lazy { CreateDestinationMenu(mySurface) }
 
@@ -73,9 +76,9 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   }
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
-    group.add(ZoomInAction(mySurface))
-    group.add(ZoomOutAction(mySurface))
-    group.add(ZoomToFitAction(mySurface))
+    group.add(zoomInAction)
+    group.add(zoomOutAction)
+    group.add(zoomToFitAction)
 
     group.addSeparator()
     group.add(gotoComponentAction)
