@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework
 
 import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.google.common.collect.Iterables
+import org.junit.internal.builders.IgnoredClassRunner
+import org.junit.runner.Runner
 import org.junit.runners.Parameterized
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.InitializationError
@@ -72,7 +74,13 @@ class BuildSpecificGuiTestRunner @Throws(InitializationError::class) constructor
 ) {
 
   class Factory : ParametersRunnerFactory {
-    override fun createRunnerForTestWithParameters(test: TestWithParameters) = BuildSpecificGuiTestRunner(test)
+    private val noBazel = System.getProperty("ui.test.no.bazel") != null
+
+    override fun createRunnerForTestWithParameters(test: TestWithParameters): Runner {
+      return if (noBazel && (Iterables.getOnlyElement(test.parameters) == TargetBuildSystem.BuildSystem.BAZEL))
+        IgnoredClassRunner(test.testClass.javaClass)
+      else BuildSpecificGuiTestRunner(test)
+    }
   }
 
   override fun getChildren(): List<FrameworkMethod> = computeTestMethods().filter { isMethodApplicable(it) }
