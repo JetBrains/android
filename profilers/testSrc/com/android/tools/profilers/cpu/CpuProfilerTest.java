@@ -87,12 +87,11 @@ public class CpuProfilerTest {
     myIdeServices.enableImportTrace(true);
 
     myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    Common.Session session = sessionsManager.createImportedSession("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
-    sessionsManager.update();
-    sessionsManager.setSession(session);
-    // Makes sure we've successfully selected the session.
-    assertThat(sessionsManager.getSelectedSession()).isEqualTo(session);
+    // Importing a session from a trace file should select a Common.SessionMetaData.SessionType.CPU_CAPTURE session
+    sessionsManager.importSessionFromFile(trace);
+
     // Verify that CpuProfilerStage is open in Import trace mode
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
     CpuProfilerStage cpuProfilerStage = (CpuProfilerStage)myProfilers.getStage();
@@ -142,5 +141,25 @@ public class CpuProfilerTest {
     assertThat(sessionImportedSuccessfully).isFalse();
 
     assertThat(myProfilerService.getLastImportedSessionType()).isNull();
+  }
+
+  @Test
+  public void referenceToTraceFilesAreSavedPerSession() {
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace1 = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    sessionsManager.importSessionFromFile(trace1);
+    Common.Session session1 = sessionsManager.getSelectedSession();
+
+    File trace2 = CpuProfilerTestUtils.getTraceFile("basic.trace");
+    sessionsManager.importSessionFromFile(trace2);
+    Common.Session session2 = sessionsManager.getSelectedSession();
+
+
+    assertThat(myCpuProfiler.getTraceFile(session1)).isEqualTo(trace1);
+    assertThat(myCpuProfiler.getTraceFile(session2)).isEqualTo(trace2);
   }
 }

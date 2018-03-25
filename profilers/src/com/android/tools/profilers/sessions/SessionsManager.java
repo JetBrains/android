@@ -354,8 +354,19 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       // More recent session should appear at the top.
       int result =
         Long.compare(artifact2.getSessionMetaData().getStartTimestampEpochMs(), artifact1.getSessionMetaData().getStartTimestampEpochMs());
-      // Within a session, more recent artifacts should appear at the bottom.
-      return result == 0 ? Long.compare(artifact1.getTimestampNs(), artifact2.getTimestampNs()) : result;
+      if (result != 0) {
+        return result;
+      }
+      // Within a session: a) The session item itself always comes first
+      if (artifact1 instanceof SessionItem) {
+        return -1;
+      }
+      if (artifact2 instanceof SessionItem) {
+        return 1;
+      }
+
+      // b) more recent artifacts should appear at the bottom.
+      return Long.compare(artifact1.getTimestampNs(), artifact2.getTimestampNs());
     }
   }
 }

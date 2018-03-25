@@ -24,12 +24,24 @@ import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class CpuProfiler extends StudioProfiler {
+
+  /**
+   * Maps a {@link Common.Session} ID to the trace {@link File} (to be) imported into it as a {@link CpuCapture}.
+   */
+  @NotNull
+  private final Map<Long, File> mySessionTraceFiles;
+
   public CpuProfiler(@NotNull StudioProfilers profilers) {
     super(profilers);
+    mySessionTraceFiles = new HashMap<>();
     if (profilers.getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()) {
       // Only enable handling *.trace files if the import CPU traces flag is enabled.
       registerImportedSessionListener();
@@ -43,21 +55,17 @@ public class CpuProfiler extends StudioProfiler {
    */
   private void registerImportedSessionListener() {
     myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, () -> {
-      // Make sure the timeline is paused when the stage is opened, and its bounds are [sessionStartTimestamp, sessionEndTimestamp].
-      ProfilerTimeline timeline = myProfilers.getTimeline();
-      timeline.reset(myProfilers.getSession().getStartTimestamp(), myProfilers.getSession().getEndTimestamp());
-      timeline.setIsPaused(true);
-
       // Open a CpuProfilerStage in import mode when selecting an imported session.
-      // TODO(b/76154264): parses the trace file corresponding to this session and create/set a CpuCapture.
-      myProfilers.setStage(new CpuProfilerStage(myProfilers, true));
+      long sessionId = myProfilers.getSession().getSessionId();
+      assert mySessionTraceFiles.containsKey(sessionId);
+      CpuProfilerStage stage = new CpuProfilerStage(myProfilers, mySessionTraceFiles.get(sessionId));
+      myProfilers.setStage(stage);
     });
   }
 
   /**
    * Registers a handler for importing *.trace files. It will create a {@link Common.SessionMetaData.SessionType#CPU_CAPTURE}
    * {@link Common.Session} and select it.
-   * TODO(b/76154264): parse the *.trace file and save it into the current session.
    */
   private void registerTraceImportHandler() {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
@@ -75,13 +83,24 @@ public class CpuProfiler extends StudioProfiler {
                                                                              startTimestampNs,
                                                                              endTimestampNs,
                                                                              startTimestampEpochMs);
-      // TODO(b/76154264): parse the trace file, save the trace info and load it the only capture of the session. Then update the session
-      //                   end time to be (sessionStartTime + capture length) by making a EndSessionRequest.
+      // Associate the trace file with the session so we can retrieve it later.
+      mySessionTraceFiles.put(importedSession.getSessionId(), file);
       // Select the imported session
       sessionsManager.update();
       // TODO(b/76206865): add usage tracking for creating sessions by importing CPU trace files.
       sessionsManager.setSession(importedSession);
+
+      // Make sure the timeline is paused when the stage is opened for the first time, and its bounds are
+      // [sessionStartTimestamp, sessionEndTimestamp].
+      ProfilerTimeline timeline = myProfilers.getTimeline();
+      timeline.reset(myProfilers.getSession().getStartTimestamp(), myProfilers.getSession().getEndTimestamp());
+      timeline.setIsPaused(true);
     });
+  }
+
+  @Nullable
+  public File getTraceFile(Common.Session session) {
+    return mySessionTraceFiles.get(session.getSessionId());
   }
 
   @Override

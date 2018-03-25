@@ -19,6 +19,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.CpuProfiler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,9 +43,15 @@ public class CpuCapture implements ConfigurableDurationData {
    */
   private final int myTraceId;
 
-  public CpuCapture(@NotNull TraceParser parser, int traceId) {
+  /**
+   * Technology used to generate the capture.
+   */
+  private final CpuProfiler.CpuProfilerType myType;
+
+  public CpuCapture(@NotNull TraceParser parser, int traceId, CpuProfiler.CpuProfilerType type) {
     myParser = parser;
     myTraceId = traceId;
+    myType = type;
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
@@ -143,5 +150,9 @@ public class CpuCapture implements ConfigurableDurationData {
 
   public boolean isDualClock() {
     return myParser.supportsDualClock();
+  }
+
+  public CpuProfiler.CpuProfilerType getType() {
+    return myType;
   }
 }

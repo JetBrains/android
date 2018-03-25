@@ -40,7 +40,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -67,6 +69,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @VisibleForTesting
   static final String PARSING_FAILURE_BALLOON_TEXT = "The profiler was unable to parse the method trace data. Try recording another " +
                                                      "method trace, or ";
+
+  @VisibleForTesting
+  static final String PARSING_FILE_FAILURE_BALLOON_TITLE = "Trace file was not parsed";
+  @VisibleForTesting
+  static final String PARSING_FILE_FAILURE_BALLOON_TEXT = "The profiler was unable to parse the trace file. Please make sure the file " +
+                                                          "selected is a valid trace. Alternatively, try importing another file, or ";
 
   @VisibleForTesting
   static final String CAPTURE_START_FAILURE_BALLOON_TITLE = "Recording failed to start";
@@ -210,15 +218,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final boolean myIsImportTraceMode;
 
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
-    this(profilers, false);
+    this(profilers, null);
   }
 
-  public CpuProfilerStage(@NotNull StudioProfilers profilers, boolean importTraceMode) {
+  public CpuProfilerStage(@NotNull StudioProfilers profilers, @Nullable File importedTrace) {
     super(profilers);
     // Only allow import trace mode if Import CPU trace and sessions flag are enabled.
     myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()
                           && getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()
-                          && importTraceMode;
+                          && importedTrace != null;
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerModel = new CpuProfilerConfigModel(profilers, this);
@@ -321,6 +329,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setAndSelectCapture(candidateToSelect.getTraceId());
       }
     });
+    if (myIsImportTraceMode) {
+      // When in import trace mode, immediately import the trace from the given file and set the resulting capture.
+      parseAndSelectImportedTrace(importedTrace);
+    }
   }
 
   private static Logger getLogger() {
@@ -576,6 +588,54 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   /**
+   * Parses a trace {@link File} and set the resulting {@link CpuCapture} as the current capture. If parsing fails, warn the user through an
+   * error balloon.
+   */
+  private void parseAndSelectImportedTrace(File traceFile) {
+    assert myIsImportTraceMode;
+    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceFile);
+    if (capture == null) {
+      // User aborted the capture, or the model received an invalid file (e.g. from tests) canceled. Log and return early.
+      getLogger().info("Imported trace file was not parsed.");
+      return;
+    }
+    setCaptureState(CaptureState.PARSING);
+    // TODO: add usage tracking
+    Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
+      if (parsedCapture != null) {
+        ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+        // Give some room to the end of the timeline, so we can properly use the handle to select the capture.
+        long endTimestampNs = TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMax()) + TimeUnit.SECONDS.toNanos(5);
+        timeline.reset(TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMin()), endTimestampNs);
+        timeline.setIsPaused(true);
+
+        setCaptureState(CaptureState.IDLE);
+        setAndSelectCapture(parsedCapture);
+        setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
+        // Save trace info if not already saved
+        if (!myTraceIdsIterator.contains(CpuCaptureParser.IMPORTED_TRACE_ID)) {
+          saveTraceInfo(CpuCaptureParser.IMPORTED_TRACE_ID, parsedCapture);
+          myTraceIdsIterator.addTrace(CpuCaptureParser.IMPORTED_TRACE_ID);
+        }
+      }
+      else {
+        setCaptureState(CaptureState.PARSING_FAILURE);
+        getStudioProfilers().getIdeServices()
+          .showErrorBalloon(PARSING_FILE_FAILURE_BALLOON_TITLE, PARSING_FILE_FAILURE_BALLOON_TEXT, CPU_BUG_TEMPLATE_URL, REPORT_A_BUG_TEXT);
+        // PARSING_FAILURE is a transient state. After notifying the listeners that the parser has failed, we set the status to IDLE.
+        setCaptureState(CaptureState.IDLE);
+      }
+    };
+
+    // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
+    capture.handleAsync((parsedCapture, exception) -> {
+      parsingCallback.accept(parsedCapture);
+      return parsedCapture;
+    }, getStudioProfilers().getIdeServices().getMainExecutor());
+
+  }
+
+  /**
    * Handles capture parsing after stopping a capture. Basically, this method checks if {@link CpuCaptureParser} has already parsed the
    * capture and delegates the parsing to such class if it hasn't yet. After that, it waits asynchronously for the parsing to happen
    * and sets the capture in the main executor after it's done. This method also takes care of updating the {@link CpuCaptureMetadata}
@@ -661,7 +721,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setTraceId(traceId)
       .setFromTimestamp(captureFrom)
       .setToTimestamp(captureTo)
-      .setProfilerType(myProfilerModel.getActiveConfig().getProfilerType())
+      .setProfilerType(capture.getType())
       .setTraceFilePath(myCaptureParser.getTraceFilePath(traceId))
       .addAllThreads(threads).build();
 

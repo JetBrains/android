@@ -113,10 +113,12 @@ public class SessionItem implements SessionArtifact {
 
   @Override
   public void onSelect() {
-    myProfilers.getSessionsManager().setSession(mySession);
     if (!myProfilers.getStageClass().equals(StudioMonitorStage.class)) {
       myProfilers.setStage(new StudioMonitorStage(myProfilers));
     }
+    // We set the session only after setting the stage to StudioMonitorStage, because we might have Session Selection Listeners
+    // setting the stage to something else (e.g. opening Memory profiler to display hprof files, or CPU profiler to display trace files).
+    myProfilers.getSessionsManager().setSession(mySession);
     myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 }
