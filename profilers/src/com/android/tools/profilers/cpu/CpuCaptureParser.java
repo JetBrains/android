@@ -52,7 +52,6 @@ public class CpuCaptureParser {
    * Used as ID of imported traces. Importing a trace will happen once per session,
    * so we can have an arbitrary ID as it's going to be unique within a session.
    */
-  @VisibleForTesting
   static final int IMPORTED_TRACE_ID = 42;
 
   /**
@@ -146,6 +145,7 @@ public class CpuCaptureParser {
       getLogger().info("Trace not parsed, as its path doesn't exist or points to a directory.");
       return null;
     }
+    myTraceFiles.put(IMPORTED_TRACE_ID, traceFile.getAbsolutePath());
 
     long fileLength = traceFile.length();
     if (fileLength > MAX_SUPPORTED_TRACE_SIZE) {

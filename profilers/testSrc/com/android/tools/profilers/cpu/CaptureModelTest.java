@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.event.FakeEventService;
@@ -107,7 +108,7 @@ public class CaptureModelTest {
                                              new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
                                                .put(info, root)
                                                .build(), false);
-    CpuCapture capture = new CpuCapture(parser, 200);
+    CpuCapture capture = new CpuCapture(parser, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureModel.Details.Type.CALL_CHART);

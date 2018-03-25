@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
@@ -29,7 +30,7 @@ public class AtraceCpuCapture extends CpuCapture {
   private final AtraceParser myParser;
 
   public AtraceCpuCapture(AtraceParser parser, int traceId) {
-    super(parser, traceId);
+    super(parser, traceId, CpuProfiler.CpuProfilerType.ATRACE);
     myParser = parser;
   }
 
