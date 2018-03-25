@@ -874,6 +874,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return panel;
   }
 
+  @Override
+  public boolean navigationControllersEnabled() {
+    return !myStage.isImportTraceMode();
+  }
+
   private String formatCaptureLabel(CpuTraceInfo info) {
     Range range = getStage().getStudioProfilers().getTimeline().getDataRange();
     long min = (long)(info.getRange().getMin() - range.getMin());
