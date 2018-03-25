@@ -129,6 +129,13 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   /**
+   * Whether navigation controllers (i.e. Jump to Live, Profilers Combobox, and Back arrow) are enabled/visible.
+   */
+  public boolean navigationControllersEnabled() {
+    return true;
+  }
+
+  /**
    * A purely visual concept as to whether this stage wants the "process and devices" selection being shown to the user.
    * It is not possible to assume processes won't change while a stage is running. For example: a process dying.
    */
