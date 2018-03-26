@@ -32,10 +32,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.xml.XmlFile
-import com.intellij.ui.CollectionListModel
-import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.DottedBorder
-import com.intellij.ui.SearchTextField
+import com.intellij.ui.*
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBLoadingPanel
@@ -146,13 +143,29 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     listModel.setFilter { destination -> destination.label.toLowerCase().contains(mySearchField.text.toLowerCase()) }
     @Suppress("UNCHECKED_CAST")
-    destinationsList = JBList<Destination>(listModel as ListModel<Destination>)
-    destinationsList.setCellRenderer { _, value, _, _, _ ->
+    destinationsList = object : JBList<Destination>(listModel as ListModel<Destination>) {
+      override fun locationToIndex(location: Point): Int {
+        val result = super.locationToIndex(location)
+        return if (destinationsList.getCellBounds(result, result).contains(location)) result else -1
+      }
+    }
+    destinationsList.setCellRenderer { _, value, _, selected, _ ->
       THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail.getScaledInstance(JBUI.scale(50), JBUI.scale(64), Image.SCALE_SMOOTH))
       PRIMARY_TEXT_RENDERER.text = value.label
       SECONDARY_TEXT_RENDERER.text = value.typeLabel
+      RENDERER.isOpaque = selected
       RENDERER
     }
+
+    destinationsList.addMouseListener(object : MouseAdapter() {
+      override fun mouseExited(e: MouseEvent?) {
+        destinationsList.clearSelection()
+      }
+
+      override fun mouseClicked(event: MouseEvent) {
+        destinationsList.selectedValue?.let { addDestination(it) }
+      }
+    })
 
     destinationsList.background = null
     destinationsList.addMouseMotionListener(
@@ -214,16 +227,6 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     } else {
       result.add(scrollPane)
     }
-    destinationsList.addMouseListener(
-        object : MouseAdapter() {
-          override fun mouseClicked(event: MouseEvent) {
-            val element = destinationsList.selectedValue
-            if (element != null) {
-              addDestination(element)
-            }
-          }
-        }
-    )
     return result
   }
 
@@ -271,11 +274,14 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     init {
       SECONDARY_TEXT_RENDERER.foreground = NavColorSet.SUBDUED_TEXT_COLOR
       RENDERER.add(THUMBNAIL_RENDERER, BorderLayout.WEST)
-      val leftPanel = JPanel(VerticalLayout(8))
-      leftPanel.border = JBUI.Borders.empty(12, 6, 0, 0)
-      leftPanel.add(PRIMARY_TEXT_RENDERER, VerticalLayout.CENTER)
-      leftPanel.add(SECONDARY_TEXT_RENDERER, VerticalLayout.CENTER)
-      RENDERER.add(leftPanel, BorderLayout.CENTER)
+      val rightPanel = JPanel(VerticalLayout(8))
+      rightPanel.isOpaque = false
+      rightPanel.border = JBUI.Borders.empty(12, 6, 0, 0)
+      rightPanel.add(PRIMARY_TEXT_RENDERER, VerticalLayout.CENTER)
+      rightPanel.add(SECONDARY_TEXT_RENDERER, VerticalLayout.CENTER)
+      RENDERER.add(rightPanel, BorderLayout.CENTER)
+      RENDERER.background = NavColorSet.LIST_MOUSEOVER_COLOR
+      RENDERER.isOpaque = false
     }
   }
 }
