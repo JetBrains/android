@@ -23,15 +23,15 @@ import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
+import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -66,7 +66,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * @param element the {@code GradleDslElement} for the property.
    */
   private void addPropertyInternal(@NotNull GradleDslElement element, @NotNull ElementState state) {
-    myProperties.addElement(element, state);
+    if (this instanceof ExtDslElement && state == TO_BE_ADDED) {
+      int index = reorderAndMaybeGetNewIndex(element);
+      myProperties.addElementAtIndex(element, state, index);
+    }
+    else {
+      myProperties.addElement(element, state);
+    }
+
     if (state == TO_BE_ADDED) {
       updateDependenciesOnAddElement(element);
     }
@@ -101,9 +108,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   private ElementState replacePropertyInternal(@NotNull GradleDslElement element, @NotNull GradleDslElement newElement) {
     // Make sure the properties have the same name.
     assert newElement.getFullName().equals(element.getFullName());
+
     updateDependenciesOnReplaceElement(element, newElement);
 
-    return myProperties.replaceElement(element, newElement);
+    ElementState oldState = myProperties.replaceElement(element, newElement);
+    reorderAndMaybeGetNewIndex(newElement);
+    return oldState;
   }
 
   private void hidePropertyInternal(@NotNull String property) {
@@ -304,16 +314,19 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     assert !isPropertyNested(property);
     if (element == null) {
       return getElementWhere(property, PROPERTY_FILTER);
-    } else {
+    }
+    else {
       return myProperties.getElementBeforeChildWhere(e -> PROPERTY_FILTER.test(e) && e.myElement.getName().equals(property), element);
     }
   }
 
-  @Nullable GradleDslElement getElementBefore(@Nullable GradleDslElement element, @NotNull String property) {
+  @Nullable
+  GradleDslElement getElementBefore(@Nullable GradleDslElement element, @NotNull String property) {
     assert !isPropertyNested(property);
     if (element == null) {
       return getElementWhere(property, ANY_FILTER);
-    } else {
+    }
+    else {
       return myProperties.getElementBeforeChildWhere(e -> ANY_FILTER.test(e) && e.myElement.getName().equals(property), element);
     }
   }
@@ -582,6 +595,55 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     myProperties.clear();
   }
 
+  public int reorderAndMaybeGetNewIndex(@NotNull GradleDslElement element) {
+    int result = sortElementsAndMaybeGetNewIndex(element);
+    element.resolve();
+    return result;
+  }
+
+  private int sortElementsAndMaybeGetNewIndex(@NotNull GradleDslElement element) {
+    List<GradleDslElement> currentElements =
+      myProperties.getElementsWhere(e -> e.myElementState == EXISTING || e.myElementState == TO_BE_ADDED);
+    List<GradleDslElement> sortedElements = new ArrayList<>();
+    boolean result = ElementSort.create(this, element).sort(currentElements, sortedElements);
+    int resultIndex = myProperties.myElements.size();
+
+    if (!result) {
+      // TODO: Add notification here.
+      return resultIndex;
+    }
+
+    int i = 0, j = 0;
+    while (i < currentElements.size() && j < sortedElements.size()) {
+      if (currentElements.get(i) == sortedElements.get(i)) {
+        i++;
+        j++;
+        continue;
+      }
+
+      if (sortedElements.get(i) == element && !currentElements.contains(element)) {
+        resultIndex = i;
+        j++;
+        continue;
+      }
+
+      // Move the element into the correct position.
+      moveElementTo(i, sortedElements.get(j));
+      i++;
+      j++;
+    }
+
+    return resultIndex;
+  }
+  
+  @Override
+  @NotNull
+  public List<GradleReferenceInjection> getDependencies() {
+    return myProperties.getElementsWhere(e -> e.myElementState != APPLIED).stream().map(GradleDslElement::getDependencies)
+      .flatMap(Collection::stream).collect(
+        Collectors.toList());
+  }
+
   /**
    * Class to deal with retrieving the correct property for a given context. It manages whether
    * or not variable types should be returned along with coordinating a number of properties
@@ -639,7 +701,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
         }
 
         if (predicate.test(i)) {
-           lastElement = i.myElement;
+          lastElement = i.myElement;
         }
 
         if (i.myElement == child) {

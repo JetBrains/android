@@ -98,7 +98,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
   }
 
   @Nullable
-  public GradleDslElement resolveReference(@NotNull String referenceText) {
+  public GradleDslElement resolveReference(@NotNull String referenceText, boolean resolveWithOrder) {
     GradleDslElement searchStartElement = this;
 
     List<String> referenceTextSegments = Splitter.on('.').trimResults().omitEmptyStrings().splitToList(referenceText);
@@ -151,7 +151,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
     else {
       // Search in the file that searchStartElement belongs to.
       referenceTextSegments = referenceTextSegments.subList(index, segmentCount);
-      resolvedElement = resolveReferenceInSameModule(searchStartElement, referenceTextSegments);
+      resolvedElement = resolveReferenceInSameModule(searchStartElement, referenceTextSegments, resolveWithOrder);
     }
 
     GradleDslFile dslFile = searchStartElement.getDslFile();
@@ -178,7 +178,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
    */
   @Nullable
   public <T> T resolveReference(@NotNull String referenceText, @NotNull Class<T> clazz) {
-    GradleDslElement resolvedElement = resolveReference(referenceText);
+    GradleDslElement resolvedElement = resolveReference(referenceText, true);
 
     if (resolvedElement != null) {
       T result = null;
@@ -366,7 +366,9 @@ public abstract class GradleDslExpression extends GradleDslElement {
   }
 
   @Nullable
-  private static GradleDslElement resolveReferenceOnElement(GradleDslElement element, @NotNull List<String> nameParts) {
+  private static GradleDslElement resolveReferenceOnElement(@NotNull GradleDslElement element,
+                                                            @NotNull List<String> nameParts,
+                                                            boolean resolveWithOrder) {
     // We need to keep track of the last element we saw to ensure we only check items BEFORE the one we are resolving.
     GradleDslElement lastElement = null;
     boolean extChecked = false;
@@ -393,7 +395,10 @@ public abstract class GradleDslExpression extends GradleDslElement {
           break;
         }
       }
-      lastElement = element;
+
+      if (resolveWithOrder) {
+        lastElement = element;
+      }
       element = element.getParent();
     }
 
@@ -401,9 +406,11 @@ public abstract class GradleDslExpression extends GradleDslElement {
   }
 
   @Nullable
-  private static GradleDslElement resolveReferenceInSameModule(GradleDslElement startElement, @NotNull List<String> referenceText) {
+  private static GradleDslElement resolveReferenceInSameModule(@NotNull GradleDslElement startElement,
+                                                               @NotNull List<String> referenceText,
+                                                               boolean resolveWithOrder) {
     // Try to resolve in the build.gradle file the startElement is belongs to.
-    GradleDslElement element = resolveReferenceOnElement(startElement, referenceText);
+    GradleDslElement element = resolveReferenceOnElement(startElement, referenceText, resolveWithOrder);
     if (element != null) {
       return element;
     }

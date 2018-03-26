@@ -678,7 +678,7 @@ public final class GroovyDslUtil {
       if (injection != null) {
         String name = getInjectionName(injection);
         if (name != null) {
-          GradleDslElement referenceElement = context.resolveReference(name);
+          GradleDslElement referenceElement = context.resolveReference(name, true);
           if (includeUnresolved || referenceElement != null) {
             injections.add(new GradleReferenceInjection(context, referenceElement, injection, name));
           }

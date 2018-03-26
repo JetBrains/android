@@ -121,8 +121,12 @@ public abstract class GradleDslElement implements AnchorProvider {
 
     List<GradleReferenceInjection> dependents = getDependents();
     unregisterAllDependants();
+
+    reorder();
+
     // The property we renamed could have been shadowing another one. Attempt to re-resolve all dependents.
     dependents.forEach(e -> e.getOriginElement().resolve());
+
     // The new name could also create new dependencies, we need to make sure to resolve them.
     getDslFile().getContext().getDependencyManager().resolveWith(this);
   }
@@ -414,5 +418,11 @@ public abstract class GradleDslElement implements AnchorProvider {
   }
 
   protected void resolve() {
+  }
+
+  protected void reorder() {
+    if (myParent instanceof ExtDslElement) {
+      ((ExtDslElement)myParent).reorderAndMaybeGetNewIndex(this);
+    }
   }
 }

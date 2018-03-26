@@ -18,8 +18,11 @@ package com.android.tools.idea.gradle.dsl.model.ext
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -114,7 +117,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
                       varInt = numbers[1]
                       varBool = bool
                       varRefString = "${'$'}{numbers[3]}"
-                      varProGuardFiles = [test: 'proguard-rules.txt', debug: 'proguard-rules2.txt']
+                      varProGuardFiles = [test: 'proguard-rules.txt', debug: debugFile]
                     }
 
                     android {
@@ -206,7 +209,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyNumbers(secondModel, 0, 0,  0, 1)
     assertDependencyNumbers(thirdModel, 0, 0, 0, 1)
     // Note: Unresolved dependencies are only counted at the item level.
-    assertDependencyNumbers(fourthModel, 3, 0, 0, 1)
+    assertDependencyNumbers(fourthModel, 3, 3, 0, 1)
 
     assertDependencyNumbers(fourthModel.toList()!![0], 1, 1, 0, 0)
     assertDependencyBetween(fourthModel.toList()!![0], firstModel, "N0")
@@ -266,7 +269,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val storePModel = appliedSigningVarModel.toMap()!!["storeP"]!!
     val keyFModel   = appliedSigningVarModel.toMap()!!["keyF"]!!
     val keyPModel   = appliedSigningVarModel.toMap()!!["keyP"]!!
-    assertDependencyNumbers(varsModel, 2, 0, 0, 0)
+    assertDependencyNumbers(varsModel, 2, 2, 0, 0)
     assertDependencyNumbers(appliedMinSdkModel, 0, 0, 0, 2)
     assertDependencyNumbers(appliedMaxDskModel, 1, 1, 0, 1)
     assertDependencyBetween(appliedMaxDskModel, appliedMinSdkModel, "ext.vars.minSdk")
@@ -299,7 +302,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyBetween(varBool, booleanModel, "bool")
     assertDependencyNumbers(varRefString, 1, 1, 0, 1)
     assertDependencyBetween(varRefString, numbersModel.toList()!![3], "numbers[3]")
-    assertDependencyNumbers(varProGuardFiles, 0, 0, 0, 0)
+    assertDependencyNumbers(varProGuardFiles, 0, 1, 1, 0)
 
     val android = childModel.android()!!
     val compileSdkModel = android.compileSdkVersion()
@@ -471,5 +474,57 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     deletedN0Model.delete()
     assertDependencyNumbers(n0Model, 0, 1, 1, 0)
+  }
+
+  // TODO: Move to PropertyOrderTest once the file strings are extracted to a common place.
+  @Test
+  fun testListDependenciesWithReordering() {
+    setupSingleFile()
+
+    val buildModel = gradleBuildModel
+
+    val extModel = buildModel.ext()
+
+    val oldN0Property = extModel.findProperty("N0")
+    oldN0Property.delete()
+
+    val newN0Property = extModel.findProperty("N0")
+    newN0Property.setValue(ReferenceTo("O"))
+
+    val listDependent = extModel.findProperty("listItem")
+    listDependent.setValue(ReferenceTo("versions[0]"))
+
+    verifyPropertyModel(listDependent.resolve(), INTEGER_TYPE, 27, INTEGER, REGULAR, 1, "listItem")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyPropertyModel(buildModel.ext().findProperty("listItem").resolve(), INTEGER_TYPE, 27, INTEGER, REGULAR, 1, "listItem")
+  }
+
+  // TODO: Move to PropertyOrderTest once the file strings are extracted to a common place.
+  @Test
+  fun testMapDependenciesWithReordering() {
+    setupParentAndAppliedFiles()
+
+    val projectModel = ProjectBuildModel.get(myProject)!!
+    val childModel = projectModel.getModuleBuildModel(mySubModule)!!
+
+    run {
+
+      val debugFileModel = childModel.ext().findProperty("debugFile")
+      debugFileModel.setValue("myDebugFile.txt")
+
+      val newMapReference = childModel.ext().findProperty("mapItem")
+      newMapReference.setValue(ReferenceTo("varProGuardFiles['debug']"))
+
+      verifyPropertyModel(newMapReference.resolve(), STRING_TYPE, "myDebugFile.txt", STRING, REGULAR, 1, "mapItem")
+    }
+
+    applyChangesAndReparse(projectModel)
+
+    run {
+      val newMapReference = childModel.ext().findProperty("mapItem")
+      verifyPropertyModel(newMapReference.resolve(), STRING_TYPE, "myDebugFile.txt", STRING, REGULAR, 1, "mapItem")
+    }
   }
 }

@@ -73,7 +73,7 @@ public final class DependencyManager {
     for (Iterator<GradleReferenceInjection> it = myUnresolvedReferences.iterator(); it.hasNext();) {
       GradleReferenceInjection injection = it.next();
       // Attempt to re-resolve any references.
-      GradleDslElement newElement = injection.getOriginElement().resolveReference(injection.getName());
+      GradleDslElement newElement = injection.getOriginElement().resolveReference(injection.getName(), true);
       if (newElement != null) {
         assert newElement instanceof GradleDslExpression ||
                newElement instanceof GradleDslExpressionList ||
