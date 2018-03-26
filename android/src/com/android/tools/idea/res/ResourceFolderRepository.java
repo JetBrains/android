@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.TextResourceValue;
@@ -140,8 +141,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     myInitialScanState = new InitialScanState(merger, VfsUtilCore.virtualToIoFile(myResourceDir));
     scanRemainingFiles();
     Application app = ApplicationManager.getApplication();
-    // For now, automatically save the state. We may want to move this out to a separate task.
-    if (!hasFreshFileCache() && !app.isUnitTestMode()) {
+
+    // TODO(b/76409654): figure out how to store the state in namespaced projects.
+    if (!hasFreshFileCache() && !namespacesUsed() && !app.isUnitTestMode()) {
       saveStateToFile();
     }
     // Clear some unneeded state (myInitialScanState's resource merger holds a second map of items).
@@ -213,6 +215,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
    * @return the loaded ResourceMerger -- this can be used to save state again, if the cache isn't fresh
    */
   private ResourceMerger loadPreviousStateIfExists() {
+    if (namespacesUsed()) {
+      // TODO(b/76409654): figure out how to store the state in namespaced projects.
+      return createFreshResourceMerger();
+    }
+
     File blobRoot = ResourceFolderRepositoryFileCacheService.get().getResourceDir(myModule.getProject(), myResourceDir);
     if (blobRoot == null || !blobRoot.exists()) {
       return createFreshResourceMerger();
@@ -279,6 +286,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     commitToRepository(result);
 
     return merger;
+  }
+
+  private boolean namespacesUsed() {
+    return ResourceRepositoryManager.getOrCreateInstance(myFacet).getNamespacing() != AaptOptions.Namespacing.DISABLED;
   }
 
   private static void addToResult(Map<ResourceType, ListMultimap<String, ResourceItem>> result, ResourceItem item) {
