@@ -94,6 +94,6 @@ class NopSymbolizer : NativeSymbolizer {
   }
 }
 
-private fun getLogger(): Logger {
+internal fun getLogger(): Logger {
   return Logger.getInstance("NativeSymbolizer")
 }

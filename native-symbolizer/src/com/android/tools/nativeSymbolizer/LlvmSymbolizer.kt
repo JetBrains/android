@@ -17,6 +17,7 @@ package com.android.tools.nativeSymbolizer
 
 import com.intellij.openapi.Disposable
 import java.io.*
+import java.util.concurrent.*
 
 /**
  * Implementation of NativeSymbolizer that uses llvm-symbolizer.
@@ -34,31 +35,46 @@ import java.io.*
  *
  * More info about llvm-symbolizer: https://llvm.org/docs/CommandGuide/llvm-symbolizer.html
  */
-class LlvmSymbolizer(private val symbolizerExe: String, private val symLocator: SymbolFilesLocator) : NativeSymbolizer {
+class LlvmSymbolizer(private val symbolizerExe: String,
+                     private val symLocator: SymbolFilesLocator,
+                     private val timeoutMsc: Long = 5000) : NativeSymbolizer {
 
   private var procHolder : ProcessHolder? = null
+  private val executor : ExecutorService = Executors.newSingleThreadExecutor()
 
   override fun symbolize(abiArch: String, module: String, offset: Long): Symbol? {
     val symFiles = symLocator.findSymbolFiles(abiArch, module)
 
-    var holder = procHolder
-    if (holder == null || !holder.process.isAlive) {
-      start()
-      holder = procHolder!! // procHolder must't be null after start()
-    }
-
     for (symFile in symFiles) {
-      holder.stdin.write(formatRequest(symFile, offset))
-      holder.stdin.flush()
+      val request = formatRequest(symFile, offset)
 
-      val response: MutableList<String> = mutableListOf()
-      var responseLine: String?
-      while (true) {
-        responseLine = holder.stdout.readLine()
-        if (responseLine == null || responseLine.isEmpty()) {
-          break
+      val holder = getProcHolder()
+      val future = executor.submit( Callable<List<String>> {
+        holder.stdin.write(request)
+        holder.stdin.flush()
+
+        val response: MutableList<String> = mutableListOf()
+        var responseLine: String?
+        while (true) {
+          responseLine = holder.stdout.readLine()
+          if (responseLine == null || responseLine.isEmpty()) {
+            break
+          }
+          response.add(responseLine)
         }
-        response.add(responseLine)
+        response
+      })
+      val response : List<String>
+      try {
+        response = future.get(timeoutMsc, TimeUnit.MILLISECONDS)
+      } catch (e: TimeoutException) {
+        getLogger().warn("llvm-symbolizer timed out", e)
+        stop()
+        continue
+      } catch (e: ExecutionException) {
+        getLogger().warn("llvm-symbolizer communication failed", e)
+        stop()
+        continue
       }
 
       val result = parseResponse(response, module)
@@ -71,6 +87,15 @@ class LlvmSymbolizer(private val symbolizerExe: String, private val symLocator: 
 
   override fun dispose() {
     stop()
+  }
+
+  private fun getProcHolder() : ProcessHolder {
+    var holder = procHolder
+    if (holder == null || !holder.process.isAlive) {
+      start()
+      holder = procHolder!! // procHolder must't be null after start()
+    }
+    return holder
   }
 
   private fun formatRequest(symFile: File, offset: Long): String {
@@ -109,7 +134,7 @@ class LlvmSymbolizer(private val symbolizerExe: String, private val symLocator: 
     if (procHolder != null)
       stop()
 
-    val builder = ProcessBuilder(symbolizerExe, "-demangle")
+    val builder = ProcessBuilder(symbolizerExe)
     val process = builder.start()
     if (!process.isAlive) {
       throw IOException("Symbolizer process is not alive. Executable: $symbolizerExe")
@@ -130,8 +155,6 @@ class LlvmSymbolizer(private val symbolizerExe: String, private val symLocator: 
                               val stdin: OutputStreamWriter) : Disposable {
     override fun dispose() {
       process.destroy()
-      stdout.close()
-      stdin.close()
     }
   }
 }
