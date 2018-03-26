@@ -16,8 +16,10 @@
 package com.android.tools.nativeSymbolizer
 
 import com.android.testutils.TestUtils
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Test
 import java.io.File
 import java.io.IOException
@@ -64,7 +66,7 @@ class LlvmSymbolizerTest {
   @Test
   fun testSymbolizeBinariesBuiltOnWindows() {
     val arch = "arm64"
-    val binDir = "win";
+    val binDir = "win"
     val symLocator = SymbolFilesLocator(mapOf(Pair(arch, setOf(Paths.get(testDataDir, binDir).toFile()!!))))
     val symbolizer = LlvmSymbolizer(getLlvmSymbolizerPath(), symLocator)
     val expectedSymbolsFile = Paths.get(testDataDir, binDir, EXPECTED_SYMBOLS_FILE_NAME).toFile()
@@ -139,10 +141,21 @@ class LlvmSymbolizerTest {
   @Test(expected = IOException::class)
   fun testSymbolizerExeMissing() {
     val symLocator = SymbolFilesLocator(getSymDirMap())
-    val notExistingPapth = getLlvmSymbolizerPath().replace("llvm-symbolizer", "not-llvm-symbolizer");
+    val notExistingPapth = getLlvmSymbolizerPath().replace("llvm-symbolizer", "not-llvm-symbolizer")
     val symbolizer = LlvmSymbolizer(notExistingPapth, symLocator)
     symbolizer.symbolize("x86", LIB_FILE_NAME, 11)
     Assert.fail("IOException is expected to be thrown by the line above")
+  }
+
+  @Test
+  fun testLlvmSymbolizerProcFreeze() {
+    Assume.assumeFalse(SystemInfo.isWindows) // Windows doesn't have 'yes'
+    val symLocator = SymbolFilesLocator(getSymDirMap())
+    val yesPath = "yes" // call 'yes' instead llvm-symbolizer to simulate freezing symbolizer
+    val symbolizer = LlvmSymbolizer(yesPath, symLocator, 50)
+    for (addr in 0L..6L) {
+      Assert.assertNull(symbolizer.symbolize("x86", LIB_FILE_NAME, addr))
+    }
   }
 
   @Test
