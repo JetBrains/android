@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profiler.proto.CpuProfiler
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class ProfilingConfigurationTest {
@@ -52,5 +52,20 @@ class ProfilingConfigurationTest {
     assertThat(proto.profilerType).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLEPERF)
     assertThat(proto.samplingIntervalUs).isEqualTo(1234)
     assertThat(proto.bufferSizeInMb).isEqualTo(12)
+  }
+
+  @Test
+  fun defaultConfigName() {
+    var profilerType = CpuProfiler.CpuProfilerType.ART
+    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.ART)
+
+    profilerType = CpuProfiler.CpuProfilerType.SIMPLEPERF
+    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.SIMPLEPERF)
+
+    profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo(ProfilingConfiguration.ATRACE)
+
+    profilerType = CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER
+    assertThat(ProfilingConfiguration.getDefaultConfigName(profilerType)).isEqualTo("Unknown Configuration")
   }
 }

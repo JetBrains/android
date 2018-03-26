@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
@@ -32,6 +33,13 @@ public class ProfilingConfiguration {
   public static final String ART_SAMPLED = "Sampled (Java)";
 
   public static final String ART_INSTRUMENTED = "Instrumented (Java)";
+
+  /**
+   * Default name used by ART configurations (both sampled and instrumented).
+   * TODO(b/76152657): when getDefaultConfigName supports both mode and profiler type, remove this field.
+   */
+  @VisibleForTesting
+  static final String ART = "Java";
 
   public static final String SIMPLEPERF = "Sampled (Native)";
 
@@ -105,6 +113,24 @@ public class ProfilingConfiguration {
 
   public int getProfilingSamplingIntervalUs() {
     return myProfilingSamplingIntervalUs;
+  }
+
+  /**
+   * Returns the default configuration name corresponding to the given {@link CpuProfilerType}.
+   * TODO(b/76152657): support profiler Mode to differentiate Sampled and Instrumented captures. In order to do that, we should probably
+   *                   change our API to add a CpuProfilerConfiguration.Mode field to TraceInfo.
+   */
+  public static String getDefaultConfigName(CpuProfilerType profilerType) {
+    switch (profilerType) {
+      case ART:
+        return ART;
+      case SIMPLEPERF:
+        return SIMPLEPERF;
+      case ATRACE:
+        return ATRACE;
+      default:
+        return "Unknown Configuration";
+    }
   }
 
   public int getRequiredDeviceLevel() {

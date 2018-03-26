@@ -28,6 +28,7 @@ import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -413,7 +414,12 @@ class SessionsViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val traceInfoId = 13
-    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setTraceId(traceInfoId).setFromTimestamp(10).setToTimestamp(11).build()
+    val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder()
+      .setTraceId(traceInfoId)
+      .setFromTimestamp(10)
+      .setToTimestamp(11)
+      .setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF)
+      .build()
     myCpuService.addTraceInfo(cpuTraceInfo)
 
     myProfilerService.setTimestampNs(1)
@@ -422,11 +428,12 @@ class SessionsViewTest {
     val session = mySessionsManager.selectedSession
 
     assertThat(sessionArtifacts.size).isEqualTo(2)
-    var sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
+    val sessionItem = sessionArtifacts.getElementAt(0) as SessionItem
     val cpuCaptureItem = sessionArtifacts.getElementAt(1) as CpuCaptureSessionArtifact
     assertThat(sessionItem.session).isEqualTo(session)
     assertThat(cpuCaptureItem.session).isEqualTo(session)
     assertThat(cpuCaptureItem.isOngoingCapture).isFalse()
+    assertThat(cpuCaptureItem.name).isEqualTo(ProfilingConfiguration.SIMPLEPERF)
 
     // Prepare FakeCpuService to return a valid trace.
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
@@ -460,7 +467,8 @@ class SessionsViewTest {
     val sessionStartNs = 1L
 
     // Sets an ongoing profiling configuration in the service
-    myCpuService.setOngoingCaptureConfiguration(CpuProfiler.CpuProfilerConfiguration.getDefaultInstance(), sessionStartNs + 1)
+    val configuration = CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ATRACE).build()
+    myCpuService.setOngoingCaptureConfiguration(configuration, sessionStartNs + 1)
 
     myProfilerService.setTimestampNs(sessionStartNs)
     mySessionsManager.beginSession(device, process)
@@ -472,6 +480,7 @@ class SessionsViewTest {
     assertThat(sessionItem.session).isEqualTo(session)
     assertThat(cpuCaptureItem.session).isEqualTo(session)
     assertThat(cpuCaptureItem.isOngoingCapture).isTrue()
+    assertThat(cpuCaptureItem.name).isEqualTo(ProfilingConfiguration.ATRACE)
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Clicking on the CpuCaptureSessionArtifact should open CPU profiler and select the capture
