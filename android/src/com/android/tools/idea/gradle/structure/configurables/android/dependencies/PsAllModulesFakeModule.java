@@ -40,6 +40,12 @@ public class PsAllModulesFakeModule extends PsModule {
     return getParent();
   }
 
+  @NotNull
+  @Override
+  public List<String> getConfigurations() {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   public void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames) {
     throw new UnsupportedOperationException();

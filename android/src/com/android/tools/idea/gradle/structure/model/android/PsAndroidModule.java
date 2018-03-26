@@ -195,6 +195,12 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return repositories;
   }
 
+  @NotNull
+  @Override
+  public List<String> getConfigurations() {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   public void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames) {
     // Update/reset the "parsed" model.

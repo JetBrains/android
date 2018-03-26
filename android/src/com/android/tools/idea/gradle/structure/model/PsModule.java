@@ -181,6 +181,9 @@ public abstract class PsModule extends PsChildModel {
     }
   }
 
+  @NotNull
+  public abstract List<String> getConfigurations();
+
   public boolean canDependOn(@NotNull PsModule module) {
     return false;
   }
