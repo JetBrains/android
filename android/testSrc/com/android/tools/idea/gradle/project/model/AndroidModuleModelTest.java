@@ -26,7 +26,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.io.*;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB;
 
 /**
  * Tests for {@link AndroidModuleModel}.
@@ -69,7 +69,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
   }
 
   public void /*test*/ReadWriteObject() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
+    loadProject(PROJECT_WITH_APP_AND_LIB);
 
     AndroidModuleModel androidModel = AndroidModuleModel.get(myAndroidFacet);
 

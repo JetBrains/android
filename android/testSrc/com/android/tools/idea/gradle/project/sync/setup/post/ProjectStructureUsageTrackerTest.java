@@ -31,7 +31,7 @@ import com.intellij.openapi.module.ModuleManager;
 import java.util.List;
 
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB;
 
 /**
  * Tests for {@link ProjectStructureUsageTracker}.
@@ -61,7 +61,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
 
   // b/72260139
   public void ignore_testProductStructureUsageTrackingBasic() throws Exception {
-    trackGradleProject(PROJECT_WITH_APPAND_LIB);
+    trackGradleProject(PROJECT_WITH_APP_AND_LIB);
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();
 
@@ -117,7 +117,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
   }
 
   public void testGetApplicationId() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
+    loadProject(PROJECT_WITH_APP_AND_LIB);
     assertEquals("com.example.projectwithappandlib.app", ProjectStructureUsageTracker.getApplicationId(getProject()));
   }
 
