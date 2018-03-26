@@ -22,7 +22,6 @@ import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
@@ -37,9 +36,9 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
   public CpuCaptureArtifactView(@NotNull ArtifactDrawInfo drawInfo, @NotNull CpuCaptureSessionArtifact artifact) {
     super(drawInfo, artifact);
 
-    // 1st column reserved for expand-collapse row, 2nd column for artifact's icon
+    // 1st column for artifact's icon, 2nd column for texts
     // 1st row for showing name, second row for time.
-    myComponent = new JPanel(new TabularLayout("Fit,Fit,*", "Fit,Fit"));
+    myComponent = new JPanel(new TabularLayout("Fit,*", "Fit,Fit"));
     if (isHovered()) {
       myComponent.setBackground(HOVERED_SESSION_COLOR);
     }
@@ -47,17 +46,12 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
                           BorderFactory.createCompoundBorder(SELECTED_BORDER, ARTIFACT_PADDING) :
                           BorderFactory.createCompoundBorder(UNSELECTED_BORDER, ARTIFACT_PADDING));
 
-    JComponent spacer = new Box.Filler(new Dimension(EXPAND_COLLAPSE_COLUMN_WIDTH, 0),
-                                       new Dimension(EXPAND_COLLAPSE_COLUMN_WIDTH, 0),
-                                       new Dimension(EXPAND_COLLAPSE_COLUMN_WIDTH, Short.MAX_VALUE));
-    myComponent.add(spacer, new TabularLayout.Constraint(0, 0));
-
     JLabel icon = new JLabel(artifact.isOngoingCapture()
                              // TODO(b/74975946): use proper icon for in-progress captures. Maybe animate.
                              ? StudioIcons.LayoutEditor.Palette.PROGRESS_BAR
                              : StudioIcons.Profiler.Sessions.CPU);
     icon.setBorder(ARTIFACT_ICON_BORDER);
-    myComponent.add(icon, new TabularLayout.Constraint(0, 1));
+    myComponent.add(icon, new TabularLayout.Constraint(0, 0));
 
     JLabel artifactName = new JLabel(getArtifact().getName());
     artifactName.setBorder(LABEL_PADDING);
@@ -66,8 +60,8 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
       new JLabel(TimeAxisFormatter.DEFAULT.getClockFormattedString(TimeUnit.NANOSECONDS.toMicros(getArtifact().getTimestampNs())));
     artifactTime.setBorder(LABEL_PADDING);
     artifactTime.setFont(STATUS_FONT);
-    myComponent.add(artifactName, new TabularLayout.Constraint(0, 2));
-    myComponent.add(artifactTime, new TabularLayout.Constraint(1, 2));
+    myComponent.add(artifactName, new TabularLayout.Constraint(0, 1));
+    myComponent.add(artifactTime, new TabularLayout.Constraint(1, 1));
   }
 
   @NotNull

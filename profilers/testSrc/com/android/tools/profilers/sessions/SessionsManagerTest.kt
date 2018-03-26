@@ -284,10 +284,8 @@ class SessionsManagerTest {
     var sessionItem1 = sessionItems[1] as SessionItem
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.isExpanded).isTrue()
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.isExpanded).isTrue()
 
     val heapDumpTimestamp = 10L
     val cpuTraceTimestamp = 20L
@@ -310,32 +308,16 @@ class SessionsManagerTest {
 
     assertThat(sessionItem0.session).isEqualTo(session2)
     assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.isExpanded).isTrue()
     assertThat(hprofItem0.session).isEqualTo(session2)
     assertThat(hprofItem0.timestampNs).isEqualTo(heapDumpTimestamp - session2Timestamp)
     assertThat(cpuCaptureItem0.session).isEqualTo(session2)
     assertThat(cpuCaptureItem0.timestampNs).isEqualTo(cpuTraceTimestamp - session2Timestamp)
     assertThat(sessionItem1.session).isEqualTo(session1)
     assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.isExpanded).isTrue()
     assertThat(hprofItem1.session).isEqualTo(session1)
     assertThat(hprofItem1.timestampNs).isEqualTo(heapDumpTimestamp - session1Timestamp)
     assertThat(cpuCaptureItem1.session).isEqualTo(session1)
     assertThat(cpuCaptureItem1.timestampNs).isEqualTo(cpuTraceTimestamp - session1Timestamp)
-
-    // Collapse the sessions
-    sessionItem0.isExpanded = false
-    sessionItem1.isExpanded = false
-    sessionItems = myManager.sessionArtifacts
-    assertThat(sessionItems).hasSize(2)
-    sessionItem0 = sessionItems[0] as SessionItem
-    sessionItem1 = sessionItems[1] as SessionItem
-    assertThat(sessionItem0.session).isEqualTo(session2)
-    assertThat(sessionItem0.timestampNs).isEqualTo(0)
-    assertThat(sessionItem0.isExpanded).isFalse()
-    assertThat(sessionItem1.session).isEqualTo(session1)
-    assertThat(sessionItem1.timestampNs).isEqualTo(0)
-    assertThat(sessionItem1.isExpanded).isFalse()
   }
 
   private class SessionsAspectObserver : AspectObserver() {
