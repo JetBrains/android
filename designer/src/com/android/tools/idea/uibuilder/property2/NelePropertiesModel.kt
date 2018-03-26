@@ -56,6 +56,15 @@ class NelePropertiesModel(parentDisposable: Disposable, val facet: AndroidFacet)
     get() = activeSurface
     set(value) = useDesignSurface(value)
 
+  /**
+   * If true the value in an editor should show the resolved value of a property.
+   */
+  var showResolvedValues = true
+    set (value) {
+      field = value
+      firePropertyValueChange()
+    }
+
   @VisibleForTesting
   val updateQueue = createMergingUpdateQueue()
 

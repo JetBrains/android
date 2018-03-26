@@ -36,8 +36,9 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
     val progress = addEditor(inspector, properties[ANDROID_URI, ATTR_PROGRESS], progressBarLabel)
     addEditor(inspector, properties[ANDROID_URI, ATTR_VISIBILITY], progressBarLabel)
     addEditor(inspector, properties[ANDROID_URI, ATTR_VISIBILITY].designProperty, progressBarLabel)
-    val model = addEditorAndReturnEditorModel(inspector, properties[ANDROID_URI, ATTR_INDETERMINATE], progressBarLabel)
-    val updater = StateUpdater(model.property, listOf(drawable, tint, max, progress), listOf(drawableInt, tintInt))
+    val indeterminate = properties[ANDROID_URI, ATTR_INDETERMINATE]
+    val model = addEditorAndReturnEditorModel(inspector, indeterminate, progressBarLabel)
+    val updater = StateUpdater(indeterminate, listOf(drawable, tint, max, progress), listOf(drawableInt, tintInt))
     model.addListener(updater)
     updater.valueChanged()
   }
@@ -81,7 +82,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
   }
 
   private class StateUpdater(
-    private val indeterminate: PropertyItem,
+    private val indeterminate: NelePropertyItem,
     private val determinateLines: List<InspectorLineModel?>,
     private val indeterminateLines: List<InspectorLineModel?>
   ) : ValueChangedListener {

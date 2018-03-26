@@ -27,10 +27,6 @@ import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import javax.swing.ListCellRenderer
 
-interface TestFlagsPropertyItem: FlagsPropertyItem<FlagPropertyItem> {
-  override var resolvedValue: String?
-}
-
 object PropertyModelTestUtil {
 
   fun makeProperty(namespace: String, name: String, value: String?): PropertyItem {
@@ -52,27 +48,19 @@ object PropertyModelTestUtil {
           propertyValue = value
         }
 
-      override val resolvedValue: String?
-        get() = value?.plus("_resolved")
-
       override val isReference: Boolean
         get() = false
     }
   }
 
-  fun makeFlagsProperty(propertyName: String, flagNames: List<String>, values: List<Int>): TestFlagsPropertyItem {
+  fun makeFlagsProperty(propertyName: String, flagNames: List<String>, values: List<Int>): FlagsPropertyItem<FlagPropertyItem> {
     require(flagNames.size == values.size)
-    val property = object : TestFlagsPropertyItem {
+    val property = object : FlagsPropertyItem<FlagPropertyItem> {
       override val namespace = ANDROID_URI
       override val name = propertyName
       override val flags = mutableListOf<FlagPropertyItem>()
       override fun flag(itemName: String): FlagPropertyItem? = flags.firstOrNull { it.name == itemName }
       override var value: String? = null
-        set(value) {
-          field = value
-          resolvedValue = value
-        }
-      override var resolvedValue: String? = null
       override var isReference = false
       override val maskValue: Int
         get() {
@@ -82,7 +70,7 @@ object PropertyModelTestUtil {
         }
       val valueAsSet: HashSet<String>
         get() {
-          val value = resolvedValue ?: return HashSet()
+          val value = value ?: return HashSet()
           return HashSet(Splitter.on("|").trimResults().splitToList(value))
         }
     }
@@ -130,16 +118,13 @@ object PropertyModelTestUtil {
     val focusWasRequested: Boolean
   }
 
-  fun makePropertyEditorModel(property: PropertyItem, form: FormModel? = null): TestPropertyEditorModel {
+  fun makePropertyEditorModel(property: PropertyItem): TestPropertyEditorModel {
     return object: TestPropertyEditorModel {
 
       override val property: PropertyItem
         get() = property
 
       override var value: String = property.value ?: ""
-
-      override val formModel: FormModel
-        get() = form ?: throw NotImplementedError()
 
       override var visible = true
 
@@ -152,10 +137,10 @@ object PropertyModelTestUtil {
 
       override val hasFocus = false
 
-      override var line: InspectorLineModel? = null
+      override var lineModel: InspectorLineModel? = null
 
       override fun refresh() {
-        value = (if (form?.showResolvedValues == true) property.resolvedValue else property.value) ?: ""
+        value = property.value ?: ""
       }
 
       override fun addListener(listener: ValueChangedListener) {

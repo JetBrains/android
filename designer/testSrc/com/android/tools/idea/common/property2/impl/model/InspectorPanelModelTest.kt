@@ -35,11 +35,11 @@ class InspectorPanelModelTest {
     private val textAppProperty = PropertyModelTestUtil.makeProperty(SdkConstants.AUTO_URI, "textApp", "")
     private val someProperty = PropertyModelTestUtil.makeProperty("SomeNamespace", "some", "world")
 
-    private val colorEditor = PropertyModelTestUtil.makePropertyEditorModel(colorProperty, model)
-    private val backgroundEditor = PropertyModelTestUtil.makePropertyEditorModel(backgroundProperty, model)
-    val textEditor = PropertyModelTestUtil.makePropertyEditorModel(textProperty, model)
-    val textAppEditor = PropertyModelTestUtil.makePropertyEditorModel(textAppProperty, model)
-    val someEditor = PropertyModelTestUtil.makePropertyEditorModel(someProperty, model)
+    private val colorEditor = PropertyModelTestUtil.makePropertyEditorModel(colorProperty)
+    private val backgroundEditor = PropertyModelTestUtil.makePropertyEditorModel(backgroundProperty)
+    val textEditor = PropertyModelTestUtil.makePropertyEditorModel(textProperty)
+    val textAppEditor = PropertyModelTestUtil.makePropertyEditorModel(textAppProperty)
+    val someEditor = PropertyModelTestUtil.makePropertyEditorModel(someProperty)
 
     private val properties = PropertiesComponentMock()
 
@@ -160,17 +160,8 @@ class InspectorPanelModelTest {
   }
 
   @Test
-  fun testShowResolvedValues() {
+  fun testShowValues() {
     val inspector = Inspector()
-    inspector.model.showResolvedValues = true
-    assertThat(inspector.textEditor.value).isEqualTo("hello_resolved")
-    assertThat(inspector.someEditor.value).isEqualTo("world_resolved")
-  }
-
-  @Test
-  fun testShowRawValues() {
-    val inspector = Inspector()
-    inspector.model.showResolvedValues = false
     assertThat(inspector.textEditor.value).isEqualTo("hello")
     assertThat(inspector.someEditor.value).isEqualTo("world")
   }

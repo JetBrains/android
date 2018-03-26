@@ -54,5 +54,5 @@ interface ActionButtonSupport {
    * An implementation may return null if [showActionButton] is false or if
    * the icon is for information purposes only.
    */
-  fun getAction(model: FormModel): AnAction?
+  fun getAction(): AnAction?
 }

@@ -29,19 +29,17 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeFormat
 import org.jetbrains.android.facet.AndroidFacet
-import org.mockito.Mockito.*
 import javax.swing.JComponent
 
 class InspectorTestUtil(parent: Disposable, facet: AndroidFacet, fixture: JavaCodeInsightTestFixture,
                         tag: String, parentTag: String = ""): SupportTestUtil(parent, facet, fixture, tag, parentTag) {
   private val enumSupportProvider = NeleEnumSupportProvider()
   private val controlTypeProvider = NeleControlTypeProvider()
-  private val formModel = mock(FormModel::class.java)
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
   val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
 
-  val editorProvider = EditorProviderImpl(enumSupportProvider, controlTypeProvider, formModel)
+  val editorProvider = EditorProviderImpl(enumSupportProvider, controlTypeProvider)
 
   val inspector = FakeInspectorPanel()
 
@@ -79,9 +77,16 @@ class FakeInspectorLine(val type: LineType) : InspectorLineModel {
   var focusWasRequested = false
     private set
 
+  var gotoNextLineWasRequested = false
+    private set
+
   override fun requestFocus() {
     focusWasRequested = true
   }
+
+  override var gotoNextLine: (InspectorLineModel) -> Unit
+    get() = { gotoNextLineWasRequested = true }
+    set(value) {}
 
   override fun makeExpandable(initiallyExpanded: Boolean) {
     expandable = true
@@ -105,7 +110,7 @@ class FakeInspectorPanel : InspectorPanel {
 
   override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
     val line = FakeInspectorLine(LineType.PROPERTY)
-    editorModel.line = line
+    editorModel.lineModel = line
     line.editorModel = editorModel
     lines.add(line)
     return line

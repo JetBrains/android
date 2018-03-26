@@ -15,33 +15,34 @@
  */
 package com.android.tools.idea.uibuilder.property2.model
 
-import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.api.FormModel
-import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
 import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 
-class ToggleButtonPropertyEditorModelTest {
+class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
 
   private fun createModel(propertyValue: String?, trueValue: String, falseValue: String): ToggleButtonPropertyEditorModel {
-    val formModel = Mockito.mock(FormModel::class.java)
-    val property = PropertyModelTestUtil.makeProperty(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue)
-    return ToggleButtonPropertyEditorModel("description", TEXT_ALIGN_CENTER, trueValue, falseValue, property, formModel)
+    val property = createPropertyItem(ATTR_TEXT_ALIGNMENT, NelePropertyType.STRING, createTextView(propertyValue))
+    return ToggleButtonPropertyEditorModel("description", TEXT_ALIGN_CENTER, trueValue, falseValue, property)
   }
 
   @Test
   fun testGetSelected() {
-    assertThat(createModel("left", "left_resolved", "").selected).isTrue()
-    assertThat(createModel("right", "left_resolved", "").selected).isFalse()
-    assertThat(createModel(null, "left_resolved", "").selected).isFalse()
-    assertThat(createModel("left", "left_resolved", "right_resolved").selected).isTrue()
-    assertThat(createModel("right", "left_resolved", "right_resolved").selected).isFalse()
-    assertThat(createModel(null, "left_resolved", "right_resolved").selected).isFalse()
+    assertThat(createModel("left", "left", "").selected).isTrue()
+    assertThat(createModel("right", "left", "").selected).isFalse()
+    assertThat(createModel(null, "left", "").selected).isFalse()
+    assertThat(createModel("left", "left", "right").selected).isTrue()
+    assertThat(createModel("right", "left", "right").selected).isFalse()
+    assertThat(createModel(null, "left", "right").selected).isFalse()
   }
 
   @Test
@@ -60,5 +61,13 @@ class ToggleButtonPropertyEditorModelTest {
     model.selected = setValue
     assertThat(model.property.value).isEqualTo(expected)
     verify(listener).valueChanged()
+  }
+
+  private fun createTextView(propertyValue: String?): List<NlComponent> {
+    return if (propertyValue == null) {
+      createComponents(component(TEXT_VIEW))
+    } else {
+      createComponents(component(TEXT_VIEW).withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_ALIGNMENT, propertyValue))
+    }
   }
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property2.model
 
 import com.android.annotations.VisibleForTesting
-import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
@@ -27,7 +26,8 @@ import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorMode
  * This model forwards focus requests to the first sub editor, and provides
  * a way to move focus between the sub editors.
  */
-class HorizontalEditorPanelModel(property: PropertyItem, formModel: FormModel) : BasePropertyEditorModel(property, formModel) {
+class HorizontalEditorPanelModel(property: PropertyItem) : BasePropertyEditorModel(property) {
+
   @VisibleForTesting
   val models = mutableListOf<PropertyEditorModel>()
 

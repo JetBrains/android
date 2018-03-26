@@ -45,8 +45,6 @@ class PropertiesView<P: PropertyItem>(val model: PropertiesModel<P>, parentDispo
 
   val builders = mutableListOf<InspectorBuilder<P>>()
   val component = JPanel(BorderLayout())
-  val formModel: FormModel
-    get() = inspectorModel
 
   var filter
     get() = inspectorModel.filter
@@ -56,6 +54,7 @@ class PropertiesView<P: PropertyItem>(val model: PropertiesModel<P>, parentDispo
 
   private val inspectorModel = InspectorPanelModel()
   private val inspector = InspectorPanelImpl(inspectorModel, this)
+  private val gotoNextLine: (InspectorLineModel) -> Unit = { inspectorModel.moveToNextLineEditor(it) }
 
   init {
     component.add(inspector, BorderLayout.CENTER)
@@ -92,15 +91,17 @@ class PropertiesView<P: PropertyItem>(val model: PropertiesModel<P>, parentDispo
     val label = CollapsibleLabel(model, true)
     inspectorModel.add(model)
     inspector.addLineElement(label)
+    model.gotoNextLine = gotoNextLine
     return model
   }
 
   override fun addEditor(editorModel: PropertyEditorModel, editor: JComponent): InspectorLineModel {
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
     val label = CollapsibleLabel(model, false)
-    editorModel.line = model
+    editorModel.lineModel = model
     inspectorModel.add(model)
     inspector.addLineElement(label, editor)
+    model.gotoNextLine = gotoNextLine
     return model
   }
 
@@ -109,6 +110,7 @@ class PropertiesView<P: PropertyItem>(val model: PropertiesModel<P>, parentDispo
     val wrapper = GenericLinePanel(component, model)
     inspectorModel.add(model)
     inspector.addLineElement(wrapper)
+    model.gotoNextLine = gotoNextLine
     return model
   }
 

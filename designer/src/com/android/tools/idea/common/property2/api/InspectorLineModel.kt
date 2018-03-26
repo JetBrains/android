@@ -49,6 +49,11 @@ interface InspectorLineModel {
   val focusable: Boolean
 
   /**
+   * Request focus to be placed on the next line of the lines containing this line.
+   */
+  var gotoNextLine: (InspectorLineModel) -> Unit
+
+  /**
    * Request the focus to be placed in this line.
    */
   fun requestFocus()

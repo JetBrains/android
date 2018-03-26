@@ -24,7 +24,6 @@ import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 internal const val EXPECTED_ID_TOOLTIP = """
 android:id:  Supply an identifier name for this view, to later retrieve it
@@ -56,6 +55,7 @@ class NelePropertyItemTest : PropertyTestCase() {
 
   fun testTextProperty() {
     val property = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, createTextView())
+    property.model.showResolvedValues = false
     assertThat(property.name).isEqualTo(ATTR_TEXT)
     assertThat(property.namespace).isEqualTo(ANDROID_URI)
     assertThat(property.type).isEqualTo(NelePropertyType.STRING)
@@ -88,10 +88,12 @@ class NelePropertyItemTest : PropertyTestCase() {
   fun testTextDesignProperty() {
     val property = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, createTextView())
     val design = property.designProperty
+    property.model.showResolvedValues = false
     assertThat(design.name).isEqualTo(ATTR_TEXT)
     assertThat(design.namespace).isEqualTo(TOOLS_URI)
     assertThat(design.type).isEqualTo(NelePropertyType.STRING)
     assertThat(design.value).isEqualTo("@string/design")
+    assertThat(design.rawValue).isEqualTo("@string/design")
     assertThat(design.isReference).isTrue()
     assertThat(design.resolvedValue).isEqualTo("Design Demo")
     assertThat(design.tooltip).isEqualTo("tools:text:  Text to display. ")
@@ -117,8 +119,17 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(isReferenceValue(property, "@android:id/hello")).isFalse()
   }
 
+  fun testGetValueWhenDisplayingResolvedValues() {
+    val property = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, createTextView())
+    property.model.showResolvedValues = true
+    assertThat(property.value).isEqualTo("Demo String")
+    assertThat(property.rawValue).isEqualTo("@string/demo")
+    assertThat(property.isReference).isTrue()
+  }
+
   fun testGetSameValueFromMultipleComponents() {
     val property = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, createTextViewAndButtonWithSameTextValue())
+    property.model.showResolvedValues = false
     assertThat(property.value).isEqualTo("@string/demo")
     assertThat(property.isReference).isTrue()
     assertThat(property.resolvedValue).isEqualTo("Demo String")
@@ -153,16 +164,9 @@ class NelePropertyItemTest : PropertyTestCase() {
     property.model.surface = nlModel.surface
     waitUntilEventsProcessed(property.model)
 
+    assertThat(property.value).isEqualTo("?attr/textAppearanceSmall")
+    property.model.showResolvedValues = false
     assertThat(property.value).isNull()
-    assertThat(property.resolvedValue).isEqualTo("?attr/textAppearanceSmall")
-  }
-
-  private fun createPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NelePropertyItem {
-    val model = NelePropertiesModel(testRootDisposable, myFacet)
-    val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
-    val systemResourceManager = resourceManagers.systemResourceManager
-    val definition = systemResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
-    return NelePropertyItem(ANDROID_URI, attrName, type, definition, "", model, components)
   }
 
   private fun createTextView(): List<NlComponent> {

@@ -85,11 +85,4 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
     val value = defaultProvider.provideDefaultValue(property)
     assertThat(value).isNull()
   }
-
-  private fun createPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NelePropertyItem {
-    val model = NelePropertiesModel(testRootDisposable, myFacet)
-    val nlModel = components[0].model as SyncNlModel
-    model.surface = nlModel.surface
-    return NelePropertyItem(ANDROID_URI, attrName, type, null, "", model, components)
-  }
 }

@@ -46,6 +46,8 @@ open class GenericInspectorLineModel : InspectorLineModel {
   override val focusable: Boolean
     get() = false
 
+  override var gotoNextLine: (InspectorLineModel) -> Unit = {}
+
   override fun requestFocus() {
     error(ERROR_NOT_FOCUSABLE)
   }

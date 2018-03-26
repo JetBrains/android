@@ -17,45 +17,30 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants
 import com.android.resources.ResourceType
-import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.*
+import java.awt.event.KeyEvent
 import java.util.*
+import javax.swing.KeyStroke
 
 /**
  * Resource actions in Nele.
  *
  * Note: this may change pending UX specifications.
  */
-class RemoveResourceAction(val property: NelePropertyItem) : AnAction("Remove Resource") {
+class ShowResolvedValueAction(val property: NelePropertyItem) : ToggleAction("Show Computed Value") {
 
-  override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = property.value != property.resolvedValue
+  init {
+    shortcutSet = CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, KeyEvent.META_MASK))
   }
-
-  override fun actionPerformed(event: AnActionEvent) {
-    property.value = property.resolvedValue
-  }
-}
-
-class AddResourceAction(val property: NelePropertyItem) : AnAction("Add New Resource") {
-
-  override fun actionPerformed(e: AnActionEvent?) {
-    TODO("not implemented")
-  }
-}
-
-class ShowResolvedValueAction(val formModel: FormModel) : ToggleAction("Show Computed Value") {
 
   override fun isSelected(event: AnActionEvent): Boolean {
-    return formModel.showResolvedValues
+    return property.model.showResolvedValues
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    formModel.showResolvedValues = state
+    property.model.showResolvedValues = state
   }
 }
 
@@ -77,7 +62,7 @@ class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open
     val dialog = ChooseResourceDialog.builder()
       .setModule(module)
       .setTypes(property.type.resourceTypes)
-      .setCurrentValue(property.value)
+      .setCurrentValue(property.rawValue)
       .setTag(tag)
       .setDefaultType(defaultResourceType)
       .setFilterColorStateLists(isImageViewDrawable)

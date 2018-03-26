@@ -17,9 +17,9 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.api.FormModel
-import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.uibuilder.property2.testutils.LineType
+import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -28,9 +28,8 @@ import org.mockito.Mockito.verify
 class TextFieldPropertyEditorModelTest {
 
   private fun createModel(): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
-    val formModel = mock(FormModel::class.java)
     val property = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, "text", "hello")
-    val model = TextFieldPropertyEditorModel(property, formModel, true)
+    val model = TextFieldPropertyEditorModel(property, true)
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
     return Pair(model, listener)
@@ -39,12 +38,12 @@ class TextFieldPropertyEditorModelTest {
   @Test
   fun testEnter() {
     val (model, listener) = createModel()
-    val line = mock(InspectorLineModel::class.java)
-    model.line = line
+    val line = FakeInspectorLine(LineType.PROPERTY)
+    model.lineModel = line
     model.enter("world")
     assertThat(model.property.value).isEqualTo("world")
     verify(listener).valueChanged()
-    verify(model.formModel).moveToNextLineEditor(line)
+    assertThat(line.gotoNextLineWasRequested).isTrue()
   }
 
   @Test

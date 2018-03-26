@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
+import com.android.tools.idea.common.property2.api.FlagPropertyItem
 import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
-import com.android.tools.idea.common.property2.impl.model.util.TestFlagsPropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito
 
 class FlagPropertyEditorModelTest {
 
@@ -301,23 +299,6 @@ class FlagPropertyEditorModelTest {
     autoLink.value = "phone|map"
     model.buttonPressed()
     model.clearAll()
-    assertThat(model.isSelected("none")).isFalse()
-    assertThat(model.isSelected("phone")).isFalse()
-    assertThat(model.isSelected("map")).isFalse()
-    assertThat(model.isSelected("perm")).isFalse()
-    assertThat(model.isSelected("all")).isFalse()
-
-    model.applyChanges()
-    assertThat(autoLink.value).isNull()
-  }
-
-  @Test
-  fun testClearAllWithDefaultValue() {
-    val autoLink = createAutoLink()
-    val model = createModel(autoLink)
-    autoLink.resolvedValue = "phone"
-    model.buttonPressed()
-    model.clearAll()
     assertThat(model.isSelected("none")).isTrue()
     assertThat(model.isSelected("phone")).isFalse()
     assertThat(model.isSelected("map")).isFalse()
@@ -343,14 +324,14 @@ class FlagPropertyEditorModelTest {
     assertThat(gravity.value).isNull()
   }
 
-  private fun createAutoLink(): TestFlagsPropertyItem {
+  private fun createAutoLink(): FlagsPropertyItem<FlagPropertyItem> {
     return PropertyModelTestUtil.makeFlagsProperty(
         "autoLink",
         listOf("none", "phone", "map", "perm", "all"),
         listOf(0, 1, 2, 4, 7))
   }
 
-  private fun createGravity(): TestFlagsPropertyItem {
+  private fun createGravity(): FlagsPropertyItem<FlagPropertyItem> {
     return PropertyModelTestUtil.makeFlagsProperty(
         "gravity",
         listOf("left", "center", "right"),
@@ -358,7 +339,6 @@ class FlagPropertyEditorModelTest {
   }
 
   private fun createModel(property: FlagsPropertyItem<*>): FlagPropertyEditorModel {
-    val formModel = Mockito.mock(FormModel::class.java)
-    return FlagPropertyEditorModel(property, formModel)
+    return FlagPropertyEditorModel(property)
   }
 }

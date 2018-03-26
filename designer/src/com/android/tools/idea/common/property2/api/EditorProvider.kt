@@ -33,14 +33,12 @@ interface EditorProvider<in P : PropertyItem> : (P) -> Pair<PropertyEditorModel,
      *
      * @param enumSupportProvider must be specified for creating [EnumSupport] for a given property [P].
      * @param controlTypeProvider must be specified for determining the [ControlType] for the given property [P].
-     * @param formModel is a higher level model which is used in the default editor implementations.
      */
     fun <P : PropertyItem> create(
       enumSupportProvider: EnumSupportProvider<P>,
-      controlTypeProvider: ControlTypeProvider<P>,
-      formModel: FormModel
+      controlTypeProvider: ControlTypeProvider<P>
     ): EditorProvider<P> {
-      return EditorProviderImpl(enumSupportProvider, controlTypeProvider, formModel)
+      return EditorProviderImpl(enumSupportProvider, controlTypeProvider)
     }
   }
 }
