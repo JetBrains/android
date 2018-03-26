@@ -1,9 +1,11 @@
 package org.jetbrains.android.uipreview;
 
+import com.android.SdkConstants;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.sdklib.IAndroidTarget;
+import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -13,6 +15,7 @@ import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderClassLoader;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.*;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -90,9 +93,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
       LOG.debug(String.format("findClass(%s)", name));
     }
 
+    final Module module = myModuleReference.get();
     try {
       if (!myInsideJarClassLoader) {
-        final Module module = myModuleReference.get();
         if (module != null) {
           if (isResourceClassName(name)) {
             AppResourceRepository appResources = AppResourceRepository.findExistingInstance(module);
@@ -120,10 +123,14 @@ public final class ModuleClassLoader extends RenderClassLoader {
     } catch (ClassNotFoundException e) {
       byte[] clazz = null;
       if (RecyclerViewHelper.CN_CUSTOM_ADAPTER.equals(name)) {
-        clazz = RecyclerViewHelper.getAdapterClass();
+        clazz = RecyclerViewHelper.getAdapterClass(DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_V7),
+                                                   DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_VIEW_HOLDER),
+                                                   DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_ADAPTER));
       }
       if (RecyclerViewHelper.CN_CUSTOM_VIEW_HOLDER.equals(name)) {
-        clazz = RecyclerViewHelper.getViewHolder();
+        clazz = RecyclerViewHelper.getViewHolder(DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_V7),
+                                                 DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_VIEW_HOLDER),
+                                                 DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_ADAPTER));
       }
       if (clazz != null) {
         if (LOG.isDebugEnabled()) {

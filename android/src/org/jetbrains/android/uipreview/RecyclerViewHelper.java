@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.*;
 
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
@@ -28,43 +29,61 @@ public class RecyclerViewHelper {
   public static final String PACKAGE_NAME = "com.android.layoutlib.bridge.android.support";
   public static final String CN_CUSTOM_ADAPTER = PACKAGE_NAME + ".Adapter";
   public static final String CN_CUSTOM_VIEW_HOLDER = PACKAGE_NAME + ".Adapter$ViewHolder";
-  public static final String CN_RECYCLER_VIEW = "android.support.v7.widget.RecyclerView";
-  public static final String CN_RV_ADAPTER = CN_RECYCLER_VIEW + "$Adapter";
-  public static final String CN_RV_LAYOUT_MANAGER = CN_RECYCLER_VIEW + "$LayoutManager";
 
   // Lazily initialized.
   private static byte[] ourAdapterClass;
   private static byte[] ourViewHolder;
 
-  public static byte[] getAdapterClass() {
+  public static byte[] getAdapterClass(@NotNull String recyclerViewName,
+                                       @NotNull String viewHolderName,
+                                       @NotNull String adapterName) {
     if (ourAdapterClass == null) {
-      ourAdapterClass = getAdapterClassDump();
+      recyclerViewName = recyclerViewName.replaceAll("\\.", "/");
+      viewHolderName = viewHolderName.replaceAll("\\.", "/");
+      adapterName = adapterName.replaceAll("\\.", "/");
+
+      ourAdapterClass = getAdapterClassDump(recyclerViewName,
+                                            viewHolderName,
+                                            adapterName);
     }
     return ourAdapterClass;
   }
 
-  public static byte[] getViewHolder() {
+  public static byte[] getViewHolder(@NotNull String recyclerViewName,
+                                     @NotNull String viewHolderName,
+                                     @NotNull String adapterName) {
     if (ourViewHolder == null) {
-      ourViewHolder = getViewHolderDump();
+      recyclerViewName = recyclerViewName.replaceAll("\\.", "/");
+      viewHolderName = viewHolderName.replaceAll("\\.", "/");
+      adapterName = adapterName.replaceAll("\\.", "/");
+
+      ourViewHolder = getViewHolderDump(recyclerViewName,
+                                        viewHolderName,
+                                        adapterName);
     }
     return ourViewHolder;
   }
 
   // See comment at the end of the file for how this method was generated.
-  @SuppressWarnings("unused")  // Generated code.
-  private static byte[] getAdapterClassDump() {
+  @SuppressWarnings("unused")  // Generated code
+  private static byte[] getAdapterClassDump(@NotNull String recyclerViewName,
+                                            @NotNull String viewHolderName,
+                                            @NotNull String adapterName) {
     ClassWriter cw = new ClassWriter(0);
     FieldVisitor fv;
     MethodVisitor mv;
     AnnotationVisitor av0;
 
-    cw.visit(V1_7, ACC_PUBLIC + ACC_SUPER, "com/android/layoutlib/bridge/android/support/Adapter", "Landroid/support/v7/widget/RecyclerView$Adapter<Landroid/support/v7/widget/RecyclerView$ViewHolder;>;", "android/support/v7/widget/RecyclerView$Adapter", null);
+    String signature = String.format("L%1$s<L%2$s;>;",
+                                     adapterName,
+                                     viewHolderName);
+    cw.visit(V1_7, ACC_PUBLIC + ACC_SUPER, "com/android/layoutlib/bridge/android/support/Adapter", signature, adapterName, null);
 
     cw.visitInnerClass("com/android/layoutlib/bridge/android/support/Adapter$ViewHolder", "com/android/layoutlib/bridge/android/support/Adapter", "ViewHolder", ACC_PRIVATE + ACC_STATIC);
 
-    cw.visitInnerClass("android/support/v7/widget/RecyclerView$ViewHolder", "android/support/v7/widget/RecyclerView", "ViewHolder", ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
+    cw.visitInnerClass(viewHolderName, recyclerViewName, "ViewHolder", ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
 
-    cw.visitInnerClass("android/support/v7/widget/RecyclerView$Adapter", "android/support/v7/widget/RecyclerView", "Adapter", ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
+    cw.visitInnerClass(adapterName, recyclerViewName, "Adapter", ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
 
     {
       fv = cw.visitField(ACC_PRIVATE, "mItemCount", "I", null, null);
@@ -78,7 +97,7 @@ public class RecyclerViewHelper {
       mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
-      mv.visitMethodInsn(INVOKESPECIAL, "android/support/v7/widget/RecyclerView$Adapter", "<init>", "()V", false);
+      mv.visitMethodInsn(INVOKESPECIAL, adapterName, "<init>", "()V", false);
       mv.visitVarInsn(ALOAD, 0);
       mv.visitIntInsn(BIPUSH, 10);
       mv.visitFieldInsn(PUTFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mItemCount", "I");
@@ -87,7 +106,8 @@ public class RecyclerViewHelper {
       mv.visitEnd();
     }
     {
-      mv = cw.visitMethod(ACC_PUBLIC, "onCreateViewHolder", "(Landroid/view/ViewGroup;I)Landroid/support/v7/widget/RecyclerView$ViewHolder;", null, null);
+      String desc = String.format("(Landroid/view/ViewGroup;I)L%1$s;", viewHolderName);
+      mv = cw.visitMethod(ACC_PUBLIC, "onCreateViewHolder", desc, null, null);
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
       mv.visitFieldInsn(GETFIELD, "com/android/layoutlib/bridge/android/support/Adapter", "mId", "I");
@@ -123,10 +143,11 @@ public class RecyclerViewHelper {
       mv.visitEnd();
     }
     {
-      mv = cw.visitMethod(ACC_PUBLIC, "onBindViewHolder", "(Landroid/support/v7/widget/RecyclerView$ViewHolder;I)V", null, null);
+      String desc = String.format("(L%1$s;I)V", viewHolderName);
+      mv = cw.visitMethod(ACC_PUBLIC, "onBindViewHolder", desc, null, null);
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 1);
-      mv.visitFieldInsn(GETFIELD, "android/support/v7/widget/RecyclerView$ViewHolder", "itemView", "Landroid/view/View;");
+      mv.visitFieldInsn(GETFIELD, viewHolderName, "itemView", "Landroid/view/View;");
       mv.visitVarInsn(ASTORE, 3);
       mv.visitTypeInsn(NEW, "java/util/ArrayList");
       mv.visitInsn(DUP);
@@ -152,7 +173,7 @@ public class RecyclerViewHelper {
       mv.visitVarInsn(ISTORE, 6);
       Label l0 = new Label();
       mv.visitLabel(l0);
-      mv.visitFrame(Opcodes.F_FULL, 7, new Object[] {"com/android/layoutlib/bridge/android/support/Adapter", "android/support/v7/widget/RecyclerView$ViewHolder", Opcodes.INTEGER, "android/view/View", "java/util/ArrayList", "java/lang/String", Opcodes.INTEGER}, 0, new Object[] {});
+      mv.visitFrame(Opcodes.F_FULL, 7, new Object[] {"com/android/layoutlib/bridge/android/support/Adapter", viewHolderName, Opcodes.INTEGER, "android/view/View", "java/util/ArrayList", "java/lang/String", Opcodes.INTEGER}, 0, new Object[] {});
       mv.visitVarInsn(ILOAD, 6);
       mv.visitVarInsn(ALOAD, 4);
       mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "size", "()I", false);
@@ -279,19 +300,21 @@ public class RecyclerViewHelper {
 
   // See comment at the end of the file for how this method was generated.
   @SuppressWarnings("unused")  // Generated code.
-  private static byte[] getViewHolderDump() {
+  private static byte[] getViewHolderDump(@NotNull String recyclerViewClass,
+                                          @NotNull String viewHolderClass,
+                                          @NotNull String viewAdapterClass) {
     ClassWriter cw = new ClassWriter(0);
     FieldVisitor fv;
     MethodVisitor mv;
     AnnotationVisitor av0;
 
     cw.visit(V1_6, ACC_SUPER, "com/android/layoutlib/bridge/android/support/Adapter$ViewHolder", null,
-             "android/support/v7/widget/RecyclerView$ViewHolder", null);
+             viewHolderClass, null);
 
     cw.visitInnerClass("com/android/layoutlib/bridge/android/support/Adapter$ViewHolder",
                        "com/android/layoutlib/bridge/android/support/Adapter", "ViewHolder", ACC_PRIVATE + ACC_STATIC);
 
-    cw.visitInnerClass("android/support/v7/widget/RecyclerView$ViewHolder", "android/support/v7/widget/RecyclerView", "ViewHolder",
+    cw.visitInnerClass(viewHolderClass, recyclerViewClass, "ViewHolder",
                        ACC_PUBLIC + ACC_STATIC + ACC_ABSTRACT);
 
     {
@@ -299,7 +322,7 @@ public class RecyclerViewHelper {
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
       mv.visitVarInsn(ALOAD, 1);
-      mv.visitMethodInsn(INVOKESPECIAL, "android/support/v7/widget/RecyclerView$ViewHolder", "<init>", "(Landroid/view/View;)V", false);
+      mv.visitMethodInsn(INVOKESPECIAL, viewHolderClass, "<init>", "(Landroid/view/View;)V", false);
       mv.visitInsn(RETURN);
       mv.visitMaxs(2, 2);
       mv.visitEnd();

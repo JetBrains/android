@@ -20,6 +20,7 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
@@ -85,10 +86,15 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
+  private static final AndroidxName CLASS_WINDOR_DECOR_ACTION_BAR =
+    AndroidxName.of("android.support.v7.internal.app.", "WindowDecorActionBar");
   /** Class names that are not a view. When instantiating them, errors should be logged by LayoutLib. */
-  private static final Set<String> NOT_VIEW = ImmutableSet.of(RecyclerViewHelper.CN_RV_ADAPTER,
-                                                              RecyclerViewHelper.CN_RV_LAYOUT_MANAGER,
-                                                             "android.support.v7.internal.app.WindowDecorActionBar");
+  private static final Set<String> NOT_VIEW = ImmutableSet.of(CLASS_RECYCLER_VIEW_ADAPTER.oldName(),
+                                                              CLASS_RECYCLER_VIEW_ADAPTER.newName(),
+                                                              CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.oldName(),
+                                                              CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.newName(),
+                                                              CLASS_WINDOR_DECOR_ACTION_BAR.oldName(),
+                                                              CLASS_WINDOR_DECOR_ACTION_BAR.newName());
   /** Directory name for the bundled layoutlib installation */
   public static final String FD_LAYOUTLIB = "layoutlib";
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */

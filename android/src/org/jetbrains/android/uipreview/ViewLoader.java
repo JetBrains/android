@@ -196,10 +196,10 @@ public class ViewLoader {
    * Like loadView, but doesn't log  exceptions if failed and doesn't try to create a mock view.
    */
   @Nullable
-  public Object loadClass(String className, Class<?>[] constructorSignature, Object[] constructorArgs) throws ClassNotFoundException {
+  public Object loadClass(String className, Class<?>[] constructorSignature, Object[] constructorArgs) {
     // RecyclerView.Adapter is an abstract class, but its instance is needed for RecyclerView to work correctly. So, when LayoutLib asks for
     // its instance, we define a new class which extends the Adapter class.
-    if (RecyclerViewHelper.CN_RV_ADAPTER.equals(className)) {
+    if (CLASS_RECYCLER_VIEW_ADAPTER.isEquals(className)) {
       className = RecyclerViewHelper.CN_CUSTOM_ADAPTER;
       constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
       constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
