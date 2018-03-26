@@ -69,7 +69,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     }
     // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
     else if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getFillColor(nodeModel, node.isUnmatched());
+      return AtraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
     }
     else if (nodeModel instanceof SingleNameModel) {
       return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched());
@@ -84,7 +84,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     // that return a custom color for the idle cpu time.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, node.isUnmatched());
+      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched());
     }
     return getFillColor(node);
   }

@@ -16,6 +16,7 @@ package com.android.tools.profilers.cpu
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.nodemodel.*
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
@@ -114,6 +115,32 @@ class CaptureNodeHRendererTest {
     // TODO: refactor CaptureNodeHRenderer#render to check font is Bold for EXACT_MATCHES
 
     // TODO: refactor CaptureNodeHRenderer#render to cover the case of null filter type
+  }
+
+  @Test
+  fun testAtraceColors() {
+    val invalidModel = SyscallModel("write")
+    try {
+      AtraceNodeModelHChartColors.getFillColor(invalidModel, CaptureModel.Details.Type.CALL_CHART, false)
+      fail()
+    }
+    catch (e: IllegalStateException) {
+      assertThat(e.message).isEqualTo("Model must be an instance of AtraceNodeModel.")
+    }
+
+    val model = AtraceNodeModel("SomeName")
+
+    var color = AtraceNodeModelHChartColors.getFillColor(model, CaptureModel.Details.Type.CALL_CHART, false)
+    assertThat(color).isEqualTo(ProfilerColors.CPU_USAGE_CAPTURED)
+
+    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureModel.Details.Type.FLAME_CHART, false)
+    assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP)
+
+    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureModel.Details.Type.CALL_CHART, false)
+    assertThat(color).isEqualTo(ColorUtil.darker(ProfilerColors.CPU_USAGE_CAPTURED, 3))
+
+    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureModel.Details.Type.FLAME_CHART, false)
+    assertThat(color).isEqualTo(ColorUtil.darker(ProfilerColors.CPU_FLAMECHART_APP, 3))
   }
 
   @Test

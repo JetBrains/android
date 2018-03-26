@@ -42,10 +42,18 @@ class AtraceNodeModelHChartColors {
 
   /**
    * For cpu idle time (time the node is scheduled wall clock, but not thread time). we apply a slightly darker
-   * shade of the CPU_USAGE_CAPTURED color to show a subtle difference in timings.
+   * shade of the {@code getFillColor} color to show a subtle difference in timings.
    */
-  static Color getIdleCpuColor(@NotNull CaptureNodeModel model, boolean isUnmatched) {
-    Color color = ColorUtil.darker(ProfilerColors.CPU_USAGE_CAPTURED, 3);
+  static Color getIdleCpuColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
+    Color color;
+    if (chartType == CaptureModel.Details.Type.CALL_CHART) {
+      color = ProfilerColors.CPU_USAGE_CAPTURED;
+    }
+    else {
+      // Atrace captures do not know where calls come from so we always use APP.
+      color = ProfilerColors.CPU_FLAMECHART_APP;
+    }
+    color = ColorUtil.darker(color, 3);
     return isUnmatched ? toUnmatchColor(color) : color;
   }
 
@@ -53,9 +61,16 @@ class AtraceNodeModelHChartColors {
    * We use the usage captured color. This gives the UI a consistent look
    * across CPU, Kernel, Threads, and trace nodes.
    */
-  static Color getFillColor(@NotNull CaptureNodeModel model, boolean isUnmatched) {
+  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureModel.Details.Type chartType, boolean isUnmatched) {
     validateModel(model);
-    Color color = ProfilerColors.CPU_USAGE_CAPTURED;
+    Color color;
+    if (chartType == CaptureModel.Details.Type.CALL_CHART) {
+      color = ProfilerColors.CPU_USAGE_CAPTURED;
+    }
+    else {
+      // Atrace captures do not know where calls come from so we always use APP.
+      color = ProfilerColors.CPU_FLAMECHART_APP;
+    }
     return isUnmatched ? toUnmatchColor(color) : color;
   }
 }
