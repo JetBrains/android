@@ -34,6 +34,8 @@ import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,6 +47,7 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 /**
  * A collapsible panel which lets users see the list of and interact with their profiling sessions.
@@ -153,6 +156,16 @@ public class SessionsView extends AspectObserver {
     mySessionsListModel = new DefaultListModel<>();
     mySessionsList = new SessionsList(mySessionsListModel);
     mySessionsList.setOpaque(false);
+    mySessionsList.setSelectionMode(SINGLE_SELECTION);
+    mySessionsList.addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        SessionArtifact artifact = mySessionsList.getSelectedValue();
+        if (artifact != null) {
+          artifact.onSelect();
+        }
+      }
+    });
     mySessionsManager.addDependency(this)
       .onChange(SessionAspect.SESSIONS, this::refreshSessions)
       .onChange(SessionAspect.PROFILING_SESSION, () -> myStopProfilingButton

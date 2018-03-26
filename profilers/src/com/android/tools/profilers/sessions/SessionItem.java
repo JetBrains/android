@@ -29,7 +29,6 @@ public class SessionItem implements SessionArtifact {
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
-  private boolean myIsExpanded;
 
   public SessionItem(@NotNull StudioProfilers profilers, @NotNull Common.Session session) {
     myProfilers = profilers;
@@ -37,8 +36,6 @@ public class SessionItem implements SessionArtifact {
     Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
       .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(mySession.getSessionId()).build());
     mySessionMetaData = response.getData();
-    // Sessions are expanded by default.
-    myIsExpanded = true;
   }
 
   @NotNull
@@ -92,23 +89,6 @@ public class SessionItem implements SessionArtifact {
   public void setSession(@NotNull Common.Session session) {
     assert session.getSessionId() == mySession.getSessionId();
     mySession = session;
-  }
-
-  public boolean isExpanded() {
-    return myIsExpanded;
-  }
-
-  public void setExpanded(boolean expanded) {
-    if (myIsExpanded == expanded) {
-      return;
-    }
-
-    myIsExpanded = expanded;
-    /**
-     * The SessionsManager needs to retrieve the additional items that should be included in list as returned via
-     * {@link SessionsManager#getSessionArtifacts()}.
-     */
-    myProfilers.getSessionsManager().update();
   }
 
   @Override

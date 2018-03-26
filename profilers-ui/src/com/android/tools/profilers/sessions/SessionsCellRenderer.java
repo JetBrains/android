@@ -35,13 +35,11 @@ import static com.android.tools.profilers.sessions.SessionsList.INVALID_INDEX;
 final class SessionsCellRenderer implements ListCellRenderer<SessionArtifact> {
 
   @NotNull private final SessionsList mySessionsList;
-  @NotNull private final HashMap<Integer, SessionArtifactView> myCellComponentMap;
   @NotNull private final ViewBinder<SessionArtifactView.ArtifactDrawInfo, SessionArtifact, SessionArtifactView> myViewBinder;
   private int myCurrentIndex = INVALID_INDEX;
 
   public SessionsCellRenderer(@NotNull SessionsList sessionsList) {
     mySessionsList = sessionsList;
-    myCellComponentMap = new HashMap<>();
     myViewBinder = new ViewBinder<>();
     myViewBinder.bind(SessionItem.class, SessionItemView::new);
     myViewBinder.bind(HprofSessionArtifact.class, HprofArtifactView::new);
@@ -56,33 +54,15 @@ final class SessionsCellRenderer implements ListCellRenderer<SessionArtifact> {
     myCurrentIndex = index;
   }
 
-  /**
-   * Handle a click event based on the current cell index.
-   * TODO: support keyboard navigation.
-   */
-  public void handleClick(@NotNull MouseEvent event) {
-    if (myCurrentIndex == INVALID_INDEX) {
-      return;
-    }
-
-    assert myCellComponentMap.containsKey(myCurrentIndex);
-    // Transform the mouse event (which is in the JList's coordinate system) to be relative to the cell.
-    Rectangle cellRect = mySessionsList.getCellBounds(myCurrentIndex, myCurrentIndex);
-    event.translatePoint(-cellRect.x, -cellRect.y);
-    myCellComponentMap.get(myCurrentIndex).handleMouseEvent(event);
-  }
-
   @Override
   public Component getListCellRendererComponent(JList<? extends SessionArtifact> list,
                                                 SessionArtifact item,
                                                 int index,
                                                 boolean isSelected,
                                                 boolean cellHasFocus) {
-    // TODO b/74432628 include hover information so individual cell can react accordingly.
     SessionArtifactView.ArtifactDrawInfo drawInfo =
       new SessionArtifactView.ArtifactDrawInfo(index, isSelected, myCurrentIndex == index, cellHasFocus);
     SessionArtifactView component = myViewBinder.build(drawInfo, item);
-    myCellComponentMap.put(index, component);
     return component.getComponent();
   }
 }

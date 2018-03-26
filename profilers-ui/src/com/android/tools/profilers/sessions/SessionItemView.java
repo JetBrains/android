@@ -39,19 +39,18 @@ import static com.android.tools.profilers.ProfilerColors.*;
 public final class SessionItemView extends SessionArtifactView<SessionItem> {
 
   private static final Border DIVIDER_BORDER = JBUI.Borders.customLine(SESSION_DIVIDER_COLOR, 1, 0, 0, 0);
-  private static final Border COMPONENT_PADDING = JBUI.Borders.empty(4, 0);
+  private static final Border COMPONENT_PADDING = JBUI.Borders.empty(4, 9, 4, 4);
   private static final Font SESSION_TIME_FONT =
     TITLE_FONT.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD));
 
   @NotNull private final JComponent myComponent;
-  @Nullable private JButton myExpandCollapseButton;
 
   public SessionItemView(@NotNull ArtifactDrawInfo drawInfo, @NotNull SessionItem artifact) {
     super(drawInfo, artifact);
 
-    // 1st column reserved for expand-collapse row, 2nd column for the Session's title (time), 3rd column for the live session icon.
+    // 1st column reserved for the Session's title (time), 2nd column for the live session icon.
     // 1st row for showing session start time, 2nd row for name, 3rd row for duration
-    myComponent = new JPanel(new TabularLayout("Fit,Fit,Fit,*", "Fit,Fit,Fit"));
+    myComponent = new JPanel(new TabularLayout("Fit,Fit,*", "Fit,Fit,Fit"));
     if (isHovered()) {
       myComponent.setBackground(HOVERED_SESSION_COLOR);
     }
@@ -61,47 +60,31 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     // Skip the top border for the first entry as that would duplicate with the toolbar's border
     myComponent.setBorder(getIndex() == 0 ? selectionBorder : JBUI.Borders.merge(DIVIDER_BORDER, selectionBorder, false));
 
-    myExpandCollapseButton = new CommonButton(getArtifact().isExpanded() ? COLLAPSE_ICON : EXPAND_ICON);
-    myExpandCollapseButton.setBorder(EXPAND_ICON_BORDER);
-    myExpandCollapseButton.addActionListener(e -> getArtifact().setExpanded(!getArtifact().isExpanded()));
-    myComponent.add(myExpandCollapseButton, new TabularLayout.Constraint(0, 0));
-
     // TODO b\73780379 add duration.
     DateFormat timeFormat = new SimpleDateFormat("hh:mm a");
     JLabel startTime = new JLabel(timeFormat.format(new Date(getArtifact().getSessionMetaData().getStartTimestampEpochMs())));
     startTime.setBorder(LABEL_PADDING);
     startTime.setFont(SESSION_TIME_FONT);
-    myComponent.add(startTime, new TabularLayout.Constraint(0, 1));
+    myComponent.add(startTime, new TabularLayout.Constraint(0, 0));
     // Session is ongoing.
     if (getArtifact().getSession().getEndTimestamp() == Long.MAX_VALUE) {
       JPanel liveDotWrapper = new JPanel();
       liveDotWrapper.setOpaque(false);
       LiveSessionDot liveDot = new LiveSessionDot();
       liveDotWrapper.add(liveDot, BorderLayout.CENTER);
-      myComponent.add(liveDotWrapper, new TabularLayout.Constraint(0, 2));
+      myComponent.add(liveDotWrapper, new TabularLayout.Constraint(0, 1));
     }
 
     JLabel sessionName = new JLabel(getArtifact().getName());
     sessionName.setBorder(LABEL_PADDING);
     sessionName.setFont(STATUS_FONT);
-    myComponent.add(sessionName, new TabularLayout.Constraint(1, 1, 1, 3));
+    myComponent.add(sessionName, new TabularLayout.Constraint(1, 0, 1, 3));
   }
 
   @NotNull
   @Override
   public JComponent getComponent() {
     return myComponent;
-  }
-
-  @Override
-  public void handleMouseEvent(@NotNull MouseEvent event) {
-    if (myExpandCollapseButton != null && (myExpandCollapseButton.contains(event.getPoint()) || event.getClickCount() > 1)) {
-      myExpandCollapseButton.doClick();
-      return;
-    }
-
-    // The artifact is responsible for selecting the session.
-    getArtifact().onSelect();
   }
 
   /**

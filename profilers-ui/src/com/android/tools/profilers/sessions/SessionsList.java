@@ -39,12 +39,6 @@ final class SessionsList extends JList<SessionArtifact> {
 
     addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(@NotNull MouseEvent event) {
-        setCurrentIndex(event);
-        myCellRenderer.handleClick(event);
-      }
-
-      @Override
       public void mouseEntered(MouseEvent event) {
         setCurrentIndex(event);
       }
