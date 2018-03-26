@@ -139,7 +139,7 @@ public final class GradleDslReference extends GradleDslSettableExpression {
     }
 
     // Resolve our reference
-    GradleDslElement element = resolveReference(text);
+    GradleDslElement element = resolveReference(text, true);
     return new GradleReferenceInjection(this, element, currentElement, text);
   }
 }

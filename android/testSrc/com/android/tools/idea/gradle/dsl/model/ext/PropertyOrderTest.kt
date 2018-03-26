@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
@@ -942,5 +943,234 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     verifyPropertyModel(fileModel, STRING_TYPE, "goodbye", STRING, REGULAR, 1, "storeFile")
     verifyPropertyModel(passwordModel.resolve(), STRING_TYPE, "off", STRING, REGULAR, 1, "storePassword")
+  }
+
+  @Test
+  fun testAddPropertyWithExistingDependency() {
+    val text = """
+               ext {
+                 prop  = "hello"
+                 prop2 = prop1
+               }
+               """.trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+
+    val extModel = buildModel.ext()
+
+    run {
+      val propertyModel = extModel.findProperty("prop1")
+      val beforePropModel = extModel.findProperty("prop")
+      val afterPropModel = extModel.findProperty("prop2")
+
+      propertyModel.setValue(ReferenceTo("prop"))
+
+      verifyPropertyModel(propertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
+      verifyPropertyModel(beforePropModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 0, "prop")
+      verifyPropertyModel(afterPropModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop2")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val propertyModel = extModel.findProperty("prop1")
+      val beforePropModel = extModel.findProperty("prop")
+      val afterPropModel = extModel.findProperty("prop2")
+
+      verifyPropertyModel(propertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
+      verifyPropertyModel(beforePropModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 0, "prop")
+      verifyPropertyModel(afterPropModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop2")
+    }
+
+    val expected = """
+                   ext {
+                    prop = "hello"
+                    prop1 = prop
+                    prop2 = prop1
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testChangeValueToOutOfScopeRef() {
+    val text = """
+               ext {
+                 prop1 = 43
+                 prop = 24
+                 prop2 = prop1
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    run {
+      val firstPropertyModel = extModel.findProperty("prop")
+      val secondPropertyModel = extModel.findProperty("prop1")
+      val thirdPropertyModel = extModel.findProperty("prop2")
+
+      secondPropertyModel.setValue(ReferenceTo("prop"))
+
+      verifyPropertyModel(firstPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 0, "prop")
+      verifyPropertyModel(secondPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 1, "prop1")
+      verifyPropertyModel(thirdPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 1, "prop2")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstPropertyModel = extModel.findProperty("prop")
+      val secondPropertyModel = extModel.findProperty("prop1")
+      val thirdPropertyModel = extModel.findProperty("prop2")
+
+      verifyPropertyModel(firstPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 0, "prop")
+      verifyPropertyModel(secondPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 1, "prop1")
+      verifyPropertyModel(thirdPropertyModel.resolve(), INTEGER_TYPE, 24, INTEGER, REGULAR, 1, "prop2")
+    }
+
+    val expected = """
+                   ext {
+                    prop = 24
+                    prop1 = prop
+                    prop2 = prop1
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testRenameReordersProperties() {
+    val text = """
+               ext {
+                 prop1 = prop
+                 prop2 = prop1
+                 oddOneOut = true
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel =  buildModel.ext()
+
+    run {
+      val firstPropertyModel = extModel.findProperty("oddOneOut")
+      val secondPropertyModel = extModel.findProperty("prop1")
+      val thirdPropertyModel = extModel.findProperty("prop2")
+
+      firstPropertyModel.rename("prop")
+      verifyPropertyModel(firstPropertyModel.resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop")
+      verifyPropertyModel(secondPropertyModel.resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop1")
+      verifyPropertyModel(thirdPropertyModel.resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop2")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstPropertyModel = extModel.findProperty("prop")
+      val secondPropertyModel = extModel.findProperty("prop1")
+      val thirdPropertyModel = extModel.findProperty("prop2")
+
+      verifyPropertyModel(firstPropertyModel.resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop")
+      verifyPropertyModel(secondPropertyModel.resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop1")
+      verifyPropertyModel(thirdPropertyModel.resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop2")
+    }
+
+    val expected = """
+                   ext {
+                    prop = true
+                    prop1 = prop
+                    prop2 = prop1
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testChangeReferenceValueReordersProperties() {
+    val text = """
+               ext {
+                 prop1 = prop
+                 prop3 = "${'$'}{prop2}"
+                 prop6 = prop
+                 prop4 = prop3
+                 prop5 = prop4
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    run {
+      val firstPropertyModel = extModel.findProperty("prop")
+      val secondPropertyModel = extModel.findProperty("prop1")
+      val thirdPropertyModel = extModel.findProperty("prop2")
+      val fourthPropertyModel = extModel.findProperty("prop3")
+      val fifthPropertyModel = extModel.findProperty("prop4")
+      val sixthPropertyModel = extModel.findProperty("prop5")
+      val seventhPropertyModel = extModel.findProperty("prop6")
+
+      firstPropertyModel.setValue("hello")
+      thirdPropertyModel.setValue("goodbye")
+      seventhPropertyModel.setValue(ReferenceTo("prop5"))
+
+      verifyPropertyModel(firstPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 0, "prop")
+      verifyPropertyModel(secondPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
+      verifyPropertyModel(thirdPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 0, "prop2")
+      verifyPropertyModel(fourthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop3")
+      verifyPropertyModel(fifthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop4")
+      verifyPropertyModel(sixthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop5")
+      verifyPropertyModel(seventhPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop6")
+    }
+
+    applyChangesAndReparse(buildModel)
+
+    run {
+      val firstPropertyModel = extModel.findProperty("prop")
+      val secondPropertyModel = extModel.findProperty("prop1")
+      val thirdPropertyModel = extModel.findProperty("prop2")
+      val fourthPropertyModel = extModel.findProperty("prop3")
+      val fifthPropertyModel = extModel.findProperty("prop4")
+      val sixthPropertyModel = extModel.findProperty("prop5")
+      val seventhPropertyModel = extModel.findProperty("prop6")
+
+      verifyPropertyModel(firstPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 0, "prop")
+      verifyPropertyModel(secondPropertyModel.resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
+      verifyPropertyModel(thirdPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 0, "prop2")
+      verifyPropertyModel(fourthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop3")
+      verifyPropertyModel(fifthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop4")
+      verifyPropertyModel(sixthPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop5")
+      verifyPropertyModel(seventhPropertyModel.resolve(), STRING_TYPE, "goodbye", STRING, REGULAR, 1, "prop6")
+    }
+
+    val expected = """
+                   ext {
+                     prop = 'hello'
+                     prop1 = prop
+                     prop2 = 'goodbye'
+                     prop3 = "${'$'}{prop2}"
+                     prop4 = prop3
+                     prop5 = prop4
+                     prop6 = prop5
+                   }""".trimIndent()
+    verifyFileContents(myBuildFile, expected)
+  }
+
+  // TODO: Uncomment when index dependencies are found.
+  //@Test
+  fun /*test*/AddListDependencyWithExistingIndexReference() {
+    val text = """
+               ext {
+                 prop1 = prop[0]
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+    val newListModel = extModel.findProperty("prop")
+    newListModel.convertToEmptyList().addListValue().setValue("hello")
+
+    verifyPropertyModel(extModel.findProperty("prop1").resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
   }
 }

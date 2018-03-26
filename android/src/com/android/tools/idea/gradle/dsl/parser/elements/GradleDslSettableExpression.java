@@ -65,6 +65,7 @@ public abstract class GradleDslSettableExpression extends GradleDslExpression {
     myUnsavedValue = element;
     resolve();
     setModified(true);
+    reorder();
   }
 
   protected void checkForValidValue(@NotNull Object value) {
