@@ -70,11 +70,12 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
   @Override
   @NotNull
   public String getName() {
-    return "CPU Trace";
+    return ProfilingConfiguration.getDefaultConfigName(myInfo.getProfilerType());
   }
 
   @Override
   public long getTimestampNs() {
+    // TODO(b/74975946): ongoing captures subtext should "Capturing..." instead of the start timestamp.
     return myInfo.getFromTimestamp() - mySession.getStartTimestamp();
   }
 
@@ -142,8 +143,10 @@ public class CpuCaptureSessionArtifact implements SessionArtifact {
         profilers.getClient().getCpuClient().checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(session).build());
 
       if (profilingStateResponse.getBeingProfiled()) {
-        TraceInfo ongoingTraceInfo =
-          TraceInfo.newBuilder().setFromTimestamp(profilingStateResponse.getStartTimestamp()).build();
+        TraceInfo ongoingTraceInfo = TraceInfo.newBuilder()
+          .setProfilerType(profilingStateResponse.getConfiguration().getProfilerType())
+          .setFromTimestamp(profilingStateResponse.getStartTimestamp())
+          .build();
         artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, ongoingTraceInfo, true));
       }
     }
