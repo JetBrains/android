@@ -25,9 +25,9 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -41,7 +41,6 @@ import java.util.List;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class ResourceHelperTest extends AndroidTestCase {
   public void testIsFileBasedResourceType() {
@@ -109,7 +108,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertEquals("menu-en-rUS", ResourceHelper.getFolderConfiguration(file2.getVirtualFile()).getFolderName(ResourceFolderType.MENU));
   }
 
-  public void testRGB() {
+  public void testParseColor() {
     Color c = ResourceHelper.parseColor("#0f4");
     assert c != null;
     assertEquals(0xff00ff44, c.getRGB());
@@ -311,14 +310,10 @@ public class ResourceHelperTest extends AndroidTestCase {
   }
 
   private void setProjectNamespace(ResourceNamespace appNs) {
-    myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
-    FileDocumentManager.getInstance().saveAllDocuments();
-    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    runWriteCommandAction(getProject(), () -> {
+    CommandProcessor.getInstance().runUndoTransparentAction(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      myFacet.getConfiguration().setModel(TestAndroidModel.namespaced());
       myFacet.getManifest().getPackage().setValue(appNs.getPackageName());
-      FileDocumentManager.getInstance().saveAllDocuments();
-      PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    });
+    }));
   }
 
   public void testGetResourceResolverFromXmlTag_namespacesDisabled() {
