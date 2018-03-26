@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.JBColor
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.ui.AbstractTableCellEditor
@@ -37,6 +38,7 @@ import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
 import javax.swing.tree.*
 
 private const val NAME = 0
@@ -93,6 +95,26 @@ class VariablesTable(private val project: Project, private val context: PsContex
     (tableModel as DefaultTreeModel).nodesWereInserted(last, IntArray(1) { last.getIndex(emptyNode) })
     tree.expandPath(TreePath(last.path))
     editCellAt(tree.getRowForPath(TreePath(emptyNode.path)), 0)
+  }
+
+  override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
+    val defaultRenderer = super.getCellRenderer(row, column)
+    return TableCellRenderer { table, value, isSelected, hasFocus, rowIndex, columnIndex ->
+      val component = defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex)
+      component.background =
+          if (isSelected) {
+            table.selectionBackground
+          } else {
+            val nodeRendered = tree.getPathForRow(rowIndex).lastPathComponent as DefaultMutableTreeNode
+            val parent = nodeRendered.parent
+            if (parent is VariableNode && parent.getIndex(nodeRendered) % 2 == 0) {
+              JBColor.LIGHT_GRAY
+            } else {
+              table.background
+            }
+          }
+      component
+    }
   }
 
   override fun getCellEditor(row: Int, column: Int): TableCellEditor {
