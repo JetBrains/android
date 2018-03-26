@@ -106,7 +106,7 @@ public class NativeSymbolsPoller extends PollRunner {
       symbol = mySymbolizer.symbolize(myProcess.getAbiCpuArch(), frame.getModuleName(), offset);
     }
     catch (IOException | RuntimeException e) {
-      getLogger().error(e);
+      getLogger().warn(e);
     }
     if (symbol == null) {
       String unfoundSymbolName = String.format("0x%x", offset);

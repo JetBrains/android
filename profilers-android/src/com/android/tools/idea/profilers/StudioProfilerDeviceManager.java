@@ -30,6 +30,7 @@ import com.android.tools.profiler.proto.Agent;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -45,10 +46,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
@@ -59,7 +57,7 @@ import static com.android.ddmlib.IDevice.CHANGE_STATE;
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
 class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener,
-                                             IdeSdks.IdeSdkChangeListener {
+                                             IdeSdks.IdeSdkChangeListener, Disposable {
 
   private static Logger getLogger() {
     return Logger.getInstance(StudioProfilerDeviceManager.class);
@@ -122,9 +120,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     }
   }
 
+  @Override
   public void dispose() {
     AndroidDebugBridge.removeDebugBridgeChangeListener(this);
     AndroidDebugBridge.removeDeviceChangeListener(this);
+    disconnectProxies();
   }
 
   @Override
@@ -138,7 +138,15 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       // Perfd must be spawned through ADB. When |bridge| is null, it means the ADB that was available earlier
       // becomes invalid and every running perfd it had spawned is being killed. As a result, we should kill the
       // corresponding proxies, too.
-      for (PerfdProxy proxy : myDeviceProxies.values()) {
+      disconnectProxies();
+    }
+  }
+
+  private void disconnectProxies() {
+    synchronized (myDeviceProxies) {
+      // Copy values because proxy.disconnect() modifies the map
+      ArrayList<PerfdProxy> proxies = new ArrayList<>(myDeviceProxies.values());
+      for (PerfdProxy proxy : proxies) {
         proxy.disconnect();
       }
     }
@@ -213,9 +221,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
             getLogger().info("[perfd]: " + s);
-            if (myDeviceProxies.containsKey(myDevice)) {
-              getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
-              return;
+            synchronized (myDeviceProxies) {
+              if (myDeviceProxies.containsKey(myDevice)) {
+                getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
+                return;
+              }
             }
 
             // On supported API levels (Lollipop+), we should only start the proxy once perfd has successfully launched the grpc server.
@@ -451,10 +461,14 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, channelName);
         myPerfdProxy.connect();
         // Add the proxy to the proxies map.
-        myDeviceProxies.put(myDevice, myPerfdProxy);
+        synchronized (myDeviceProxies) {
+          myDeviceProxies.put(myDevice, myPerfdProxy);
+        }
         myPerfdProxy.setOnDisconnectCallback(() -> {
-          if (myDeviceProxies.containsKey(myDevice)) {
-            myDeviceProxies.remove(myDevice);
+          synchronized (myDeviceProxies) {
+            if (myDeviceProxies.containsKey(myDevice)) {
+              myDeviceProxies.remove(myDevice);
+            }
           }
         });
 
