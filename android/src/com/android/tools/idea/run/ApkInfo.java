@@ -34,17 +34,17 @@ import java.util.List;
 public final class ApkInfo {
   /** The APK file(s). Contains at least one element. */
   @NotNull
-  private final List<File> myFiles;
+  private final List<ApkFileUnit> myFiles;
   /** The manifest package name for the APK (the app ID). */
   @NotNull
   private final String myApplicationId;
 
   public ApkInfo(@NotNull File file, @NotNull String applicationId) {
-    myFiles = ImmutableList.of(file);
+    myFiles = ImmutableList.of(new ApkFileUnit("", file));
     myApplicationId = applicationId;
   }
 
-  public ApkInfo(@NotNull List<File> files, @NotNull String applicationId) {
+  public ApkInfo(@NotNull List<ApkFileUnit> files, @NotNull String applicationId) {
     Preconditions.checkArgument(!files.isEmpty());
     myFiles = files;
     myApplicationId = applicationId;
@@ -57,14 +57,14 @@ public final class ApkInfo {
   @NotNull
   public File getFile() {
     Preconditions.checkArgument(myFiles.size() == 1);
-    return myFiles.get(0);
+    return myFiles.get(0).getApkFile();
   }
 
   /**
    * The list of files to deploy for the given {@link #getApplicationId()}.
    */
   @NotNull
-  public List<File> getFiles() {
+  public List<ApkFileUnit> getFiles() {
     return myFiles;
   }
 

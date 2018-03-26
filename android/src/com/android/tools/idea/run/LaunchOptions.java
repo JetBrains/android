@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.run;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,6 +33,7 @@ public final class LaunchOptions {
   public static final class Builder {
     private boolean myDeploy = true;
     private String myPmInstallOptions = null;
+    private List<String> myDisabledDynamicFeatures = new ArrayList<>();
     private boolean myDebug = false;
     private boolean myOpenLogcatAutomatically = false;
     private boolean myClearLogcatBeforeStart = false;
@@ -44,6 +48,7 @@ public final class LaunchOptions {
     public LaunchOptions build() {
       return new LaunchOptions(myDeploy,
                                myPmInstallOptions,
+                               myDisabledDynamicFeatures,
                                myDebug,
                                myOpenLogcatAutomatically,
                                myClearLogcatBeforeStart,
@@ -99,6 +104,11 @@ public final class LaunchOptions {
       myExtraOptions.putAll(extraOptions);
       return this;
     }
+
+    public Builder setDisabledDynamicFeatures(List<String> disabledDynamicFeatures) {
+      myDisabledDynamicFeatures = ImmutableList.copyOf(disabledDynamicFeatures);
+      return this;
+    }
   }
 
   @NotNull
@@ -108,6 +118,7 @@ public final class LaunchOptions {
 
   private final boolean myDeploy;
   private final String myPmInstallOptions;
+  private List<String> myDisabledDynamicFeatures;
   private final boolean myDebug;
   private final boolean myOpenLogcatAutomatically;
   private final boolean myClearLogcatBeforeStart;
@@ -117,6 +128,7 @@ public final class LaunchOptions {
 
   private LaunchOptions(boolean deploy,
                         @Nullable String pmInstallOptions,
+                        @NotNull List<String> disabledDynamicFeatures,
                         boolean debug,
                         boolean openLogcatAutomatically,
                         boolean clearLogcatBeforeStart,
@@ -125,6 +137,7 @@ public final class LaunchOptions {
                         @NotNull Map<String, Object> extraOptions) {
     myDeploy = deploy;
     myPmInstallOptions = pmInstallOptions;
+    myDisabledDynamicFeatures = disabledDynamicFeatures;
     myDebug = debug;
     myOpenLogcatAutomatically = openLogcatAutomatically;
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
@@ -140,6 +153,11 @@ public final class LaunchOptions {
   @Nullable
   public String getPmInstallOptions() {
     return myPmInstallOptions;
+  }
+
+  @NotNull
+  public List<String> getDisabledDynamicFeatures() {
+    return myDisabledDynamicFeatures;
   }
 
   public boolean isDebug() {

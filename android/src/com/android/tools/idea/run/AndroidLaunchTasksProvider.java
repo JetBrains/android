@@ -164,9 +164,11 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
 
       // Add tasks for each apk (or split-apk) returned by the apk provider
+      List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
       tasks.addAll(createDeployTasks(myApkProvider.getApks(device),
                                      apks -> new DeployApkTask(myProject, myLaunchOptions, ImmutableList.copyOf(apks)),
-                                     apkInfo -> new SplitApkDeployTask(myProject, new DynamicAppDeployTaskContext(apkInfo))));
+                                     apkInfo -> new SplitApkDeployTask(myProject,
+                                                                       new DynamicAppDeployTaskContext(apkInfo, disabledFeatures))));
     }
     return ImmutableList.copyOf(tasks);
   }
