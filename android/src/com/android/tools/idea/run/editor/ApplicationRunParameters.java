@@ -42,6 +42,7 @@ import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,12 +68,14 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   private ComboBox myLaunchOptionCombo;
   private ConfigurableCardPanel myLaunchOptionsCardPanel;
   private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
+  private LabeledComponent<JBTable> myDynamicFeaturesLabeledComponent;
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
   private Artifact myLastSelectedArtifact;
 
   private final ImmutableMap<String, LaunchConfigurableWrapper> myConfigurables;
+  private DynamicFeaturesParameters myDynamicFeaturesParameters;
 
   public ApplicationRunParameters(final Project project, final ConfigurationModuleSelector moduleSelector) {
     myProject = project;
@@ -111,6 +114,11 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myConfigurables = builder.build();
 
     myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
+  }
+
+  private void createUIComponents() {
+    myDynamicFeaturesParameters = new DynamicFeaturesParameters();
+    myDynamicFeaturesLabeledComponent = myDynamicFeaturesParameters.getComponent();
   }
 
   @Override
@@ -182,6 +190,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     LaunchOption launchOption = getLaunchOption(configuration.MODE);
     myLaunchOptionCombo.setSelectedItem(launchOption);
     myAmOptionsLabeledComponent.getComponent().setText(configuration.ACTIVITY_EXTRA_FLAGS);
+    myDynamicFeaturesParameters.setDisabledDynamicFeatures(configuration.getDisabledDynamicFeatures());
   }
 
   @NotNull
@@ -221,6 +230,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     LaunchOption launchOption = (LaunchOption)myLaunchOptionCombo.getSelectedItem();
     configuration.MODE = launchOption.getId();
     configuration.ACTIVITY_EXTRA_FLAGS = StringUtil.notNullize(myAmOptionsLabeledComponent.getComponent().getText());
+    configuration.setDisabledDynamicFeatures(myDynamicFeaturesParameters.getDisabledDynamicFeatures());
   }
 
   @Override
@@ -333,6 +343,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     myCustomArtifactLabeledComponent.setEnabled(!isInstantApp);
 
     myLaunchOptionCombo.setEnabled(!isInstantApp);
+    myDynamicFeaturesParameters.setActiveModule(currentModule);
   }
 
   private static class ArtifactRenderer extends ListCellRendererWrapper {

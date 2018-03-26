@@ -26,6 +26,7 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.MultiUserUtils;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -61,14 +62,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider {
+  @NonNls private static final String FEATURE_LIST_SEPARATOR = ",";
+
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
   @NonNls public static final String LAUNCH_SPECIFIC_ACTIVITY = "specific_activity";
   @NonNls public static final String DO_NOTHING = "do_nothing";
@@ -81,6 +82,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public boolean DEPLOY = true;
   public String ARTIFACT_NAME = "";
   public String PM_INSTALL_OPTIONS = "";
+  public String DYNAMIC_FEATURES_DISABLED_LIST = "";
 
   // Launch options
   public String ACTIVITY_EXTRA_FLAGS = "";
@@ -118,7 +120,23 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     return super.getLaunchOptions()
       .setDeploy(DEPLOY)
       .setPmInstallOptions(PM_INSTALL_OPTIONS)
+      .setDisabledDynamicFeatures(getDisabledDynamicFeatures())
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
+  }
+
+  @NotNull
+  public List<String> getDisabledDynamicFeatures() {
+    if (StringUtil.isEmpty(DYNAMIC_FEATURES_DISABLED_LIST)) {
+      return ImmutableList.of();
+    }
+    return StringUtil.split(DYNAMIC_FEATURES_DISABLED_LIST, FEATURE_LIST_SEPARATOR);
+  }
+
+  public void setDisabledDynamicFeatures(@NotNull List<String> features) {
+    // Remove duplicates and sort to ensure deterministic behavior, as the value
+    // is stored on disk (run configuration parameters).
+    List<String> sortedFeatures = features.stream().distinct().sorted().collect(Collectors.toList());
+    DYNAMIC_FEATURES_DISABLED_LIST = StringUtil.join(sortedFeatures, FEATURE_LIST_SEPARATOR);
   }
 
   @Override

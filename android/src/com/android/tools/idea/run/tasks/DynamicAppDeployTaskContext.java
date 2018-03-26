@@ -18,11 +18,12 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@see SplitApkDeployTaskContext} when deploying an application
@@ -30,9 +31,11 @@ import java.util.List;
  */
 public class DynamicAppDeployTaskContext implements SplitApkDeployTaskContext {
   private ApkInfo myApkInfo;
+  private List<String> myDisabledFeatures;
 
-  public DynamicAppDeployTaskContext(@NotNull ApkInfo apkInfo) {
+  public DynamicAppDeployTaskContext(@NotNull ApkInfo apkInfo, @NotNull List<String> disabledFeatures) {
     myApkInfo = apkInfo;
+    myDisabledFeatures = disabledFeatures;
   }
 
   @NotNull
@@ -50,7 +53,14 @@ public class DynamicAppDeployTaskContext implements SplitApkDeployTaskContext {
   @NotNull
   @Override
   public List<File> getArtifacts() {
-    return myApkInfo.getFiles();
+    return myApkInfo.getFiles().stream()
+      .filter(entry -> isFeatureEnabled(entry.getModuleName()))
+      .map(entry -> entry.getApkFile())
+      .collect(Collectors.toList());
+  }
+
+  private boolean isFeatureEnabled(String moduleName) {
+    return myDisabledFeatures.stream().noneMatch(m -> StringUtil.equals(m, moduleName));
   }
 
   @Override

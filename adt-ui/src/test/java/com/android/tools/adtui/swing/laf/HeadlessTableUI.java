@@ -17,10 +17,18 @@ package com.android.tools.adtui.swing.laf;
 
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeMouse;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicGraphicsUtils;
+import javax.swing.plaf.basic.BasicListUI;
 import javax.swing.plaf.basic.BasicTableUI;
+import javax.swing.table.TableCellEditor;
 import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 /**
  * A stubbed {@link BasicTableUI} for use in headless unit tests, where some functionality is
@@ -35,11 +43,100 @@ import java.awt.*;
  * updated in the future to add more functionality, so it more closely matches its parent class.
  */
 public class HeadlessTableUI extends BasicTableUI {
+  private final MouseListener myMouseListener = new HeadlessTableUI.HeadlessMouseListener();
+
   @Override
   protected void installListeners() {
+    table.addMouseListener(myMouseListener);
   }
 
   @Override
   protected void uninstallListeners() {
+    table.removeMouseListener(myMouseListener);
+  }
+
+  /**
+   * A minimal mouse listener, which only does a subset of what {@link BasicTableUI}'s mouse handler
+   * does. This allows it to avoid calling
+   * {@link BasicGraphicsUtils#isMenuShortcutKeyDown(InputEvent)}, which fails in headless mode.
+   */
+  private final class HeadlessMouseListener extends MouseAdapter {
+    private int pressedRow;
+    private int pressedCol;
+    private Component dispatchComponent;
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+      if (SwingUtilities2.shouldIgnore(e, table)) {
+        return;
+      }
+
+      if (table.isEditing() && !table.getCellEditor().stopCellEditing()) {
+        Component editorComponent = table.getEditorComponent();
+        if (editorComponent != null && !editorComponent.hasFocus()) {
+          SwingUtilities2.compositeRequestFocus(editorComponent);
+        }
+        return;
+      }
+
+      Point p = e.getPoint();
+      pressedRow = table.rowAtPoint(p);
+      pressedCol = table.columnAtPoint(p);
+
+      SwingUtilities2.adjustFocus(table);
+      setValueIsAdjusting(true);
+      adjustSelection(e);
+    }
+
+    private void setValueIsAdjusting(boolean flag) {
+      table.getSelectionModel().setValueIsAdjusting(flag);
+      table.getColumnModel().getSelectionModel().
+        setValueIsAdjusting(flag);
+    }
+
+    private void adjustSelection(MouseEvent e) {
+      // The autoscroller can generate drag events outside the
+      // table's range.
+      if ((pressedCol == -1) || (pressedRow == -1)) {
+        return;
+      }
+
+      boolean dragEnabled = table.getDragEnabled();
+
+      if (!dragEnabled && table.editCellAt(pressedRow, pressedCol, e)) {
+        setDispatchComponent(e);
+        repostEvent(e);
+      }
+
+      CellEditor editor = table.getCellEditor();
+      if (dragEnabled || editor == null || editor.shouldSelectCell(e)) {
+        table.changeSelection(pressedRow, pressedCol,
+                              false,
+                              e.isShiftDown());
+      }
+    }
+
+    private void setDispatchComponent(MouseEvent e) {
+      Component editorComponent = table.getEditorComponent();
+      Point p = e.getPoint();
+      Point p2 = SwingUtilities.convertPoint(table, p, editorComponent);
+      dispatchComponent =
+        SwingUtilities.getDeepestComponentAt(editorComponent,
+                                             p2.x, p2.y);
+      SwingUtilities2.setSkipClickCount(dispatchComponent,
+                                        e.getClickCount() - 1);
+    }
+
+    private boolean repostEvent(MouseEvent e) {
+      // Check for isEditing() in case another event has
+      // caused the editor to be removed. See bug #4306499.
+      if (dispatchComponent == null || !table.isEditing()) {
+        return false;
+      }
+      MouseEvent e2 = SwingUtilities.convertMouseEvent(table, e,
+                                                       dispatchComponent);
+      dispatchComponent.dispatchEvent(e2);
+      return true;
+    }
   }
 }

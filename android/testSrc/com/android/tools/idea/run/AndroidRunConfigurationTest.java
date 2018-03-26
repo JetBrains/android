@@ -19,10 +19,13 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.tasks.ActivityLaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.util.ReflectionUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
+
+import java.util.stream.Collectors;
 
 public class AndroidRunConfigurationTest extends AndroidTestCase {
   private AndroidRunConfiguration myRunConfiguration;
@@ -34,6 +37,18 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
     myDevice = Mockito.mock(IDevice.class);
+  }
+
+  /**
+   * Verifies that public fields, which are save in configuration files (workspace.xml) are
+   * not accidentally renamed during a code refactoring.
+   */
+  public void testPersistentFieldNames() {
+    assertContainsElements(
+      ReflectionUtil.collectFields(myRunConfiguration.getClass()).stream().map(f ->f.getName()).collect(Collectors.toList()),
+      "CLEAR_LOGCAT", "SHOW_LOGCAT_AUTOMATICALLY", "SKIP_NOOP_APK_INSTALLATIONS", "FORCE_STOP_RUNNING_APP",
+      "DEPLOY", "ARTIFACT_NAME", "PM_INSTALL_OPTIONS", "DYNAMIC_FEATURES_DISABLED_LIST",
+      "ACTIVITY_EXTRA_FLAGS", "MODE");
   }
 
   public void testContributorsAmStartOptionsIsInlinedWithAmStartCommand() {

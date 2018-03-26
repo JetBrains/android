@@ -115,8 +115,8 @@ public class GradleApkProvider implements ApkProvider {
       //
       // Note: For instant apps, "getApk" currently returns a ZIP to be provisioned on the device instead of
       //       a .apk file, the "collectDependentFeaturesApks" is a no-op for instant apps.
-      List<File> apkFileList = new ArrayList<>();
-      apkFileList.add(getApk(selectedVariant, device, myFacet, false));
+      List<ApkFileUnit> apkFileList = new ArrayList<>();
+      apkFileList.add(new ApkFileUnit(androidModel.getModuleName(), getApk(selectedVariant, device, myFacet, false)));
       apkFileList.addAll(collectDependentFeaturesApks(androidModel, device));
       apkList.add(new ApkInfo(apkFileList, pkgName));
     }
@@ -144,8 +144,8 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  private List<File> collectDependentFeaturesApks(@NotNull AndroidModuleModel androidModel,
-                                                  @NotNull IDevice device) {
+  private List<ApkFileUnit> collectDependentFeaturesApks(@NotNull AndroidModuleModel androidModel,
+                                                         @NotNull IDevice device) {
     IdeAndroidProject project = androidModel.getAndroidProject();
     return DynamicAppUtils.getDependentFeatureModules(myFacet.getModule().getProject(), project)
       .stream()
@@ -162,14 +162,14 @@ public class GradleApkProvider implements ApkProvider {
         IdeVariant selectedVariant = androidFeatureModel.getSelectedVariant();
         try {
           File apk = getApk(selectedVariant, device, featureFacet, false);
-          return apk;
+          return new ApkFileUnit(androidFeatureModel.getModuleName(), apk);
         }
         catch (ApkProvisionException e) {
           //TODO: Is this the right thing to do?
           return null;
         }
       })
-      .filter(apk -> apk != null)
+      .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
 
