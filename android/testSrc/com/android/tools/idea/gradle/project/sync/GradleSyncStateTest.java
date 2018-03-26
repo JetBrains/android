@@ -236,10 +236,10 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
   public void testGetFormattedSyncDuration() {
     mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
-    assertEquals("10s", mySyncState.getFormattedSyncDuration(10000));
-    assertEquals("2m", mySyncState.getFormattedSyncDuration(120000));
-    assertEquals("2m 10s", mySyncState.getFormattedSyncDuration(130000));
-    assertEquals("2m 10s 100ms", mySyncState.getFormattedSyncDuration(130100));
-    assertEquals("1h 2m 10s 100ms", mySyncState.getFormattedSyncDuration(3730100));
+    assertEquals("10 s", mySyncState.getFormattedSyncDuration(10000));
+    assertEquals("2 m", mySyncState.getFormattedSyncDuration(120000));
+    assertEquals("2 m 10 s", mySyncState.getFormattedSyncDuration(130000));
+    assertEquals("2 m 10 s 100 ms", mySyncState.getFormattedSyncDuration(130100));
+    assertEquals("1 h 2 m 10 s 100 ms", mySyncState.getFormattedSyncDuration(3730100));
   }
 }
