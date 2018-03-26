@@ -17,7 +17,9 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
+import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -43,6 +45,8 @@ public class NavColorSet extends ColorSet {
   public static final JBColor NO_PREVIEW_BACKGROUND_COLOR = new JBColor(new Color(0xfdfdfd), new Color(0xfdfdfd));
   public static final JBColor NO_PREVIEW_TEXT_COLOR = new JBColor(new Color(0xa7a7a7), new Color(0xa7a7a7));
   public static final JBColor ACTIVITY_BORDER_COLOR = new JBColor(0xa7a7a7, 0x2d2f31);
+  // Note that this must match the highlight color of ActionButtonWithText
+  public static final JBColor LIST_MOUSEOVER_COLOR = new JBColor(Gray.xDB, new Color(0x55595c));
 
   private Color mActions;
   private Color mHighlightedActions;
