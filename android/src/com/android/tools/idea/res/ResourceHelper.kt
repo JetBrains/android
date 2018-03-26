@@ -951,7 +951,7 @@ fun AbstractResourceRepository.getResourceItems(
   namespace: ResourceNamespace,
   type: ResourceType,
   visibilityLookup: ResourceVisibilityLookup,
-  maxAccessibility: ResourceAccessibility
+  maxAccessibility: ResourceVisibility
 ): Collection<String> {
   // TODO(b/74325205): remove the need for this.
   val patchedType = if (type == ResourceType.STYLEABLE) ResourceType.DECLARE_STYLEABLE else type
@@ -961,7 +961,7 @@ fun AbstractResourceRepository.getResourceItems(
   return if (this is FrameworkResourceRepository) {
     when {
       namespace != ResourceNamespace.ANDROID -> emptySet()
-      maxAccessibility != ResourceAccessibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, patchedType)
+      maxAccessibility != ResourceVisibility.PUBLIC -> getItemsOfType(ResourceNamespace.ANDROID, patchedType)
       else -> {
         val public = getPublicResourcesOfType(patchedType)
         public.mapTo(HashSet(public.size), ResourceItem::getName)
@@ -970,10 +970,10 @@ fun AbstractResourceRepository.getResourceItems(
   } else {
     val all = getItemsOfType(namespace, type)
     when (maxAccessibility) {
-    // TODO(b/74324283): distinguish between DEFAULT/PRIVATE.
-      ResourceAccessibility.DEFAULT, ResourceAccessibility.PRIVATE -> all
+    // TODO(b/74324283): distinguish between PRIVATE/PRIVATE XML ONLY.
+      ResourceVisibility.PRIVATE_XML_ONLY, ResourceVisibility.PRIVATE, ResourceVisibility.UNDEFINED -> all
     // TODO(namespaces)
-      ResourceAccessibility.PUBLIC -> all.filter { name ->
+      ResourceVisibility.PUBLIC -> all.filter { name ->
         // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
         // which is probably a better UX and the only way to make our tests pass (for now).
         !visibilityLookup.isPrivate(patchedType, name)

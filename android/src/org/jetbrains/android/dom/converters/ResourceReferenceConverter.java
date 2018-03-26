@@ -19,9 +19,9 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.AbstractResourceRepository;
-import com.android.resources.ResourceAccessibility;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -404,7 +404,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                          Collection<ResourceValue> result,
                                                          boolean explicitResourceType) {
     Collection<String> names =
-      ResourceHelper.getResourceItems(repo, onlyNamespace, type, visibilityLookup, ResourceAccessibility.PUBLIC);
+      ResourceHelper.getResourceItems(repo, onlyNamespace, type, visibilityLookup, ResourceVisibility.PUBLIC);
 
     ResourceNamespace.Resolver resolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
     if (element != null) {
