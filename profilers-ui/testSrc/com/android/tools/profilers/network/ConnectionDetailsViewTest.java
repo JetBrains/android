@@ -32,7 +32,7 @@ import org.junit.Test;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -169,7 +169,7 @@ public class ConnectionDetailsViewTest {
     myView.setHttpData(data);
     stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
     JLabel value = (JLabel)stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
-    assertThat(value.getText()).isEqualTo("222B");
+    assertThat(value.getText()).isEqualTo("222 B");
   }
 
   @Test
@@ -274,16 +274,16 @@ public class ConnectionDetailsViewTest {
   public void sentReceivedLegendRendersCorrectly() {
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, 0, "*", "*");
 
-    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(1000), 0, "0ms", "*");
-    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(2500), 0, "1s 500ms", "*");
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(1000), 0, "0 ms", "*");
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(2500), 0, "1 s 500 ms", "*");
 
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(3000),
-                                TimeUnit.MILLISECONDS.toMicros(3000), "2s", "0ms");
+                                TimeUnit.MILLISECONDS.toMicros(3000), "2 s", "0 ms");
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(3000),
-                                TimeUnit.MILLISECONDS.toMicros(4234), "2s", "1s 234ms");
+                                TimeUnit.MILLISECONDS.toMicros(4234), "2 s", "1 s 234 ms");
 
-    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(1000), "0ms", "0ms");
-    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(2000), "1s", "0ms");
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(1000), "0 ms", "0 ms");
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(2000), "1 s", "0 ms");
   }
 
   private void assertExpectedTimingLegends(long startTimeUs,
