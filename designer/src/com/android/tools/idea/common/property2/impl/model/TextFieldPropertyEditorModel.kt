@@ -16,14 +16,13 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
-import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.common.property2.api.PropertyItem
 
 /**
  * Model for properties that use a Text Editor.
  */
-class TextFieldPropertyEditorModel(property: PropertyItem, formModel: FormModel, override val editable: Boolean):
-    BasePropertyEditorModel(property, formModel), CommonTextFieldModel {
+class TextFieldPropertyEditorModel(property: PropertyItem, override val editable: Boolean) :
+  BasePropertyEditorModel(property), CommonTextFieldModel {
 
   override fun validate(editedValue: String) = property.validate(editedValue)
 

@@ -23,15 +23,12 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.FormModel
-import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.api.ActionButtonSupport
+import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getNamespaceResolver
-import com.android.tools.idea.uibuilder.property2.support.AddResourceAction
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
-import com.android.tools.idea.uibuilder.property2.support.RemoveResourceAction
 import com.android.tools.idea.uibuilder.property2.support.ShowResolvedValueAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -71,7 +68,10 @@ open class NelePropertyItem(
   }
 
   override var value: String?
-    get() = getCommonComponentValue()
+    get() {
+      val rawValue = rawValue
+      return if (model.showResolvedValues) resolveValue(rawValue) else rawValue
+    }
     set(value) {
       setCommonComponentValue(value)
     }
@@ -89,10 +89,13 @@ open class NelePropertyItem(
     get() = computeToolTip()
 
   override val isReference: Boolean
-    get() = isReferenceValue(value)
+    get() = isReferenceValue(rawValue)
 
-  override val resolvedValue: String?
-    get() = resolveValue(value)
+  open val rawValue: String?
+    get() = getCommonComponentValue()
+
+  val resolvedValue: String?
+    get() = resolveValue(rawValue)
 
   val namespaceResolver: ResourceNamespace.Resolver
     get() {
@@ -239,23 +242,20 @@ open class NelePropertyItem(
     }
   }
 
-  override fun getAction(model: FormModel): ActionGroup {
-    return if (isReferenceValue(value)) makeBoundActionGroup(model) else makeUnboundActionGroup()
+  override fun getAction(): ActionGroup {
+    return if (isReferenceValue(value)) makeBoundActionGroup() else makeUnboundActionGroup()
   }
 
-  private fun makeBoundActionGroup(formModel: FormModel): ActionGroup {
+  private fun makeBoundActionGroup(): ActionGroup {
     val group = DefaultActionGroup()
-    group.add(RemoveResourceAction(this))
-    group.add(ShowResolvedValueAction(formModel))
+    group.add(ShowResolvedValueAction(this))
     group.addSeparator()
-    group.add(AddResourceAction(this))
     group.add(OpenResourceManagerAction(this))
     return group
   }
 
   private fun makeUnboundActionGroup(): ActionGroup {
     val group = DefaultActionGroup()
-    group.add(AddResourceAction(this))
     group.add(OpenResourceManagerAction(this))
     return group
   }

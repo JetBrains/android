@@ -39,16 +39,9 @@ interface PropertyEditorModel {
   val value: String
 
   /**
-   * A reference to a model displaying a view of the properties.
-   *
-   * See [FormModel] for details.
+   * Returns the line (if known) where this editor is kept.
    */
-  val formModel: FormModel
-
-  /**
-   * Returns the line in the [FormModel] (if known) where this editor is kept.
-   */
-  var line: InspectorLineModel?
+  var lineModel: InspectorLineModel?
 
   /**
    * Returns true if the action button should be focusable.
@@ -71,7 +64,7 @@ interface PropertyEditorModel {
    * The action performed when user presses the action button if any.
    */
   val buttonAction: AnAction?
-    get() = (property as? ActionButtonSupport)?.getAction(formModel)
+    get() = (property as? ActionButtonSupport)?.getAction()
 
   /**
    * Controls the visibility of the editor.

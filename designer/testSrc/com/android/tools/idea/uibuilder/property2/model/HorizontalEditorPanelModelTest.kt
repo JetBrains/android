@@ -21,17 +21,15 @@ import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorMode
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil.makeProperty
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito
 
 class HorizontalEditorPanelModelTest {
 
   private fun createTestData(): TestData {
-    val formModel = Mockito.mock(FormModel::class.java)
     val property = makeProperty(ANDROID_URI, ATTR_TEXT_ALIGNMENT, TextAlignment.CENTER)
-    val toggle1 = MockEditorModel(property, formModel)
-    val toggle2 = MockEditorModel(property, formModel)
-    val toggle3 = MockEditorModel(property, formModel)
-    val model = HorizontalEditorPanelModel(property, formModel)
+    val toggle1 = FakeEditorModel(property)
+    val toggle2 = FakeEditorModel(property)
+    val toggle3 = FakeEditorModel(property)
+    val model = HorizontalEditorPanelModel(property)
     model.add(toggle1)
     model.add(toggle2)
     model.add(toggle3)
@@ -125,7 +123,8 @@ class HorizontalEditorPanelModelTest {
     assertThat(test.toggle3.focusWasRequested).isFalse()
   }
 
-  private class MockEditorModel(property: PropertyItem, formModel: FormModel): BasePropertyEditorModel(property, formModel) {
+  private class FakeEditorModel(property: PropertyItem) : BasePropertyEditorModel(property) {
+
     var focusWasRequested = false
       private set
 
@@ -136,8 +135,8 @@ class HorizontalEditorPanelModelTest {
 
   private class TestData(
     val model: HorizontalEditorPanelModel,
-    val toggle1: MockEditorModel,
-    val toggle2: MockEditorModel,
-    val toggle3: MockEditorModel
+    val toggle1: FakeEditorModel,
+    val toggle2: FakeEditorModel,
+    val toggle3: FakeEditorModel
   )
 }

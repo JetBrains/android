@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.api.FormModel
 import com.google.common.base.Joiner
 import com.intellij.ui.SpeedSearchComparator
 
@@ -34,8 +33,8 @@ import com.intellij.ui.SpeedSearchComparator
  *  is called. This means that this model must keep state for a value that is different
  *  from the property value.
  */
-class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>, formModel: FormModel) :
-    BasePropertyEditorModel(flagsProperty, formModel) {
+class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
+  BasePropertyEditorModel(flagsProperty) {
 
   /** Holds the names of the flags that are currently set in the value of the property */
   private val initialSelectedItems = mutableSetOf<String>()
@@ -145,7 +144,7 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>, f
   fun clearAll() {
     selectedItems.clear()
     val zeroValue = zeroValue
-    if (property.value.isNullOrEmpty() && !property.resolvedValue.isNullOrEmpty() && zeroValue != null) {
+    if (zeroValue != null) {
       selectedItems.add(zeroValue)
     }
     computeDialogState()

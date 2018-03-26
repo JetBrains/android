@@ -16,8 +16,14 @@
 package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 /**
  * Test base class used in some property tests.
@@ -57,5 +63,18 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
       result.add(nlModel.find(NlComponent.stripId(descriptor.id)!!)!!)
     }
     return result
+  }
+
+  /**
+   * Create a [NelePropertyItem] for testing purposes.
+   */
+  fun createPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NelePropertyItem {
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val nlModel = components[0].model as SyncNlModel
+    model.surface = nlModel.surface
+    val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
+    val systemResourceManager = resourceManagers.systemResourceManager
+    val definition = systemResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
+    return NelePropertyItem(ANDROID_URI, attrName, type, definition, "", model, components)
   }
 }

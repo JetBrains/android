@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
-import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.common.property2.api.PropertyItem
 
 /**
  * Model for a 3 state boolean property: on/off/unset.
  */
-class ThreeStateBooleanPropertyEditorModel(property: PropertyItem, formModel: FormModel):
-    BasePropertyEditorModel(property, formModel)
+class ThreeStateBooleanPropertyEditorModel(property: PropertyItem) : BasePropertyEditorModel(property)

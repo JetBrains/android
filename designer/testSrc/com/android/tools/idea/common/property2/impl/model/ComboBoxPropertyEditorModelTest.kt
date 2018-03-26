@@ -17,9 +17,9 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.api.FormModel
-import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.impl.model.util.PropertyModelTestUtil
+import com.android.tools.idea.uibuilder.property2.testutils.LineType
+import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.*
@@ -27,10 +27,9 @@ import org.mockito.Mockito.*
 class ComboBoxPropertyEditorModelTest {
 
   private fun createModel(): ComboBoxPropertyEditorModel {
-    val formModel = mock(FormModel::class.java)
     val property = PropertyModelTestUtil.makeProperty(SdkConstants.ANDROID_URI, "visibility", "visible")
     val enumSupport = PropertyModelTestUtil.makeEnumSupport("visible", "invisible", "gone")
-    return ComboBoxPropertyEditorModel(property, formModel, enumSupport, true)
+    return ComboBoxPropertyEditorModel(property, enumSupport, true)
   }
 
   private fun createModelWithListener(): Pair<ComboBoxPropertyEditorModel, ValueChangedListener> {
@@ -50,13 +49,13 @@ class ComboBoxPropertyEditorModelTest {
   @Test
   fun testEnter() {
     val (model, listener) = createModelWithListener()
-    val line = mock(InspectorLineModel::class.java)
-    model.line = line
+    val line = FakeInspectorLine(LineType.PROPERTY)
+    model.lineModel = line
     model.enterKeyPressed("gone")
     assertThat(model.property.value).isEqualTo("gone")
     assertThat(model.isPopupVisible).isFalse()
     verify(listener).valueChanged()
-    verify(model.formModel).moveToNextLineEditor(line)
+    assertThat(line.gotoNextLineWasRequested).isTrue()
   }
 
   @Test

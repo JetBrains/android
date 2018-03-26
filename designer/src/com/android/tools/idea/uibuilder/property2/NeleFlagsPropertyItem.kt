@@ -171,20 +171,17 @@ class NeleFlagsPropertyItem(
  *
  * A generated [PropertyItem] which can be used in an editor in the property inspector.
  */
-class NeleFlagPropertyItem(override val flags: NeleFlagsPropertyItem,
-                           override val name: String,
-                           override val maskValue: Int): FlagPropertyItem {
-  override val namespace: String
-    get() = flags.namespace
-
-  val type: NelePropertyType
-    get() = NelePropertyType.BOOLEAN
+class NeleFlagPropertyItem(override val flags: NeleFlagsPropertyItem, name: String, override val maskValue: Int) :
+  NelePropertyItem(flags.namespace, name, NelePropertyType.BOOLEAN, null, "", flags.model, flags.components), FlagPropertyItem {
 
   override val isReference: Boolean
     get() = false
 
-  override var value: String?
+  override val rawValue: String?
     get() = if (actualValue) SdkConstants.VALUE_TRUE else SdkConstants.VALUE_FALSE
+
+  override var value: String?
+    get() = rawValue
     set(value) { actualValue = value?.equals(SdkConstants.VALUE_TRUE, true) == true }
 
   override var actualValue: Boolean

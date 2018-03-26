@@ -16,9 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.model
 
 import com.android.annotations.VisibleForTesting
-import com.android.tools.idea.common.property2.api.FormModel
-import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import javax.swing.Icon
 
 /**
@@ -35,12 +34,11 @@ class ToggleButtonPropertyEditorModel(
   val trueValue: String,
   @VisibleForTesting
   val falseValue: String,
-  property: PropertyItem,
-  formModel: FormModel
-) : BasePropertyEditorModel(property, formModel) {
+  private val neleProperty: NelePropertyItem
+) : BasePropertyEditorModel(neleProperty) {
 
   var selected: Boolean
-    get() = property.resolvedValue == trueValue
+    get() = neleProperty.resolvedValue == trueValue
     set(value) {
       this.value = if (value) trueValue else falseValue
     }

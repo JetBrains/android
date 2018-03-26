@@ -38,8 +38,7 @@ import javax.swing.JComponent
  */
 class EditorProviderImpl<in P : PropertyItem>(
   private val enumSupportProvider: EnumSupportProvider<P>,
-  private val controlTypeProvider: ControlTypeProvider<P>,
-  private val formModel: FormModel
+  private val controlTypeProvider: ControlTypeProvider<P>
 ) : EditorProvider<P> {
 
   override fun invoke(property: P): Pair<PropertyEditorModel, JComponent> {
@@ -54,19 +53,19 @@ class EditorProviderImpl<in P : PropertyItem>(
         return createComboBoxEditor(property, false, enumSupport!!)
 
       ControlType.TEXT_EDITOR -> {
-        val model = TextFieldPropertyEditorModel(property, formModel, true)
+        val model = TextFieldPropertyEditorModel(property, true)
         val editor = PropertyTextField(model)
         return Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.THREE_STATE_BOOLEAN -> {
-        val model = ThreeStateBooleanPropertyEditorModel(property, formModel)
+        val model = ThreeStateBooleanPropertyEditorModel(property)
         val editor = PropertyThreeStateCheckBox(model)
         return Pair(model, editor)
       }
 
       ControlType.FLAG_EDITOR -> {
-        val model = FlagPropertyEditorModel(property as FlagsPropertyItem<*>, formModel)
+        val model = FlagPropertyEditorModel(property as FlagsPropertyItem<*>)
         val editor = FlagPropertyEditor(model)
         return Pair(model, editor)
       }
@@ -74,7 +73,7 @@ class EditorProviderImpl<in P : PropertyItem>(
   }
 
   private fun createComboBoxEditor(property: P, editable: Boolean, enumSupport: EnumSupport): Pair<PropertyEditorModel, JComponent> {
-    val model = ComboBoxPropertyEditorModel(property, formModel, enumSupport, editable)
+    val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
     val comboBox = PropertyComboBox(model)
     comboBox.renderer = enumSupport.renderer
     return Pair(model, addActionButtonBinding(model, comboBox))

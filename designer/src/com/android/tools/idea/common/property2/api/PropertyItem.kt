@@ -38,7 +38,7 @@ interface PropertyItem {
   val name: String
 
   /**
-   * The current raw property value
+   * The property value
    */
   var value: String?
 
@@ -52,16 +52,6 @@ interface PropertyItem {
    */
   val tooltip: String
     get() = ""
-
-  /**
-   * The current recursively resolved property value
-   *
-   * An implementation must override this method if
-   * the value is a reference to something else, or
-   * if the value is null but there is a default value.
-   */
-  val resolvedValue: String?
-    get() = value
 
   /**
    * A validation method.

@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.api.FormModel
 import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.intellij.psi.codeStyle.NameUtil
 
@@ -26,9 +25,8 @@ import com.intellij.psi.codeStyle.NameUtil
  * Contains implementations for search/filtering of properties in the inspector.
  * @property lines All line models displayed in the inspector.
  * @property filter The search term or an empty string. The panel will hide all lines where the label text doesn't match.
- * @property showResolvedValues Controls if the inspector should show computed values or raw values.
  */
-class InspectorPanelModel: FormModel {
+class InspectorPanelModel {
   private var listeners = mutableListOf<ValueChangedListener>()
   private val lines = mutableListOf<InspectorLineModel>()
 
@@ -36,12 +34,6 @@ class InspectorPanelModel: FormModel {
     set(value) {
       field = value
       updateFiltering()
-    }
-
-  override var showResolvedValues = true
-    set (value) {
-      field = value
-      propertyValuesChanged()
     }
 
   fun clear() {
@@ -53,12 +45,11 @@ class InspectorPanelModel: FormModel {
    *
    * @return true if such an editor is found.
    */
-  override fun moveToNextLineEditor(line: InspectorLineModel): Boolean {
+  fun moveToNextLineEditor(line: InspectorLineModel) {
     val index = lines.indexOf(line)
-    if (index < 0) return false
-    val nextLine = findClosestNextLine(index) ?: return false
+    if (index < 0) return
+    val nextLine = findClosestNextLine(index) ?: return
     nextLine.requestFocus()
-    return true
   }
 
   /**
@@ -76,7 +67,7 @@ class InspectorPanelModel: FormModel {
     return null
   }
 
-  override fun propertyValuesChanged() {
+  fun propertyValuesChanged() {
     lines.forEach { it.refresh() }
   }
 

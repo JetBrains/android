@@ -37,7 +37,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
   private val properties = PropertiesView(model, this)
   private val controlTypeProvider = NeleControlTypeProvider()
   private val enumSupportProvider = NeleEnumSupportProvider()
-  private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider, properties.formModel)
+  private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
   private val filterKeyListener = createFilterKeyListener()
 
   init {
@@ -45,7 +45,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
     properties.builders.add(IdInspectorBuilder(editorProvider))
     properties.builders.add(LayoutInspectorBuilder(facet.module.project, editorProvider))
     properties.builders.add(ViewInspectorBuilder(facet.module.project, editorProvider))
-    properties.builders.add(TextViewInspectorBuilder(editorProvider, properties.formModel))
+    properties.builders.add(TextViewInspectorBuilder(editorProvider))
     properties.builders.add(ProgressBarInspectorBuilder(editorProvider))
     properties.builders.add(FavoritesInspectorBuilder(editorProvider))
   }

@@ -30,11 +30,9 @@ import javax.swing.event.ListDataListener
  * @property editable True if the value is editable with a text editor (ComboBox) or false (DropDown).
  * @property isPopupVisible Controls the visibility of the popup in the ComboBox / DropDown.
  */
-class ComboBoxPropertyEditorModel(property: PropertyItem,
-                                  formModel: FormModel,
-                                  private val enumSupport: EnumSupport,
-                                  override val editable: Boolean):
-    BasePropertyEditorModel(property, formModel), CommonComboBoxModel<EnumValue> {
+class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSupport: EnumSupport, override val editable: Boolean) :
+  BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
+
   private var selectedValue: EnumValue? = null
   private val listListeners = mutableListOf<ListDataListener>()
 

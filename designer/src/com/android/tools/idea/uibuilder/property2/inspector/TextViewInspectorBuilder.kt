@@ -38,7 +38,7 @@ import javax.swing.JComponent
  *     [ATTR_FONT_FAMILY] and [ATTR_TEXT_ALIGNMENT]
  * They are present if the minSdkVersion is high enough or if AppCompat is used.
  */
-class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>, private val formModel: FormModel) :
+class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) :
     InspectorBuilder<NelePropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
@@ -76,7 +76,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     val allCaps = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALL_CAPS) ?: return
     val bold = textStyle.flag(TextStyle.VALUE_BOLD)
     val italic = textStyle.flag(TextStyle.VALUE_ITALIC)
-    val model = HorizontalEditorPanelModel(textStyle, formModel)
+    val model = HorizontalEditorPanelModel(textStyle)
     val panel = HorizontalEditorPanel(model)
     val line = inspector.addEditor(model, panel)
     panel.add(createIconEditor(line, bold, "Bold", TEXT_STYLE_BOLD, "true", "false"))
@@ -87,7 +87,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
 
   private fun addAlignment(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
     val alignment = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALIGNMENT) ?: return
-    val model = HorizontalEditorPanelModel(alignment, formModel)
+    val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
     val line = inspector.addEditor(model, panel)
     panel.add(createIconEditor(line, alignment, "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START))
@@ -100,15 +100,15 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
 
   private fun createIconEditor(
     line: InspectorLineModel,
-    property: PropertyItem,
+    property: NelePropertyItem,
     description: String,
     icon: Icon,
     trueValue: String,
     falseValue: String = ""
   ): Pair<PropertyEditorModel, JComponent> {
-    val model = ToggleButtonPropertyEditorModel(description, icon, trueValue, falseValue, property, formModel)
+    val model = ToggleButtonPropertyEditorModel(description, icon, trueValue, falseValue, property)
     val editor = ToggleButtonPropertyEditor(model)
-    model.line = line
+    model.lineModel = line
     return model to editor
   }
 
