@@ -48,7 +48,7 @@ public class AddLibraryDependencyDialog extends AbstractAddDependenciesDialog {
     String library = myLibraryDependenciesForm.getSelectedLibrary();
     assert library != null;
 
-    AbstractDependencyScopesPanel scopesPanel = getScopesPanel();
+    DependencyScopesPanel scopesPanel = getScopesPanel();
     List<String> scopesNames = scopesPanel.getSelectedScopeNames();
 
     getModule().addLibraryDependency(library, scopesNames);
