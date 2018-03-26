@@ -17,6 +17,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.resources.ResourceType;
+import com.android.support.AndroidxName;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -61,13 +62,16 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
  */
 @SuppressWarnings({"EnumSwitchStatementWhichMissesCases"})
 public class AndroidDomUtil {
+  private static final AndroidxName RECYCLER_VIEW_LAYOUT_MANAGER_NAME =
+    AndroidxName.of("android.support.v7.widget.", "RecyclerView.LayoutManager");
+
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
   // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
   private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final PackageClassConverter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER =
     new PackageClassConverter(false, true,
-                              CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.oldName(), CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.newName());
+                              RECYCLER_VIEW_LAYOUT_MANAGER_NAME.oldName(), RECYCLER_VIEW_LAYOUT_MANAGER_NAME.newName());
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
