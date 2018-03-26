@@ -23,13 +23,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.util.Map;
 
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class ProjectBuildFileChecksumsTest extends AndroidGradleTestCase {
   public void testEndToEnd() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
+    loadProject(PROJECT_WITH_APP_AND_LIB);
 
     Project project = myAndroidFacet.getModule().getProject();
     GradleSyncState syncState = GradleSyncState.getInstance(project);
