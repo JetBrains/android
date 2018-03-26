@@ -276,12 +276,6 @@ public class AndroidProjectStub implements IdeAndroidProject {
       public Namespacing getNamespacing() {
         return Namespacing.DISABLED;
       }
-
-      @Nullable
-      @Override
-      public String getPrivateRDotJavaPackage() {
-        return null;
-      }
     };
   }
 

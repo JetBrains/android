@@ -14,8 +14,8 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.resources.ResourceAccessibility
 import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.model.actionDestination
@@ -56,11 +56,11 @@ fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, isFragment:
   val appResources = repoManager.getAppResources(true)!!
   val visibilityLookup = repoManager.resourceVisibility
   val result = appResources
-    .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIM, visibilityLookup, ResourceAccessibility.PUBLIC)
+    .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIM, visibilityLookup, ResourceVisibility.PUBLIC)
     .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }.toMutableList()
   if (isFragment) {
     appResources
-      .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIMATOR, visibilityLookup, ResourceAccessibility.PUBLIC)
+      .getResourceItems(ResourceNamespace.TODO, ResourceType.ANIMATOR, visibilityLookup, ResourceVisibility.PUBLIC)
       .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
   }
   return result
