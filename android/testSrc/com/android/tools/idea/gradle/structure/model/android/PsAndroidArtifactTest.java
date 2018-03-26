@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +57,8 @@ public class PsAndroidArtifactTest {
     myBuildType = mock(PsBuildType.class);
     when(myBuildType.getName()).thenReturn("debug");
 
-    myVariant = new PsVariant(mock(PsAndroidModule.class), "", "", Collections.emptyList(), null) {
+    myVariant = new PsVariant(new PsAndroidModule(mock(PsProject.class), mock(Module.class), "gradle:path", mock(AndroidModuleModel.class),
+                                                  mock(GradleBuildModel.class)), "", "", Collections.emptyList(), null) {
       @Override
       public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
         myProductFlavors.forEach(consumer);
