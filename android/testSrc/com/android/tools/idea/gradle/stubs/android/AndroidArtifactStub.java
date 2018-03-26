@@ -142,6 +142,18 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     return myInstrumentedTestTaskName;
   }
 
+  @Nullable
+  @Override
+  public String getBundleTaskName() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public String getApkFromBundleTaskName() {
+    return null;
+  }
+
   public AndroidArtifactStub setInstantRun(InstantRun instantRun) {
     myInstantRun = instantRun;
     return this;
