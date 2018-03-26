@@ -16,22 +16,19 @@
 package com.android.tools.idea.gradle.structure.dependencies;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.HyperlinkAdapter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.util.List;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createEmptyBorder;
 
-public abstract class AbstractDependencyScopesPanel extends JPanel implements Disposable {
+public abstract class AbstractDependencyScopesPanel extends JPanel implements Disposable, DependencyScopesPanel {
   protected AbstractDependencyScopesPanel() {
     super(new BorderLayout());
   }
@@ -56,10 +53,4 @@ public abstract class AbstractDependencyScopesPanel extends JPanel implements Di
     instructionsPane.setBorder(createEmptyBorder(0, 5, 8, 5));
     return instructionsPane;
   }
-
-  @NotNull
-  public abstract List<String> getSelectedScopeNames();
-
-  @Nullable
-  public abstract ValidationInfo validateInput();
 }
