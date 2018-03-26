@@ -47,7 +47,8 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     myLibraryDependency = mock(PsLibraryAndroidDependency.class);
     myUISettings = new PsUISettings();
 
-    PsAndroidModuleStub module = new PsAndroidModuleStub();
+    PsAndroidModule module =
+      new PsAndroidModule(new PsProject(myProject), myModule, "", mock(AndroidModuleModel.class), mock(GradleBuildModel.class));
     PsContext context = mock(PsContext.class);
     when(context.getUiSettings()).thenReturn(myUISettings);
     myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, context) {};
@@ -84,11 +85,5 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = columnInfos[1];
     String columnText = scopeColumnInfo.valueOf(myLibraryDependency);
     assertEquals("compile", columnText);
-  }
-
-  private class PsAndroidModuleStub extends PsAndroidModule {
-    public PsAndroidModuleStub() {
-      super(new PsProject(myProject), myModule, "", mock(AndroidModuleModel.class), mock(GradleBuildModel.class));
-    }
   }
 }
