@@ -41,7 +41,11 @@ class SymbolFilesLocator(private val cpuToSymbolDirs: Map<String, Set<File>>) {
     val symNameCandidates = arrayListOf(baseModuleName + ".so", baseModuleName + ".dwo")
     val result = mutableListOf<File>()
     for (dir in symDirs) {
-      result.addAll(dir.listFiles({ _, name -> symNameCandidates.contains(name) }))
+      val files = dir.listFiles({ _, name -> symNameCandidates.contains(name) })
+      // If dir for some reason doesn't exist any more files will be null
+      if (files != null) {
+        result.addAll(files)
+      }
     }
     return result
   }

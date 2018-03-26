@@ -24,6 +24,7 @@ import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.*;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -44,7 +45,7 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
 /**
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
-public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallback {
+public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallback, Disposable {
   /**
    * DB report timings are set to occur relatively infrequently, as they include a fair amount of
    * data (~100 bytes). Ideally, we would just send a single reporting event, when the user stopped
@@ -232,6 +233,12 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myConnectedClients.clear();
     myDatabases.forEach((name, db) -> db.disconnect());
     DataStoreTable.removeDataStoreErrorCallback(this);
+  }
+
+
+  @Override
+  public void dispose() {
+    shutdown();
   }
 
   @VisibleForTesting

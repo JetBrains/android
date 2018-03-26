@@ -26,7 +26,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -34,13 +33,11 @@ import java.nio.file.Paths;
 public class ProfilerService implements Disposable {
 
   public static ProfilerService getInstance(@NotNull Project project) {
-    ProfilerService service = ServiceManager.getService(ProfilerService.class);
-    service.myManager.initialize(project);
-    service.initializeSymbolizer(project);
+    ProfilerService service = ServiceManager.getService(project, ProfilerService.class);
     return service;
   }
 
-  private static final String DATASTORE_NAME = "DataStoreService";
+  private static final String DATASTORE_NAME_PREFIX = "DataStoreService";
 
   @NotNull
   private final StudioProfilerDeviceManager myManager;
@@ -48,27 +45,30 @@ public class ProfilerService implements Disposable {
   private final ProfilerClient myClient;
   @NotNull
   private final DataStoreService myDataStoreService;
-  @Nullable
-  private NativeSymbolizer mySymbolizer;
 
-  private ProfilerService() {
+  private ProfilerService(@NotNull Project project) {
     String datastoreDirectory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
-    myDataStoreService =
-      new DataStoreService(DATASTORE_NAME, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread);
-    myManager = new StudioProfilerDeviceManager(myDataStoreService);
-    myClient = new ProfilerClient(DATASTORE_NAME);
-    IdeSdks.subscribe(myManager, this);
-  }
 
-  private void initializeSymbolizer(@NotNull Project project) {
-    mySymbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
-    Disposer.register(this, mySymbolizer);
-    myDataStoreService.setNativeSymbolizer(mySymbolizer);
+    NativeSymbolizer symbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
+    Disposer.register(this, symbolizer);
+
+    String datastoreName = DATASTORE_NAME_PREFIX + project.getLocationHash();
+    myDataStoreService =
+      new DataStoreService(datastoreName, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread);
+    Disposer.register(this, myDataStoreService);
+    myDataStoreService.setNativeSymbolizer(symbolizer);
+
+    myManager = new StudioProfilerDeviceManager(myDataStoreService);
+    Disposer.register(this, myManager);
+    myManager.initialize(project);
+    IdeSdks.subscribe(myManager, this);
+
+    myClient = new ProfilerClient(datastoreName);
   }
 
   @Override
   public void dispose() {
-    myManager.dispose();
+    // All actual disposing is done via Disposer.register in the constructor.
   }
 
   @NotNull
