@@ -19,17 +19,17 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsVariant;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroidModule> {
 
@@ -50,22 +50,19 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
   @NotNull
   private List<? extends AndroidArtifactNode> createChildren(@NotNull Map<String, PsVariant> variantsByName) {
     List<AndroidArtifactNode> childrenNodes = Lists.newArrayList();
-    List<String> variantNames = new ArrayList<>(variantsByName.keySet());
-    Collections.sort(variantNames);
 
-    for (String variantName : variantNames) {
-      PsVariant variant = variantsByName.get(variantName);
-
-      Map<String, PsAndroidArtifact> artifacts = Maps.newLinkedHashMap();
-      variant.forEachArtifact(artifact -> artifacts.put(artifact.getResolvedName(), artifact));
-      List<String> artifactNames = new ArrayList<>(artifacts.keySet());
-
-      for (String artifactName : artifactNames) {
-        PsAndroidArtifact artifact = variant.findArtifact(artifactName);
+    final List<PsVariant> variants =
+      variantsByName
+        .entrySet()
+        .stream()
+        .sorted(Comparator.comparing(it -> it.getKey())).map(it -> it.getValue())
+        .collect(toList());
+    for (PsVariant variant : variants) {
+      variant.forEachArtifact(artifact -> {
         assert artifact != null;
         AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
-          childrenNodes.add(artifactNode);
-      }
+        childrenNodes.add(artifactNode);
+      });
     }
 
     return childrenNodes;
