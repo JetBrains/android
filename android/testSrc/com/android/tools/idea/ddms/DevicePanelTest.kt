@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.ddms.DevicePanel.DeviceComboBox
 import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -41,7 +42,7 @@ internal class DevicePanelTest {
     myProject = Mockito.mock(Project::class.java)
     myBridge = Mockito.mock(AndroidDebugBridge::class.java)
 
-    myPanel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java), TestDeviceComboBox())
+    myPanel = DevicePanel(myProject, Mockito.mock(DeviceContext::class.java), TestDeviceComboBox(), ComboBox())
     myDeviceComboBox = myPanel.deviceComboBox
   }
 
