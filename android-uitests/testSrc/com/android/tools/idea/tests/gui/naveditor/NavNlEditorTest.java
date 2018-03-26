@@ -83,7 +83,7 @@ public class NavNlEditorTest {
 
     DestinationListFixture fixture = DestinationListFixture.Companion.create(guiTest.robot());
     fixture.replaceCellReader(new BasicJListCellReader(c -> c.toString()));
-    fixture.selectItem("Main Activity - Start");
+    fixture.selectItem("main_activity - Start");
     assertEquals(1, layout.getSelection().size());
     assertEquals("main_activity", layout.getSelection().get(0).getId());
 
