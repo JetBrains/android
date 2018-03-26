@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.annotations.VisibleForTesting
 import com.android.annotations.concurrency.GuardedBy
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.AttrResourceValue
@@ -27,7 +28,6 @@ import com.intellij.openapi.module.ModuleServiceManager
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.TestOnly
 import java.util.*
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
@@ -146,25 +146,19 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
     return getDeclaredArrayValues(aarLibraries, attrs, styleableName)
   }
 
-  @TestOnly
+  @VisibleForTesting
   fun getDeclaredArrayValues(
-    aarLibraries: MutableList<FileResourceRepository>,
+    aarLibraries: List<FileResourceRepository>,
     attrs: List<AttrResourceValue>,
     styleableName: String
   ): Array<Int?>? {
-    val iterator = aarLibraries.listIterator()
-    while (iterator.hasNext()) {
-      val repo = iterator.next()
-      val resourceTextFile = repo.resourceTextFile ?: continue
+    for (repo in aarLibraries) {
       try {
-        val fromTxt = RDotTxtParser.getDeclareStyleableArray(resourceTextFile, attrs, styleableName) ?: continue
-
-        // Reorder the list to place this library first. It's likely that there will be more calls to the same library.
-        iterator.remove()
-        aarLibraries.add(0, repo)
-        return fromTxt
+        return RDotTxtParser.getDeclareStyleableArray(repo.resourceTextFile ?: continue, attrs, styleableName) ?: continue
+        // TODO(b/76207181): This code used to reorder the aarLibraries list (which is stored in the repository), in an effort to find
+        // related styleables faster next time. This caused concurrent modification exceptions, but we need to evaluate the performance
+        // impact of removing this.
       } catch (e: Exception) {
-        // Filter all possible errors while parsing the R.txt file
         assert(false) { e.message ?: "failed to parse R.txt" }
         LOG.warn("Error while parsing R.txt", e)
       }
