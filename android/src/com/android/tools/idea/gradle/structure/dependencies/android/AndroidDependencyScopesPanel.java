@@ -82,13 +82,13 @@ public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel 
     myConfigurationsPanel.add(newSelection -> updateScopes(), this);
     scopesPanel.createAndAddToolWindowPanel("Configurations", myConfigurationsPanel, myConfigurationsPanel.getPreferredFocusedComponent());
 
-    module.forEachBuildType(myAllBuildTypes::add);
+    myAllBuildTypes.addAll(module.getBuildTypes());
     Collections.sort(myAllBuildTypes, new PsModelNameComparator<>());
     myBuildTypesPanel = new BuildTypesPanel(myAllBuildTypes);
     myBuildTypesPanel.add(newSelection -> updateScopes(), this);
     scopesPanel.createAndAddToolWindowPanel("Build Types", myBuildTypesPanel, myBuildTypesPanel.getPreferredFocusedComponent());
 
-    module.forEachProductFlavor(myAllProductFlavors::add);
+    myAllProductFlavors.addAll(module.getProductFlavors());
     Collections.sort(myAllProductFlavors, new PsModelNameComparator<>());
     myProductFlavorsPanel = new ProductFlavorsPanel(myAllProductFlavors);
     myProductFlavorsPanel.add(newSelection -> updateScopes(), this);

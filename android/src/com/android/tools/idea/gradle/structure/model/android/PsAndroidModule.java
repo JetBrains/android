@@ -79,8 +79,8 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return getOrCreateBuildTypeCollection().findElement(buildType);
   }
 
-  public void forEachBuildType(@NotNull Consumer<PsBuildType> consumer) {
-    getOrCreateBuildTypeCollection().forEach(consumer);
+  public List<PsBuildType> getBuildTypes() {
+    return getOrCreateBuildTypeCollection().items();
   }
 
   @NotNull
@@ -101,8 +101,8 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return result;
   }
 
-  public void forEachProductFlavor(@NotNull Consumer<PsProductFlavor> consumer) {
-    getOrCreateProductFlavorCollection().forEach(consumer);
+  public List<PsProductFlavor> getProductFlavors() {
+    return getOrCreateProductFlavorCollection().items();
   }
 
   @Nullable
@@ -115,8 +115,8 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return myProductFlavorCollection == null ? myProductFlavorCollection = new PsProductFlavorCollection(this) : myProductFlavorCollection;
   }
 
-  public void forEachVariant(@NotNull Consumer<PsVariant> con) {
-    getOrCreateVariantCollection().forEach(con);
+  public List<PsVariant> getVariants() {
+    return getOrCreateVariantCollection().items();
   }
 
   @Nullable
@@ -143,8 +143,8 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     return getOrCreateSigningConfigCollection().findElement(signingConfig);
   }
 
-  public void forEachSigningConfig(@NotNull Consumer<PsSigningConfig> consumer) {
-    getOrCreateSigningConfigCollection().forEach(consumer);
+  public List<PsSigningConfig> getSigningConfigs() {
+    return getOrCreateSigningConfigCollection().items();
   }
 
   @NotNull
@@ -259,7 +259,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   private void resetDependencies() {
     myDependencyCollection = null;
-    forEachVariant(variant -> variant.forEachArtifact(artifact -> {
+    getVariants().forEach(variant -> variant.forEachArtifact(artifact -> {
       artifact.resetDependencies();
     }));
   }

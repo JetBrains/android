@@ -110,7 +110,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
     assertNotNull(appModule);
 
-    List<PsProductFlavor> productFlavors = getProductFlavors(appModule);
+    List<PsProductFlavor> productFlavors = appModule.getProductFlavors();
     assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("basic", "paid").inOrder();
     assertThat(productFlavors).hasSize(2);
@@ -133,13 +133,13 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
     assertNotNull(appModule);
 
-    List<PsProductFlavor> productFlavors = getProductFlavors(appModule);
+    List<PsProductFlavor> productFlavors = appModule.getProductFlavors();
     assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("basic", "paid").inOrder();
 
     appModule.addNewProductFlavor("new_flavor");
 
-    productFlavors = getProductFlavors(appModule);
+    productFlavors = appModule.getProductFlavors();
     assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("basic", "paid", "new_flavor").inOrder();
 
@@ -152,7 +152,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     project = new PsProject(resolvedProject);
     appModule = (PsAndroidModule)project.findModuleByName("app");
 
-    productFlavors = getProductFlavors(appModule);
+    productFlavors = appModule.getProductFlavors();
     assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("basic", "paid", "new_flavor").inOrder();
 
@@ -170,13 +170,13 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
     assertNotNull(appModule);
 
-    List<PsProductFlavor> productFlavors = getProductFlavors(appModule);
+    List<PsProductFlavor> productFlavors = appModule.getProductFlavors();
     assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("basic", "paid", "bar").inOrder();
 
     appModule.removeProductFlavor(appModule.findProductFlavor("paid"));
 
-    productFlavors = getProductFlavors(appModule);
+    productFlavors = appModule.getProductFlavors();
     assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("basic", "bar").inOrder();
 
@@ -185,16 +185,9 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     project = new PsProject(resolvedProject);
     appModule = (PsAndroidModule)project.findModuleByName("app");
 
-    productFlavors = getProductFlavors(appModule);
+    productFlavors = appModule.getProductFlavors();
     assertThat(productFlavors.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("basic", "bar").inOrder();
-  }
-
-  @NotNull
-  private static List<PsProductFlavor> getProductFlavors(@NotNull PsAndroidModule module) {
-    List<PsProductFlavor> productFlavors = Lists.newArrayList();
-    module.forEachProductFlavor(productFlavors::add);
-    return productFlavors;
   }
 
   public void testBuildTypes() throws Throwable {
@@ -206,7 +199,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
     assertNotNull(appModule);
 
-    List<PsBuildType> buildTypes = getBuildTypes(appModule);
+    List<PsBuildType> buildTypes = appModule.getBuildTypes();
     assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("release", "debug").inOrder();
     assertThat(buildTypes).hasSize(2);
@@ -229,13 +222,13 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
     assertNotNull(appModule);
 
-    List<PsBuildType> buildTypes = getBuildTypes(appModule);
+    List<PsBuildType> buildTypes = appModule.getBuildTypes();
     assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("release", "debug").inOrder();
 
     appModule.addNewBuildType("new_build_type");
 
-    buildTypes = getBuildTypes(appModule);
+    buildTypes = appModule.getBuildTypes();
     assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("release", "debug", "new_build_type").inOrder();
 
@@ -248,7 +241,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     project = new PsProject(resolvedProject);
     appModule = (PsAndroidModule)project.findModuleByName("app");
 
-    buildTypes = getBuildTypes(appModule);
+    buildTypes = appModule.getBuildTypes();
     assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("release", "new_build_type", "debug").inOrder();  // "debug" is not declared and goes last.
 
@@ -266,13 +259,13 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
     assertNotNull(appModule);
 
-    List<PsBuildType> buildTypes = getBuildTypes(appModule);
+    List<PsBuildType> buildTypes = appModule.getBuildTypes();
     assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("release", "debug").inOrder();
 
     appModule.removeBuildType(appModule.findBuildType("release"));
 
-    buildTypes = getBuildTypes(appModule);
+    buildTypes = appModule.getBuildTypes();
     assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("debug");
 
@@ -281,20 +274,13 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     project = new PsProject(resolvedProject);
     appModule = (PsAndroidModule)project.findModuleByName("app");
 
-    buildTypes = getBuildTypes(appModule);
+    buildTypes = appModule.getBuildTypes();
     assertThat(buildTypes.stream().map(v -> v.getName()).collect(toList()))
       .containsExactly("debug", "release").inOrder();  // "release" is not declared and goes last.
 
     PsBuildType release = appModule.findBuildType("release");
     assertNotNull(release);
     assertFalse(release.isDeclared());
-  }
-
-  @NotNull
-  private static List<PsBuildType> getBuildTypes(@NotNull PsAndroidModule module) {
-    List<PsBuildType> buildTypes = Lists.newArrayList();
-    module.forEachBuildType(buildTypes::add);
-    return buildTypes;
   }
 
   public void testVariants() throws Throwable {
@@ -306,7 +292,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
     assertNotNull(appModule);
 
-    Collection<PsVariant> variants = getVariants(appModule);
+    Collection<PsVariant> variants = appModule.getVariants();
     assertThat(variants).hasSize(4);
 
     PsVariant paidDebug = appModule.findVariant("paidDebug");
@@ -328,13 +314,6 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     assertNotNull(basicRelease);
     flavors = basicRelease.getProductFlavors();
     assertThat(flavors).containsExactly("basic");
-  }
-
-  @NotNull
-  private static List<PsVariant> getVariants(@NotNull PsAndroidModule module) {
-    List<PsVariant> variants = Lists.newArrayList();
-    module.forEachVariant(variants::add);
-    return variants;
   }
 
   public void testCanDependOnModules() throws Throwable {
@@ -362,7 +341,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
     assertNotNull(appModule);
 
-    List<PsSigningConfig> signingConfigs = getSigningConfigs(appModule);
+    List<PsSigningConfig> signingConfigs = appModule.getSigningConfigs();
     assertThat(signingConfigs).hasSize(2);
 
     PsSigningConfig myConfig = appModule.findSigningConfig("myConfig");
@@ -383,7 +362,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
     assertNotNull(appModule);
 
-    List<PsSigningConfig> signingConfigs = getSigningConfigs(appModule);
+    List<PsSigningConfig> signingConfigs = appModule.getSigningConfigs();
     assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "debug").inOrder();
 
     PsSigningConfig myConfig = appModule.addNewSigningConfig("config2");
@@ -392,7 +371,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     assertNotNull(myConfig);
     assertTrue(myConfig.isDeclared());
 
-    signingConfigs = getSigningConfigs(appModule);
+    signingConfigs = appModule.getSigningConfigs();
     assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "debug", "config2").inOrder();
 
     appModule.applyChanges();
@@ -400,7 +379,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     project = new PsProject(resolvedProject);
     appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
 
-    signingConfigs = getSigningConfigs(appModule);
+    signingConfigs = appModule.getSigningConfigs();
     assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "config2", "debug").inOrder();
   }
 
@@ -413,13 +392,13 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     PsAndroidModule appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
     assertNotNull(appModule);
 
-    List<PsSigningConfig> signingConfigs = getSigningConfigs(appModule);
+    List<PsSigningConfig> signingConfigs = appModule.getSigningConfigs();
     assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("myConfig", "debug").inOrder();
 
     appModule.removeSigningConfig(appModule.findSigningConfig("myConfig"));
     appModule.removeBuildType(appModule.findBuildType("debug"));  // Remove (clean) the build type that refers to the signing config.
 
-    signingConfigs = getSigningConfigs(appModule);
+    signingConfigs = appModule.getSigningConfigs();
     assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("debug");
 
     appModule.applyChanges();
@@ -427,14 +406,7 @@ public class PsAndroidModuleTest extends DependencyTestCase {
     project = new PsProject(resolvedProject);
     appModule = (PsAndroidModule)project.findModuleByGradlePath(":");
 
-    signingConfigs = getSigningConfigs(appModule);
+    signingConfigs = appModule.getSigningConfigs();
     assertThat(signingConfigs.stream().map(v -> v.getName()).collect(toList())).containsExactly("debug");
-  }
-
-  @NotNull
-  private static List<PsSigningConfig> getSigningConfigs(@NotNull PsAndroidModule module) {
-    List<PsSigningConfig> signingConfigs = Lists.newArrayList();
-    module.forEachSigningConfig(signingConfigs::add);
-    return signingConfigs;
   }
 }

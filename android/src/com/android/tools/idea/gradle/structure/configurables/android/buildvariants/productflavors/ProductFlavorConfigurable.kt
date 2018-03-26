@@ -17,8 +17,8 @@ import com.android.tools.idea.gradle.structure.configurables.ContainerConfigurab
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorConfigPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.listPropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.mapPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -44,16 +44,17 @@ class FlavorDimensionConfigurable(
   override fun apply() = Unit
   override fun setDisplayName(name: String?) = throw UnsupportedOperationException()
 
-  override fun getChildren(): List<NamedConfigurable<PsProductFlavor>> {
-    val result = mutableListOf<NamedConfigurable<PsProductFlavor>>()
-    module.forEachProductFlavor { productFlavor ->
-      val dimension = productFlavor.dimension
-      if (dimension is ParsedValue.Set.Parsed<String> && dimension.value == flavorDimension) {
-        result.add(ProductFlavorConfigurable(productFlavor))
+  override fun getChildren(): List<NamedConfigurable<PsProductFlavor>> =
+    module
+      .productFlavors
+      .filter { productFlavor ->
+        val dimension = productFlavor.dimension
+        dimension is ParsedValue.Set.Parsed<String> && dimension.value == flavorDimension
       }
-    }
-    return result.toList()
-  }
+      .map { productFlavor ->
+        ProductFlavorConfigurable(productFlavor)
+      }
+
 
   private val component = JPanel()
   override fun createOptionsPanel(): JComponent = component

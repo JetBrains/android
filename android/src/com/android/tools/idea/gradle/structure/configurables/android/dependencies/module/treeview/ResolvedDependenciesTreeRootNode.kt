@@ -28,7 +28,7 @@ class ResolvedDependenciesTreeRootNode(module: PsAndroidModule, uiSettings: PsUI
   override fun createChildren(): List<AbstractPsModelNode<*>> {
     val variantsByName = mutableMapOf<String, PsVariant>()
     for (module in models) {
-      module.forEachVariant { variant -> variantsByName[variant.name] = variant }
+      module.variants.forEach { variant -> variantsByName[variant.name] = variant }
     }
     return createChildren(variantsByName)
   }
