@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
@@ -47,8 +48,9 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 public abstract class AbstractSyncMessages implements Disposable {
 
   private Project myProject;
-  @NotNull private final HashMap<ExternalSystemTaskId, List<NotificationData>> myCurrentNotifications = new HashMap<>();
-  @NotNull private final HashMap<ExternalSystemTaskId, List<Failure>> myShownFailures = new HashMap<>();
+  @NotNull private final ConcurrentHashMap<Object, List<NotificationData>> myCurrentNotifications = new ConcurrentHashMap<>();
+  @NotNull private final ConcurrentHashMap<Object, List<Failure>> myShownFailures = new ConcurrentHashMap<>();
+  @NotNull private static final String PENDING_TASK_ID = "Pending taskId";
 
   protected AbstractSyncMessages(@NotNull Project project) {
     myProject = project;
@@ -64,6 +66,7 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   private int countNotifications(@NotNull Predicate<NotificationData> condition) {
     int total = 0;
+
     for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
       for (NotificationData notificationData : notificationDataList) {
         if (condition.test(notificationData)) {
@@ -85,15 +88,15 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   public void removeMessages(@NotNull String... groupNames) {
     Set<String> groupSet = new HashSet<>(Arrays.asList(groupNames));
-    LinkedList<ExternalSystemTaskId> toRemove = new LinkedList<>();
-    for (ExternalSystemTaskId id : myCurrentNotifications.keySet()) {
+    LinkedList<Object> toRemove = new LinkedList<>();
+    for (Object id : myCurrentNotifications.keySet()) {
       List<NotificationData> taskNotifications = myCurrentNotifications.get(id);
       taskNotifications.removeIf(notification -> groupSet.contains(notification.getTitle()));
       if (taskNotifications.isEmpty()) {
         toRemove.add(id);
       }
     }
-    for (ExternalSystemTaskId taskId : toRemove) {
+    for (Object taskId : toRemove) {
       myCurrentNotifications.remove(taskId);
     }
   }
@@ -160,11 +163,14 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   public void report(@NotNull NotificationData notification) {
     // Save on array to be shown by build view later.
-    ExternalSystemTaskId taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
-    myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);
-    if (taskId != null) {
+    Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
+    if (taskId == null) {
+      taskId = PENDING_TASK_ID;
+    }
+    else {
       showNotification(notification, taskId);
     }
+    myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);
   }
 
   /**
@@ -175,11 +181,11 @@ public abstract class AbstractSyncMessages implements Disposable {
   @NotNull
   public List<Failure> showEvents(@NotNull ExternalSystemTaskId taskId) {
     // Show notifications created without a taskId
-    for (NotificationData notification : myCurrentNotifications.getOrDefault(null, Collections.emptyList())) {
+    for (NotificationData notification : myCurrentNotifications.getOrDefault(PENDING_TASK_ID, Collections.emptyList())) {
       showNotification(notification, taskId);
     }
     myCurrentNotifications.remove(taskId);
-    myCurrentNotifications.remove(null);
+    myCurrentNotifications.remove(PENDING_TASK_ID);
     List<Failure> result = myShownFailures.remove(taskId);
     if (result == null) {
       result = Collections.emptyList();
@@ -187,7 +193,7 @@ public abstract class AbstractSyncMessages implements Disposable {
     return result;
   }
 
-  private void showNotification(@NotNull NotificationData notification, @NotNull ExternalSystemTaskId taskId) {
+  private void showNotification(@NotNull NotificationData notification, @NotNull Object taskId) {
     String title = notification.getTitle();
     // Since the title of the notification data is the group, it is better to display the first line of the message
     String[] lines = notification.getMessage().split(SystemProperties.getLineSeparator());
