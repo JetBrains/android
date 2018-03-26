@@ -20,38 +20,31 @@ import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 
-final class StringResourceViewPanel implements Disposable, HyperlinkListener {
-  private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
-
+final class StringResourceViewPanel implements Disposable {
   private final JBLoadingPanel myLoadingPanel;
   private JPanel myContainer;
   private StringResourceTable myTable;
@@ -74,13 +67,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     ActionToolbar toolbar = createToolbar();
     myToolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
-
-    if (!HIDE_TRANSLATION_ORDER_LINK) {
-      HyperlinkLabel hyperlinkLabel = new HyperlinkLabel("Order a translation...");
-      myToolbarPanel.add(hyperlinkLabel, BorderLayout.EAST);
-      hyperlinkLabel.addHyperlinkListener(this);
-      myToolbarPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-    }
 
     initTable();
     Disposer.register(parentDisposable, this);
@@ -231,50 +217,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   StringResourceTable getTable() {
     return myTable;
-  }
-
-  @Override
-  public void hyperlinkUpdate(HyperlinkEvent e) {
-    StringBuilder sb = new StringBuilder("https://translate.google.com/manager/android_studio/");
-
-    // Application Version
-    sb.append("?asVer=");
-    ApplicationInfo ideInfo = ApplicationInfo.getInstance();
-
-    // @formatter:off
-    sb.append(ideInfo.getMajorVersion()).append('.')
-      .append(ideInfo.getMinorVersion()).append('.')
-      .append(ideInfo.getMicroVersion()).append('.')
-      .append(ideInfo.getPatchVersion());
-    // @formatter:on
-
-    // Package name
-    MergedManifest manifest = MergedManifest.get(myFacet);
-    String pkg = manifest.getPackage();
-    if (pkg != null) {
-      sb.append("&pkgName=");
-      sb.append(pkg.replace('.', '_'));
-    }
-
-    // Application ID
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(myFacet);
-    String appId = moduleInfo.getPackage();
-    if (appId != null) {
-      sb.append("&appId=");
-      sb.append(appId.replace('.', '_'));
-    }
-
-    // Version code
-    Integer versionCode = manifest.getVersionCode();
-    if (versionCode != null) {
-      sb.append("&apkVer=");
-      sb.append(versionCode.toString());
-    }
-
-    // If we support additional IDE languages, we can send the language used in the IDE here
-    //sb.append("&lang=en");
-
-    BrowserUtil.browse(sb.toString());
   }
 
   private class CellSelectionListener implements ListSelectionListener {
