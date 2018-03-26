@@ -333,6 +333,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Create hideable panel for CPU list.
     HideablePanel hideableCpus = new HideablePanel.Builder("KERNEL", scrollingCpus)
       .setShowSeparator(false)
+      // We want to keep initially expanded to false because the kernel layout is set to "Fix" by default. As such when
+      // we later change the contents to have elements and expand the view we also want to trigger the StateChangedListener below
+      // to properly set the layout to be expanded. If we set initially expanded to true, then the StateChangedListener will never
+      // get triggered and we will not update our layout.
       .setInitiallyExpanded(false)
       .build();
       hideableCpus.addStateChangedListener((actionEvent) -> {
@@ -352,10 +356,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       public void contentsChanged(ListDataEvent e) {
         boolean hasElements = myCpus.getModel().getSize() != 0;
         hideableCpus.setVisible(hasElements);
-        // If we hide the panel, we want to reset the hideable panel back to collapsed.
-        if (!hasElements) {
-          hideableCpus.setExpanded(false);
-        }
+        hideableCpus.setExpanded(hasElements);
         monitorCpuThreadsPanel.revalidate();
       }
 
