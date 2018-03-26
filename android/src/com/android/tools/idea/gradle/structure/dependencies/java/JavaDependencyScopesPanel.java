@@ -57,7 +57,7 @@ public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
     myScopesLabel.setBackground(getTextFieldBackground());
     myScopesLabel.setText(" ");
 
-    List<String> configurations = Lists.newArrayList(module.getGradleModel().getConfigurations());
+    List<String> configurations = Lists.newArrayList(module.getConfigurations());
     Collections.sort(configurations, ConfigurationComparator.INSTANCE);
 
     String selected = null;

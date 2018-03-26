@@ -45,6 +45,12 @@ public class PsJavaModule extends PsModule {
   }
 
   @Override
+  @NotNull
+  public List<String> getConfigurations() {
+    return getGradleModel().getConfigurations();
+  }
+
+  @Override
   public boolean canDependOn(@NotNull PsModule module) {
     // Java libraries can depend on any type of modules, including Android apps (when a Java library is actually a 'test'
     // module for the Android app.)
