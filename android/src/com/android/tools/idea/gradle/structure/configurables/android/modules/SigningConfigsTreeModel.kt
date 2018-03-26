@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.configurables.android.modules
 import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
 import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
 import com.android.tools.idea.gradle.structure.configurables.createConfigurablesTree
-import com.android.tools.idea.gradle.structure.configurables.listFromGenerator
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.ui.NamedConfigurable
@@ -49,9 +48,7 @@ fun createSigningConfigsModel(module: PsAndroidModule): SigningConfigsTreeModel 
         module,
         createConfigurablesTree(
             object : NamedContainerConfigurableBase<PsSigningConfig>("Signing Configs") {
-              override fun getChildren(): List<NamedConfigurable<PsSigningConfig>> =
-                  listFromGenerator<PsSigningConfig> { consumer -> module.forEachSigningConfig { consumer(it) } }
-                      .map(::SigningConfigConfigurable)
+              override fun getChildren(): List<NamedConfigurable<PsSigningConfig>> = module.signingConfigs.map(::SigningConfigConfigurable)
             }
         ))
 

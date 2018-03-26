@@ -92,7 +92,7 @@ class PsAndroidModuleDependencyCollection(parent: PsAndroidModule) : PsAndroidDe
 
   private fun buildArtifactsByConfigurations(): Map<String, List<PsAndroidArtifact>> {
     val artifactsByConfigurationNames = mutableMapOf<String, MutableList<PsAndroidArtifact>>()
-    parent.forEachVariant { variant ->
+    parent.variants.forEach { variant ->
       variant.forEachArtifact { artifact ->
         artifact.possibleConfigurationNames.forEach { possibleConfigurationName ->
           artifactsByConfigurationNames.getOrPut(possibleConfigurationName, { mutableListOf() }).add(artifact)

@@ -47,8 +47,6 @@ fun createBuildTypesModel(module: PsAndroidModule): BuildTypesTreeModel =
         module,
         createConfigurablesTree(
             object : NamedContainerConfigurableBase<PsBuildType>("Build Types") {
-              override fun getChildren(): List<NamedConfigurable<PsBuildType>> =
-                  listFromGenerator<PsBuildType> { consumer -> module.forEachBuildType { consumer(it) } }
-                      .map(::BuildTypeConfigurable)
+              override fun getChildren(): List<NamedConfigurable<PsBuildType>> = module.buildTypes.map(::BuildTypeConfigurable)
             }
         ))
