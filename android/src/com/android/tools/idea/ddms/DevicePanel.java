@@ -58,7 +58,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   private boolean myIgnoringActionEvents;
 
   private DeviceComboBox myDeviceCombo;
-  private JComboBox<Client> myClientCombo;
+  private JComboBox<Client> myProcessComboBox;
   private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<String>() {
     @Nullable
     @Override
@@ -68,17 +68,20 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   };
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext deviceContext) {
-    this(project, deviceContext, new MyDeviceComboBox());
+    this(project, deviceContext, new MyDeviceComboBox(), new MyProcessComboBox());
   }
 
   @VisibleForTesting
-  DevicePanel(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull DeviceComboBox deviceComboBox) {
+  DevicePanel(@NotNull Project project,
+              @NotNull DeviceContext deviceContext,
+              @NotNull DeviceComboBox deviceComboBox,
+              @NotNull ComboBox<Client> processComboBox) {
     myProject = project;
     myDeviceContext = deviceContext;
     myPreferredClients = new HashMap<>();
 
     initializeDeviceCombo(deviceComboBox);
-    initializeClientCombo();
+    initializeProcessComboBox(processComboBox);
 
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
@@ -87,9 +90,8 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     Disposer.register(myProject, this);
   }
 
-  abstract static class DeviceComboBox extends JComboBox<IDevice> implements Disposable {
+  abstract static class DeviceComboBox extends ComboBox<IDevice> implements Disposable {
     DeviceComboBox() {
-      setMinimumSize(new Dimension(200, getMinimumSize().height));
       AccessibleContextUtil.setName(this, "Devices");
     }
 
@@ -129,7 +131,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
         return;
       }
 
-      updateClientCombo();
+      updateProcessComboBox();
 
       Object device = myDeviceCombo.getSelectedItem();
       myDeviceContext.fireDeviceSelected(device instanceof IDevice ? (IDevice)device : null);
@@ -150,24 +152,30 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     }
   }
 
-  private void initializeClientCombo() {
-    myClientCombo = new ComboBox<>();
+  private static final class MyProcessComboBox extends ComboBox<Client> {
+    private MyProcessComboBox() {
+      setRenderer(new ClientCellRenderer("No debuggable processes"));
+    }
+  }
 
-    AccessibleContextUtil.setName(myClientCombo, "Processes");
-    myClientCombo.setName("Processes");
-    myClientCombo.addActionListener(actionEvent -> {
-      if (myIgnoringActionEvents) return;
+  private void initializeProcessComboBox(@NotNull ComboBox<Client> processComboBox) {
+    AccessibleContextUtil.setName(processComboBox, "Processes");
 
-      Client client = (Client)myClientCombo.getSelectedItem();
+    processComboBox.addActionListener(event -> {
+      if (myIgnoringActionEvents) {
+        return;
+      }
+
+      Client client = (Client)myProcessComboBox.getSelectedItem();
+
       if (client != null) {
         myPreferredClients.put(client.getDevice().getName(), client.getClientData().getClientDescription());
       }
+
       myDeviceContext.fireClientSelected(client);
     });
 
-    myClientCombo.setRenderer(new ClientCellRenderer("No Debuggable Processes"));
-    Dimension size = myClientCombo.getMinimumSize();
-    myClientCombo.setMinimumSize(new Dimension(250, size.height));
+    myProcessComboBox = processComboBox;
   }
 
   @NotNull
@@ -181,11 +189,11 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @NotNull
   public Component getClientComboBox() {
-    return myClientCombo;
+    return myProcessComboBox;
   }
 
   public void selectClient(Client client) {
-    myClientCombo.setSelectedItem(client);
+    myProcessComboBox.setSelectedItem(client);
   }
 
   @Nullable
@@ -247,7 +255,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   public void deviceChanged(@NotNull final IDevice device, final int changeMask) {
     UIUtil.invokeLaterIfNeeded(() -> {
       if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
-        updateClientCombo();
+        updateProcessComboBox();
       }
       else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
         updateDeviceCombo();
@@ -259,7 +267,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Override
   public void clientChanged(@NotNull Client client, int changeMask) {
     if ((changeMask & Client.CHANGE_NAME) != 0) {
-      ApplicationManager.getApplication().invokeLater(this::updateClientCombo);
+      ApplicationManager.getApplication().invokeLater(this::updateProcessComboBox);
     }
   }
 
@@ -297,7 +305,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       myDeviceContext.fireDeviceSelected(selectedDevice);
     }
 
-    updateClientCombo();
+    updateProcessComboBox();
     myIgnoringActionEvents = false;
   }
 
@@ -319,14 +327,14 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     return device1.getSerialNumber().equals(device2.getSerialNumber());
   }
 
-  private void updateClientCombo() {
+  private void updateProcessComboBox() {
     myIgnoringActionEvents = true;
 
     IDevice device = (IDevice)myDeviceCombo.getSelectedItem();
-    Client selected = (Client)myClientCombo.getSelectedItem();
+    Client selected = (Client)myProcessComboBox.getSelectedItem();
     Client toSelect = null;
     boolean update = true;
-    myClientCombo.removeAllItems();
+    myProcessComboBox.removeAllItems();
     if (device != null) {
       // Change the currently selected client if the user has a preference.
       String preferred = getPreferredClient(device.getName());
@@ -355,16 +363,16 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
       for (Client client : clients) {
         //noinspection unchecked
-        myClientCombo.addItem(client);
+        myProcessComboBox.addItem(client);
       }
-      myClientCombo.setSelectedItem(toSelect);
+      myProcessComboBox.setSelectedItem(toSelect);
       update = toSelect != selected;
     }
 
     myIgnoringActionEvents = false;
 
     if (update) {
-      myDeviceContext.fireClientSelected((Client)myClientCombo.getSelectedItem());
+      myDeviceContext.fireClientSelected((Client)myProcessComboBox.getSelectedItem());
     }
   }
 
