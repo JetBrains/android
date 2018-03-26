@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.ui.JBColor
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 import javax.swing.JPanel
@@ -34,9 +35,16 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val variablesTable = VariablesTable(project, psContext)
     val tableModel = variablesTable.tableModel
 
-    val appNode = (tableModel.root as DefaultMutableTreeNode).firstChild
+    val appNode = (tableModel.root as DefaultMutableTreeNode).firstChild as DefaultMutableTreeNode
     assertThat(tableModel.getValueAt(appNode, 0) as String, equalTo("app"))
     assertThat(tableModel.getValueAt(appNode, 1) as String, equalTo(""))
+
+    val row = variablesTable.tree.getRowForPath(TreePath(appNode.path))
+    for (column in 0..2) {
+      val component = variablesTable.getCellRenderer(row, column)
+        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+      assertThat(component.background, equalTo(variablesTable.background))
+    }
   }
 
   fun testStringVariableNodeDisplay() {
@@ -48,12 +56,19 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val appNode = (tableModel.root as DefaultMutableTreeNode).firstChild as DefaultMutableTreeNode
     val variableNode =
       appNode.children().asSequence().find { "anotherVariable" == (it as VariablesTable.VariableNode).toString() } as VariablesTable.VariableNode
-    variablesTable.tree.expandPath(TreePath(variableNode.path))
+    variablesTable.tree.expandPath(TreePath(appNode.path))
 
     assertThat(variableNode.variable.valueType, equalTo(GradlePropertyModel.ValueType.STRING))
     assertThat(variableNode.childCount, equalTo(0))
     assertThat(tableModel.getValueAt(variableNode, 0) as String, equalTo("anotherVariable"))
     assertThat(tableModel.getValueAt(variableNode, 1) as String, equalTo("\"3.0.1\""))
+
+    val row = variablesTable.tree.getRowForPath(TreePath(variableNode.path))
+    for (column in 0..2) {
+      val component = variablesTable.getCellRenderer(row, column)
+        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+      assertThat(component.background, equalTo(variablesTable.background))
+    }
   }
 
   fun testBooleanVariableNodeDisplay() {
@@ -104,6 +119,21 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val emptyElement = listNode.getChildAt(2)
     assertThat(tableModel.getValueAt(emptyElement, 0) as String, equalTo(""))
     assertThat(tableModel.getValueAt(emptyElement, 1) as String, equalTo(""))
+
+    val row = variablesTable.tree.getRowForPath(TreePath(listNode.path))
+    for (column in 0..2) {
+      val component = variablesTable.getCellRenderer(row, column)
+        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+      assertThat(component.background, equalTo(variablesTable.background))
+
+      val firstChild = variablesTable.getCellRenderer(row + 1, column)
+        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 1,  column), false, false, row + 1, column)
+      assertThat(firstChild.background.rgb, equalTo(JBColor.LIGHT_GRAY.rgb))
+
+      val secondChild = variablesTable.getCellRenderer(row + 2, column)
+        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 2,  column), false, false, row + 2, column)
+      assertThat(secondChild.background, equalTo(variablesTable.background))
+    }
   }
 
   fun testMapNodeDisplay() {
@@ -137,6 +167,21 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val emptyElement = mapNode.getChildAt(2)
     assertThat(tableModel.getValueAt(emptyElement, 0) as String, equalTo(""))
     assertThat(tableModel.getValueAt(emptyElement, 1) as String, equalTo(""))
+
+    val row = variablesTable.tree.getRowForPath(TreePath(mapNode.path))
+    for (column in 0..2) {
+      val component = variablesTable.getCellRenderer(row, column)
+        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row, column), false, false, row, column)
+      assertThat(component.background, equalTo(variablesTable.background))
+
+      val firstChild = variablesTable.getCellRenderer(row + 1, column)
+        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 1,  column), false, false, row + 1, column)
+      assertThat(firstChild.background.rgb, equalTo(JBColor.LIGHT_GRAY.rgb))
+
+      val secondChild = variablesTable.getCellRenderer(row + 2, column)
+        .getTableCellRendererComponent(variablesTable, variablesTable.getValueAt(row + 2,  column), false, false, row + 2, column)
+      assertThat(secondChild.background, equalTo(variablesTable.background))
+    }
   }
 
   fun testModuleNodeRename() {
