@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.debug;
 
-import com.android.support.AndroidxName;
-
-public class SupportArrayMapRenderer extends ArrayMapRendererBase {
-  static final AndroidxName ARRAY_MAP_NAME = AndroidxName.of("android.support.v4.util.", "ArrayMap");
-
-  public SupportArrayMapRenderer() {
-    super(ARRAY_MAP_NAME.oldName());
+public class AndroidxSupportArrayMapRenderer extends ArrayMapRendererBase {
+  public AndroidxSupportArrayMapRenderer() {
+    super(SupportArrayMapRenderer.ARRAY_MAP_NAME.newName());
   }
 }
