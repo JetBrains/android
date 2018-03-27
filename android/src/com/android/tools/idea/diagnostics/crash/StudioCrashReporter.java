@@ -17,7 +17,6 @@
 package com.android.tools.idea.diagnostics.crash;
 
 import com.android.tools.analytics.Anonymizer;
-import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.android.utils.NullLogger;
 import com.intellij.ide.util.PropertiesComponent;
@@ -37,6 +36,8 @@ import java.util.Map;
  * the report. Specifically, see {@link #getProductSpecificParams()} method.
  */
 public class StudioCrashReporter extends GoogleCrashReporter {
+
+  public static final String PRODUCT_ANDROID_STUDIO = "AndroidStudio"; // must stay in sync with backend registration
 
   private static final boolean UNIT_TEST_MODE = ApplicationManager.getApplication() == null;
   private static final boolean DEBUG_BUILD = !UNIT_TEST_MODE && ApplicationManager.getApplication().isInternal();
@@ -80,7 +81,7 @@ public class StudioCrashReporter extends GoogleCrashReporter {
 
     // product specific key value pairs
     map.put(KEY_VERSION, applicationInfo == null ? "0.0.0.0" : applicationInfo.getStrictVersion());
-    map.put(KEY_PRODUCT_ID, CrashReport.PRODUCT_ANDROID_STUDIO); // must match registration with Crash
+    map.put(KEY_PRODUCT_ID, PRODUCT_ANDROID_STUDIO); // must match registration with Crash
     map.put("fullVersion", applicationInfo == null ? "0.0.0.0" : applicationInfo.getFullVersion());
 
     return map;
