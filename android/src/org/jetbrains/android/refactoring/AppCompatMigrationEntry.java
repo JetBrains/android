@@ -343,8 +343,20 @@ public class AppCompatMigrationEntry {
       return Pair.create(myOldGroupName, myOldArtifactName);
     }
 
+    /**
+     * Returns the gradle coordinates compact notation
+     */
+    @NotNull
     public String toCompactNotation() {
       return new GradleCoordinate(myNewGroupName, myNewArtifactName, myNewBaseVersion).toString();
+    }
+
+    /**
+     * Same as {@link #toCompactNotation()} but allows replacing the pre-defined version for this artifact with a different one
+         */
+    @NotNull
+    public String toCompactNotation(@NotNull String withVersion) {
+      return new GradleCoordinate(myNewGroupName, myNewArtifactName, withVersion).toString();
     }
   }
 }
