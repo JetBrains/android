@@ -53,6 +53,13 @@ class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
     checkSetSelected("right", "left", "right", false, "right")
   }
 
+  @Test
+  fun testFocusLostDoesNotChangeValue() {
+    val model = createModel("left", "left", "")
+    model.focusLost("")
+    assertThat(model.property.value).isEqualTo("left")
+  }
+
   private fun checkSetSelected(propertyValue: String?, trueValue: String, falseValue: String, setValue: Boolean, expected: String?) {
     val model = createModel(propertyValue, trueValue, falseValue)
     val listener = Mockito.mock(ValueChangedListener::class.java)
