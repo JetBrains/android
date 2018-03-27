@@ -128,6 +128,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
     myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
     myChangedComponent = false;
+    getTargetNotchSnapper().reset();
     getTargetNotchSnapper().gatherNotches(myComponent);
   }
 
