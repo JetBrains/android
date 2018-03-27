@@ -379,9 +379,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
           .setDurationBg(ProfilerColors.MEMORY_ALLOC_BG)
           .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
           .setLabelProvider(
-            data -> String.format("Allocation record (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
+            data -> String.format("Allocation record (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
                                                             TimeAxisFormatter.DEFAULT
-                                                              .getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+                                                              .getFormattedString(viewRange.getLength(), data.getDurationUs(), true)))
           .build();
       allocationRenderer.addCustomLineConfig(memoryUsage.getJavaSeries(), LineConfig
         .copyOf(lineChart.getLineConfig(memoryUsage.getJavaSeries())).setColor(ProfilerColors.MEMORY_JAVA_CAPTURED));
@@ -404,8 +404,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setDurationBg(ProfilerColors.MEMORY_HEAP_DUMP_BG)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setLabelProvider(
-          data -> String.format("Dump (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
-                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+          data -> String.format("Dump (%s)", data.getDurationUs() == Long.MAX_VALUE ? "in progress" :
+                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDurationUs(), true)))
         .build();
 
     for (RangedContinuousSeries series : memoryUsage.getSeries()) {

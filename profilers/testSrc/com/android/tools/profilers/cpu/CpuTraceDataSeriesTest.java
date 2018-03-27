@@ -73,7 +73,7 @@ public class CpuTraceDataSeriesTest {
     assertThat(data.x).isEqualTo((long)expectedCapture.getRange().getMin());
     CpuTraceInfo traceInfo = data.value;
     // Verify duration is also equal
-    assertThat(traceInfo.getDuration()).isEqualTo(expectedCapture.getDuration());
+    assertThat(traceInfo.getDurationUs()).isEqualTo(expectedCapture.getDurationUs());
     // As Range also doesn't have an equals method, compare max and min
     assertThat(traceInfo.getRange()).isNotNull();
     assertThat(expectedCapture.getRange()).isNotNull();

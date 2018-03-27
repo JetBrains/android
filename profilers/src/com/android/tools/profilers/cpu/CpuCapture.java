@@ -108,7 +108,7 @@ public class CpuCapture implements ConfigurableDurationData {
   }
 
   @Override
-  public long getDuration() {
+  public long getDurationUs() {
     return (long)myParser.getRange().getLength();
   }
 

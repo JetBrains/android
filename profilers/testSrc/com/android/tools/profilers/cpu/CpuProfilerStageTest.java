@@ -825,7 +825,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Starting capturing should display in progress duration, it will be displayed when
     // myStage.getInProgressTraceDuration() contains exactly one element corresponding to unfinished duration.
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(1);
-    assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries().get(0).value.getDuration()).isEqualTo(Long.MAX_VALUE);
+    assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries().get(0).value.getDurationUs()).isEqualTo(Long.MAX_VALUE);
     myCpuService.setValidTrace(true);
     stopCapturing();
     assertThat(myStage.getInProgressTraceDuration().getSeries().getSeries()).hasSize(0);

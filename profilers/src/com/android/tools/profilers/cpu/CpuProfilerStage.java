@@ -667,7 +667,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         // Update capture metadata
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
         captureMetadata.setParsingTimeMs(System.currentTimeMillis() - beforeParsingTime);
-        captureMetadata.setCaptureDurationMs(TimeUnit.MICROSECONDS.toMillis(parsedCapture.getDuration()));
+        captureMetadata.setCaptureDurationMs(TimeUnit.MICROSECONDS.toMillis(parsedCapture.getDurationUs()));
         captureMetadata.setRecordDurationMs(calculateRecordDurationMs(parsedCapture));
       }
       else {

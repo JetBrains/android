@@ -258,7 +258,7 @@ class CpuCaptureParserTest {
   private fun checkValidCapture(capture: CpuCapture) {
     val captureRange = capture.range
     assertThat(captureRange.isEmpty).isFalse()
-    assertThat(capture.duration).isEqualTo(captureRange.length.toLong())
+    assertThat(capture.durationUs).isEqualTo(captureRange.length.toLong())
 
     val main = capture.mainThreadId
     assertThat(capture.containsThread(main)).isTrue()

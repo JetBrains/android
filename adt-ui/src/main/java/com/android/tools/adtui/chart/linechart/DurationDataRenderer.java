@@ -151,7 +151,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       Rectangle2D.Float rect = new Rectangle2D.Float();
       double yStart = 1;
       double xStart = (data.x - xMin) / xLength;
-      double xDuration = data.value.getDuration() / xLength;
+      double xDuration = data.value.getDurationUs() / xLength;
       rect.setRect(xStart, 0, xDuration, 1);
       myPathCache.add(rect);
 

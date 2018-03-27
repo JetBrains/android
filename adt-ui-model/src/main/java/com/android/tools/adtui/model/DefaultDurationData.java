@@ -17,18 +17,18 @@ package com.android.tools.adtui.model;
 
 public class DefaultDurationData implements DurationData {
 
-  private long mDuration;
+  private long mDurationUs;
 
-  public DefaultDurationData(long duration) {
-    mDuration = duration;
+  public DefaultDurationData(long durationUs) {
+    mDurationUs = durationUs;
   }
 
-  public void setDuration(long duration) {
-    mDuration = duration;
+  public void setDurationUs(long durationUs) {
+    mDurationUs = durationUs;
   }
 
   @Override
-  public long getDuration() {
-    return mDuration;
+  public long getDurationUs() {
+    return mDurationUs;
   }
 }

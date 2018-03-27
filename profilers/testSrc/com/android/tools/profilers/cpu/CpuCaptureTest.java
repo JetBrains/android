@@ -45,7 +45,7 @@ public class CpuCaptureTest {
     Range captureRange = capture.getRange();
     assertThat(captureRange).isNotNull();
     assertThat(captureRange.isEmpty()).isFalse();
-    assertThat(capture.getDuration()).isEqualTo((long)captureRange.getLength());
+    assertThat(capture.getDurationUs()).isEqualTo((long)captureRange.getLength());
 
     int main = capture.getMainThreadId();
     assertThat(capture.containsThread(main)).isTrue();

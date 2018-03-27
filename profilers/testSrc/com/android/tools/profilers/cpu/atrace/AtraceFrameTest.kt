@@ -86,7 +86,7 @@ class AtraceFrameTest {
         bitmapsProcess.threads[0].schedSlices.size +
             bitmapsProcess.threads[RENDER_THREAD_ID].schedSlices.size
     )
-    assertThat(frame.duration).isEqualTo((totalRange.length * SECONDS_TO_US).toLong())
+    assertThat(frame.durationUs).isEqualTo((totalRange.length * SECONDS_TO_US).toLong())
   }
 
   fun validateRange(expected: Range, actual: Range) {

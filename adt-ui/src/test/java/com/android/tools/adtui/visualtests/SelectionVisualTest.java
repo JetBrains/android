@@ -132,7 +132,7 @@ public class SelectionVisualTest extends VisualTest {
       g.setColor(myColor);
       for (SeriesData<DefaultConfigurableDurationData> data : series) {
         double x = (data.x - range.getMin()) / range.getLength() * getSize().width;
-        double w = data.value.getDuration() / range.getLength() * getSize().width;
+        double w = data.value.getDurationUs() / range.getLength() * getSize().width;
         g.fillRect((int)x, 0, (int)w, getSize().height);
       }
     }

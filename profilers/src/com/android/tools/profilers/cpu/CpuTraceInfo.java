@@ -45,7 +45,7 @@ public class CpuTraceInfo implements ConfigurableDurationData {
   }
 
   @Override
-  public long getDuration() {
+  public long getDurationUs() {
     return (long)myRange.getLength();
   }
 
