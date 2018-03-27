@@ -23,10 +23,11 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
-import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.core.*;
@@ -53,7 +54,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.npw.project.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.util.AndroidBundle.message;
 

@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Collection;
 
-import static com.android.tools.idea.npw.project.NewProjectModel.getInitialDomain;
+import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 
 
 public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleModel> {

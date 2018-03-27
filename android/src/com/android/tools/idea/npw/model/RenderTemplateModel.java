@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.template;
+package com.android.tools.idea.npw.model;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
+import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;

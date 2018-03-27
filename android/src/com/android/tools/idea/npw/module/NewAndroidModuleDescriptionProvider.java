@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -31,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.npw.project.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionProvider {

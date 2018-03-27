@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.cpp;
 
 import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;

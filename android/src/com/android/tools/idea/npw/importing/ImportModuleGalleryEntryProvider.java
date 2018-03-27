@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.importing;
 
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
-import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidIcons;

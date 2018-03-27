@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module;
 
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

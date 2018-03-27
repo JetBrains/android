@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.project;
+package com.android.tools.idea.npw.model;
 
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.module.NewModuleModel;
-import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;

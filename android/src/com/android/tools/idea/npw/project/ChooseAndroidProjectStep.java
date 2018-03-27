@@ -20,6 +20,8 @@ import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
+import com.android.tools.idea.npw.model.NewProjectModel;
+import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.WizardGallery;

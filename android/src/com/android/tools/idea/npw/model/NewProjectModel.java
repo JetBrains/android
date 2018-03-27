@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.project;
+package com.android.tools.idea.npw.model;
 
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
@@ -22,8 +22,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.instantapp.InstantApps;
-import com.android.tools.idea.npw.module.NewModuleModel;
-import com.android.tools.idea.npw.template.MultiTemplateRenderer;
+import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
+import com.android.tools.idea.npw.project.AndroidPackageUtils;
+import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;

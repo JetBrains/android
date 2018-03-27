@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.template;
+package com.android.tools.idea.npw.model;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.npw.template.ConvertJavaToKotlinDefaultImpl;
+import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;

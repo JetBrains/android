@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.instantapp;
 
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.*;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
@@ -30,7 +31,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.android.tools.idea.npw.project.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
 import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 

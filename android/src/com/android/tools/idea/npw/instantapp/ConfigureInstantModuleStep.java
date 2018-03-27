@@ -19,7 +19,7 @@ import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.instantapp.InstantAppSdks;
-import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;

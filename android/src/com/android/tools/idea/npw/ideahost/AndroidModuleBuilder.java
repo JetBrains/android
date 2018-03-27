@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
+import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep;
-import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.base.Preconditions;
 import com.intellij.ide.projectWizard.ProjectTypeStep;
