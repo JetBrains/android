@@ -78,7 +78,7 @@ public class CLionIntegrationTest {
     String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .getResults();
-    assertThat(inspectionResults).contains("Unused import statement");
+    assertThat(inspectionResults).contains("Unused macro");
     assertThat(editor.getHighlights(HighlightSeverity.ERROR)).isEmpty();
 
     // Check code completion.
