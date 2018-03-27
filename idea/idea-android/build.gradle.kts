@@ -14,9 +14,10 @@ dependencies {
     compile(project(":idea:idea-gradle"))
 
     compile(ideaSdkDeps("openapi", "idea"))
-    compile(ideaPluginDeps("gradle-tooling-api", plugin = "gradle"))
+    compile(ideaPluginDeps("gradle-api", plugin = "gradle"))
     compile(ideaPluginDeps("android", "android-common", "sdklib", "sdk-common", "sdk-tools", "layoutlib-api", plugin = "android"))
     compile(preloadedDeps("dx", subdir = "android-5.0/lib"))
+    compile(ideaSdkDeps("android-base-common"))
 
     testCompile(projectDist(":kotlin-test:kotlin-test-jvm"))
     testCompile(project(":idea:idea-test-framework")) { isTransitive = false }
@@ -28,6 +29,7 @@ dependencies {
     testCompile(ideaPluginDeps("properties", plugin = "properties"))
     testCompile(ideaSdkDeps("gson"))
     testCompile(commonDep("junit:junit"))
+    testCompile(ideaPluginDeps("build-common", plugin = "android"))
 
     testRuntime(projectDist(":kotlin-reflect"))
     testRuntime(project(":plugins:android-extensions-ide"))
@@ -35,6 +37,7 @@ dependencies {
     testRuntime(project(":sam-with-receiver-ide-plugin"))
     testRuntime(project(":noarg-ide-plugin"))
     testRuntime(project(":allopen-ide-plugin"))
+    testRuntime(ideaSdkDeps("resources"))
     testRuntime(ideaSdkDeps("*.jar"))
     testRuntime(ideaPluginDeps("idea-junit", "resources_en", plugin = "junit"))
     testRuntime(ideaPluginDeps("IntelliLang", plugin = "IntelliLang"))
@@ -46,8 +49,9 @@ dependencies {
     testRuntime(ideaPluginDeps("*.jar", plugin = "Groovy"))
     testRuntime(ideaPluginDeps("coverage", "jacocoant", plugin = "coverage"))
     testRuntime(ideaPluginDeps("java-decompiler", plugin = "java-decompiler"))
-    testRuntime(ideaPluginDeps("*.jar", plugin = "maven"))
+    //testRuntime(ideaPluginDeps("*.jar", plugin = "maven"))
     testRuntime(ideaPluginDeps("*.jar", plugin = "android"))
+    testRuntime(ideaPluginDeps("*.jar", plugin = "smali"))
 }
 
 sourceSets {

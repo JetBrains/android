@@ -16,13 +16,14 @@
 
 package org.jetbrains.kotlin.android;
 
-
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -59,17 +60,17 @@ import org.w3c.dom.NodeList;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_DRAWABLE;
-import static com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer.ICON_SIZE;
-import static org.jetbrains.android.AndroidColorAnnotator.pickLayoutFile;
 
 /**
  *  Contains copied privates from AndroidColorAnnotator, so we could use them for Kotlin AndroidResourceReferenceAnnotator
  */
 public class ResourceReferenceAnnotatorUtil {
+
+    private static final int ICON_SIZE = 8;
+
     @Nullable
     public static File pickBitmapFromXml(@NotNull File file, @NotNull ResourceResolver resourceResolver, @NotNull Project project) {
         try {
@@ -136,17 +137,17 @@ public class ResourceReferenceAnnotatorUtil {
             Module module,
             Configuration configuration) {
         if (isFramework) {
-            ResourceRepository frameworkResources = configuration.getFrameworkResources();
+            AbstractResourceRepository frameworkResources = configuration.getFrameworkResources();
             if (frameworkResources == null) {
                 return null;
             }
-            if (!frameworkResources.hasResourceItem(type, name)) {
+            List<ResourceItem> items = frameworkResources.getResourceItems(ResourceNamespace.ANDROID, type, name);
+            if (items.isEmpty()) {
                 return null;
             }
-            ResourceItem item = frameworkResources.getResourceItem(type, name);
-            return item.getResourceValue(type, configuration.getFullConfig(), false);
+            return items.get(0).getResourceValue(true);
         } else {
-            LocalResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
+            LocalResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
             if (appResources == null) {
                 return null;
             }
@@ -161,26 +162,27 @@ public class ResourceReferenceAnnotatorUtil {
     @Nullable
     public static Configuration pickConfiguration(AndroidFacet facet, Module module, PsiFile file) {
         VirtualFile virtualFile = file.getVirtualFile();
-        if (virtualFile == null) {
+        if(virtualFile == null) {
             return null;
-        }
-
-        VirtualFile parent = virtualFile.getParent();
-        if (parent == null) {
-            return null;
-        }
-        VirtualFile layout;
-        String parentName = parent.getName();
-        if (!parentName.startsWith(FD_RES_LAYOUT)) {
-            layout = pickLayoutFile(module, facet);
-            if (layout == null) {
-                return null;
-            }
         } else {
-            layout = virtualFile;
-        }
+            VirtualFile parent = virtualFile.getParent();
+            if(parent == null) {
+                return null;
+            } else {
+                String parentName = parent.getName();
+                VirtualFile layout;
+                if(!parentName.startsWith("layout")) {
+                    layout = ResourceHelper.pickAnyLayoutFile(module, facet);
+                    if(layout == null) {
+                        return null;
+                    }
+                } else {
+                    layout = virtualFile;
+                }
 
-        return facet.getConfigurationManager().getConfiguration(layout);
+                return ConfigurationManager.getOrCreateInstance(module).getConfiguration(layout);
+            }
+        }
     }
 
     public static class ColorRenderer extends GutterIconRenderer {

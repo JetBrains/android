@@ -34,6 +34,7 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.Function
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
 import org.jetbrains.kotlin.psi.*
@@ -95,7 +96,8 @@ class KotlinAndroidLineMarkerProvider : LineMarkerProvider {
                     return
                 }
 
-                val files = androidFacet
+                val files = ModuleResourceManagers
+                        .getInstance(androidFacet)
                         .localResourceManager
                         .findResourcesByFieldName(resClassName, info.fieldName)
                         .filterIsInstance<PsiFile>()
@@ -124,7 +126,8 @@ class KotlinAndroidLineMarkerProvider : LineMarkerProvider {
         private val CLASSES_WITH_LAYOUT_XML = arrayOf(
                 SdkConstants.CLASS_ACTIVITY,
                 SdkConstants.CLASS_FRAGMENT,
-                SdkConstants.CLASS_V4_FRAGMENT,
+                SdkConstants.CLASS_V4_FRAGMENT.oldName(),
+                SdkConstants.CLASS_V4_FRAGMENT.newName(),
                 "android.widget.Adapter")
 
         private fun KtClass.isClassWithLayoutXml(): Boolean {
