@@ -1101,7 +1101,6 @@
     <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
-    <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" id="android"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <projectViewNodeDecorator id="android.module.node.decorator" implementation="com.android.tools.idea.gradle.projectView.ModuleNodeIconDecorator"/>

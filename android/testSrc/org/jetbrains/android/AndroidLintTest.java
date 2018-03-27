@@ -322,8 +322,7 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/res/values/typography.xml", "xml");
   }
 
-  // fails after IDEA 181.2784.17 merge
-  public void ignore_testGenBackupDescriptor() throws Exception {
+  public void testGenBackupDescriptor() throws Exception {
     deleteManifest();
     // This is needed for quick fixes that call TemplateUtils.selectEditor(..)
     // which in turn looks up the ProjectViewPane.ID.
@@ -361,8 +360,7 @@ public class AndroidLintTest extends AndroidTestCase {
                   "AndroidManifest.xml", "xml");
   }
 
-  // fails after IDEA 181.2784.17 merge
-  public void ignore_testGenEmptyBackupDescriptor() throws Exception {
+  public void testGenEmptyBackupDescriptor() throws Exception {
     // In the absence of files that indicate presence of databases or calls to
     // getSharedPreferences, the quickfix should create an empty backup descriptor
     // that contains helpful comments.
