@@ -39,8 +39,6 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
 
-  com.android.tools.idea.navigator.nodes.other.AndroidViewNodeEqualityTest.class, // fails after IDEA 181.2784.17 merge
-
   // http://b/35788260
   com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
 })
