@@ -42,4 +42,9 @@ class ToggleButtonPropertyEditorModel(
     set(value) {
       this.value = if (value) trueValue else falseValue
     }
+
+  // Do not change the current value on lost focus (as some other editor types should):
+  override fun focusLost(editedValue: String) {
+    super.focusLost(value)
+  }
 }
