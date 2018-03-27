@@ -261,7 +261,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
     myActionHandler.performPaste(myDataContext);
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <TextView>\n" +
+                                   "    <TextView>  [selected]\n" +
                                    "    <LinearLayout>  [expanded]\n" +
                                    "        <Button>\n" +
                                    "    <TextView>\n" +
@@ -280,8 +280,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
     myActionHandler.performPaste(myDataContext);
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]  [selected]\n" +
-                                   "        <TextView>\n" +
+                                   "    <LinearLayout>  [expanded]\n" +
+                                   "        <TextView>  [selected]\n" +
                                    "        <Button>\n" +
                                    "    <TextView>\n" +
                                    "    <AbsoluteLayout>\n");
@@ -296,8 +296,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myActionHandler.performPaste(myDataContext);
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                    "    <LinearLayout>  [expanded]\n" +
-                                   "        <Button>  [selected]\n" +
-                                   "        <TextView>\n" +
+                                   "        <Button>\n" +
+                                   "        <TextView>  [selected]\n" +
                                    "    <TextView>\n" +
                                    "    <AbsoluteLayout>\n");
   }
@@ -320,9 +320,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "    <LinearLayout>  [expanded]\n" +
                                    "        <Button>\n" +
                                    "    <TextView>\n" +
-                                   "    <AbsoluteLayout>  [selected]\n" +
-                                   "        <TextView>\n" +
-                                   "        <Button>\n");
+                                   "    <AbsoluteLayout>  [expanded]\n" +
+                                   "        <TextView>  [selected]\n" +
+                                   "        <Button>  [selected]\n");
   }
 
 
@@ -340,8 +340,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "    <Button>\n" +
                                    "    <Button>\n" +
                                    "    <Button>\n" +
-                                   "    <android.support.constraint.Chain>  [selected]\n" +
-                                   "        <Button>\n");
+                                   "    <android.support.constraint.Chain>\n" +
+                                   "        <Button>  [selected]\n");
   }
 
   public void testCutRemovesComponents() {
