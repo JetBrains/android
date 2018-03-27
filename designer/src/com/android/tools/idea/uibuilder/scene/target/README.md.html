@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright (C) 2018 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- For better readability, Please open this file in the browser -->
+
+**Design Doc of Notch**
+
+*Last updated: March 27th 2018*
+
+Overview
+=====
+
+Notch is an area which snaps the dragged element during drag and drop interaction.
+
+“Snap” means that the dragged element will be “attracted” to the Notch position (“value”) when the mouse is close to it
+(i.e within the “gap”).
+
+How to Use
+=====
+
+The snappable component must implement the `Notch.Provider` interface and add its `Notch` in the implementation.<br>
+The class that wants to interact with Notches must use `TargetSnapper`, which provides several APIs to snap to the `Notch`.
+
+When `TargetSnapper` tries to snap the `Notch`, it returns the optional value. If it really find a Notch to snap for the given coordinate,
+the optional value will be present. However, if there is no Notch effects on the given coordinate, the returned value is not present.
+
+
+`TargetSnapper`
+-----
+The class to interact with `Notch`. This class provides the functions to collect the `Notch` from the `Notch.Provider` and snap to them.
+
+`Notch`
+-----
+The class describes the information of snappable area. Using predefined `Notch`es such like `Notch.Horizontal`, `Notch.Vertical`,
+`Notch.Circular` is recommended. If it really needs a customized Notch, override `Notch.isSnappable()`.
+
+`Notch.Provider`
+-----
+Each class that provides `Notch`es must implements this interface.
+
+`Notch.Action`
+-----
+Used to attach a runnable `Notch` that will be triggered on the snapped Notch when calling `TargetSnapper.applyNotches()`
+
+
+Common Usage Steps
+-----
+* Create `TargetSnapper`
+* Call `TargetSnapper.gatherNotches(SceneComponent)`, this will collect the `Notch` related to the given SceneComponent
+* Call `TargetSnapper.trySnap[Horizontal|Vertical|Circular]()`, this will try to snap the `Notch` on the given type.
+* If you need to get the `Target` which offers the snapped `Notch`, use `TargetSnapper.getSnapped[Horizontal|Vertical|Circular]`.
+* You can also render the snapped `Notch` by calling `TargetSnapper.renderSnappedNotches()`.
+* If you want to run the attached `Notch.Action` on the snapped `Notch`, use `TargetSnapper.applyNotches`.
+* Use `TargetSnapper.reset()` to reset the status of `TargetSnapper`. This will clear the collected Notches and snapped Notches.
+  This function should be called after interaction is done, or before it is started.
+  This step is important since the snapped `Notch`(es) must be cleared before next usage.
+
+<!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
