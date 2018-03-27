@@ -17,8 +17,8 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep;
-import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;

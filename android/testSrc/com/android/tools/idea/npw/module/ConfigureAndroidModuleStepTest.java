@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.testing.AndroidGradleTestCase;

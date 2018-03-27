@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module;
 
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.ui.WizardGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;

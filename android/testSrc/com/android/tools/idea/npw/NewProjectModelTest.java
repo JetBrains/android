@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.npw.model.NewProjectModel;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

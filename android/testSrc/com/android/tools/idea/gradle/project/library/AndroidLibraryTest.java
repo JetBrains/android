@@ -16,7 +16,7 @@ package com.android.tools.idea.gradle.project.library;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
-import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.TestInvokeStrategy;

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template;
 
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateImageAssetPanel;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.templates.StringEvaluator;

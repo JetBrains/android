@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.java;
 
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
-import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;

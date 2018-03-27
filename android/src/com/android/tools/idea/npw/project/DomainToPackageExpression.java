@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.project;
 
+import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.google.common.base.Splitter;

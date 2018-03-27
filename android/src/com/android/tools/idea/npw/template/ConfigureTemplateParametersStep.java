@@ -21,6 +21,7 @@ import com.android.tools.adtui.TooltipLabel;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.components.*;
@@ -66,7 +67,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.tools.idea.npw.project.NewProjectModel.getInitialDomain;
+import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**

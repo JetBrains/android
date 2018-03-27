@@ -21,7 +21,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
-import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
