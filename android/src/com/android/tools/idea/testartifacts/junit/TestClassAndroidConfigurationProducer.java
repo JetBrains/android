@@ -19,6 +19,7 @@ import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.junit.AbstractTestClassConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.isFromContext;
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
@@ -38,7 +39,7 @@ public class TestClassAndroidConfigurationProducer extends AbstractTestClassConf
   }
 
   @Override
-  public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
+  public boolean shouldReplace(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
     return super.isPreferredConfiguration(self, other)
            && shouldUseAndroidJUnitConfigurations(self, other);
   }

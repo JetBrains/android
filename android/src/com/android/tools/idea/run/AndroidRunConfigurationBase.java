@@ -726,9 +726,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Override
-  public void readExternal(Element element) throws InvalidDataException {
+  public void readExternal(@NotNull Element element) throws InvalidDataException {
     super.readExternal(element);
-    readModule(element);
     DefaultJDOMExternalizer.readExternal(this, element);
 
     myDeployTargetContext.readExternal(element);
@@ -741,9 +740,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Override
-  public void writeExternal(Element element) throws WriteExternalException {
+  public void writeExternal(@NotNull Element element) throws WriteExternalException {
     super.writeExternal(element);
-    writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
 
     myDeployTargetContext.writeExternal(element);

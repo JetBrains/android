@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.ClientData;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Tag;
+import com.intellij.util.xmlb.annotations.XCollection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +38,7 @@ import java.util.List;
   }
 )
 public final class PersistentAndroidLogFilters implements PersistentStateComponent<PersistentAndroidLogFilters> {
-  private List<FilterData> myFilters = new ArrayList<FilterData>();
+  private List<FilterData> myFilters = new ArrayList<>();
 
   @Override
   public PersistentAndroidLogFilters getState() {
@@ -59,8 +58,7 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
    * Returns a copy of the list of filters. If you need to modify a filter, use
    * {@link #setFilters(List)} to do so.
    */
-  @Tag("filters")
-  @AbstractCollection(surroundWithTag = false)
+  @XCollection(style = XCollection.Style.v2)
   public List<FilterData> getFilters() {
     return Lists.newArrayList(Lists.transform(myFilters, new Function<FilterData, FilterData>() {
       @NotNull

@@ -636,10 +636,6 @@ public class IdeSdks {
     return false;
   }
 
-  public interface IdeSdkChangeListener {
-    void sdkPathChanged(@NotNull File newSdkPath);
-  }
-
   @TestOnly
   public static void removeJdksOn(@NotNull Disposable disposable) {
     Disposer.register(disposable, () -> WriteAction.run(() -> {
@@ -647,5 +643,9 @@ public class IdeSdks {
         ProjectJdkTable.getInstance().removeJdk(sdk);
       }
     }));
+  }
+
+  public interface IdeSdkChangeListener {
+    void sdkPathChanged(@NotNull File newSdkPath);
   }
 }
