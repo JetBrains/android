@@ -24,6 +24,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Tests for code editor features when working with value resources XML files in non-namespaced projects.
+ *
+ * @see AndroidNamespacedXmlResourcesDomTest
+ */
 public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
   public AndroidXmlResourcesDomTest() {
     super("dom/xml");

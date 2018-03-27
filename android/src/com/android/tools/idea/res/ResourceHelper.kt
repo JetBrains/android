@@ -475,6 +475,12 @@ fun RenderResources.resolve(resourceUrl: ResourceUrl, element: XmlElement): Reso
   return getUnresolvedResource(resourceReference)
 }
 
+/** Resolves a given namespace prefix in the context of the [XmlElement]. */
+fun XmlElement.resolveResourceNamespace(prefix: String?): ResourceNamespace? {
+  val (namespace, namespaceResolver) = getNamespacesContext(this) ?: return null
+  return ResourceNamespace.fromNamespacePrefix(prefix, namespace,  namespaceResolver)
+}
+
 @Throws(NumberFormatException::class)
 fun RenderResources.makeColorWithAlpha(color: Color, alphaValue: String?): Color {
   val alpha = if (alphaValue != null) resolveStringValue(alphaValue).toFloat() else 1.0f
