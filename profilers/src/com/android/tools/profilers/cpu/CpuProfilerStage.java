@@ -139,7 +139,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     DEAD_CAPTURED,
     WAITING,
     WAITING_CAPTURED,
-
+    // The two values below are used by imported trace captures to indicate which
+    // slices of the thread contain method trace activity and which ones don't.
+    HAS_ACTIVITY,
+    NO_ACTIVITY,
     // These values are captured from Atrace as such we only have a captured state.
     RUNNABLE_CAPTURED,
     WAITING_IO_CAPTURED,
@@ -611,6 +614,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
+        myThreadsStates.buildImportedTraceThreads(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
         // Save trace info if not already saved
         if (!myTraceIdsIterator.contains(CpuCaptureParser.IMPORTED_TRACE_ID)) {

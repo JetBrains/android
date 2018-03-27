@@ -93,6 +93,10 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
         return "Waiting";
       case WAITING_IO_CAPTURED:
         return "Waiting on IO";
+      case HAS_ACTIVITY:
+        return "Thread activity";
+      case NO_ACTIVITY:
+        return "No thread activity";
       default:
         return "Unknown";
     }
