@@ -305,18 +305,21 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     executeOnPooledThread(() -> {
       List<IDevice> connectedDevices = Arrays.asList(bridge.getDevices());
 
+      if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
+        return;
+      }
+      if (!myAvdInfosHasInitialized) {
+        return;
+      }
+      // DevicePickerListModel may query device to get info. Need to run on background thread.
+      DevicePickerListModel model = new DevicePickerListModel(connectedDevices, myAvdInfos);
+
       invokeLater(() -> {
-        if (myDevicesList == null) { // Happens if the method is invoked after disposal of the dialog.
-          return;
-        }
-        if (!myAvdInfosHasInitialized) {
-          return;
-        }
-        DevicePickerListModel model = new DevicePickerListModel(connectedDevices, myAvdInfos);
         setModel(model);
         if (avdToSelect != null) {
           selectAvd(avdToSelect);
-        } else {
+        }
+        else {
           int[] selectedIndices = getIndices(myModel.getItems(), selectedSerials.isEmpty() ? getDefaultSelection() : selectedSerials);
           myDevicesList.setSelectedIndices(selectedIndices);
         }
