@@ -674,36 +674,44 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
 
     Module module = context.getModule();
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        ResourceValue resValue = value.getValue();
-        if (resValue != null && resValue.isReference()) {
-          String resType = resValue.getResourceType();
-          if (resType == null) {
-            return PsiReference.EMPTY_ARRAY;
-          }
+    if (module == null) {
+      return PsiReference.EMPTY_ARRAY;
+    }
 
-          // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
-          //    android:layout_alignLeft="@+id/foo"
-          // is a reference to R.id.foo, but
-          //    android:id="@+id/foo"
-          // is not; it's the place we're defining it.
-          if (resValue.getPackage() == null && "+id".equals(resType)
-              && element != null && element.getParent() instanceof XmlAttribute) {
-            XmlAttribute attribute = (XmlAttribute)element.getParent();
-            if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
-              // When defining an id, don't point to another reference
-              // TODO: Unless you use @id instead of @+id!
-              return PsiReference.EMPTY_ARRAY;
-            }
-          }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return PsiReference.EMPTY_ARRAY;
+    }
+    ResourceValue resValue = value.getValue();
+    if (resValue == null || !resValue.isReference()) {
+      return PsiReference.EMPTY_ARRAY;
+    }
 
-          return new PsiReference[]{new AndroidResourceReference(value, facet, resValue, null)};
-        }
+    String resType = resValue.getResourceType();
+    if (resType == null) {
+      return PsiReference.EMPTY_ARRAY;
+    }
+
+    // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
+    //    android:layout_alignLeft="@+id/foo"
+    // is a reference to R.id.foo, but
+    //    android:id="@+id/foo"
+    // is not; it's the place we're defining it.
+    if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
+      XmlAttribute attribute = (XmlAttribute)element.getParent();
+      if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
+        // When defining an id, don't point to another reference
+        return PsiReference.EMPTY_ARRAY;
       }
     }
-    return PsiReference.EMPTY_ARRAY;
+
+    AndroidResourceReference resourceReference = new AndroidResourceReference(value, facet, resValue);
+    if (!StringUtil.isEmpty(resValue.getPackage())) {
+      ResourceNamespaceReference namespaceReference = new ResourceNamespaceReference(value, resValue);
+      return new PsiReference[] {namespaceReference, resourceReference};
+    }
+
+    return new PsiReference[] {resourceReference};
   }
 
   @Override

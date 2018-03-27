@@ -18,7 +18,6 @@ package org.jetbrains.android.dom.converters;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -31,7 +30,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
@@ -43,9 +41,9 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
 
   public AndroidResourceReference(@NotNull GenericDomValue<ResourceValue> value,
                                   @NotNull AndroidFacet facet,
-                                  @NotNull ResourceValue resourceValue,
-                                  @Nullable TextRange range) {
-    super(value, range, resourceValue, facet);
+                                  @NotNull ResourceValue resourceValue) {
+    // Range is calculated in calculateDefaultRangeInElement.
+    super(value, null, resourceValue, facet);
     myValue = value;
   }
 
