@@ -192,7 +192,7 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   @Override
-  public void handleFinished() {
+  protected void handleFinished() {
     myMultiTemplateRenderer.requestRender(new FreeMarkerTemplateRenderer());
   }
 
@@ -257,7 +257,7 @@ public final class RenderTemplateModel extends WizardModel {
 
       boolean success = new WriteCommandAction<Boolean>(project, myCommandName) {
         @Override
-        protected void run(@NotNull Result<Boolean> result) throws Throwable {
+        protected void run(@NotNull Result<Boolean> result) {
           boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
           if (success && myIconGenerator != null) {
             myIconGenerator.generateIconsToDisk(paths);
