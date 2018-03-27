@@ -19,6 +19,7 @@ import com.android.builder.model.AaptOptions
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.goToElementAtCaret
 import com.android.tools.idea.testing.highlightedAs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
@@ -125,7 +126,7 @@ class AndroidNamespacedXmlResourcesDomTest : AndroidTestCase() {
           <string name="s4">${"@android:string/made_up" highlightedAs ERROR}</string>
           <string name="s5">${"@string/made_up" highlightedAs ERROR}</string>
           <string name="s6">${"@com.example.lib:string/made_up" highlightedAs ERROR}</string>
-          <string name="s7">${"@made_up:string/s1" highlightedAs ERROR}</string>
+          <string name="s7">${"@${"made_up" highlightedAs ERROR}:string/s1" highlightedAs ERROR}</string>
         </resources>
       """.trimIndent()
     )
@@ -171,12 +172,70 @@ class AndroidNamespacedXmlResourcesDomTest : AndroidTestCase() {
           <string name="s4">${"@a:string/made_up" highlightedAs ERROR}</string>
           <string name="s5">${"@string/made_up" highlightedAs ERROR}</string>
           <string name="s6">${"@lib:string/made_up" highlightedAs ERROR}</string>
-          <string name="s7">${"@made_up:string/s1" highlightedAs ERROR}</string>
+          <string name="s7">${"@${"made_up" highlightedAs ERROR}:string/s1" highlightedAs ERROR}</string>
         </resources>
       """.trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(values.virtualFile)
     myFixture.checkHighlighting(true, false, false)
+  }
+
+  fun testNamespacePrefixReferences_localXmlNs() {
+    val values = myFixture.addFileToProject(
+      "res/values/values.xml",
+      """
+        <resources xmlns:lib="http://schemas.android.com/apk/res/com.example.lib" xmlns:a="http://schemas.android.com/apk/res/android">
+          <string name="some_string">Some string</string>
+          <string name="app_string">@${caret}lib:string/hello</string>
+        </resources>
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(values.virtualFile)
+    myFixture.checkHighlighting()
+
+    myFixture.renameElementAtCaret("newName")
+    myFixture.checkResult(
+      """
+        <resources xmlns:newName="http://schemas.android.com/apk/res/com.example.lib" xmlns:a="http://schemas.android.com/apk/res/android">
+          <string name="some_string">Some string</string>
+          <string name="app_string">@${caret}newName:string/hello</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    myFixture.goToElementAtCaret()
+    myFixture.checkResult(
+      """
+        <resources xmlns:${caret}newName="http://schemas.android.com/apk/res/com.example.lib" xmlns:a="http://schemas.android.com/apk/res/android">
+          <string name="some_string">Some string</string>
+          <string name="app_string">@newName:string/hello</string>
+        </resources>
+      """.trimIndent()
+    )
+  }
+
+  fun testNamespacePrefixReferences_packageName() {
+    val values = myFixture.addFileToProject(
+      "res/values/values.xml",
+      """
+        <resources>
+          <string name="some_string">Some string</string>
+          <string name="app_string">@${caret}com.example.lib:string/hello</string>
+        </resources>
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(values.virtualFile)
+    myFixture.checkHighlighting()
+
+    myFixture.goToElementAtCaret()
+    myFixture.checkResult(
+      """
+        <resources>
+          <string name="some_string">Some string</string>
+          <string name="app_string">@${caret}com.example.lib:string/hello</string>
+        </resources>
+      """.trimIndent()
+    )
   }
 }

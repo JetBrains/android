@@ -16,7 +16,9 @@
 package com.android.tools.idea.testing
 
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.testFramework.EditorTestUtil
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 /**
  * Marker used for caret position by [com.intellij.testFramework.EditorTestUtil.extractCaretAndSelectionMarkers]. This top-level value is
@@ -38,4 +40,8 @@ infix fun String.highlightedAs(level: HighlightSeverity): String {
   }
 
   return "<$marker>$this</$marker>"
+}
+
+fun CodeInsightTestFixture.goToElementAtCaret() {
+  performEditorAction(IdeActions.ACTION_GOTO_DECLARATION)
 }

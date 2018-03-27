@@ -16,6 +16,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.xml.SchemaPrefix;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -52,6 +53,11 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return false;
     }
 
+    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
+    if (element instanceof SchemaPrefix) {
+      return false; // Leave renaming of namespace prefixes to the default XML handler.
+    }
+
     if (AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file, true) != null) {
       return true;
     }
@@ -65,7 +71,6 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (project == null) {
       return false;
     }
-    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
     return element != null && isPackageAttributeInManifest(project, element);
   }
 

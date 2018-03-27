@@ -308,7 +308,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     PsiFile psiFile = myFixture.getFile();
     String text = psiFile.getText();
-    int rootOffset = text.indexOf("android:Theme");
+    int rootOffset = text.indexOf("Theme\">");
     PsiReference rootReference = psiFile.findReferenceAt(rootOffset);
     assertNotNull(rootReference);
     PsiElement element = rootReference.resolve();
