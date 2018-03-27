@@ -1053,8 +1053,7 @@ class NavSceneTest : NavTestCase() {
     )
   }
 
-  // fails after IDEA 181.2784.17 merge
-  fun ignore_testEmptyDesigner() {
+  fun testEmptyDesigner() {
     var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
 
     val modelBuilder = modelBuilder("nav.xml") {
@@ -1074,7 +1073,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
     assertEquals(
-        "DrawEmptyDesigner,130x250\n", list.serialize()
+        "DrawEmptyDesigner,130x258\n", list.serialize()
     )
     assertTrue(sceneManager.isEmpty)
 
@@ -1102,7 +1101,7 @@ class NavSceneTest : NavTestCase() {
     scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
     assertEquals(
-        "DrawEmptyDesigner,130x250\n", list.serialize()
+        "DrawEmptyDesigner,130x258\n", list.serialize()
     )
     assertTrue(sceneManager.isEmpty)
   }
