@@ -24,6 +24,8 @@ import com.android.testutils.filesystemdiff.TreeBuilder;
 import com.android.testutils.filesystemdiff.TreeDifferenceEngine;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
 import org.jetbrains.annotations.NotNull;
@@ -88,6 +90,7 @@ public class NewImageAssetTest {
                                          "app/src/main/res/drawable-xxhdpi/ic_stat_name.png");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/76439151
   @Test
   public void testNotificationImageCountForOldApi() throws Exception {
     AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
