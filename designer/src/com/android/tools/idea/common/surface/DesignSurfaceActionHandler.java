@@ -238,6 +238,9 @@ public class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, 
     }
     transferItem.consumeCut();
     model.addComponents(pasted, receiver, before, insertType, sceneView.getSurface());
+    if (insertType == InsertType.PASTE) {
+      mySurface.getSelectionModel().setSelection(pasted);
+    }
     return true;
   }
 

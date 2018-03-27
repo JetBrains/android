@@ -36,6 +36,7 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createScreen;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -133,6 +134,27 @@ public class DesignSurfaceActionHandlerTest extends LayoutTestCase {
     assertThat(mySurfaceActionHandler.isCopyEnabled(context)).isTrue();
     mySurfaceActionHandler.performCopy(context);
     verify(myCopyPasteManager).setContents(notNull());
+  }
+
+  public void testPasteWillChangeSelectionToPastedComponent() {
+    // Need to use the real copyPasteManager for checking the result of selection model.
+    mySurfaceActionHandler = new DesignSurfaceActionHandler(mySurface, CopyPasteManager.getInstance());
+
+    assertEquals(3, myModel.getComponents().get(0).getChildCount());
+
+    mySurface.getSelectionModel().toggle(myTextView);
+    assertEquals(1, mySurface.getSelectionModel().getSelection().size());
+    assertEquals(myTextView, mySurface.getSelectionModel().getSelection().get(0));
+
+    mySurfaceActionHandler.performCopy(context);
+    mySurfaceActionHandler.performPaste(context);
+
+    assertEquals(4, myModel.getComponents().get(0).getChildCount());
+    assertEquals(1, mySurface.getSelectionModel().getSelection().size());
+    // Paste will put the item before the original one
+    assertEquals(myModel.getComponents().get(0).getChild(1), myTextView);
+    assertEquals(myModel.getComponents().get(0).getChild(2), mySurface.getSelectionModel().getSelection().get(0));
+    assertNotEquals(myModel.getComponents().get(0).getChild(2), myTextView);
   }
 
   @NotNull
