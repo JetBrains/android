@@ -1294,6 +1294,29 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(profilers.getTimeline().isPaused()).isTrue();
   }
 
+  @Test
+  public void threadsDataComesFromCaptureInImportTraceMode() {
+    StudioProfilers profilers = myStage.getStudioProfilers();
+    myServices.enableImportTrace(true);
+    myServices.enableSessionsView(true);
+    File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
+    // Import trace mode is enabled successfully
+    assertThat(stage.isImportTraceMode()).isTrue();
+
+    CpuCapture capture = stage.getCapture();
+    int captureThreadsCount = capture.getThreads().size();
+    // Check that stage's Threads model has the same size of capture threads list (which is not empty)
+    assertThat(stage.getThreadStates().getSize()).isEqualTo(captureThreadsCount);
+    assertThat(captureThreadsCount).isGreaterThan(0);
+
+    // Now check that capture contains all the threads from the stage's model.
+    for (int i = 0; i < captureThreadsCount; i++) {
+      int tid = stage.getThreadStates().get(i).getThreadId();
+      assertThat(capture.containsThread(tid)).isTrue();
+    }
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
     int deviceId = serial.hashCode();
     Common.Device device = Common.Device.newBuilder()

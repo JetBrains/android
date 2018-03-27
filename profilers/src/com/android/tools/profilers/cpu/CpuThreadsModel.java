@@ -16,23 +16,18 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.DragAndDropListModel;
 import com.android.tools.profilers.DragAndDropModelListElement;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
@@ -66,6 +61,16 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
   }
 
   public void rangeChanged() {
+    if (myStage.isImportTraceMode()) {
+      // In import trace mode, we always list all the capture threads, as we don't have the concept of thread states. In regular profiling,
+      // if a thread is dead, it means we won't see more state changes from it at a later point, so it's OK to remove it from the list.
+      // Threads in import trace mode, for example, can have 5 seconds of activity, stay inactive for 10 more seconds and have activity
+      // again for other 5 seconds. As it's common for a thread to be inactive (e.g. sleeping, waiting for I/O, stopped, etc.) during its
+      // lifespan, we don't change the threads list automatically to avoid a poor user experience.
+      // Note that users can still explicitly change the threads order by using the drag-and-drop functionality.
+      return;
+    }
+
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
@@ -96,7 +101,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       }
     }
 
-    // Add threads that dont have an element already associated with them.
+    // Add threads that don't have an element already associated with them.
     for (RangedCpuThread element : requestedThreadsRangedCpuThreads.values()) {
       insertOrderedElement(element);
     }
@@ -150,6 +155,22 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     }
   }
 
+  /**
+   * Build a list of {@link RangedCpuThread} based from the threads contained in a given {@link CpuCapture}.
+   */
+  void buildImportedTraceThreads(@NotNull CpuCapture capture) {
+    if (capture.getType() == CpuProfiler.CpuProfilerType.ATRACE) {
+      // Atrace captures can display thread states normally. Return early.
+      return;
+    }
+    // Create the RangedCpuThread objects from the capture's threads
+    List<RangedCpuThread> threads = capture.getThreads().stream()
+      .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), true)).collect(Collectors.toList());
+    // Now insert the elements in order.
+    threads.forEach(this::insertOrderedElement);
+    sortElements();
+  }
+
   @Override
   public void update(long elapsedNs) {
     fireContentsChanged(this, 0, size());
@@ -161,24 +182,39 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     private final String myName;
     private final Range myRange;
     private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
-    // This data series combines the sampled data series pulled from perfd, and the Atrace data series
-    // populated when an atrace capture is parsed.
-    private final MergeCaptureDataSeries<CpuProfilerStage.ThreadState> mySeries;
-    // The Atrace data series is added to the MergeCaptureDataSeries, however it is only populated
-    // when an Atrace capture is parsed. When the data series is populated the results from the
-    // Atrace data series are used in place of the ThreadStateDataSeries for the range that
-    // overlap.
+    /**
+     * If the thread is imported from a trace file (excluding an atrace one), we use a {@link ImportedTraceThreadDataSeries} to represent
+     * its data. Otherwise, we use a {@link MergeCaptureDataSeries} that will combine the sampled {@link DataSeries} pulled from perfd, and
+     * {@link #myAtraceDataSeries}, populated when an atrace capture is parsed.
+     */
+    private final DataSeries<CpuProfilerStage.ThreadState> mySeries;
+    /**
+     * This is added to the {@link MergeCaptureDataSeries}, however it is only populated
+     * when an Atrace capture is parsed. When the data series is populated the results from the
+     * Atrace data series are used in place of the ThreadStateDataSeries for the range that
+     * overlap.
+     */
     private final AtraceDataSeries<CpuProfilerStage.ThreadState> myAtraceDataSeries;
 
     public RangedCpuThread(Range range, int threadId, String name) {
+      this(range, threadId, name, false);
+    }
+
+    public RangedCpuThread(Range range, int threadId, String name, boolean importedThread) {
       myRange = range;
       myThreadId = threadId;
       myName = name;
       myModel = new StateChartModel<>();
-      ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
-      myAtraceDataSeries = new AtraceDataSeries(myStage,
-                                                (capture) -> ((AtraceCpuCapture)capture).getThreadStatesForThread(myThreadId));
-      mySeries = new MergeCaptureDataSeries(myStage, threadStateDataSeries, myAtraceDataSeries);
+      if (importedThread) {
+        // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
+        mySeries = new ImportedTraceThreadDataSeries(myStage, myThreadId);
+        myAtraceDataSeries = null; // No use for the AtraceDataSeries
+      }
+      else {
+        ThreadStateDataSeries threadStateDataSeries = new ThreadStateDataSeries(myStage, mySession, myThreadId);
+        myAtraceDataSeries = new AtraceDataSeries<>(myStage, (capture) -> capture.getThreadStatesForThread(myThreadId));
+        mySeries = new MergeCaptureDataSeries<>(myStage, threadStateDataSeries, myAtraceDataSeries);
+      }
       myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }
 
@@ -194,7 +230,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       return myModel;
     }
 
-    public MergeCaptureDataSeries getStateSeries() {
+    public DataSeries<CpuProfilerStage.ThreadState> getStateSeries() {
       return mySeries;
     }
 

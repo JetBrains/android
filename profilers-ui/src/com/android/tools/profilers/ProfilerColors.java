@@ -90,6 +90,12 @@ public class ProfilerColors {
       .add(CpuProfilerStage.ThreadState.DEAD_CAPTURED,
            Gray.TRANSPARENT,
            Gray.TRANSPARENT)
+      .add(CpuProfilerStage.ThreadState.HAS_ACTIVITY,
+           CPU_USAGE,
+           new JBColor(0x57D9B2, 0x387358))
+      .add(CpuProfilerStage.ThreadState.NO_ACTIVITY,
+           Gray.TRANSPARENT,
+           Gray.TRANSPARENT)
       // TODO: remove UNKNOWN mapping when all states are covered.
       .add(CpuProfilerStage.ThreadState.UNKNOWN,
            new JBColor(0xC1D6F6, 0x5A6E7D),
