@@ -35,7 +35,6 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
-import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
@@ -270,7 +269,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     series.addAll(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(selectionRange));
 
     for (SeriesData<CaptureDurationData<CaptureObject>> data : series) {
-      long duration = data.value.getDuration();
+      long duration = data.value.getDurationUs();
       if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
         continue;
       }
@@ -333,7 +332,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       }
 
       if (captureToSelect != null &&
-          (captureToSelect.value.getDuration() != Long.MAX_VALUE || captureToSelect.value.getSelectableWhenMaxDuration())) {
+          (captureToSelect.value.getDurationUs() != Long.MAX_VALUE || captureToSelect.value.getSelectableWhenMaxDuration())) {
         selectCaptureDuration(captureToSelect.value, loadJoiner);
       }
     }
@@ -557,7 +556,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     // Synchronize selection with the capture object. Do so only if the capture object is not ongoing.
-    if (durationData != null && durationData.getDuration() != Long.MAX_VALUE) {
+    if (durationData != null && durationData.getDurationUs() != Long.MAX_VALUE) {
       // TODO: (revisit) we have an special case in interacting with SelectionModel where if the user tries to select a heap dump that is on
       // top of an ongoing live allocation capture (duration == Long.MAX_VALUE), the live capture would take precedence given it always
       // intersects with the previous selection. Here we clear the previous selection first to avoid said interaction.
@@ -692,7 +691,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range, RoundedSegmentInterpolator);
       myGcDurationLegend =
         new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT
-          .getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDuration(), true));
+          .getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDurationUs(), true));
 
       List<Legend> legends = isTooltip ? Arrays.asList(myTotalLegend, myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
                                                        myNativeLegend, myJavaLegend, myObjectsLegend, myGcDurationLegend)

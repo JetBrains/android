@@ -61,14 +61,14 @@ public class AllocationInfosDataSeriesTest {
     assertEquals(2, dataList.size());
     SeriesData<CaptureDurationData<CaptureObject>> data1 = dataList.get(0);
     assertEquals(2, data1.x);
-    assertEquals(5, data1.value.getDuration());
+    assertEquals(5, data1.value.getDurationUs());
     CaptureObject capture1 = data1.value.getCaptureEntry().getCaptureObject();
     assertEquals(TimeUnit.MICROSECONDS.toNanos(2), capture1.getStartTimeNs());
     assertEquals(TimeUnit.MICROSECONDS.toNanos(7), capture1.getEndTimeNs());
 
     SeriesData<CaptureDurationData<CaptureObject>> data2 = dataList.get(1);
     assertEquals(17, data2.x);
-    assertEquals(Long.MAX_VALUE, data2.value.getDuration());
+    assertEquals(Long.MAX_VALUE, data2.value.getDurationUs());
     CaptureObject capture2 = data2.value.getCaptureEntry().getCaptureObject();
     assertEquals(TimeUnit.MICROSECONDS.toNanos(17), capture2.getStartTimeNs());
     assertEquals(Long.MAX_VALUE, capture2.getEndTimeNs());

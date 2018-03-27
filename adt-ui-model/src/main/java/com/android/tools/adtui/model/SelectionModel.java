@@ -163,7 +163,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
       DataSeries<? extends ConfigurableDurationData> series = constraint.getSeries().getDataSeries();
       List<? extends SeriesData<? extends ConfigurableDurationData>> constraints = series.getDataForXRange(new Range(min, max));
       for (SeriesData<? extends ConfigurableDurationData> data : constraints) {
-        long duration = data.value.getDuration();
+        long duration = data.value.getDurationUs();
         if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
           continue;
         }

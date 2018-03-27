@@ -295,7 +295,7 @@ public class LineChartVisualTest extends VisualTest {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         List<SeriesData<DefaultDurationData>> allEvents = mDurationData1.getAllData();
         SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
-        lastEvent.value.setDuration(nowUs - lastEvent.x);
+        lastEvent.value.setDurationUs(nowUs - lastEvent.x);
       }
     });
     controls.add(tapButton);
@@ -316,7 +316,7 @@ public class LineChartVisualTest extends VisualTest {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         List<SeriesData<DefaultDurationData>> allEvents = mDurationData2.getAllData();
         SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
-        lastEvent.value.setDuration(nowUs - lastEvent.x);
+        lastEvent.value.setDurationUs(nowUs - lastEvent.x);
       }
     });
     controls.add(tapButton);

@@ -152,7 +152,7 @@ public class AtraceFrame extends EventAction<AtraceFrame.PerfClass> implements D
    * @return absolute time of this frame in micro seconds.
    */
   @Override
-  public long getDuration() {
+  public long getDurationUs() {
     return (long)(SECONDS_TO_US * getTotalRangeSeconds().getLength());
   }
 
