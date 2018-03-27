@@ -110,7 +110,6 @@
     <orderEntry type="library" name="XStream" level="project" />
     <orderEntry type="library" name="jgraphx" level="project" />
     <orderEntry type="library" name="com.android.tools.build:manifest-merger:26.0.0" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.builder-model" />
     <orderEntry type="module-library">
       <library name="bouncy-castle">
         <CLASSES>

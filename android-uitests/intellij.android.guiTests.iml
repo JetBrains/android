@@ -35,6 +35,5 @@
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.androidStudio.main" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.builder-model" scope="TEST" />
   </component>
 </module>
