@@ -157,7 +157,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
     PROFILER, "atrace", "Show the atrace option in CPU profiler",
     "Toggles if atrace is a valid option to choose from the CPU profiling dropdown.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
     PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
