@@ -88,9 +88,16 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   private Map<String, NlComponent> myComponentMap;
   protected PropertiesComponent myPropertiesComponent;
 
+  /**
+   * Override this method to add files to the project before the model is created.
+   */
+  public void addFiles() {
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    addFiles();
     setUpManifest();
     myModel = createModel();
     myComponentMap = createComponentMap();
