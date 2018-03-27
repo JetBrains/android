@@ -17,6 +17,9 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Comparing;
+
+import java.util.Objects;
 
 /**
  * Specialization of {@link ProjectViewModuleNode} for Android view.
@@ -28,10 +31,18 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
 
   @Override
   public boolean equals(Object o) {
+    if (o == this) {
+      return true;
+    }
     // All flavors of AndroidViewModuleNode representing the same module are considered equal (http://b/70635980).
     if (!(o instanceof AndroidViewModuleNode)) {
       return false;
     }
-    return super.equals(o);
+    return Comparing.equal(getEqualityObject(), ((AndroidViewModuleNode)o).getEqualityObject());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(getEqualityObject());
   }
 }
