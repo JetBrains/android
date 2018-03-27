@@ -26,6 +26,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.*
+import com.intellij.testFramework.TestDataFile
+import org.apache.commons.io.FileUtils
 import org.junit.Test
 
 class PropertyOrderTest : GradleFileModelTestCase() {
@@ -1153,9 +1155,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, expected)
   }
 
-  // TODO: Uncomment when index dependencies are found.
-  //@Test
-  fun /*test*/AddListDependencyWithExistingIndexReference() {
+  @Test
+  fun testAddListDependencyWithExistingIndexReference() {
     val text = """
                ext {
                  prop1 = prop[0]
@@ -1172,5 +1173,44 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
 
     verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
+  }
+
+  @Test
+  fun testAddMapDependencyWithExistingKeyReference() {
+    val text = """
+               ext {
+                 prop1 = prop.key
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+    val newMapModel = extModel.findProperty("prop")
+    newMapModel.convertToEmptyMap().getMapValue("key").setValue(true)
+
+    verifyPropertyModel(extModel.findProperty("prop1").resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop1")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop1")
+  }
+
+  @Test
+  fun testAddQualifiedDependencyWithExistingReference() {
+    val text = """
+               ext {
+                 prop1 = ext.prop
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModel = gradleBuildModel
+    val newPropertyModel = buildModel.ext().findProperty("prop")
+    newPropertyModel.setValue("boo")
+
+    verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), STRING_TYPE, "boo", STRING, REGULAR, 1, "prop1")
+
+    applyChangesAndReparse(buildModel)
+
+    verifyPropertyModel(buildModel.ext().findProperty("prop1").resolve(), STRING_TYPE, "boo", STRING, REGULAR, 1, "prop1")
   }
 }

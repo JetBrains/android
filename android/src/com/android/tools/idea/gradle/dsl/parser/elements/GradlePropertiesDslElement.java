@@ -754,10 +754,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
         if (item.myElementState != TO_BE_REMOVED &&
             item.myElementState != APPLIED &&
             item.myElementState != HIDDEN) {
-          // Make sure we are only counting elements with the same qualified name.
-          if (element.getNameElement().qualifyingParts().equals(item.myElement.getNameElement().qualifyingParts())) {
-            index--;
-          }
+          index--;
         }
       }
       return myElements.size();

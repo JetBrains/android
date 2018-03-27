@@ -79,7 +79,7 @@ public final class ElementSort {
   private List<GradleDslElement> gatherDependencies(@NotNull GradleDslElement element) {
     return element.getDependencies().stream().map(e -> {
       GradleDslElement newElement = e.getToBeInjected();
-      if (newElement == null && e.getName().equals(myElement.getName())) {
+      if (newElement == null && myElement.getNameElement().containsPropertyReference(e.getName())) {
         return myElement;
       }
 
