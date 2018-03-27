@@ -18,15 +18,26 @@ package org.jetbrains.android.dom
 import com.android.builder.model.AaptOptions
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.model.TestAndroidModel
+import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.highlightedAs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
+import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.inspections.AndroidDomInspection
+import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection
+import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection
 
-class AndroidDomTestCaseNamespaced : AndroidTestCase() {
+/**
+ * Tests for code editor features when working with value resources XML files in namespaced projects.
+ *
+ * Namespaced equivalent of [AndroidXmlResourcesDomTest], covers features that have been fixed to work in namespaced projects.
+ */
+class AndroidNamespacedXmlResourcesDomTest : AndroidTestCase() {
 
   private val libRes get() = getAdditionalModulePath("lib") + "/res"
 
@@ -45,6 +56,12 @@ class AndroidDomTestCaseNamespaced : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
+
+    myFixture.enableInspections(
+      AndroidDomInspection::class.java,
+      AndroidUnknownAttributeInspection::class.java,
+      AndroidElementNotAllowedInspection::class.java
+    )
 
     runUndoTransparentWriteAction {
       myFacet.run {
@@ -76,13 +93,13 @@ class AndroidDomTestCaseNamespaced : AndroidTestCase() {
 
   }
 
-  fun testDifferentNamespaces() {
+  fun testDifferentNamespacesCompletion() {
     val values = myFixture.addFileToProject(
       "res/values/values.xml",
       """
         <resources>
           <string name="some_string">Some string</string>
-          <string name="app_string">@<caret></string>
+          <string name="app_string">@${caret}</string>
         </resources>
       """.trimIndent()
     )
@@ -97,13 +114,33 @@ class AndroidDomTestCaseNamespaced : AndroidTestCase() {
     )
   }
 
-  fun testDifferentNamespaces_prefix() {
+  fun testDifferentNamespacesResolution() {
+    val values = myFixture.addFileToProject(
+      "res/values/values.xml",
+      """
+        <resources>
+          <string name="s1">@android:color/black</string>
+          <string name="s2">@com.example.lib:string/hello</string>
+          <string name="s3">@string/s1</string>
+          <string name="s4">${"@android:string/made_up" highlightedAs ERROR}</string>
+          <string name="s5">${"@string/made_up" highlightedAs ERROR}</string>
+          <string name="s6">${"@com.example.lib:string/made_up" highlightedAs ERROR}</string>
+          <string name="s7">${"@made_up:string/s1" highlightedAs ERROR}</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(values.virtualFile)
+    myFixture.checkHighlighting(true, false, false)
+  }
+
+  fun testDifferentNamespacesPrefixCompletion() {
     val values = myFixture.addFileToProject(
       "res/values/values.xml",
       """
         <resources xmlns:lib="http://schemas.android.com/apk/res/com.example.lib" xmlns:a="http://schemas.android.com/apk/res/android">
           <string name="some_string">Some string</string>
-          <string name="app_string">@<caret></string>
+          <string name="app_string">@${caret}</string>
         </resources>
       """.trimIndent()
     )
@@ -121,5 +158,25 @@ class AndroidDomTestCaseNamespaced : AndroidTestCase() {
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).contains("@a:string/cancel")
+  }
+
+  fun testDifferentNamespacesPrefixResolution() {
+    val values = myFixture.addFileToProject(
+      "res/values/values.xml",
+      """
+        <resources xmlns:lib="http://schemas.android.com/apk/res/com.example.lib" xmlns:a="http://schemas.android.com/apk/res/android">
+          <string name="s1">@a:color/black</string>
+          <string name="s2">@lib:string/hello</string>
+          <string name="s3">@string/s1</string>
+          <string name="s4">${"@a:string/made_up" highlightedAs ERROR}</string>
+          <string name="s5">${"@string/made_up" highlightedAs ERROR}</string>
+          <string name="s6">${"@lib:string/made_up" highlightedAs ERROR}</string>
+          <string name="s7">${"@made_up:string/s1" highlightedAs ERROR}</string>
+        </resources>
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(values.virtualFile)
+    myFixture.checkHighlighting(true, false, false)
   }
 }

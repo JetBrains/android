@@ -1,7 +1,5 @@
 package org.jetbrains.android.dom.converters;
 
-import com.android.SdkConstants;
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.sampledata.SampleDataManager;
@@ -28,7 +26,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,13 +93,27 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
 
   @NotNull
   private ResolveResult[] resolveInner() {
-    final List<PsiElement> elements = new ArrayList<>();
-    final boolean attrReference = myResourceValue.getPrefix() == '?';
-    collectTargets(myFacet, myResourceValue, elements, attrReference);
-    final List<ResolveResult> result = new ArrayList<>();
+    ResourceNamespace resolvedNamespace = ResourceHelper.resolveResourceNamespace(myElement, myResourceValue.getPackage());
+    if (resolvedNamespace == null) {
+      return ResolveResult.EMPTY_ARRAY;
+    }
 
-    if (elements.isEmpty() && myResourceValue.getResourceName() != null &&
-        !AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myResourceValue.getPackage())) {
+    boolean attrReference = myResourceValue.getPrefix() == '?';
+
+    List<PsiElement> elements = new ArrayList<>();
+    if (myResourceValue.getType() != null && myResourceValue.getResourceName() != null) {
+      ResourceManager manager =
+        ModuleResourceManagers.getInstance(myFacet).getResourceManager(resolvedNamespace.getPackageName(), myElement);
+      if (manager != null) {
+        manager.collectLazyResourceElements(resolvedNamespace, myResourceValue.getType().getName(), myResourceValue.getResourceName(),
+                                            attrReference, myElement, elements);
+      }
+    }
+
+    List<ResolveResult> result = new ArrayList<>();
+
+    // TODO: remove these special cases and just handle all resources in a uniform way.
+    if (elements.isEmpty() && myResourceValue.getResourceName() != null && resolvedNamespace != ResourceNamespace.ANDROID) {
       // Dynamic items do not appear in the XML scanning file index; look for
       // these in the resource repositories.
       LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(myFacet.getModule());
@@ -115,17 +126,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
           resourceName = SampleDataManager.getResourceNameFromSampleReference(resourceName);
         }
 
-        ResourceNamespace namespace = ResourceNamespace.TODO;
-
-        // In non-namespaced project we allowed the usage of "tools:" without proper xmlns declaration.
-        // TODO(namespaces): revisit this once we have code-completion working in namespaced projects.
-        if (resourceType == ResourceType.SAMPLE_DATA &&
-            SdkConstants.TOOLS_NS_NAME.equals(myResourceValue.getPackage()) &&
-            ResourceRepositoryManager.getOrCreateInstance(myFacet).getNamespacing() == AaptOptions.Namespacing.DISABLED) {
-          namespace = ResourceNamespace.TOOLS;
-        }
-
-        List<ResourceItem> items = resources.getResourceItems(namespace, resourceType, resourceName);
+        List<ResourceItem> items = resources.getResourceItems(resolvedNamespace, resourceType, resourceName);
         if (FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
           for (ResourceItem item : items) {
             XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
@@ -168,26 +169,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       result.add(new PsiElementResolveResult(target));
     }
 
-    return result.toArray(new ResolveResult[result.size()]);
-  }
-
-  private void collectTargets(AndroidFacet facet, ResourceValue resValue, List<PsiElement> elements, boolean attrReference) {
-    ResourceType resType = resValue.getType();
-    if (resType == null) {
-      return;
-    }
-    String resName = resValue.getResourceName();
-    if (resName != null) {
-      String resPackage = resValue.getPackage();
-      ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage, myElement);
-      if (manager != null) {
-        ResourceNamespace namespace =
-            resPackage == null ? ResourceHelper.getNamespace(myElement) : ResourceNamespace.fromPackageName(resPackage);
-        if (namespace != null) {
-          manager.collectLazyResourceElements(namespace, resType.getName(), resName, attrReference, myElement, elements);
-        }
-      }
-    }
+    return result.toArray(ResolveResult.EMPTY_ARRAY);
   }
 
   @Override
