@@ -27,8 +27,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -631,9 +631,7 @@ public class RenderTask {
    */
   private void reportException(@NotNull Throwable e) {
     // This in an unhandled layoutlib exception, pass it to the crash reporter
-    myCrashReporter.submit(
-      CrashReport.Builder.createForException(e)
-        .build());
+    myCrashReporter.submit(new StudioExceptionReport.Builder().setThrowable(e).build());
   }
 
   /**

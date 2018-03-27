@@ -17,6 +17,7 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.tools.analytics.crash.CrashReport;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -58,9 +59,11 @@ public class SubmitCrashReportTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
 
-    CrashReport report = CrashReport.Builder.createForException(myThrowable)
-      .addProductData(getProductData())
-      .build();
+    CrashReport report =
+      new StudioExceptionReport.Builder()
+        .setThrowable(myThrowable)
+        .addProductData(getProductData())
+        .build();
     CompletableFuture<String> future = StudioCrashReporter.getInstance().submit(report, true);
 
     try {

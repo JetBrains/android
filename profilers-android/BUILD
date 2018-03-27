@@ -46,6 +46,5 @@ iml_module(
         "//tools/vendor/intellij/cidr:cidr-lang[module]",
         "//tools/idea/xml/dom-openapi[module]",
         "//tools/adt/idea/native-symbolizer[module]",
-        "//tools/analytics-library/crash:analytics-crash[module]",
     ],
 )
