@@ -17,11 +17,11 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 
@@ -41,6 +41,7 @@ private const val STRINGS = """<?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="demo">Demo String</string>
   <string name="design">Design Demo</string>
+  <dimen name="lineSpacing">13sp</dimen>
 </resources>
 """
 
@@ -62,7 +63,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.value).isEqualTo("@string/demo")
     assertThat(property.isReference).isTrue()
     assertThat(property.resolvedValue).isEqualTo("Demo String")
-    assertThat(property.tooltip).isEqualTo("android:text:  Text to display. ")
+    assertThat(property.tooltipForName).isEqualTo("android:text:  Text to display. ")
     assertThat(property.validate("Some")).isEmpty()
     assertThat(property.libraryName).isEmpty()
     assertThat(property.components).hasSize(1)
@@ -96,7 +97,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(design.rawValue).isEqualTo("@string/design")
     assertThat(design.isReference).isTrue()
     assertThat(design.resolvedValue).isEqualTo("Design Demo")
-    assertThat(design.tooltip).isEqualTo("tools:text:  Text to display. ")
+    assertThat(design.tooltipForName).isEqualTo("tools:text:  Text to display. ")
     assertThat(design.validate("Some")).isEmpty()
     assertThat(design.libraryName).isEmpty()
     assertThat(design.components).hasSize(1)
@@ -157,11 +158,8 @@ class NelePropertyItemTest : PropertyTestCase() {
   fun testGetValueWithDefaultValue() {
     val components = createTextView()
     val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
-    val nlModel = components[0].model as SyncNlModel
-    val view = nlModel.surface.currentSceneView!!
-    val manager = view.sceneManager as SyncLayoutlibSceneManager
+    val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
-    property.model.surface = nlModel.surface
     waitUntilEventsProcessed(property.model)
 
     assertThat(property.value).isEqualTo("?attr/textAppearanceSmall")
@@ -169,9 +167,33 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.value).isNull()
   }
 
+  fun testToolTipForValue() {
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createTextView()
+    val emptyProperty = createPropertyItem(ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING, components, model)
+    val hardcodedProperty = createPropertyItem(ATTR_LAYOUT_WIDTH, NelePropertyType.DIMENSION, components, model)
+    val referenceProperty = createPropertyItem(ATTR_TEXT, NelePropertyType.STRING, components, model)
+    val hardcodedFromDefultProperty = createPropertyItem(ATTR_TEXT_SIZE, NelePropertyType.DIMENSION, components, model)
+    val referenceFromDefaultProperty = createPropertyItem(ATTR_LINE_SPACING_EXTRA, NelePropertyType.DIMENSION, components, model)
+    val manager = getSceneManager(hardcodedFromDefultProperty)
+    val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)  // Platform dependent !!!
+    referenceFromDefaultProperty.resolver
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "@dimen/lineSpacing", null)
+    manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "14sp", null)
+    waitUntilEventsProcessed(model)
+
+    assertThat(emptyProperty.tooltipForValue).isEmpty()
+    assertThat(hardcodedProperty.tooltipForValue).isEmpty()
+    assertThat(referenceProperty.tooltipForValue).isEqualTo("\"@string/demo\" = \"Demo String\" ($keyStroke)")
+    assertThat(hardcodedFromDefultProperty.tooltipForValue).isEqualTo("[default] \"14sp\"")
+    assertThat(referenceFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"@dimen/lineSpacing\" = \"13sp\" ($keyStroke)")
+  }
+
   private fun createTextView(): List<NlComponent> {
     return createComponents(
         component(TEXT_VIEW)
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
           .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
           .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
     )

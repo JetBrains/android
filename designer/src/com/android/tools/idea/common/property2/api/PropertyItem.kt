@@ -48,9 +48,15 @@ interface PropertyItem {
   val isReference: Boolean
 
   /**
-   * The tooltip for this property
+   * The tooltip for this property name
    */
-  val tooltip: String
+  val tooltipForName: String
+    get() = ""
+
+  /**
+   * The tooltip for the value of this property
+   */
+  val tooltipForValue: String
     get() = ""
 
   /**

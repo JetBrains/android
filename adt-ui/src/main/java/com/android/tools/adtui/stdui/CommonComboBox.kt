@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import javax.swing.JComboBox
 
-open class CommonComboBox<E>(model: CommonComboBoxModel<E>) : JComboBox<E>(model) {
+open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : JComboBox<E>(model) {
 
   init {
     setFromModel()
@@ -35,15 +35,19 @@ open class CommonComboBox<E>(model: CommonComboBoxModel<E>) : JComboBox<E>(model
   }
 
   private fun setFromModel() {
-    val comboModel = model as? CommonComboBoxModel ?: return
-    isEnabled = comboModel.enabled
-    if (isEditable != comboModel.editable) {
-      super.setEditable(comboModel.editable)
+    isEnabled = model.enabled
+    if (isEditable != model.editable) {
+      super.setEditable(model.editable)
     }
   }
 
   override fun updateUI() {
     setUI(CommonComboBoxUI())
     revalidate()
+  }
+
+  override fun getModel(): M {
+    @Suppress("UNCHECKED_CAST")
+    return super.getModel() as M
   }
 }

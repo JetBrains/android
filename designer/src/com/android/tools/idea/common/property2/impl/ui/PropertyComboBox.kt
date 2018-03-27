@@ -34,7 +34,7 @@ import javax.swing.plaf.basic.ComboPopup
  *
  * This control will act as a ComboBox or a DropDown depending on the model.
  */
-class PropertyComboBox(model: ComboBoxPropertyEditorModel): CommonComboBox<EnumValue>(model) {
+class PropertyComboBox(model: ComboBoxPropertyEditorModel): CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model) {
 
   init {
     registerKeyAction({ model.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
@@ -57,14 +57,14 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel): CommonComboBox<EnumV
           val currentEvent = EventQueue.getCurrentEvent()
           val fromEscapeKey = (currentEvent as? KeyEvent)?.keyCode == KeyEvent.VK_ESCAPE
           val clickOutsideList = currentEvent is MouseEvent && !isClickOnItemInPopup(currentEvent)
-          (model as? ComboBoxPropertyEditorModel)?.popupMenuWillBecomeInvisible(fromEscapeKey || clickOutsideList)
+          model.popupMenuWillBecomeInvisible(fromEscapeKey || clickOutsideList)
         }
 
         override fun popupMenuCanceled(event: PopupMenuEvent) {
         }
 
         override fun popupMenuWillBecomeVisible(event: PopupMenuEvent) {
-          (model as? ComboBoxPropertyEditorModel)?.popupMenuWillBecomeVisible()
+          model.popupMenuWillBecomeVisible()
         }
 
         private fun isClickOnItemInPopup(event: MouseEvent): Boolean {
@@ -80,7 +80,6 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel): CommonComboBox<EnumV
 
   override fun updateFromModel() {
     super.updateFromModel()
-    val model = model as ComboBoxPropertyEditorModel
     isVisible = model.visible
     if (model.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
@@ -89,6 +88,8 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel): CommonComboBox<EnumV
       isPopupVisible = model.isPopupVisible
     }
   }
+
+  override fun getToolTipText(): String? = model.tooltip
 
   // Hack: This method is called to update the text editor with the content of the
   // selected item in the dropdown. We do not want that, since the editor text can

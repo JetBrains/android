@@ -29,11 +29,11 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getNamespaceResolver
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
-import com.android.tools.idea.uibuilder.property2.support.ShowResolvedValueAction
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.psi.xml.XmlTag
 import icons.StudioIcons
 import org.jetbrains.android.dom.attrs.AttributeDefinition
@@ -85,8 +85,11 @@ open class NelePropertyItem(
       else -> StudioIcons.LayoutEditor.Toolbar.INSERT_VERT_CHAIN
     }
 
-  override val tooltip: String
-    get() = computeToolTip()
+  override val tooltipForName: String
+    get() = computeTooltipForName()
+
+  override val tooltipForValue: String
+    get() = computeTooltipForValue()
 
   override val isReference: Boolean
     get() = isReferenceValue(rawValue)
@@ -203,7 +206,7 @@ open class NelePropertyItem(
     })
   }
 
-  private fun computeToolTip(): String {
+  private fun computeTooltipForName(): String {
     val sb = StringBuilder(100)
     sb.append(findNamespacePrefix())
     sb.append(name)
@@ -213,6 +216,17 @@ open class NelePropertyItem(
       sb.append(value)
     }
     return sb.toString()
+  }
+
+  private fun computeTooltipForValue(): String {
+    val currentValue = rawValue
+    val actualValue = currentValue ?: model.provideDefaultValue(this)
+    val resolvedValue = if (isReferenceValue(actualValue)) resolveValue(actualValue) else actualValue
+    if (actualValue == null || (currentValue == resolvedValue)) return ""
+    val defaultText = if (currentValue == null) "[default] " else ""
+    val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)
+    val resolvedText = if (resolvedValue != actualValue) " = \"$resolvedValue\" ($keyStroke)" else ""
+    return "$defaultText\"$actualValue\"$resolvedText"
   }
 
   private fun findNamespacePrefix(): String {
@@ -233,7 +247,7 @@ open class NelePropertyItem(
     get() = true
 
   override fun getActionIcon(focused: Boolean): Icon {
-    val reference = isReferenceValue(value)
+    val reference = isReferenceValue(rawValue)
     return when {
       reference && !focused -> StudioIcons.Common.PROPERTY_BOUND
       reference && focused -> StudioIcons.Common.PROPERTY_BOUND_FOCUS
@@ -242,22 +256,9 @@ open class NelePropertyItem(
     }
   }
 
-  override fun getAction(): ActionGroup {
-    return if (isReferenceValue(value)) makeBoundActionGroup() else makeUnboundActionGroup()
+  override fun getAction(): AnAction {
+    return OpenResourceManagerAction(this)
   }
 
-  private fun makeBoundActionGroup(): ActionGroup {
-    val group = DefaultActionGroup()
-    group.add(ShowResolvedValueAction(this))
-    group.addSeparator()
-    group.add(OpenResourceManagerAction(this))
-    return group
-  }
-
-  private fun makeUnboundActionGroup(): ActionGroup {
-    val group = DefaultActionGroup()
-    group.add(OpenResourceManagerAction(this))
-    return group
-  }
   // endregion
 }

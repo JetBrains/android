@@ -50,6 +50,10 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
     }
   }
 
+  override fun getToolTipText(): String? {
+    return propertyModel.tooltip
+  }
+
   private fun toThreeStateValue(value: String?) =
     when (value) {
       "", null -> ThreeStateCheckBox.State.DONT_CARE

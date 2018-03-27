@@ -27,7 +27,7 @@ import javax.swing.plaf.basic.BasicTextFieldUI
 /**
  * TextFieldUI for a [CommonTextField].
  */
-open class CommonTextFieldUI(private val editor: CommonTextField) : BasicTextFieldUI() {
+open class CommonTextFieldUI(private val editor: CommonTextField<*>) : BasicTextFieldUI() {
 
   init {
     editor.addFocusListener(
@@ -69,9 +69,9 @@ open class CommonTextFieldUI(private val editor: CommonTextField) : BasicTextFie
   override fun paintSafely(g: Graphics) {
     val g2 = g as Graphics2D
 
-    val hasErrors = !editor.model.validate(editor.text).isEmpty()
+    val hasErrors = !editor.editorModel.validate(editor.text).isEmpty()
     val hasFocus = editor.isFocusOwner
-    val hasVisiblePlaceHolder = editor.text.isEmpty() && editor.model.placeHolderValue.isNotEmpty()
+    val hasVisiblePlaceHolder = editor.text.isEmpty() && editor.editorModel.placeHolderValue.isNotEmpty()
     (editor.border as? StandardBorder)?.paintBorder(editor, g, hasErrors, hasFocus, hasVisiblePlaceHolder)
     if (hasVisiblePlaceHolder) {
       printPlaceHolderText(g2)
@@ -90,6 +90,6 @@ open class CommonTextFieldUI(private val editor: CommonTextField) : BasicTextFie
     val baseline = editor.getBaseline(editor.width, editor.height)
     g2.setColorAndAlpha(StandardColors.PLACEHOLDER_TEXT_COLOR)
     g2.font = editor.font
-    g2.drawString(editor.model.placeHolderValue, insets.left, baseline)
+    g2.drawString(editor.editorModel.placeHolderValue, insets.left, baseline)
   }
 }

@@ -19,10 +19,12 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.PropertiesPanel
 import com.android.tools.idea.common.property2.api.PropertiesView
+import com.android.tools.idea.common.property2.impl.ui.registerKeyAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.property2.inspector.*
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
+import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
@@ -41,6 +43,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
   private val enumSupportProvider = NeleEnumSupportProvider()
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
   private val filterKeyListener = createFilterKeyListener()
+  private val showResolvedValueAction = ToggleShowResolvedValueAction(model)
 
   init {
     add(properties.component, BorderLayout.CENTER)
@@ -51,6 +54,8 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet) : JPanel(BorderLayout(
     view.builders.add(TextViewInspectorBuilder(editorProvider))
     view.builders.add(ProgressBarInspectorBuilder(editorProvider))
     view.builders.add(FavoritesInspectorBuilder(editorProvider))
+    registerKeyAction(showResolvedValueAction, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
+                      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
   override fun setToolContext(toolContext: DesignSurface?) {

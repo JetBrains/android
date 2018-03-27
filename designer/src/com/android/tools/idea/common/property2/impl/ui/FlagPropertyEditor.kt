@@ -81,6 +81,7 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondar
   private fun handleValueChanged() {
     button.text = editorModel.buttonText
     isVisible = editorModel.visible
+    toolTipText = editorModel.tooltip
     if (editorModel.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }

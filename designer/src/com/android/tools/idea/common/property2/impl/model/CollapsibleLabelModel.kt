@@ -76,7 +76,7 @@ class CollapsibleLabelModel(
     }
 
   val tooltip: String
-    get() = editorModel?.property?.tooltip ?: ""
+    get() = editorModel?.property?.tooltipForName ?: ""
 
   override var hidden
     get() = super.hidden

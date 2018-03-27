@@ -25,22 +25,23 @@ import javax.swing.KeyStroke
 /**
  * A standard control for editing a text property.
  */
-class PropertyTextField(model: TextFieldPropertyEditorModel) : CommonTextField(model) {
+class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
 
   init {
-    registerKeyAction({ model.enter(text) }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-    registerKeyAction({ model.escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
-    registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
-    registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
-    addFocusListener(EditorFocusListener(model, { text }))
+    registerKeyAction({ editorModel.enter(text) }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
+    registerKeyAction({ editorModel.escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
+    registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
+    registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    addFocusListener(EditorFocusListener(editorModel, { text }))
   }
 
   override fun updateFromModel() {
     super.updateFromModel()
-    val model = model as TextFieldPropertyEditorModel
-    isVisible = model.visible
-    if (model.focusRequest && !isFocusOwner) {
+    isVisible = editorModel.visible
+    if (editorModel.focusRequest && !isFocusOwner) {
       requestFocusInWindow()
     }
   }
+
+  override fun getToolTipText(): String? = editorModel.tooltip
 }

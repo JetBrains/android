@@ -17,9 +17,6 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
 
@@ -36,7 +33,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
   fun testAttributeWithDefaultValue() {
     val components = createComponents(component(TEXT_VIEW))
     val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
-    val manager = property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
     val defaultProvider = NeleDefaultPropertyProvider(manager)
     val value = defaultProvider.provideDefaultValue(property)
@@ -46,7 +43,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
   fun testMultipleComponentsWithDifferentDefaultValues() {
     val components = createComponents(component(TEXT_VIEW), component(BUTTON))
     val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
-    val manager = property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
     manager.putDefaultPropertyValue(components[1], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge", null)
     val defaultProvider = NeleDefaultPropertyProvider(manager)
@@ -57,7 +54,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
   fun testMultipleComponentsWithSomeMissingDefaultValues() {
     val components = createComponents(component(TEXT_VIEW), component(BUTTON))
     val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
-    val manager = property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall", null)
     val defaultProvider = NeleDefaultPropertyProvider(manager)
     val value = defaultProvider.provideDefaultValue(property)
@@ -67,7 +64,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
   fun testMultipleComponentsWithIdenticalDefaultValues() {
     val components = createComponents(component(TEXT_VIEW), component(BUTTON))
     val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
-    val manager = property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge", null)
     manager.putDefaultPropertyValue(components[1], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge", null)
     val defaultProvider = NeleDefaultPropertyProvider(manager)
@@ -78,7 +75,7 @@ class NeleDefaultPropertyProviderTest: PropertyTestCase() {
   fun testMultipleComponentsWithOneMissingSnapshot() {
     val components = createComponents(component(TEXT_VIEW), component(BUTTON))
     val property = createPropertyItem(ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
-    val manager = property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge", null)
     components[1].snapshot = null
     val defaultProvider = NeleDefaultPropertyProvider(manager)
