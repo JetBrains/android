@@ -133,6 +133,9 @@ public class SessionsView extends AspectObserver {
       @Override
       public void actionPerformed(ActionEvent e) {
         mySessionsManager.endCurrentSession();
+        // Unselect the device and process, which avoids them from appearing to be selected in the process selection dropdown even
+        // after the session has stopped.
+        myProfilers.setDevice(null);
         myProfilers.getIdeServices().getFeatureTracker().trackStopSession();
       }
     });
