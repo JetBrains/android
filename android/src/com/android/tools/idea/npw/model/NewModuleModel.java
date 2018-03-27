@@ -183,7 +183,7 @@ public final class NewModuleModel extends WizardModel {
   }
 
   @Override
-  public void handleFinished() {
+  protected void handleFinished() {
     myMultiTemplateRenderer.requestRender(new ModuleTemplateRenderer());
   }
 
@@ -241,7 +241,7 @@ public final class NewModuleModel extends WizardModel {
       Project project = myProject.getValue();
       boolean success = new WriteCommandAction<Boolean>(project, "New Module") {
         @Override
-        protected void run(@NotNull Result<Boolean> result) throws Throwable {
+        protected void run(@NotNull Result<Boolean> result) {
           result.setResult(renderModule(false, myTemplateValues, project, myModuleName.get()));
         }
       }.execute().getResultObject();
