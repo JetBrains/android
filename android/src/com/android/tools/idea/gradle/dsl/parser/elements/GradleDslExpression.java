@@ -34,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
@@ -46,7 +45,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * Represents an expression element.
  */
 public abstract class GradleDslExpression extends GradleDslElement {
-  @NotNull private static final Pattern INDEX_PATTERN = Pattern.compile("\\[(.+?)\\]|(.+?)(?=\\[)");
   @NotNull private static final String SINGLE_QUOTES = "\'";
   @NotNull private static final String DOUBLE_QUOTES = "\"";
 
@@ -256,7 +254,7 @@ public abstract class GradleDslExpression extends GradleDslElement {
                                                                boolean sameScope,
                                                                @Nullable GradleDslElement child) {
     // First check if any indexing has been done.
-    Matcher indexMatcher = INDEX_PATTERN.matcher(name);
+    Matcher indexMatcher = GradleNameElement.INDEX_PATTERN.matcher(name);
 
     // If the index matcher doesn't give us anything, just attempt to find the property on the element;
     if (!indexMatcher.find()) {
@@ -307,6 +305,9 @@ public abstract class GradleDslExpression extends GradleDslElement {
         }
 
         GradleDslExpressionList list = (GradleDslExpressionList)element;
+        if (list.getExpressions().size() <= offset) {
+          return null;
+        }
         element = list.getExpressions().get(offset);
       }
       else if (element instanceof GradleDslExpressionMap) {
