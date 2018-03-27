@@ -159,6 +159,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   private void initializeProcessComboBox(@NotNull ComboBox<Client> processComboBox) {
+    processComboBox.setName("Processes");
     AccessibleContextUtil.setName(processComboBox, "Processes");
 
     processComboBox.addActionListener(event -> {
