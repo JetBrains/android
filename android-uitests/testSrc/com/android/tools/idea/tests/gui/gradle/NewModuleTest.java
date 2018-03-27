@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import org.fest.swing.timing.Wait;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +68,7 @@ public class NewModuleTest {
     assertAbout(file()).that(guiTest.getProjectPath("somelibrary/src/test")).doesNotExist();
   }
 
+  @Ignore("b/74218213, b/76362024")
   @Test
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
