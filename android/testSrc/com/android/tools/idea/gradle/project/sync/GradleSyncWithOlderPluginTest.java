@@ -161,14 +161,13 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib", COMPILE);
   }
 
-  // fails after IDEA 181.2784.17 merge
-  public void ignore_testJavaLibraryDependenciesFromJavaModule() throws Exception {
+  public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module javaLibModule = myModules.getModule("lib");
     // 'app' -> 'lib' -> 'guava'
-    // For older versions of plugin, app might not direclty contain guava as library dependency.
+    // For older versions of plugin, app might not directly contain guava as library dependency.
     // Make sure lib has guava as library dependency, and exported is set to true, so that app has access to guava.
-    assertAbout(libraryDependencies()).that(javaLibModule).containsMatching(true, "guava.*", COMPILE, PROVIDED);
+    assertAbout(libraryDependencies()).that(javaLibModule).containsMatching(true, ".*guava.*", COMPILE, PROVIDED);
   }
 
   public void testLocalJarDependenciesFromAndroidModule() throws Exception {
