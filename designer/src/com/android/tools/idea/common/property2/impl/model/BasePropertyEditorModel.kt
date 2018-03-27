@@ -65,6 +65,9 @@ abstract class BasePropertyEditorModel(override val property: PropertyItem) : Pr
     }
   }
 
+  val tooltip: String
+    get() = property.tooltipForValue
+
   override var lineModel: InspectorLineModel? = null
 
   open fun enterKeyPressed() {

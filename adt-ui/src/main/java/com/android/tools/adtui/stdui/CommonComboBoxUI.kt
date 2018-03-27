@@ -16,6 +16,7 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
+import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_HEIGHT
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_ARROW_WIDTH
 import com.android.tools.adtui.stdui.StandardDimensions.DROPDOWN_BUTTON_WIDTH
@@ -158,7 +159,7 @@ open class CommonComboBoxUI : BasicComboBoxUI() {
     val model = comboBox.model as? CommonComboBoxModel ?: return super.createEditor()
     return object : BasicComboBoxEditor.UIResource() {
       override fun createEditorComponent(): JTextField {
-        val editor = object : CommonTextField(model) {
+        val editor = object : CommonTextField<CommonTextFieldModel>(model) {
           override fun processKeyEvent(event: KeyEvent) {
             if (comboBox.isPopupVisible || willOpenPopup(event)) {
               comboBox.processKeyEvent(event)

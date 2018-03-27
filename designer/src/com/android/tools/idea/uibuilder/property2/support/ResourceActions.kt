@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.openapi.actionSystem.*
 import java.awt.event.KeyEvent
@@ -29,18 +30,19 @@ import javax.swing.KeyStroke
  *
  * Note: this may change pending UX specifications.
  */
-class ShowResolvedValueAction(val property: NelePropertyItem) : ToggleAction("Show Computed Value") {
+class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("Toggle Computed Value") {
 
   init {
-    shortcutSet = CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, KeyEvent.META_MASK))
+    shortcutSet = CustomShortcutSet(SHORTCUT)
   }
 
-  override fun isSelected(event: AnActionEvent): Boolean {
-    return property.model.showResolvedValues
+  override fun actionPerformed(e: AnActionEvent?) {
+    model.showResolvedValues = !model.showResolvedValues
   }
 
-  override fun setSelected(event: AnActionEvent, state: Boolean) {
-    property.model.showResolvedValues = state
+  companion object {
+    @JvmField
+    val SHORTCUT = KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, KeyEvent.META_MASK), null)
   }
 }
 

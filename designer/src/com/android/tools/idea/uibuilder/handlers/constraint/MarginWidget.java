@@ -29,7 +29,7 @@ import java.util.Arrays;
 /**
  * Widget to support margin editing on the ui
  */
-public class MarginWidget extends CommonComboBox<String> {
+public class MarginWidget extends CommonComboBox<String, DefaultCommonComboBoxModel<String>> {
   private static final String[] str = new String[]{"0", "8", "16", "24", "32"};
 
   public enum Show {
@@ -40,7 +40,7 @@ public class MarginWidget extends CommonComboBox<String> {
 
   public MarginWidget(@NotNull String name) {
     super(new DefaultCommonComboBoxModel<>(str[0], Arrays.asList(str)));
-    ((DefaultCommonComboBoxModel<String>)getModel()).setEditable(true);
+    getModel().setEditable(true);
     setBackground(StudioColorsKt.getSecondaryPanelBackground());
     JTextField textField = (JTextField)getEditor().getEditorComponent();
     textField.setFont(textField.getFont().deriveFont(12f));

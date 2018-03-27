@@ -26,7 +26,7 @@ import javax.swing.text.PlainDocument
  *
  * TODO: Add Text Completion.
  */
-open class CommonTextField(val model: CommonTextFieldModel) : JTextField() {
+open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JTextField() {
 
   init {
     isFocusable = true
@@ -34,7 +34,7 @@ open class CommonTextField(val model: CommonTextFieldModel) : JTextField() {
     isOpaque = false
     setFromModel()
 
-    model.addListener(ValueChangedListener { updateFromModel() })
+    editorModel.addListener(ValueChangedListener { updateFromModel() })
 
     @Suppress("LeakingThis")
     UIUtil.addUndoRedoActions(this)
@@ -45,9 +45,9 @@ open class CommonTextField(val model: CommonTextFieldModel) : JTextField() {
   }
 
   private fun setFromModel() {
-    text = model.value
-    isEnabled = model.enabled
-    isEditable = model.editable
+    text = editorModel.value
+    isEnabled = editorModel.enabled
+    isEditable = editorModel.editable
   }
 
   override fun updateUI() {

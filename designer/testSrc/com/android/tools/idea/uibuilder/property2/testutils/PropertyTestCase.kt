@@ -19,7 +19,7 @@ import com.android.SdkConstants.*
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
@@ -68,13 +68,21 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
   /**
    * Create a [NelePropertyItem] for testing purposes.
    */
-  fun createPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NelePropertyItem {
-    val model = NelePropertiesModel(testRootDisposable, myFacet)
+  fun createPropertyItem(
+    attrName: String,
+    type: NelePropertyType,
+    components: List<NlComponent>,
+    model: NelePropertiesModel = NelePropertiesModel(testRootDisposable, myFacet)
+  ): NelePropertyItem {
     val nlModel = components[0].model as SyncNlModel
     model.surface = nlModel.surface
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
     val systemResourceManager = resourceManagers.systemResourceManager
     val definition = systemResourceManager?.attributeDefinitions?.getAttrDefByName(attrName)
     return NelePropertyItem(ANDROID_URI, attrName, type, definition, "", model, components)
+  }
+
+  fun getSceneManager(property: NelePropertyItem): SyncLayoutlibSceneManager {
+    return property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
   }
 }

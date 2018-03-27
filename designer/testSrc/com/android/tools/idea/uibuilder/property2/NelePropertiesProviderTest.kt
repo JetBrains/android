@@ -116,8 +116,8 @@ class NelePropertiesProviderTest : PropertyTestCase() {
     val properties = provider.getProperties(createComponents(component(CUSTOM_TAG)))
     val id = properties[ANDROID_URI, ATTR_ID]
     val legend = properties[CUSTOM_NAMESPACE, ATTR_LEGEND]
-    assertThat(id.tooltip.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
-    assertThat(legend.tooltip).isEqualTo("legend")
+    assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
+    assertThat(legend.tooltipForName).isEqualTo("legend")
   }
 
   private fun setUpAppCompat() {
