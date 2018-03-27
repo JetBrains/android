@@ -16,14 +16,17 @@
 package org.jetbrains.android.refactoring
 
 import com.android.annotations.VisibleForTesting
+import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
 import com.android.support.parseMigrationFile
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -43,7 +46,26 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
 
   override fun update(anActionEvent: AnActionEvent) {
     val project = anActionEvent.getData(CommonDataKeys.PROJECT)
-    anActionEvent.presentation.isEnabledAndVisible = project != null && StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get()
+
+    if (project != null && StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get()) {
+      @Suppress("UselessCallOnCollection")
+      val highestVersion = ModuleManager.getInstance(project).modules
+        .mapNotNull { GradleBuildModel.get(it)?.android() }
+        .mapNotNull { it.compileSdkVersion().toString() }
+        .map { it.removePrefix("android-") }
+        .map { AndroidVersion(it) }
+        .sorted()
+        .lastOrNull()
+
+      anActionEvent.presentation.isEnabled = if (highestVersion != null) {
+        AndroidVersion(28) <= highestVersion || highestVersion.codename != null
+      } else {
+        false
+      }
+    }
+    else {
+      anActionEvent.presentation.isEnabledAndVisible = false
+    }
   }
 
   override fun isAvailableForLanguage(language: Language) = true

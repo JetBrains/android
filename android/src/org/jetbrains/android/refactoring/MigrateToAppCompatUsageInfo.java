@@ -16,6 +16,10 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.repository.io.FileOpUtils;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
@@ -27,6 +31,7 @@ import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeMigrat
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.AttributeValueMigrationEntry;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ReplaceMethodCallMigrationEntry;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -411,6 +416,25 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       mapEntry = entry;
     }
 
+    @NotNull
+    private static String getLibraryRevision(@NotNull GradleDependencyMigrationEntry entry) {
+      AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+      if (sdk != null) {
+        String revision =
+          RepositoryUrlManager.get().getLibraryRevision(entry.myNewGroupName,
+                                                        entry.myNewArtifactName,
+                                                        null,
+                                                        true,
+                                                        sdk.getLocation(),
+                                                        FileOpUtils.create());
+        if (revision != null) {
+          return revision;
+        }
+      }
+
+      return entry.myNewBaseVersion;
+    }
+
     @Nullable
     @Override
     public PsiElement applyChange(@NotNull PsiMigration migration) {
@@ -451,12 +475,12 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         renameElement(group, mapEntry.myOldGroupName, mapEntry.myNewGroupName);
         renameElement(name, mapEntry.myOldArtifactName, mapEntry.myNewArtifactName);
         if (version.getReference() != null) {
-          version.getReference().handleElementRename(mapEntry.myNewBaseVersion);
+          version.getReference().handleElementRename(getLibraryRevision(mapEntry));
         }
       }
       else if (element.getReference() != null) { // this was declared as a string literal for example
         // implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-        element.getReference().handleElementRename(mapEntry.toCompactNotation());
+        element.getReference().handleElementRename(mapEntry.toCompactNotation(getLibraryRevision(mapEntry)));
       }
       return null;
     }
