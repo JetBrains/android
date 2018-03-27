@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -45,7 +44,7 @@ public class IdeaSyncPopulateProjectTask {
 
   public IdeaSyncPopulateProjectTask(@NotNull Project project) {
     this(project, PostSyncProjectSetup.getInstance(project), GradleSyncState.getInstance(project),
-         ServiceManager.getService(ProjectDataManager.class));
+         ProjectDataManager.getInstance());
   }
 
   @VisibleForTesting

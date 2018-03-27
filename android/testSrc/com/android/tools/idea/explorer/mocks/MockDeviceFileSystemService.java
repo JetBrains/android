@@ -56,6 +56,9 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService {
 
   @Override
   public void dispose() {
+    for (MockDeviceFileSystem device : myDevices) {
+      removeDevice(device);
+    }
   }
 
   @Override

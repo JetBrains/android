@@ -182,6 +182,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
                                             Collections.<PsiElement>emptyList());
   }
 
+  @NotNull
   @Override
   protected String getCommandName() {
     return AndroidBundle.message("android.inline.layout.command.name", myLayoutFile.getName());

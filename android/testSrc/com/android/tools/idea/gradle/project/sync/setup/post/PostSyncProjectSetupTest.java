@@ -106,6 +106,13 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
                                        myProvisionTasks);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    myRunManager = null;
+    mySetup = null;
+    super.tearDown();
+  }
+
   public void testJUnitRunConfigurationSetup() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 

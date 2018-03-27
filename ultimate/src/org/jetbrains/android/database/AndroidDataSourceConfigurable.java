@@ -95,7 +95,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     myPanel.add(myNameComponent.getComponent(), BorderLayout.NORTH);
     myConfigurationPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
 
-    myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer() {
+    myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices", false) {
       @Override
       protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof String) {

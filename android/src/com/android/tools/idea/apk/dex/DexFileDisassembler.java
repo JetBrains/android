@@ -29,7 +29,7 @@ import java.util.concurrent.Future;
 
 import static com.android.tools.apk.analyzer.dex.DexFiles.getDexFile;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
-import static com.intellij.concurrency.JobSchedulerImpl.CORES_COUNT;
+import static com.intellij.concurrency.JobSchedulerImpl.getCPUCoresCount;
 import static org.jf.baksmali.Baksmali.disassembleDexFile;
 
 public class DexFileDisassembler {
@@ -41,6 +41,6 @@ public class DexFileDisassembler {
   }
 
   private static boolean disassemble(@NotNull DexFile dexFile, @NotNull File outputFolderPath) {
-    return disassembleDexFile(dexFile, outputFolderPath, CORES_COUNT, new BaksmaliOptions());
+    return disassembleDexFile(dexFile, outputFolderPath, getCPUCoresCount(), new BaksmaliOptions());
   }
 }

@@ -48,7 +48,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.PlatformUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
@@ -932,13 +931,6 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testMergeObsoleteFolders() throws Exception {
-    if (!PlatformUtils.isAndroidStudio()) {
-      // Only perform this check in Studio, not IntelliJ, until
-      //    https://youtrack.jetbrains.com/issue/IDEA-169345
-      // is fixed upstream.
-      return;
-    }
-
     // Force minSdkVersion to v14:
     deleteManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");

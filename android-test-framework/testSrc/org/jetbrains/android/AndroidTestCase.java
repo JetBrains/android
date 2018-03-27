@@ -157,6 +157,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+    IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
@@ -177,8 +178,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       myModule = null;
       myAdditionalModules = null;
-      myFixture.tearDown();
-      myFixture = null;
       myFacet = null;
       mySettings = null;
 
@@ -188,6 +187,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       }
     }
     finally {
+      myFixture.tearDown();
       super.tearDown();
     }
   }
@@ -295,13 +295,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
-    Sdk sdk;
-    if (attachSdk) {
-      sdk = addLatestAndroidSdk(module);
-    }
-    else {
-      sdk = null;
-    }
+    Sdk sdk = attachSdk ? addLatestAndroidSdk(module) : null;
     AndroidFacetType type = AndroidFacet.getFacetType();
     String facetName = "Android";
     AndroidFacet facet = addFacet(module, type, facetName);

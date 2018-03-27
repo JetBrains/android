@@ -563,6 +563,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     }
   }
 
+  @NotNull
   @Override
   protected String getCommandName() {
     return REFACTORING_NAME;
