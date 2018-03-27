@@ -38,7 +38,7 @@ public class NewGradleSyncWithOlderPluginTest extends GradleSyncWithOlderPluginT
   }
 
   @Override
-  public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
+  public void ignore_testJavaLibraryDependenciesFromJavaModule() throws Exception {
     notifySkippedTest();
   }
 
