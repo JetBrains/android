@@ -1126,6 +1126,7 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidTypedIntegerRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.ArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidxSupportArrayMapRenderer" />-
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
 
     <xdebugger.configurableProvider implementation="com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider" />
