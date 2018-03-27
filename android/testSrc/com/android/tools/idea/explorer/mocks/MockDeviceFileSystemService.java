@@ -20,6 +20,7 @@ import com.android.tools.idea.util.FutureUtils;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -37,7 +39,7 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService {
   @NotNull private final Project myProject;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final List<DeviceFileSystemServiceListener> myListeners = new ArrayList<>();
-  @NotNull private List<MockDeviceFileSystem> myDevices = new ArrayList<>();
+  @NotNull private final List<MockDeviceFileSystem> myDevices = new ArrayList<>();
 
   public MockDeviceFileSystemService(@NotNull Project project, @NotNull Executor edtExecutor) {
     myProject = project;
@@ -56,8 +58,10 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService {
 
   @Override
   public void dispose() {
-    for (MockDeviceFileSystem device : myDevices) {
-      removeDevice(device);
+    for (Iterator<MockDeviceFileSystem> i = myDevices.iterator(); i.hasNext();) {
+      MockDeviceFileSystem device = i.next();
+      i.remove();
+      myListeners.forEach(listener -> listener.deviceRemoved(device));
     }
   }
 
