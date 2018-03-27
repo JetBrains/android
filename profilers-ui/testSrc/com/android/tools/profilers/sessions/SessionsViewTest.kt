@@ -302,6 +302,8 @@ class SessionsViewTest {
 
     stopProfilingButton.doClick()
     assertThat(stopProfilingButton.isEnabled).isFalse()
+    assertThat(myProfilers.device).isNull()
+    assertThat(myProfilers.process).isNull()
     assertThat(mySessionsManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
   }
 
