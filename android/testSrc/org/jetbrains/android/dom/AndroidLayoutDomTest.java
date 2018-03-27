@@ -297,9 +297,8 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
    * Regression test for https://issuetracker.google.com/37104001.
    * Code completion in views inside a <layout> tag need to pick up default layout parameters.
    */
-  // fails after IDEA 181.2784.17 merge
-  public void ignore_testDataBindingCompletion4() throws Throwable {
-    toTestFirstCompletion("databinding_completion4.xml", "databinding_completion4_after.xml");
+  public void testDataBindingCompletion4() throws Throwable {
+    toTestCompletion("databinding_completion4.xml", "databinding_completion4_after.xml");
   }
 
   public void testCustomTagCompletion() throws Throwable {
