@@ -117,8 +117,7 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
       .run(myFixture);
   }
 
-  // fails after IDEA 181.2784.17 merge
-  public void ignore_testMenuItem2MenuItemCompatMigration() throws Exception {
+  public void testMenuItem2MenuItemCompatMigration() throws Exception {
     new MigrationBuilder()
       .withFileInProject("MenuItemUtil.java", "src/p1/p2/MenuItemUtil.java")
       .withAllMapEntries()

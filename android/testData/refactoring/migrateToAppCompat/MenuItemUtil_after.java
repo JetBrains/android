@@ -20,7 +20,7 @@ public class MenuItemUtil {
     MenuItemCompat.setActionProvider(menu.findItem(id), shareActionProvider);
     MenuItemCompat.setShowAsAction(item, MenuItem.SHOW_AS_ACTION_ALWAYS);
     boolean b = MenuItemCompat.isActionViewExpanded(item);
-    MenuItemCompat.setOnActionExpandListener(menu.findItem(id), new MenuItemCompat.OnActionExpandListener() {
+    MenuItemCompat.setOnActionExpandListener(menu.findItem(id), new OnActionExpandListener() {
       @Override
       public void onMenuItemActionCollapse(MenuItem item) {
 
