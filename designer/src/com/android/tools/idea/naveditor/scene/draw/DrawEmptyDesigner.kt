@@ -22,6 +22,7 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.pointToString
 import com.android.tools.idea.common.scene.draw.stringToPoint
 import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons.NavEditor.Toolbar.ADD_EXISTING
 import java.awt.Font
 import java.awt.Graphics2D
@@ -29,10 +30,8 @@ import java.awt.Point
 
 private val text1 = "Click "
 private val text2 = " to add an existing destination"
-@SwingCoordinate
-private val FONT_SIZE = 13
-@SwingCoordinate
-private val VERTICAL_OFFSET = 3
+@SwingCoordinate private val FONT_SIZE = JBUI.scale(13)
+@SwingCoordinate private val VERTICAL_OFFSET = JBUI.scale(3)
 
 class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand {
   private constructor(sp: Array<String>) : this(stringToPoint(sp[0]))
