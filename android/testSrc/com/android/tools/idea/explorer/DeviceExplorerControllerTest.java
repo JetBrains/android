@@ -104,6 +104,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private TestInputDialog myInitialTestInputDialog;
   private FutureCallbackExecutor myEdtExecutor;
   private FutureCallbackExecutor myTaskExecutor;
+  private boolean myTearingDown;
 
   @Override
   protected void setUp() throws Exception {
@@ -120,10 +121,12 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       public void setActiveDeviceTreeModel(@Nullable DeviceFileSystem device,
                                            @Nullable DefaultTreeModel treeModel,
                                            @Nullable DefaultTreeSelectionModel treeSelectionModel) {
-        // We notify the mock view before everything else to avoid having a dependency
-        // on the order of registration of listeners registered with {@code DeviceExplorerModel.addListener()}
-        assert myMockView != null;
-        myMockView.deviceTreeModelUpdated(device, treeModel, treeSelectionModel);
+        if (!myTearingDown) {
+          // We notify the mock view before everything else to avoid having a dependency
+          // on the order of registration of listeners registered with {@code DeviceExplorerModel.addListener()}
+          assert myMockView != null;
+          myMockView.deviceTreeModelUpdated(device, treeModel, treeSelectionModel);
+        }
         super.setActiveDeviceTreeModel(device, treeModel, treeSelectionModel);
       }
     };
@@ -154,6 +157,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      myTearingDown = true;
+
       RepaintManager.setCurrentManager(null);
       myMockRepaintManager = null;
 
@@ -169,14 +174,11 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         Disposer.dispose(myMockFileManager);
         myMockFileManager = null;
       }
-      myMockView = null;
 
       myFooLink1 = null;
       myFooFile1 = null;
       myFooFile2 = null;
       myFooDir = null;
-      myDevice1 = null;
-      myDevice2 = null;
       myFoo = null;
       myFile1 = null;
       myFile2 = null;
@@ -186,7 +188,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         myMockService = null;
       }
 
-      myModel = null;
       myTaskExecutor = null;
       myEdtExecutor = null;
       ClipboardSynchronizer.getInstance().resetContent();
