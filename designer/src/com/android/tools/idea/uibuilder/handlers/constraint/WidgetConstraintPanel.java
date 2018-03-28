@@ -31,10 +31,12 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
@@ -88,15 +90,15 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       mDrawWidgetInfos = true;
       mInspectorBackgroundColor = StudioColorsKt.getSecondaryPanelBackground();
       mInspectorFillColor = StudioColorsKt.getSecondaryPanelBackground();
-      mInspectorHighlightsStrokeColor = new JBColor(0xB0B0B0,0x6F7171);
-      mInspectorStrokeColor = new JBColor(0x8A8A8A, 0x808080);
+      mInspectorHighlightsStrokeColor = JBColor.border();
+      mInspectorStrokeColor = JBColor.foreground();
       mInspectorConstraintColor = new JBColor(0x4481d8, 0x4880c8);
     }
   }
 
   public WidgetConstraintPanel(@NotNull List<NlComponent> components) {
     super(new GridBagLayout());
-    setBorder(JBUI.Borders.empty(WidgetSliderUI.thumbSize, 0, 0, WidgetSliderUI.thumbSize));
+    setBorder(JBUI.Borders.empty(0, 0, 4, WidgetSliderUI.thumbSize));
     ColorSet colorSet = new InspectorColorSet();
     mMain = new SingleWidgetView(this, colorSet);
     setPreferredSize(new Dimension(JBUI.scale(200), JBUI.scale(216)));
@@ -680,7 +682,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   /*-----------------------------------------------------------------------*/
 
   static class WidgetSliderUI extends BasicSliderUI {
-    static final int thumbSize = 18;
+    static final int thumbSize = 22;
     private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 10);
     ColorSet mColorSet;
 
@@ -739,14 +741,14 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
       }
       g.setColor(mColorSet.getInspectorFillColor().brighter());
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.fillRoundRect(thumbRect.x, thumbRect.y, thumbRect.width, thumbRect.height, thumbRect.width,
-                      thumbRect.height);
+      g.fillRoundRect(thumbRect.x + 1, thumbRect.y + 1, thumbRect.width - 2, thumbRect.height - 2, thumbRect.width - 2,
+                      thumbRect.height - 2);
       g.setColor(StudioColorsKt.getBorder());
-      g.drawRoundRect(thumbRect.x, thumbRect.y, thumbRect.width, thumbRect.height, thumbRect.width,
-                      thumbRect.height);
+      g.drawRoundRect(thumbRect.x + 1, thumbRect.y + 1, thumbRect.width - 2, thumbRect.height - 2, thumbRect.width - 2,
+                      thumbRect.height - 2);
       g.setColor(mColorSet.getInspectorStrokeColor());
       int x = thumbRect.x + thumbRect.width / 2;
-      int y = thumbRect.y + thumbRect.height / 2;
+      int y = thumbRect.y + thumbRect.height / 2 - 1;
       g.setFont(sSmallFont);
       FontMetrics fm = g.getFontMetrics();
       Rectangle2D bounds = fm.getStringBounds(percentText, g);
