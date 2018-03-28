@@ -37,7 +37,7 @@ public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
   @Override
   public void addNewDependencies() {
     List<PsModule> modules = myModuleDependenciesForm.getSelectedModules();
-    DependencyScopesPanel scopesPanel = getScopesPanel();
+    DependencyScopesSelector scopesPanel = getScopesPanel();
     List<String> scopesNames = scopesPanel.getSelectedScopeNames();
 
     modules.forEach(module -> getModule().addModuleDependency(Objects.requireNonNull(module.getGradlePath()), scopesNames));

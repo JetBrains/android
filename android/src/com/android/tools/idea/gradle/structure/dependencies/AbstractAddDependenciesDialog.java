@@ -112,7 +112,7 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
     return myModule;
   }
 
-  protected DependencyScopesPanel getScopesPanel() {
+  protected DependencyScopesSelector getScopesPanel() {
     return myScopesPanel;
   }
 

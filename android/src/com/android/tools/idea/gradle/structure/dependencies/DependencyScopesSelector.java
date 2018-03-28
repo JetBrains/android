@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public interface DependencyScopesPanel {
+public interface DependencyScopesSelector {
   @NotNull
   List<String> getSelectedScopeNames();
 
