@@ -107,7 +107,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   }
 
   // https://code.google.com/p/android/issues/detail?id=233038
-  public void /*test*/LoadPlainJavaProject() throws Exception {
+  public void testLoadPlainJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
     Project project = getProject();
     importProject(project.getName(), getBaseDirPath(project), null);
