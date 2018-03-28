@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.editors.layoutInspector.actions
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeActiveDisplay
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.LayoutInspectorEvent
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -69,6 +72,12 @@ class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
       myPreview.setOverLay(null, null)
     }
     else {
+      UsageTracker.getInstance()
+        .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+               .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                          .setType(LayoutInspectorEvent.LayoutInspectorEventType.OVERLAY_IMAGE)
+               ))
+
       loadOverlay(e)
     }
   }

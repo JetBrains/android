@@ -239,6 +239,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   public void onNodeDoubleClicked(@NotNull ViewNode node) {
     if (isDeviceConnected() && StudioFlags.LAYOUT_INSPECTOR_SUB_VIEW_ENABLED.get()) {
       showSubView(node);
+
+
     }
   }
 
@@ -450,6 +452,12 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   @VisibleForTesting
   public void showSubView(@NotNull ViewNode node) {
+    UsageTracker.getInstance()
+      .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.RENDER_SUB_VIEW)
+             ));
+
     ViewNode root = getRoot();
     updatePreview(node);
     mySubviewList.add(root);
