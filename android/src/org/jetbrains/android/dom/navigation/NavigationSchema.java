@@ -60,7 +60,6 @@ public class NavigationSchema implements Disposable {
   public static final String ACTION_LABEL = "Action";
 
   private static final String NAVIGATOR_CLASS_NAME = "androidx.navigation.Navigator";
-  private static final String ACTION_CLASS_NAME = "androidx.navigation.NavAction";
 
   // TODO: it would be nice if this mapping were somehow supplied by the platform
   private static final Map<String, DestinationType> NAV_CLASS_TO_TYPE = ImmutableMap.of(
@@ -103,7 +102,6 @@ public class NavigationSchema implements Disposable {
   private Map<PsiClass, String> myNavigatorClassToTag;
 
   private final AndroidFacet myFacet;
-  private PsiClass myActionClass;
   public static final String ATTR_DEFAULT_VALUE = "defaultValue";
   public static final String NAV_HOST_FRAGMENT = "androidx.navigation.NavHostFragment";
 
@@ -211,32 +209,35 @@ public class NavigationSchema implements Disposable {
 
     myNavigatorClassToTag = classToTag;
     myTagToDestinationType = tagToType;
-
-    myActionClass = javaPsiFacade.findClass(ACTION_CLASS_NAME, GlobalSearchScope.allScope(project));
   }
 
-
-  // TODO: it seems like the framework should do this somehow
+  /**
+   * For the given {@code tagName}, gets a map from {@link AndroidDomElement} class to all subtags names of that type.
+   *
+   * Implementation note: We define the hierarchy this way instead of via the normal mechanism
+   * (https://www.jetbrains.org/intellij/sdk/docs/reference_guide/frameworks_and_external_apis/xml_dom_api.html)
+   * since we need to support custom tags that aren't known at compile time.
+   * TODO: investigate whether this can be done using the normal mechanism and a DomExtender (specifically for the root tag).
+   */
   @NotNull
   public Multimap<Class<? extends AndroidDomElement>, String> getDestinationSubtags(@NotNull String tagName) {
     if (tagName.equals(TAG_ACTION)) {
-      return ImmutableSetMultimap.of(ArgumentElement.class, TAG_ARGUMENT);
+      return ImmutableSetMultimap.of(NavArgumentElement.class, TAG_ARGUMENT);
     }
     DestinationType type = getDestinationType(tagName);
-    if (type == null) {
+    if (type == null || tagName.equals(TAG_INCLUDE)) {
       return ImmutableListMultimap.of();
     }
     Multimap<Class<? extends AndroidDomElement>, String> result = HashMultimap.create();
-    if (!tagName.equals(TAG_INCLUDE)) {
-      if (type == NAVIGATION) {
-        myTagToDestinationType.keySet().forEach(subTag -> result.put(NavDestinationElement.class, subTag));
-      }
-      if (type != ACTIVITY) {
-        result.put(NavActionElement.class, TAG_ACTION);
-      }
-      result.put(DeeplinkElement.class, TAG_DEEP_LINK);
-      result.put(ArgumentElement.class, TAG_ARGUMENT);
+    if (type == NAVIGATION) {
+      myTagToDestinationType
+        .forEach((key, value) -> result.put(value == NAVIGATION ? NavGraphElement.class : ConcreteDestinationElement.class, key));
     }
+    if (type != ACTIVITY) {
+      result.put(NavActionElement.class, TAG_ACTION);
+    }
+    result.put(DeeplinkElement.class, TAG_DEEP_LINK);
+    result.put(NavArgumentElement.class, TAG_ARGUMENT);
     return result;
   }
 
@@ -322,10 +323,6 @@ public class NavigationSchema implements Disposable {
 
   public Map<PsiClass, String> getNavigatorClassTagMap() {
     return Collections.unmodifiableMap(myNavigatorClassToTag);
-  }
-
-  public PsiClass getActionClass() {
-    return myActionClass;
   }
 
   @NotNull

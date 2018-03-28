@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.navigation;
 
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidDomElement;
+import org.jetbrains.android.dom.Styleable;
 
 import java.util.List;
 
@@ -24,6 +25,6 @@ import java.util.List;
  * An element representing an action tag in a navigation graph.
  */
 @DefinesXml
-public interface NavActionElement extends AndroidDomElement {
-  List<ArgumentElement> getArguments();
+@Styleable(value = "NavAction", packageName = "androidx.navigation.common")
+public interface NavActionElement extends NavElement {
 }

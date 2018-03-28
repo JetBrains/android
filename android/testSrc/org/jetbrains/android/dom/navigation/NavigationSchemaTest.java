@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 
@@ -42,17 +41,9 @@ public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] LEAF_DESTINATIONS = new String[] {
     "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2"
   };
-  private static final String[] DEEP_LINK_ONLY = new String[] {"activity", "activity_sub"};
+  private static final String[] ACTIVITIES = new String[] {"activity", "activity_sub"};
   private static final String[] EMPTIES = new String[] {"include" };
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
-  private static final String[] ALL =
-    Stream.concat(
-      Stream.concat(
-        Stream.concat(
-          Arrays.stream(LEAF_DESTINATIONS),
-          Arrays.stream(GROUPS)),
-        Arrays.stream(EMPTIES)),
-      Arrays.stream(DEEP_LINK_ONLY)).toArray(String[]::new);
 
   private static final String[] PREBUILT_AAR_PATHS = {
     "../../prebuilts/tools/common/m2/repository/androidx/navigation/runtime/0.7.0-alpha1/runtime-0.7.0-alpha1.aar",
@@ -81,15 +72,22 @@ public class NavigationSchemaTest extends AndroidTestCase {
     Multimap<Class<? extends AndroidDomElement>, String> subtags;
 
     Multimap<Class<? extends AndroidDomElement>, String> expected = HashMultimap.create();
-    expected.put(NavActionElement.class, NavigationSchema.TAG_ACTION);
     expected.put(DeeplinkElement.class, TAG_DEEP_LINK);
-    expected.put(ArgumentElement.class, NavigationSchema.TAG_ARGUMENT);
+    expected.put(NavArgumentElement.class, NavigationSchema.TAG_ARGUMENT);
+    for (String activity : ACTIVITIES) {
+      subtags = schema.getDestinationSubtags(activity);
+      assertEquals(activity, expected, subtags);
+    }
+    expected.put(NavActionElement.class, NavigationSchema.TAG_ACTION);
     for (String leaf : LEAF_DESTINATIONS) {
       subtags = schema.getDestinationSubtags(leaf);
       assertEquals(leaf, expected, subtags);
     }
 
-    expected.putAll(NavDestinationElement.class, Arrays.asList(ALL));
+    expected.putAll(NavGraphElement.class, Arrays.asList(GROUPS));
+    expected.put(NavGraphElement.class, "include");
+    expected.putAll(ConcreteDestinationElement.class, Arrays.asList(LEAF_DESTINATIONS));
+    expected.putAll(ConcreteDestinationElement.class, Arrays.asList(ACTIVITIES));
     for (String group : GROUPS) {
       subtags = schema.getDestinationSubtags(group);
       assertEquals(group, expected, subtags);
@@ -103,7 +101,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     expected.clear();
     assertEquals(expected, schema.getDestinationSubtags(NavigationSchema.TAG_ARGUMENT));
     assertEquals(expected, schema.getDestinationSubtags(TAG_DEEP_LINK));
-    expected.put(ArgumentElement.class, NavigationSchema.TAG_ARGUMENT);
+    expected.put(NavArgumentElement.class, NavigationSchema.TAG_ARGUMENT);
     assertEquals(expected, schema.getDestinationSubtags(NavigationSchema.TAG_ACTION));
   }
 

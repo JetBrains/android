@@ -48,7 +48,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.menu.MenuItem;
-import org.jetbrains.android.dom.navigation.NavActionElement;
 import org.jetbrains.android.dom.navigation.NavDestinationElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.raw.XmlRawResourceElement;
@@ -579,27 +578,29 @@ public class AttributeProcessingUtil {
     else if (element instanceof NavDestinationElement) {
       processNavAttributes(facet, tag, (NavDestinationElement)element, skippedAttributes, callback);
     }
-    else if (element instanceof NavActionElement) {
-      registerAttributesForClassAndSuperclasses(facet, element, NavigationSchema.get(facet).getActionClass(), callback,
-                                                skippedAttributes);
-    }
 
     // If DOM element is annotated with @Styleable annotation, load a styleable definition
-    // from Android framework with the name provided in annotation and register all attributes
+    // from Android framework or a library with the name provided in annotation and register all attributes
     // from it for code highlighting and completion.
     final Styleable styleableAnnotation = element.getAnnotation(Styleable.class);
     if (styleableAnnotation == null) {
       return;
     }
+    boolean isSystem = styleableAnnotation.packageName().equals(ANDROID_PKG);
+    AttributeDefinitions definitions;
+    if (isSystem) {
+      final SystemResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      if (manager == null) {
+        return;
+      }
 
-    final SystemResourceManager manager = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
-    if (manager == null) {
-      return;
+      definitions = manager.getAttributeDefinitions();
+      if (definitions == null) {
+        return;
+      }
     }
-
-    final AttributeDefinitions definitions = manager.getAttributeDefinitions();
-    if (definitions == null) {
-      return;
+    else {
+      definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
     }
 
     if (element instanceof MenuItem) {
@@ -608,14 +609,14 @@ public class AttributeProcessingUtil {
     }
 
     for (String styleableName : styleableAnnotation.value()) {
-      final StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
-      if (styleable == null) {
+      StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
+      if (styleable != null) {
+        registerStyleableAttributes(element, styleable, isSystem ? ANDROID_URI : null, callback, skippedAttributes);
+      }
+      else if (isSystem) {
         // DOM element is annotated with @Styleable annotation, but styleable definition with
         // provided name is not there in Android framework. This is a bug, so logging it as a warning.
         getLog().warn(String.format("@Styleable(%s) annotation doesn't point to existing styleable", styleableName));
-      }
-      else {
-        registerStyleableAttributes(element, styleable, ANDROID_URI, callback, skippedAttributes);
       }
     }
 
