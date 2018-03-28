@@ -49,8 +49,7 @@ class CallGraphTest : AndroidTestCase() {
 
   fun testJavaCallGraph() = doTest(".java")
 
-  // fails after IDEA 181.2784.17 merge
-  fun ignore_testKotlinCallGraph() = doTest(".kt")
+  fun testKotlinCallGraph() = doTest(".kt")
 
   private fun doTest(ext: String) {
     myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"

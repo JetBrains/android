@@ -81,8 +81,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     }
   }
 
-  // fails after IDEA 181.2784.17 merge
-  fun ignore_testAppModule() {
+  fun testAppModule() {
     checkTestClass(
         "com.example.app.AppJavaUnitTest",
         expectedTests = setOf(
@@ -138,8 +137,7 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
     )
   }
 
-  // fails after IDEA 181.2784.17 merge
-  fun ignore_testLibModule() {
+  fun testLibModule() {
     checkTestClass(
         "com.example.lib.LibJavaUnitTest",
         expectedTests = setOf(

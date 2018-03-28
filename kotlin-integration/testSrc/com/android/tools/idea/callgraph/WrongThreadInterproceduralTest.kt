@@ -25,8 +25,7 @@ class WrongThreadInterproceduralTest : AndroidTestCase() {
 
   fun testJavaThreadAnnotations() = doTest(".java")
 
-  // fails after IDEA 181.2784.17 merge
-  fun ignore_testKotlinThreadAnnotations() = doTest(".kt")
+  fun testKotlinThreadAnnotations() = doTest(".kt")
 
   private fun doTest(ext: String) {
     myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
