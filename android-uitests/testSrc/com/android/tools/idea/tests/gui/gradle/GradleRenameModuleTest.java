@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDepend
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameModuleDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -48,9 +47,7 @@ public class GradleRenameModuleTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath("SimpleApplication", "app")
-      .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
-      .selectRenameModule()
-      .clickOk()
+      .openFromMenu(RenameModuleDialogFixture::find, "Refactor", "Rename...")
       .enterText("app2")
       .clickOk()
       .waitForGradleProjectSyncToStart()
@@ -65,9 +62,7 @@ public class GradleRenameModuleTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath("MultiModule", "library")
-      .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
-      .selectRenameModule()
-      .clickOk()
+      .openFromMenu(RenameModuleDialogFixture::find, "Refactor", "Rename...")
       .enterText("newLibrary")
       .clickOk();
 
@@ -103,9 +98,7 @@ public class GradleRenameModuleTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath("MultiModule", "app")
-      .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
-      .selectRenameModule()
-      .clickOk()
+      .openFromMenu(RenameModuleDialogFixture::find, "Refactor", "Rename...")
       .enterText("library2")
       .clickOkAndRequireError("Module named 'library2' already exist")
       .clickCancel();
