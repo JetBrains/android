@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
+import com.android.tools.idea.npw.project.ChooseAndroidProjectStep;
 import com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.base.Preconditions;
@@ -69,7 +71,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
   @Nullable/*No adapter has been instantiated*/ private IdeaWizardAdapter myWizardAdapter;
 
   @Override
-  public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
+  public void setupRootModel(ModifiableRootModel modifiableRootModel) {
     // Unused. See class header.
   }
 
@@ -160,7 +162,12 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
 
     ModelWizard.Builder builder = new ModelWizard.Builder();
     if (type == WizardType.PROJECT) {
-      builder.addStep(new ConfigureAndroidProjectStep(new NewProjectModel()));
+      if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+        builder.addStep(new ChooseAndroidProjectStep(new NewProjectModel()));
+      }
+      else {
+        builder.addStep(new ConfigureAndroidProjectStep(new NewProjectModel()));
+      }
     }
     else {
       ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
