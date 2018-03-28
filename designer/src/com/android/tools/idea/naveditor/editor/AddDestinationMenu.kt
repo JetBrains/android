@@ -117,7 +117,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private var loadingPanel: JBLoadingPanel = JBLoadingPanel(BorderLayout(), surface)
 
   @VisibleForTesting
-  var mySearchField = SearchTextField()
+  var searchField = SearchTextField()
 
   private var _mainPanel: JPanel? = null
 
@@ -136,12 +136,14 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     val facet = surface.model!!.facet
     notificationManager.addListener(listener, facet, null, null)
     Disposer.register(surface, Disposable { notificationManager.removeListener(listener, facet, null, null) })
+    // leading space is required so text doesn't overlap magnifying glass
+    searchField.textEditor.emptyText.text = "   Search existing destinations"
   }
 
   private fun createSelectionPanel(): JPanel {
     val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
 
-    listModel.setFilter { destination -> destination.label.toLowerCase().contains(mySearchField.text.toLowerCase()) }
+    listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
     @Suppress("UNCHECKED_CAST")
     destinationsList = object : JBList<Destination>(listModel as ListModel<Destination>) {
       override fun locationToIndex(location: Point): Int {
@@ -184,7 +186,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     val result = AdtSecondaryPanel(VerticalLayout(5))
     destinationsList.background = result.background
-    result.add(mySearchField)
+    result.add(searchField)
 
     val action: AnAction = object : AnAction("Create blank destination") {
       override fun actionPerformed(e: AnActionEvent?) {
@@ -195,7 +197,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     val buttonPanel = AdtSecondaryPanel(BorderLayout())
     buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 7), DottedBorder(JBUI.emptyInsets(), NavColorSet.FRAME_COLOR))
     buttonPanel.add(blankDestinationButton, BorderLayout.CENTER)
-    mySearchField.addDocumentListener(
+    searchField.addDocumentListener(
         object : DocumentAdapter() {
           override fun textChanged(e: DocumentEvent) {
             listModel.refilter()

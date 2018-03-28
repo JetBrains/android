@@ -96,7 +96,7 @@ class AddDestinationMenuTest : NavTestCase() {
 
   fun testFiltering() {
     val gallery = menu.destinationsList
-    val searchField = menu.mySearchField
+    val searchField = menu.searchField
 
     assertEquals(3, gallery.itemsCount)
     assertEquals("activity_main2", (gallery.model.getElementAt(0) as Destination).label)
