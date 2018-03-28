@@ -209,18 +209,18 @@ public class ThemeSelectorTest {
     TableCell parentCell = row(0).column(0);
     assertEquals("android:Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
-    EditorFixture editor = guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab").getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor().switchToTab("styles.xml");
     assertThat(editor.getCurrentFileContents()).contains("name=\"AppTheme");
     editor.moveBetween("", "name=\"NewTheme");
     assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"NewTheme\" parent=\"android:Theme.Holo\" />");
 
     // Tests Undo
+    editor.switchToTab("Theme Editor");
+    themeEditor.focus(); // so that menu actions are available
     guiTest.ideFrame()
-      .invokeMenuPath("Window", "Editor Tabs", "Select Next Tab")
       .invokeMenuPath("Edit", "Undo Create new style NewTheme");
     themeEditor.waitForThemeSelection("AppTheme");
-    guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    editor.switchToTab("styles.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"NewTheme");
   }
 
